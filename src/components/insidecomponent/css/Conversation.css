@@ -1,0 +1,70 @@
+#div_convo{
+    width: 100%;
+    height: 100%;
+}
+
+#tbl_convo{
+    background: grey;
+    width: 100%;
+}
+
+#header_convo{
+    text-align: left;
+}
+
+#name_ind{
+    padding-left: 30px;
+}
+
+#bottom_lay{
+    position: absolute;
+    bottom: 0;
+    /*background: red;*/
+    width: calc(100% - 605px);
+    text-align: left;
+    height: 100px;
+
+}
+
+#message{
+    height: 70%;
+    width: 100%;
+}
+
+#send_message{
+    margin-left: 10px;
+    width: 90%;
+    height: 50px;
+}
+
+#mss{
+    /*background: green;*/
+    width: 100%;
+    height: calc(100% - 170px);
+    overflow-y: scroll;
+}
+
+#tbl_mss{
+    width: 100%;
+    height: 100%;
+    padding: 0px 20px 0px 20px
+}
+
+.carrier{
+    /*background: yellow;*/
+    width: 100%;
+    height: 100%;
+    text-align: left;
+}
+
+.data{
+    width: 200px;
+    height: auto;
+    padding: 10px 10px 10px 10px;
+    border-radius: 20px;
+}
+
+#person{
+    border-radius: 80px;
+    margin-left: 20px;
+}
