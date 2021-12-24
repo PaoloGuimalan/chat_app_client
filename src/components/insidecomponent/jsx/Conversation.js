@@ -13,14 +13,20 @@ function Conversation({user}) {
     const [convo, setConvo] = useState([]);
     const [txt, setTxt] = useState("");
     const [Recc, setRec] = useState(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
+    const [conid_ver, setconid_ver] = useState("");
 
     useEffect(() => {
         Axios.get(`http://192.168.137.1:5000/conversation/${conid}`).then((response) => {
             //console.log(response.data.map(cc => cc.conversation_id.split("&").reverse().join("")));
             //console.log(response.data.length);
             //const reversed = conid.split(/(&)/).reverse().join("");
+            const made_id = response.data.splice(0, 1).map(cc => cc.conversation_id).join("");
                 setConvo(response.data);
                 setRec(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
+                //setconid_ver(convo.conversation_id[0]);
+                setconid_ver(made_id === "" ? conid : made_id);
+                //console.log(conid_ver);
+                //console.log(made_id === "" ? conid : made_id)
             //console.log(reversed);
         })
     },[convo]);
@@ -28,7 +34,7 @@ function Conversation({user}) {
     const send_provider = () => {
         //alert(Recc);
         Axios.post('http://192.168.137.1:5000/sendto', {
-            id: conid,
+            id: conid_ver,
             txt: txt,
             from: user,
             to: Recc
