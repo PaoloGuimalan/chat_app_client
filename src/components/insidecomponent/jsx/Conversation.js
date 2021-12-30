@@ -40,11 +40,11 @@ function Conversation({user}) {
             to: Recc
         }).then((response) => {
             console.log("Okay");
-            document.getElementById('message').value = "";
-            setTxt("");
         }).catch((err) => {
             console.log(err);
         });
+        document.getElementById('message').value = "";
+        setTxt("");
     }
 
     return (

@@ -1,9 +1,10 @@
 import React from 'react'
 import '../css/Login.css';
-import {Link, Routes, Route, useNavigate} from 'react-router-dom';
-import {useState} from 'react';
+import {Link, Routes, Route, useNavigate, useLocation} from 'react-router-dom';
+import {useState, useEffect} from 'react';
 import Axios from 'axios';
 import Home from './Home';
+import Cookies from 'js-cookie';
 
 function Login() {
 
@@ -13,6 +14,32 @@ function Login() {
     const [password, setPassword] = useState("");
     const [logged, setLogged] = useState(false);
     const [username, setUsername] = useState("");
+
+    const loc = useLocation();
+
+    const CookieRead = () => {
+        const ID = Cookies.get("userID");
+        //const loc = useLocation();
+        if(ID){
+            setUsername(ID);
+            setLogged(true);
+            //console.log(loc.pathname.split("/").length);
+            if(loc.pathname.split("/").length === 2)
+            {
+                navigate("/home/");
+            }
+            //navigate("/home/");
+        }
+        else{
+            setUsername("");
+            setLogged(false);
+            //console.log(loc.pathname.split("/")[1].length);
+        }
+    }
+
+    useEffect(() => {
+        CookieRead();
+    });
 
     //const [user, setUser] = useState([]);
 
@@ -25,9 +52,11 @@ function Login() {
                 //console.log(logged);
                 if(email !== "" && password !== ""){
                     if(subs.email === email && subs.password === password){
-                        setLogged(!logged);
+                        //setLogged(!logged);
                         setUsername(subs.username);
                         navigate("/home/");
+                        Cookies.set("userID", subs.username);
+                        //console.log(Cookies.get('userID'));
                         //console.log(user);
                     }
                     else{

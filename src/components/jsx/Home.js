@@ -8,6 +8,7 @@ import Messages from '../insidecomponent/jsx/Messages';
 import Conversation from '../insidecomponent/jsx/Conversation';
 import Contacts from '../insidecomponent/jsx/Contacts';
 import Notifications from '../insidecomponent/jsx/Notifications';
+import Cookies from 'js-cookie';
 
 function Home({username, authorized}) {
 
@@ -16,6 +17,11 @@ function Home({username, authorized}) {
     const [Auth, setAuth] = useState(authorized);
 
     const [messages, setMessages] = useState(false);
+
+    const logoutCookie = () => {
+        Cookies.remove("userID");
+        navigate("/");
+    }
 
     if(Auth != true){
         navigate("/");
@@ -64,7 +70,7 @@ function Home({username, authorized}) {
                                 </tr>
                                 <tr className='tr_navs'>
                                     <td>
-                                        <button className='links' onClick={() => {navigate("/")}}>Logout</button>
+                                        <button className='links' onClick={() => {logoutCookie()}}>Logout</button>
                                     </td>
                                 </tr>
                             </tbody>
