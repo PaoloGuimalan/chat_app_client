@@ -55,7 +55,7 @@ function Login() {
                         //setLogged(!logged);
                         setUsername(subs.username);
                         navigate("/home/");
-                        Cookies.set("userID", subs.username);
+                        Cookies.set("userID", subs.username, { expires: 7 });
                         //console.log(Cookies.get('userID'));
                         //console.log(user);
                     }
