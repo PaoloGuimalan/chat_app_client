@@ -28,7 +28,7 @@ ul{
 #li_one{
     max-width: 300px;
     width: calc(100% - 300px);
-    min-width: 70px;
+    min-width: 60px;
     border-right: solid 1px grey;
 }
 
