@@ -107,6 +107,10 @@ ul{
         margin-right: auto;
     }
 
+    #li_one{
+        width: auto;
+    }
+
     #li_two{
         display: none;
     }
