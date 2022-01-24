@@ -28,7 +28,7 @@ ul{
 #li_one{
     max-width: 300px;
     width: calc(100% - 300px);
-    min-width: 100px;
+    min-width: 70px;
     border-right: solid 1px grey;
 }
 
@@ -105,5 +105,13 @@ ul{
         font-family:Arial, Helvetica, sans-serif;
         margin-left: auto;
         margin-right: auto;
+    }
+
+    #li_two{
+        display: none;
+    }
+
+    #li_three{
+        width: 100%;
     }
 }

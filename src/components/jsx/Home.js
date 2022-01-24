@@ -1,7 +1,7 @@
 import React from 'react'
 import '../css/Home.css'
 import {Link, Routes, Route, useNavigate} from 'react-router-dom';
-import {useState} from 'react';
+import {useState, useEffect} from 'react';
 import Axios from 'axios';
 import imgperson from '../imgs/person-icon.png';
 import Messages from '../insidecomponent/jsx/Messages';
@@ -15,6 +15,7 @@ function Home({username, authorized}) {
     let navigate = useNavigate();
 
     const [Auth, setAuth] = useState(authorized);
+    const [width, setWidth] = useState(0);
 
     const [messages, setMessages] = useState(false);
 
@@ -22,6 +23,11 @@ function Home({username, authorized}) {
         Cookies.remove("userID");
         navigate("/");
     }
+
+    useEffect(() => {
+      setWidth(window.innerWidth);
+    }, [window.innerWidth]);
+    
 
     if(Auth != true){
         navigate("/");
@@ -84,11 +90,17 @@ function Home({username, authorized}) {
                     </Routes>
                 </li>
                 <li id='li_three'>
-                    <Routes>
+                    {width < 720 ? <Routes>
                         <Route path='/messages/:conid' element={<Conversation user={username}/>}/>
                         <Route path='/contacts/:conid' element={<Conversation user={username}/>}/>
                         <Route path='/notifications' element={<Notifications user={username}/>}/>
-                    </Routes>
+                        <Route path='/messages/*' element={<Messages username={username} authorized={Auth} />}/>
+                        <Route path='/contacts/*' element={<Contacts username={username} authorized={Auth} />}/>
+                    </Routes> : <Routes>
+                        <Route path='/messages/:conid' element={<Conversation user={username}/>}/>
+                        <Route path='/contacts/:conid' element={<Conversation user={username}/>}/>
+                        <Route path='/notifications' element={<Notifications user={username}/>}/>
+                    </Routes>}
                 </li>
             </ul>
         </div>
