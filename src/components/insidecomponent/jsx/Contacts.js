@@ -15,7 +15,7 @@ function Contacts({username}) {
     let navigate = useNavigate();
 
     const Add_Contact = async () => {
-        Axios.post('http://localhost:5000/addcontact', {usern: field, user: username}).then( async (response) => {
+        Axios.post('https://chatappnode187.herokuapp.com/addcontact', {usern: field, user: username}).then( async (response) => {
             alert(response.data);
                 var today = new Date();
                 var dd = String(today.getDate()).padStart(2, '0');
@@ -27,7 +27,7 @@ function Contacts({username}) {
                 const desc_me = `You have added ${field} in your contacts.`;
                 const desc_to = `${username} have added you in his/her contacts`;
 
-            await Axios.post('http://localhost:5000/tonotif', {
+            await Axios.post('https://chatappnode187.herokuapp.com/tonotif', {
                 desco: desc_me, 
                 desct: desc_to,
                 usero: username,
@@ -44,7 +44,7 @@ function Contacts({username}) {
     }
 
     useEffect(() => {
-        Axios.get(`http://localhost:5000/contact/${username}`).then((response) => {
+        Axios.get(`https://chatappnode187.herokuapp.com/contact/${username}`).then((response) => {
             //console.log(response.data);
             setList(response.data);
         }).catch((err) => {

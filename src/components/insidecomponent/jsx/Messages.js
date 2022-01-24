@@ -13,7 +13,7 @@ function Messages({username}) {
     let navigate = useNavigate();
 
     useEffect(async () => {
-        await Axios.get(`http://localhost:5000/messages/${username}`).then((response) => {
+        await Axios.get(`https://chatappnode187.herokuapp.com/messages/${username}`).then((response) => {
             //console.log(response.data);
             setPreviews(response.data);
         })

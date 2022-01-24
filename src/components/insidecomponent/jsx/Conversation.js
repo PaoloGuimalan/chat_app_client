@@ -18,7 +18,7 @@ function Conversation ({user}) {
     const [rdr, setRdr] = useState(false);
 
     useEffect(async () => {
-        await Axios.get(`http://localhost:5000/conversation/${conid}`).then( async (response) => {
+        await Axios.get(`https://chatappnode187.herokuapp.com/conversation/${conid}`).then( async (response) => {
             //console.log(response.data.map(cc => cc.conversation_id.split("&").reverse().join("")));
             //console.log(response.data.length);
             //const reversed = conid.split(/(&)/).reverse().join("");
@@ -46,7 +46,7 @@ function Conversation ({user}) {
     const send_provider = async () => {
         //alert(Recc);
         setTxt("");
-        await Axios.post('http://localhost:5000/sendto', {
+        await Axios.post('https://chatappnode187.herokuapp.com/sendto', {
             id: conid_ver,
             txt: txt,
             from: user,
