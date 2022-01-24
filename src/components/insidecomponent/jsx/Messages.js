@@ -12,21 +12,21 @@ function Messages({username}) {
 
     let navigate = useNavigate();
 
-    useEffect(() => {
-        Axios.get(`http://192.168.137.1:5000/messages/${username}`).then((response) => {
+    useEffect(async () => {
+        await Axios.get(`http://localhost:5000/messages/${username}`).then((response) => {
             //console.log(response.data);
             setPreviews(response.data);
         })
     },[previews]);
 
-    const prompting = (conversation) => {
+    const prompting = async (conversation) => {
         //alert(conversation);
-        navigate(`/home/messages/${conversation}`);
+        await navigate(`/home/messages/${conversation}`);
     }
 
     return (
         <div id='div_messages'>
-            <h3>Messages</h3>
+            <h3 id='h3_label_m'>Messages</h3>
 
             <table id='table_container'>
                 <tbody>

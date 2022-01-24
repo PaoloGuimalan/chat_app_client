@@ -45,7 +45,7 @@ function Login() {
 
     const login_trigger = () => {
         //console.log("HEllo");
-        Axios.post(`http://192.168.137.1:5000/userlogin`, {email: email, password: password}).then((response) => {
+        Axios.post(`http://localhost:5000/userlogin`, {email: email, password: password}).then((response) => {
             //console.log(response.data);
             //setUser(response.data);
             response.data.map(subs => {
@@ -66,6 +66,7 @@ function Login() {
             })
         }).catch((err) => {
             alert(err);
+            console.log(err)
         });
     };
 

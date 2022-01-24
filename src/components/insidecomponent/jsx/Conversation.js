@@ -5,8 +5,9 @@ import '../css/Conversation.css'
 import Axios from 'axios';
 import {motion} from 'framer-motion';
 import imgperson from '../../imgs/person-icon.png';
+import ScrollToBottom from 'react-scroll-to-bottom'
 
-function Conversation({user}) {
+function Conversation ({user}) {
     const { conid } = useParams();
     let navigate = useNavigate();
 
@@ -14,26 +15,38 @@ function Conversation({user}) {
     const [txt, setTxt] = useState("");
     const [Recc, setRec] = useState(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
     const [conid_ver, setconid_ver] = useState("");
+    const [rdr, setRdr] = useState(false);
 
-    useEffect(() => {
-        Axios.get(`http://192.168.137.1:5000/conversation/${conid}`).then((response) => {
+    useEffect(async () => {
+        await Axios.get(`http://localhost:5000/conversation/${conid}`).then( async (response) => {
             //console.log(response.data.map(cc => cc.conversation_id.split("&").reverse().join("")));
             //console.log(response.data.length);
             //const reversed = conid.split(/(&)/).reverse().join("");
-            const made_id = response.data.splice(0, 1).map(cc => cc.conversation_id).join("");
-                setConvo(response.data);
-                setRec(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
+            const made_id = await response.data.splice(0, 1).map(cc => cc.conversation_id).join("");
+                await setConvo(response.data);
+                await setRec(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
                 //setconid_ver(convo.conversation_id[0]);
-                setconid_ver(made_id === "" ? conid : made_id);
+                await setconid_ver(made_id === "" ? conid : made_id);
                 //console.log(conid_ver);
                 //console.log(made_id === "" ? conid : made_id)
             //console.log(reversed);
         })
     },[convo]);
 
-    const send_provider = () => {
+    useEffect(() => {
+      setRdr(false);
+      setTimeout(() => {
+          setRdr(true);
+          window.scrollTo(0,document.body.scrollHeight);
+      }, 2000)
+    }, [conid]);
+    
+    
+
+    const send_provider = async () => {
         //alert(Recc);
-        Axios.post('http://192.168.137.1:5000/sendto', {
+        setTxt("");
+        await Axios.post('http://localhost:5000/sendto', {
             id: conid_ver,
             txt: txt,
             from: user,
@@ -43,8 +56,14 @@ function Conversation({user}) {
         }).catch((err) => {
             console.log(err);
         });
-        document.getElementById('message').value = "";
-        setTxt("");
+        // document.getElementById('message').value = "";
+        // console.log(document.getElementById("mss").scrollHeight);
+    }
+
+    const scroller = () => {
+        setTimeout(() => {
+            document.getElementById("mss").scrollTo(100,document.getElementById("mss").scrollHeight)
+        }, 100);
     }
 
     return (
@@ -66,13 +85,20 @@ function Conversation({user}) {
                     <tbody>
                         <tr className='carrier'>
                             <td>
-                                {convo.map((data , i = 1) => {
+                                {rdr ? convo.map((data , i = 1) => {
                                     return <motion.p 
+                                    title={data.who_sent}
                                     initial={
-                                        data.who_sent == user ? {marginLeft: "auto", background: "#0000FF", border: "solid 1px #0000FF", color: "#FFFFFF"} : {marginLeft: 0, background: "#FFFFFF", border: "solid 1px #0000FF", color: "#0000FF"}
+                                        data.who_sent == user ? {scale: 0.1 ,marginLeft: "auto", background: "#0000FF", border: "solid 1px #0000FF", color: "#FFFFFF"} : {scale: 0.1 ,marginLeft: 0, background: "#FFFFFF", border: "solid 1px #0000FF", color: "#0000FF"}
                                     }
+                                    animate={{
+                                        scale: 1,
+                                        transition:{
+                                            duration: 0.2
+                                        }
+                                    }}
                                     className='data' key={i++}>{data.message}</motion.p>
-                                })}
+                                }) : <p>Loading...</p>}
                             </td>
                         </tr>
                     </tbody>
@@ -82,10 +108,10 @@ function Conversation({user}) {
                 <tbody>
                     <tr>
                         <td>
-                            <textarea id='message' name='message' onChange={(event) => {setTxt(event.target.value)}}></textarea>
+                            <textarea id='message' value={txt} name='message' onChange={(event) => {setTxt(event.target.value)}}></textarea>
                         </td>
                         <td>
-                            <button id='send_message' onClick={send_provider}>Send</button>
+                            <button id='send_message' onClick={() => {send_provider().then(scroller())}}>Send</button>
                         </td>
                     </tr>
                 </tbody>

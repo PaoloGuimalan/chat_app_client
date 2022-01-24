@@ -10,7 +10,7 @@ function Notifications({user}) {
     const [notif, setNotifs] = useState([]);
 
     useEffect(() => {
-        Axios.get(`http://192.168.137.1:5000/notifications/${user}`).then((response) => {
+        Axios.get(`http://localhost:5000/notifications/${user}`).then((response) => {
             //console.log(response.data);
             setNotifs(response.data);
         }).catch((err) => {

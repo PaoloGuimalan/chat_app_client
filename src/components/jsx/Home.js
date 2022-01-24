@@ -41,7 +41,7 @@ function Home({username, authorized}) {
                                 </tr>
                                 <tr>
                                     <td>
-                                        <h3>{username}</h3>
+                                        <h3 id='h3_label'>{username}</h3>
                                     </td>
                                 </tr>
                             </tbody>

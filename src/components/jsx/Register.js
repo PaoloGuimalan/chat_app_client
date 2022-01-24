@@ -11,7 +11,7 @@ function Register() {
     const [password, setPassword] = useState("");
 
     const register_cred = () => {
-       Axios.post('http://192.168.137.1:5000/userregister', {
+       Axios.post('http://localhost:5000/userregister', {
             username: username,
             email: email,
             password: password

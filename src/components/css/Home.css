@@ -13,8 +13,9 @@ ul{
 }
 
 #image{
-    width: 200px;
-    height: 200px;
+    max-width: 200px;
+    max-height: 200px;
+    width: 100%;
     border: solid 1px grey;
     border-radius: 250px;
     margin-top: 10px;
@@ -25,18 +26,23 @@ ul{
 }
 
 #li_one{
-    width: 300px;
+    max-width: 300px;
+    width: calc(100% - 300px);
+    min-width: 30px;
     border-right: solid 1px grey;
 }
 
 #li_two{
-    width: 300px;
+    max-width: 300px;
+    width: calc(100% - 300px);
+    min-width: 30px;
     height: 100%;
     background-color: white;
     border-right: solid 1px grey;
 }
 
 #li_three{
+    min-width: 300px;
     width: calc(100% - 600px);
     background-color: white;
 }
@@ -49,15 +55,55 @@ ul{
 
 #navs{
     margin-top: 50px;
-    padding-left: 30px;
-    text-align: left; 
+    text-align: center; 
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    
 }
 
 .links{
     text-decoration: none;
     color: black;
     font-size: 20px;
-    width: 200px;
+    max-width: 200px;
+    width: 100%;
     text-align: left;
     font-family:Arial, Helvetica, sans-serif;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.tr_navs{
+    width: 100%;
+}
+
+@media screen and (max-width: 720px) {
+    #image{
+        max-width: 200px;
+        max-height: 200px;
+        width: 50px;
+        border: solid 1px grey;
+        border-radius: 250px;
+        margin-top: 10px;
+    }
+
+    #h3_label{
+        display: none;
+    }
+
+    .links{
+        text-decoration: none;
+        color: black;
+        font-size: 0px;
+        max-width: 200px;
+        width: 50px;
+        height: 50px;
+        border-radius: 50px;
+        border: solid 1px grey;
+        text-align: left;
+        font-family:Arial, Helvetica, sans-serif;
+        margin-left: auto;
+        margin-right: auto;
+    }
 }
