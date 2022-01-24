@@ -11,7 +11,7 @@ function Register() {
     const [password, setPassword] = useState("");
 
     const register_cred = () => {
-       Axios.post('https://chatappnode187.herokuapp.com/userregister', {
+       Axios.post('http://chatappnode187.herokuapp.com/userregister', {
             username: username,
             email: email,
             password: password
