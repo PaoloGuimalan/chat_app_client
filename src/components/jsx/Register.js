@@ -1,6 +1,6 @@
 import React from 'react'
 import '../css/Register.css';
-import {Link} from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import Axios from 'axios';
 import {useState} from 'react';
 
@@ -9,6 +9,8 @@ function Register() {
     const [username, setUsername] = useState("");
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
+
+    let navigate = useNavigate();
 
     const setterBlank = () => {
         setUsername("");
@@ -27,6 +29,7 @@ function Register() {
                 if(res.registered == true){
                     alert(res.prompt);
                     setterBlank();
+                    navigate("/")
                 }else{
                     alert(res.error);
                 }
