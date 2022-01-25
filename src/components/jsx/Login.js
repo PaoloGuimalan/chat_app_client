@@ -53,9 +53,15 @@ function Login() {
                 if(email !== "" && password !== ""){
                     if(subs.email === email && subs.password === password){
                         //setLogged(!logged);
-                        setUsername(subs.username);
-                        navigate("/home/");
-                        Cookies.set("userID", subs.username, { expires: 7 });
+                        if(subs.logged == true){
+                            alert(subs.message);
+                            setUsername(subs.username);
+                            navigate("/home/");
+                            Cookies.set("userID", subs.username, { expires: 7 });
+                        }
+                        else{
+                            alert(subs.error)
+                        }
                         //console.log(Cookies.get('userID'));
                         //console.log(user);
                     }

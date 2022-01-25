@@ -10,13 +10,27 @@ function Register() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
 
+    const setterBlank = () => {
+        setUsername("");
+        setEmail("");
+        setPassword("");
+    }
+
     const register_cred = () => {
        Axios.post('https://chatappnode187.herokuapp.com/userregister', {
             username: username,
             email: email,
             password: password
         }).then((response) => {
-            console.log("Success");
+            // console.log("Success");
+            response.data.map(res => {
+                if(res.registered == true){
+                    alert(res.prompt);
+                    setterBlank();
+                }else{
+                    alert(res.error);
+                }
+            })
         }).catch(function (error){
             console.log(error);
         })
