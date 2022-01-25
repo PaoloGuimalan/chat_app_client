@@ -85,7 +85,7 @@ function Contacts({username}) {
                             {loader ? list.map((res, i = 1) => {
                                 return <motion.p whileHover={{scale: 1.1}} transition={{duration: 0.1}} 
                                 onClick={() => {message_openner(username+"&"+res.list_from)}} className='contact_items' key={i++}>{res.list_from}</motion.p>
-                            }):<p>Loading...</p>}
+                            }) : <p>Loading...</p>}
                         </td>
                     </tr>
                 </tbody>

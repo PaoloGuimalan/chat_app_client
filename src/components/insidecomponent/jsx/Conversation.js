@@ -63,7 +63,7 @@ function Conversation ({user}) {
 
     const scroller = () => {
         setTimeout(() => {
-            document.getElementById("mss").scrollTo(100,document.getElementById("mss").scrollHeight)
+            document.getElementById("mss").scrollTo(0,document.getElementById("mss").scrollHeight)
         }, 100);
     }
 
