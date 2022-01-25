@@ -11,6 +11,7 @@ function Contacts({username}) {
 
     const [field, setField] = useState("");
     const [list, setList] = useState([]);
+    const [loader, setloader] = useState(false);
 
     let navigate = useNavigate();
 
@@ -52,6 +53,11 @@ function Contacts({username}) {
         })
     }, [list]);
 
+    useEffect(() => {
+        loader(true);
+    }, []);
+    
+
     const message_openner = (idcon) => {
         navigate(`/home/contacts/${idcon}`);
     }
@@ -76,10 +82,10 @@ function Contacts({username}) {
                 <tbody>
                     <tr>
                         <td>
-                            {list.map((res, i = 1) => {
+                            {loader? list.map((res, i = 1) => {
                                 return <motion.p whileHover={{scale: 1.1}} transition={{duration: 0.1}} 
                                 onClick={() => {message_openner(username+"&"+res.list_from)}} className='contact_items' key={i++}>{res.list_from}</motion.p>
-                            })}
+                            }):<p>Loading...</p>}
                         </td>
                     </tr>
                 </tbody>
