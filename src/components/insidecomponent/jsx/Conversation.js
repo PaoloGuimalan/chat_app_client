@@ -53,6 +53,7 @@ function Conversation ({user}) {
             to: Recc
         }).then((response) => {
             console.log("Okay");
+            scroller();
         }).catch((err) => {
             console.log(err);
         });
@@ -111,7 +112,7 @@ function Conversation ({user}) {
                             <textarea id='message' value={txt} name='message' onChange={(event) => {setTxt(event.target.value)}}></textarea>
                         </td>
                         <td>
-                            <button id='send_message' onClick={() => {send_provider().then(scroller())}}>Send</button>
+                            <button id='send_message' onClick={() => {send_provider()}}>Send</button>
                         </td>
                     </tr>
                 </tbody>
