@@ -10,7 +10,7 @@ function Notifications({user}) {
     const [notif, setNotifs] = useState([]);
 
     useEffect(() => {
-        Axios.get(`http://localhost:3001/notifications/${user}`).then((response) => {
+        Axios.get(`https://chatappnode187.herokuapp.com/notifications/${user}`).then((response) => {
             //console.log(response.data);
             setNotifs(response.data);
         }).catch((err) => {
