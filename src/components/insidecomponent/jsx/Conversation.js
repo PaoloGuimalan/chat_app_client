@@ -22,9 +22,6 @@ function Conversation ({user}) {
 
     useEffect(async () => {
         await Axios.get(`https://chatappnode187.herokuapp.com/conversation/${conid}`).then( async (response) => {
-            //console.log(response.data.map(cc => cc.conversation_id.split("&").reverse().join("")));
-            //console.log(response.data.length);
-            //const reversed = conid.split(/(&)/).reverse().join("");
             const made_id = await response.data.splice(0, 1).map(cc => cc.conversation_id).join("");
                 await setConvo(response.data);
                 await setRec(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
@@ -33,10 +30,7 @@ function Conversation ({user}) {
                 const length_one = await response.data.filter((count) => count.who_sent == user ? (count.who_sent) : "");
                 const length_two = await response.data.filter((count) => count.who_sent != user ? (count.who_sent) : "");
                 setmymes(length_one.length);
-                setsendermes(length_two.length)
-                //console.log(conid_ver);
-                //console.log(made_id === "" ? conid : made_id)
-            //console.log(reversed);
+                setsendermes(length_two.length);
         })
     },[convo]);
 
@@ -44,13 +38,17 @@ function Conversation ({user}) {
       setRdr(false);
       setTimeout(() => {
           setRdr(true);
-        //   window.scrollTo(0,document.body.scrollHeight);
-        // scroller();
       }, 2000)
     }, [conid]);
+
+    useEffect(() => {
+        setTimeout(() => {
+            scroller(10);
+        }, 2000)
+      }, [conid]);
     
     useEffect(() => {
-      scroller();
+      scroller(100);
     }, [mymes]);
     
     useEffect(() => {
@@ -77,10 +75,10 @@ function Conversation ({user}) {
         // console.log(document.getElementById("mss").scrollHeight);
     }
 
-    const scroller = () => {
+    const scroller = (valueT) => {
         setTimeout(() => {
             document.getElementById("mss").scrollTo(0,document.getElementById("mss").scrollHeight)
-        }, 100);
+        }, valueT);
     }
 
     return (
@@ -111,7 +109,7 @@ function Conversation ({user}) {
                                     animate={{
                                         scale: 1,
                                         transition:{
-                                            duration: 0.2
+                                            duration: 0.4
                                         }
                                     }}
                                     className='data' key={i++}>{data.message}</motion.p>
