@@ -28,3 +28,37 @@
 .heads{
     width: 100px;
 }
+
+#container_btns_con{
+    height: 100%;
+    width: 200px;
+    /* background-color: black; */
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.btns_con{
+    margin: 5px;
+    margin-top: 10%;
+}
+
+#ul_notifs{
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: row;
+}
+
+@media screen and (max-width: 720px) {
+    #container_btns_con{
+        width: 100%;
+    }
+
+    .btns_con{
+        margin: 5px;
+        margin-top: 0;
+    }
+
+    #li_cont{
+        width: 100%
+    }
+}

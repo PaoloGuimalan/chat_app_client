@@ -7,12 +7,18 @@ import {motion} from 'framer-motion';
 import imgperson from '../../imgs/person-icon.png';
 import ScrollToBottom from 'react-scroll-to-bottom';
 import audiomes from '../../../sounds/bbm_tone.mp3'
+import { useSelector, useDispatch } from 'react-redux';
+import { SET_CONVO } from '../../../redux/actionTypes'
 
 function Conversation ({user}) {
+
+    const getConvo = useSelector(state => state.convo);
+    const dispatch = useDispatch();
+
     const { conid } = useParams();
     let navigate = useNavigate();
 
-    const [convo, setConvo] = useState([]);
+    // const [convo, setConvo] = useState([]);
     const [txt, setTxt] = useState("");
     const [Recc, setRec] = useState(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
     const [conid_ver, setconid_ver] = useState("");
@@ -23,7 +29,8 @@ function Conversation ({user}) {
     useEffect(async () => {
         await Axios.get(`https://chatappnode187.herokuapp.com/conversation/${conid}`).then( async (response) => {
             const made_id = await response.data.splice(0, 1).map(cc => cc.conversation_id).join("");
-            await setConvo(response.data);
+            // await setConvo(response.data);
+            await dispatch({type: SET_CONVO, convo: response.data});
             await setRec(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
             await setconid_ver(made_id === "" ? conid : made_id);
             const length_one = await response.data.filter((count) => count.who_sent == user ? (count.who_sent) : "");
@@ -31,7 +38,7 @@ function Conversation ({user}) {
             setmymes(length_one.length);
             setsendermes(length_two.length);
         })
-    },[convo]);
+    },[getConvo]);
 
     useEffect(() => {
       setRdr(false);
@@ -99,7 +106,7 @@ function Conversation ({user}) {
                     <tbody>
                         <tr className='carrier'>
                             <td>
-                                {rdr ? convo.map((data , i = 1) => {
+                                {rdr ? getConvo.map((data , i = 1) => {
                                     return <motion.p 
                                     title={data.who_sent}
                                     initial={

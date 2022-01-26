@@ -10,7 +10,7 @@ function Notifications({user}) {
     const [notif, setNotifs] = useState([]);
 
     useEffect(() => {
-        Axios.get(`https://chatappnode187.herokuapp.com/notifications/${user}`).then((response) => {
+        Axios.get(`http://localhost:3001/notifications/${user}`).then((response) => {
             //console.log(response.data);
             setNotifs(response.data);
         }).catch((err) => {
@@ -30,19 +30,42 @@ function Notifications({user}) {
                     <tr>
                         <div id='div_under'>
                             {notif.map(nf => {
-                                return <table id='tbl_notifs'>
+                                return nf.notif_type == "contact_receiver" ? (<table id='tbl_notifs'>
                                 <tbody>
-                                    <tr>
-                                        <td>
-                                            <p>{nf.notif_description}</p>
-                                        </td>
-                                        <td className='heads'>
-                                            <p>{nf.notif_date}</p>
-                                        </td>
-                                    </tr>
+                                    <ul id='ul_notifs'>
+                                        <li>
+                                            <tr>
+                                                <td>
+                                                    <p>{nf.notif_description}</p>
+                                                </td>
+                                                <td className='heads'>
+                                                    <p>{nf.notif_date}</p>
+                                                </td>
+                                            </tr>
+                                        </li>
+                                        <li id='li_cont'>
+                                            <div id='container_btns_con'>
+                                                <button className='btns_con'>Confirm</button>
+                                                <button className='btns_con'>Decline</button>
+                                            </div>
+                                        </li>
+                                    </ul>
                                 </tbody>
                             </table>
-                            })}
+                            ) : (<table id='tbl_notifs'>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <p>{nf.notif_description}</p>
+                                    </td>
+                                    <td className='heads'>
+                                        <p>{nf.notif_date}</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        )
+                                })}
                         </div>
                     </tr>
                 </tbody>
