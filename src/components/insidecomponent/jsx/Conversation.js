@@ -23,14 +23,13 @@ function Conversation ({user}) {
     useEffect(async () => {
         await Axios.get(`https://chatappnode187.herokuapp.com/conversation/${conid}`).then( async (response) => {
             const made_id = await response.data.splice(0, 1).map(cc => cc.conversation_id).join("");
-                await setConvo(response.data);
-                await setRec(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
-                //setconid_ver(convo.conversation_id[0]);
-                await setconid_ver(made_id === "" ? conid : made_id);
-                const length_one = await response.data.filter((count) => count.who_sent == user ? (count.who_sent) : "");
-                const length_two = await response.data.filter((count) => count.who_sent != user ? (count.who_sent) : "");
-                setmymes(length_one.length);
-                setsendermes(length_two.length);
+            await setConvo(response.data);
+            await setRec(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
+            await setconid_ver(made_id === "" ? conid : made_id);
+            const length_one = await response.data.filter((count) => count.who_sent == user ? (count.who_sent) : "");
+            const length_two = await response.data.filter((count) => count.who_sent != user ? (count.who_sent) : "");
+            setmymes(length_one.length);
+            setsendermes(length_two.length);
         })
     },[convo]);
 
@@ -121,8 +120,8 @@ function Conversation ({user}) {
             </div>
             <table id='bottom_lay'>
                 <tbody>
-                    <tr>
-                        <td>
+                    <tr id='tr_sender'>
+                        <td id='textarea_td'>
                             <textarea id='message' value={txt} name='message' onChange={(event) => {setTxt(event.target.value)}}></textarea>
                         </td>
                         <td>

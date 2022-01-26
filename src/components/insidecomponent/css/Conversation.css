@@ -70,3 +70,10 @@
     border-radius: 80px;
     margin-left: 20px;
 }
+
+@media screen and (max-width: 720px) {
+    #bottom_lay{
+        width: 85%;
+    }
+}
+
