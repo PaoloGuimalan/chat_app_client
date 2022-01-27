@@ -39,22 +39,14 @@ function Home({username, authorized}) {
     },[getConvoHome]);
 
     useEffect( async () => {
-        await triggeraudio()
+        await triggeraudio();
     }, [count]);
     
 
-    const triggeraudio = () => {
+    const triggeraudio = async () => {
         let audio = await new Audio(notifaudio);
         await audio.play();
     }
-
-    useEffect( async () => {
-        const numbering = getConvoHome;
-        if(numbering != getConvoHome){
-            await triggeraudio();
-        }
-    }, [getConvoHome]);
-    
 
     const logoutCookie = () => {
         Cookies.remove("userID");
