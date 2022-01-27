@@ -57,10 +57,10 @@ function Conversation ({user}) {
       scroller(100);
     }, [mymes]);
     
-    useEffect(() => {
-        let audioMessage = new Audio(audiomes);
-        audioMessage.play();
-    }, [sendermes]);
+    // useEffect(() => {
+    //     let audioMessage = new Audio(audiomes);
+    //     audioMessage.play();
+    // }, [sendermes]);
     
 
     const send_provider = async () => {

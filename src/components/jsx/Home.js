@@ -9,6 +9,9 @@ import Conversation from '../insidecomponent/jsx/Conversation';
 import Contacts from '../insidecomponent/jsx/Contacts';
 import Notifications from '../insidecomponent/jsx/Notifications';
 import Cookies from 'js-cookie';
+import notifaudio from '../../sounds/bbm_tone.mp3';
+import { useDispatch, useSelector } from 'react-redux';
+import { SET_CONVO_ALL, COUNTER_CONVO } from '../../redux/actionTypes';
 
 function Home({username, authorized}) {
 
@@ -18,6 +21,40 @@ function Home({username, authorized}) {
     const [width, setWidth] = useState(0);
 
     const [messages, setMessages] = useState(false);
+
+    const getConvoHome = useSelector(state => state.convoWhole);
+    const count = useSelector(state => state.counterConvo);
+    const dispatch = useDispatch();
+
+    useEffect(async () => {
+        await Axios.get(`https://chatappnode187.herokuapp.com/getallconvo/${username}`).then( async (response) => {
+            await dispatch({type: SET_CONVO_ALL, convoCount: response.data});
+            const arr = getConvoHome.map(status => status.convoCount).join();
+            await dispatch({type: COUNTER_CONVO, counterccv: arr});
+            // console.log(count);
+            if (count != arr){
+                await dispatch({type: COUNTER_CONVO, counterccv: arr});
+            }
+        })
+    },[getConvoHome]);
+
+    useEffect( async () => {
+        await triggeraudio()
+    }, [count]);
+    
+
+    const triggeraudio = () => {
+        let audio = new Audio(notifaudio);
+        audio.play();
+    }
+
+    useEffect( async () => {
+        const numbering = getConvoHome;
+        if(numbering != getConvoHome){
+            await triggeraudio();
+        }
+    }, [getConvoHome]);
+    
 
     const logoutCookie = () => {
         Cookies.remove("userID");
