@@ -44,8 +44,8 @@ function Home({username, authorized}) {
     
 
     const triggeraudio = () => {
-        let audio = new Audio(notifaudio);
-        audio.play();
+        let audio = await new Audio(notifaudio);
+        await audio.play();
     }
 
     useEffect( async () => {
