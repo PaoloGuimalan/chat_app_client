@@ -49,3 +49,9 @@
 .btns_post{
     width: 60px;
 }
+
+@media screen and (max-width: 720px) {
+    #post_nav{
+        width: 95%;
+    }
+}
