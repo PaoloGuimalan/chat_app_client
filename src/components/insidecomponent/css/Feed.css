@@ -8,7 +8,7 @@
 
 #post_nav{
     /* background-color: black; */
-    width: 80%;
+    width: 90%;
     margin-left: auto;
     margin-right: auto;
     border-radius: 5px;
@@ -39,7 +39,7 @@
 }
 
 #post_area{
-    width: 100%;
+    width: 90%;
     height: 50px;
     background-color: #e1e1e1;
     color: black;
