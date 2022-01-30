@@ -64,20 +64,23 @@ function Contacts({username}) {
 
     return (
         <div id='div_contacts'>
-            <h3>Contacts</h3>
-            <table id='tbl_contacts'>
-                <tbody>
-                    <tr>
-                        <td>
-                            <input id='addcon' name='addcon' onChange={(event) => {setField(event.target.value)}}/>
-                        </td>
-                        <td>
-                            <button onClick={Add_Contact}>Add Contact</button>
-                        </td>
-                    </tr>
-                </tbody>
-            </table>
-            <h3>List</h3>
+            <div className='tbl_upper'>
+                <h3>Contacts</h3>
+                <table id='tbl_contacts'>
+                    <tbody>
+                        <tr>
+                            <td>
+                                <input id='addcon' name='addcon' onChange={(event) => {setField(event.target.value)}}/>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <button id='addcon_btn' onClick={Add_Contact}>Add Contact</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
             <table id='tbl_contacts'>
                 <tbody>
                     <tr>

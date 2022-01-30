@@ -35,8 +35,8 @@ function Conversation ({user}) {
             await setconid_ver(made_id === "" ? conid : made_id);
             const length_one = await response.data.filter((count) => count.who_sent == user ? (count.who_sent) : "");
             const length_two = await response.data.filter((count) => count.who_sent != user ? (count.who_sent) : "");
-            setmymes(length_one.length);
-            setsendermes(length_two.length);
+            await setmymes(length_one.length);
+            await setsendermes(length_two.length);
         })
     },[getConvo]);
 
@@ -89,7 +89,7 @@ function Conversation ({user}) {
 
     return (
         <div id='div_convo'>
-            <table id='tbl_convo'>
+            {/* <table id='tbl_convo'>
                 <tbody>
                     <tr id='header_convo'>
                         <td style={{width: '70px'}}>
@@ -135,6 +135,68 @@ function Conversation ({user}) {
                             <button id='send_message' onClick={() => {send_provider()}}>Send</button>
                         </td>
                     </tr>
+                </tbody>
+            </table> */}
+            <table id='whole_tbl'>
+                <tbody>
+                <tr>
+                    <td>
+                       <table id='tbl_convo'>
+                            <tbody>
+                                <tr id='header_convo'>
+                                    <td style={{width: '70px'}}>
+                                        <img src={imgperson} alt='profile' width='70px' height='70px' id='person'></img>
+                                    </td>
+                                    <td>
+                                        <h3 id='name_ind'>{rdr ? Recc : "Loading..."}</h3>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </td>
+                </tr>
+                <tr>
+                    <td id='handler_convo'>
+                        <div id='mss'>
+                            <table id='tbl_mss'>
+                                <tbody>
+                                    <tr className='carrier'>
+                                        <td>
+                                            {rdr ? getConvo.map((data , i) => {
+                                                return <motion.p 
+                                                title={data.who_sent}
+                                                initial={
+                                                    data.who_sent == user ? {scale: 0.1 ,marginLeft: "auto", background: "#0000FF", border: "solid 1px #0000FF", color: "#FFFFFF"} : {scale: 0.1 ,marginLeft: 0, background: "#FFFFFF", border: "solid 1px #0000FF", color: "#0000FF"}
+                                                }
+                                                animate={{
+                                                    scale: 1,
+                                                    transition:{
+                                                        duration: 0.4
+                                                    }
+                                                }}
+                                                className='data' key={i}>{data.message}</motion.p>
+                                            }) : <p>Loading...</p>}
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <table id='bottom_lay'>
+                        <tbody>
+                            <tr id='tr_sender'>
+                                <td id='textarea_td'>
+                                    <textarea id='message' value={txt} name='message' onChange={(event) => {setTxt(event.target.value)}}></textarea>
+                                </td>
+                                <td>
+                                    <button id='send_message' onClick={() => {send_provider()}}>Send</button>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </tr>
                 </tbody>
             </table>
         </div>

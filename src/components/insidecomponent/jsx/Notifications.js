@@ -30,8 +30,9 @@ function Notifications({user}) {
                     <tr>
                         <div id='div_under'>
                             {notif.map(nf => {
-                                return nf.notif_type == "contact_receiver" ? (<table id='tbl_notifs'>
-                                <tbody>
+                                return nf.notif_type == "contact_receiver" ? (
+                                <table id='tbl_notifs'>
+                                <tbody id='bodyt'>
                                     <ul id='ul_notifs'>
                                         <li>
                                             <tr>

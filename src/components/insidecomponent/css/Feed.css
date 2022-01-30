@@ -1,0 +1,51 @@
+#div_feed{
+    width: 100%;
+    height: 100%;
+    /* background-color: chocolate; */
+    overflow-y: auto;
+    /* border: solid 1px black; */
+}
+
+#post_nav{
+    /* background-color: black; */
+    width: 80%;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 5px;
+    margin-top: 5px;
+    /* background: linear-gradient(20deg, #db2044, #e233b8); */
+    box-shadow: 0px 0px 5px #7e7e7e;
+    background-color: white;
+    /* border: solid 1px grey; */
+}
+
+#img_handler{
+    width: 40px;
+    height: 40px;
+    border: solid 1px grey;
+    border-radius: 40px;
+    padding: 0;
+}
+
+#tbl_post{
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    margin: 0;
+}
+
+#txt_area_td{
+    width: 70%;
+}
+
+#post_area{
+    width: 90%;
+    height: 50px;
+    background-color: #e1e1e1;
+    color: black;
+    border-radius: 5px;
+}
+
+.btns_post{
+    width: 60px;
+}

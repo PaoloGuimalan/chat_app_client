@@ -8,10 +8,17 @@ import Messages from '../insidecomponent/jsx/Messages';
 import Conversation from '../insidecomponent/jsx/Conversation';
 import Contacts from '../insidecomponent/jsx/Contacts';
 import Notifications from '../insidecomponent/jsx/Notifications';
+import Feed from '../insidecomponent/jsx/Feed';
 import Cookies from 'js-cookie';
 import notifaudio from '../../sounds/bbm_tone.mp3';
 import { useDispatch, useSelector } from 'react-redux';
 import { SET_CONVO_ALL, COUNTER_CONVO } from '../../redux/actionTypes';
+import Search from '@material-ui/icons/Search';
+import { ButtonGroup, Button } from '@material-ui/core';
+import ChatBubbleIcon from '@material-ui/icons/ChatBubbleOutline';
+import Notifs from '@material-ui/icons/NotificationsOutlined';
+import Logout from '@material-ui/icons/ExitToApp';
+import { TextField } from '@material-ui/core';
 
 function Home({username, authorized}) {
 
@@ -53,6 +60,14 @@ function Home({username, authorized}) {
         navigate("/");
     }
 
+    const messagePage = () => {
+        navigate("/home/messages");
+    }
+
+    const notifPage = () => {
+        navigate("/home");
+    }
+
     useEffect(() => {
       setWidth(window.innerWidth);
     }, [window.innerWidth]);
@@ -64,74 +79,50 @@ function Home({username, authorized}) {
 
     return (
         <div id='div_home'>
-            <ul>
-                <li id='li_one'>
-                    <div id='div_one'>
-                        <table id='upper'>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <img src={imgperson} alt='profile' id='image'></img>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td>
-                                        <h3 id='h3_label'>{username}</h3>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        <table id='navs'>
-                            <tbody>
-                                <tr className='tr_navs'>
-                                    <td>
-                                        <button className='links' onClick={()=> {navigate("/home/messages/");}}>Messages</button>
-                                    </td>
-                                </tr>
-                                <tr className='tr_navs'>
-                                    <td>
-                                        <button className='links' onClick={()=> { navigate("/home/contacts/");}}>Contacts</button>
-                                    </td>
-                                </tr>
-                                <tr className='tr_navs'>
-                                    <td>
-                                        <button className='links' onClick={()=> { navigate("/home/notifications/");}}>Notifications</button>
-                                    </td>
-                                </tr>
-                                <tr className='tr_navs'>
-                                    <td>
-                                        <button className='links'>Account</button>
-                                    </td>
-                                </tr>
-                                <tr className='tr_navs'>
-                                    <td>
-                                        <button className='links' onClick={() => {logoutCookie()}}>Logout</button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </li>
-                <li id='li_two'>
-                    <Routes>
-                        <Route path='/messages/*' element={<Messages username={username} authorized={Auth} />}/>
-                        <Route path='/contacts/*' element={<Contacts username={username} authorized={Auth} />}/>
-                    </Routes>
-                </li>
-                <li id='li_three'>
-                    {width < 720 ? <Routes>
-                        <Route path='/messages/:conid' element={<Conversation user={username}/>}/>
-                        <Route path='/contacts/:conid' element={<Conversation user={username}/>}/>
-                        <Route path='/notifications' element={<Notifications user={username}/>}/>
-                        <Route path='/messages/*' element={<Messages username={username} authorized={Auth} />}/>
-                        <Route path='/contacts/*' element={<Contacts username={username} authorized={Auth} />}/>
-                    </Routes> : <Routes>
-                        <Route path='/messages/:conid' element={<Conversation user={username}/>}/>
-                        <Route path='/contacts/:conid' element={<Conversation user={username}/>}/>
-                        <Route path='/notifications' element={<Notifications user={username}/>}/>
-                    </Routes>}
-                </li>
-            </ul>
+            <div id='navbar'>
+                <nav>
+                    <li>
+                        <img id='img_handler' src={imgperson} title={username} />
+                    </li>
+                    <li>
+                        <input type='search' id='search_bar' />
+                    </li>
+                    <li>
+                        <button className='btns_navs' id='btn_child'><Search /></button>
+                    </li>
+                    <li>
+                        <button className='btns_navs' onClick={messagePage}><ChatBubbleIcon /></button>
+                    </li>
+                    <li>
+                        <button className='btns_navs' onClick={notifPage}><Notifs /></button>
+                    </li>
+                    <li>
+                        <button className='btns_navs' onClick={logoutCookie}><Logout /></button>
+                    </li>
+                </nav>
+            </div>
+            <div id='body_home'>
+                <table id='table_home'>
+                    <tbody>
+                        <tr>
+                            <td id='tr_contacts'>
+                                <Contacts username={username} />
+                            </td>
+                            <td id='tr_feed'>
+                                <Feed />
+                            </td>
+                            <td id='tr_notifs'>
+                                <Routes>
+                                    <Route path='/' element={<Notifications user={username} />} />
+                                    <Route path='/messages' element={<Messages username={username} />} />
+                                    <Route path='/contacts/:conid' element={<Conversation user={username} />} />
+                                    <Route path='/messages/:conid' element={<Conversation user={username} />} />
+                                </Routes>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     )
 }
