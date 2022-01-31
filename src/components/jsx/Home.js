@@ -18,6 +18,8 @@ import { ButtonGroup, Button } from '@material-ui/core';
 import ChatBubbleIcon from '@material-ui/icons/ChatBubbleOutline';
 import Notifs from '@material-ui/icons/NotificationsOutlined';
 import Logout from '@material-ui/icons/ExitToApp';
+import HomeIcon from '@material-ui/icons/Home';
+import ContactsIcon from '@material-ui/icons/Contacts';
 import { TextField } from '@material-ui/core';
 
 function Home({username, authorized}) {
@@ -47,7 +49,7 @@ function Home({username, authorized}) {
 
     useEffect(() => {
         setWidth(window.innerWidth);
-        console.log(width);
+        // console.log(width);
       }, [window.innerWidth]);
 
     useEffect( async () => {
@@ -67,6 +69,14 @@ function Home({username, authorized}) {
 
     const messagePage = () => {
         navigate("/home/messages");
+    }
+
+    const contactsPage = () => {
+        navigate(`/home/contacts`);
+    }
+
+    const homePage = () => {
+        navigate("/home");
     }
 
     const notifPage = () => {
@@ -91,7 +101,13 @@ function Home({username, authorized}) {
                         <button className='btns_navs' id='btn_child'><Search /></button>
                     </li>
                     <li>
+                        <button className='btns_navs' onClick={homePage}><HomeIcon /></button>
+                    </li>
+                    <li>
                         <button className='btns_navs' onClick={messagePage}><ChatBubbleIcon /></button>
+                    </li>
+                    <li id='contacts_li_container'>
+                        <button className='btns_navs' onClick={contactsPage}><ContactsIcon /></button>
                     </li>
                     <li>
                         <button className='btns_navs' onClick={notifPage}><Notifs /></button>
@@ -109,7 +125,7 @@ function Home({username, authorized}) {
                         <Route path='/messages' element={<Messages username={username} />} />
                         <Route path='/contacts/:conid' element={<Conversation user={username} />} />
                         <Route path='/messages/:conid' element={<Conversation user={username} />} />
-                        <Route path='/contacts' element={<Contacts user={username} />} />
+                        <Route path='/contacts' element={<Contacts username={username} />} />
                     </Routes>
                 ) : (
                     <table id='table_home'>

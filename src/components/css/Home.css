@@ -92,8 +92,8 @@ nav{
     /* border: solid 1px black; */
     position: fixed;
     left: 50%;
-    margin-left: -200px;
-    width: 400px;
+    margin-left: -250px;
+    width: 500px;
     padding: 5px 5px 3px 10px;
     border-radius: 0px 0px 10px 10px;
     margin-top: 0px;
@@ -125,6 +125,10 @@ nav{
     }
 }
 
+#contacts_li_container{
+    display: none;
+}
+
 
 @media screen and (max-width: 720px) {
     #navbar{
@@ -147,6 +151,10 @@ nav{
 
     #tr_notifs{
         display: none;
+    }
+
+    #contacts_li_container{
+        display: block;
     }
 }
 
