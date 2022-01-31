@@ -29,11 +29,11 @@ function Notifications({user}) {
                     </tr>
                     <tr>
                         <div id='div_under'>
-                            {notif.map(nf => {
+                            {notif.map((nf, i) => {
                                 return nf.notif_type == "contact_receiver" ? (
-                                <table id='tbl_notifs'>
-                                <tbody id='bodyt'>
-                                    <ul id='ul_notifs'>
+                                <table id='tbl_notifs' key={i}>
+                                <tbody id='bodyt' key={i}>
+                                    <ul id='ul_notifs' key={i}>
                                         <li>
                                             <tr>
                                                 <td>
@@ -53,7 +53,7 @@ function Notifications({user}) {
                                     </ul>
                                 </tbody>
                             </table>
-                            ) : (<table id='tbl_notifs'>
+                            ) : (<table id='tbl_notifs' key={i}>
                             <tbody>
                                 <tr>
                                     <td>

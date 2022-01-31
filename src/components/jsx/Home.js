@@ -45,6 +45,11 @@ function Home({username, authorized}) {
         })
     },[getConvoHome]);
 
+    useEffect(() => {
+        setWidth(window.innerWidth);
+        console.log(width);
+      }, [window.innerWidth]);
+
     useEffect( async () => {
         await triggeraudio();
     }, [count]);
@@ -65,13 +70,8 @@ function Home({username, authorized}) {
     }
 
     const notifPage = () => {
-        navigate("/home");
+        width < 720 ? navigate("/home/notifications") : navigate("/home");
     }
-
-    useEffect(() => {
-      setWidth(window.innerWidth);
-    }, [window.innerWidth]);
-    
 
     if(Auth != true){
         navigate("/");
@@ -102,26 +102,38 @@ function Home({username, authorized}) {
                 </nav>
             </div>
             <div id='body_home'>
-                <table id='table_home'>
-                    <tbody>
-                        <tr>
-                            <td id='tr_contacts'>
-                                <Contacts username={username} />
-                            </td>
-                            <td id='tr_feed'>
-                                <Feed />
-                            </td>
-                            <td id='tr_notifs'>
-                                <Routes>
-                                    <Route path='/' element={<Notifications user={username} />} />
-                                    <Route path='/messages' element={<Messages username={username} />} />
-                                    <Route path='/contacts/:conid' element={<Conversation user={username} />} />
-                                    <Route path='/messages/:conid' element={<Conversation user={username} />} />
-                                </Routes>
-                            </td>
-                        </tr>
-                    </tbody>
-                </table>
+                {width < 720 ? (
+                    <Routes>
+                        <Route path='/' element={<Feed />} />
+                        <Route path='/notifications' element={<Notifications user={username} />} />
+                        <Route path='/messages' element={<Messages username={username} />} />
+                        <Route path='/contacts/:conid' element={<Conversation user={username} />} />
+                        <Route path='/messages/:conid' element={<Conversation user={username} />} />
+                        <Route path='/contacts' element={<Contacts user={username} />} />
+                    </Routes>
+                ) : (
+                    <table id='table_home'>
+                        <tbody>
+                            <tr>
+                                <td id='tr_contacts'>
+                                    <Contacts username={username} />
+                                </td>
+                                <td id='tr_feed'>
+                                    <Feed />
+                                </td>
+                                <td id='tr_notifs'>
+                                    <Routes>
+                                        <Route path='/' element={<Notifications user={username} />} />
+                                        <Route path='/notifications' element={<Notifications user={username} />} />
+                                        <Route path='/messages' element={<Messages username={username} />} />
+                                        <Route path='/contacts/:conid' element={<Conversation user={username} />} />
+                                        <Route path='/messages/:conid' element={<Conversation user={username} />} />
+                                    </Routes>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                )}
             </div>
         </div>
     )

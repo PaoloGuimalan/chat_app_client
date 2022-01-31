@@ -4,6 +4,7 @@
     padding-top: 10px;
     overflow-y: auto;
     /* background-color: white; */
+    opacity: 0.9;
 }
 
 #tbl_convo{

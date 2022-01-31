@@ -83,7 +83,9 @@ function Conversation ({user}) {
 
     const scroller = (valueT) => {
         setTimeout(() => {
-            document.getElementById("mss").scrollTo(0,document.getElementById("mss").scrollHeight)
+            if(document.getElementById("mss")){
+                document.getElementById("mss").scrollTo(0,document.getElementById("mss").scrollHeight);
+            }
         }, valueT);
     }
 
