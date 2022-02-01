@@ -18,17 +18,18 @@ function Notifications({user}) {
         })
     }, [notif]);
 
-    return (
-        <div id='div_notifs'>
-            <table id='tbl_main'>
-                <tbody>
-                    <tr>
-                        <td>
-                            <h3>Notifications</h3>
-                        </td>
-                    </tr>
-                    <tr>
-                        <div id='div_under'>
+    const confirmRequest = (id, releaset, releasef) => {
+        // alert(id);
+        Axios.post('https://chatappnode187.herokuapp.com/accept_req', {
+            notif_id: id,
+            release_to: releaset,
+            release_from: releasef
+        }).catch((err) => console.log(err));
+    }
+
+    const DataNotifs = () => {
+        return(
+            <div id='div_under'>
                             {notif.map((nf, i) => {
                                 return nf.notif_type == "contact_receiver" ? (
                                 <table id='tbl_notifs' key={i}>
@@ -45,10 +46,16 @@ function Notifications({user}) {
                                             </tr>
                                         </li>
                                         <li id='li_cont'>
+                                            {nf.notif_status ? (
                                             <div id='container_btns_con'>
-                                                <button className='btns_con'>Confirm</button>
+                                                <p>Request Confirmed</p>
+                                            </div>
+                                            ) : (
+                                            <div id='container_btns_con'>
+                                                <button className='btns_con' onClick={() => {confirmRequest(nf.notif_id, nf.notif_from, user)}}>Confirm</button>
                                                 <button className='btns_con'>Decline</button>
                                             </div>
+                                            )}
                                         </li>
                                     </ul>
                                 </tbody>
@@ -68,6 +75,20 @@ function Notifications({user}) {
                         )
                                 })}
                         </div>
+        )
+    }
+
+    return (
+        <div id='div_notifs'>
+            <table id='tbl_main'>
+                <tbody>
+                    <tr>
+                        <td>
+                            <h3>Notifications</h3>
+                        </td>
+                    </tr>
+                    <tr>
+                        <DataNotifs />
                     </tr>
                 </tbody>
             </table>

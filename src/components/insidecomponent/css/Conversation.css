@@ -76,6 +76,14 @@
     border-radius: 20px;
 }
 
+.dataint{
+    width: 200px;
+    height: auto;
+    margin-bottom: 50px;
+    border-radius: 20px;
+    text-align: center;
+}
+
 #person{
     border-radius: 80px;
     margin-left: 20px;

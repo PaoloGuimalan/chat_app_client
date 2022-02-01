@@ -165,18 +165,33 @@ function Conversation ({user}) {
                                     <tr className='carrier'>
                                         <td>
                                             {rdr ? getConvo.map((data , i) => {
-                                                return <motion.p 
-                                                title={data.who_sent}
-                                                initial={
-                                                    data.who_sent == user ? {scale: 0.1 ,marginLeft: "auto", background: "#0000FF", border: "solid 1px #0000FF", color: "#FFFFFF"} : {scale: 0.1 ,marginLeft: 0, background: "#FFFFFF", border: "solid 1px #0000FF", color: "#0000FF"}
-                                                }
-                                                animate={{
-                                                    scale: 1,
-                                                    transition:{
-                                                        duration: 0.4
+                                                return data.type == "initiator" ? (
+                                                    <motion.p 
+                                                    title={data.who_sent}
+                                                    initial={
+                                                        {scale: 0.1 ,marginLeft: "auto", marginRight: "auto", color: "grey", fontSize: "15px"}
+                                                    }
+                                                    animate={{
+                                                        scale: 1,
+                                                        transition:{
+                                                            duration: 0.4
                                                     }
                                                 }}
-                                                className='data' key={i}>{data.message}</motion.p>
+                                                className='dataint' key={i}>{data.message}</motion.p>
+                                                ) : (
+                                                    <motion.p 
+                                                    title={data.who_sent}
+                                                    initial={
+                                                        data.who_sent == user ? {scale: 0.1 ,marginLeft: "auto", background: "#0000FF", border: "solid 1px #0000FF", color: "#FFFFFF"} : {scale: 0.1 ,marginLeft: 0, background: "#FFFFFF", border: "solid 1px #0000FF", color: "#0000FF"}
+                                                    }
+                                                    animate={{
+                                                        scale: 1,
+                                                        transition:{
+                                                            duration: 0.4
+                                                        }
+                                                    }}
+                                                    className='data' key={i}>{data.message}</motion.p>
+                                                    )
                                             }) : <p>Loading...</p>}
                                         </td>
                                     </tr>
