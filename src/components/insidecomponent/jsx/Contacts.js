@@ -17,28 +17,30 @@ function Contacts({username}) {
 
     const Add_Contact = async () => {
         Axios.post('https://chatappnode187.herokuapp.com/addcontact', {usern: field, user: username}).then( async (response) => {
-            alert(response.data);
-                var today = new Date();
-                var dd = String(today.getDate()).padStart(2, '0');
-                var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-                var yyyy = today.getFullYear();
+            alert(response.data.message);
+                if(response.data.resp == true){
+                        var today = new Date();
+                        var dd = String(today.getDate()).padStart(2, '0');
+                        var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
+                        var yyyy = today.getFullYear();
 
-                today = mm + '/' + dd + '/' + yyyy;
+                        today = mm + '/' + dd + '/' + yyyy;
 
-                const desc_me = `You have sent a contact request to ${field}.`;
-                const desc_to = `${username} have sent a contact request.`;
+                        const desc_me = `You have sent a contact request to ${field}.`;
+                        const desc_to = `${username} have sent a contact request.`;
 
-            await Axios.post('https://chatappnode187.herokuapp.com/tonotif', {
-                desco: desc_me, 
-                desct: desc_to,
-                usero: username,
-                usert: field,
-                notif_type: "contact_request"
-            }).then((response2) => {
-                console.log("Okay");
-            }).catch((error2) => {
-                console.log(error2);
-            })
+                    await Axios.post('https://chatappnode187.herokuapp.com/tonotif', {
+                        desco: desc_me, 
+                        desct: desc_to,
+                        usero: username,
+                        usert: field,
+                        notif_type: "contact_request"
+                    }).then((response2) => {
+                        console.log("Okay");
+                    }).catch((error2) => {
+                        console.log(error2);
+                    })
+                }
         }).catch((error) => {
             console.log(error);
         })
