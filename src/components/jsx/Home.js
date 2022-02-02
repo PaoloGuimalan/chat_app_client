@@ -120,7 +120,7 @@ function Home({username, authorized}) {
             <div id='body_home'>
                 {width < 720 ? (
                     <Routes>
-                        <Route path='/' element={<Feed />} />
+                        <Route path='/' element={<Feed username={username}/>} />
                         <Route path='/notifications' element={<Notifications user={username} />} />
                         <Route path='/messages' element={<Messages username={username} />} />
                         <Route path='/contacts/:conid' element={<Conversation user={username} />} />
@@ -135,7 +135,7 @@ function Home({username, authorized}) {
                                     <Contacts username={username} />
                                 </td>
                                 <td id='tr_feed'>
-                                    <Feed />
+                                    <Feed username={username}/>
                                 </td>
                                 <td id='tr_notifs'>
                                     <Routes>

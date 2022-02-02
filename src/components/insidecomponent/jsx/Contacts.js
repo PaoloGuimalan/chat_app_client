@@ -56,7 +56,10 @@ function Contacts({username}) {
     }, [list]);
 
     useEffect(() => {
-        setloader(true);
+        setloader(false);
+      setTimeout(() => {
+          setloader(true);
+      }, 2000)
     }, []);
     
 
