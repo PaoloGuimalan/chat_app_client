@@ -88,7 +88,21 @@ function Feed({username}) {
                 <tbody>
                   <tr>
                     <td className='img_handlertd'>
-                      <img  id='img_handlerfeed' src={imgpersonfeed} /><p id='feed_username'>{datas.username}</p>
+                      {/* <img  id='img_handlerfeed' src={imgpersonfeed} /> */}
+                      <table>
+                        <tbody>
+                          <tr>
+                            <td>
+                              <img  id='img_handlerfeed' src={imgpersonfeed} />
+                            </td>
+                            <td className='td_det_user'>
+                              <span id='feed_username'>{datas.username}</span>
+                              <br />
+                              <span id='feed_date'>{datas.date}</span>
+                            </td>
+                          </tr>
+                        </tbody>
+                      </table>
                     </td>
                   </tr>
                   <tr>

@@ -93,18 +93,27 @@
     text-align: center justify;
     padding-left: 40px;
     padding-right: 40px;
+    margin-top: 0px;
 }
 
 #feed_username{
-    font-size: 16px;
+    font-size: 15px;
     font-weight: bold;
     text-align: left;
-    padding-left: 75px;
+    padding-left: 0px;
+    float: left;
+    /* background-color: green; */
+}
+
+#feed_date{
+    font-size: 12px;
+    float: left;
+    color: #525252;
 }
 
 #img_handlerfeed{
-    width: 50px;
-    height: 50px;
+    width: 40px;
+    height: 40px;
     border: solid 1px grey;
     border-radius: 40px;
     padding: 0;
@@ -114,6 +123,11 @@
 
 .img_handlertd{
     width: auto;
+    /* background-color: greenyellow; */
+}
+
+.td_det_user{
+    padding-left: 10px;
 }
 
 #logo_post{
