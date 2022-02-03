@@ -11,6 +11,10 @@
     opacity: 0.9;
 }
 
+#label_load{
+    color: white;
+}
+
 #tbl_contacts{
     margin-left: auto;
     margin-right: auto;

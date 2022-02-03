@@ -37,15 +37,16 @@ function Feed({username}) {
   useEffect(() => {
     Axios.get('https://chatappnode187.herokuapp.com/allposts').then((response) => {
       setfeeds(response.data);
+      setloaderfeed(true);
     }).catch((err) => console.log(err));
   }, [feeds]);
   
 
   useEffect(() => {
-    setloaderfeed(false);
-      setTimeout(() => {
-          setloaderfeed(true);
-      }, 2000)
+    // setloaderfeed(false);
+    //   setTimeout(() => {
+    //       setloaderfeed(true);
+    //   }, 2000)
   }, []);
   
 

@@ -50,17 +50,18 @@ function Contacts({username}) {
         Axios.get(`https://chatappnode187.herokuapp.com/contact/${username}`).then((response) => {
             //console.log(response.data);
             setList(response.data);
+            setloader(true);
         }).catch((err) => {
             console.log(err);
         })
     }, [list]);
 
-    useEffect(() => {
-        setloader(false);
-      setTimeout(() => {
-          setloader(true);
-      }, 2000)
-    }, []);
+    // useEffect(() => {
+    //     setloader(false);
+    //   setTimeout(() => {
+    //       setloader(true);
+    //   }, 2000)
+    // }, []);
     
 
     const message_openner = (idcon) => {
@@ -97,7 +98,7 @@ function Contacts({username}) {
                                     ) : (
                                         ""
                                 ))
-                            ) : <p>Loading...</p>}
+                            ) : <p id='label_load'>Loading...</p>}
                         </td>
                     </tr>
                 </tbody>
