@@ -9,10 +9,11 @@ import Conversation from '../insidecomponent/jsx/Conversation';
 import Contacts from '../insidecomponent/jsx/Contacts';
 import Notifications from '../insidecomponent/jsx/Notifications';
 import Feed from '../insidecomponent/jsx/Feed';
+import MapFeed from '../insidecomponent/jsx/MapFeed';
 import Cookies from 'js-cookie';
 import notifaudio from '../../sounds/bbm_tone.mp3';
 import { useDispatch, useSelector } from 'react-redux';
-import { SET_CONVO_ALL, COUNTER_CONVO } from '../../redux/actionTypes';
+import { SET_CONVO_ALL, COUNTER_CONVO, SET_COORDS, SET_FEEDS } from '../../redux/actionTypes';
 import Search from '@material-ui/icons/Search';
 import { ButtonGroup, Button } from '@material-ui/core';
 import ChatBubbleIcon from '@material-ui/icons/ChatBubbleOutline';
@@ -20,6 +21,7 @@ import Notifs from '@material-ui/icons/NotificationsOutlined';
 import Logout from '@material-ui/icons/ExitToApp';
 import HomeIcon from '@material-ui/icons/Home';
 import ContactsIcon from '@material-ui/icons/Contacts';
+import MapIcon from '@material-ui/icons/Map';
 import { TextField } from '@material-ui/core';
 
 function Home({username, authorized}) {
@@ -33,7 +35,26 @@ function Home({username, authorized}) {
 
     const getConvoHome = useSelector(state => state.convoWhole);
     const count = useSelector(state => state.counterConvo);
+    const feeds = useSelector(state => state.feeds);
     const dispatch = useDispatch();
+
+    // const [coordss, setcoordss] = useState([]);
+
+    useEffect(() => {
+        Axios.get('https://chatappnode187.herokuapp.com/allposts').then((response) => {
+          dispatch({type: SET_FEEDS, feeds: response.data});
+        }).catch((err) => console.log(err));
+      }, [feeds]);
+
+    useEffect(() => {
+        if(navigator.geolocation){
+            navigator.geolocation.getCurrentPosition(async function(position) {
+                // await setcoordss([position.coords.latitude, position.coords.longitude]);
+                // console.log(coordss[0]);
+                dispatch({type: SET_COORDS, coords: [position.coords.latitude, position.coords.longitude]})
+            })
+        }
+    }, []);
 
     useEffect(async () => {
         await Axios.get(`https://chatappnode187.herokuapp.com/getallconvo/${username}`).then( async (response) => {
@@ -79,6 +100,10 @@ function Home({username, authorized}) {
         navigate("/home");
     }
 
+    const mapPage = () => {
+        navigate("/home/mapfeed");
+    }
+
     const notifPage = () => {
         width < 720 ? navigate("/home/notifications") : navigate("/home");
     }
@@ -102,6 +127,9 @@ function Home({username, authorized}) {
                     </li>
                     <li>
                         <button className='btns_navs' onClick={homePage}><HomeIcon /></button>
+                    </li>
+                    <li id='map_li_container'>
+                        <button className='btns_navs' onClick={mapPage}><MapIcon /></button>
                     </li>
                     <li>
                         <button className='btns_navs' onClick={messagePage}><ChatBubbleIcon /></button>
@@ -128,27 +156,32 @@ function Home({username, authorized}) {
                         <Route path='/contacts' element={<Contacts username={username} />} />
                     </Routes>
                 ) : (
-                    <table id='table_home'>
-                        <tbody>
-                            <tr>
-                                <td id='tr_contacts'>
-                                    <Contacts username={username} />
-                                </td>
-                                <td id='tr_feed'>
-                                    <Feed username={username}/>
-                                </td>
-                                <td id='tr_notifs'>
-                                    <Routes>
-                                        <Route path='/' element={<Notifications user={username} />} />
-                                        <Route path='/notifications' element={<Notifications user={username} />} />
-                                        <Route path='/messages' element={<Messages username={username} />} />
-                                        <Route path='/contacts/:conid' element={<Conversation user={username} />} />
-                                        <Route path='/messages/:conid' element={<Conversation user={username} />} />
-                                    </Routes>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
+                    <Routes>
+                        <Route path='/*' element={
+                            <table id='table_home'>
+                            <tbody>
+                                <tr>
+                                    <td id='tr_contacts'>
+                                        <Contacts username={username} />
+                                    </td>
+                                    <td id='tr_feed'>
+                                        <Feed username={username}/>
+                                    </td>
+                                    <td id='tr_notifs'>
+                                        <Routes>
+                                            <Route path='/' element={<Notifications user={username} />} />
+                                            <Route path='/notifications' element={<Notifications user={username} />} />
+                                            <Route path='/messages' element={<Messages username={username} />} />
+                                            <Route path='/contacts/:conid' element={<Conversation user={username} />} />
+                                            <Route path='/messages/:conid' element={<Conversation user={username} />} />
+                                        </Routes>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        } />
+                        <Route path='/mapfeed' element={<MapFeed username={username} />} />
+                    </Routes>
                 )}
             </div>
         </div>

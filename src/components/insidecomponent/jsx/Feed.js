@@ -3,6 +3,9 @@ import '../css/Feed.css';
 import imgPerson from '../../imgs/person-icon.png';
 import Submit from '@material-ui/icons/Check';
 import Cancel from '@material-ui/icons/CancelOutlined';
+import Like from '@material-ui/icons/ThumbUp';
+import Comment from '@material-ui/icons/Comment';
+import Share from '@material-ui/icons/Reply';
 import Forum from '@material-ui/icons/ForumRounded';
 import Axios from 'axios';
 import imgpersonfeed from '../../imgs/person-icon.png';
@@ -109,6 +112,18 @@ function Feed({username}) {
                   <tr>
                     <td>
                       <p id='feed_post'>{datas.feed}</p>
+                    </td>
+                  </tr>
+                  <tr>
+                    <td><hr className='hr_styles' /></td>
+                  </tr>
+                  <tr>
+                    <td>
+                      <ul>
+                        <li className='li_feed'><Like /></li>
+                        <li className='li_feed'><Comment /></li>
+                        <li className='li_feed'><Share /></li>
+                      </ul>
                     </td>
                   </tr>
                 </tbody>

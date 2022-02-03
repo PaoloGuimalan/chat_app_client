@@ -111,6 +111,16 @@
     color: #525252;
 }
 
+.hr_styles{
+    width: 95%;
+}
+
+.li_feed{
+    min-width: 100px;
+    width: 32%;
+    max-width: 150px;
+}
+
 #img_handlerfeed{
     width: 40px;
     height: 40px;
