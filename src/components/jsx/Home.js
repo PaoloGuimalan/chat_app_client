@@ -23,6 +23,7 @@ import HomeIcon from '@material-ui/icons/Home';
 import ContactsIcon from '@material-ui/icons/Contacts';
 import MapIcon from '@material-ui/icons/Map';
 import { TextField } from '@material-ui/core';
+import {motion} from 'framer-motion';
 
 function Home({username, authorized}) {
 
@@ -117,7 +118,21 @@ function Home({username, authorized}) {
             <div id='navbar'>
                 <nav>
                     <li>
-                        <img id='img_handler' src={imgperson} title={username} />
+                        <motion.nav 
+                        initial={{
+                            borderRadius: '5px',
+                            cursor: 'pointer'
+                        }}
+                        whileHover={{
+                            backgroundColor: "#b1b1b1"
+                        }}>
+                            <li>
+                                <img id='img_handler' src={imgperson} title={username} />
+                            </li>
+                            <li>
+                                <p id='nav_username'>{username}</p>
+                            </li>
+                        </motion.nav>
                     </li>
                     <li>
                         <input type='search' id='search_bar' />

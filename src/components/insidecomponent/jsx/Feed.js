@@ -92,7 +92,6 @@ function Feed({username}) {
                 <tbody>
                   <tr>
                     <td className='img_handlertd'>
-                      {/* <img  id='img_handlerfeed' src={imgpersonfeed} /> */}
                       <table>
                         <tbody>
                           <tr>
