@@ -37,15 +37,16 @@ function Conversation ({user}) {
             const length_two = await response.data.filter((count) => count.who_sent != user ? (count.who_sent) : "");
             await setmymes(length_one.length);
             await setsendermes(length_two.length);
+            setRdr(true);
         })
     },[getConvo]);
 
-    useEffect(() => {
-      setRdr(false);
-      setTimeout(() => {
-          setRdr(true);
-      }, 2000)
-    }, [conid]);
+    // useEffect(() => {
+    //   setRdr(false);
+    //   setTimeout(() => {
+    //       setRdr(true);
+    //   }, 2000)
+    // }, [conid]);
 
     useEffect(() => {
         setTimeout(() => {
