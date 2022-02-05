@@ -70,7 +70,9 @@
 }
 
 .data{
-    width: 200px;
+    width:fit-content;
+    max-width: 200px;
+    min-width: 50px;
     height: auto;
     padding: 10px 10px 10px 10px;
     border-radius: 20px;
