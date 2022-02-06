@@ -53,12 +53,6 @@ function Conversation ({user}) {
 
     useEffect(() => {
       setRdr(false);
-      if(conid.split("&")[1] == user || conid.split("&")[0] == user){
-        setverifyconvo(true);
-      }
-      else{
-        setverifyconvo(false);
-      }
       setTimeout(() => {
           setRdr(true);
       }, 2000)
