@@ -70,7 +70,7 @@ function Feed({username}) {
                       <tbody>
                         <tr>
                           <td>
-                              <button className='btns_post' onClick={() => postfeed()}><Submit /></button>
+                              <button disabled={post == "" ? true:false} className='btns_post' onClick={() => postfeed()}><Submit /></button>
                           </td>
                         </tr>
                         <tr>

@@ -18,6 +18,7 @@ function Contacts({username}) {
     const Add_Contact = async () => {
         Axios.post('https://chatappnode187.herokuapp.com/addcontact', {usern: field, user: username}).then( async (response) => {
             alert(response.data.message);
+            setField("");
                 if(response.data.resp == true){
                         var today = new Date();
                         var dd = String(today.getDate()).padStart(2, '0');
@@ -76,12 +77,12 @@ function Contacts({username}) {
                     <tbody>
                         <tr>
                             <td>
-                                <input id='addcon' name='addcon' onChange={(event) => {setField(event.target.value)}}/>
+                                <input id='addcon' name='addcon' value={field} onChange={(event) => {setField(event.target.value)}}/>
                             </td>
                         </tr>
                         <tr>
                             <td>
-                                <button id='addcon_btn' onClick={Add_Contact}>Add Contact</button>
+                                <button disabled={field == "" ? true : false} id='addcon_btn' onClick={Add_Contact}>Add Contact</button>
                             </td>
                         </tr>
                     </tbody>
