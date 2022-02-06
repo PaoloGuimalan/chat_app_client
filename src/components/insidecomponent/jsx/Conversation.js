@@ -49,7 +49,7 @@ function Conversation ({user}) {
             }
             // setRdr(true);
         })
-    },[getConvo]);
+    },[getConvo, conid]);
 
     useEffect(() => {
       setRdr(false);
