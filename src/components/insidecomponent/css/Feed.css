@@ -119,6 +119,7 @@
     min-width: 100px;
     width: 32%;
     max-width: 150px;
+    cursor: pointer;
 }
 
 #img_handlerfeed{

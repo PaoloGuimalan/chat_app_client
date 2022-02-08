@@ -16,8 +16,15 @@ function MapContainer(){
     const coordsvals = useSelector(state => state.coordsval);
     const feeds = useSelector(state => state.feeds);
 
+    const [zoom, setzoom] = useState(0);
+
+    function stateZoom(){
+        // console.log(this.getZoom());
+        setzoom(this.getZoom());
+    }
+
     return(
-        <GoogleMap defaultZoom={15} defaultCenter={{ lat: coordsvals[0], lng: coordsvals[1] }}>
+        <GoogleMap onZoomChanged={stateZoom} defaultZoom={15} defaultCenter={{ lat: coordsvals[0], lng: coordsvals[1] }}>
         {feeds.map(dts => (
             <InfoWindow
                 key={dts.post_id}
@@ -27,7 +34,7 @@ function MapContainer(){
                 }}
              >
                  <div className='mapfeed_posts'>
-                    <table className='tbl_posts_feed' key={dts.post_id}>
+                    <table className='tbl_posts_mapfeed' key={dts.post_id}>
                         <tbody>
                             <tr>
                                 <td className='img_handlertd'>

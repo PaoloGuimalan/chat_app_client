@@ -6,6 +6,16 @@
     z-index: 0;
 }
 
+.tbl_posts_mapfeed{
+    /* background-color: green; */
+    margin-left: auto;
+    margin-right: auto;
+    width: 100%;
+    height: 100%;
+    font-family: Arial;
+    font-size: 5px;
+}
+
 .mapfeed_posts{
     width: auto;
 }
@@ -13,3 +23,8 @@
 .storemapper-iw-container{
     opacity: 0.5;
 }
+
+/* .gm-style .gm-style-iw-c {
+    opacity: 0.8;
+    display: none;
+ } */
