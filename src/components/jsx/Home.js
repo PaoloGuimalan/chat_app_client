@@ -135,10 +135,18 @@ function Home({username, authorized}) {
                         </motion.nav>
                     </li>
                     <li>
-                        <input type='search' id='search_bar' />
-                    </li>
-                    <li>
-                        <button className='btns_navs' id='btn_child'><Search /></button>
+                        <table className='tbl_nav_searchbar'>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <input type='search' id='search_bar' />
+                                    </td>
+                                    <td>
+                                        <button className='btns_navs' id='btn_child'><Search /></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </li>
                     <li>
                         <button className='btns_navs' onClick={homePage}><HomeIcon /></button>

@@ -8,7 +8,7 @@
     /* border: solid 1px grey; */
     color: black;
     font-family: Arial;
-    opacity: 0.9;
+    /* opacity: 0.9; */
 }
 
 #label_load{
@@ -63,6 +63,7 @@
     /* background: linear-gradient(20deg, #db2044, #e233b8); */
     background-color: white;
     box-shadow: 0px 0px 5px #7e7e7e;
+    opacity: 0.9;
 }
 
 #addcon{

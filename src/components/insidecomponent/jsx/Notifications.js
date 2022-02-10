@@ -5,6 +5,7 @@ import {useState, useEffect} from 'react';
 import Axios from 'axios';
 import {motion} from 'framer-motion';
 import LoaderIcon from '@material-ui/icons/Sync';
+import imgperson from '../../imgs/person-icon.png';
 
 function Notifications({user}) {
 
@@ -30,54 +31,104 @@ function Notifications({user}) {
         }).catch((err) => console.log(err));
     }
 
+    const NotifContactReq = ({nf, i}) => {
+       if(nf.notif_type == "contact_receiver"){
+            return(
+                <table id='tbl_notifs' key={i}>
+                    <tbody id='bodyt' key={i}>
+                        <ul id='ul_notifs' key={i}>
+                            <li id='li_cont'>
+                                <table className='tbl_content_notifs'>
+                                    <tbody>
+                                        <tr>
+                                            <td>
+                                                <img src={imgperson} className="imgs_notifs"/>
+                                            </td>
+                                            <td>
+                                                <table className="tbls_infos">
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>
+                                                                <p className="descriptions">{nf.notif_description}</p>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>
+                                                                <hr className="lines_between_desc_dates"/>
+                                                                <p className='dates'>{nf.notif_date}</p>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </li>
+                            <li id='li_cont'>
+                                {nf.notif_status ? (
+                                    <div id='container_btns_con'>
+                                        <p className='navigator_when_true'>Request Confirmed</p>
+                                    </div>
+                                ) : (
+                                    <div id='container_btns_con'>
+                                        <button className='btns_con' onClick={() => {confirmRequest(nf.notif_id, nf.notif_from, user)}}>Confirm</button>
+                                        <button className='btns_con'>Decline</button>
+                                    </div>
+                                )}
+                            </li>
+                        </ul>
+                    </tbody>
+                </table>
+            )
+       }
+       else{
+           return(
+            <table id='tbl_notifs' key={i}>
+                <tbody id='bodyt' key={i}>
+                    <ul id='ul_notifs' key={i}>
+                        <li id='li_cont'>
+                            <table className='tbl_content_notifs'>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            <img src={imgperson} className="imgs_notifs"/>
+                                        </td>
+                                        <td>
+                                            <table className="tbls_infos">
+                                                <tbody>
+                                                    <tr>
+                                                        <td>
+                                                            <p className="descriptions">{nf.notif_description}</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>
+                                                            <hr className="lines_between_desc_dates"/>
+                                                            <p className='dates'>{nf.notif_date}</p>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </li>
+                    </ul>
+                </tbody>
+            </table>
+           )
+       }
+    }
+
     const DataNotifs = () => {
         return(
             <div id='div_under'>
-                            {notif.map((nf, i) => {
-                                return nf.notif_type == "contact_receiver" ? (
-                                <table id='tbl_notifs' key={i}>
-                                <tbody id='bodyt' key={i}>
-                                    <ul id='ul_notifs' key={i}>
-                                        <li>
-                                            <tr>
-                                                <td>
-                                                    <p>{nf.notif_description}</p>
-                                                </td>
-                                                <td className='heads'>
-                                                    <p>{nf.notif_date}</p>
-                                                </td>
-                                            </tr>
-                                        </li>
-                                        <li id='li_cont'>
-                                            {nf.notif_status ? (
-                                            <div id='container_btns_con'>
-                                                <p>Request Confirmed</p>
-                                            </div>
-                                            ) : (
-                                            <div id='container_btns_con'>
-                                                <button className='btns_con' onClick={() => {confirmRequest(nf.notif_id, nf.notif_from, user)}}>Confirm</button>
-                                                <button className='btns_con'>Decline</button>
-                                            </div>
-                                            )}
-                                        </li>
-                                    </ul>
-                                </tbody>
-                            </table>
-                            ) : (<table id='tbl_notifs' key={i}>
-                            <tbody>
-                                <tr>
-                                    <td>
-                                        <p>{nf.notif_description}</p>
-                                    </td>
-                                    <td className='heads'>
-                                        <p>{nf.notif_date}</p>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                        )
-                                })}
-                        </div>
+                {notif.map((nf, i) => {
+                    return <NotifContactReq nf={nf} i={i} />
+                })}
+            </div>
         )
     }
 
@@ -94,7 +145,7 @@ function Notifications({user}) {
                         {loader ? <DataNotifs /> : (
                             <motion.div
                             animate={{
-                              rotate: '360deg'
+                              rotate: '-360deg'
                             }}
                             transition={{
                               duration: 1,

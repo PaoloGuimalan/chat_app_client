@@ -102,7 +102,7 @@ function Contacts({username}) {
                                 ))
                             ) : <motion.div
                             animate={{
-                              rotate: '360deg'
+                              rotate: '-360deg'
                             }}
                             transition={{
                               duration: 1,
