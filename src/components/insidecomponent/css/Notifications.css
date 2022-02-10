@@ -31,6 +31,10 @@ ul{
     flex-direction: row;
 }
 
+#label_notif{
+    color: white;
+}
+
 
 #tbl_notifs{
     background: white;

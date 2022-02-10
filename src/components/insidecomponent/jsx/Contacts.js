@@ -6,6 +6,7 @@ import {Link, Routes, Route, useNavigate} from 'react-router-dom';
 import '../css/Conversation.css'
 import Axios from 'axios';
 import {motion} from 'framer-motion';
+import LoaderIcon from '@material-ui/icons/Sync';
 
 function Contacts({username}) {
 
@@ -99,7 +100,15 @@ function Contacts({username}) {
                                     ) : (
                                         ""
                                 ))
-                            ) : <p id='label_load'>Loading...</p>}
+                            ) : <motion.div
+                            animate={{
+                              rotate: '360deg'
+                            }}
+                            transition={{
+                              duration: 1,
+                              loop: Infinity
+                            }}
+                            id='logo_spinner_contact'><LoaderIcon id='logo_post_contact' /></motion.div>}
                         </td>
                     </tr>
                 </tbody>

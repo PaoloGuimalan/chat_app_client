@@ -4,15 +4,18 @@ import { useParams, useNavigate} from 'react-router-dom'
 import {useState, useEffect} from 'react';
 import Axios from 'axios';
 import {motion} from 'framer-motion';
+import LoaderIcon from '@material-ui/icons/Sync';
 
 function Notifications({user}) {
 
     const [notif, setNotifs] = useState([]);
+    const [loader, setloader] = useState(false);
 
     useEffect(() => {
         Axios.get(`https://chatappnode187.herokuapp.com/notifications/${user}`).then((response) => {
             //console.log(response.data);
             setNotifs(response.data);
+            setloader(true);
         }).catch((err) => {
             console.log(err);
         })
@@ -84,11 +87,21 @@ function Notifications({user}) {
                 <tbody>
                     <tr>
                         <td>
-                            <h3>Notifications</h3>
+                            <h3 id='label_notif'>Notifications</h3>
                         </td>
                     </tr>
                     <tr>
-                        <DataNotifs />
+                        {loader ? <DataNotifs /> : (
+                            <motion.div
+                            animate={{
+                              rotate: '360deg'
+                            }}
+                            transition={{
+                              duration: 1,
+                              loop: Infinity
+                            }}
+                            id='logo_spinner_contact'><LoaderIcon id='logo_post_contact' /></motion.div>
+                        )}
                     </tr>
                 </tbody>
             </table>

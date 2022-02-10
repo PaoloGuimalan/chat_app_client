@@ -36,6 +36,16 @@
     color: rgb(87, 86, 86);
 }
 
+#h3_label_m{
+    color: white;
+    /* background-color: white; */
+    width: 90%;
+    /* height: 40px; */
+    /* border-radius: 5px; */
+    margin-left: auto;
+    margin-right: auto;
+}
+
 /* @media screen and (max-width: 720px) {
     .openner{
         border: solid 1px grey;

@@ -4,8 +4,9 @@
     position: absolute;
     /* background: linear-gradient(20deg, #ff4ba7, #ffda64); */
     /* background-color: #301934; */
-    /* background-color: #e1e1e1;*/
-    background: url('../imgs/bg_chatterbox.jpg');
+    /* background-color: #e1e1e1; */
+    background: url('../imgs/bgimg.jpg');
+    /* background-color: red; */
     background-position: center;
     background-size: cover;
     background-repeat: no-repeat;

@@ -27,37 +27,30 @@ function Conversation ({user}) {
     const [sendermes, setsendermes] = useState(0);
     const [verifyconvo, setverifyconvo] = useState(false);
 
+    const responseFunc = async (response) => {
+        // console.log(true);
+        await setverifyconvo(true);
+        const made_id = await response.data.result.splice(0, 1).map(cc => cc.conversation_id).join("");
+        // await setConvo(response.data);
+        await dispatch({type: SET_CONVO, convo: response.data.result});
+        await setRec(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
+        await setconid_ver(made_id === "" ? conid : made_id);
+        const length_one = await response.data.result.filter((count) => count.who_sent == user ? (count.who_sent) : "");
+        const length_two = await response.data.result.filter((count) => count.who_sent != user ? (count.who_sent) : "");
+        await setmymes(length_one.length);
+        await setsendermes(length_two.length);
+        // console.log(conid.split("&")[1])
+    }
+
     useEffect(async () => {
         await Axios.get(`https://chatappnode187.herokuapp.com/conversation/${conid}`).then( async (response) => {
             if(conid.split("&")[1] == user || conid.split("&")[0] == user){
                 if(response.data.convodata == true){
                     if(conid.split("&")[1] == user && conid.split("&")[0] != user){
-                        // console.log(true);
-                        await setverifyconvo(true);
-                        const made_id = await response.data.result.splice(0, 1).map(cc => cc.conversation_id).join("");
-                        // await setConvo(response.data);
-                        await dispatch({type: SET_CONVO, convo: response.data.result});
-                        await setRec(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
-                        await setconid_ver(made_id === "" ? conid : made_id);
-                        const length_one = await response.data.result.filter((count) => count.who_sent == user ? (count.who_sent) : "");
-                        const length_two = await response.data.result.filter((count) => count.who_sent != user ? (count.who_sent) : "");
-                        await setmymes(length_one.length);
-                        await setsendermes(length_two.length);
-                        // console.log(conid.split("&")[1])
+                        await responseFunc(response);
                     }
                     else if(conid.split("&")[0] == user && conid.split("&")[1] != user){
-                        // console.log(true);
-                        await setverifyconvo(true);
-                        const made_id = await response.data.result.splice(0, 1).map(cc => cc.conversation_id).join("");
-                        // await setConvo(response.data);
-                        await dispatch({type: SET_CONVO, convo: response.data.result});
-                        await setRec(user == conid.split("&")[1]? conid.split("&")[0] : conid.split("&")[1]);
-                        await setconid_ver(made_id === "" ? conid : made_id);
-                        const length_one = await response.data.result.filter((count) => count.who_sent == user ? (count.who_sent) : "");
-                        const length_two = await response.data.result.filter((count) => count.who_sent != user ? (count.who_sent) : "");
-                        await setmymes(length_one.length);
-                        await setsendermes(length_two.length);
-                        // console.log(conid.split("&")[1])
+                        await responseFunc(response);
                     }
                     else{
                         await setverifyconvo(false);

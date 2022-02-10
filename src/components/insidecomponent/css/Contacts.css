@@ -15,6 +15,21 @@
     color: white;
 }
 
+#logo_post_contact{
+    font-size: 40px;
+    color: #7e7e7e;
+}
+
+#logo_spinner_contact{
+    background-color: white;
+    box-shadow: 0px 0px 5px #7e7e7e;
+    width: 40px;
+    height: 40px;
+    margin-left: auto;
+    margin-right: auto;
+    border-radius: 70px;
+}
+
 #tbl_contacts{
     margin-left: auto;
     margin-right: auto;

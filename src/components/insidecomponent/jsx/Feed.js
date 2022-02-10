@@ -7,8 +7,10 @@ import Like from '@material-ui/icons/ThumbUp';
 import Comment from '@material-ui/icons/Comment';
 import Share from '@material-ui/icons/Reply';
 import Forum from '@material-ui/icons/ForumRounded';
+import LoaderIcon from '@material-ui/icons/Sync';
 import Axios from 'axios';
 import imgpersonfeed from '../../imgs/person-icon.png';
+import { motion } from 'framer-motion';
 
 function Feed({username}) {
 
@@ -135,12 +137,20 @@ function Feed({username}) {
               <tbody>
                 <tr>
                   <td>
-                    <Forum id='logo_post' />
+                    <motion.div
+                     animate={{
+                       rotate: '360deg'
+                     }}
+                     transition={{
+                       duration: 1,
+                       loop: Infinity
+                     }}
+                     id='logo_spinner'><LoaderIcon id='logo_post' /></motion.div>
                   </td>
                 </tr>
                 <tr>
                   <td>
-                    <p id='label_no_post'>No Posts Yet.</p>
+                    <p id='label_no_post'></p>
                   </td>
                 </tr>
               </tbody>
