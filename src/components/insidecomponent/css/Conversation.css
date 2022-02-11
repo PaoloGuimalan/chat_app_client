@@ -27,6 +27,45 @@
 #user_status{
     margin: 0;
     font-size: 13px;
+    /* color: rgb(185, 185, 185); */
+}
+
+#status_user{
+    width: 7px;
+    height: 7px;
+    margin-right: 5px;
+    border-radius: 7px;
+    background-color: rgb(185, 185, 185);
+    border: solid 1px white;
+    display: inline-block;
+}
+
+#active_user{
+    width: 7px;
+    height: 7px;
+    margin-right: 5px;
+    border-radius: 7px;
+    background-color: lime;
+    border: solid 1px white;
+    display: inline-block;
+}
+
+#non_active_user{
+    width: 7px;
+    height: 7px;
+    margin-right: 5px;
+    border-radius: 7px;
+    background-color: rgb(185, 185, 185);
+    border: solid 1px white;
+    display: inline-block;
+}
+
+#active_label{
+    color: lime;
+}
+
+#non_active_label{
+    color: rgb(185, 185, 185);
 }
 
 #bottom_lay{

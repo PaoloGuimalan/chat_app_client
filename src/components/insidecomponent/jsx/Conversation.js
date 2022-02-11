@@ -26,6 +26,9 @@ function Conversation ({user}) {
     const [mymes, setmymes] = useState(0);
     const [sendermes, setsendermes] = useState(0);
     const [verifyconvo, setverifyconvo] = useState(false);
+    const [initiatorload, setinitiatorload] = useState(false);
+    const [contactstatus, setcontactstatus] = useState([]);
+    const [userstatus, setuserstatus] = useState("Offline");
 
     const responseFunc = async (response) => {
         // console.log(true);
@@ -42,15 +45,25 @@ function Conversation ({user}) {
         // console.log(conid.split("&")[1])
     }
 
+    const statusBringer = async (contact) => {
+        await Axios.get(`https://chatappnode187.herokuapp.com/userstatus/${contact}`).then((response) => {
+            setcontactstatus(response.data);
+            response.data.map(status => setuserstatus(status.onlineStatus));
+            // console.log(userstatus);
+        });
+    }    
+
     useEffect(async () => {
         await Axios.get(`https://chatappnode187.herokuapp.com/conversation/${conid}`).then( async (response) => {
             if(conid.split("&")[1] == user || conid.split("&")[0] == user){
                 if(response.data.convodata == true){
                     if(conid.split("&")[1] == user && conid.split("&")[0] != user){
                         await responseFunc(response);
+                        await statusBringer(conid.split("&")[0])
                     }
                     else if(conid.split("&")[0] == user && conid.split("&")[1] != user){
                         await responseFunc(response);
+                        await statusBringer(conid.split("&")[1])
                     }
                     else{
                         await setverifyconvo(false);
@@ -80,6 +93,7 @@ function Conversation ({user}) {
       setRdr(false);
       setTimeout(() => {
           setRdr(true);
+        //   console.log(getConvo.length);
       }, 2000)
     }, [conid]);
 
@@ -147,7 +161,7 @@ function Conversation ({user}) {
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <p id='user_status'>{rdr ? verifyconvo ? "Offline" : "" : ""}</p>
+                                                        <p id='user_status'>{rdr ? verifyconvo ? (<span><span id={userstatus == "Online" ? "active_user" : "non_active_user"}></span><span id={userstatus == "Online" ? "active_label" : "non_active_label"}>{userstatus}</span></span>) : "" : ""}</p>
                                                     </td>
                                                 </tr>
                                             </tbody>

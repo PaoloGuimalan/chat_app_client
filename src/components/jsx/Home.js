@@ -13,7 +13,7 @@ import MapFeed from '../insidecomponent/jsx/MapFeed';
 import Cookies from 'js-cookie';
 import notifaudio from '../../sounds/bbm_tone.mp3';
 import { useDispatch, useSelector } from 'react-redux';
-import { SET_CONVO_ALL, COUNTER_CONVO, SET_COORDS, SET_FEEDS } from '../../redux/actionTypes';
+import { SET_CONVO_ALL, COUNTER_CONVO, SET_COORDS, SET_FEEDS, SET_ID } from '../../redux/actionTypes';
 import Search from '@material-ui/icons/Search';
 import { ButtonGroup, Button } from '@material-ui/core';
 import ChatBubbleIcon from '@material-ui/icons/ChatBubbleOutline';
@@ -24,6 +24,8 @@ import ContactsIcon from '@material-ui/icons/Contacts';
 import MapIcon from '@material-ui/icons/Map';
 import { TextField } from '@material-ui/core';
 import {motion} from 'framer-motion';
+import '../../socket/clientsocket';
+
 
 function Home({username, authorized}) {
 
@@ -37,6 +39,7 @@ function Home({username, authorized}) {
     const getConvoHome = useSelector(state => state.convoWhole);
     const count = useSelector(state => state.counterConvo);
     const feeds = useSelector(state => state.feeds);
+    const id = useSelector(state => state.id.userID);
     const dispatch = useDispatch();
 
     // const [coordss, setcoordss] = useState([]);
@@ -44,17 +47,19 @@ function Home({username, authorized}) {
     useEffect(() => {
         Axios.get('https://chatappnode187.herokuapp.com/allposts').then((response) => {
           dispatch({type: SET_FEEDS, feeds: response.data});
+        //   console.log(id);
         }).catch((err) => console.log(err));
       }, [feeds]);
 
     useEffect(() => {
-        if(navigator.geolocation){
-            navigator.geolocation.getCurrentPosition(async function(position) {
-                // await setcoordss([position.coords.latitude, position.coords.longitude]);
-                // console.log(coordss[0]);
-                dispatch({type: SET_COORDS, coords: [position.coords.latitude, position.coords.longitude]})
-            })
-        }
+        // if(navigator.geolocation){
+        //     navigator.geolocation.getCurrentPosition(async function(position) {
+        //         // await setcoordss([position.coords.latitude, position.coords.longitude]);
+        //         // console.log(coordss[0]);
+        //         dispatch({type: SET_COORDS, coords: [position.coords.latitude, position.coords.longitude]})
+        //     })
+        // }
+        dispatch({type: SET_ID, userID: username});
     }, []);
 
     useEffect(async () => {
@@ -86,6 +91,7 @@ function Home({username, authorized}) {
 
     const logoutCookie = () => {
         Cookies.remove("userID");
+        dispatch({type: SET_ID, userID: ""});
         navigate("/");
     }
 
