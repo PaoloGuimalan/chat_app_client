@@ -52,13 +52,13 @@ function Home({username, authorized}) {
       }, [feeds]);
 
     useEffect(() => {
-        // if(navigator.geolocation){
-        //     navigator.geolocation.getCurrentPosition(async function(position) {
-        //         // await setcoordss([position.coords.latitude, position.coords.longitude]);
-        //         // console.log(coordss[0]);
-        //         dispatch({type: SET_COORDS, coords: [position.coords.latitude, position.coords.longitude]})
-        //     })
-        // }
+        if(navigator.geolocation){
+            navigator.geolocation.getCurrentPosition(async function(position) {
+                // await setcoordss([position.coords.latitude, position.coords.longitude]);
+                // console.log(coordss[0]);
+                dispatch({type: SET_COORDS, coords: [position.coords.latitude, position.coords.longitude]})
+            })
+        }
         dispatch({type: SET_ID, userID: username});
     }, []);
 
