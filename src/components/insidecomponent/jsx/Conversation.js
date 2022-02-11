@@ -138,7 +138,20 @@ function Conversation ({user}) {
                                         <img src={imgperson} alt='profile' width='70px' height='70px' id='person'></img>
                                     </td>
                                     <td>
-                                        <h3 id='name_ind'>{rdr ? verifyconvo ? Recc : "..." : "Loading..."}</h3>
+                                        <table>
+                                            <tbody>
+                                                <tr>
+                                                    <td>
+                                                        <h3 id='name_ind'>{rdr ? verifyconvo ? Recc : "..." : "Loading..."}</h3>
+                                                    </td>
+                                                </tr>
+                                                <tr>
+                                                    <td>
+                                                        <p id='user_status'>{rdr ? verifyconvo ? "Offline" : "" : ""}</p>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
                                     </td>
                                 </tr>
                             </tbody>
