@@ -68,6 +68,22 @@
     color: rgb(185, 185, 185);
 }
 
+/* #message_right{
+    scale: 0.1 ;
+    margin-left: "auto"; 
+    background: "#0000FF";
+    border: "solid 1px #0000FF";
+    color: "#FFFFFF";
+}
+
+#message_left{
+    scale: 0.1 ;
+    margin-left: 0;
+    background: "#FFFFFF";
+    border: "solid 1px #0000FF";
+    color: "#0000FF";
+} */
+
 #bottom_lay{
     position: relative;
     bottom: 0;
