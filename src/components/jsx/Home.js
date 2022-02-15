@@ -24,7 +24,7 @@ import ContactsIcon from '@material-ui/icons/Contacts';
 import MapIcon from '@material-ui/icons/Map';
 import { TextField } from '@material-ui/core';
 import {motion} from 'framer-motion';
-import '../../socket/clientsocket';
+import socketter from '../../socket/clientsocket';
 
 
 function Home({username, authorized}) {
@@ -73,6 +73,12 @@ function Home({username, authorized}) {
             }
         })
     },[getConvoHome]);
+
+
+    useEffect(() => {
+        socketter(id);
+    }, [id]);
+
 
     useEffect(() => {
         setWidth(window.innerWidth);

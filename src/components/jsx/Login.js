@@ -58,6 +58,10 @@ function Login() {
                             setUsername(subs.username);
                             navigate("/home/");
                             Cookies.set("userID", subs.username, { expires: 7 });
+
+                            Axios.post("https://chatappsocket187.herokuapp.com/cookiesetter", {cookieID: subs.username}).catch((err) => {
+                                console.log(err);
+                            })
                         }
                         else{
                             alert(subs.error)
