@@ -1,7 +1,7 @@
 export const socketter = (userID) => {
   // console.log("Hello!");
 const io = require("socket.io-client");
-const socket = io.connect("localhost:3002/", {
+const socket = io.connect("https://chatappsocket187.herokuapp.com/", {
     withCredentials: true,
     extraHeaders: {
       "my-custom-header": "abcd"
@@ -23,7 +23,7 @@ const socket = io.connect("localhost:3002/", {
 
 export const logoutsocket = (userID) => {
   const io = require("socket.io-client");
-  const socket = io.connect("localhost:3002/", {
+  const socket = io.connect("https://chatappsocket187.herokuapp.com/", {
     withCredentials: true,
     extraHeaders: {
       "my-custom-header": "abcd"
