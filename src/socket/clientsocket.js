@@ -1,9 +1,7 @@
-
-
-const socketter = (userID) => {
+export const socketter = (userID) => {
   // console.log("Hello!");
 const io = require("socket.io-client");
-const socket = io.connect("https://chatappsocket187.herokuapp.com/", {
+const socket = io.connect("localhost:3002/", {
     withCredentials: true,
     extraHeaders: {
       "my-custom-header": "abcd"
@@ -12,7 +10,7 @@ const socket = io.connect("https://chatappsocket187.herokuapp.com/", {
 
 // const socket = io.connect("https://chatappsocket187.herokuapp.com/");
   socket.on("connect", () => {
-    console.log("Connected!");
+    // console.log("Connected!");
     socket.emit("connected", userID);
     // socket.on("return-status", (status) => {
     //   console.log(status);
@@ -20,7 +18,17 @@ const socket = io.connect("https://chatappsocket187.herokuapp.com/", {
     socket.emit("disconnect");
     // socket.disconnect();
 })
-console.log(userID);
+// console.log(userID);
 }
 
-export default socketter;
+export const logoutsocket = (userID) => {
+  const io = require("socket.io-client");
+  const socket = io.connect("localhost:3002/", {
+    withCredentials: true,
+    extraHeaders: {
+      "my-custom-header": "abcd"
+    },
+    'sync disconnect on unload': true, transports : ['websocket'] });
+
+    socket.emit("logout", userID);
+}

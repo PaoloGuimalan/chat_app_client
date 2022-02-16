@@ -24,7 +24,7 @@ import ContactsIcon from '@material-ui/icons/Contacts';
 import MapIcon from '@material-ui/icons/Map';
 import { TextField } from '@material-ui/core';
 import {motion} from 'framer-motion';
-import socketter from '../../socket/clientsocket';
+import {socketter, logoutsocket} from '../../socket/clientsocket';
 
 
 function Home({username, authorized}) {
@@ -99,6 +99,7 @@ function Home({username, authorized}) {
         Cookies.remove("userID");
         dispatch({type: SET_ID, userID: ""});
         navigate("/");
+        logoutsocket(id);
     }
 
     const messagePage = () => {
