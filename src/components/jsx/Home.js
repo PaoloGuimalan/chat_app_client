@@ -13,7 +13,7 @@ import MapFeed from '../insidecomponent/jsx/MapFeed';
 import Cookies from 'js-cookie';
 import notifaudio from '../../sounds/bbm_tone.mp3';
 import { useDispatch, useSelector } from 'react-redux';
-import { SET_CONVO_ALL, COUNTER_CONVO, SET_COORDS, SET_FEEDS, SET_ID } from '../../redux/actionTypes';
+import { SET_CONVO_ALL, COUNTER_CONVO, SET_COORDS, SET_FEEDS, SET_ID, SET_MYSTATUS } from '../../redux/actionTypes';
 import Search from '@material-ui/icons/Search';
 import { ButtonGroup, Button } from '@material-ui/core';
 import ChatBubbleIcon from '@material-ui/icons/ChatBubbleOutline';
@@ -40,6 +40,7 @@ function Home({username, authorized}) {
     const count = useSelector(state => state.counterConvo);
     const feeds = useSelector(state => state.feeds);
     const id = useSelector(state => state.id.userID);
+    const statuscurrent = useSelector(state => state.status.mystatus);
     const dispatch = useDispatch();
 
     // const [coordss, setcoordss] = useState([]);
@@ -50,6 +51,7 @@ function Home({username, authorized}) {
         //   console.log(id);
         }).catch((err) => console.log(err));
       }, [feeds]);
+    
 
     useEffect(() => {
         if(navigator.geolocation){
@@ -61,6 +63,13 @@ function Home({username, authorized}) {
         }
         dispatch({type: SET_ID, userID: username});
     }, []);
+
+    useEffect(() => {
+        Axios.get(`https://chatappnode187.herokuapp.com/mystatus/${id}`).then((response) => {
+          dispatch({type: SET_MYSTATUS, mystatus: response.data.onlineStatus});
+        //   console.log(statuscurrent);
+        }).catch((err) => console.log(err));
+    })
 
     useEffect(async () => {
         await Axios.get(`https://chatappnode187.herokuapp.com/getallconvo/${username}`).then( async (response) => {
@@ -77,7 +86,7 @@ function Home({username, authorized}) {
 
     useEffect(() => {
         socketter(id);
-    }, [id]);
+    }, [id, statuscurrent == "Offline"]);
 
 
     useEffect(() => {

@@ -10,3 +10,5 @@ export const COUNTER_CONVO = 'COUNTER_CONVO'
 
 export const SET_COORDS = 'SET_COORDS'
 export const SET_FEEDS = 'SET_FEEDS'
+
+export const SET_MYSTATUS = 'SET_MYSTATUS';
