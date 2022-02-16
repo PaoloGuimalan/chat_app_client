@@ -29,6 +29,7 @@ function Conversation ({user}) {
     const [initiatorload, setinitiatorload] = useState(false);
     const [contactstatus, setcontactstatus] = useState([]);
     const [userstatus, setuserstatus] = useState("Offline");
+    const [userdatestatus, setuserdatestatus] = useState("Offline");
 
     const responseFunc = async (response) => {
         // console.log(true);
@@ -48,7 +49,7 @@ function Conversation ({user}) {
     const statusBringer = async (contact) => {
         await Axios.get(`https://chatappnode187.herokuapp.com/userstatus/${contact}`).then((response) => {
             setcontactstatus(response.data);
-            response.data.map(status => setuserstatus(status.onlineStatus));
+            response.data.map(status => {setuserstatus(status.onlineStatus); setuserdatestatus(status.offlineStatusDate)});
             // console.log(userstatus);
         });
     }    
@@ -161,7 +162,7 @@ function Conversation ({user}) {
                                                 </tr>
                                                 <tr>
                                                     <td>
-                                                        <p id='user_status'>{rdr ? verifyconvo ? (<span><span id={userstatus == "Online" ? "active_user" : "non_active_user"}></span><span id={userstatus == "Online" ? "active_label" : "non_active_label"}>{userstatus}</span></span>) : "" : ""}</p>
+                                                        <p id='user_status'>{rdr ? verifyconvo ? (<span><span id={userstatus == "Online" ? "active_user" : "non_active_user"}></span><span id={userstatus == "Online" ? "active_label" : "non_active_label"}>{userstatus == "Online" ? userstatus : userdatestatus == "no_appear" ? `${userstatus} - have not been online yet` : `${userstatus} - last seen ${userdatestatus}`}</span></span>) : "" : ""}</p>
                                                     </td>
                                                 </tr>
                                             </tbody>
