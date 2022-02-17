@@ -240,7 +240,7 @@ function Conversation ({user}) {
                                     <textarea id='message' disabled={!verifyconvo} value={txt} name='message' onChange={(event) => {setTxt(event.target.value)}}></textarea>
                                 </td>
                                 <td>
-                                    <button id='send_message' disabled={!verifyconvo} onClick={() => {send_provider()}}><SendBTN /></button>
+                                    <button id='send_message' disabled={!verifyconvo ? !verifyconvo : txt == "" ? verifyconvo : !verifyconvo} onClick={() => {send_provider()}}><SendBTN /></button>
                                 </td>
                             </tr>
                         </tbody>
