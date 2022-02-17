@@ -50,6 +50,7 @@
     margin-right: 5px;
     border-radius: 7px;
     background-color: lime;
+    /* background-color: #64BB6A; */
     border: solid 1px white;
     display: inline-block;
 }
@@ -65,7 +66,8 @@
 }
 
 #active_label{
-    color: lime;
+    /* color:  lime; */
+    color: #99EE99;
 }
 
 #non_active_label{

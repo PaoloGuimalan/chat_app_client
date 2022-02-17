@@ -11,6 +11,8 @@
     background-size: cover;
     background-repeat: no-repeat;
     background-attachment: fixed;
+    /* font-family: 'Raleway', sans-serif; */
+    font-family: 'Roboto', sans-serif;
 }
 
 nav{
