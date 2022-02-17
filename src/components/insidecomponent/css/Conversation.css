@@ -14,6 +14,10 @@
     border-radius: 5px;
 }
 
+#tr_sender{
+    width: 100%;
+}
+
 #header_convo{
     text-align: left;
 }
@@ -170,7 +174,7 @@
 
 @media screen and (max-width: 720px) {
     #bottom_lay{
-        width: 80%;
+        width: 100%;
     }
 
     #div_convo{
