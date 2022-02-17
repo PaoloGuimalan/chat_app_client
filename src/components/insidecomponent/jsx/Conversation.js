@@ -9,6 +9,7 @@ import ScrollToBottom from 'react-scroll-to-bottom';
 import audiomes from '../../../sounds/bbm_tone.mp3'
 import { useSelector, useDispatch } from 'react-redux';
 import { SET_CONVO } from '../../../redux/actionTypes'
+import SendBTN from '@material-ui/icons/Send';
 
 function Conversation ({user}) {
 
@@ -239,7 +240,7 @@ function Conversation ({user}) {
                                     <textarea id='message' disabled={!verifyconvo} value={txt} name='message' onChange={(event) => {setTxt(event.target.value)}}></textarea>
                                 </td>
                                 <td>
-                                    <button id='send_message' disabled={!verifyconvo} onClick={() => {send_provider()}}>Send</button>
+                                    <button id='send_message' disabled={!verifyconvo} onClick={() => {send_provider()}}><SendBTN /></button>
                                 </td>
                             </tr>
                         </tbody>

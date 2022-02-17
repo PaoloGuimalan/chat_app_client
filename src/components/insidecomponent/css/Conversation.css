@@ -99,19 +99,21 @@
 }
 
 #message{
-    height: 50%;
+    height: 47%;
     width: 100%;
     min-width: 100px;
     max-width: 500px;
     max-height: 200px;
-    border-radius: 5px;
+    border-radius: 10px 0px 0px 10px;
     margin-top: 5px;
 }
 
 #send_message{
-    margin-left: 10px;
+    margin-left: 5px;
     width: 90%;
     height: 50px;
+    border-radius: 0px 40px 40px 0px;
+    border: solid 1px grey;
 }
 
 #mss{
