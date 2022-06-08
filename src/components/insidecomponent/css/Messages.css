@@ -36,6 +36,7 @@
 
 .preview_message{
     color: rgb(87, 86, 86);
+    word-wrap: break-word;
 }
 
 #h3_label_m{
