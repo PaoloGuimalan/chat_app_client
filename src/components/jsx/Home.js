@@ -46,11 +46,13 @@ function Home({username, authorized}) {
     // const [coordss, setcoordss] = useState([]);
 
     useEffect(() => {
-        Axios.get('https://chatterloop.onrender.com/allposts').then((response) => {
-          dispatch({type: SET_FEEDS, feeds: response.data});
-        //   console.log(id);
-        }).catch((err) => console.log(err));
-      }, [feeds]);
+        setInterval(() => {
+            Axios.get('https://chatterloop.onrender.com/allposts').then((response) => {
+            dispatch({type: SET_FEEDS, feeds: response.data});
+            //   console.log(id);
+            }).catch((err) => console.log(err));
+        },1000)
+      }, []);
     
 
     useEffect(() => {
@@ -65,28 +67,32 @@ function Home({username, authorized}) {
     }, []);
 
     useEffect(() => {
-        Axios.get(`https://chatterloop.onrender.com/mystatus/${id}`).then((response) => {
-          dispatch({type: SET_MYSTATUS, mystatus: response.data.onlineStatus});
-        //   console.log(statuscurrent);
-        }).catch((err) => console.log(err));
-    })
-
-    useEffect(async () => {
-        await Axios.get(`https://chatterloop.onrender.com/getallconvo/${username}`).then( async (response) => {
-            await dispatch({type: SET_CONVO_ALL, convoCount: response.data});
-            const arr = getConvoHome.map(status => status.convoCount).join();
-            await dispatch({type: COUNTER_CONVO, counterccv: arr});
-            // console.log(count);
-            if (count != arr){
-                await dispatch({type: COUNTER_CONVO, counterccv: arr});
-            }
-        })
-    },[getConvoHome]);
-
+        setInterval(() => {
+            Axios.get(`https://chatterloop.onrender.com/mystatus/${id}`).then((response) => {
+            dispatch({type: SET_MYSTATUS, mystatus: response.data.onlineStatus});
+            //   console.log(statuscurrent);
+            }).catch((err) => console.log(err));
+        },1000)
+    },[])
 
     useEffect(() => {
-        socketter(id);
-    }, [id, statuscurrent == "Offline"]);
+        setInterval(async() => {
+            await Axios.get(`https://chatterloop.onrender.com/getallconvo/${username}`).then( async (response) => {
+                await dispatch({type: SET_CONVO_ALL, convoCount: response.data});
+                const arr = getConvoHome.map(status => status.convoCount).join();
+                await dispatch({type: COUNTER_CONVO, counterccv: arr});
+                // console.log(count);
+                if (count != arr){
+                    await dispatch({type: COUNTER_CONVO, counterccv: arr});
+                }
+            })
+        },1000)
+    },[]);
+
+
+    // useEffect(() => {
+    //     socketter(id);
+    // }, [id, statuscurrent == "Offline"]);
 
 
     useEffect(() => {

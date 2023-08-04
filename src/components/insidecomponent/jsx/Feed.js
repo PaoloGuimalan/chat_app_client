@@ -39,12 +39,12 @@ function Feed({username}) {
     }
   }
 
-  useEffect(() => {
-    Axios.get('https://chatterloop.onrender.com/allposts').then((response) => {
-      setfeeds(response.data);
-      setloaderfeed(true);
-    }).catch((err) => console.log(err));
-  }, [feeds]);
+  // useEffect(() => {
+  //   Axios.get('https://chatterloop.onrender.com/allposts').then((response) => {
+  //     setfeeds(response.data);
+  //     setloaderfeed(true);
+  //   }).catch((err) => console.log(err));
+  // }, [feeds]);
   
 
   useEffect(() => {

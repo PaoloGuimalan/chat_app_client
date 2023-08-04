@@ -14,13 +14,15 @@ function Messages({username}) {
 
     let navigate = useNavigate();
 
-    useEffect(async () => {
-        await Axios.get(`https://chatterloop.onrender.com/messages/${username}`).then((response) => {
-            //console.log(response.data);
-            setPreviews(response.data);
-            setloader(true);
-        })
-    },[previews]);
+    useEffect(() => {
+        setInterval(async () => {
+            await Axios.get(`https://chatterloop.onrender.com/messages/${username}`).then((response) => {
+                //console.log(response.data);
+                setPreviews(response.data);
+                setloader(true);
+            })
+        },1000)
+    },[]);
 
     const prompting = async (conversation) => {
         //alert(conversation);

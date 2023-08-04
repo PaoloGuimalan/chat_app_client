@@ -55,41 +55,43 @@ function Conversation ({user}) {
         });
     }    
 
-    useEffect(async () => {
-        await Axios.get(`https://chatterloop.onrender.com/conversation/${conid}`).then( async (response) => {
-            if(conid.split("&")[1] == user || conid.split("&")[0] == user){
-                if(response.data.convodata == true){
-                    if(conid.split("&")[1] == user && conid.split("&")[0] != user){
-                        await responseFunc(response);
-                        await statusBringer(conid.split("&")[0])
-                    }
-                    else if(conid.split("&")[0] == user && conid.split("&")[1] != user){
-                        await responseFunc(response);
-                        await statusBringer(conid.split("&")[1])
+    useEffect(() => {
+        setInterval(async () => {
+            await Axios.get(`https://chatterloop.onrender.com/conversation/${conid}`).then( async (response) => {
+                if(conid.split("&")[1] == user || conid.split("&")[0] == user){
+                    if(response.data.convodata == true){
+                        if(conid.split("&")[1] == user && conid.split("&")[0] != user){
+                            await responseFunc(response);
+                            await statusBringer(conid.split("&")[0])
+                        }
+                        else if(conid.split("&")[0] == user && conid.split("&")[1] != user){
+                            await responseFunc(response);
+                            await statusBringer(conid.split("&")[1])
+                        }
+                        else{
+                            await setverifyconvo(false);
+                        }
                     }
                     else{
                         await setverifyconvo(false);
                     }
                 }
-                else{
+                else if(conid.split("&")[1] == user && conid.split("&")[0] == user){
+                    // console.log(false);
                     await setverifyconvo(false);
                 }
-            }
-            else if(conid.split("&")[1] == user && conid.split("&")[0] == user){
-                // console.log(false);
-                await setverifyconvo(false);
-            }
-            else if((conid.split("&")[1] == "" && conid.split("&")[0] == "") || (conid.split("&")[1] == "" || conid.split("&")[0] == "")){
-                // console.log(false);
-                await setverifyconvo(false);
-            }
-            else{
-                // console.log(false);
-                await setverifyconvo(false);
-            }
-            // setRdr(true);
-        })
-    },[getConvo, conid]);
+                else if((conid.split("&")[1] == "" && conid.split("&")[0] == "") || (conid.split("&")[1] == "" || conid.split("&")[0] == "")){
+                    // console.log(false);
+                    await setverifyconvo(false);
+                }
+                else{
+                    // console.log(false);
+                    await setverifyconvo(false);
+                }
+                // setRdr(true);
+            })
+        },1000)
+    },[]);
 
     useEffect(() => {
       setRdr(false);
