@@ -17,7 +17,7 @@ function Contacts({username}) {
     let navigate = useNavigate();
 
     const Add_Contact = async () => {
-        Axios.post('https://chatappnode187.herokuapp.com/addcontact', {usern: field, user: username}).then( async (response) => {
+        Axios.post('https://chatterloop.onrender.com/addcontact', {usern: field, user: username}).then( async (response) => {
             alert(response.data.message);
             setField("");
                 if(response.data.resp == true){
@@ -31,7 +31,7 @@ function Contacts({username}) {
                         const desc_me = `You have sent a contact request to ${field}.`;
                         const desc_to = `${username} have sent a contact request.`;
 
-                    await Axios.post('https://chatappnode187.herokuapp.com/tonotif', {
+                    await Axios.post('https://chatterloop.onrender.com/tonotif', {
                         desco: desc_me, 
                         desct: desc_to,
                         usero: username,
@@ -49,7 +49,7 @@ function Contacts({username}) {
     }
 
     useEffect(() => {
-        Axios.get(`https://chatappnode187.herokuapp.com/contact/${username}`).then((response) => {
+        Axios.get(`https://chatterloop.onrender.com/contact/${username}`).then((response) => {
             //console.log(response.data);
             setList(response.data);
             setloader(true);

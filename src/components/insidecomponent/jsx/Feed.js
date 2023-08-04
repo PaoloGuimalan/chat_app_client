@@ -24,7 +24,7 @@ function Feed({username}) {
         // alert(`Lat: ${position.coords.latitude} | Long: ${position.coords.longitude}`);
         if(post != ""){
             setpost("");
-            await Axios.post('https://chatappnode187.herokuapp.com/postfeed', {
+            await Axios.post('https://chatterloop.onrender.com/postfeed', {
               username: username,
               feed: post,
               privacy: "public",
@@ -40,7 +40,7 @@ function Feed({username}) {
   }
 
   useEffect(() => {
-    Axios.get('https://chatappnode187.herokuapp.com/allposts').then((response) => {
+    Axios.get('https://chatterloop.onrender.com/allposts').then((response) => {
       setfeeds(response.data);
       setloaderfeed(true);
     }).catch((err) => console.log(err));

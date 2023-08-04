@@ -13,7 +13,7 @@ function Notifications({user}) {
     const [loader, setloader] = useState(false);
 
     useEffect(() => {
-        Axios.get(`https://chatappnode187.herokuapp.com/notifications/${user}`).then((response) => {
+        Axios.get(`https://chatterloop.onrender.com/notifications/${user}`).then((response) => {
             //console.log(response.data);
             setNotifs(response.data);
             setloader(true);
@@ -24,7 +24,7 @@ function Notifications({user}) {
 
     const confirmRequest = (id, releaset, releasef) => {
         // alert(id);
-        Axios.post('https://chatappnode187.herokuapp.com/accept_req', {
+        Axios.post('https://chatterloop.onrender.com/accept_req', {
             notif_id: id,
             release_to: releaset,
             release_from: releasef

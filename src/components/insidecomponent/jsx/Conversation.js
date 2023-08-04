@@ -48,7 +48,7 @@ function Conversation ({user}) {
     }
 
     const statusBringer = async (contact) => {
-        await Axios.get(`https://chatappnode187.herokuapp.com/userstatus/${contact}`).then((response) => {
+        await Axios.get(`https://chatterloop.onrender.com/userstatus/${contact}`).then((response) => {
             setcontactstatus(response.data);
             response.data.map(status => {setuserstatus(status.onlineStatus); setuserdatestatus(status.offlineStatusDate)});
             // console.log(userstatus);
@@ -56,7 +56,7 @@ function Conversation ({user}) {
     }    
 
     useEffect(async () => {
-        await Axios.get(`https://chatappnode187.herokuapp.com/conversation/${conid}`).then( async (response) => {
+        await Axios.get(`https://chatterloop.onrender.com/conversation/${conid}`).then( async (response) => {
             if(conid.split("&")[1] == user || conid.split("&")[0] == user){
                 if(response.data.convodata == true){
                     if(conid.split("&")[1] == user && conid.split("&")[0] != user){
@@ -119,7 +119,7 @@ function Conversation ({user}) {
         //alert(Recc);
         setTxt("");
         // scroller();
-        await Axios.post('https://chatappnode187.herokuapp.com/sendto', {
+        await Axios.post('https://chatterloop.onrender.com/sendto', {
             id: conid_ver,
             txt: txt,
             from: user,

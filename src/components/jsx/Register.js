@@ -19,7 +19,7 @@ function Register() {
     }
 
     const register_cred = () => {
-       Axios.post('https://chatappnode187.herokuapp.com/userregister', {
+       Axios.post('https://chatterloop.onrender.com/userregister', {
             username: username,
             email: email,
             password: password
