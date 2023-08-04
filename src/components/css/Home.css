@@ -164,7 +164,7 @@ nav{
     margin-top: 80px;
 }
 
-@media screen and (max-width: 1000px) {
+@media screen and (max-width: 3000px) {
     #tr_contacts{
        display: none;
     }

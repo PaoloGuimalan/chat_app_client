@@ -51,7 +51,7 @@ function Home({username, authorized}) {
             dispatch({type: SET_FEEDS, feeds: response.data});
             //   console.log(id);
             }).catch((err) => console.log(err));
-        },1000)
+        },3000)
       }, []);
     
 
@@ -72,7 +72,7 @@ function Home({username, authorized}) {
             dispatch({type: SET_MYSTATUS, mystatus: response.data.onlineStatus});
             //   console.log(statuscurrent);
             }).catch((err) => console.log(err));
-        },1000)
+        },3000)
     },[])
 
     useEffect(() => {
@@ -86,7 +86,7 @@ function Home({username, authorized}) {
                     await dispatch({type: COUNTER_CONVO, counterccv: arr});
                 }
             })
-        },1000)
+        },3000)
     },[]);
 
 

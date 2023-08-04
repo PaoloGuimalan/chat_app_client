@@ -90,7 +90,7 @@ function Conversation ({user}) {
                 }
                 // setRdr(true);
             })
-        },1000)
+        },1500)
     },[]);
 
     useEffect(() => {

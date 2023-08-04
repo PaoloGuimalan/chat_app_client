@@ -21,7 +21,7 @@ function Messages({username}) {
                 setPreviews(response.data);
                 setloader(true);
             })
-        },1000)
+        },1500)
     },[]);
 
     const prompting = async (conversation) => {
