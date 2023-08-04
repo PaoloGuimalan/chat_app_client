@@ -13,14 +13,16 @@ function Notifications({user}) {
     const [loader, setloader] = useState(false);
 
     useEffect(() => {
-        Axios.get(`https://chatterloop.onrender.com/notifications/${user}`).then((response) => {
-            //console.log(response.data);
-            setNotifs(response.data);
-            setloader(true);
-        }).catch((err) => {
-            console.log(err);
-        })
-    }, [notif]);
+        setInterval(() => {
+            Axios.get(`https://chatterloop.onrender.com/notifications/${user}`).then((response) => {
+                //console.log(response.data);
+                setNotifs(response.data);
+                setloader(true);
+            }).catch((err) => {
+                console.log(err);
+            })
+        },3000)
+    }, []);
 
     const confirmRequest = (id, releaset, releasef) => {
         // alert(id);
