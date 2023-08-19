@@ -2,15 +2,22 @@ import logo from './logo.svg';
 import './App.css';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import Login from './components/auth/Login';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Splash from './components/main/Splash';
 import Home from './components/main/Home';
 import Register from './components/auth/Register';
 import Verification from './components/auth/Verification';
+import { useEffect } from 'react';
+import { AuthCheck } from './reusables/hooks/requests';
 
 function App() {
 
   const authentication = useSelector(state => state.authentication)
+  const dispatch = useDispatch()
+
+  useEffect(() => {
+    AuthCheck(authentication, dispatch)
+  },[])
 
   return (
     <div className="App">

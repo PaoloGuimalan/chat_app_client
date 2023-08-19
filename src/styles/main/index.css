@@ -1,0 +1,43 @@
+#div_splash{
+    background-color: transparent;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    user-select: none;
+    gap: 5px;
+}
+
+#div_icon_container{
+    width: 95%;
+    height: 95%;
+    max-width: 300px;
+    max-height: 300px;
+    margin-top: -50px;
+}
+
+#img_icon_splash{
+    width: 100%;
+    height: 100%;
+}
+
+#div_icon_labels{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 7px;
+}
+
+.span_icon_label:first-of-type{
+    font-size: 30px;
+    font-weight: bold;
+    color: rgb(86, 86, 86);
+}
+
+.span_icon_label:last-of-type{
+    font-size: 15px;
+    color: rgb(86, 86, 86);
+}
