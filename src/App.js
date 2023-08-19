@@ -1,23 +1,26 @@
 import logo from './logo.svg';
 import './App.css';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import Login from './components/auth/Login';
+import { useSelector } from 'react-redux';
+import Splash from './components/main/Splash';
+import Home from './components/main/Home';
+import Register from './components/auth/Register';
+import Verification from './components/auth/Verification';
 
 function App() {
+
+  const authentication = useSelector(state => state.authentication)
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Routes>
+        <Route path='/' element={authentication.auth != null? authentication.auth? <Navigate to='/home' /> : <Navigate to='/login' /> : <Splash />} />
+        <Route path='/login' element={authentication.auth != null? authentication.auth? <Navigate to='/home' /> : <Login /> : <Splash />} />
+        <Route path='/register' element={authentication.auth != null? authentication.auth? <Navigate to='/home' /> : <Register /> : <Splash />} />
+        <Route path='/verification' element={authentication.auth != null? authentication.auth? <Navigate to='/home' /> : <Verification /> : <Splash />} />
+        <Route path='/home/*' element={authentication.auth != null? authentication.auth? <Home /> : <Navigate to='/login' /> : <Splash />} />
+      </Routes>
     </div>
   );
 }
