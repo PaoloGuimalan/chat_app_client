@@ -2,7 +2,9 @@ import React from 'react'
 
 function Splash() {
   return (
-    <div>Splash</div>
+    <div className=''>
+      Splash
+    </div>
   )
 }
 
