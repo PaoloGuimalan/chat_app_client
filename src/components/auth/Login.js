@@ -14,10 +14,12 @@ function Login() {
   const dispatch = useDispatch()
 
   const verifyLogin = () => {
-    LoginRequest({
-      email_username: email_username,
-      password: password
-    }, dispatch)
+    if(email_username.trim() != "" && password.trim() != ""){
+      LoginRequest({
+        email_username: email_username,
+        password: password
+      }, dispatch)
+    }
   }
 
   return (
