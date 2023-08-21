@@ -87,7 +87,39 @@ const LoginRequest = (params, dispatch) => {
     })
 }
 
+const RegisterRequest = (params, dispatch) => {
+    const payload = params;
+    const encodedPayload = sign(payload, SECRET)
+
+    Axios.post(`${API}/auth/register`, {
+        token: encodedPayload
+    }).then((response) => {
+        if(response.data.status){
+            localStorage.setItem('authtoken', response.data.result.authtoken)
+            const userData = jwt_decode(response.data.result.usertoken)
+
+            dispatch({ type: SET_AUTHENTICATION, payload: {
+                authentication: {
+                    auth: true,
+                    user: {
+                        userID: userData.userID,
+                        fullName: {
+                            firstName: userData.fullname.firstName,
+                            middleName: userData.fullname.middleName,
+                            lastName: userData.fullname.lastName
+                        },
+                        email: userData.email,
+                        isActivated: userData.isActivated,
+                        isVerified: userData.isVerified
+                    }
+                }
+            }})
+        }
+    })
+}
+
 export {
     AuthCheck,
-    LoginRequest
+    LoginRequest,
+    RegisterRequest
 }
