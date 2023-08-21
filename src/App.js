@@ -22,11 +22,11 @@ function App() {
   return (
     <div className="App">
       <Routes>
-        <Route path='/' element={authentication.auth != null? authentication.auth? <Navigate to='/home' /> : <Navigate to='/login' /> : <Splash />} />
-        <Route path='/login' element={authentication.auth != null? authentication.auth? <Navigate to='/home' /> : <Login /> : <Splash />} />
-        <Route path='/register' element={authentication.auth != null? authentication.auth? <Navigate to='/home' /> : <Register /> : <Splash />} />
-        <Route path='/verification' element={authentication.auth != null? authentication.auth? <Navigate to='/home' /> : <Verification /> : <Splash />} />
-        <Route path='/home/*' element={authentication.auth != null? authentication.auth? <Home /> : <Navigate to='/login' /> : <Splash />} />
+        <Route path='/' element={authentication.auth != null? authentication.auth? authentication.isVerified? <Navigate to='/home' /> : <Navigate to='/verification' /> : <Navigate to='/login' /> : <Splash />} />
+        <Route path='/login' element={authentication.auth != null? authentication.auth? authentication.isVerified? <Navigate to='/home' /> : <Navigate to='/verification' /> : <Login /> : <Splash />} />
+        <Route path='/register' element={authentication.auth != null? authentication.auth? authentication.isVerified? <Navigate to='/home' /> : <Navigate to='/verification' /> : <Register /> : <Splash />} />
+        <Route path='/verification' element={authentication.auth != null? authentication.auth? authentication.isVerified? <Navigate to='/home' /> : <Verification /> : <Navigate to='/login' /> : <Splash />} />
+        <Route path='/home/*' element={authentication.auth != null? authentication.auth? authentication.isVerified? <Home /> : <Navigate to='/verification' /> : <Navigate to='/login' /> : <Splash />} />
       </Routes>
     </div>
   );
