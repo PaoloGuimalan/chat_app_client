@@ -118,8 +118,48 @@ const RegisterRequest = (params, dispatch) => {
     })
 }
 
+const LogoutRequest = (params, dispatch) => {
+    localStorage.removeItem('authtoken')
+    dispatch({ type: SET_AUTHENTICATION, payload: {
+        authentication:{
+            ...authenticationstate,
+            auth: false
+        }
+    }})
+}
+
+const VerifyCodeRequest = (params, dispatch) => {
+    const payload = params;
+    const encodedPayload = sign(payload, SECRET)
+
+    Axios.post(`${API}/auth/emailverify`,{
+        token: encodedPayload
+    },{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            dispatch({ type: SET_AUTHENTICATION, payload: {
+                authentication: {
+                    auth: true,
+                    user:{
+                        ...authenticationstate.user,
+                        isVerified: true
+                    }
+                }
+            }})
+            // console.log(response.data)
+        }
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
-    RegisterRequest
+    RegisterRequest,
+    LogoutRequest,
+    VerifyCodeRequest
 }
