@@ -97,6 +97,102 @@ function Verification() {
           </div>
         </motion.div>
       </motion.div>
+      <motion.div
+      initial={{
+        scale: 0
+      }}
+      animate={{
+        scale: 1
+      }}
+      transition={{
+        delay: 1.2,
+        duration: 1.5
+      }}
+      id='div_bubble_verification1' />
+      <motion.div
+      initial={{
+        scale: 0
+      }}
+      animate={{
+        scale: 1
+      }}
+      transition={{
+        delay: 1.2,
+        duration: 1.5
+      }}
+      id='div_bubble_verification2' />
+      <motion.div
+      initial={{
+        scale: 0
+      }}
+      animate={{
+        scale: 1
+      }}
+      transition={{
+        delay: 1.2,
+        duration: 1.5
+      }}
+      id='div_bubble_verification3' />
+      <motion.div
+      initial={{
+        scale: 0
+      }}
+      animate={{
+        scale: 1
+      }}
+      transition={{
+        delay: 1.2,
+        duration: 1.5
+      }}
+      id='div_bubble_verification4' />
+      <motion.div
+      initial={{
+        scale: 0
+      }}
+      animate={{
+        scale: 1
+      }}
+      transition={{
+        delay: 1.2,
+        duration: 1.5
+      }}
+      id='div_bubble_verification5' />
+      <motion.div
+      initial={{
+        scale: 0
+      }}
+      animate={{
+        scale: 1
+      }}
+      transition={{
+        delay: 1.2,
+        duration: 1.5
+      }}
+      id='div_bubble_verification6' />
+      <motion.div
+      initial={{
+        scale: 0
+      }}
+      animate={{
+        scale: 1
+      }}
+      transition={{
+        delay: 1.2,
+        duration: 1.5
+      }}
+      id='div_bubble_verification7' />
+      <motion.div
+      initial={{
+        scale: 0
+      }}
+      animate={{
+        scale: 1
+      }}
+      transition={{
+        delay: 1.2,
+        duration: 1.5
+      }}
+      id='div_bubble_verification8' />
     </div>
   )
 }

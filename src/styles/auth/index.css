@@ -567,6 +567,86 @@
     cursor: pointer;
 }
 
+#div_bubble_verification1{
+    width: 300px;
+    height: 300px;
+    border-radius: 300px;
+    background-color: #B8B8B8;
+    top: 60px;
+    left: -70px;
+    position: fixed;
+}
+
+#div_bubble_verification2{
+    width: 150px;
+    height: 150px;
+    border-radius: 150px;
+    background-color: #1c7DEF;
+    top: -100px;
+    left: 20px;
+    position: fixed;
+}
+
+#div_bubble_verification3{
+    width: 300px;
+    height: 300px;
+    border-radius: 300px;
+    background-color: #1c7DEF;
+    bottom: -10px;
+    right: -100px;
+    position: fixed;
+}
+
+#div_bubble_verification4{
+    width: 150px;
+    height: 150px;
+    border-radius: 150px;
+    background-color: #B8B8B8;
+    bottom: 290px;
+    right: -80px;
+    position: fixed;
+}
+
+#div_bubble_verification5{
+    width: 60px;
+    height: 60px;
+    border-radius: 80px;
+    background-color: #1c7DEF;
+    top: 140px;
+    right: 90px;
+    position: fixed;
+}
+
+#div_bubble_verification6{
+    width: 170px;
+    height: 170px;
+    border-radius: 150px;
+    background-color: #45EF56;
+    top: 20px;
+    right: -80px;
+    position: fixed;
+}
+
+#div_bubble_verification7{
+    width: 60px;
+    height: 60px;
+    border-radius: 80px;
+    background-color: #1c7DEF;
+    bottom: 90px;
+    left: 180px;
+    position: fixed;
+}
+
+#div_bubble_verification8{
+    width: 170px;
+    height: 170px;
+    border-radius: 150px;
+    background-color: #45EF56;
+    bottom: -70px;
+    left: 50px;
+    position: fixed;
+}
+
 @media screen and (max-width: 720px) {
     #div_register_form{
         display: flex;
