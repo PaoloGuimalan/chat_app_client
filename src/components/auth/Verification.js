@@ -19,7 +19,7 @@ function Verification() {
       if(verificationcode.split("").length == 6){
         VerifyCodeRequest({
           code: verificationcode
-        },dispatch)
+        },dispatch, authentication)
       }
     }
   }

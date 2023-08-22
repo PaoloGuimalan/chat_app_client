@@ -128,7 +128,7 @@ const LogoutRequest = (params, dispatch) => {
     }})
 }
 
-const VerifyCodeRequest = (params, dispatch) => {
+const VerifyCodeRequest = (params, dispatch, currentState) => {
     const payload = params;
     const encodedPayload = sign(payload, SECRET)
 
@@ -144,7 +144,7 @@ const VerifyCodeRequest = (params, dispatch) => {
                 authentication: {
                     auth: true,
                     user:{
-                        ...authenticationstate.user,
+                        ...currentState.user,
                         isVerified: true
                     }
                 }
