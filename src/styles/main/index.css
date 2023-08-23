@@ -169,7 +169,8 @@
     display: flex;
     flex-wrap: wrap;
     flex-direction: row;
-    flex: 1;
+    /* flex: 1; */
+    width: fit-content;
     background-color: transparent;
     height: 100%;
     justify-content: flex-end;
@@ -203,6 +204,16 @@
     #div_home_navigations{
         flex-direction: column;
         gap: 10px;
+    }
+
+    #div_buttons_navigation{
+        flex: 1;
+    }
+
+    #div_home_navigations{
+        width: calc(100% - 20px);
+        max-width: calc(100% - 20px);
+        border-radius: 0px;
     }
 
     /* #div_search_container{

@@ -6,10 +6,12 @@ import { useDispatch, useSelector } from 'react-redux'
 import VerificationInput from 'react-verification-input'
 import { LogoutRequest, VerifyCodeRequest } from '../../reusables/hooks/requests'
 import { checkIfValid } from '../../reusables/hooks/validatevariables'
+import { SET_ALERTS } from '../../redux/types'
 
 function Verification() {
 
   const authentication = useSelector(state => state.authentication)
+  const alerts = useSelector(state => state.alerts)
 
   const [verificationcode, setverificationcode] = useState("")
   const dispatch = useDispatch()
@@ -19,8 +21,32 @@ function Verification() {
       if(verificationcode.split("").length == 6){
         VerifyCodeRequest({
           code: verificationcode
-        },dispatch, authentication)
+        },dispatch, authentication, alerts)
       }
+      else{
+        dispatch({ type: SET_ALERTS, payload:{
+            alerts: [
+              ...alerts,
+              {
+                id: alerts.length,
+                type: "warning",
+                content: "Please complete your verification code."
+              }
+            ]
+        }})
+      }
+    }
+    else{
+      dispatch({ type: SET_ALERTS, payload:{
+        alerts: [
+          ...alerts,
+          {
+            id: alerts.length,
+            type: "warning",
+            content: "Please input your verification code."
+          }
+        ]
+    }})
     }
   }
 

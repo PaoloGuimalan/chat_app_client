@@ -1,5 +1,5 @@
 import Axios from 'axios'
-import { SET_AUTHENTICATION } from '../../redux/types';
+import { SET_ALERTS, SET_AUTHENTICATION } from '../../redux/types';
 import { authenticationstate } from '../../redux/actions/states';
 import sign from 'jwt-encode'
 import jwt_decode from 'jwt-decode'
@@ -51,7 +51,7 @@ const AuthCheck = (params, dispatch) => {
     })
 }
 
-const LoginRequest = (params, dispatch) => {
+const LoginRequest = (params, dispatch, currentAlertState) => {
     const payload = params;
     const encodedPayload = sign(payload, SECRET)
 
@@ -78,16 +78,46 @@ const LoginRequest = (params, dispatch) => {
                     }
                 }
             }})
+            dispatch({ type: SET_ALERTS, payload:{
+                alerts: [
+                  ...currentAlertState,
+                  {
+                    id: currentAlertState.length,
+                    type: "success",
+                    content: "You have been Logged In."
+                  }
+                ]
+            }})
         }
         else{
-            console.log(response.data)
+            dispatch({ type: SET_ALERTS, payload:{
+                alerts: [
+                  ...currentAlertState,
+                  {
+                    id: currentAlertState.length,
+                    type: "warning",
+                    content: response.data.message
+                  }
+                ]
+            }})
+            // console.log(response.data)
         }
     }).catch((err) => {
-        console.log(err)
+        dispatch({ type: SET_ALERTS, payload:{
+            alerts: [
+              ...currentAlertState,
+              {
+                id: currentAlertState.length,
+                type: "error",
+                content: err.message
+              }
+            ]
+        }})
+        // console.log(err)
     })
 }
 
-const RegisterRequest = (params, dispatch) => {
+const RegisterRequest = (params, dispatch, currentAlertState) => {
     const payload = params;
     const encodedPayload = sign(payload, SECRET)
 
@@ -114,7 +144,40 @@ const RegisterRequest = (params, dispatch) => {
                     }
                 }
             }})
+            dispatch({ type: SET_ALERTS, payload:{
+                alerts: [
+                  ...currentAlertState,
+                  {
+                    id: currentAlertState.length,
+                    type: "success",
+                    content: "You have been registered!"
+                  }
+                ]
+            }})
         }
+        else{
+            dispatch({ type: SET_ALERTS, payload:{
+                alerts: [
+                  ...currentAlertState,
+                  {
+                    id: currentAlertState.length,
+                    type: "warning",
+                    content: response.data.message
+                  }
+                ]
+            }})
+        }
+    }).catch((err) => {
+        dispatch({ type: SET_ALERTS, payload:{
+            alerts: [
+              ...currentAlertState,
+              {
+                id: currentAlertState.length,
+                type: "error",
+                content: err.message
+              }
+            ]
+        }})
     })
 }
 
@@ -128,7 +191,7 @@ const LogoutRequest = (params, dispatch) => {
     }})
 }
 
-const VerifyCodeRequest = (params, dispatch, currentState) => {
+const VerifyCodeRequest = (params, dispatch, currentState, currentAlertState) => {
     const payload = params;
     const encodedPayload = sign(payload, SECRET)
 
@@ -149,9 +212,41 @@ const VerifyCodeRequest = (params, dispatch, currentState) => {
                     }
                 }
             }})
+            dispatch({ type: SET_ALERTS, payload:{
+                alerts: [
+                  ...currentAlertState,
+                  {
+                    id: currentAlertState.length,
+                    type: "success",
+                    content: "Your account is now verified."
+                  }
+                ]
+            }})
             // console.log(response.data)
         }
+        else{
+            dispatch({ type: SET_ALERTS, payload:{
+                alerts: [
+                  ...currentAlertState,
+                  {
+                    id: currentAlertState.length,
+                    type: "warning",
+                    content: response.data.message
+                  }
+                ]
+            }})
+        }
     }).catch((err) => {
+        dispatch({ type: SET_ALERTS, payload:{
+            alerts: [
+              ...currentAlertState,
+              {
+                id: currentAlertState.length,
+                type: "error",
+                content: err.message
+              }
+            ]
+        }})
         console.log(err)
     })
 }

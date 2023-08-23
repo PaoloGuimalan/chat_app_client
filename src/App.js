@@ -7,20 +7,38 @@ import Splash from './components/main/Splash';
 import Home from './components/main/Home';
 import Register from './components/auth/Register';
 import Verification from './components/auth/Verification';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { AuthCheck } from './reusables/hooks/requests';
+import Alert from './components/widgets/Alert';
 
 function App() {
 
   const authentication = useSelector(state => state.authentication)
+  const alerts = useSelector(state => state.alerts)
   const dispatch = useDispatch()
+
+  const scrollDivAlerts = useRef(null)
 
   useEffect(() => {
     AuthCheck(authentication, dispatch)
   },[])
 
+  useEffect(() => {
+    const scrollHeight = scrollDivAlerts.current.scrollHeight;
+    const clientHeight = scrollDivAlerts.current.clientHeight;
+    const maxScrollTop = scrollHeight - clientHeight
+    scrollDivAlerts.current.scrollTop = maxScrollTop > 0 ? maxScrollTop : 0;
+  },[alerts, scrollDivAlerts])
+
   return (
     <div className="App">
+      <div id='div_alerts_container' ref={scrollDivAlerts}>
+        {alerts.map((al, i) => {
+          return(
+            <Alert key={i} al={al} />
+          )
+        })}
+      </div>        
       <Routes>
         <Route path='/' element={authentication.auth != null? authentication.auth? authentication.user.isVerified? <Navigate to='/home' /> : <Navigate to='/verification' /> : <Navigate to='/login' /> : <Splash />} />
         <Route path='/login' element={authentication.auth != null? authentication.auth? authentication.user.isVerified? <Navigate to='/home' /> : <Navigate to='/verification' /> : <Login /> : <Splash />} />

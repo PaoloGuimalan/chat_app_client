@@ -4,9 +4,12 @@ import { motion } from 'framer-motion'
 import ChatterLoopImg from '../../assets/imgs/chatterloop.png'
 import { useNavigate } from 'react-router-dom'
 import { LoginRequest } from '../../reusables/hooks/requests'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
+import { SET_ALERTS } from '../../redux/types'
 
 function Login() {
+
+  const alerts = useSelector(state => state.alerts)
 
   const [email_username, setemail_username] = useState("");
   const [password, setpassword] = useState("");
@@ -18,7 +21,19 @@ function Login() {
       LoginRequest({
         email_username: email_username,
         password: password
-      }, dispatch)
+      }, dispatch, alerts)
+    }
+    else{
+      dispatch({ type: SET_ALERTS, payload:{
+        alerts: [
+          ...alerts,
+          {
+            id: alerts.length,
+            type: "warning",
+            content: "Please complete the field."
+          }
+        ]
+      }})
     }
   }
 

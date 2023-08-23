@@ -1,8 +1,9 @@
 import { createStore, combineReducers } from "redux";
-import { setauthentication } from "../actions";
+import { setalerts, setauthentication } from "../actions";
 
 const combiner = combineReducers({
-    authentication: setauthentication
+    authentication: setauthentication,
+    alerts: setalerts
 });
 
 const store = createStore(combiner)

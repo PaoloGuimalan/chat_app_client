@@ -5,11 +5,13 @@ import ChatterLoopImg from '../../assets/imgs/chatterloop.png'
 import { useNavigate } from 'react-router-dom'
 import { getDaysInMonth, monthList, years } from '../../reusables/vars/lists'
 import { RegisterRequest } from '../../reusables/hooks/requests'
-import { useDispatch } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { checkIfValid } from '../../reusables/hooks/validatevariables'
+import { SET_ALERTS } from '../../redux/types'
 
 function Register() {
 
+  const alerts = useSelector(state => state.alerts)
   const dispatch = useDispatch()
   const navigate = useNavigate();
 
@@ -46,8 +48,32 @@ function Register() {
           gender: gender,
           email: email,
           password: password
-        }, dispatch)
+        }, dispatch, alerts)
       }
+      else{
+        dispatch({ type: SET_ALERTS, payload:{
+          alerts: [
+            ...alerts,
+            {
+              id: alerts.length,
+              type: "warning",
+              content: "Please complete the fields."
+            }
+          ]
+        }})
+      }
+    }
+    else{
+      dispatch({ type: SET_ALERTS, payload:{
+        alerts: [
+          ...alerts,
+          {
+            id: alerts.length,
+            type: "warning",
+            content: "Please agree with the Terms and Conditions."
+          }
+        ]
+      }})
     }
   }
 
