@@ -51,7 +51,7 @@ const AuthCheck = (params, dispatch) => {
     })
 }
 
-const LoginRequest = (params, dispatch, currentAlertState) => {
+const LoginRequest = (params, dispatch, currentAlertState, setisWaitingRequest) => {
     const payload = params;
     const encodedPayload = sign(payload, SECRET)
 
@@ -102,6 +102,7 @@ const LoginRequest = (params, dispatch, currentAlertState) => {
             }})
             // console.log(response.data)
         }
+        setisWaitingRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
             alerts: [
@@ -113,11 +114,12 @@ const LoginRequest = (params, dispatch, currentAlertState) => {
               }
             ]
         }})
+        setisWaitingRequest(false)
         // console.log(err)
     })
 }
 
-const RegisterRequest = (params, dispatch, currentAlertState) => {
+const RegisterRequest = (params, dispatch, currentAlertState, setisWaitingRequest) => {
     const payload = params;
     const encodedPayload = sign(payload, SECRET)
 
@@ -167,6 +169,7 @@ const RegisterRequest = (params, dispatch, currentAlertState) => {
                 ]
             }})
         }
+        setisWaitingRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
             alerts: [
@@ -178,6 +181,7 @@ const RegisterRequest = (params, dispatch, currentAlertState) => {
               }
             ]
         }})
+        setisWaitingRequest(false)
     })
 }
 
@@ -191,7 +195,7 @@ const LogoutRequest = (params, dispatch) => {
     }})
 }
 
-const VerifyCodeRequest = (params, dispatch, currentState, currentAlertState) => {
+const VerifyCodeRequest = (params, dispatch, currentState, currentAlertState, setisWaitingRequest) => {
     const payload = params;
     const encodedPayload = sign(payload, SECRET)
 
@@ -236,6 +240,7 @@ const VerifyCodeRequest = (params, dispatch, currentState, currentAlertState) =>
                 ]
             }})
         }
+        setisWaitingRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
             alerts: [
@@ -247,7 +252,8 @@ const VerifyCodeRequest = (params, dispatch, currentState, currentAlertState) =>
               }
             ]
         }})
-        console.log(err)
+        setisWaitingRequest(false)
+        // console.log(err)
     })
 }
 

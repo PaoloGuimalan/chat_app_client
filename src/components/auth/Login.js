@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { LoginRequest } from '../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { SET_ALERTS } from '../../redux/types'
+import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 
 function Login() {
 
@@ -13,17 +14,21 @@ function Login() {
 
   const [email_username, setemail_username] = useState("");
   const [password, setpassword] = useState("");
+  const [isWaitingRequest, setisWaitingRequest] = useState(false);
+
   const navigate = useNavigate()
   const dispatch = useDispatch()
 
   const verifyLogin = () => {
+    setisWaitingRequest(true)
     if(email_username.trim() != "" && password.trim() != ""){
       LoginRequest({
         email_username: email_username,
         password: password
-      }, dispatch, alerts)
+      }, dispatch, alerts, setisWaitingRequest)
     }
     else{
+      setisWaitingRequest(false)
       dispatch({ type: SET_ALERTS, payload:{
         alerts: [
           ...alerts,
@@ -68,7 +73,21 @@ function Login() {
             <input type='password' placeholder='Password' className='inputs_login' value={password} onChange={(e) => {
               setpassword(e.target.value)
             }} />
-            <button id='btn_login' onClick={() => { verifyLogin() }}>Log In</button>
+            {isWaitingRequest? (
+              <motion.div
+              animate={{
+                rotate: -360
+              }}
+              transition={{
+                duration: 1,
+                repeat: Infinity
+              }}
+              id='div_loader_request'>
+                <AiOutlineLoading3Quarters style={{fontSize: "25px"}} />
+              </motion.div>
+            ) : (
+              <button id='btn_login' onClick={() => { verifyLogin() }}>Log In</button>
+            )}
           </div>
           <div id='div_question_label_login'>
             <span id='span_question_label'>Don't have an account yet?</span>

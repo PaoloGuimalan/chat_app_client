@@ -7,6 +7,7 @@ import VerificationInput from 'react-verification-input'
 import { LogoutRequest, VerifyCodeRequest } from '../../reusables/hooks/requests'
 import { checkIfValid } from '../../reusables/hooks/validatevariables'
 import { SET_ALERTS } from '../../redux/types'
+import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 
 function Verification() {
 
@@ -14,14 +15,16 @@ function Verification() {
   const alerts = useSelector(state => state.alerts)
 
   const [verificationcode, setverificationcode] = useState("")
+  const [isWaitingRequest, setisWaitingRequest] = useState(false);
   const dispatch = useDispatch()
 
   const verifyCodeProcess = () => {
+    setisWaitingRequest(true)
     if(checkIfValid([verificationcode])){
       if(verificationcode.split("").length == 6){
         VerifyCodeRequest({
           code: verificationcode
-        },dispatch, authentication, alerts)
+        },dispatch, authentication, alerts, setisWaitingRequest)
       }
       else{
         dispatch({ type: SET_ALERTS, payload:{
@@ -34,6 +37,7 @@ function Verification() {
               }
             ]
         }})
+        setisWaitingRequest(false)
       }
     }
     else{
@@ -46,7 +50,8 @@ function Verification() {
             content: "Please input your verification code."
           }
         ]
-    }})
+      }})
+      setisWaitingRequest(false)
     }
   }
 
@@ -112,9 +117,23 @@ function Verification() {
               }}
             />
           </div>
-          <button id='btn_verify' onClick={() => {
-            verifyCodeProcess()
-          }}>Verify</button>
+          {isWaitingRequest? (
+            <motion.div
+            animate={{
+              rotate: -360
+            }}
+            transition={{
+              duration: 1,
+              repeat: Infinity
+            }}
+            id='div_loader_request_verify'>
+              <AiOutlineLoading3Quarters style={{fontSize: "25px"}} />
+            </motion.div>
+            ) : (
+              <button id='btn_verify' onClick={() => {
+                verifyCodeProcess()
+              }}>Verify</button>
+          )}
           <div id='div_verification_navigations'>
             <button className='btn_verification_navigations'>Resend Code</button>
             <button className='btn_verification_navigations' onClick={() => {

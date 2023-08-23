@@ -8,6 +8,7 @@ import { RegisterRequest } from '../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { checkIfValid } from '../../reusables/hooks/validatevariables'
 import { SET_ALERTS } from '../../redux/types'
+import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 
 function Register() {
 
@@ -30,8 +31,10 @@ function Register() {
   const [password, setpassword] = useState("")
 
   const [agreed, setagreed] = useState(false)
+  const [isWaitingRequest, setisWaitingRequest] = useState(false);
 
   const processregister = () => {
+    setisWaitingRequest(true)
     if(agreed){
       if(checkIfValid([firstName, lastName, email, month, day, year, gender, password])){
         RegisterRequest({
@@ -48,7 +51,7 @@ function Register() {
           gender: gender,
           email: email,
           password: password
-        }, dispatch, alerts)
+        }, dispatch, alerts, setisWaitingRequest)
       }
       else{
         dispatch({ type: SET_ALERTS, payload:{
@@ -61,6 +64,7 @@ function Register() {
             }
           ]
         }})
+        setisWaitingRequest(false)
       }
     }
     else{
@@ -74,6 +78,7 @@ function Register() {
           }
         ]
       }})
+      setisWaitingRequest(false)
     }
   }
 
@@ -206,9 +211,23 @@ function Register() {
             <span id='span_checkbox_terms_conditions'>I agree to the Terms and Conditions</span>
           </div>
           <div id='div_button_sign_up'>
-            <button id='btn_register' onClick={() => {
-              processregister()
-            }}>Sign Up</button>
+            {isWaitingRequest? (
+              <motion.div
+              animate={{
+                rotate: -360
+              }}
+              transition={{
+                duration: 1,
+                repeat: Infinity
+              }}
+              id='div_loader_request'>
+                <AiOutlineLoading3Quarters style={{fontSize: "25px"}} />
+              </motion.div>
+            ) : (
+              <button id='btn_register' onClick={() => {
+                processregister()
+              }}>Sign Up</button>
+            )}
           </div>
           <div id='div_question_label_login'>
             <span id='span_question_label'>Already have an account?</span>
