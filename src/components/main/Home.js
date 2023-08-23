@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import '../../styles/main/index.css'
 import DefaultProfile from '../../assets/imgs/default.png'
 import { useDispatch, useSelector } from 'react-redux'
@@ -8,10 +8,15 @@ import { BsMap } from 'react-icons/bs'
 import { FiMap } from 'react-icons/fi'
 import { IoMdNotificationsOutline } from 'react-icons/io'
 import { LogoutRequest } from '../../reusables/hooks/requests'
+import Contacts from '../tabs/feed/Contacts'
+import Feed from '../tabs/feed/Feed'
+import Notifications from '../tabs/feed/Notifications'
+import Messages from '../tabs/feed/Messages'
 
 function Home() {
 
   const authentication = useSelector(state => state.authentication)
+  const [toggleRightWidget, settoggleRightWidget] = useState("notifs")
   const dispatch = useDispatch()
 
   const logoutProcess = () => {
@@ -54,21 +59,40 @@ function Home() {
           whileHover={{
             backgroundColor: "#e6e6e6"
           }}
+          onClick={() => {
+            settoggleRightWidget("messages")
+          }}
           className='btn_navigations'><AiOutlineMessage style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
           <motion.button
           whileHover={{
             backgroundColor: "#e6e6e6"
           }}
+          onClick={() => {
+            settoggleRightWidget("notifs")
+          }}
           className='btn_navigations'><AiOutlineBell style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
           <motion.button
+          initial={{
+            color: "#4A4A4A"
+          }}
           whileHover={{
-            backgroundColor: "#e6e6e6"
+            backgroundColor: "#ff6675",
+            color: "white"
           }}
           onClick={() => {
             logoutProcess()
           }}
-          className='btn_navigations'><AiOutlineLogout style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
+          className='btn_navigations'><AiOutlineLogout style={{fontSize: "25px"}} /></motion.button>
         </div>
+      </div>
+      <div id='div_main_home'>
+        <Contacts />
+        <Feed />
+        {toggleRightWidget == "notifs"? (
+          <Notifications />
+        ) : (
+          <Messages />
+        )}
       </div>
     </div>
   )

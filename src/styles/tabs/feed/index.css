@@ -1,0 +1,141 @@
+#div_contacts{
+    /* background-color: green; */
+    background-color: transparent;
+    width: 100%;
+    max-width: 400px;
+}
+
+#div_feed{
+    background-color: transparent;
+    flex: 1;
+    min-width: calc(500px - 20px);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-top: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
+    overflow-y: auto;
+    overflow-x: hidden;
+    gap: 10px;
+}
+
+#div_messages_main{
+    /* background-color: orange; */
+    background-color: transparent;
+    width: 100%;
+    max-width: 400px;
+}
+
+#div_notifications_main{
+    /* background-color: orangered; */
+    background-color: transparent;
+    width: 100%;
+    max-width: 400px;
+}
+
+#div_feed_header_post_input{
+    background-color: white;
+    width: calc(100% - 30px);
+    max-width: calc(600px - 30px);
+    height: 50px;
+    display: flex;
+    flex-direction: row;
+    padding: 10px;
+    padding-left: 15px;
+    padding-right: 15px;
+    border-radius: 10px;
+    border: solid 1px rgb(210, 210, 210);
+    align-items: center;
+}
+
+#div_img_feed_header_container{
+    width: 100%;
+    height: 100%;
+    min-width: 40px;
+    max-width: 40px;
+    max-height: 40px;
+    background-color: rgb(210, 210, 210);
+    border-radius: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: solid 1px rgb(210, 210, 210);
+}
+
+#img_feed_header{
+    width: 60%;
+    height: 60%;
+}
+
+#div_input_feed_flex{
+    display: flex;
+    flex: 1;
+    justify-content: center;
+    align-items: center;
+    padding: 10px;
+}
+
+#input_feed_box{
+    width: 100%;
+    height: 40px;
+    border: none;
+    border-radius: 10px;
+    background-color: #eaecef;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-size: 13px;
+    outline: none;
+}
+
+#div_btn_image_container{
+    background-color: transparent;
+    height: 100%;
+    width: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#btn_image_feed{
+    height: 90%;
+    width: 100%;
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.span_underdevelopment_label{
+    font-size: 15px;
+}
+
+@media screen and (max-width: 600px) {
+    #div_feed{
+        min-width: calc(100% - 1px);
+        /* max-width: 100%; */
+        padding-left: 0px;
+        padding-right: 0px;
+    }
+
+    #div_feed_header_post_input{
+        border-radius: 0px;
+        border-left: none;
+        border-right: none;
+    }
+}
+
+@media screen and (max-width: 900px) {
+    #div_messages_main{
+        display: none;
+    }
+
+    #div_notifications_main{
+        display: none;
+    }
+}
+
+@media screen and (max-width: 1100px) {
+    #div_contacts{
+        display: none;
+    }
+}

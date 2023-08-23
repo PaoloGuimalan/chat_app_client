@@ -190,6 +190,18 @@
     align-items: center;
 }
 
+#div_main_home{
+    background-color: transparent;
+    width: calc(100% - 0px);
+    /* height: calc(100% - 0px); */
+    flex: 1;
+    padding: 0px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+}
+
 @media screen and (max-width: 450px) {
     #div_buttons_navigation{
         justify-content: center;
@@ -219,4 +231,10 @@
     /* #div_search_container{
         display: none;
     } */
+}
+
+@media screen and (max-width: 900px) {
+    #div_main_home{
+        justify-content: center;
+    }
 }
