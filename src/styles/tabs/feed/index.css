@@ -162,6 +162,69 @@
     color: #4A4A4A;
 }
 
+.span_empty_list_label{
+    font-size: 13px;
+    font-weight: bold;
+    color: #4A4A4A;
+}
+
+#div_contacts_list_container{
+    background-color: transparent;
+    width: calc(100% - 40px);
+    flex: 1;
+    display: flex;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+#div_contacts_list_empty_container{
+    background-color: transparent;
+    width: calc(100% - 40px);
+    flex: 1;
+    display: flex;
+    padding: 20px;
+    overflow-y: auto;
+    justify-content: center;
+}
+
+#div_notifications_list_container{
+    background-color: transparent;
+    width: calc(100% - 40px);
+    flex: 1;
+    display: flex;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+#div_notifications_list_empty_container{
+    background-color: transparent;
+    width: calc(100% - 40px);
+    flex: 1;
+    display: flex;
+    padding: 20px;
+    overflow-y: auto;
+    justify-content: center;
+}
+
+#div_messages_list_container{
+    background-color: transparent;
+    width: calc(100% - 40px);
+    flex: 1;
+    display: flex;
+    padding: 20px;
+    overflow-y: auto;
+}
+
+#div_messages_list_empty_container{
+    background-color: transparent;
+    width: calc(100% - 40px);
+    flex: 1;
+    display: flex;
+    padding: 20px;
+    overflow-y: auto;
+    justify-content: center;
+}
+
 @media screen and (max-width: 600px) {
     #div_feed{
         min-width: calc(100% - 1px);

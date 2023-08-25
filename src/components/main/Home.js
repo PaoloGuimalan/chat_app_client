@@ -12,11 +12,16 @@ import Contacts from '../tabs/feed/Contacts'
 import Feed from '../tabs/feed/Feed'
 import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
+import SearchMiniDrawer from '../widgets/SearchMiniDrawer'
 
 function Home() {
 
   const authentication = useSelector(state => state.authentication)
   const [toggleRightWidget, settoggleRightWidget] = useState("notifs")
+
+  const [searchBoxFocus, setsearchBoxFocus] = useState(false)
+  const [searchbox, setsearchbox] = useState("")
+
   const dispatch = useDispatch()
 
   const logoutProcess = () => {
@@ -40,7 +45,7 @@ function Home() {
           <div id='div_search_container'>
             <div id='div_input_container'>
               <AiOutlineSearch style={{fontSize: "20px", color: "#4A4A4A"}} />
-              <input type='text' placeholder='Search something...' id='input_search_box' />
+              <input value={searchbox} onChange={(e) => { setsearchbox(e.target.value) }} onFocus={() => { setsearchBoxFocus(true) }} onBlur={() => { setsearchBoxFocus(false) }} type='text' placeholder='Search something...' id='input_search_box' />
             </div>
           </div>
         </div>
@@ -85,6 +90,9 @@ function Home() {
           className='btn_navigations'><AiOutlineLogout style={{fontSize: "25px"}} /></motion.button>
         </div>
       </div>
+      {searchBoxFocus && (
+        <SearchMiniDrawer searchbox={searchbox} />
+      )}
       <div id='div_main_home'>
         <Contacts />
         <Feed />

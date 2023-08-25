@@ -126,6 +126,7 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    /* font-family: 'Raleway', sans-serif; */
 }
 
 #div_search_container{
