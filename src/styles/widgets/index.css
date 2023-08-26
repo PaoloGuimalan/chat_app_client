@@ -68,24 +68,33 @@
 
 #div_fullname_container{
     background-color: transparent;
-    flex: 1;
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: flex-start;
     padding-left: 10px;
     padding-right: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .span_fullname{
     font-size: 14px;
     font-weight: bold;
     color: #3b3b3b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .span_userID{
     font-size: 13px;
     font-weight: normal;
     color: #3b3b3b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #div_add_button{
