@@ -257,10 +257,44 @@ const VerifyCodeRequest = (params, dispatch, currentState, currentAlertState, se
     })
 }
 
+const SearchRequest = (params, dispatch, setisLoading, currentAlertState, setsearchresults, authentication) => {
+    var searchdata = params.searchdata;
+
+    Axios.get(`${API}/u/search/${searchdata}`, {
+        headers:{
+            "x-access-token": localStorage.getItem('authtoken')
+        }
+    }).then((response) => {
+        setisLoading(false)
+        if(response.data.status){
+            var searchres = response.data.result.filter((flt, i) => flt.userID != authentication.user.userID)
+            setsearchresults(searchres)
+            // console.log(response.data.result)
+        }
+        else{
+            setsearchresults([])
+        }
+    }).catch((err) => {
+        setisLoading(false)
+        setsearchresults([])
+        dispatch({ type: SET_ALERTS, payload:{
+            alerts: [
+              ...currentAlertState,
+              {
+                id: currentAlertState.length,
+                type: "error",
+                content: err.message
+              }
+            ]
+        }})
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
     RegisterRequest,
     LogoutRequest,
-    VerifyCodeRequest
+    VerifyCodeRequest,
+    SearchRequest
 }
