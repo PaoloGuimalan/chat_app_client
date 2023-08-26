@@ -1,5 +1,5 @@
 import Axios from 'axios'
-import { SET_ALERTS, SET_AUTHENTICATION } from '../../redux/types';
+import { SET_ALERTS, SET_AUTHENTICATION, SET_NOTIFICATIONS_LIST } from '../../redux/types';
 import { authenticationstate } from '../../redux/actions/states';
 import sign from 'jwt-encode'
 import jwt_decode from 'jwt-decode'
@@ -339,6 +339,24 @@ const ContactRequest = (params, dispatch, currentAlertState) => {
     })
 }
 
+const NotificationInitRequest = (params, dispatch) => {
+    Axios.get(`${API}/u/getNotifications`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            var decodedResult = jwt_decode(response.data.result)
+
+            dispatch({ type: SET_NOTIFICATIONS_LIST, payload: {
+                notficationslist: decodedResult.notifications
+            } })
+        }
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -346,5 +364,6 @@ export {
     LogoutRequest,
     VerifyCodeRequest,
     SearchRequest,
-    ContactRequest
+    ContactRequest,
+    NotificationInitRequest
 }

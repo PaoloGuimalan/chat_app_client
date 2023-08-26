@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import '../../styles/main/index.css'
 import DefaultProfile from '../../assets/imgs/default.png'
 import { useDispatch, useSelector } from 'react-redux'
@@ -7,7 +7,7 @@ import { AiOutlineSearch, AiOutlineHome, AiOutlineMessage, AiOutlineBell, AiOutl
 import { BsMap } from 'react-icons/bs'
 import { FiMap } from 'react-icons/fi'
 import { IoMdNotificationsOutline } from 'react-icons/io'
-import { LogoutRequest } from '../../reusables/hooks/requests'
+import { LogoutRequest, NotificationInitRequest } from '../../reusables/hooks/requests'
 import Contacts from '../tabs/feed/Contacts'
 import Feed from '../tabs/feed/Feed'
 import Notifications from '../tabs/feed/Notifications'
@@ -27,6 +27,10 @@ function Home() {
   const logoutProcess = () => {
     LogoutRequest({}, dispatch)
   }
+
+  useEffect(() => {
+    NotificationInitRequest({}, dispatch)
+  },[])
 
   return (
     <div id='div_home'>

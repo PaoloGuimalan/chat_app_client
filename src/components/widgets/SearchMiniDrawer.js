@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import '../../styles/widgets/index.css'
 import { AiOutlineLoading3Quarters, AiOutlineUserAdd, AiOutlineUserDelete, AiOutlineClose } from 'react-icons/ai'
-import { BiUserMinus, BiUserPlus, BiUserX } from 'react-icons/bi'
+import { BiUserMinus, BiUserPlus, BiUserX, BiUserCheck } from 'react-icons/bi'
 import { RiLoader3Fill } from 'react-icons/ri'
 import { TbInputSearch } from 'react-icons/tb'
 import { ContactRequest, SearchRequest } from '../../reusables/hooks/requests'
@@ -115,18 +115,32 @@ function SearchMiniDrawer({searchbox}) {
                           )
                         ) : (
                           srch.contacts.status? null : (
-                            <motion.button 
-                            whileHover={{
-                              backgroundColor: "#909090",
-                              color: "white"
-                            }}
-                            onClick={() => {
-                              // console.log(srch.userID)
-                            }}
-                            title='Decline Request'
-                            id='btn_add_user'>
-                              <BiUserX style={{fontSize: "23px"}} />
-                            </motion.button>
+                            <>
+                              <motion.button 
+                              whileHover={{
+                                backgroundColor: "#909090",
+                                color: "white"
+                              }}
+                              onClick={() => {
+                                // console.log(srch.userID)
+                              }}
+                              title='Accept Request'
+                              id='btn_add_user'>
+                                <BiUserCheck style={{fontSize: "23px"}} />
+                              </motion.button>
+                              <motion.button 
+                              whileHover={{
+                                backgroundColor: "#909090",
+                                color: "white"
+                              }}
+                              onClick={() => {
+                                // console.log(srch.userID)
+                              }}
+                              title='Decline Request'
+                              id='btn_add_user'>
+                                <BiUserX style={{fontSize: "23px"}} />
+                              </motion.button>
+                            </>
                           )
                         )
                       ) : (
