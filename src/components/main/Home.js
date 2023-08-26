@@ -45,7 +45,7 @@ function Home() {
           <div id='div_search_container'>
             <div id='div_input_container'>
               <AiOutlineSearch style={{fontSize: "20px", color: "#4A4A4A"}} />
-              <input value={searchbox} onChange={(e) => { setsearchbox(e.target.value) }} onFocus={() => { setsearchBoxFocus(true) }} onBlur={() => { setsearchBoxFocus(false) }} type='text' placeholder='Search something...' id='input_search_box' />
+              <input value={searchbox} onChange={(e) => { setsearchbox(e.target.value) }} onFocus={() => { setsearchBoxFocus(true) }} onBlur={() => { setTimeout(() => { setsearchBoxFocus(false) }, 500) }} type='text' placeholder='Search something...' id='input_search_box' />
             </div>
           </div>
         </div>

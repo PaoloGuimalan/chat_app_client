@@ -267,7 +267,8 @@ const SearchRequest = (params, dispatch, setisLoading, currentAlertState, setsea
     }).then((response) => {
         setisLoading(false)
         if(response.data.status){
-            var searchres = response.data.result.filter((flt, i) => flt.userID != authentication.user.userID)
+            var decodedResult = jwt_decode(response.data.result)
+            var searchres = decodedResult.searchresults.filter((flt, i) => flt.userID != authentication.user.userID)
             setsearchresults(searchres)
             // console.log(response.data.result)
         }

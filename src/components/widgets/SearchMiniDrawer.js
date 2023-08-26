@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import '../../styles/widgets/index.css'
-import { AiOutlineLoading3Quarters } from 'react-icons/ai'
+import { AiOutlineLoading3Quarters, AiOutlineUserAdd } from 'react-icons/ai'
 import { TbInputSearch } from 'react-icons/tb'
 import { SearchRequest } from '../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
@@ -67,6 +67,7 @@ function SearchMiniDrawer({searchbox}) {
               {searchresults.map((srch, i) => {
                 return(
                   <motion.div
+                  key={srch.userID}
                   initial={{
                     rotate: 0
                   }}
@@ -86,6 +87,19 @@ function SearchMiniDrawer({searchbox}) {
                     <div id='div_fullname_container'>
                       <span className='span_fullname'>{srch.fullname.firstName}{srch.fullname.middleName == "N/A"? "" : ` ${srch.fullname.middleName}`} {srch.fullname.lastName}</span>
                       <span className='span_userID'>@{srch.userID}</span>
+                    </div>
+                    <div id='div_add_button'>
+                      <motion.button 
+                      whileHover={{
+                        backgroundColor: "#909090",
+                        color: "white"
+                      }}
+                      onClick={() => {
+                        // console.log(srch.userID)
+                      }}
+                      id='btn_add_user'>
+                        <AiOutlineUserAdd style={{fontSize: "20px"}} />
+                      </motion.button>
                     </div>
                   </motion.div>
                 )
