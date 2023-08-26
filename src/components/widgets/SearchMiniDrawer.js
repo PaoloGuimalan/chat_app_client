@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import '../../styles/widgets/index.css'
-import { AiOutlineLoading3Quarters, AiOutlineUserAdd } from 'react-icons/ai'
+import { AiOutlineLoading3Quarters, AiOutlineUserAdd, AiOutlineUserDelete, AiOutlineClose } from 'react-icons/ai'
+import { BiUserMinus, BiUserPlus, BiUserX } from 'react-icons/bi'
+import { RiLoader3Fill } from 'react-icons/ri'
 import { TbInputSearch } from 'react-icons/tb'
-import { SearchRequest } from '../../reusables/hooks/requests'
+import { ContactRequest, SearchRequest } from '../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import DefaultProfile from '../../assets/imgs/default.png'
 
@@ -41,6 +43,12 @@ function SearchMiniDrawer({searchbox}) {
       clearTimeout(timeoutRequest)
     }
   },[searchbox])
+
+  const contactRequestProcess = (addUserID) => {
+    ContactRequest({
+      addUserID: addUserID
+    }, dispatch, alerts)
+  }
 
   return (
     <div id='div_searchminidrawer'>
@@ -89,17 +97,53 @@ function SearchMiniDrawer({searchbox}) {
                       <span className='span_userID'>@{srch.userID}</span>
                     </div>
                     <div id='div_add_button'>
-                      <motion.button 
-                      whileHover={{
-                        backgroundColor: "#909090",
-                        color: "white"
-                      }}
-                      onClick={() => {
-                        // console.log(srch.userID)
-                      }}
-                      id='btn_add_user'>
-                        <AiOutlineUserAdd style={{fontSize: "20px"}} />
-                      </motion.button>
+                      {srch.contacts? (
+                        srch.contacts.actionBy == authentication.user.userID? (
+                          srch.contacts.status? null : (
+                            <motion.button 
+                            whileHover={{
+                              backgroundColor: "#909090",
+                              color: "white"
+                            }}
+                            onClick={() => {
+                              // console.log(srch.userID)
+                            }}
+                            title='Cancel Request'
+                            id='btn_add_user'>
+                              <BiUserMinus style={{fontSize: "23px"}} />
+                            </motion.button>
+                          )
+                        ) : (
+                          srch.contacts.status? null : (
+                            <motion.button 
+                            whileHover={{
+                              backgroundColor: "#909090",
+                              color: "white"
+                            }}
+                            onClick={() => {
+                              // console.log(srch.userID)
+                            }}
+                            title='Decline Request'
+                            id='btn_add_user'>
+                              <BiUserX style={{fontSize: "23px"}} />
+                            </motion.button>
+                          )
+                        )
+                      ) : (
+                        <motion.button 
+                        whileHover={{
+                          backgroundColor: "#909090",
+                          color: "white"
+                        }}
+                        onClick={() => {
+                          contactRequestProcess(srch.userID)
+                          // console.log(srch.userID)
+                        }}
+                        title='Add Contact'
+                        id='btn_add_user'>
+                          <BiUserPlus style={{fontSize: "23px"}} />
+                        </motion.button>
+                      )}
                     </div>
                   </motion.div>
                 )

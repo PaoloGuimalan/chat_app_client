@@ -291,11 +291,60 @@ const SearchRequest = (params, dispatch, setisLoading, currentAlertState, setsea
     })
 }
 
+const ContactRequest = (params, dispatch, currentAlertState) => {
+    const payload = params;
+    const encodedPayload = sign(payload, SECRET)
+    Axios.post(`${API}/u/requestContact`, {
+        token: encodedPayload
+    }, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            dispatch({ type: SET_ALERTS, payload:{
+                alerts: [
+                  ...currentAlertState,
+                  {
+                    id: currentAlertState.length,
+                    type: "success",
+                    content: response.data.message
+                  }
+                ]
+            }})
+        }
+        else{
+            dispatch({ type: SET_ALERTS, payload:{
+                alerts: [
+                  ...currentAlertState,
+                  {
+                    id: currentAlertState.length,
+                    type: "warning",
+                    content: response.data.message
+                  }
+                ]
+            }})
+        }
+    }).catch((err) => {
+        dispatch({ type: SET_ALERTS, payload:{
+            alerts: [
+              ...currentAlertState,
+              {
+                id: currentAlertState.length,
+                type: "error",
+                content: err.message
+              }
+            ]
+        }})
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
     RegisterRequest,
     LogoutRequest,
     VerifyCodeRequest,
-    SearchRequest
+    SearchRequest,
+    ContactRequest
 }
