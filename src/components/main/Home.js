@@ -28,10 +28,6 @@ function Home() {
     LogoutRequest({}, dispatch)
   }
 
-  useEffect(() => {
-    NotificationInitRequest({}, dispatch)
-  },[])
-
   return (
     <div id='div_home'>
       <div id='div_home_navigations'>

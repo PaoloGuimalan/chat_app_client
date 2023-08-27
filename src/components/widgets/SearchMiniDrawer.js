@@ -86,7 +86,7 @@ function SearchMiniDrawer({searchbox}) {
                     duration: 0
                   }}
                   whileHover={{
-                    backgroundColor: "#dfdfdf"
+                    backgroundColor: "#e6e6e6"
                   }}
                   className='div_search_profiles_results'>
                     <div id='div_img_search_profiles_container'>

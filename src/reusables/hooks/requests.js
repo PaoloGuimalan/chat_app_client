@@ -339,7 +339,7 @@ const ContactRequest = (params, dispatch, currentAlertState) => {
     })
 }
 
-const NotificationInitRequest = (params, dispatch) => {
+const NotificationInitRequest = (params, dispatch, setisLoading) => {
     Axios.get(`${API}/u/getNotifications`, {
         headers:{
             "x-access-token": localStorage.getItem("authtoken")
@@ -352,7 +352,9 @@ const NotificationInitRequest = (params, dispatch) => {
                 notficationslist: decodedResult.notifications
             } })
         }
+        setisLoading(false)
     }).catch((err) => {
+        setisLoading(false)
         console.log(err)
     })
 }
