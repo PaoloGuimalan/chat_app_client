@@ -1,5 +1,5 @@
 import Axios from 'axios'
-import { SET_ALERTS, SET_AUTHENTICATION, SET_NOTIFICATIONS_LIST } from '../../redux/types';
+import { SET_ALERTS, SET_AUTHENTICATION, SET_CONTACTS_LIST, SET_NOTIFICATIONS_LIST } from '../../redux/types';
 import { authenticationstate } from '../../redux/actions/states';
 import sign from 'jwt-encode'
 import jwt_decode from 'jwt-decode'
@@ -457,6 +457,28 @@ const AcceptContactRequest = (params, dispatch, currentAlertState) => {
     })
 }
 
+const ContactsListInitRequest = (params, dispatch, setisLoading) => {
+    Axios.get(`${API}/u/getContacts`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            const decodedResult = jwt_decode(response.data.result)
+
+            dispatch({ type: SET_CONTACTS_LIST, payload: {
+                contactslist: decodedResult.contacts
+            } })
+        }
+        else{
+
+        }
+        setisLoading(false)
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -467,5 +489,6 @@ export {
     ContactRequest,
     NotificationInitRequest,
     DeclineContactRequest,
-    AcceptContactRequest
+    AcceptContactRequest,
+    ContactsListInitRequest
 }
