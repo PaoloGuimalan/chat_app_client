@@ -13,10 +13,12 @@ import Feed from '../tabs/feed/Feed'
 import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
 import SearchMiniDrawer from '../widgets/SearchMiniDrawer'
+import { SSENotificationsTRequest } from '../../reusables/hooks/sse'
 
 function Home() {
 
   const authentication = useSelector(state => state.authentication)
+  const alerts = useSelector(state => state.alerts)
   const [toggleRightWidget, settoggleRightWidget] = useState("notifs")
 
   const [searchBoxFocus, setsearchBoxFocus] = useState(false)
@@ -26,6 +28,14 @@ function Home() {
 
   const logoutProcess = () => {
     LogoutRequest({}, dispatch)
+  }
+
+  useEffect(() => {
+    initEventSources()
+  },[])
+
+  const initEventSources = () => {
+    SSENotificationsTRequest({}, dispatch, alerts)
   }
 
   return (
