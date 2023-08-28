@@ -2,6 +2,7 @@ import React from 'react'
 import '../../../styles/tabs/feed/index.css'
 import { FcContacts } from 'react-icons/fc'
 import { useSelector } from 'react-redux'
+import { motion } from 'framer-motion'
 
 function Contacts() {
 
@@ -18,7 +19,15 @@ function Contacts() {
             <span className='span_empty_list_label'>No Contacts</span>
           </div>
         ) : (
-          <div id='div_contacts_list_container'></div>
+          <div id='div_contacts_list_container'>
+            {contactslist.map((cnts, i) => {
+              return(
+                <motion.div className='div_contacts_card'>
+
+                </motion.div>
+              )
+            })}
+          </div>
         )}
     </div>
   )

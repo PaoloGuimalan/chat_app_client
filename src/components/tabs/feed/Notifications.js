@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import '../../../styles/tabs/feed/index.css'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { useDispatch, useSelector } from 'react-redux'
-import { DeclineContactRequest, NotificationInitRequest } from '../../../reusables/hooks/requests'
+import { AcceptContactRequest, DeclineContactRequest, NotificationInitRequest } from '../../../reusables/hooks/requests'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
 
@@ -20,6 +20,16 @@ function Notifications() {
 
   const declineRequestProcess = (ntfsType, ntfsID, refID, reverttoUserID, revertfromUserID) => {
     DeclineContactRequest({
+      type: ntfsType,
+      notificationID: ntfsID,
+      referenceID: refID,
+      toUserID: revertfromUserID,
+      fromUserID: reverttoUserID
+    }, dispatch, alerts)
+  }
+
+  const acceptRequestProcess = (ntfsType, ntfsID, refID, reverttoUserID, revertfromUserID) => {
+    AcceptContactRequest({
       type: ntfsType,
       notificationID: ntfsID,
       referenceID: refID,
@@ -77,7 +87,11 @@ function Notifications() {
                     {ntfs.type == "contact_request"? (
                       ntfs.referenceStatus? null : (
                         <div id='div_navigations_contact_request'>
-                          <button className='btn_navigations_contact_request confirm_contact_request'>Confirm</button>
+                          <button className='btn_navigations_contact_request confirm_contact_request'
+                            onClick={() => {
+                              acceptRequestProcess("contact_request", ntfs.notificationID, ntfs.referenceID, ntfs.toUserID, ntfs.fromUserID)
+                            }}
+                          >Confirm</button>
                           <button className='btn_navigations_contact_request decline_contact_request'
                             onClick={() => {
                               declineRequestProcess("contact_request", ntfs.notificationID, ntfs.referenceID, ntfs.toUserID, ntfs.fromUserID)

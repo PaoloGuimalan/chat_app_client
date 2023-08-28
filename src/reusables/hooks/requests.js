@@ -270,7 +270,7 @@ const SearchRequest = (params, dispatch, setisLoading, currentAlertState, setsea
             var decodedResult = jwt_decode(response.data.result)
             var searchres = decodedResult.searchresults.filter((flt, i) => flt.userID != authentication.user.userID)
             setsearchresults(searchres)
-            // console.log(response.data.result)
+            // console.log(decodedResult)
         }
         else{
             setsearchresults([])
@@ -394,7 +394,55 @@ const DeclineContactRequest = (params, dispatch, currentAlertState) => {
                 ]
             }})
         }
-        console.log(currentAlertState)
+    }).catch((err) => {
+        dispatch({ type: SET_ALERTS, payload:{
+            alerts: [
+              ...currentAlertState,
+              {
+                id: currentAlertState.length,
+                type: "error",
+                content: err.message
+              }
+            ]
+        }})
+    })
+}
+
+const AcceptContactRequest = (params, dispatch, currentAlertState) => {
+    const payload = params
+    const encodedPayload = sign(payload, SECRET)
+
+    Axios.post(`${API}/u/acceptContactRequest`, {
+        token: encodedPayload
+    }, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            // dispatch({ type: SET_ALERTS, payload:{
+            //     alerts: [
+            //       ...currentAlertState,
+            //       {
+            //         id: currentAlertState.length,
+            //         type: "success",
+            //         content: response.data.message
+            //       }
+            //     ]
+            // }})
+        }
+        else{
+            dispatch({ type: SET_ALERTS, payload:{
+                alerts: [
+                  ...currentAlertState,
+                  {
+                    id: currentAlertState.length,
+                    type: "warning",
+                    content: response.data.message
+                  }
+                ]
+            }})
+        }
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
             alerts: [
@@ -418,5 +466,6 @@ export {
     SearchRequest,
     ContactRequest,
     NotificationInitRequest,
-    DeclineContactRequest
+    DeclineContactRequest,
+    AcceptContactRequest
 }
