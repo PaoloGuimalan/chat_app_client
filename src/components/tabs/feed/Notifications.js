@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import '../../../styles/tabs/feed/index.css'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { useDispatch, useSelector } from 'react-redux'
-import { NotificationInitRequest } from '../../../reusables/hooks/requests'
+import { DeclineContactRequest, NotificationInitRequest } from '../../../reusables/hooks/requests'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
 
@@ -11,11 +11,22 @@ function Notifications() {
   const [isLoading, setisLoading] = useState(true)
 
   const notificationslist = useSelector(state => state.notificationslist)
+  const alerts = useSelector(state => state.alerts)
   const dispatch = useDispatch()
 
   useEffect(() => {
     NotificationInitRequest({}, dispatch, setisLoading)
   },[])
+
+  const declineRequestProcess = (ntfsType, ntfsID, refID, reverttoUserID, revertfromUserID) => {
+    DeclineContactRequest({
+      type: ntfsType,
+      notificationID: ntfsID,
+      referenceID: refID,
+      toUserID: revertfromUserID,
+      fromUserID: reverttoUserID
+    }, dispatch, alerts)
+  }
 
   return (
     <div id='div_notifications_main'>
@@ -67,7 +78,11 @@ function Notifications() {
                       ntfs.referenceStatus? null : (
                         <div id='div_navigations_contact_request'>
                           <button className='btn_navigations_contact_request confirm_contact_request'>Confirm</button>
-                          <button className='btn_navigations_contact_request decline_contact_request'>Decline</button>
+                          <button className='btn_navigations_contact_request decline_contact_request'
+                            onClick={() => {
+                              declineRequestProcess("contact_request", ntfs.notificationID, ntfs.referenceID, ntfs.toUserID, ntfs.fromUserID)
+                            }}
+                          >Decline</button>
                         </div>
                       )
                     ) : null}

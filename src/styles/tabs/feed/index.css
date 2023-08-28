@@ -190,6 +190,7 @@
 #div_notifications_list_container{
     background-color: transparent;
     width: calc(100% - 40px);
+    height: calc(100% - 80px);
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -197,12 +198,14 @@
     padding-top: 5px;
     padding-bottom: 5px;
     overflow-y: auto;
+    gap: 5px;
 }
 
 .div_ntfs_cards{
     background-color: transparent;
     width: calc(100% - 20px);
-    min-height: 60px;
+    /* min-height: 60px; */
+    height: auto;
     padding: 10px;
     display: flex;
     flex-direction: row;
