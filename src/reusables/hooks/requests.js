@@ -371,16 +371,16 @@ const DeclineContactRequest = (params, dispatch, currentAlertState) => {
         }
     }).then((response) => {
         if(response.data.status){
-            dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
-                    id: currentAlertState.length,
-                    type: "success",
-                    content: response.data.message
-                  }
-                ]
-            }})
+            // dispatch({ type: SET_ALERTS, payload:{
+            //     alerts: [
+            //       ...currentAlertState,
+            //       {
+            //         id: currentAlertState.length,
+            //         type: "success",
+            //         content: response.data.message
+            //       }
+            //     ]
+            // }})
         }
         else{
             dispatch({ type: SET_ALERTS, payload:{
@@ -394,6 +394,7 @@ const DeclineContactRequest = (params, dispatch, currentAlertState) => {
                 ]
             }})
         }
+        console.log(currentAlertState)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
             alerts: [
