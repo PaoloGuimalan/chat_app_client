@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import '../../../styles/tabs/messenger/index.css'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
@@ -18,10 +18,32 @@ function Conversation({ conversationsetup }) {
   const [messageValue, setmessageValue] = useState("");
   const [conversationList, setconversationList] = useState([])
   const [isLoading, setisLoading] = useState(true);
+  const [autoScroll, setautoScroll] = useState(true)
   const [isReplying, setisReplying] = useState({
     isReply: false
   })  
   const dispatch = useDispatch()
+
+  const divcontentRef = useRef(null)
+
+//   useEffect(() => {
+//     if(!isLoading){
+//         if(divcontentRef){
+//             console.log(divcontentRef.current.clientHeight, divcontentRef.current.scrollHeight)
+//         }
+//     }
+//   },[conversationsetup, messageslist, divcontentRef, isLoading])
+
+  useEffect(() => {
+    if(!isLoading){
+        if(divcontentRef){
+            if(autoScroll){
+                var divheight = divcontentRef.current.scrollHeight
+                divcontentRef.current.scrollTop = divheight
+            }
+        }
+    }
+  },[autoScroll, conversationsetup, messageslist, divcontentRef, isLoading])
 
   const sendMessageProcess = () => {
     if(checkIfValid([messageValue])){
@@ -106,7 +128,14 @@ function Conversation({ conversationsetup }) {
                         </motion.div>
                     </div>
                 ) : (
-                    <div id='div_conversation_content'>
+                    <div id='div_conversation_content' ref={divcontentRef} onScroll={(e) => {
+                        if((e.currentTarget.scrollHeight - e.currentTarget.offsetHeight) - 100 > e.currentTarget.scrollTop){
+                            setautoScroll(false)
+                        }
+                        else{
+                            setautoScroll(true)
+                        }
+                    }}>
                         {conversationList.map((cnvs, i) => {
                             return(
                                 <motion.span
