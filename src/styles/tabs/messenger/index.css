@@ -223,6 +223,7 @@
 .span_messages_result{
     background-color: transparent;
     width: fit-content;
+    max-width: 70%;
     padding: 7px;
     font-size: 14px;
     border-radius: 7px;
