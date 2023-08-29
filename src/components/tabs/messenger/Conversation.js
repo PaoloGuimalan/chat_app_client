@@ -59,6 +59,7 @@ function Conversation({ conversationsetup }) {
   }
 
   useEffect(() => {
+    setisLoading(true)
     setconversationList([])
   },[conversationsetup])
 
@@ -174,7 +175,13 @@ function Conversation({ conversationsetup }) {
                         className='btn_options_send'><FcAddImage style={{fontSize: "25px"}} /></motion.button>
                     </div>
                     <div id='div_input_text_content'>
-                        <input type='text' id='input_text_content_send' disabled={isLoading} placeholder='Write a message....'value={messageValue} onChange={(e) => {
+                        <input type='text' id='input_text_content_send'
+                        onKeyDown={(e) => {
+                            if(e.code == "Enter"){
+                                sendMessageProcess()
+                            }
+                        }}
+                        disabled={isLoading} placeholder='Write a message....'value={messageValue} onChange={(e) => {
                             setmessageValue(e.target.value)
                         }} />
                     </div>

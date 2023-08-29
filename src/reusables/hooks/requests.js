@@ -493,10 +493,10 @@ const SendMessageRequest = (params, dispatch, setmessageValue) => {
         }
     }).then((response) => {
         if(response.data.status){
-            console.log(response.data.message)
+            // console.log(response.data.message)
         }
         else{
-            console.log(response.data.message)
+            // console.log(response.data.message)
         }
         setmessageValue("")
     }).catch((err) => {

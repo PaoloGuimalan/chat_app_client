@@ -21,7 +21,7 @@ function App() {
 
   useEffect(() => {
     AuthCheck(authentication, dispatch)
-    console.log("v2.3.1")
+    console.log("v2.3.2")
   },[])
 
   useEffect(() => {
