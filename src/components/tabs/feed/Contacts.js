@@ -56,8 +56,8 @@ function Contacts() {
                         backgroundColor: "#e6e6e6"
                       }}
                       key={i} className='div_cncts_cards'>
-                        <div id='div_img_ntfs_container'>
-                          <div id='div_img_search_profiles_container_ntfs'>
+                        <div id='div_img_cncts_container'>
+                          <div id='div_img_search_profiles_container_cncts'>
                             <img src={cnts.userdetails.usertwo.profile == "none"? DefaultProfile : cnts.userdetails.usertwo.profile} className='img_search_profiles_ntfs' />
                           </div>
                         </div>
@@ -66,13 +66,23 @@ function Contacts() {
                         </div>
                         <div className='div_cncts_navigations'>
                           <motion.button
+                          initial={{
+                            backgroundColor: "transparent",
+                            color: "#9cc2ff"
+                          }}
                           whileHover={{
-                            backgroundColor: "#909090"
-                          }}className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", color: "white", backgroundColor: "#9cc2ff", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                            backgroundColor: "#9cc2ff",
+                            color: "white"
+                          }}className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
                           <motion.button
+                          initial={{
+                            backgroundColor: "transparent",
+                            color: "#ff6675"
+                          }}
                           whileHover={{
-                            backgroundColor: "#909090"
-                          }}className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", color: "white", backgroundColor: "#ff6675", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                            backgroundColor: "#ff6675",
+                            color: "white"
+                          }}className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
                         </div>
                       </motion.div>
                     )
@@ -84,8 +94,8 @@ function Contacts() {
                         backgroundColor: "#e6e6e6"
                       }}
                       key={i} className='div_cncts_cards'>
-                        <div id='div_img_ntfs_container'>
-                          <div id='div_img_search_profiles_container_ntfs'>
+                        <div id='div_img_cncts_container'>
+                          <div id='div_img_search_profiles_container_cncts'>
                             <img src={cnts.userdetails.userone.profile == "none"? DefaultProfile : cnts.userdetails.userone.profile} className='img_search_profiles_ntfs' />
                           </div>
                         </div>
@@ -94,13 +104,23 @@ function Contacts() {
                         </div>
                         <div className='div_cncts_navigations'>
                           <motion.button
+                          initial={{
+                            backgroundColor: "transparent",
+                            color: "#9cc2ff"
+                          }}
                           whileHover={{
-                            backgroundColor: "#909090"
-                          }}className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", color: "white", backgroundColor: "#9cc2ff", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                            backgroundColor: "#9cc2ff",
+                            color: "white"
+                          }}className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
                           <motion.button
+                          initial={{
+                            backgroundColor: "transparent",
+                            color: "#ff6675"
+                          }}
                           whileHover={{
-                            backgroundColor: "#909090"
-                          }}className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", color: "white", backgroundColor: "#ff6675", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                            backgroundColor: "#ff6675",
+                            color: "white"
+                          }}className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
                         </div>
                       </motion.div>
                     )
