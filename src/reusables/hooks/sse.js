@@ -1,6 +1,6 @@
 import sign from 'jwt-encode'
 import jwt_decode from 'jwt-decode'
-import { SET_ALERTS, SET_NOTIFICATIONS_LIST } from '../../redux/types';
+import { SET_ALERTS, SET_CONTACTS_LIST, SET_NOTIFICATIONS_LIST } from '../../redux/types';
 
 const API = process.env.REACT_APP_CHATTERLOOP_API;
 const SECRET = process.env.REACT_APP_JWT_SECRET
@@ -35,6 +35,19 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState) => {
                       }
                     ]
                 }})
+            }
+        }
+    })
+
+    sseNtfsSource.addEventListener('contactslist', (e) => {
+        const parsedresponse = JSON.parse(e.data)
+        if(parsedresponse.auth){
+            if(parsedresponse.status){
+                const decodedResult = jwt_decode(parsedresponse.result)
+
+                dispatch({ type: SET_CONTACTS_LIST, payload: {
+                    contactslist: decodedResult.contacts
+                } })
             }
         }
     })
