@@ -208,12 +208,56 @@
 
 #div_conversation_content{
     background-color: white;
-    width: 100%;
+    width: calc(100% - 20px);
     display: flex;
     flex: 1;
     flex-direction: column;
     border-radius: 10px;
     overflow-y: auto;
+    gap: 10px;
+    padding-top: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
+}
+
+.span_messages_result{
+    background-color: transparent;
+    width: fit-content;
+    padding: 7px;
+    font-size: 14px;
+    border-radius: 7px;
+    background-color: rgb(222, 222, 222);
+    border: solid 1px rgb(222, 222, 222);
+}
+
+#div_loader_request{
+    background-color: transparent;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 40px;
+    color: #3b3b3b;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#div_conversation_content_loader{
+    background-color: white;
+    width: calc(100% - 0px);
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    border-radius: 10px;
+    overflow-y: auto;
+    gap: 10px;
+    padding-top: 0px;
+    padding-left: 0px;
+    padding-right: 0px;
+    justify-content: center;
+    align-items: center;
 }
 
 /* width */

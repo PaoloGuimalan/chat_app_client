@@ -14,7 +14,7 @@ import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
 import SearchMiniDrawer from '../widgets/SearchMiniDrawer'
 import { CloseSSENotifications, SSENotificationsTRequest } from '../../reusables/hooks/sse'
-import { SET_CONVERSATION_SETUP, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
+import { SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
 import { conversationsetupstate } from '../../redux/actions/states'
 
 function Home() {
@@ -29,17 +29,38 @@ function Home() {
 
   const dispatch = useDispatch()
 
+  const clearStates = () => {
+    dispatch({
+      type: SET_CONVERSATION_SETUP,
+      payload:{
+        conversationsetup: conversationsetupstate
+      }
+    })
+
+    dispatch({
+      type: SET_MESSAGES_LIST,
+        payload: {
+            messageslist: []
+        }
+    })
+  }
+
   const logoutProcess = () => {
+    clearStates()
     CloseSSENotifications()
     LogoutRequest({}, dispatch)
   }
 
   useEffect(() => {
     initEventSources()
+
+    return () => {
+      clearStates()
+    }
   },[])
 
   const initEventSources = () => {
-    SSENotificationsTRequest({}, dispatch, alerts)
+    SSENotificationsTRequest({}, dispatch, alerts, authentication)
   }
 
   const settogglerightwidget = (toggle) => {

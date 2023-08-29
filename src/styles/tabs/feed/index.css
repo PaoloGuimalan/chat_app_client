@@ -326,8 +326,63 @@
     width: calc(100% - 40px);
     flex: 1;
     display: flex;
+    flex-direction: column;
     padding: 20px;
+    padding-top: 0px;
     overflow-y: auto;
+    gap: 5px;
+    overflow-x: hidden;
+}
+
+.div_messages_list_cards{
+    background-color: white;
+    width: calc(100% - 20px);
+    min-height: calc(90px - 20px);
+    height: calc(90px - 20px);
+    padding: 10px;
+    border-radius: 7px;
+    display: flex;
+    flex-direction: row;
+    cursor: pointer;
+    user-select: none;
+    gap: 10px;
+    border: solid 1px rgb(220, 220, 220);
+}
+
+#div_messages_list_name{
+    background-color: transparent;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 2px;
+}
+
+.span_messages_list_name:first-of-type{
+    font-size: 14px;
+    font-weight: bold;
+    color: #3b3b3b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.span_messages_list_name:nth-of-type(2){
+    font-size: 14px;
+    color: #3b3b3b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.span_messages_list_name:last-of-type{
+    margin-top: 5px;
+    font-size: 11px;
+    color: #3b3b3b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 #div_messages_list_empty_container{

@@ -1,5 +1,5 @@
 import Axios from 'axios'
-import { SET_ALERTS, SET_AUTHENTICATION, SET_CONTACTS_LIST, SET_NOTIFICATIONS_LIST } from '../../redux/types';
+import { SET_ALERTS, SET_AUTHENTICATION, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST } from '../../redux/types';
 import { authenticationstate } from '../../redux/actions/states';
 import sign from 'jwt-encode'
 import jwt_decode from 'jwt-decode'
@@ -504,6 +504,48 @@ const SendMessageRequest = (params, dispatch, setmessageValue) => {
     })
 }
 
+const InitConversationListRequest = (params, dispatch, setisLoading) => {
+    Axios.get(`${API}/u/initConversationList`,{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            const decodedResult = jwt_decode(response.data.result)
+
+            // console.log(decodedResult.conversationslist)
+            dispatch({
+                type: SET_MESSAGES_LIST,
+                payload: {
+                    messageslist: decodedResult.conversationslist
+                }
+            })
+            setisLoading(false)
+        }
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
+const InitConversationRequest = (params, dispatch, setisLoading) => {
+    const conversationID = params.conversationID
+
+    Axios.get(`${API}/u/initConversation/${conversationID}`,{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            const decodedResult = jwt_decode(response.data.result)
+
+            dispatch(decodedResult.messages)
+            setisLoading(false)
+        }
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -516,5 +558,7 @@ export {
     DeclineContactRequest,
     AcceptContactRequest,
     ContactsListInitRequest,
-    SendMessageRequest
+    SendMessageRequest,
+    InitConversationRequest,
+    InitConversationListRequest
 }
