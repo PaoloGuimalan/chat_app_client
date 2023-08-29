@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useState } from 'react'
 import '../../../styles/tabs/messenger/index.css'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
@@ -6,8 +6,31 @@ import { FcVideoCall, FcInfo, FcImageFile, FcAddImage, FcFile } from 'react-icon
 import { BiSolidPhoneCall } from 'react-icons/bi'
 import { RiAddCircleFill } from 'react-icons/ri'
 import { IoSend } from 'react-icons/io5'
+import { checkIfValid } from '../../../reusables/hooks/validatevariables'
+import { SendMessageRequest } from '../../../reusables/hooks/requests'
+import { useDispatch, useSelector } from 'react-redux'
 
 function Conversation({ conversationsetup }) {
+
+  const authentication = useSelector(state => state.authentication)
+  const [messageValue, setmessageValue] = useState("");
+  const [isReplying, setisReplying] = useState({
+    isReply: false
+  })  
+  const dispatch = useDispatch()
+
+  const sendMessageProcess = () => {
+    if(checkIfValid([messageValue])){
+        SendMessageRequest({
+            conversationID: conversationsetup.conversationID,
+            receivers: [conversationsetup.userdetails.userID, authentication.user.userID],
+            content: messageValue,
+            isReply: isReplying.isReply,
+            messageType: "text",
+            conversationType: "single"
+        },dispatch, setmessageValue)
+    }
+  }
 
   return (
     <div id='div_conversation'>
@@ -69,13 +92,19 @@ function Conversation({ conversationsetup }) {
                         }}className='btn_options_send'><FcAddImage style={{fontSize: "25px"}} /></motion.button>
                     </div>
                     <div id='div_input_text_content'>
-                        <input type='text' id='input_text_content_send' placeholder='Write a message....' />
+                        <input type='text' id='input_text_content_send' placeholder='Write a message....'value={messageValue} onChange={(e) => {
+                            setmessageValue(e.target.value)
+                        }} />
                     </div>
                     <div id='div_confirm_send'>
                         <motion.button
                         whileHover={{
                             backgroundColor: "#e6e6e6"
-                        }}className='btn_options_send'><IoSend style={{fontSize: "25px", color: "#1c7DEF"}} /></motion.button>
+                        }}
+                        onClick={() => {
+                            sendMessageProcess()
+                        }}
+                        className='btn_options_send'><IoSend style={{fontSize: "25px", color: "#1c7DEF"}} /></motion.button>
                     </div>
                 </div>
            </motion.div>

@@ -97,7 +97,11 @@ function Contacts() {
                           whileHover={{
                             backgroundColor: "#9cc2ff",
                             color: "white"
-                          }}className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                          }}
+                          onClick={() => {
+                            navigateToConversation(cnts.contactID, cnts.userdetails.usertwo)
+                          }}
+                          className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
                           <motion.button
                           initial={{
                             backgroundColor: "transparent",
@@ -106,9 +110,6 @@ function Contacts() {
                           whileHover={{
                             backgroundColor: "#ff6675",
                             color: "white"
-                          }}
-                          onClick={() => {
-                            navigateToConversation(cnts.contactID, cnts.userdetails.usertwo)
                           }}
                           className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
                         </div>

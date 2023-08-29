@@ -481,6 +481,29 @@ const ContactsListInitRequest = (params, dispatch, setisLoading) => {
     })
 }
 
+const SendMessageRequest = (params, dispatch, setmessageValue) => {
+    const payload = params
+    const encodedPayload = sign(payload, SECRET)
+
+    Axios.post(`${API}/u/sendMessage`, {
+        token: encodedPayload
+    },{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            console.log(response.data.message)
+        }
+        else{
+            console.log(response.data.message)
+        }
+        setmessageValue("")
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -492,5 +515,6 @@ export {
     NotificationInitRequest,
     DeclineContactRequest,
     AcceptContactRequest,
-    ContactsListInitRequest
+    ContactsListInitRequest,
+    SendMessageRequest
 }
