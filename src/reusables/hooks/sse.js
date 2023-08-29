@@ -5,6 +5,8 @@ import { SET_ALERTS, SET_CONTACTS_LIST, SET_NOTIFICATIONS_LIST } from '../../red
 const API = process.env.REACT_APP_CHATTERLOOP_API;
 const SECRET = process.env.REACT_APP_JWT_SECRET
 
+var sseNtfsSource = null
+
 const SSENotificationsTRequest = (params, dispatch, currentAlertState) => {
     const payload = {
         token: localStorage.getItem("authtoken"),
@@ -13,8 +15,8 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState) => {
 
     const encodedPayload = sign(payload, SECRET)
 
-    const sseNtfsSource = new EventSource(`${API}/u/sseNotifications/${encodedPayload}`)
-
+    sseNtfsSource = new EventSource(`${API}/u/sseNotifications/${encodedPayload}`)
+    
     sseNtfsSource.addEventListener('notifications', (e) => {
         const parsedresponse = JSON.parse(e.data)
         if(parsedresponse.auth){
@@ -53,6 +55,13 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState) => {
     })
 }
 
+const CloseSSENotifications = () => {
+    if(sseNtfsSource){
+        sseNtfsSource.close()
+    }
+}
+
 export {
-    SSENotificationsTRequest
+    SSENotificationsTRequest,
+    CloseSSENotifications
 }

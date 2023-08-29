@@ -13,7 +13,7 @@ import Feed from '../tabs/feed/Feed'
 import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
 import SearchMiniDrawer from '../widgets/SearchMiniDrawer'
-import { SSENotificationsTRequest } from '../../reusables/hooks/sse'
+import { CloseSSENotifications, SSENotificationsTRequest } from '../../reusables/hooks/sse'
 
 function Home() {
 
@@ -27,6 +27,7 @@ function Home() {
   const dispatch = useDispatch()
 
   const logoutProcess = () => {
+    CloseSSENotifications()
     LogoutRequest({}, dispatch)
   }
 
