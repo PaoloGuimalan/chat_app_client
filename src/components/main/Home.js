@@ -14,12 +14,15 @@ import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
 import SearchMiniDrawer from '../widgets/SearchMiniDrawer'
 import { CloseSSENotifications, SSENotificationsTRequest } from '../../reusables/hooks/sse'
+import { SET_CONVERSATION_SETUP, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
+import { conversationsetupstate } from '../../redux/actions/states'
 
 function Home() {
 
+  const togglerightwidget = useSelector(state => state.togglerightwidget)
   const authentication = useSelector(state => state.authentication)
   const alerts = useSelector(state => state.alerts)
-  const [toggleRightWidget, settoggleRightWidget] = useState("notifs")
+  // const [togglerightwidget, settogglerightwidget] = useState("notifs")
 
   const [searchBoxFocus, setsearchBoxFocus] = useState(false)
   const [searchbox, setsearchbox] = useState("")
@@ -37,6 +40,21 @@ function Home() {
 
   const initEventSources = () => {
     SSENotificationsTRequest({}, dispatch, alerts)
+  }
+
+  const settogglerightwidget = (toggle) => {
+    dispatch({
+      type: SET_CONVERSATION_SETUP,
+      payload:{
+        conversationsetup: conversationsetupstate
+      }
+    })
+    dispatch({
+      type: SET_TOGGLE_RIGHT_WIDGET,
+      payload:{
+        togglerightwidget: toggle
+      }
+    })
   }
 
   return (
@@ -76,7 +94,7 @@ function Home() {
             backgroundColor: "#e6e6e6"
           }}
           onClick={() => {
-            settoggleRightWidget("messages")
+            settogglerightwidget("messages")
           }}
           className='btn_navigations'><AiOutlineMessage style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
           <motion.button
@@ -84,7 +102,7 @@ function Home() {
             backgroundColor: "#e6e6e6"
           }}
           onClick={() => {
-            settoggleRightWidget("notifs")
+            settogglerightwidget("notifs")
           }}
           className='btn_navigations'><AiOutlineBell style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
           <motion.button
@@ -107,7 +125,7 @@ function Home() {
       <div id='div_main_home'>
         <Contacts />
         <Feed />
-        {toggleRightWidget == "notifs"? (
+        {togglerightwidget == "notifs"? (
           <Notifications />
         ) : (
           <Messages />

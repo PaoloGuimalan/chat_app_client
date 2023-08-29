@@ -7,9 +7,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
 import { ContactsListInitRequest } from '../../../reusables/hooks/requests'
 import DefaultProfile from '../../../assets/imgs/default.png'
+import { SET_CONVERSATION_SETUP, SET_TOGGLE_RIGHT_WIDGET } from '../../../redux/types'
 
 function Contacts() {
 
+  const conversationsetup = useSelector(state => state.conversationsetup)
   const authentication = useSelector(state => state.authentication)
   const contactslist = useSelector(state => state.contactslist)
   const dispatch = useDispatch()
@@ -19,6 +21,28 @@ function Contacts() {
   useEffect(() => {
     ContactsListInitRequest({}, dispatch, setisLoading)
   },[])
+
+  const settogglerightwidget = (toggle) => {
+    dispatch({
+      type: SET_TOGGLE_RIGHT_WIDGET,
+      payload:{
+        togglerightwidget: toggle
+      }
+    })
+  }
+
+  const navigateToConversation = (conversationID, userdetails) => {
+    dispatch({
+      type: SET_CONVERSATION_SETUP,
+      payload:{
+        conversationsetup: {
+          conversationid: conversationID,
+          userdetails: userdetails
+        }
+      }
+    })
+    settogglerightwidget("messages")
+  }
 
   return (
     <div id='div_contacts'>
@@ -82,7 +106,11 @@ function Contacts() {
                           whileHover={{
                             backgroundColor: "#ff6675",
                             color: "white"
-                          }}className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                          }}
+                          onClick={() => {
+                            navigateToConversation(cnts.contactID, cnts.userdetails.usertwo)
+                          }}
+                          className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
                         </div>
                       </motion.div>
                     )
@@ -111,7 +139,11 @@ function Contacts() {
                           whileHover={{
                             backgroundColor: "#9cc2ff",
                             color: "white"
-                          }}className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                          }}
+                          onClick={() => {
+                            navigateToConversation(cnts.contactID, cnts.userdetails.userone)
+                          }}
+                          className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
                           <motion.button
                           initial={{
                             backgroundColor: "transparent",

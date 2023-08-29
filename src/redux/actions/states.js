@@ -12,3 +12,16 @@ export const authenticationstate = {
         isVerified: null
     }
 }
+
+export const conversationsetupstate = {
+    conversationid: null,
+    userdetails:{
+        userID: "",
+        fullname:{
+            firstName: "",
+            middleName: "",
+            lastName: ""
+        },
+        profile: ""
+    }
+} 

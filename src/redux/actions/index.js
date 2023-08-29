@@ -1,5 +1,5 @@
-import { SET_ALERTS, SET_AUTHENTICATION, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST } from "../types";
-import { authenticationstate } from "./states";
+import { SET_ALERTS, SET_AUTHENTICATION, SET_CONTACTS_LIST, SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_TOGGLE_RIGHT_WIDGET } from "../types";
+import { authenticationstate, conversationsetupstate } from "./states";
 
 export const setauthentication = (state = authenticationstate, action) => {
     switch(action.type){
@@ -41,6 +41,24 @@ export const setmessageslist = (state = [], action) => {
     switch(action.type){
         case SET_MESSAGES_LIST:
             return action.payload.messageslist;
+        default:
+            return state;
+    }
+}
+
+export const setconversationsetup = (state = conversationsetupstate, action) => {
+    switch(action.type){
+        case SET_CONVERSATION_SETUP:
+            return action.payload.conversationsetup;
+        default:
+            return state;
+    }
+}
+
+export const settogglerightwidget = (state = "notifs", action) => {
+    switch(action.type){
+        case SET_TOGGLE_RIGHT_WIDGET:
+            return action.payload.togglerightwidget;
         default:
             return state;
     }

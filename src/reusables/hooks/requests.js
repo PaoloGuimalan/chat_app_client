@@ -469,6 +469,8 @@ const ContactsListInitRequest = (params, dispatch, setisLoading) => {
             dispatch({ type: SET_CONTACTS_LIST, payload: {
                 contactslist: decodedResult.contacts
             } })
+
+            // console.log(decodedResult.contacts)
         }
         else{
 
