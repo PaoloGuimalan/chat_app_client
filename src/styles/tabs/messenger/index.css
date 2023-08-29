@@ -229,6 +229,7 @@
     border-radius: 7px;
     background-color: rgb(222, 222, 222);
     border: solid 1px rgb(222, 222, 222);
+    text-align: left;
 }
 
 #div_loader_request{
