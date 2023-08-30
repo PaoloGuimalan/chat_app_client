@@ -45,10 +45,12 @@ function Conversation({ conversationsetup }) {
             if(autoScroll){
                 // var divheight = divcontentRef.current.scrollHeight
                 // divcontentRef.current.scrollTop = divheight
-                last.scrollIntoView({
-                    behavior: "instant",
-                    block: "end"
-                });
+                if(last){
+                    last.scrollIntoView({
+                        behavior: "instant",
+                        block: "end"
+                    });
+                }
             }
         }
     }
