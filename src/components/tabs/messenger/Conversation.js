@@ -71,6 +71,7 @@ function Conversation({ conversationsetup }) {
             conversationType: "single"
         }, dispatch, setmessageValue)
     }
+    setmessageValue("")
   }
 
   useEffect(() => {
