@@ -13,6 +13,8 @@ function Messages() {
   const [isLoading, setisLoading] = useState(true)
 
   const authentication = useSelector(state => state.authentication)
+  const screensizelistener = useSelector(state => state.screensizelistener);
+  const pathnamelistener = useSelector(state => state.pathnamelistener)
   const conversationsetup = useSelector(state => state.conversationsetup)
   const messageslist = useSelector(state => state.messageslist)
   const dispatch = useDispatch()
@@ -37,7 +39,11 @@ function Messages() {
     conversationsetup.conversationid? (
       <Conversation conversationsetup={conversationsetup} />
     ) : (
-      <div id='div_messages_main'>
+      <motion.div
+      animate={{
+          display: pathnamelistener.includes("messages")? "flex" : screensizelistener.W <= 900? "none" : "flex"
+      }} 
+      id='div_messages_main'>
         <div id='div_messages_label_container'>
             <AiOutlineMessage style={{fontSize: "20px", color: "white", backgroundColor: "#9cc2ff", borderRadius: "7px", padding: "3px"}} />
             <span className='span_messages_label'>Messages</span>
@@ -95,7 +101,7 @@ function Messages() {
               </div>
             )
         )}
-      </div>
+      </motion.div>
     )
   )
 }

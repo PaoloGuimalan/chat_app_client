@@ -14,6 +14,8 @@ function Contacts() {
   const conversationsetup = useSelector(state => state.conversationsetup)
   const authentication = useSelector(state => state.authentication)
   const contactslist = useSelector(state => state.contactslist)
+  const screensizelistener = useSelector(state => state.screensizelistener);
+  const pathnamelistener = useSelector(state => state.pathnamelistener)
   const dispatch = useDispatch()
 
   const [isLoading, setisLoading] = useState(true)
@@ -45,7 +47,11 @@ function Contacts() {
   }
 
   return (
-    <div id='div_contacts'>
+    <motion.div
+    animate={{
+      display: pathnamelistener.includes("contacts")? "flex" : screensizelistener.W <= 1100? "none" : "flex"
+    }}
+    id='div_contacts'>
         <div id='div_contacts_label_container'>
           <FcContacts style={{fontSize: "28px"}} />
           <span className='span_contacts_label'>Contacts</span>
@@ -166,7 +172,7 @@ function Contacts() {
             </div>
           )
         )}
-    </div>
+    </motion.div>
   )
 }
 

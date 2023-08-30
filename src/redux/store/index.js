@@ -1,5 +1,5 @@
 import { createStore, combineReducers } from "redux";
-import { setalerts, setauthentication, setcontactslist, setconversationsetup, setmessageslist, setnotificationslist, settogglerightwidget } from "../actions";
+import { setalerts, setauthentication, setcontactslist, setconversationsetup, setmessageslist, setnotificationslist, setpathnamelistener, setscreensizelistener, settogglerightwidget } from "../actions";
 
 const combiner = combineReducers({
     authentication: setauthentication,
@@ -8,7 +8,9 @@ const combiner = combineReducers({
     notificationslist: setnotificationslist,
     messageslist: setmessageslist,
     conversationsetup: setconversationsetup,
-    togglerightwidget: settogglerightwidget
+    togglerightwidget: settogglerightwidget,
+    screensizelistener: setscreensizelistener,
+    pathnamelistener: setpathnamelistener
 });
 
 const store = createStore(combiner)

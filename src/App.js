@@ -1,6 +1,6 @@
 import logo from './logo.svg';
 import './App.css';
-import { Navigate, Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
 import Login from './components/auth/Login';
 import { useDispatch, useSelector } from 'react-redux';
 import Splash from './components/main/Splash';
@@ -10,19 +10,52 @@ import Verification from './components/auth/Verification';
 import { useEffect, useRef } from 'react';
 import { AuthCheck } from './reusables/hooks/requests';
 import Alert from './components/widgets/Alert';
+import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER } from './redux/types';
 
 function App() {
 
   const authentication = useSelector(state => state.authentication)
+  const screensizelistener = useSelector(state => state.screensizelistener)
   const alerts = useSelector(state => state.alerts)
   const dispatch = useDispatch()
 
+  const location = useLocation().pathname
+
   const scrollDivAlerts = useRef(null)
+
+  const screensizelistenerTrigger = () => {
+    dispatch({ type: SET_SCREEN_SIZE_LISTENER, payload:{
+      screensizelistener:{
+        W: window.innerWidth,
+        H: window.innerHeight
+      }
+    } })
+    // console.log(screensizelistener)
+  }
 
   useEffect(() => {
     AuthCheck(authentication, dispatch)
-    console.log("v2.3.3")
+    console.log("v2.4.1")
   },[])
+
+  useEffect(() => {
+    dispatch({
+      type: SET_PATHNAME_LISTENER,
+      payload:{
+        pathnamelistener: location
+      }
+    })
+    // console.log(location)
+  },[location])
+
+  useEffect(() => {
+    window.addEventListener("resize", screensizelistenerTrigger)
+
+    return () => {
+      window.removeEventListener("resize", screensizelistenerTrigger)
+    }
+
+  },[screensizelistener])
 
   useEffect(() => {
     const scrollHeight = scrollDivAlerts.current.scrollHeight;

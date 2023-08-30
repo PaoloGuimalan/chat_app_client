@@ -15,6 +15,8 @@ function Conversation({ conversationsetup }) {
 
   const authentication = useSelector(state => state.authentication)
   const messageslist = useSelector(state => state.messageslist)
+  const screensizelistener = useSelector(state => state.screensizelistener);
+  const pathnamelistener = useSelector(state => state.pathnamelistener)
   const [messageValue, setmessageValue] = useState("");
   const [conversationList, setconversationList] = useState([])
   const [isLoading, setisLoading] = useState(true);
@@ -81,18 +83,39 @@ function Conversation({ conversationsetup }) {
   },[conversationsetup, messageslist])
 
   return (
-    <div id='div_conversation'>
-        <div id='div_conversation_container'>
+    <motion.div
+    animate={{
+        display: pathnamelistener.includes("messages")? "flex" : screensizelistener.W <= 900? "none" : "flex",
+        maxWidth: pathnamelistener.includes("messages")? "100%" : screensizelistener.W <= 900? "400px" : "400px",
+        paddingTop: pathnamelistener.includes("messages")? "10px" : screensizelistener.W <= 900? "20px" : "20px"
+    }}
+    id='div_conversation'>
+        <motion.div
+        initial={{
+            paddingRight: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "20px" : "20px",
+            paddingBottom: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "10px" : "10px",
+            width: pathnamelistener.includes("messages")? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 20px)" : "calc(100% - 20px)",
+            height: pathnamelistener.includes("messages")? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 10px)" : "calc(100% - 10px)"
+        }} 
+        animate={{
+            paddingRight: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "20px" : "20px",
+            paddingBottom: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "10px" : "10px",
+            width: pathnamelistener.includes("messages")? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 20px)" : "calc(100% - 20px)",
+            height: pathnamelistener.includes("messages")? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 10px)" : "calc(100% - 10px)"
+        }} 
+        id='div_conversation_container'>
            <motion.div
            initial={{
                 height: "0px",
                 paddingBottom: "0px",
-                paddingTop: "0px"
+                paddingTop: "0px",
+                borderRadius: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "10px" : "10px"
            }}
            animate={{
                 height: "calc(100% - 10px)",
                 paddingBottom: "5px",
-                paddingTop: "5px"
+                paddingTop: "5px",
+                borderRadius: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "10px" : "10px"
            }}
            id='div_conversation_content_handler'>
                 <div id='div_conversation_header'>
@@ -210,8 +233,8 @@ function Conversation({ conversationsetup }) {
                     </div>
                 </div>
            </motion.div>
-        </div>
-    </div>
+        </motion.div>
+    </motion.div>
   )
 }
 

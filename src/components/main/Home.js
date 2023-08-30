@@ -6,6 +6,7 @@ import { motion } from 'framer-motion'
 import { AiOutlineSearch, AiOutlineHome, AiOutlineMessage, AiOutlineBell, AiOutlineLogout } from 'react-icons/ai'
 import { BsMap } from 'react-icons/bs'
 import { FiMap } from 'react-icons/fi'
+import { RiContactsBook2Line } from 'react-icons/ri'
 import { IoMdNotificationsOutline } from 'react-icons/io'
 import { LogoutRequest, NotificationInitRequest } from '../../reusables/hooks/requests'
 import Contacts from '../tabs/feed/Contacts'
@@ -16,11 +17,14 @@ import SearchMiniDrawer from '../widgets/SearchMiniDrawer'
 import { CloseSSENotifications, SSENotificationsTRequest } from '../../reusables/hooks/sse'
 import { SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
 import { conversationsetupstate } from '../../redux/actions/states'
+import { Route, Routes, useNavigate } from 'react-router-dom'
+import DesktopHome from './DesktopHome'
 
 function Home() {
 
   const togglerightwidget = useSelector(state => state.togglerightwidget)
   const authentication = useSelector(state => state.authentication)
+  const screensizelistener = useSelector(state => state.screensizelistener)
   const alerts = useSelector(state => state.alerts)
   // const [togglerightwidget, settogglerightwidget] = useState("notifs")
 
@@ -28,6 +32,7 @@ function Home() {
   const [searchbox, setsearchbox] = useState("")
 
   const dispatch = useDispatch()
+  const navigate = useNavigate()
 
   const clearStates = () => {
     dispatch({
@@ -104,18 +109,36 @@ function Home() {
           whileHover={{
             backgroundColor: "#e6e6e6"
           }}
+          onClick={() => {
+            navigate("/app")
+          }}
           className='btn_navigations'><AiOutlineHome style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
           <motion.button
           whileHover={{
             backgroundColor: "#e6e6e6"
           }}
           className='btn_navigations'><FiMap style={{fontSize: "22px", color: "#4A4A4A"}} /></motion.button>
+          {screensizelistener.W <= 1100 && (
+            <motion.button
+            whileHover={{
+              backgroundColor: "#e6e6e6"
+            }}
+            onClick={() => {
+              navigate("/app/contacts")
+            }}
+            className='btn_navigations'><RiContactsBook2Line style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
+          )}
           <motion.button
           whileHover={{
             backgroundColor: "#e6e6e6"
           }}
           onClick={() => {
-            settogglerightwidget("messages")
+            if(screensizelistener.W <= 900){
+              navigate("/app/messages")
+            }
+            else{
+              settogglerightwidget("messages")
+            }
           }}
           className='btn_navigations'><AiOutlineMessage style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
           <motion.button
@@ -123,7 +146,12 @@ function Home() {
             backgroundColor: "#e6e6e6"
           }}
           onClick={() => {
-            settogglerightwidget("notifs")
+            if(screensizelistener.W <= 900){
+              navigate("/app/notifications")
+            }
+            else{
+              settogglerightwidget("notifs")
+            }
           }}
           className='btn_navigations'><AiOutlineBell style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
           <motion.button
@@ -143,15 +171,12 @@ function Home() {
       {searchBoxFocus && (
         <SearchMiniDrawer searchbox={searchbox} />
       )}
-      <div id='div_main_home'>
-        <Contacts />
-        <Feed />
-        {togglerightwidget == "notifs"? (
-          <Notifications />
-        ) : (
-          <Messages />
-        )}
-      </div>
+      <Routes>
+        <Route path='/' element={<DesktopHome togglerightwidget={togglerightwidget} />} />
+        <Route path='/messages' element={<Messages />} />
+        <Route path='/notifications' element={<Notifications />} />
+        <Route path='/contacts' element={<Contacts />} />
+      </Routes>
     </div>
   )
 }

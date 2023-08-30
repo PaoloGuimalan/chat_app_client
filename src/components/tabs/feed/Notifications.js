@@ -11,6 +11,8 @@ function Notifications() {
   const [isLoading, setisLoading] = useState(true)
 
   const notificationslist = useSelector(state => state.notificationslist)
+  const screensizelistener = useSelector(state => state.screensizelistener);
+  const pathnamelistener = useSelector(state => state.pathnamelistener)
   const alerts = useSelector(state => state.alerts)
   const dispatch = useDispatch()
 
@@ -39,7 +41,11 @@ function Notifications() {
   }
 
   return (
-    <div id='div_notifications_main'>
+    <motion.div
+    animate={{
+        display: pathnamelistener.includes("notifications")? "flex" : screensizelistener.W <= 900? "none" : "flex"
+    }}
+    id='div_notifications_main'>
       <div id='div_notifications_label_container'>
         <AiOutlineBell style={{fontSize: "20px", color: "#b66a00", backgroundColor: "#f2a43a", borderRadius: "7px", padding: "3px"}} />
         <span className='span_notifications_label'>Notifications</span>
@@ -107,7 +113,7 @@ function Notifications() {
           </div>
         )
       )}
-    </div>
+    </motion.div>
   )
 }
 

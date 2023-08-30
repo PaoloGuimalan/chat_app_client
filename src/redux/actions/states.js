@@ -24,4 +24,9 @@ export const conversationsetupstate = {
         },
         profile: ""
     }
-} 
+}
+
+export const screensizelistenerstate = {
+    W: window.innerWidth,
+    H: window.innerHeight
+}
