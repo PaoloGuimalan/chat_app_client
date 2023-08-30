@@ -527,7 +527,7 @@ const InitConversationListRequest = (params, dispatch, setisLoading) => {
     })
 }
 
-const InitConversationRequest = (params, dispatch, setisLoading) => {
+const InitConversationRequest = (params, dispatch, setisLoading, scrollBottom) => {
     const conversationID = params.conversationID
 
     Axios.get(`${API}/u/initConversation/${conversationID}`,{
@@ -540,6 +540,7 @@ const InitConversationRequest = (params, dispatch, setisLoading) => {
 
             dispatch(decodedResult.messages)
             setisLoading(false)
+            scrollBottom()
         }
     }).catch((err) => {
         console.log(err)

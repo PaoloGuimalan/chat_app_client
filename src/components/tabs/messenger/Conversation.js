@@ -34,16 +34,27 @@ function Conversation({ conversationsetup }) {
 //     }
 //   },[conversationsetup, messageslist, divcontentRef, isLoading])
 
-  useEffect(() => {
+  const scrollBottom = () => {
+    var items = document.querySelectorAll(".span_messages_result");
+    var last = items[items.length-1];
+
     if(!isLoading){
         if(divcontentRef){
             if(autoScroll){
-                var divheight = divcontentRef.current.scrollHeight
-                divcontentRef.current.scrollTop = divheight
+                // var divheight = divcontentRef.current.scrollHeight
+                // divcontentRef.current.scrollTop = divheight
+                last.scrollIntoView({
+                    behavior: "instant",
+                    block: "end"
+                });
             }
         }
     }
-  },[autoScroll, conversationsetup, messageslist, divcontentRef, isLoading])
+  }
+
+  useEffect(() => {
+    scrollBottom()
+  },[autoScroll, conversationsetup, messageslist, divcontentRef, isLoading, conversationList])
 
   const sendMessageProcess = () => {
     if(checkIfValid([messageValue])){
@@ -66,7 +77,7 @@ function Conversation({ conversationsetup }) {
   useEffect(() => {
     InitConversationRequest({
         conversationID: conversationsetup.conversationid
-    }, setconversationList, setisLoading)
+    }, setconversationList, setisLoading, scrollBottom)
   },[conversationsetup, messageslist])
 
   return (
