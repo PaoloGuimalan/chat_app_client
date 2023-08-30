@@ -134,6 +134,12 @@ function Home() {
           }}
           onClick={() => {
             if(screensizelistener.W <= 900){
+              dispatch({
+                type: SET_CONVERSATION_SETUP,
+                payload:{
+                  conversationsetup: conversationsetupstate
+                }
+              })
               navigate("/app/messages")
             }
             else{
@@ -147,6 +153,12 @@ function Home() {
           }}
           onClick={() => {
             if(screensizelistener.W <= 900){
+              dispatch({
+                type: SET_CONVERSATION_SETUP,
+                payload:{
+                  conversationsetup: conversationsetupstate
+                }
+              })
               navigate("/app/notifications")
             }
             else{
