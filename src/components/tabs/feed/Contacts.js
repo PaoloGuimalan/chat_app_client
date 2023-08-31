@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { ContactsListInitRequest } from '../../../reusables/hooks/requests'
 import DefaultProfile from '../../../assets/imgs/default.png'
 import { SET_CONVERSATION_SETUP, SET_TOGGLE_RIGHT_WIDGET } from '../../../redux/types'
+import { useNavigate } from 'react-router-dom'
 
 function Contacts() {
 
@@ -16,6 +17,7 @@ function Contacts() {
   const contactslist = useSelector(state => state.contactslist)
   const screensizelistener = useSelector(state => state.screensizelistener);
   const pathnamelistener = useSelector(state => state.pathnamelistener)
+  const navigate = useNavigate()
   const dispatch = useDispatch()
 
   const [isLoading, setisLoading] = useState(true)
@@ -34,16 +36,30 @@ function Contacts() {
   }
 
   const navigateToConversation = (conversationID, userdetails) => {
-    dispatch({
-      type: SET_CONVERSATION_SETUP,
-      payload:{
-        conversationsetup: {
-          conversationid: conversationID,
-          userdetails: userdetails
+    if(screensizelistener.W <= 1100){
+      dispatch({
+        type: SET_CONVERSATION_SETUP,
+        payload:{
+          conversationsetup: {
+            conversationid: conversationID,
+            userdetails: userdetails
+          }
         }
-      }
-    })
-    settogglerightwidget("messages")
+      })
+      navigate("/app/messages")
+    }
+    else{
+      dispatch({
+        type: SET_CONVERSATION_SETUP,
+        payload:{
+          conversationsetup: {
+            conversationid: conversationID,
+            userdetails: userdetails
+          }
+        }
+      })
+      settogglerightwidget("messages")
+    }
   }
 
   return (
