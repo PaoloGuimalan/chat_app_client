@@ -291,7 +291,7 @@ const SearchRequest = (params, dispatch, setisLoading, currentAlertState, setsea
     })
 }
 
-const ContactRequest = (params, dispatch, currentAlertState) => {
+const ContactRequest = (params, dispatch, currentAlertState, setisDisabledByRequest) => {
     const payload = params;
     const encodedPayload = sign(payload, SECRET)
     Axios.post(`${API}/u/requestContact`, {
@@ -325,6 +325,7 @@ const ContactRequest = (params, dispatch, currentAlertState) => {
                 ]
             }})
         }
+        setisDisabledByRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
             alerts: [
@@ -336,6 +337,7 @@ const ContactRequest = (params, dispatch, currentAlertState) => {
               }
             ]
         }})
+        setisDisabledByRequest(false)
     })
 }
 
@@ -359,7 +361,7 @@ const NotificationInitRequest = (params, dispatch, setisLoading) => {
     })
 }
 
-const DeclineContactRequest = (params, dispatch, currentAlertState) => {
+const DeclineContactRequest = (params, dispatch, currentAlertState, setisDisabledByRequest) => {
     const payload = params
     const encodedPayload = sign(payload, SECRET)
 
@@ -394,6 +396,7 @@ const DeclineContactRequest = (params, dispatch, currentAlertState) => {
                 ]
             }})
         }
+        // setisDisabledByRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
             alerts: [
@@ -405,10 +408,11 @@ const DeclineContactRequest = (params, dispatch, currentAlertState) => {
               }
             ]
         }})
+        setisDisabledByRequest(false)
     })
 }
 
-const AcceptContactRequest = (params, dispatch, currentAlertState) => {
+const AcceptContactRequest = (params, dispatch, currentAlertState, setisDisabledByRequest) => {
     const payload = params
     const encodedPayload = sign(payload, SECRET)
 
@@ -443,6 +447,7 @@ const AcceptContactRequest = (params, dispatch, currentAlertState) => {
                 ]
             }})
         }
+        // setisDisabledByRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
             alerts: [
@@ -454,6 +459,7 @@ const AcceptContactRequest = (params, dispatch, currentAlertState) => {
               }
             ]
         }})
+        setisDisabledByRequest(false)
     })
 }
 
@@ -498,7 +504,7 @@ const SendMessageRequest = (params, dispatch, setmessageValue) => {
         else{
             // console.log(response.data.message)
         }
-        setmessageValue("")
+        // setmessageValue("")
     }).catch((err) => {
         console.log(err)
     })

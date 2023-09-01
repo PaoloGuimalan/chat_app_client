@@ -9,6 +9,7 @@ import DefaultProfile from '../../../assets/imgs/default.png'
 function Notifications() {
 
   const [isLoading, setisLoading] = useState(true)
+  const [isDisabledByRequest, setisDisabledByRequest] = useState(false)
 
   const notificationslist = useSelector(state => state.notificationslist)
   const screensizelistener = useSelector(state => state.screensizelistener);
@@ -21,23 +22,25 @@ function Notifications() {
   },[])
 
   const declineRequestProcess = (ntfsType, ntfsID, refID, reverttoUserID, revertfromUserID) => {
+    setisDisabledByRequest(true)
     DeclineContactRequest({
       type: ntfsType,
       notificationID: ntfsID,
       referenceID: refID,
       toUserID: revertfromUserID,
       fromUserID: reverttoUserID
-    }, dispatch, alerts)
+    }, dispatch, alerts, setisDisabledByRequest)
   }
 
   const acceptRequestProcess = (ntfsType, ntfsID, refID, reverttoUserID, revertfromUserID) => {
+    setisDisabledByRequest(true)
     AcceptContactRequest({
       type: ntfsType,
       notificationID: ntfsID,
       referenceID: refID,
       toUserID: revertfromUserID,
       fromUserID: reverttoUserID
-    }, dispatch, alerts)
+    }, dispatch, alerts, setisDisabledByRequest)
   }
 
   return (
@@ -94,11 +97,13 @@ function Notifications() {
                       ntfs.referenceStatus? null : (
                         <div id='div_navigations_contact_request'>
                           <button className='btn_navigations_contact_request confirm_contact_request'
+                            disabled={isDisabledByRequest}
                             onClick={() => {
                               acceptRequestProcess("contact_request", ntfs.notificationID, ntfs.referenceID, ntfs.toUserID, ntfs.fromUserID)
                             }}
                           >Confirm</button>
                           <button className='btn_navigations_contact_request decline_contact_request'
+                            disabled={isDisabledByRequest}
                             onClick={() => {
                               declineRequestProcess("contact_request", ntfs.notificationID, ntfs.referenceID, ntfs.toUserID, ntfs.fromUserID)
                             }}

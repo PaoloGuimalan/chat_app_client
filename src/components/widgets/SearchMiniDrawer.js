@@ -13,6 +13,7 @@ function SearchMiniDrawer({searchbox}) {
 
   const [isLoading, setisLoading] = useState(false)
   const [searchresults, setsearchresults] = useState([])
+  const [isDisabledByRequest, setisDisabledByRequest] = useState(false)
 
   const authentication = useSelector(state => state.authentication)
   const alerts = useSelector(state => state.alerts)
@@ -45,9 +46,10 @@ function SearchMiniDrawer({searchbox}) {
   },[searchbox])
 
   const contactRequestProcess = (addUserID) => {
+    setisDisabledByRequest(true)
     ContactRequest({
       addUserID: addUserID
-    }, dispatch, alerts)
+    }, dispatch, alerts, setisDisabledByRequest)
   }
 
   return (
@@ -108,6 +110,7 @@ function SearchMiniDrawer({searchbox}) {
                             onClick={() => {
                               // console.log(srch.userID)
                             }}
+                            disabled={isDisabledByRequest}
                             title='Cancel Request'
                             id='btn_add_user'>
                               <BiUserMinus style={{fontSize: "23px"}} />
@@ -124,6 +127,7 @@ function SearchMiniDrawer({searchbox}) {
                               onClick={() => {
                                 // console.log(srch.userID)
                               }}
+                              disabled={isDisabledByRequest}
                               title='Accept Request'
                               id='btn_add_user'>
                                 <BiUserCheck style={{fontSize: "23px"}} />
@@ -136,6 +140,7 @@ function SearchMiniDrawer({searchbox}) {
                               onClick={() => {
                                 // console.log(srch.userID)
                               }}
+                              disabled={isDisabledByRequest}
                               title='Decline Request'
                               id='btn_add_user'>
                                 <BiUserX style={{fontSize: "23px"}} />
@@ -153,6 +158,7 @@ function SearchMiniDrawer({searchbox}) {
                           contactRequestProcess(srch.userID)
                           // console.log(srch.userID)
                         }}
+                        disabled={isDisabledByRequest}
                         title='Add Contact'
                         id='btn_add_user'>
                           <BiUserPlus style={{fontSize: "23px"}} />
