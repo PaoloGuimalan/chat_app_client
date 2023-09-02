@@ -73,7 +73,7 @@ function Notifications() {
             <span className='span_empty_list_label'>No Notifications</span>
           </div>
         ) : (
-          <div id='div_notifications_list_container'>
+          <div id='div_notifications_list_container' className='scroller'>
             {notificationslist.map((ntfs, i) => {
               return(
                 <motion.div

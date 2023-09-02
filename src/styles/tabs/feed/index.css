@@ -508,6 +508,27 @@
     border: solid 1px rgb(210, 210, 210);
 }
 
+.scroller::-webkit-scrollbar {
+    width: 10px;
+}
+  
+/* Track */
+.scroller::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+    border-radius: 5px;
+}
+   
+/* Handle */
+.scroller::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+  
+/* Handle on hover */
+.scroller::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+}
+
 @media screen and (max-width: 600px) {
     #div_feed{
         min-width: calc(100% - 1px);

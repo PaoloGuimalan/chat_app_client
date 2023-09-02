@@ -92,93 +92,98 @@ function Contacts() {
               <span className='span_empty_list_label'>No Contacts</span>
             </div>
           ) : (
-            <div id='div_contacts_list_container'>
+            <div id='div_contacts_list_container' className='scroller'>
               {contactslist.map((cnts, i) => {
-                if(cnts.userdetails.userone && cnts.userdetails.usertwo){
-                  if(cnts.userdetails.userone.userID == authentication.user.userID){
-                    return(
-                      <motion.div
-                      whileHover={{
-                        backgroundColor: "#e6e6e6"
-                      }}
-                      key={i} className='div_cncts_cards'>
-                        <div id='div_img_cncts_container'>
-                          <div id='div_img_search_profiles_container_cncts'>
-                            <img src={cnts.userdetails.usertwo.profile == "none"? DefaultProfile : cnts.userdetails.usertwo.profile} className='img_search_profiles_ntfs' />
+                if(cnts.type == "single"){
+                  if(cnts.userdetails.userone && cnts.userdetails.usertwo){
+                    if(cnts.userdetails.userone.userID == authentication.user.userID){
+                      return(
+                        <motion.div
+                        whileHover={{
+                          backgroundColor: "#e6e6e6"
+                        }}
+                        key={i} className='div_cncts_cards'>
+                          <div id='div_img_cncts_container'>
+                            <div id='div_img_search_profiles_container_cncts'>
+                              <img src={cnts.userdetails.usertwo.profile == "none"? DefaultProfile : cnts.userdetails.usertwo.profile} className='img_search_profiles_ntfs' />
+                            </div>
                           </div>
-                        </div>
-                        <div className='div_contact_fullname_container'>
-                          <span className='span_cncts_fullname_label'>{cnts.userdetails.usertwo.fullname.firstName}{cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} {cnts.userdetails.usertwo.fullname.lastName}</span>
-                        </div>
-                        <div className='div_cncts_navigations'>
-                          <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#9cc2ff"
-                          }}
-                          whileHover={{
-                            backgroundColor: "#9cc2ff",
-                            color: "white"
-                          }}
-                          onClick={() => {
-                            navigateToConversation(cnts.contactID, cnts.userdetails.usertwo)
-                          }}
-                          className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
-                          <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#ff6675"
-                          }}
-                          whileHover={{
-                            backgroundColor: "#ff6675",
-                            color: "white"
-                          }}
-                          className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
-                        </div>
-                      </motion.div>
-                    )
+                          <div className='div_contact_fullname_container'>
+                            <span className='span_cncts_fullname_label'>{cnts.userdetails.usertwo.fullname.firstName}{cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} {cnts.userdetails.usertwo.fullname.lastName}</span>
+                          </div>
+                          <div className='div_cncts_navigations'>
+                            <motion.button
+                            initial={{
+                              backgroundColor: "transparent",
+                              color: "#9cc2ff"
+                            }}
+                            whileHover={{
+                              backgroundColor: "#9cc2ff",
+                              color: "white"
+                            }}
+                            onClick={() => {
+                              navigateToConversation(cnts.contactID, cnts.userdetails.usertwo)
+                            }}
+                            className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                            <motion.button
+                            initial={{
+                              backgroundColor: "transparent",
+                              color: "#ff6675"
+                            }}
+                            whileHover={{
+                              backgroundColor: "#ff6675",
+                              color: "white"
+                            }}
+                            className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                          </div>
+                        </motion.div>
+                      )
+                    }
+                    else{
+                      return(
+                        <motion.div
+                        whileHover={{
+                          backgroundColor: "#e6e6e6"
+                        }}
+                        key={i} className='div_cncts_cards'>
+                          <div id='div_img_cncts_container'>
+                            <div id='div_img_search_profiles_container_cncts'>
+                              <img src={cnts.userdetails.userone.profile == "none"? DefaultProfile : cnts.userdetails.userone.profile} className='img_search_profiles_ntfs' />
+                            </div>
+                          </div>
+                          <div className='div_contact_fullname_container'>
+                            <span className='span_cncts_fullname_label'>{cnts.userdetails.userone.fullname.firstName}{cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} {cnts.userdetails.userone.fullname.lastName}</span>
+                          </div>
+                          <div className='div_cncts_navigations'>
+                            <motion.button
+                            initial={{
+                              backgroundColor: "transparent",
+                              color: "#9cc2ff"
+                            }}
+                            whileHover={{
+                              backgroundColor: "#9cc2ff",
+                              color: "white"
+                            }}
+                            onClick={() => {
+                              navigateToConversation(cnts.contactID, cnts.userdetails.userone)
+                            }}
+                            className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                            <motion.button
+                            initial={{
+                              backgroundColor: "transparent",
+                              color: "#ff6675"
+                            }}
+                            whileHover={{
+                              backgroundColor: "#ff6675",
+                              color: "white"
+                            }}className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
+                          </div>
+                        </motion.div>
+                      )
+                    }
                   }
                   else{
-                    return(
-                      <motion.div
-                      whileHover={{
-                        backgroundColor: "#e6e6e6"
-                      }}
-                      key={i} className='div_cncts_cards'>
-                        <div id='div_img_cncts_container'>
-                          <div id='div_img_search_profiles_container_cncts'>
-                            <img src={cnts.userdetails.userone.profile == "none"? DefaultProfile : cnts.userdetails.userone.profile} className='img_search_profiles_ntfs' />
-                          </div>
-                        </div>
-                        <div className='div_contact_fullname_container'>
-                          <span className='span_cncts_fullname_label'>{cnts.userdetails.userone.fullname.firstName}{cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} {cnts.userdetails.userone.fullname.lastName}</span>
-                        </div>
-                        <div className='div_cncts_navigations'>
-                          <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#9cc2ff"
-                          }}
-                          whileHover={{
-                            backgroundColor: "#9cc2ff",
-                            color: "white"
-                          }}
-                          onClick={() => {
-                            navigateToConversation(cnts.contactID, cnts.userdetails.userone)
-                          }}
-                          className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
-                          <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#ff6675"
-                          }}
-                          whileHover={{
-                            backgroundColor: "#ff6675",
-                            color: "white"
-                          }}className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
-                        </div>
-                      </motion.div>
-                    )
+                    return null
                   }
                 }
                 else{

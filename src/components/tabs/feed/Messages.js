@@ -68,7 +68,7 @@ function Messages() {
                 <span className='span_empty_list_label'>No Messages</span>
               </div>
             ) : (
-              <div id='div_messages_list_container'>
+              <div id='div_messages_list_container' className='scroller'>
                 {messageslist.map((msgslst, i) => {
                   if(msgslst.conversationType == "single"){
                     return msgslst.users.map((msgsurs, i) => {
