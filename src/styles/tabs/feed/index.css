@@ -508,6 +508,88 @@
     border: solid 1px rgb(210, 210, 210);
 }
 
+#div_feed_contents_container{
+    background-color: transparent;
+    width: 100%;
+    max-width: 600px;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    /* overflow-y: auto; */
+    gap: 5px;
+    padding-bottom: 10px;
+}
+
+.div_feed_post_container{
+    background-color: white;
+    border: solid 1px rgb(210, 210, 210);
+    border-radius: 10px;
+    display: flex;
+    flex-direction: column;
+    padding: 20px;
+    width: calc(100% - 42px);
+}
+
+.div_post_content{
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex: 1;
+    /* justify-content: center; */
+    align-items: center;
+}
+
+#div_img_welcome_container{
+    background-color: transparent;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    width: 120px;
+    height: 120px;
+}
+
+#img_welcome_post_pic{
+    width: 100%;
+    height: 100%;
+    max-width: 200px;
+    max-height: 200px;
+}
+
+#div_welcome_post_labels_container{
+    background-color: transparent;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    height: 100%;
+    align-items: flex-start;
+    /* justify-content: center; */
+    padding-left: 20px;
+    padding-right: 20px;
+    gap: 0px;
+}
+
+#span_welcome_post_label_cl{
+    font-size: 15px;
+    font-weight: bold;
+    color: #3b3b3b;
+    text-align: left;
+}
+
+#span_welcome_post_label_h2{
+    font-size: 13px;
+    /* font-weight: bold; */
+    color: #3b3b3b;
+    text-align: left;
+    margin-bottom: 15px;
+}
+
+#span_welcome_post_par_cl{
+    font-size: 14px;
+    /* font-weight: bold; */
+    color: #3b3b3b;
+    text-align: left;
+}
+
 .scroller::-webkit-scrollbar {
     width: 10px;
 }
@@ -520,6 +602,27 @@
    
 /* Handle */
 .scroller::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 5px;
+}
+  
+/* Handle on hover */
+.thinscroller::-webkit-scrollbar-thumb:hover {
+    background: #555; 
+}
+
+.thinscroller::-webkit-scrollbar {
+    width: 0px;
+}
+  
+/* Track */
+.thinscroller::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+    border-radius: 5px;
+}
+   
+/* Handle */
+.thinscroller::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 5px;
 }
@@ -541,6 +644,15 @@
         border-radius: 0px;
         border-left: none;
         border-right: none;
+    }
+
+    .div_feed_post_container{
+        border-radius: 0px;
+    }
+    
+    #div_img_welcome_container{
+        width: 100px;
+        height: 100px;
     }
 }
 

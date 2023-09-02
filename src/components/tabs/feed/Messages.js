@@ -48,6 +48,9 @@ function Messages() {
             <AiOutlineMessage style={{fontSize: "20px", color: "white", backgroundColor: "#9cc2ff", borderRadius: "7px", padding: "3px"}} />
             <span className='span_messages_label'>Messages</span>
         </div>
+        {/* <div>
+          <span>Hello World</span>
+        </div> */}
         {isLoading? (
         <div id='div_isLoading_notifications'>
           <motion.div

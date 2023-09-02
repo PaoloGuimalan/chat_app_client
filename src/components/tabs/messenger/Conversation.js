@@ -175,22 +175,27 @@ function Conversation({ conversationsetup }) {
                         }
                     }}>
                         {conversationList.map((cnvs, i) => {
-                            return(
-                                <motion.span
-                                initial={{
-                                    backgroundColor: cnvs.sender == authentication.user.userID? "#1c7DEF" : "rgb(222, 222, 222)",
-                                    border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
-                                    marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
-                                    color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b"
-                                }}
-                                animate={{
-                                    backgroundColor: cnvs.sender == authentication.user.userID? "#1c7DEF" : "rgb(222, 222, 222)",
-                                    border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
-                                    marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
-                                    color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b"
-                                }}
-                                key={i} className='span_messages_result'>{cnvs.content}</motion.span>
-                            )
+                            if(cnvs.messageType == "text"){
+                                return(
+                                    <motion.span
+                                    initial={{
+                                        backgroundColor: cnvs.sender == authentication.user.userID? "#1c7DEF" : "rgb(222, 222, 222)",
+                                        border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
+                                        marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
+                                        color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b"
+                                    }}
+                                    animate={{
+                                        backgroundColor: cnvs.sender == authentication.user.userID? "#1c7DEF" : "rgb(222, 222, 222)",
+                                        border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
+                                        marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
+                                        color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b"
+                                    }}
+                                    key={i} className='span_messages_result'>{cnvs.content}</motion.span>
+                                )
+                            }
+                            else{
+                                return null
+                            }
                         })}
                     </div>
                 )}
