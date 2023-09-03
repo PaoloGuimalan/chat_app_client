@@ -1,16 +1,19 @@
 import React, { useEffect, useState } from 'react'
 import '../../../styles/tabs/feed/index.css'
 import { AiOutlineMessage, AiOutlineLoading3Quarters } from 'react-icons/ai'
+import { BiGroup } from 'react-icons/bi'
 import { useDispatch, useSelector } from 'react-redux'
 import Conversation from '../messenger/Conversation'
 import { InitConversationListRequest } from '../../../reusables/hooks/requests'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
 import { SET_CONVERSATION_SETUP } from '../../../redux/types'
+import CreateGroupChatModal from '../../modals/CreateGroupChatModal'
 
 function Messages() {
 
   const [isLoading, setisLoading] = useState(true)
+  const [isCreateGCToggle, setisCreateGCToggle] = useState(false)
 
   const authentication = useSelector(state => state.authentication)
   const screensizelistener = useSelector(state => state.screensizelistener);
@@ -44,13 +47,19 @@ function Messages() {
           display: pathnamelistener.includes("messages")? "flex" : screensizelistener.W <= 900? "none" : "flex"
       }} 
       id='div_messages_main'>
+        {isCreateGCToggle && (
+          <CreateGroupChatModal setisCreateGCToggle={setisCreateGCToggle} />
+        )}
         <div id='div_messages_label_container'>
             <AiOutlineMessage style={{fontSize: "20px", color: "white", backgroundColor: "#9cc2ff", borderRadius: "7px", padding: "3px"}} />
             <span className='span_messages_label'>Messages</span>
         </div>
-        {/* <div>
-          <span>Hello World</span>
-        </div> */}
+        <div id='div_messages_options'>
+          <motion.button id='btn_create_gc' onClick={() => { setisCreateGCToggle(true) }}>
+            <BiGroup style={{ fontSize: "20px" }} />
+            <span id='span_btn_label'>Create Group Chat</span>
+          </motion.button>
+        </div>
         {isLoading? (
         <div id='div_isLoading_notifications'>
           <motion.div

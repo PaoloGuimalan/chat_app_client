@@ -144,6 +144,7 @@
     flex-direction: row;
     align-items: center;
     padding: 20px;
+    padding-bottom: 10px;
     gap: 10px;
 }
 
@@ -453,6 +454,9 @@
     /* padding-top: 10px; */
     padding-left: 10px;
     padding-right: 10px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .span_cncts_fullname_label{
@@ -588,6 +592,39 @@
     /* font-weight: bold; */
     color: #3b3b3b;
     text-align: left;
+}
+
+#div_messages_options{
+    background-color: transparent;
+    width: calc(100% - 40px);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 20px;
+    padding-top: 10px;
+    padding-bottom: 20px;
+    gap: 5px;
+}
+
+#btn_create_gc{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 7px;
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: 5px;
+    border: solid 0px #1c7DEF;
+    border-radius: 7px;
+    background-color: #c7daff;
+    color: #1c7DEF;
+    cursor: pointer;
+    min-height: 30px;
+}
+
+#span_btn_label{
+    font-weight:bold;
+    font-size: 12px;
 }
 
 .scroller::-webkit-scrollbar {
