@@ -3,14 +3,16 @@ import '../../styles/modals/index.css'
 import { IoClose } from 'react-icons/io5'
 import { BiGroup } from 'react-icons/bi'
 import { GrFormClose } from 'react-icons/gr'
-import { useSelector } from 'react-redux'
+import { useDispatch, useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../assets/imgs/default.png'
+import { CreateGroupChatRequest } from '../../reusables/hooks/requests'
 
 function CreateGroupChatModal({ setisCreateGCToggle }) {
 
   const authentication = useSelector(state => state.authentication)
   const contactslist = useSelector(state => state.contactslist)
+  const dispatch = useDispatch()
 
   const [gcName, setgcName] = useState(`${authentication.user.fullName.firstName}'s Group Chat`)
   const [gcprivacy, setgcprivacy] = useState(true)
@@ -30,7 +32,12 @@ function CreateGroupChatModal({ setisCreateGCToggle }) {
   }
 
   const processCreateGroupChat = () => {
-
+    var markedMembersFinal = markedMembers.map((mrkd, i) => (mrkd.userID))
+    CreateGroupChatRequest({
+        groupName: gcName,
+        privacy: gcprivacy,
+        otherUsers: markedMembersFinal
+    }, dispatch, setisCreateGCToggle)
   }
 
   return (
@@ -83,7 +90,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }) {
                     id='div_selected_container'>
                         {markedMembers.map((mrkm, i) => {
                             return(
-                                <div className='div_selected_holder'>
+                                <div key={i} className='div_selected_holder'>
                                     <span className='span_selected_label'>{mrkm.fullName}</span>
                                     <button className='btn_remove_selected' onClick={(e) => {
                                         removeFromList(mrkm.userID)

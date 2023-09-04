@@ -543,10 +543,33 @@ const InitConversationRequest = (params, dispatch, setisLoading, scrollBottom) =
     }).then((response) => {
         if(response.data.status){
             const decodedResult = jwt_decode(response.data.result)
-
-            dispatch(decodedResult.messages)
             setisLoading(false)
+            dispatch(decodedResult.messages)
             scrollBottom()
+            
+            // setTimeout(() => {
+            //     dispatch(decodedResult.messages)
+            //     scrollBottom()
+            // },100)
+        }
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
+const CreateGroupChatRequest = (params, dispatch, setisCreateGCToggle) => {
+    const payload = params
+    const encodedPayload = sign(payload, SECRET)
+
+    Axios.post(`${API}/u/createContactGroupChat`, {
+        token: encodedPayload
+    },{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            setisCreateGCToggle(false)
         }
     }).catch((err) => {
         console.log(err)
@@ -567,5 +590,6 @@ export {
     ContactsListInitRequest,
     SendMessageRequest,
     InitConversationRequest,
-    InitConversationListRequest
+    InitConversationListRequest,
+    CreateGroupChatRequest
 }

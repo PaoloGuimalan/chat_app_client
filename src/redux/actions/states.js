@@ -23,7 +23,13 @@ export const conversationsetupstate = {
             lastName: ""
         },
         profile: ""
-    }
+    },
+    groupdetails:{
+        groupName: "",
+        receivers: [],
+        profile: ""
+    },
+    type: ""
 }
 
 export const screensizelistenerstate = {

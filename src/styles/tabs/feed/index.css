@@ -318,6 +318,11 @@
     height: 60%;
 }
 
+.img_gc_profiles_ntfs{
+    width: 85%;
+    height: 85%;
+}
+
 #div_notifications_list_empty_container{
     background-color: transparent;
     width: calc(100% - 40px);

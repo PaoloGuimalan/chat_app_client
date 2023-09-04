@@ -9,6 +9,7 @@ import { ContactsListInitRequest } from '../../../reusables/hooks/requests'
 import DefaultProfile from '../../../assets/imgs/default.png'
 import { SET_CONVERSATION_SETUP, SET_TOGGLE_RIGHT_WIDGET } from '../../../redux/types'
 import { useNavigate } from 'react-router-dom'
+import { conversationsetupstate } from '../../../redux/actions/states'
 
 function Contacts() {
 
@@ -35,30 +36,66 @@ function Contacts() {
     })
   }
 
-  const navigateToConversation = (conversationID, userdetails) => {
+  const navigateToConversation = (type, conversationID, userdetails) => {
     if(screensizelistener.W <= 1100){
-      dispatch({
-        type: SET_CONVERSATION_SETUP,
-        payload:{
-          conversationsetup: {
-            conversationid: conversationID,
-            userdetails: userdetails
+      if(type == "single"){
+        dispatch({
+          type: SET_CONVERSATION_SETUP,
+          payload:{
+            conversationsetup: {
+              conversationid: conversationID,
+              userdetails: userdetails,
+              groupdetails: conversationsetupstate.groupdetails,
+              type: "single"
+            }
           }
-        }
-      })
-      navigate("/app/messages")
+        })
+        navigate("/app/messages")
+      }
+      else{
+        dispatch({
+          type: SET_CONVERSATION_SETUP,
+          payload:{
+            conversationsetup: {
+              conversationid: conversationID,
+              userdetails: conversationsetupstate.userdetails,
+              groupdetails: userdetails,
+              type: "group"
+            }
+          }
+        })
+        navigate("/app/messages")
+      }
     }
     else{
-      dispatch({
-        type: SET_CONVERSATION_SETUP,
-        payload:{
-          conversationsetup: {
-            conversationid: conversationID,
-            userdetails: userdetails
+      if(type == "single"){
+        dispatch({
+          type: SET_CONVERSATION_SETUP,
+          payload:{
+            conversationsetup: {
+              conversationid: conversationID,
+              userdetails: userdetails,
+              groupdetails: conversationsetupstate.groupdetails,
+              type: "single"
+            }
           }
-        }
-      })
-      settogglerightwidget("messages")
+        })
+        settogglerightwidget("messages")
+      }
+      else{
+        dispatch({
+          type: SET_CONVERSATION_SETUP,
+          payload:{
+            conversationsetup: {
+              conversationid: conversationID,
+              userdetails: conversationsetupstate.userdetails,
+              groupdetails: userdetails,
+              type: "group"
+            }
+          }
+        })
+        settogglerightwidget("messages")
+      }
     }
   }
 
@@ -122,7 +159,7 @@ function Contacts() {
                               color: "white"
                             }}
                             onClick={() => {
-                              navigateToConversation(cnts.contactID, cnts.userdetails.usertwo)
+                              navigateToConversation("single", cnts.contactID, cnts.userdetails.usertwo)
                             }}
                             className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
                             <motion.button
@@ -165,7 +202,7 @@ function Contacts() {
                               color: "white"
                             }}
                             onClick={() => {
-                              navigateToConversation(cnts.contactID, cnts.userdetails.userone)
+                              navigateToConversation("single", cnts.contactID, cnts.userdetails.userone)
                             }}
                             className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
                             <motion.button

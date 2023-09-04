@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import '../../../styles/tabs/messenger/index.css'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
+import GroupChatIcon from '../../../assets/imgs/group-chat-icon.jpg'
 import { FcVideoCall, FcInfo, FcImageFile, FcAddImage, FcFile } from 'react-icons/fc'
 import { BiSolidPhoneCall } from 'react-icons/bi'
 import { RiAddCircleFill } from 'react-icons/ri'
@@ -62,14 +63,26 @@ function Conversation({ conversationsetup }) {
 
   const sendMessageProcess = () => {
     if(checkIfValid([messageValue])){
-        SendMessageRequest({
-            conversationID: conversationsetup.conversationid,
-            receivers: [conversationsetup.userdetails.userID, authentication.user.userID],
-            content: messageValue,
-            isReply: isReplying.isReply,
-            messageType: "text",
-            conversationType: "single"
-        }, dispatch, setmessageValue)
+        if(conversationsetup.type == "single"){
+            SendMessageRequest({
+                conversationID: conversationsetup.conversationid,
+                receivers: [conversationsetup.userdetails.userID, authentication.user.userID],
+                content: messageValue,
+                isReply: isReplying.isReply,
+                messageType: "text",
+                conversationType: "single"
+            }, dispatch, setmessageValue)
+        }
+        else{
+            SendMessageRequest({
+                conversationID: conversationsetup.conversationid,
+                receivers: conversationsetup.groupdetails.receivers,
+                content: messageValue,
+                isReply: isReplying.isReply,
+                messageType: "text",
+                conversationType: "group"
+            }, dispatch, setmessageValue)
+        }
     }
     setmessageValue("")
   }
@@ -125,12 +138,24 @@ function Conversation({ conversationsetup }) {
                     <div id='div_conversation_user'>
                         <div id='div_img_cncts_container'>
                           <div id='div_img_search_profiles_container_cncts'>
-                            <img src={conversationsetup.userdetails.profile == "none"? DefaultProfile : conversationsetup.userdetails.profile} className='img_search_profiles_ntfs' />
+                            {conversationsetup.type == "single"? (
+                                <img src={conversationsetup.userdetails.profile == "none"? DefaultProfile : conversationsetup.userdetails.profile} className='img_search_profiles_ntfs' />
+                            ) : (
+                                <img src={GroupChatIcon} className='img_gc_profiles_ntfs' />
+                            )}
                           </div>
                         </div>
                         <div id='div_conversation_user_name'>
-                            <span className='span_userdetails_name'>{conversationsetup.userdetails.fullname.firstName}{conversationsetup.userdetails.fullname.middleName == "N/A"? "" : ` ${conversationsetup.userdetails.fullname.middleName}`} {conversationsetup.userdetails.fullname.lastName}</span>
-                            <span className='span_userdetails_name'>Recently Active</span>
+                            {conversationsetup.type == "single"? (
+                                <span className='span_userdetails_name'>{conversationsetup.userdetails.fullname.firstName}{conversationsetup.userdetails.fullname.middleName == "N/A"? "" : ` ${conversationsetup.userdetails.fullname.middleName}`} {conversationsetup.userdetails.fullname.lastName}</span>
+                            ) : (
+                                <span className='span_userdetails_name'>{conversationsetup.groupdetails.groupName}</span>
+                            )}
+                            {conversationsetup.type == "single"? (
+                                <span className='span_userdetails_name'>Recently Active</span>
+                            ) : (
+                                <span className='span_userdetails_name'>Members are active</span>
+                            )}
                         </div>
                     </div>
                     <div id='div_conversation_header_navigations'>
@@ -161,7 +186,7 @@ function Conversation({ conversationsetup }) {
                         duration: 1,
                         repeat: Infinity
                         }}
-                        id='div_loader_request'>
+                        id='div_loader_request_conv'>
                             <AiOutlineLoading3Quarters style={{fontSize: "25px"}} />
                         </motion.div>
                     </div>
@@ -177,24 +202,40 @@ function Conversation({ conversationsetup }) {
                         {conversationList.map((cnvs, i) => {
                             if(cnvs.messageType == "text"){
                                 return(
-                                    <motion.span
+                                    <motion.div
+                                    key={i} 
                                     initial={{
-                                        backgroundColor: cnvs.sender == authentication.user.userID? "#1c7DEF" : "rgb(222, 222, 222)",
-                                        border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
                                         marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
-                                        color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b"
+                                        alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
                                     }}
                                     animate={{
-                                        backgroundColor: cnvs.sender == authentication.user.userID? "#1c7DEF" : "rgb(222, 222, 222)",
-                                        border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
                                         marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
-                                        color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b"
+                                        alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
                                     }}
-                                    key={i} className='span_messages_result'>{cnvs.content}</motion.span>
+                                    className='div_messages_result'>
+                                        {conversationsetup.type == "group" && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                                        <motion.span
+                                        title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
+                                        initial={{
+                                            backgroundColor: cnvs.sender == authentication.user.userID? "#1c7DEF" : "rgb(222, 222, 222)",
+                                            border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
+                                            color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b",
+                                            // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
+                                        }}
+                                        animate={{
+                                            backgroundColor: cnvs.sender == authentication.user.userID? "#1c7DEF" : "rgb(222, 222, 222)",
+                                            border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
+                                            color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b",
+                                            // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
+                                        }}
+                                        className='span_messages_result'>{cnvs.content}</motion.span>
+                                    </motion.div>
                                 )
                             }
                             else{
-                                return null
+                                return(
+                                    <span className='span_gc_notif_label'>{cnvs.content}</span>
+                                )
                             }
                         })}
                     </div>

@@ -7,8 +7,10 @@ import Conversation from '../messenger/Conversation'
 import { InitConversationListRequest } from '../../../reusables/hooks/requests'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
+import GroupChatIcon from '../../../assets/imgs/group-chat-icon.jpg'
 import { SET_CONVERSATION_SETUP } from '../../../redux/types'
 import CreateGroupChatModal from '../../modals/CreateGroupChatModal'
+import { conversationsetupstate } from '../../../redux/actions/states'
 
 function Messages() {
 
@@ -26,16 +28,33 @@ function Messages() {
     InitConversationListRequest({}, dispatch, setisLoading)
   },[])
 
-  const navigateToConversation = (conversationID, userdetails) => {
-    dispatch({
-      type: SET_CONVERSATION_SETUP,
-      payload:{
-        conversationsetup: {
-          conversationid: conversationID,
-          userdetails: userdetails
+  const navigateToConversation = (type, conversationID, userdetails) => {
+    if(type == "single"){
+      dispatch({
+        type: SET_CONVERSATION_SETUP,
+        payload:{
+          conversationsetup: {
+            conversationid: conversationID,
+            userdetails: userdetails,
+            groupdetails: conversationsetupstate.groupdetails,
+            type: "single"
+          }
         }
-      }
-    })
+      })
+    }
+    else{
+      dispatch({
+        type: SET_CONVERSATION_SETUP,
+        payload:{
+          conversationsetup: {
+            conversationid: conversationID,
+            userdetails: conversationsetupstate.userdetails,
+            groupdetails: userdetails,
+            type: "group"
+          }
+        }
+      })
+    }
   }
 
   return (
@@ -91,7 +110,7 @@ function Messages() {
                             backgroundColor: "rgb(200, 200, 200)"
                           }}
                           onClick={() => {
-                            navigateToConversation(msgslst.conversationID, msgsurs)
+                            navigateToConversation("single", msgslst.conversationID, msgsurs)
                           }}
                           key={i} className='div_messages_list_cards'>
                             <div id='div_img_cncts_container'>
@@ -108,6 +127,32 @@ function Messages() {
                         )
                       }
                     })
+                  }
+                  else if(msgslst.conversationType == "group"){
+                    return(
+                      <motion.div
+                      whileHover={{
+                        backgroundColor: "rgb(200, 200, 200)"
+                      }}
+                      onClick={() => {
+                        navigateToConversation("group", msgslst.conversationID, {
+                          ...msgslst.groupdetails,
+                          receivers: msgslst.receivers
+                        })
+                      }}
+                      key={i} className='div_messages_list_cards'>
+                        <div id='div_img_cncts_container'>
+                          <div id='div_img_search_profiles_container_cncts'>
+                            <img src={GroupChatIcon} className='img_gc_profiles_ntfs' />
+                          </div>
+                        </div>
+                        <div id='div_messages_list_name'>
+                          <span className='span_messages_list_name'>{msgslst.groupdetails.groupName} (Group Chat)</span>
+                          <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you:": ""} {msgslst.content}</span>
+                          <span className='span_messages_list_name'>{msgslst.messageDate.date} . {msgslst.messageDate.time}</span>
+                        </div>
+                      </motion.div>
+                    )
                   }
                 })}
               </div>

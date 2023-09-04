@@ -142,6 +142,11 @@
     height: 60%;
 }
 
+.img_gc_profiles_ntfs{
+    width: 85%;
+    height: 85%;
+}
+
 #div_send_controls{
     background-color: white;
     /* background-color: green; */
@@ -224,16 +229,33 @@
     padding-right: 10px;
 }
 
-.span_messages_result{
+.div_messages_result{
     background-color: transparent;
     width: fit-content;
     max-width: 70%;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+}
+
+.span_messages_result{
+    background-color: transparent;
+    width: fit-content;
+    max-width: 100%;
     padding: 7px;
     font-size: 14px;
     border-radius: 7px;
     background-color: rgb(222, 222, 222);
     border: solid 1px rgb(222, 222, 222);
     text-align: left;
+}
+
+.span_gc_notif_label{
+    font-size: 13px;
+    padding-top: 5px;
+    padding-bottom: 15px;
+    text-align: center;
+    color: #3b3b3b;
 }
 
 #div_loader_request{
@@ -250,20 +272,44 @@
     align-items: center;
 }
 
+#div_loader_request_conv{
+    background-color: transparent;
+    width: 40px;
+    height: 40px;
+    border: none;
+    border-radius: 40px;
+    color: #3b3b3b;
+    margin-top: 0px;
+    margin-bottom: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
 #div_conversation_content_loader{
-    background-color: white;
+    background-color: transparent;
     width: calc(100% - 0px);
     display: flex;
     flex: 1;
     flex-direction: column;
     border-radius: 10px;
-    overflow-y: auto;
+    /* overflow-y: auto; */
     gap: 10px;
     padding-top: 0px;
     padding-left: 0px;
     padding-right: 0px;
     justify-content: center;
     align-items: center;
+    overflow: hidden;
+}
+
+.span_sender_label{
+    font-size: 12px;
+    text-align: right;
+    margin-bottom: 5px;
+    padding-right: 5px;
+    padding-left: 5px;
+    color: #3b3b3b;
 }
 
 /* width */
