@@ -123,6 +123,11 @@ function Messages() {
                               <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you:": ""} {msgslst.content}</span>
                               <span className='span_messages_list_name'>{msgslst.messageDate.date} . {msgslst.messageDate.time}</span>
                             </div>
+                            {msgslst.unread > 0 && (
+                              <div>
+                                <span className='span_messages_list_counts'>{msgslst.unread}</span>
+                              </div>
+                            )}
                           </motion.div>
                         )
                       }
@@ -151,6 +156,11 @@ function Messages() {
                           <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you:": ""} {msgslst.content}</span>
                           <span className='span_messages_list_name'>{msgslst.messageDate.date} . {msgslst.messageDate.time}</span>
                         </div>
+                        {msgslst.unread > 0 && (
+                          <div>
+                            <span className='span_messages_list_counts'>{msgslst.unread}</span>
+                          </div>
+                        )}
                       </motion.div>
                     )
                   }

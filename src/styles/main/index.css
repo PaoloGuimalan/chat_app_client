@@ -207,6 +207,26 @@
     justify-content: space-between;
 }
 
+.span_icon_counts{
+    position: absolute;
+    background-color: red;
+    color: white;
+    min-width: 15px;
+    width: auto;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    height: 15px;
+    font-size: 12px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    margin-top: -20px;
+    margin-right: -20px;
+}
+
 @media screen and (max-width: 450px) {
     #div_buttons_navigation{
         justify-content: center;

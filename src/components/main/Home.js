@@ -8,7 +8,7 @@ import { BsMap } from 'react-icons/bs'
 import { FiMap } from 'react-icons/fi'
 import { RiContactsBook2Line } from 'react-icons/ri'
 import { IoMdNotificationsOutline } from 'react-icons/io'
-import { LogoutRequest, NotificationInitRequest } from '../../reusables/hooks/requests'
+import { InitConversationListRequest, LogoutRequest, NotificationInitRequest } from '../../reusables/hooks/requests'
 import Contacts from '../tabs/feed/Contacts'
 import Feed from '../tabs/feed/Feed'
 import Notifications from '../tabs/feed/Notifications'
@@ -25,6 +25,7 @@ function Home() {
   const togglerightwidget = useSelector(state => state.togglerightwidget)
   const authentication = useSelector(state => state.authentication)
   const screensizelistener = useSelector(state => state.screensizelistener)
+  const messageslist = useSelector(state => state.messageslist)
   const alerts = useSelector(state => state.alerts)
   // const [togglerightwidget, settogglerightwidget] = useState("notifs")
 
@@ -66,6 +67,7 @@ function Home() {
 
   const initEventSources = () => {
     SSENotificationsTRequest({}, dispatch, alerts, authentication)
+    InitConversationListRequest({}, dispatch, () => {})
   }
 
   const settogglerightwidget = (toggle) => {
@@ -146,7 +148,12 @@ function Home() {
               settogglerightwidget("messages")
             }
           }}
-          className='btn_navigations'><AiOutlineMessage style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
+          className='btn_navigations'>
+           {messageslist.length > 0 && (
+             <span className='span_icon_counts'>{messageslist.map(msgs => msgs.unread).reduce((prev, next) => prev + next)}</span>
+           )}
+            <AiOutlineMessage style={{fontSize: "25px", color: "#4A4A4A"}} />
+          </motion.button>
           <motion.button
           whileHover={{
             backgroundColor: "#e6e6e6"
