@@ -63,7 +63,8 @@ function Messages() {
     ) : (
       <motion.div
       animate={{
-          display: pathnamelistener.includes("messages")? "flex" : screensizelistener.W <= 900? "none" : "flex"
+          display: pathnamelistener.includes("messages")? "flex" : screensizelistener.W <= 900? "none" : "flex",
+          maxWidth: pathnamelistener.includes("messages")? "600px" : screensizelistener.W <= 900? "350px" : "350px"
       }} 
       id='div_messages_main'>
         {isCreateGCToggle && (

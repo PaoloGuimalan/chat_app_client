@@ -46,7 +46,8 @@ function Notifications() {
   return (
     <motion.div
     animate={{
-        display: pathnamelistener.includes("notifications")? "flex" : screensizelistener.W <= 900? "none" : "flex"
+        display: pathnamelistener.includes("notifications")? "flex" : screensizelistener.W <= 900? "none" : "flex",
+        maxWidth: pathnamelistener.includes("notifications")? "600px" : screensizelistener.W <= 900? "350px" : "350px"
     }}
     id='div_notifications_main'>
       <div id='div_notifications_label_container'>

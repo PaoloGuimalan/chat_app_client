@@ -102,7 +102,8 @@ function Contacts() {
   return (
     <motion.div
     animate={{
-      display: pathnamelistener.includes("contacts")? "flex" : screensizelistener.W <= 1100? "none" : "flex"
+      display: pathnamelistener.includes("contacts")? "flex" : screensizelistener.W <= 1100? "none" : "flex",
+      maxWidth: pathnamelistener.includes("contacts")? "600px" : screensizelistener.W <= 900? "350px" : "350px"
     }}
     id='div_contacts'>
         <div id='div_contacts_label_container'>

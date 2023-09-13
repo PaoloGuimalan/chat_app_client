@@ -1,7 +1,7 @@
 #div_conversation{
     background-color: transparent;
     width: 100%;
-    max-width: 400px;
+    max-width: 350px;
     display: flex;
     flex: 1;
     flex-direction: column;

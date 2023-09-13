@@ -2,7 +2,7 @@
     background-color: transparent;
     /* background-color: green; */
     width: 100%;
-    max-width: 400px;
+    max-width: 350px;
     display: flex;
     flex-direction: column;
     flex: 1;
@@ -29,7 +29,7 @@
     /* background-color: orange; */
     background-color: transparent;
     width: 100%;
-    max-width: 400px;
+    max-width: 350px;
     display: flex;
     flex-direction: column;
     align-items: center;
@@ -41,7 +41,7 @@
     /* background-color: orangered; */
     background-color: transparent;
     width: 100%;
-    max-width: 400px;
+    max-width: 350px;
     flex: 1;
     display: flex;
     flex-direction: column;
@@ -702,6 +702,10 @@
         padding-left: 0px;
         padding-right: 0px;
     }
+
+    /* #div_contacts, #div_notifications_main, #div_messages_main{
+        max-width: none;
+    } */
 
     #div_feed_header_post_input{
         border-radius: 0px;

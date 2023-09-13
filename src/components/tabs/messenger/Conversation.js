@@ -102,7 +102,7 @@ function Conversation({ conversationsetup }) {
     <motion.div
     animate={{
         display: pathnamelistener.includes("messages")? "flex" : screensizelistener.W <= 900? "none" : "flex",
-        maxWidth: pathnamelistener.includes("messages")? "100%" : screensizelistener.W <= 900? "400px" : "400px",
+        maxWidth: pathnamelistener.includes("messages")? "100%" : screensizelistener.W <= 900? "350px" : "350px",
         paddingTop: pathnamelistener.includes("messages")? "10px" : screensizelistener.W <= 900? "20px" : "20px"
     }}
     id='div_conversation'>
