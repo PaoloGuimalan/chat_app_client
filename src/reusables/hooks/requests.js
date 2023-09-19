@@ -533,8 +533,32 @@ const InitConversationListRequest = (params, dispatch, setisLoading) => {
     })
 }
 
+const SeenMessageRequest = async (params) => {
+    const payload = params
+    const encodedParams = sign(payload, SECRET)
+
+    return await Axios.post(`${API}/u/seenNewMessages`, {
+        token: encodedParams
+    },{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            return 1;
+        }
+        else{
+            return 0;
+        }
+    }).catch((err) => {
+        console.log(err)
+        throw new Error(err)
+    })
+}
+
 const InitConversationRequest = (params, dispatch, setisLoading, scrollBottom) => {
     const conversationID = params.conversationID
+    const receivers = params.receivers
 
     Axios.get(`${API}/u/initConversation/${conversationID}`,{
         headers:{
@@ -555,6 +579,12 @@ const InitConversationRequest = (params, dispatch, setisLoading, scrollBottom) =
     }).catch((err) => {
         console.log(err)
     })
+
+    // SeenMessageRequest(conversationID, receivers).then(() => {
+        
+    // }).catch((err) => {
+    //     console.log(err)
+    // })
 }
 
 const CreateGroupChatRequest = (params, dispatch, setisCreateGCToggle) => {
@@ -591,5 +621,6 @@ export {
     SendMessageRequest,
     InitConversationRequest,
     InitConversationListRequest,
-    CreateGroupChatRequest
+    CreateGroupChatRequest,
+    SeenMessageRequest
 }

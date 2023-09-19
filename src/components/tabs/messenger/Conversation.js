@@ -8,7 +8,7 @@ import { BiSolidPhoneCall } from 'react-icons/bi'
 import { RiAddCircleFill } from 'react-icons/ri'
 import { IoSend } from 'react-icons/io5'
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
-import { InitConversationRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
+import { InitConversationRequest, SeenMessageRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
 
@@ -93,8 +93,21 @@ function Conversation({ conversationsetup }) {
   },[conversationsetup])
 
   useEffect(() => {
+    SeenMessageRequest({
+        conversationID: conversationsetup.conversationid,
+        receivers: conversationsetup.type == "single"? [
+            authentication.user.userID,
+            conversationsetup.userdetails.userID
+        ] : conversationsetup.groupdetails.receivers
+    })
+  },[conversationsetup])
+
+  useEffect(() => {
     InitConversationRequest({
-        conversationID: conversationsetup.conversationid
+        conversationID: conversationsetup.conversationid,
+        receivers: conversationsetup.type == "single"? [
+            conversationsetup.userdetails.userID
+        ] : conversationsetup.groupdetails.receivers
     }, setconversationList, setisLoading, scrollBottom)
   },[conversationsetup, messageslist])
 
@@ -234,7 +247,7 @@ function Conversation({ conversationsetup }) {
                             }
                             else{
                                 return(
-                                    <span className='span_gc_notif_label'>{cnvs.content}</span>
+                                    <span key={i} className='span_gc_notif_label'>{cnvs.content}</span>
                                 )
                             }
                         })}
