@@ -11,6 +11,7 @@ import { checkIfValid } from '../../../reusables/hooks/validatevariables'
 import { InitConversationRequest, SeenMessageRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
+import { getBase64, importData } from '../../../reusables/hooks/reusable'
 
 function Conversation({ conversationsetup }) {
 
@@ -24,7 +25,9 @@ function Conversation({ conversationsetup }) {
   const [autoScroll, setautoScroll] = useState(true)
   const [isReplying, setisReplying] = useState({
     isReply: false
-  })  
+  })
+  const [imgList, setimgList] = useState([]);
+  
   const dispatch = useDispatch()
 
   const divcontentRef = useRef(null)
@@ -110,6 +113,21 @@ function Conversation({ conversationsetup }) {
         ] : conversationsetup.groupdetails.receivers
     }, setconversationList, setisLoading, scrollBottom)
   },[conversationsetup, messageslist])
+
+  const sendImageProcess = () => {
+    importData((arr) => {
+        setimgList((prev) => [
+            ...prev,
+            arr
+        ])
+    })
+  }
+
+//   useEffect(() => {
+//     if(imgList.length){
+//         console.log(imgList)
+//     }
+//   },[imgList])
 
   return (
     <motion.div
@@ -268,6 +286,9 @@ function Conversation({ conversationsetup }) {
                             cursor: isLoading? "default" : "pointer"
                         }}
                         disabled={isLoading}
+                        onClick={() => {
+                            // sendImageProcess()
+                        }}
                         className='btn_options_send'><FcAddImage style={{fontSize: "25px"}} /></motion.button>
                     </div>
                     <div id='div_input_text_content'>
