@@ -100,7 +100,7 @@ function Conversation({ conversationsetup }) {
             conversationsetup.userdetails.userID
         ] : conversationsetup.groupdetails.receivers
     })
-  },[conversationsetup])
+  },[conversationsetup, messageslist])
 
   useEffect(() => {
     InitConversationRequest({

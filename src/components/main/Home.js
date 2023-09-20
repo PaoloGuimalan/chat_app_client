@@ -150,7 +150,9 @@ function Home() {
           }}
           className='btn_navigations'>
            {messageslist.length > 0 && (
-             <span className='span_icon_counts'>{messageslist.map(msgs => msgs.unread).reduce((prev, next) => prev + next)}</span>
+              messageslist.map(msgs => msgs.unread).reduce((prev, next) => prev + next) > 0 && (
+                <span className='span_icon_counts'>{messageslist.map(msgs => msgs.unread).reduce((prev, next) => prev + next)}</span>
+              )
            )}
             <AiOutlineMessage style={{fontSize: "25px", color: "#4A4A4A"}} />
           </motion.button>

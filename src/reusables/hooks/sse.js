@@ -3,6 +3,7 @@ import jwt_decode from 'jwt-decode'
 import { SET_ALERTS, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST } from '../../redux/types';
 import message_ringtone from '../../assets/sounds/message_alert.mp3'
 import notification_ringtone from '../../assets/sounds/notification_alert.mp3'
+import seen_rightone from '../../assets/sounds/seen_alert.mp3'
 
 const API = process.env.REACT_APP_CHATTERLOOP_API;
 const SECRET = process.env.REACT_APP_JWT_SECRET
@@ -69,9 +70,16 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
                 const decodedResult = jwt_decode(parsedresponse.result)
 
                 if(authentication.user.userID != parsedresponse.message){
-                    //play ringtone
-                    let audioMessage = new Audio(message_ringtone);
-                    audioMessage.play();
+                    if(parsedresponse.onseen){
+                        //play ringtone
+                        let audioMessage = new Audio(seen_rightone);
+                        audioMessage.play();
+                    }
+                    else{
+                        //play ringtone
+                        let audioMessage = new Audio(message_ringtone);
+                        audioMessage.play();
+                    }
                 }
                 
                 dispatch({ type: SET_MESSAGES_LIST, payload: {
