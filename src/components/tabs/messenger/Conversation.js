@@ -271,6 +271,25 @@ function Conversation({ conversationsetup }) {
                         })}
                     </div>
                 )}
+                <motion.div
+                initial={{
+                    height: "0px",
+                    paddingTop: "0px",
+                    paddingBottom: "0px"
+                }}
+                animate={{
+                    height: imgList.length > 0? "auto" : "0px",
+                    paddingTop: imgList.length > 0? "10px" : "0px",
+                    paddingBottom: imgList.length > 0? "10px" : "0px"
+                }}
+                id='div_selected_images_container'
+                className='theme_scroller'>
+                    {imgList.map((imgl, i) => {
+                        return(
+                            <img key={i} src={imgl} className='img_selected_preview' />
+                        )
+                    })}
+                </motion.div>
                 <div id='div_send_controls'>
                     <div id='div_options_send'>
                         <motion.button
@@ -287,7 +306,7 @@ function Conversation({ conversationsetup }) {
                         }}
                         disabled={isLoading}
                         onClick={() => {
-                            // sendImageProcess()
+                            sendImageProcess()
                         }}
                         className='btn_options_send'><FcAddImage style={{fontSize: "25px"}} /></motion.button>
                     </div>
