@@ -7,15 +7,18 @@ import { FcVideoCall, FcInfo, FcImageFile, FcAddImage, FcFile } from 'react-icon
 import { BiSolidPhoneCall } from 'react-icons/bi'
 import { RiAddCircleFill } from 'react-icons/ri'
 import { IoSend } from 'react-icons/io5'
+import { AiOutlineClose } from 'react-icons/ai';
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
 import { InitConversationRequest, SeenMessageRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
-import { getBase64, importData } from '../../../reusables/hooks/reusable'
+import { getBase64, importData, makeid } from '../../../reusables/hooks/reusable'
+import { SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
 
 function Conversation({ conversationsetup }) {
 
   const authentication = useSelector(state => state.authentication)
+  const pendingmessageslist = useSelector(state => state.pendingmessageslist)
   const messageslist = useSelector(state => state.messageslist)
   const screensizelistener = useSelector(state => state.screensizelistener);
   const pathnamelistener = useSelector(state => state.pathnamelistener)
@@ -41,7 +44,7 @@ function Conversation({ conversationsetup }) {
 //   },[conversationsetup, messageslist, divcontentRef, isLoading])
 
   const scrollBottom = () => {
-    var items = document.querySelectorAll(".span_messages_result");
+    var items = document.querySelectorAll(".div_messages_result");
     var last = items[items.length-1];
 
     if(!isLoading){
@@ -62,13 +65,34 @@ function Conversation({ conversationsetup }) {
 
   useEffect(() => {
     scrollBottom()
-  },[autoScroll, conversationsetup, messageslist, divcontentRef, isLoading, conversationList])
+  },[autoScroll, conversationsetup, messageslist, divcontentRef, isLoading, conversationList, pendingmessageslist])
+
+  const addPendingMessage = (pendingLoad) => {
+    console.log(pendingLoad)
+    dispatch({
+        type: SET_PENDING_MESSAGES_LIST,
+        payload: {
+            pendingmessageslist: [
+                ...pendingmessageslist,
+                pendingLoad
+            ]
+        }
+    })
+  }
 
   const sendMessageProcess = () => {
+    var pendingID = `${authentication.user.userID}_${conversationsetup.conversationid}_${pendingmessageslist.length + 1}_${makeid(10)}`;
     if(checkIfValid([messageValue])){
         if(conversationsetup.type == "single"){
+            addPendingMessage({
+                conversationID: conversationsetup.conversationid,
+                pendingID: pendingID,
+                content: messageValue,
+                type: "text"
+            })
             SendMessageRequest({
                 conversationID: conversationsetup.conversationid,
+                pendingID: pendingID,
                 receivers: [conversationsetup.userdetails.userID, authentication.user.userID],
                 content: messageValue,
                 isReply: isReplying.isReply,
@@ -77,8 +101,15 @@ function Conversation({ conversationsetup }) {
             }, dispatch, setmessageValue)
         }
         else{
+            addPendingMessage({
+                conversationID: conversationsetup.conversationid,
+                pendingID: pendingID,
+                content: messageValue,
+                type: "text"
+            })
             SendMessageRequest({
                 conversationID: conversationsetup.conversationid,
+                pendingID: pendingID,
                 receivers: conversationsetup.groupdetails.receivers,
                 content: messageValue,
                 isReply: isReplying.isReply,
@@ -118,16 +149,18 @@ function Conversation({ conversationsetup }) {
     importData((arr) => {
         setimgList((prev) => [
             ...prev,
-            arr
+            {
+                id: prev.length + 1,
+                base: arr
+            }
         ])
     })
   }
 
-//   useEffect(() => {
-//     if(imgList.length){
-//         console.log(imgList)
-//     }
-//   },[imgList])
+  const removeSelectedPreview = (prevID) => {
+    var mutatedPrevArr = imgList.filter((flt) => flt.id != prevID);
+    setimgList(mutatedPrevArr)
+  }
 
   return (
     <motion.div
@@ -269,6 +302,48 @@ function Conversation({ conversationsetup }) {
                                 )
                             }
                         })}
+                        {pendingmessageslist.filter((flt) => 
+                            flt.conversationID == conversationsetup.conversationid 
+                            && !flt.status 
+                            && !conversationList.map((mp) => mp.pendingID).includes(flt.pendingID)
+                            ).map((cnvs, i) => {
+                            if(cnvs.type == "text"){
+                                return(
+                                    <motion.div
+                                    key={i} 
+                                    initial={{
+                                        marginLeft: "auto",
+                                        alignItems: "flex-end"
+                                    }}
+                                    animate={{
+                                        marginLeft: "auto",
+                                        alignItems: "flex-end"
+                                    }}
+                                    className='div_messages_result'>
+                                        <motion.span
+                                        initial={{
+                                            backgroundColor: "#82b7f6",
+                                            border: "solid 1px #82b7f6",
+                                            color: "white",
+                                            // marginLeft: "auto" : "0px"
+                                        }}
+                                        animate={{
+                                            backgroundColor: "#82b7f6",
+                                            border: "solid 1px #82b7f6",
+                                            color: "white",
+                                            // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
+                                        }}
+                                        className='span_messages_result'>{cnvs.content}</motion.span>
+                                        <span className='span_sending_label'>...Sending</span>
+                                    </motion.div>
+                                )
+                            }
+                            else{
+                                return(
+                                    <span key={i} className='span_gc_notif_label'>{cnvs.content}</span>
+                                )
+                            }
+                        })}
                     </div>
                 )}
                 <motion.div
@@ -286,7 +361,14 @@ function Conversation({ conversationsetup }) {
                 className='theme_scroller'>
                     {imgList.map((imgl, i) => {
                         return(
-                            <img key={i} src={imgl} className='img_selected_preview' />
+                            <div key={i} className='div_img_selected_preview'>
+                                <div className='div_btn_remove_container'>
+                                    <button onClick={() => { removeSelectedPreview(imgl.id) }} className='btn_remove_preview'>
+                                        <AiOutlineClose />
+                                    </button>
+                                </div>
+                                <img src={imgl.base} className='img_selected_preview' />
+                            </div>
                         )
                     })}
                 </motion.div>
@@ -311,7 +393,7 @@ function Conversation({ conversationsetup }) {
                         className='btn_options_send'><FcAddImage style={{fontSize: "25px"}} /></motion.button>
                     </div>
                     <div id='div_input_text_content'>
-                        <input type='text' id='input_text_content_send'
+                        <input type='text' autoComplete="off" id='input_text_content_send'
                         onKeyDown={(e) => {
                             if(e.code == "Enter"){
                                 sendMessageProcess()
