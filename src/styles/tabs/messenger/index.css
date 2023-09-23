@@ -376,6 +376,29 @@
     color: #3b3b3b;
 }
 
+.div_pending_images{
+    width: fit-content;
+    max-width: 70%;
+    height: auto;
+    margin-left: auto;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.div_pending_content_container{
+    width: 100%;
+    height: auto;
+    border-radius: 7px;
+    border: solid 1px rgb(233, 233, 233);
+}
+
+.img_pending_images{
+    width: 100%;
+    border-radius: 7px;
+}
+
 /* width */
 #div_conversation_content::-webkit-scrollbar {
     width: 10px;

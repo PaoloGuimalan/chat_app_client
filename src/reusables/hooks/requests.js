@@ -510,6 +510,29 @@ const SendMessageRequest = (params, dispatch, setmessageValue) => {
     })
 }
 
+const SendFilesRequest = (params) => {
+    const payload = params
+    const encodedPayload = sign(payload, SECRET)
+    
+    Axios.post(`${API}/u/sendFiles`, {
+        token: encodedPayload
+    },{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            // console.log(response.data)
+        }
+        else{
+            // console.log(response.data.message)
+        }
+        // setmessageValue("")
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 const InitConversationListRequest = (params, dispatch, setisLoading) => {
     Axios.get(`${API}/u/initConversationList`,{
         headers:{
@@ -619,6 +642,7 @@ export {
     AcceptContactRequest,
     ContactsListInitRequest,
     SendMessageRequest,
+    SendFilesRequest,
     InitConversationRequest,
     InitConversationListRequest,
     CreateGroupChatRequest,

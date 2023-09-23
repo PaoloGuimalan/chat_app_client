@@ -9,7 +9,7 @@ import { RiAddCircleFill } from 'react-icons/ri'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineClose } from 'react-icons/ai';
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
-import { InitConversationRequest, SeenMessageRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
+import { InitConversationRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { getBase64, importData, makeid } from '../../../reusables/hooks/reusable'
@@ -68,13 +68,24 @@ function Conversation({ conversationsetup }) {
   },[autoScroll, conversationsetup, messageslist, divcontentRef, isLoading, conversationList, pendingmessageslist])
 
   const addPendingMessage = (pendingLoad) => {
-    console.log(pendingLoad)
     dispatch({
         type: SET_PENDING_MESSAGES_LIST,
         payload: {
             pendingmessageslist: [
                 ...pendingmessageslist,
                 pendingLoad
+            ]
+        }
+    })
+  }
+
+  const addMultiplePendingMessage = (pendingArrayLoad) => {
+    dispatch({
+        type: SET_PENDING_MESSAGES_LIST,
+        payload: {
+            pendingmessageslist: [
+                ...pendingmessageslist,
+                ...pendingArrayLoad
             ]
         }
     })
@@ -118,6 +129,38 @@ function Conversation({ conversationsetup }) {
             }, dispatch, setmessageValue)
         }
     }
+
+    if(imgList.length > 0){
+        var pendingArrImages = imgList.map((mp, i) => ({
+            conversationID: conversationsetup.conversationid,
+            pendingID: `${pendingID}_${i}`,
+            content: mp.base,
+            type: "image"
+        }))
+
+        if(conversationsetup.type == "single"){
+            addMultiplePendingMessage(pendingArrImages)
+            SendFilesRequest({
+                conversationID: conversationsetup.conversationid,
+                receivers: [conversationsetup.userdetails.userID, authentication.user.userID],
+                files: pendingArrImages,
+                isReply: isReplying.isReply,
+                conversationType: "single"
+            })
+        }
+        else{
+            addMultiplePendingMessage(pendingArrImages)
+            SendFilesRequest({
+                conversationID: conversationsetup.conversationid,
+                receivers: conversationsetup.groupdetails.receivers,
+                files: pendingArrImages,
+                isReply: isReplying.isReply,
+                conversationType: "group"
+            })
+        }
+        setimgList([])
+    }
+
     setmessageValue("")
   }
 
@@ -151,7 +194,8 @@ function Conversation({ conversationsetup }) {
             ...prev,
             {
                 id: prev.length + 1,
-                base: arr
+                base: arr,
+                type: "image"
             }
         ])
     })
@@ -161,6 +205,10 @@ function Conversation({ conversationsetup }) {
     var mutatedPrevArr = imgList.filter((flt) => flt.id != prevID);
     setimgList(mutatedPrevArr)
   }
+
+//   useEffect(() => {
+//     console.log(pendingmessageslist)
+//   },[pendingmessageslist])
 
   return (
     <motion.div
@@ -306,7 +354,7 @@ function Conversation({ conversationsetup }) {
                             flt.conversationID == conversationsetup.conversationid 
                             && !flt.status 
                             && !conversationList.map((mp) => mp.pendingID).includes(flt.pendingID)
-                            ).map((cnvs, i) => {
+                        ).map((cnvs, i) => {
                             if(cnvs.type == "text"){
                                 return(
                                     <motion.div
@@ -336,6 +384,16 @@ function Conversation({ conversationsetup }) {
                                         className='span_messages_result'>{cnvs.content}</motion.span>
                                         <span className='span_sending_label'>...Sending</span>
                                     </motion.div>
+                                )
+                            }
+                            else if(cnvs.type == "image"){
+                                return(
+                                    <div key={i} className='div_pending_images div_messages_result'>
+                                        <div className='div_pending_content_container'>
+                                            <img src={cnvs.content} className='img_pending_images' />
+                                        </div>
+                                        <span className='span_sending_label'>...Sending</span>
+                                    </div>
                                 )
                             }
                             else{
