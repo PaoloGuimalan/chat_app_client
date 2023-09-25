@@ -30,6 +30,12 @@ function Conversation({ conversationsetup }) {
     isReply: false
   })
   const [imgList, setimgList] = useState([]);
+  const [rawFilesList, setrawFilesList] = useState([])
+
+  const [fullImageScreen, setfullImageScreen] = useState({
+    preview: "",
+    toggle: false,
+  })
   
   const dispatch = useDispatch()
 
@@ -138,6 +144,15 @@ function Conversation({ conversationsetup }) {
             type: "image"
         }))
 
+        var pendingArrImagesRaw = rawFilesList.map((mp, i) => ({
+            conversationID: conversationsetup.conversationid,
+            pendingID: `${pendingID}_${i}`,
+            content: mp.base,
+            type: "image"
+        }))
+
+        var mappedRawFiles = rawFilesList.map((mp) => mp.base)
+
         if(conversationsetup.type == "single"){
             addMultiplePendingMessage(pendingArrImages)
             SendFilesRequest({
@@ -146,7 +161,7 @@ function Conversation({ conversationsetup }) {
                 files: pendingArrImages,
                 isReply: isReplying.isReply,
                 conversationType: "single"
-            })
+            }, mappedRawFiles)
         }
         else{
             addMultiplePendingMessage(pendingArrImages)
@@ -156,9 +171,10 @@ function Conversation({ conversationsetup }) {
                 files: pendingArrImages,
                 isReply: isReplying.isReply,
                 conversationType: "group"
-            })
+            }, mappedRawFiles)
         }
         setimgList([])
+        setrawFilesList([])
     }
 
     setmessageValue("")
@@ -198,17 +214,29 @@ function Conversation({ conversationsetup }) {
                 type: "image"
             }
         ])
+    }, (rawFiles) => {
+        setrawFilesList((prev) => [
+            ...prev,
+            {
+                id: prev.length + 1,
+                base: rawFiles,
+                type: "image"
+            }
+        ])
     })
   }
 
   const removeSelectedPreview = (prevID) => {
     var mutatedPrevArr = imgList.filter((flt) => flt.id != prevID);
+    var mutatedPrevRaw = rawFilesList.filter((flt) => flt.id != prevID);
     setimgList(mutatedPrevArr)
+    setrawFilesList(mutatedPrevRaw)
   }
 
 //   useEffect(() => {
-//     console.log(pendingmessageslist)
-//   },[pendingmessageslist])
+//     // console.log(pendingmessageslist)
+//     console.log(rawFilesList)
+//   },[pendingmessageslist, rawFilesList])
 
   return (
     <motion.div
@@ -344,6 +372,20 @@ function Conversation({ conversationsetup }) {
                                     </motion.div>
                                 )
                             }
+                            else if(cnvs.messageType == "image"){
+                                return(
+                                    <div key={i} onClick={() => {
+                                        setfullImageScreen({
+                                            preview: cnvs.content,
+                                            toggle: true
+                                        })
+                                    }} className='div_pending_images div_messages_result'>
+                                        <div className='div_pending_content_container'>
+                                            <img src={cnvs.content} className='img_pending_images' />
+                                        </div>
+                                    </div>
+                                )
+                            }
                             else{
                                 return(
                                     <span key={i} className='span_gc_notif_label'>{cnvs.content}</span>
@@ -389,7 +431,7 @@ function Conversation({ conversationsetup }) {
                             else if(cnvs.type == "image"){
                                 return(
                                     <div key={i} className='div_pending_images div_messages_result'>
-                                        <div className='div_pending_content_container'>
+                                        <div className='div_pending_content_container_sending'>
                                             <img src={cnvs.content} className='img_pending_images' />
                                         </div>
                                         <span className='span_sending_label'>...Sending</span>
@@ -402,6 +444,27 @@ function Conversation({ conversationsetup }) {
                                 )
                             }
                         })}
+                    </div>
+                )}
+                {fullImageScreen.toggle && (
+                    <div id='div_fullscreen_image_preview'>
+                        <button id='btn_close_fip' onClick={() => {
+                            setfullImageScreen({
+                                preview: "",
+                                toggle: false
+                            })
+                        }} >
+                            <AiOutlineClose style={{
+                                fontSize: "17px"
+                            }} />
+                        </button>
+                        <div id='div_fip_onblur' onClick={() => {
+                            setfullImageScreen({
+                                preview: "",
+                                toggle: false
+                            })
+                        }} />
+                        <img src={fullImageScreen.preview} id='img_fip' />
                     </div>
                 )}
                 <motion.div

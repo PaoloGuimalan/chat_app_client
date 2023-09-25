@@ -1,11 +1,14 @@
-function importData(resolve) {
+function importData(resolve, rawresolve) {
     let input = document.createElement('input');
     input.type = 'file';
     input.multiple = true;
     input.accept = "image/*"; /** "image/x-png, image/gif, image/jpeg" */
     input.onchange = () => {
         let files = Array.from(input.files);
-        files.map((flmp) => getBase64(flmp, resolve));
+        files.map((flmp) => {
+            getBase64(flmp, resolve);
+            rawresolve(flmp)
+        });
     };
     input.click();
 }

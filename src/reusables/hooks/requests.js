@@ -510,13 +510,13 @@ const SendMessageRequest = (params, dispatch, setmessageValue) => {
     })
 }
 
-const SendFilesRequest = (params) => {
+const SendFilesRequest = (params, files) => {
     const payload = params
     const encodedPayload = sign(payload, SECRET)
-    
+
     Axios.post(`${API}/u/sendFiles`, {
         token: encodedPayload
-    },{
+    }, {
         headers:{
             "x-access-token": localStorage.getItem("authtoken")
         }
