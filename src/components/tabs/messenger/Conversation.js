@@ -374,7 +374,17 @@ function Conversation({ conversationsetup }) {
                             }
                             else if(cnvs.messageType == "image"){
                                 return(
-                                    <div key={i} onClick={() => {
+                                    <motion.div
+                                    key={i} 
+                                    initial={{
+                                        marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
+                                        alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
+                                    }}
+                                    animate={{
+                                        marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
+                                        alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
+                                    }}
+                                    onClick={() => {
                                         setfullImageScreen({
                                             preview: cnvs.content,
                                             toggle: true
@@ -383,7 +393,7 @@ function Conversation({ conversationsetup }) {
                                         <div className='div_pending_content_container'>
                                             <img src={cnvs.content} className='img_pending_images' />
                                         </div>
-                                    </div>
+                                    </motion.div>
                                 )
                             }
                             else{
@@ -430,12 +440,21 @@ function Conversation({ conversationsetup }) {
                             }
                             else if(cnvs.type == "image"){
                                 return(
-                                    <div key={i} className='div_pending_images div_messages_result'>
+                                    <motion.div
+                                    initial={{
+                                        marginLeft: "auto",
+                                        alignItems: "flex-end"
+                                    }}
+                                    animate={{
+                                        marginLeft: "auto",
+                                        alignItems: "flex-end"
+                                    }}
+                                    key={i} className='div_pending_images div_messages_result'>
                                         <div className='div_pending_content_container_sending'>
                                             <img src={cnvs.content} className='img_pending_images' />
                                         </div>
                                         <span className='span_sending_label'>...Sending</span>
-                                    </div>
+                                    </motion.div>
                                 )
                             }
                             else{
