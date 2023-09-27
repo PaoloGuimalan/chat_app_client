@@ -353,7 +353,7 @@ function Conversation({ conversationsetup }) {
                                         alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
                                     }}
                                     className='div_messages_result'>
-                                        {conversationsetup.type == "group" && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                                        {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                                         <motion.span
                                         title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
                                         initial={{
@@ -390,8 +390,12 @@ function Conversation({ conversationsetup }) {
                                             toggle: true
                                         })
                                     }} className='div_pending_images div_messages_result'>
-                                        <div className='div_pending_content_container'>
-                                            <img src={cnvs.content} className='img_pending_images' />
+                                        {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                                        <div className='div_pending_content_container'
+                                        title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
+                                            <img src={cnvs.content} className='img_pending_images' onLoad={() => {
+                                                scrollBottom()
+                                            }} />
                                         </div>
                                     </motion.div>
                                 )
@@ -451,7 +455,9 @@ function Conversation({ conversationsetup }) {
                                     }}
                                     key={i} className='div_pending_images div_messages_result'>
                                         <div className='div_pending_content_container_sending'>
-                                            <img src={cnvs.content} className='img_pending_images' />
+                                            <img src={cnvs.content} className='img_pending_images' onLoad={() => {
+                                                scrollBottom()
+                                            }} />
                                         </div>
                                         <span className='span_sending_label'>...Sending</span>
                                     </motion.div>
