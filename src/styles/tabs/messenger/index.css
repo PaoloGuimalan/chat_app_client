@@ -452,6 +452,25 @@
     /* box-shadow: 0px 0px 5px white; */
 }
 
+.div_seen_container{
+    background-color: transparent;
+    /* background-color: green; */
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 5px;
+    padding-top: 5px;
+    /* justify-content: flex-end; */
+    padding-left: 4px;
+    padding-right: 4px;
+}
+
+.span_seenby{
+    font-size: 10px;
+    color: #888;
+}
+
 /* width */
 #div_conversation_content::-webkit-scrollbar {
     width: 10px;

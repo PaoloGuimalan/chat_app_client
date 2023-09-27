@@ -369,6 +369,40 @@ function Conversation({ conversationsetup }) {
                                             // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                                         }}
                                         className='span_messages_result'>{cnvs.content}</motion.span>
+                                        {conversationsetup.type == "group"? (
+                                            conversationList.length - 1 == i && cnvs.seeners.filter((mp) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                                                <motion.div
+                                                initial={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                animate={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                className='div_seen_container'>
+                                                    <span className='span_seenby'>Seen by </span>
+                                                    {cnvs.seeners.filter((mp) => mp != cnvs.sender && mp != authentication.user.userID).map((mp, i) => {
+                                                        if(mp != authentication.user.userID && mp != cnvs.sender){
+                                                            return(
+                                                                <span className='span_seenby' key={i}>{mp}</span>
+                                                            )
+                                                        }
+                                                    })}
+                                                </motion.div>
+                                            )
+                                        ) : (
+                                            conversationList.length - 1 == i && cnvs.seeners.filter((mp) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                                                <motion.div
+                                                initial={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                animate={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                className='div_seen_container'>
+                                                    <span className='span_seenby'>Seen</span>
+                                                </motion.div>
+                                            )
+                                        )}
                                     </motion.div>
                                 )
                             }
@@ -397,6 +431,40 @@ function Conversation({ conversationsetup }) {
                                                 scrollBottom()
                                             }} />
                                         </div>
+                                        {conversationsetup.type == "group"? (
+                                            conversationList.length - 1 == i && cnvs.seeners.filter((mp) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                                                <motion.div
+                                                initial={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                animate={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                className='div_seen_container'>
+                                                    <span className='span_seenby'>Seen by </span>
+                                                    {cnvs.seeners.filter((mp) => mp != cnvs.sender).map((mp, i) => {
+                                                        if(mp != authentication.user.userID){
+                                                            return(
+                                                                <span className='span_seenby' key={i}>{mp}</span>
+                                                            )
+                                                        }
+                                                    })}
+                                                </motion.div>
+                                            )
+                                        ) : (
+                                            conversationList.length - 1 == i && cnvs.seeners.filter((mp) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                                                <motion.div
+                                                initial={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                animate={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                className='div_seen_container'>
+                                                    <span className='span_seenby'>Seen</span>
+                                                </motion.div>
+                                            )
+                                        )}
                                     </motion.div>
                                 )
                             }
