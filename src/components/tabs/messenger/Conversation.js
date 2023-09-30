@@ -13,7 +13,7 @@ import { InitConversationRequest, SeenMessageRequest, SendFilesRequest, SendMess
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { getBase64, importData, makeid } from '../../../reusables/hooks/reusable'
-import { SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
+import { SET_CALLS_LIST, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
 
 function Conversation({ conversationsetup }) {
 
@@ -22,6 +22,7 @@ function Conversation({ conversationsetup }) {
   const messageslist = useSelector(state => state.messageslist)
   const screensizelistener = useSelector(state => state.screensizelistener);
   const pathnamelistener = useSelector(state => state.pathnamelistener)
+  const callslist = useSelector(state => state.callslist);
   const [messageValue, setmessageValue] = useState("");
   const [conversationList, setconversationList] = useState([])
   const [isLoading, setisLoading] = useState(true);
@@ -233,6 +234,27 @@ function Conversation({ conversationsetup }) {
     setrawFilesList(mutatedPrevRaw)
   }
 
+  const triggerCall = (callType) => {
+    const checkIfOnCall = callslist.filter((onc) => onc.conversationID == conversationsetup.conversationid);
+
+    if(checkIfOnCall.length == 0){
+        dispatch({
+            type: SET_CALLS_LIST,
+            payload: {
+                callslist: [
+                    ...callslist,
+                    {
+                        callType: callType,
+                        callDisplayName: conversationsetup.type == "single"? `${conversationsetup.userdetails.fullname.firstName}` : `${conversationsetup.groupdetails.groupName} (Group)`,
+                        conversationType: conversationsetup.type,
+                        conversationID: conversationsetup.conversationid
+                    }
+                ]
+            }
+        })
+    }
+  }
+
 //   useEffect(() => {
 //     // console.log(pendingmessageslist)
 //     console.log(rawFilesList)
@@ -303,10 +325,16 @@ function Conversation({ conversationsetup }) {
                         whileHover={{
                             backgroundColor: "#e6e6e6"
                         }}
+                        onClick={() => {
+                            triggerCall("audio")
+                        }}
                         className='btn_conversation_header_navigation'><BiSolidPhoneCall style={{fontSize: "25px", color: "#4994ec"}} /></motion.button>
                         <motion.button
                         whileHover={{
                             backgroundColor: "#e6e6e6"
+                        }}
+                        onClick={() => {
+                            triggerCall("video")
                         }}
                         className='btn_conversation_header_navigation'><FcVideoCall style={{fontSize: "25px"}} /></motion.button>
                         <motion.button

@@ -19,6 +19,7 @@ import { SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_TOGGLE_RIGHT_WIDGET } fr
 import { conversationsetupstate } from '../../redux/actions/states'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import DesktopHome from './DesktopHome'
+import CallCollection from '../absolutes/calls/CallCollection'
 
 function Home() {
 
@@ -87,6 +88,7 @@ function Home() {
 
   return (
     <div id='div_home'>
+      <CallCollection />
       <div id='div_home_navigations'>
         <div id='div_profile_search_container'>
           <motion.div

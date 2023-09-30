@@ -1,4 +1,4 @@
-import { SET_ALERTS, SET_APPROVED_PENDING_MESSAGES_LIST, SET_AUTHENTICATION, SET_CONTACTS_LIST, SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PATHNAME_LISTENER, SET_PENDING_MESSAGES_LIST, SET_SCREEN_SIZE_LISTENER, SET_TOGGLE_RIGHT_WIDGET } from "../types";
+import { SET_ALERTS, SET_APPROVED_PENDING_MESSAGES_LIST, SET_AUTHENTICATION, SET_CALLS_LIST, SET_CONTACTS_LIST, SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PATHNAME_LISTENER, SET_PENDING_MESSAGES_LIST, SET_SCREEN_SIZE_LISTENER, SET_TOGGLE_RIGHT_WIDGET } from "../types";
 import { authenticationstate, conversationsetupstate, screensizelistenerstate } from "./states";
 
 export const setauthentication = (state = authenticationstate, action) => {
@@ -95,6 +95,15 @@ export const setapprovedpendingmessageslist = (state = [], action) => {
     switch(action.type){
         case SET_APPROVED_PENDING_MESSAGES_LIST:
             return action.payload.approvedpendingmessageslist;
+        default:
+            return state;
+    }
+}
+
+export const setcallslist = (state = [], action) => {
+    switch(action.type){
+        case SET_CALLS_LIST:
+            return action.payload.callslist;
         default:
             return state;
     }

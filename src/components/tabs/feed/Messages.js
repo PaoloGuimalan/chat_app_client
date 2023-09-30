@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import '../../../styles/tabs/feed/index.css'
 import { AiOutlineMessage, AiOutlineLoading3Quarters } from 'react-icons/ai'
+import { TbServer2 } from 'react-icons/tb'
 import { BiGroup } from 'react-icons/bi'
 import { useDispatch, useSelector } from 'react-redux'
 import Conversation from '../messenger/Conversation'
@@ -78,6 +79,10 @@ function Messages() {
           <motion.button id='btn_create_gc' onClick={() => { setisCreateGCToggle(true) }}>
             <BiGroup style={{ fontSize: "20px" }} />
             <span id='span_btn_label'>Create Group Chat</span>
+          </motion.button>
+          <motion.button id='btn_create_server' onClick={() => {  }}>
+            <TbServer2 style={{ fontSize: "20px" }} />
+            <span id='span_btn_label'>Create Server</span>
           </motion.button>
         </div>
         {isLoading? (

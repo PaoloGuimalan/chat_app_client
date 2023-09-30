@@ -627,6 +627,22 @@
     min-height: 30px;
 }
 
+#btn_create_server{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 7px;
+    padding-left: 10px;
+    padding-right: 10px;
+    gap: 5px;
+    border: solid 0px #e69500;
+    border-radius: 7px;
+    background-color: #ffdb99;
+    color: #e69500;
+    cursor: pointer;
+    min-height: 30px;
+}
+
 #span_btn_label{
     font-weight:bold;
     font-size: 12px;
