@@ -337,6 +337,7 @@ function Conversation({ conversationsetup }) {
                     </div>
                     <div id='div_conversation_header_navigations'>
                         <motion.button
+                        disabled={true}
                         whileHover={{
                             backgroundColor: "#e6e6e6"
                         }}
@@ -345,6 +346,7 @@ function Conversation({ conversationsetup }) {
                         }}
                         className='btn_conversation_header_navigation'><BiSolidPhoneCall style={{fontSize: "25px", color: "#4994ec"}} /></motion.button>
                         <motion.button
+                        disabled={true}
                         whileHover={{
                             backgroundColor: "#e6e6e6"
                         }}
