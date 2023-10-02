@@ -9,9 +9,9 @@ function CallCollection() {
 
   return (
     <div id='div_callcollection'>
-        {callslist.map((cls) => {
+        {callslist.map((cls, i) => {
           return(
-            <CallWindow key={cls.conversationID} data={cls} />
+            <CallWindow key={cls.conversationID} data={cls} lineNum={i} />
           )
         })}
     </div>

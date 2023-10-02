@@ -79,40 +79,31 @@ const LoginRequest = (params, dispatch, currentAlertState, setisWaitingRequest) 
                 }
             }})
             dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
+                alerts: {
                     id: currentAlertState.length,
                     type: "success",
                     content: "You have been Logged In."
                   }
-                ]
             }})
         }
         else{
             dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
+                alerts: {
                     id: currentAlertState.length,
                     type: "warning",
                     content: response.data.message
                   }
-                ]
             }})
             // console.log(response.data)
         }
         setisWaitingRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
-            alerts: [
-              ...currentAlertState,
-              {
+            alerts: {
                 id: currentAlertState.length,
                 type: "error",
                 content: err.message
               }
-            ]
         }})
         setisWaitingRequest(false)
         // console.log(err)
@@ -147,39 +138,30 @@ const RegisterRequest = (params, dispatch, currentAlertState, setisWaitingReques
                 }
             }})
             dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
+                alerts: {
                     id: currentAlertState.length,
                     type: "success",
                     content: "You have been registered!"
                   }
-                ]
             }})
         }
         else{
             dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
+                alerts: {
                     id: currentAlertState.length,
                     type: "warning",
                     content: response.data.message
                   }
-                ]
             }})
         }
         setisWaitingRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
-            alerts: [
-              ...currentAlertState,
-              {
+            alerts: {
                 id: currentAlertState.length,
                 type: "error",
                 content: err.message
               }
-            ]
         }})
         setisWaitingRequest(false)
     })
@@ -217,40 +199,31 @@ const VerifyCodeRequest = (params, dispatch, currentState, currentAlertState, se
                 }
             }})
             dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
+                alerts: {
                     id: currentAlertState.length,
                     type: "success",
                     content: "Your account is now verified."
                   }
-                ]
             }})
             // console.log(response.data)
         }
         else{
             dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
+                alerts: {
                     id: currentAlertState.length,
                     type: "warning",
                     content: response.data.message
                   }
-                ]
             }})
         }
         setisWaitingRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
-            alerts: [
-              ...currentAlertState,
-              {
+            alerts: {
                 id: currentAlertState.length,
                 type: "error",
                 content: err.message
               }
-            ]
         }})
         setisWaitingRequest(false)
         // console.log(err)
@@ -279,14 +252,11 @@ const SearchRequest = (params, dispatch, setisLoading, currentAlertState, setsea
         setisLoading(false)
         setsearchresults([])
         dispatch({ type: SET_ALERTS, payload:{
-            alerts: [
-              ...currentAlertState,
-              {
+            alerts: {
                 id: currentAlertState.length,
                 type: "error",
                 content: err.message
               }
-            ]
         }})
     })
 }
@@ -303,26 +273,20 @@ const ContactRequest = (params, dispatch, currentAlertState, setisDisabledByRequ
     }).then((response) => {
         if(response.data.status){
             dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
+                alerts: {
                     id: currentAlertState.length,
                     type: "success",
                     content: response.data.message
                   }
-                ]
             }})
         }
         else{
             dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
+                alerts: {
                     id: currentAlertState.length,
                     type: "warning",
                     content: response.data.message
                   }
-                ]
             }})
         }
         setisDisabledByRequest(false)
@@ -386,27 +350,21 @@ const DeclineContactRequest = (params, dispatch, currentAlertState, setisDisable
         }
         else{
             dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
+                alerts: {
                     id: currentAlertState.length,
                     type: "warning",
                     content: response.data.message
-                  }
-                ]
+                }
             }})
         }
         // setisDisabledByRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
-            alerts: [
-              ...currentAlertState,
-              {
+            alerts: {
                 id: currentAlertState.length,
                 type: "error",
                 content: err.message
               }
-            ]
         }})
         setisDisabledByRequest(false)
     })
@@ -437,27 +395,21 @@ const AcceptContactRequest = (params, dispatch, currentAlertState, setisDisabled
         }
         else{
             dispatch({ type: SET_ALERTS, payload:{
-                alerts: [
-                  ...currentAlertState,
-                  {
+                alerts: {
                     id: currentAlertState.length,
                     type: "warning",
                     content: response.data.message
                   }
-                ]
             }})
         }
         // setisDisabledByRequest(false)
     }).catch((err) => {
         dispatch({ type: SET_ALERTS, payload:{
-            alerts: [
-              ...currentAlertState,
-              {
+            alerts: {
                 id: currentAlertState.length,
                 type: "error",
                 content: err.message
               }
-            ]
         }})
         setisDisabledByRequest(false)
     })
@@ -629,6 +581,30 @@ const CreateGroupChatRequest = (params, dispatch, setisCreateGCToggle) => {
     })
 }
 
+const CallRequest = async (params) => {
+    const payload = params
+    const encodedPayload = sign(payload, SECRET)
+
+    return await Axios.post(`${API}/u/call`, {
+        token: encodedPayload
+    },{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            //action if needed
+            return true;
+        }
+        else{
+            return false;
+        }
+    }).catch((err) => {
+        console.log(err)
+        throw new Error(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -646,5 +622,6 @@ export {
     InitConversationRequest,
     InitConversationListRequest,
     CreateGroupChatRequest,
-    SeenMessageRequest
+    SeenMessageRequest,
+    CallRequest
 }

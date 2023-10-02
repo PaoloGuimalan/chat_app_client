@@ -9,7 +9,7 @@ import { RiAddCircleFill } from 'react-icons/ri'
 import { IoSend } from 'react-icons/io5'
 import { AiOutlineClose } from 'react-icons/ai';
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
-import { InitConversationRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
+import { CallRequest, InitConversationRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { getBase64, importData, makeid } from '../../../reusables/hooks/reusable'
@@ -238,19 +238,34 @@ function Conversation({ conversationsetup }) {
     const checkIfOnCall = callslist.filter((onc) => onc.conversationID == conversationsetup.conversationid);
 
     if(checkIfOnCall.length == 0){
-        dispatch({
-            type: SET_CALLS_LIST,
-            payload: {
-                callslist: [
-                    ...callslist,
-                    {
-                        callType: callType,
-                        callDisplayName: conversationsetup.type == "single"? `${conversationsetup.userdetails.fullname.firstName}` : `${conversationsetup.groupdetails.groupName} (Group)`,
-                        conversationType: conversationsetup.type,
-                        conversationID: conversationsetup.conversationid
-                    }
-                ]
-            }
+        CallRequest({
+            callType: callType,
+            callDisplayName: conversationsetup.type == "single"? `${authentication.user.fullName.firstName}` : `${conversationsetup.groupdetails.groupName} (Group)`,
+            conversationType: conversationsetup.type,
+            conversationID: conversationsetup.conversationid,
+            caller: {
+                name: authentication.user.fullName.firstName,
+                userID: authentication.user.userID
+            },
+            recepients: conversationsetup.type == "single"? [conversationsetup.userdetails.userID] : conversationsetup.groupdetails.receivers.filter((flt) => flt != authentication.user.userID),
+            displayImage: conversationsetup.type == "single"? conversationsetup.userdetails.profile : "none"
+        }).then(() => {
+            dispatch({
+                type: SET_CALLS_LIST,
+                payload: {
+                    callslist: [
+                        ...callslist,
+                        {
+                            callType: callType,
+                            callDisplayName: conversationsetup.type == "single"? `${conversationsetup.userdetails.fullname.firstName}` : `${conversationsetup.groupdetails.groupName} (Group)`,
+                            conversationType: conversationsetup.type,
+                            conversationID: conversationsetup.conversationid
+                        }
+                    ]
+                }
+            })
+        }).catch((err) => {
+            console.log(err)
         })
     }
   }

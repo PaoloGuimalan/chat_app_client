@@ -13,7 +13,10 @@ export const setauthentication = (state = authenticationstate, action) => {
 export const setalerts = (state = [], action) => {
     switch(action.type){
         case SET_ALERTS:
-            return action.payload.alerts;
+            return [
+                ...state,
+                action.payload.alerts
+            ];
         default:
             return state;
     }

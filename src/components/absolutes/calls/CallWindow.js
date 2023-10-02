@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import '../../../styles/absolutes/index.css'
 import { motion, useDragControls } from 'framer-motion'
 import { RiDragMoveLine } from 'react-icons/ri'
@@ -8,16 +8,27 @@ import { BsFillMicFill, BsFillMicMuteFill, BsCameraVideoFill, BsCameraVideoOffFi
 import { HiPhoneMissedCall } from 'react-icons/hi'
 import { useDispatch, useSelector } from 'react-redux'
 import { SET_CALLS_LIST } from '../../../redux/types'
+import { endSocket, socketCloseCall, socketConversationInit, socketInit, socketSendData } from '../../../reusables/hooks/sockets'
 
-function CallWindow({ data }) {
+function CallWindow({ data, lineNum }) {
 
   const callslist = useSelector(state => state.callslist);
+  const authentication = useSelector(state => state.authentication)
 
   const [isFullScreen, setisFullScreen] = useState(false);
   const [enableMic, setenableMic] = useState(true);
   const [enableCamera, setenableCamera] = useState(data.callType == "video"? true : false)
 
   const dispatch = useDispatch()
+
+  useEffect(() => {
+    socketInit().then(() => {
+      socketConversationInit({
+        conversationID: data.conversationID,
+        userID: authentication.user.userID
+      })
+    })
+  },[])
 
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
@@ -27,8 +38,31 @@ function CallWindow({ data }) {
     dragcontrol.start(event)
   }
 
+  const sendVideoData = () => {
+    socketSendData({
+      conversationID: data.conversationID,
+      userID: authentication.user.userID
+    })
+  }
+
   const endCallProcess = () => {
     const newCallsList = callslist.filter((onc) => onc.conversationID != data.conversationID);
+
+    if(callslist.length == 1){
+      socketCloseCall({
+        conversationID: data.conversationID,
+        userID: authentication.user.userID
+      }).then(() => {
+        endSocket()
+      })
+    }
+    else{
+      socketCloseCall({
+        conversationID: data.conversationID,
+        userID: authentication.user.userID
+      })
+    }
+
     dispatch({
       type: SET_CALLS_LIST,
       payload: {
@@ -43,11 +77,15 @@ function CallWindow({ data }) {
     dragConstraints={{top: 0, bottom: windowHeight - 185, left: 0, right: windowWidth - 315}}
     dragControls={dragcontrol}
     onPointerDown={dragCallWindow}
+    initial={{
+      top: `${20*lineNum == 0? 5 : 20*lineNum}px`,
+      left: `${20*lineNum == 0? 5 : 20*lineNum}px`,
+    }}
     animate={{
       maxWidth: isFullScreen? "100vw" : "300px",
       minHeight: isFullScreen? "100vh" : "170px",
-      top: isFullScreen? "0px" : "5px",
-      left: isFullScreen? "0px" : "5px",
+      top: isFullScreen? "0px" : `${20*lineNum == 0? 5 : 20*lineNum}px`,
+      left: isFullScreen? "0px" : `${20*lineNum == 0? 5 : 20*lineNum}px`,
       borderRadius: isFullScreen? "0px" : "5px",
       borderWidth: isFullScreen? "0px" : "1px"
     }}
@@ -56,6 +94,7 @@ function CallWindow({ data }) {
           <span id='span_call_displayname'>{data.callDisplayName}</span>
           <button
           onClick={() => {
+            sendVideoData()
             setisFullScreen(!isFullScreen)
           }}
           className='btn_top_nav_call_window'>
