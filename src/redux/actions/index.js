@@ -1,4 +1,4 @@
-import { SET_ALERTS, SET_APPROVED_PENDING_MESSAGES_LIST, SET_AUTHENTICATION, SET_CALLS_LIST, SET_CONTACTS_LIST, SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PATHNAME_LISTENER, SET_PENDING_MESSAGES_LIST, SET_SCREEN_SIZE_LISTENER, SET_TOGGLE_RIGHT_WIDGET } from "../types";
+import { SET_ALERTS, SET_APPROVED_PENDING_MESSAGES_LIST, SET_AUTHENTICATION, SET_CALLS_LIST, SET_CLEAR_ALERTS, SET_CONTACTS_LIST, SET_CONVERSATION_SETUP, SET_FILTERED_ALERTS, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PATHNAME_LISTENER, SET_PENDING_MESSAGES_LIST, SET_SCREEN_SIZE_LISTENER, SET_TOGGLE_RIGHT_WIDGET } from "../types";
 import { authenticationstate, conversationsetupstate, screensizelistenerstate } from "./states";
 
 export const setauthentication = (state = authenticationstate, action) => {
@@ -17,6 +17,11 @@ export const setalerts = (state = [], action) => {
                 ...state,
                 action.payload.alerts
             ];
+        case SET_FILTERED_ALERTS:
+            var filterstate = state.filter((flt) => flt.id != action.payload.alertID);
+            return filterstate;
+        case SET_CLEAR_ALERTS:
+            return action.payload.alerts
         default:
             return state;
     }

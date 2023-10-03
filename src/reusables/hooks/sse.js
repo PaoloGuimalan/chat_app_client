@@ -4,7 +4,6 @@ import { SET_ALERTS, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIS
 import message_ringtone from '../../assets/sounds/message_alert.mp3'
 import notification_ringtone from '../../assets/sounds/notification_alert.mp3'
 import seen_rightone from '../../assets/sounds/seen_alert.mp3'
-import alert_incoming_call from '../../assets/sounds/alert_call_tune.mp3'
 
 const API = process.env.REACT_APP_CHATTERLOOP_API;
 const SECRET = process.env.REACT_APP_JWT_SECRET
@@ -51,26 +50,12 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
         if(parsedresponse.auth){
             if(parsedresponse.status){
                 const decodedResult = jwt_decode(parsedresponse.result)
-
+                var randomID =  Math.random() * (2000 - 1 + 1) + 1
                 //play ringtone
-                let audioMessage = new Audio(alert_incoming_call);
-                audioMessage.play();
-
-                var audioInterval = setInterval(() => {
-                    audioMessage.currentTime = 0;
-                    audioMessage.play()
-                },21000)
-
-                setTimeout(() => {
-                    audioMessage.pause();
-                    audioMessage.currentTime = 0;
-
-                    clearInterval(audioInterval)
-                },60000)
 
                 dispatch({ type: SET_ALERTS, payload:{
                     alerts: {
-                        id: currentAlertState.length,
+                        id: randomID,
                         type: "incomingcall",
                         content: parsedresponse.message,
                         callmetadata: decodedResult.callmetadata

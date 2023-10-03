@@ -7,13 +7,36 @@ import { AiFillCheckCircle, AiOutlineClose, AiFillInfoCircle, AiFillWarning, AiF
 import { IoMdClose, IoMdCloseCircle } from 'react-icons/io'
 import { BiSolidPhoneCall } from 'react-icons/bi'
 import { HiPhoneMissedCall } from 'react-icons/hi'
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
+import { callalert } from '../../reusables/hooks/soundmodules';
+import alert_incoming_call from '../../assets/sounds/alert_call_tune.mp3'
+import { SET_FILTERED_ALERTS } from '../../redux/types';
 
 function Alert({al}) {
 
   const alerts = useSelector(state => state.alerts)
   const [timerUnToggle, settimerUnToggle] = useState(true);
   const [displayUntoggle, setdisplayUntoggle] = useState(true);
+  const [onStop, setonStop] = useState(false);
+
+  const dispatch = useDispatch();
+  
+  var audioMessage = new Audio(alert_incoming_call);
+  var callinstancetune = new callalert(audioMessage);
+
+  audioMessage.pause()
+  callinstancetune.stop()
+
+  const callaudiomonocontrol = () => {
+    return {
+      start: () => {
+        callinstancetune.start()
+      },
+      stop: () => {
+        callinstancetune.stop()
+      }
+    }
+  }
 
   useEffect(() => {
     if(al.type != "incomingcall"){
@@ -25,14 +48,23 @@ function Alert({al}) {
       },3500)
     }
     else{
-      setTimeout(() => {
-          settimerUnToggle(false)
-      }, 60000)
-      setTimeout(() => {
-          setdisplayUntoggle(false)
-      },60500)
+      if(!onStop){
+        if(audioMessage) callaudiomonocontrol().start()
+        setTimeout(() => {
+            if(audioMessage) callaudiomonocontrol().stop()
+            settimerUnToggle(false)
+        }, 60000)
+        setTimeout(() => {
+            setdisplayUntoggle(false)
+            audioMessage = null;
+        },60500)
+      }
     }
-  }, [])
+
+    return () => {
+      callaudiomonocontrol().stop()
+    }
+  }, [onStop])
 
   const alertIcons = {
     success: {
@@ -57,6 +89,18 @@ function Alert({al}) {
     }
   }
 
+  const rejectCallProcess = () => {
+    setonStop(true);
+    audioMessage.pause()
+    callinstancetune.stop()
+    if(audioMessage) callaudiomonocontrol().stop()
+    settimerUnToggle(false)
+    setTimeout(() => {
+        setdisplayUntoggle(false)
+        audioMessage = null;
+    },500)
+  }
+
   return (
     al.type == "incomingcall"? (
       <motion.div
@@ -75,7 +119,11 @@ function Alert({al}) {
               <button id='btn_close_alert'>
                 <BiSolidPhoneCall style={{fontSize: "25px", color: "#45EF56"}} />
               </button>
-              <button id='btn_close_alert'>
+              <button
+              onClick={() => {
+                rejectCallProcess()
+              }}
+              id='btn_close_alert'>
                 <HiPhoneMissedCall style={{fontSize: "25px", color: "red"}} />
               </button>
           </div>

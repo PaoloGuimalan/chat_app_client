@@ -15,7 +15,7 @@ import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
 import SearchMiniDrawer from '../widgets/SearchMiniDrawer'
 import { CloseSSENotifications, SSENotificationsTRequest } from '../../reusables/hooks/sse'
-import { SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
+import { SET_CLEAR_ALERTS, SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
 import { conversationsetupstate } from '../../redux/actions/states'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import DesktopHome from './DesktopHome'
@@ -49,6 +49,13 @@ function Home() {
         payload: {
             messageslist: []
         }
+    })
+
+    dispatch({
+      type: SET_CLEAR_ALERTS,
+      payload: {
+        alerts: []
+      }
     })
   }
 
