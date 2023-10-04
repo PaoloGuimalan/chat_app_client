@@ -10,7 +10,7 @@ import { HiPhoneMissedCall } from 'react-icons/hi'
 import { useDispatch, useSelector } from 'react-redux';
 import { callalert } from '../../reusables/hooks/soundmodules';
 import alert_incoming_call from '../../assets/sounds/alert_call_tune.mp3'
-import { SET_FILTERED_ALERTS } from '../../redux/types';
+import { REMOVE_PENDING_CALL_ALERTS, SET_FILTERED_ALERTS, SET_PENDING_CALL_ALERTS } from '../../redux/types';
 
 function Alert({al}) {
 
@@ -57,6 +57,12 @@ function Alert({al}) {
         setTimeout(() => {
             setdisplayUntoggle(false)
             audioMessage = null;
+            dispatch({
+                type: REMOVE_PENDING_CALL_ALERTS,
+                payload: {
+                    callID: al.callmetadata.conversationID
+                }
+            })
         },60500)
       }
     }
@@ -99,6 +105,12 @@ function Alert({al}) {
         setdisplayUntoggle(false)
         audioMessage = null;
     },500)
+    dispatch({
+        type: REMOVE_PENDING_CALL_ALERTS,
+        payload: {
+            callID: al.callmetadata.conversationID
+        }
+    })
   }
 
   return (

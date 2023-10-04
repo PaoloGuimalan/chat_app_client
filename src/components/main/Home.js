@@ -15,11 +15,12 @@ import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
 import SearchMiniDrawer from '../widgets/SearchMiniDrawer'
 import { CloseSSENotifications, SSENotificationsTRequest } from '../../reusables/hooks/sse'
-import { SET_CLEAR_ALERTS, SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
+import { CLEAR_PENDING_CALL_ALERTS, SET_CALLS_LIST, SET_CLEAR_ALERTS, SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
 import { conversationsetupstate } from '../../redux/actions/states'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import DesktopHome from './DesktopHome'
 import CallCollection from '../absolutes/calls/CallCollection'
+import { endSocket } from '../../reusables/hooks/sockets'
 
 function Home() {
 
@@ -57,6 +58,20 @@ function Home() {
         alerts: []
       }
     })
+
+    dispatch({
+      type: SET_CALLS_LIST,
+      payload: {
+        callslist: []
+      }
+    })
+
+    dispatch({
+      type: CLEAR_PENDING_CALL_ALERTS,
+      payload: {
+        clearstate: []
+      }
+    })
   }
 
   const logoutProcess = () => {
@@ -70,6 +85,7 @@ function Home() {
 
     return () => {
       clearStates()
+      endSocket()
     }
   },[])
 

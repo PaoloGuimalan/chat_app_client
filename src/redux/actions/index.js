@@ -1,4 +1,4 @@
-import { SET_ALERTS, SET_APPROVED_PENDING_MESSAGES_LIST, SET_AUTHENTICATION, SET_CALLS_LIST, SET_CLEAR_ALERTS, SET_CONTACTS_LIST, SET_CONVERSATION_SETUP, SET_FILTERED_ALERTS, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PATHNAME_LISTENER, SET_PENDING_MESSAGES_LIST, SET_SCREEN_SIZE_LISTENER, SET_TOGGLE_RIGHT_WIDGET } from "../types";
+import { CLEAR_PENDING_CALL_ALERTS, END_CALL_LIST, REMOVE_PENDING_CALL_ALERTS, SET_ALERTS, SET_APPROVED_PENDING_MESSAGES_LIST, SET_AUTHENTICATION, SET_CALLS_LIST, SET_CLEAR_ALERTS, SET_CONTACTS_LIST, SET_CONVERSATION_SETUP, SET_FILTERED_ALERTS, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PATHNAME_LISTENER, SET_PENDING_CALL_ALERTS, SET_PENDING_MESSAGES_LIST, SET_SCREEN_SIZE_LISTENER, SET_TOGGLE_RIGHT_WIDGET } from "../types";
 import { authenticationstate, conversationsetupstate, screensizelistenerstate } from "./states";
 
 export const setauthentication = (state = authenticationstate, action) => {
@@ -112,6 +112,27 @@ export const setcallslist = (state = [], action) => {
     switch(action.type){
         case SET_CALLS_LIST:
             return action.payload.callslist;
+        case END_CALL_LIST:
+            const newCallsList = state.filter((onc) => onc.conversationID != action.payload.callID);
+            return newCallsList;
+        default:
+            return state;
+    }
+}
+
+export const setpendingcallalerts = (state = [], action) => {
+    switch(action.type){
+        case SET_PENDING_CALL_ALERTS:
+            var newState = [
+                ...state,
+                action.payload.pendingcallalerts
+            ]
+            return newState;
+        case REMOVE_PENDING_CALL_ALERTS:
+            var newFilterState = state.filter((flt) => flt.callID != action.payload.callID)
+            return newFilterState;
+        case CLEAR_PENDING_CALL_ALERTS:
+            return action.payload.clearstate;
         default:
             return state;
     }

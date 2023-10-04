@@ -7,7 +7,7 @@ import { RxEnterFullScreen } from 'react-icons/rx'
 import { BsFillMicFill, BsFillMicMuteFill, BsCameraVideoFill, BsCameraVideoOffFill } from 'react-icons/bs'
 import { HiPhoneMissedCall } from 'react-icons/hi'
 import { useDispatch, useSelector } from 'react-redux'
-import { SET_CALLS_LIST } from '../../../redux/types'
+import { END_CALL_LIST, SET_CALLS_LIST } from '../../../redux/types'
 import { endSocket, socketCloseCall, socketConversationInit, socketInit, socketSendData } from '../../../reusables/hooks/sockets'
 
 function CallWindow({ data, lineNum }) {
@@ -15,6 +15,7 @@ function CallWindow({ data, lineNum }) {
   const callslist = useSelector(state => state.callslist);
   const authentication = useSelector(state => state.authentication)
 
+  const [isAnswered, setisAnswered] = useState(false);
   const [isFullScreen, setisFullScreen] = useState(false);
   const [enableMic, setenableMic] = useState(true);
   const [enableCamera, setenableCamera] = useState(data.callType == "video"? true : false)
@@ -29,6 +30,31 @@ function CallWindow({ data, lineNum }) {
       })
     })
   },[])
+
+  useEffect(() => {
+    var timeout;
+
+    if(!isAnswered){
+      timeout = setTimeout(() => {
+        socketCloseCall({
+          conversationID: data.conversationID,
+          userID: authentication.user.userID
+        })
+
+        dispatch({
+          type: END_CALL_LIST,
+          payload: {
+            callID: data.conversationID
+          }
+        })
+      },60000)
+    }
+
+    return () => {
+      clearTimeout(timeout);
+      timeout = null;
+    }
+  },[isAnswered])
 
   const windowWidth = window.innerWidth;
   const windowHeight = window.innerHeight;
@@ -46,8 +72,6 @@ function CallWindow({ data, lineNum }) {
   }
 
   const endCallProcess = () => {
-    const newCallsList = callslist.filter((onc) => onc.conversationID != data.conversationID);
-
     if(callslist.length == 1){
       socketCloseCall({
         conversationID: data.conversationID,
@@ -64,9 +88,9 @@ function CallWindow({ data, lineNum }) {
     }
 
     dispatch({
-      type: SET_CALLS_LIST,
+      type: END_CALL_LIST,
       payload: {
-        callslist: newCallsList
+        callID: data.conversationID
       }
     })
   }

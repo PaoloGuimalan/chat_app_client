@@ -1,6 +1,6 @@
 import sign from 'jwt-encode'
 import jwt_decode from 'jwt-decode'
-import { SET_ALERTS, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST } from '../../redux/types';
+import { SET_ALERTS, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PENDING_CALL_ALERTS } from '../../redux/types';
 import message_ringtone from '../../assets/sounds/message_alert.mp3'
 import notification_ringtone from '../../assets/sounds/notification_alert.mp3'
 import seen_rightone from '../../assets/sounds/seen_alert.mp3'
@@ -61,6 +61,15 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
                         callmetadata: decodedResult.callmetadata
                       }
                 }})
+
+                dispatch({
+                    type: SET_PENDING_CALL_ALERTS,
+                    payload: {
+                        pendingcallalerts: {
+                            callID: decodedResult.callmetadata.conversationID
+                        }
+                    }
+                })
             }
         }
     })

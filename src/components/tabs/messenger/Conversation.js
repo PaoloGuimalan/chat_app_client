@@ -18,6 +18,8 @@ import { SET_CALLS_LIST, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
 function Conversation({ conversationsetup }) {
 
   const authentication = useSelector(state => state.authentication)
+  const alerts = useSelector(state => state.alerts)
+  const pendingcallalerts = useSelector(state => state.pendingcallalerts);
   const pendingmessageslist = useSelector(state => state.pendingmessageslist)
   const messageslist = useSelector(state => state.messageslist)
   const screensizelistener = useSelector(state => state.screensizelistener);
@@ -236,8 +238,9 @@ function Conversation({ conversationsetup }) {
 
   const triggerCall = (callType) => {
     const checkIfOnCall = callslist.filter((onc) => onc.conversationID == conversationsetup.conversationid);
+    const checkIfOnPending = pendingcallalerts.filter((fltcall) => fltcall.callID == conversationsetup.conversationid);
 
-    if(checkIfOnCall.length == 0){
+    if(checkIfOnCall.length == 0 && checkIfOnPending.length == 0){
         CallRequest({
             callType: callType,
             callDisplayName: conversationsetup.type == "single"? `${authentication.user.fullName.firstName}` : `${conversationsetup.groupdetails.groupName} (Group)`,
@@ -338,6 +341,10 @@ function Conversation({ conversationsetup }) {
                     <div id='div_conversation_header_navigations'>
                         <motion.button
                         disabled={true}
+                        // disabled={
+                        //     pendingcallalerts.filter((fltcall) => fltcall.callID == conversationsetup.conversationid).length > 0?
+                        //     true : false
+                        // }
                         whileHover={{
                             backgroundColor: "#e6e6e6"
                         }}
@@ -347,6 +354,10 @@ function Conversation({ conversationsetup }) {
                         className='btn_conversation_header_navigation'><BiSolidPhoneCall style={{fontSize: "25px", color: "#4994ec"}} /></motion.button>
                         <motion.button
                         disabled={true}
+                        // disabled={
+                        //     pendingcallalerts.filter((fltcall) => fltcall.callID == conversationsetup.conversationid).length > 0?
+                        //     true : false
+                        // }
                         whileHover={{
                             backgroundColor: "#e6e6e6"
                         }}
