@@ -7,6 +7,10 @@ import jwt_decode from 'jwt-decode'
 const API = process.env.REACT_APP_CHATTERLOOP_API;
 const SECRET = process.env.REACT_APP_JWT_SECRET
 
+var CancelToken = Axios.CancelToken
+var cancelTokenSource = CancelToken.source()
+var abortController = new AbortController()
+
 const AuthCheck = (params, dispatch) => {
     Axios.get(`${API}/auth/jwtchecker`,{
         headers:{
@@ -165,6 +169,27 @@ const RegisterRequest = (params, dispatch, currentAlertState, setisWaitingReques
         }})
         setisWaitingRequest(false)
     })
+}
+
+const SessionHoldRequest = () => {
+    Axios.get(`${API}/u/sessionhold`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        },
+        cancelToken: cancelTokenSource.token,
+        signal: abortController.signal
+    }).then((response) => {
+        console.log(response);
+    }).catch((err) => {
+        console.log(err.code);
+        if(err.code != "ERR_CANCELED"){
+            SessionHoldRequest()
+        }
+    })
+}
+
+const SessionAbortExtension = () => {
+    abortController.abort()
 }
 
 const LogoutRequest = (params, dispatch) => {
@@ -609,6 +634,8 @@ export {
     AuthCheck,
     LoginRequest,
     RegisterRequest,
+    SessionHoldRequest,
+    SessionAbortExtension,
     LogoutRequest,
     VerifyCodeRequest,
     SearchRequest,
