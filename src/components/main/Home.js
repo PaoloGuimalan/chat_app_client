@@ -8,7 +8,7 @@ import { BsMap } from 'react-icons/bs'
 import { FiMap } from 'react-icons/fi'
 import { RiContactsBook2Line } from 'react-icons/ri'
 import { IoMdNotificationsOutline } from 'react-icons/io'
-import { InitConversationListRequest, LogoutRequest, NotificationInitRequest } from '../../reusables/hooks/requests'
+import { ActiveContactsRequest, InitConversationListRequest, LogoutRequest, NotificationInitRequest } from '../../reusables/hooks/requests'
 import Contacts from '../tabs/feed/Contacts'
 import Feed from '../tabs/feed/Feed'
 import Notifications from '../tabs/feed/Notifications'
@@ -92,6 +92,7 @@ function Home() {
   const initEventSources = () => {
     SSENotificationsTRequest({}, dispatch, alerts, authentication)
     InitConversationListRequest({}, dispatch, () => {})
+    ActiveContactsRequest(dispatch)
   }
 
   const settogglerightwidget = (toggle) => {

@@ -1,5 +1,5 @@
 import Axios from 'axios'
-import { SET_ALERTS, SET_AUTHENTICATION, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST } from '../../redux/types';
+import { SET_ACTIVE_USERS_LIST, SET_ALERTS, SET_AUTHENTICATION, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST } from '../../redux/types';
 import { authenticationstate } from '../../redux/actions/states';
 import sign from 'jwt-encode'
 import jwt_decode from 'jwt-decode'
@@ -605,6 +605,25 @@ const CallRequest = async (params) => {
     })
 }
 
+const ActiveContactsRequest = (dispatch) => {
+    Axios.get(`${API}/u/activecontacts`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            dispatch({
+                type: SET_ACTIVE_USERS_LIST,
+                payload: {
+                    activeuserslist: response.data.result
+                }
+            })
+        }
+    }).catch((err) => {
+        console.log(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -623,5 +642,6 @@ export {
     InitConversationListRequest,
     CreateGroupChatRequest,
     SeenMessageRequest,
-    CallRequest
+    CallRequest,
+    ActiveContactsRequest
 }

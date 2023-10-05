@@ -1,5 +1,5 @@
 import { createStore, combineReducers } from "redux";
-import { setalerts, setapprovedpendingmessageslist, setauthentication, setcallslist, setcontactslist, setconversationsetup, setmessageslist, setnotificationslist, setpathnamelistener, setpendingcallalerts, setpendingmessageslist, setscreensizelistener, settogglerightwidget } from "../actions";
+import { setactiveuserslist, setalerts, setapprovedpendingmessageslist, setauthentication, setcallslist, setcontactslist, setconversationsetup, setmessageslist, setnotificationslist, setpathnamelistener, setpendingcallalerts, setpendingmessageslist, setscreensizelistener, settogglerightwidget } from "../actions";
 
 const combiner = combineReducers({
     authentication: setauthentication,
@@ -14,7 +14,8 @@ const combiner = combineReducers({
     pendingmessageslist: setpendingmessageslist,
     approvedpendingmessageslist: setapprovedpendingmessageslist,
     callslist: setcallslist,
-    pendingcallalerts: setpendingcallalerts
+    pendingcallalerts: setpendingcallalerts,
+    activeuserslist: setactiveuserslist
 });
 
 const store = createStore(combiner)

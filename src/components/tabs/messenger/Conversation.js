@@ -18,13 +18,16 @@ import { SET_CALLS_LIST, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
 function Conversation({ conversationsetup }) {
 
   const authentication = useSelector(state => state.authentication)
-  const alerts = useSelector(state => state.alerts)
   const pendingcallalerts = useSelector(state => state.pendingcallalerts);
   const pendingmessageslist = useSelector(state => state.pendingmessageslist)
   const messageslist = useSelector(state => state.messageslist)
   const screensizelistener = useSelector(state => state.screensizelistener);
   const pathnamelistener = useSelector(state => state.pathnamelistener)
   const callslist = useSelector(state => state.callslist);
+  const activeuserslist = useSelector(state => state.activeuserslist)
+  const activeusersmapper = activeuserslist.map((mp) => mp._id);
+  const activeuserSpecific = conversationsetup.type == "single" && activeuserslist.filter((flt) => flt._id == conversationsetup.userdetails.userID);
+
   const [messageValue, setmessageValue] = useState("");
   const [conversationList, setconversationList] = useState([])
   const [isLoading, setisLoading] = useState(true);
@@ -332,7 +335,21 @@ function Conversation({ conversationsetup }) {
                                 <span className='span_userdetails_name'>{conversationsetup.groupdetails.groupName}</span>
                             )}
                             {conversationsetup.type == "single"? (
-                                <span className='span_userdetails_name'>Recently Active</span>
+                                activeusersmapper.includes(conversationsetup.userdetails.userID)? (
+                                    activeuserSpecific[0].sessiondate? (
+                                        activeuserSpecific[0].sessionStatus? (
+                                            <span className='span_userdetails_name'>Active Now</span>
+                                        ) : (
+                                            <span className='span_userdetails_name'>
+                                                {activeuserSpecific[0].sessiondate.time} {activeuserSpecific[0].sessiondate.date}
+                                            </span>
+                                        )
+                                    ) : (
+                                        <span className='span_userdetails_name'>Recently Active</span>
+                                    )
+                                ) : (
+                                    <span className='span_userdetails_name'>Recently Active</span>
+                                )
                             ) : (
                                 <span className='span_userdetails_name'>Members are active</span>
                             )}
