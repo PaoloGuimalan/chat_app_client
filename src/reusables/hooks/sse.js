@@ -1,6 +1,6 @@
 import sign from 'jwt-encode'
 import jwt_decode from 'jwt-decode'
-import { SET_ALERTS, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PENDING_CALL_ALERTS } from '../../redux/types';
+import { SET_ALERTS, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PENDING_CALL_ALERTS, UPDATE_ACTIVE_USERS_LIST } from '../../redux/types';
 import message_ringtone from '../../assets/sounds/message_alert.mp3'
 import notification_ringtone from '../../assets/sounds/notification_alert.mp3'
 import seen_rightone from '../../assets/sounds/seen_alert.mp3'
@@ -111,6 +111,23 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
                 dispatch({ type: SET_MESSAGES_LIST, payload: {
                     messageslist: decodedResult.conversationslist
                 } })
+            }
+        }
+    })
+
+    sseNtfsSource.addEventListener('active_users', (e) => {
+        const parsedresponse = JSON.parse(e.data)
+        if(parsedresponse.auth){
+            if(parsedresponse.status){
+                const decodedResult = jwt_decode(parsedresponse.result)
+
+                // console.log(decodedResult.user);
+                dispatch({
+                    type: UPDATE_ACTIVE_USERS_LIST,
+                    payload: {
+                        updatedUser: decodedResult.user
+                    }
+                })
             }
         }
     })
