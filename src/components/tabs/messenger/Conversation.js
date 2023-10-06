@@ -12,7 +12,7 @@ import { checkIfValid } from '../../../reusables/hooks/validatevariables'
 import { CallRequest, InitConversationRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
-import { getBase64, importData, makeid } from '../../../reusables/hooks/reusable'
+import { getBase64, importData, isUserOnline, makeid } from '../../../reusables/hooks/reusable'
 import { SET_CALLS_LIST, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
 
 function Conversation({ conversationsetup }) {
@@ -327,6 +327,9 @@ function Conversation({ conversationsetup }) {
                                 <img src={GroupChatIcon} className='img_gc_profiles_ntfs' />
                             )}
                           </div>
+                          {isUserOnline(activeuserslist, conversationsetup.userdetails.userID) && (
+                             <div className='div_online_indicator' />
+                          )}
                         </div>
                         <div id='div_conversation_user_name'>
                             {conversationsetup.type == "single"? (

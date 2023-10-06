@@ -10,10 +10,12 @@ import DefaultProfile from '../../../assets/imgs/default.png'
 import { SET_CONVERSATION_SETUP, SET_TOGGLE_RIGHT_WIDGET } from '../../../redux/types'
 import { useNavigate } from 'react-router-dom'
 import { conversationsetupstate } from '../../../redux/actions/states'
+import { isUserOnline } from '../../../reusables/hooks/reusable'
 
 function Contacts() {
 
   const conversationsetup = useSelector(state => state.conversationsetup)
+  const activeuserslist = useSelector(state => state.activeuserslist)
   const authentication = useSelector(state => state.authentication)
   const contactslist = useSelector(state => state.contactslist)
   const screensizelistener = useSelector(state => state.screensizelistener);
@@ -145,6 +147,9 @@ function Contacts() {
                             <div id='div_img_search_profiles_container_cncts'>
                               <img src={cnts.userdetails.usertwo.profile == "none"? DefaultProfile : cnts.userdetails.usertwo.profile} className='img_search_profiles_ntfs' />
                             </div>
+                            {isUserOnline(activeuserslist, cnts.userdetails.usertwo.userID) && (
+                              <div className='div_online_indicator' />
+                            )}
                           </div>
                           <div className='div_contact_fullname_container'>
                             <span className='span_cncts_fullname_label'>{cnts.userdetails.usertwo.fullname.firstName}{cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} {cnts.userdetails.usertwo.fullname.lastName}</span>
@@ -188,6 +193,9 @@ function Contacts() {
                             <div id='div_img_search_profiles_container_cncts'>
                               <img src={cnts.userdetails.userone.profile == "none"? DefaultProfile : cnts.userdetails.userone.profile} className='img_search_profiles_ntfs' />
                             </div>
+                            {isUserOnline(activeuserslist, cnts.userdetails.userone.userID) && (
+                              <div className='div_online_indicator' />
+                            )}
                           </div>
                           <div className='div_contact_fullname_container'>
                             <span className='span_cncts_fullname_label'>{cnts.userdetails.userone.fullname.firstName}{cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} {cnts.userdetails.userone.fullname.lastName}</span>

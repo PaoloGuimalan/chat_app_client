@@ -227,6 +227,17 @@
     margin-right: -20px;
 }
 
+.div_online_indicator{
+    min-width: 10px;
+    min-height: 10px;
+    border-radius: 10px;
+    border: solid 2px white;
+    background-color: lime;
+    margin-left: -14px;
+    margin-top: 25px;
+    /* position: absolute; */
+}
+
 @media screen and (max-width: 450px) {
     #div_buttons_navigation{
         justify-content: center;

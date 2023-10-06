@@ -34,8 +34,20 @@ function makeid(length) {
    return result;
 }
 
+function isUserOnline(state, userID){
+    const filteractiveusers = state.filter((flt) => flt.sessionStatus == true);
+    const activeusersmapper = filteractiveusers.map((mp) => mp._id);
+    if(activeusersmapper.includes(userID)){
+        return true;
+    }
+    else{
+        return false;
+    }
+}
+
 export {
     importData,
     getBase64,
-    makeid
+    makeid,
+    isUserOnline
 }

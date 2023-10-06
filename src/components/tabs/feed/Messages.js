@@ -12,6 +12,7 @@ import GroupChatIcon from '../../../assets/imgs/group-chat-icon.jpg'
 import { SET_CONVERSATION_SETUP } from '../../../redux/types'
 import CreateGroupChatModal from '../../modals/CreateGroupChatModal'
 import { conversationsetupstate } from '../../../redux/actions/states'
+import { isUserOnline } from '../../../reusables/hooks/reusable'
 
 function Messages() {
 
@@ -19,6 +20,7 @@ function Messages() {
   const [isCreateGCToggle, setisCreateGCToggle] = useState(false)
 
   const authentication = useSelector(state => state.authentication)
+  const activeuserslist = useSelector(state => state.activeuserslist)
   const screensizelistener = useSelector(state => state.screensizelistener);
   const pathnamelistener = useSelector(state => state.pathnamelistener)
   const conversationsetup = useSelector(state => state.conversationsetup)
@@ -123,6 +125,9 @@ function Messages() {
                               <div id='div_img_search_profiles_container_cncts'>
                                 <img src={msgsurs.profile == "none"? DefaultProfile : msgsurs.profile} className='img_search_profiles_ntfs' />
                               </div>
+                              {isUserOnline(activeuserslist, msgsurs.userID) && (
+                                <div className='div_online_indicator' />
+                              )}
                             </div>
                             <div id='div_messages_list_name'>
                               <span className='span_messages_list_name'>{msgsurs.fullname.firstName}{msgsurs.fullname.middleName == "N/A"? "" : ` ${msgsurs.fullname.middleName}`} {msgsurs.fullname.lastName}</span>
