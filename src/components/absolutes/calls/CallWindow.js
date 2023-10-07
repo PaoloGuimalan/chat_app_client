@@ -9,6 +9,7 @@ import { HiPhoneMissedCall } from 'react-icons/hi'
 import { useDispatch, useSelector } from 'react-redux'
 import { END_CALL_LIST, REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST } from '../../../redux/types'
 import { endSocket, socketCloseCall, socketConversationInit, socketInit, socketSendData } from '../../../reusables/hooks/sockets'
+import { EndCallRequest } from '../../../reusables/hooks/requests'
 
 function CallWindow({ data, lineNum }) {
 
@@ -98,6 +99,23 @@ function CallWindow({ data, lineNum }) {
         conversationID: data.conversationID,
         userID: authentication.user.userID
       })
+    }
+
+    if(data.conversationType == 'single'){
+      EndCallRequest({
+        conversationType: data.conversationType, 
+        conversationID: data.conversationID,
+        recepients: data.recepients.filter((flt) => flt != authentication.user.userID)
+      });
+    }
+    else{
+      if(data.caller.userID == authentication.user.userID){
+        EndCallRequest({
+          conversationType: data.conversationType, 
+          conversationID: data.conversationID,
+          recepients: data.recepients.filter((flt) => flt != authentication.user.userID)
+        });
+      }
     }
 
     dispatch({

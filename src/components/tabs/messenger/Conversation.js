@@ -265,7 +265,12 @@ function Conversation({ conversationsetup }) {
                             callType: callType,
                             callDisplayName: conversationsetup.type == "single"? `${conversationsetup.userdetails.fullname.firstName}` : `${conversationsetup.groupdetails.groupName} (Group)`,
                             conversationType: conversationsetup.type,
-                            conversationID: conversationsetup.conversationid
+                            conversationID: conversationsetup.conversationid,
+                            caller: {
+                                name: authentication.user.fullName.firstName,
+                                userID: authentication.user.userID
+                            },
+                            recepients: conversationsetup.type == "single"? [conversationsetup.userdetails.userID, authentication.user.userID] : conversationsetup.groupdetails.receivers
                         }
                     ]
                 }
@@ -360,11 +365,11 @@ function Conversation({ conversationsetup }) {
                     </div>
                     <div id='div_conversation_header_navigations'>
                         <motion.button
-                        disabled={true}
-                        // disabled={
-                        //     pendingcallalerts.filter((fltcall) => fltcall.callID == conversationsetup.conversationid).length > 0?
-                        //     true : false
-                        // }
+                        // disabled={true}
+                        disabled={
+                            pendingcallalerts.filter((fltcall) => fltcall.callID == conversationsetup.conversationid).length > 0?
+                            true : false
+                        }
                         whileHover={{
                             backgroundColor: "#e6e6e6"
                         }}
@@ -373,11 +378,11 @@ function Conversation({ conversationsetup }) {
                         }}
                         className='btn_conversation_header_navigation'><BiSolidPhoneCall style={{fontSize: "25px", color: "#4994ec"}} /></motion.button>
                         <motion.button
-                        disabled={true}
-                        // disabled={
-                        //     pendingcallalerts.filter((fltcall) => fltcall.callID == conversationsetup.conversationid).length > 0?
-                        //     true : false
-                        // }
+                        // disabled={true}
+                        disabled={
+                            pendingcallalerts.filter((fltcall) => fltcall.callID == conversationsetup.conversationid).length > 0?
+                            true : false
+                        }
                         whileHover={{
                             backgroundColor: "#e6e6e6"
                         }}

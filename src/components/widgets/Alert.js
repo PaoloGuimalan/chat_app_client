@@ -10,12 +10,13 @@ import { HiPhoneMissedCall } from 'react-icons/hi'
 import { useDispatch, useSelector } from 'react-redux';
 import { callalert } from '../../reusables/hooks/soundmodules';
 import alert_incoming_call from '../../assets/sounds/alert_call_tune.mp3'
-import { REMOVE_PENDING_CALL_ALERTS, SET_FILTERED_ALERTS, SET_PENDING_CALL_ALERTS } from '../../redux/types';
+import { REMOVE_PENDING_CALL_ALERTS, REMOVE_REJECTED_CALL_LIST, SET_FILTERED_ALERTS, SET_PENDING_CALL_ALERTS } from '../../redux/types';
 import { RejectCallRequest } from '../../reusables/hooks/requests';
 
 function Alert({al}) {
 
   const alerts = useSelector(state => state.alerts)
+  const rejectcalls = useSelector(state => state.rejectcalls);
   const [timerUnToggle, settimerUnToggle] = useState(true);
   const [displayUntoggle, setdisplayUntoggle] = useState(true);
   const [onStop, setonStop] = useState(false);
@@ -38,6 +39,18 @@ function Alert({al}) {
       }
     }
   }
+
+  useEffect(() => {
+    if(rejectcalls.includes(al.callmetadata.conversationID)){
+      dispatch({
+          type: REMOVE_REJECTED_CALL_LIST,
+          payload: {
+            callID: al.callmetadata.conversationID
+          }
+      })
+      rejectCallProcess("ended")
+    }
+  },[alerts, rejectcalls])
 
   useEffect(() => {
     if(al.type != "incomingcall"){
@@ -96,7 +109,7 @@ function Alert({al}) {
     }
   }
 
-  const rejectCallProcess = () => {
+  const rejectCallProcess = (trigger) => {
     setonStop(true);
     audioMessage.pause()
     callinstancetune.stop()
@@ -112,11 +125,14 @@ function Alert({al}) {
             callID: al.callmetadata.conversationID
         }
     })
-    RejectCallRequest({
-      conversationType: al.callmetadata.conversationType, 
-      conversationID: al.callmetadata.conversationID,
-      caller: al.callmetadata.caller
-    });
+    
+    if(trigger == "rejected"){
+      RejectCallRequest({
+        conversationType: al.callmetadata.conversationType, 
+        conversationID: al.callmetadata.conversationID,
+        caller: al.callmetadata.caller
+      });
+    }
   }
 
   return (
@@ -139,7 +155,7 @@ function Alert({al}) {
               </button>
               <button
               onClick={() => {
-                rejectCallProcess()
+                rejectCallProcess("rejected")
               }}
               id='btn_close_alert'>
                 <HiPhoneMissedCall style={{fontSize: "25px", color: "red"}} />

@@ -641,6 +641,23 @@ const RejectCallRequest = (params) => {
     })
 }
 
+const EndCallRequest = (params) => {
+    const payload = params
+    const encodedPayload = sign(payload, SECRET)
+
+    Axios.post(`${API}/u/endcall`, {
+        token: encodedPayload
+    },{
+        headers: {
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        //action when needed if success
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -661,5 +678,6 @@ export {
     SeenMessageRequest,
     CallRequest,
     ActiveContactsRequest,
-    RejectCallRequest
+    RejectCallRequest,
+    EndCallRequest
 }
