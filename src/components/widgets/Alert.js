@@ -11,6 +11,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { callalert } from '../../reusables/hooks/soundmodules';
 import alert_incoming_call from '../../assets/sounds/alert_call_tune.mp3'
 import { REMOVE_PENDING_CALL_ALERTS, SET_FILTERED_ALERTS, SET_PENDING_CALL_ALERTS } from '../../redux/types';
+import { RejectCallRequest } from '../../reusables/hooks/requests';
 
 function Alert({al}) {
 
@@ -111,6 +112,11 @@ function Alert({al}) {
             callID: al.callmetadata.conversationID
         }
     })
+    RejectCallRequest({
+      conversationType: al.callmetadata.conversationType, 
+      conversationID: al.callmetadata.conversationID,
+      caller: al.callmetadata.caller
+    });
   }
 
   return (

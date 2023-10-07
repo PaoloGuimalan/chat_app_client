@@ -624,6 +624,23 @@ const ActiveContactsRequest = (dispatch) => {
     })
 }
 
+const RejectCallRequest = (params) => {
+    const payload = params
+    const encodedPayload = sign(payload, SECRET)
+
+    Axios.post(`${API}/u/rejectcall`, {
+        token: encodedPayload
+    },{
+        headers: {
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        //action when needed if success
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -643,5 +660,6 @@ export {
     CreateGroupChatRequest,
     SeenMessageRequest,
     CallRequest,
-    ActiveContactsRequest
+    ActiveContactsRequest,
+    RejectCallRequest
 }
