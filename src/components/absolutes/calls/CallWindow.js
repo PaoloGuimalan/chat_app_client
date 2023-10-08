@@ -41,7 +41,7 @@ function CallWindow({ data, lineNum }) {
             callID: data.conversationID
           }
       })
-      endCallProcess()
+      endCallProcess("recepient_ended")
     }
   },[callslist, rejectcalls])
 
@@ -85,7 +85,7 @@ function CallWindow({ data, lineNum }) {
     })
   }
 
-  const endCallProcess = () => {
+  const endCallProcess = (trigger_event) => {
     if(callslist.length == 1){
       socketCloseCall({
         conversationID: data.conversationID,
@@ -102,11 +102,20 @@ function CallWindow({ data, lineNum }) {
     }
 
     if(data.conversationType == 'single'){
-      EndCallRequest({
-        conversationType: data.conversationType, 
-        conversationID: data.conversationID,
-        recepients: data.recepients.filter((flt) => flt != authentication.user.userID)
-      });
+      if(data.caller.userID == authentication.user.userID){
+        EndCallRequest({
+          conversationType: data.conversationType, 
+          conversationID: data.conversationID,
+          recepients: data.recepients.filter((flt) => flt != authentication.user.userID)
+        });
+      }
+      else{
+        EndCallRequest({
+          conversationType: data.conversationType, 
+          conversationID: data.conversationID,
+          recepients: [data.caller.userID]
+        });
+      }
     }
     else{
       if(data.caller.userID == authentication.user.userID){
@@ -191,7 +200,7 @@ function CallWindow({ data, lineNum }) {
             )}
           </button>
           <button onClick={() => {
-            endCallProcess()
+            endCallProcess("caller_ended")
           }} className='btn_call_controls btn_call_controls_end'>
             <HiPhoneMissedCall />
           </button>

@@ -13,7 +13,7 @@ import { CallRequest, InitConversationRequest, SeenMessageRequest, SendFilesRequ
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { getBase64, importData, isUserOnline, makeid } from '../../../reusables/hooks/reusable'
-import { SET_CALLS_LIST, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
+import { REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
 
 function Conversation({ conversationsetup }) {
 
@@ -256,6 +256,12 @@ function Conversation({ conversationsetup }) {
             recepients: conversationsetup.type == "single"? [conversationsetup.userdetails.userID] : conversationsetup.groupdetails.receivers.filter((flt) => flt != authentication.user.userID),
             displayImage: conversationsetup.type == "single"? conversationsetup.userdetails.profile : "none"
         }).then(() => {
+            dispatch({
+                type: REMOVE_REJECTED_CALL_LIST,
+                payload: {
+                  callID: conversationsetup.conversationid
+                }
+            })
             dispatch({
                 type: SET_CALLS_LIST,
                 payload: {

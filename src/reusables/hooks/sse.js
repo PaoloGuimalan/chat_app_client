@@ -81,6 +81,8 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
                 const decodedResult = jwt_decode(parsedresponse.result)
                 const conversationID = decodedResult.rejectdata.conversationID;
 
+                // console.log("ERR REJ END", decodedResult);
+
                 dispatch({
                     type: SET_REJECTED_CALL_LIST,
                     payload: {

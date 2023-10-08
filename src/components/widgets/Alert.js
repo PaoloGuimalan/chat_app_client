@@ -10,7 +10,7 @@ import { HiPhoneMissedCall } from 'react-icons/hi'
 import { useDispatch, useSelector } from 'react-redux';
 import { callalert } from '../../reusables/hooks/soundmodules';
 import alert_incoming_call from '../../assets/sounds/alert_call_tune.mp3'
-import { REMOVE_PENDING_CALL_ALERTS, REMOVE_REJECTED_CALL_LIST, SET_FILTERED_ALERTS, SET_PENDING_CALL_ALERTS } from '../../redux/types';
+import { CHECK_AND_ADD_NEW_CALL_LIST_WINDOW, REMOVE_PENDING_CALL_ALERTS, REMOVE_REJECTED_CALL_LIST, SET_FILTERED_ALERTS, SET_PENDING_CALL_ALERTS } from '../../redux/types';
 import { RejectCallRequest } from '../../reusables/hooks/requests';
 
 function Alert({al}) {
@@ -109,6 +109,31 @@ function Alert({al}) {
     }
   }
 
+  const acceptCallProcess = (callmetadata) => {
+    setonStop(true);
+    audioMessage.pause()
+    callinstancetune.stop()
+    if(audioMessage) callaudiomonocontrol().stop()
+    settimerUnToggle(false)
+    setTimeout(() => {
+        setdisplayUntoggle(false)
+        audioMessage = null;
+    },500)
+    dispatch({
+        type: REMOVE_PENDING_CALL_ALERTS,
+        payload: {
+            callID: al.callmetadata.conversationID
+        }
+    })
+
+    dispatch({
+      type: CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
+      payload: {
+          callmetadata: callmetadata
+      }
+  })
+  }
+
   const rejectCallProcess = (trigger) => {
     setonStop(true);
     audioMessage.pause()
@@ -150,7 +175,11 @@ function Alert({al}) {
           {alertIcons[al.type].component}
           <span id='span_header_label_ic'>{alertIcons[al.type].title} ({al.callmetadata.callType == "audio"? "Audio" : "Video"})</span>
           <div id='div_close_alert_container_ic'>
-              <button id='btn_close_alert'>
+              <button
+              onClick={() => {
+                acceptCallProcess(al.callmetadata)
+              }}
+              id='btn_close_alert'>
                 <BiSolidPhoneCall style={{fontSize: "25px", color: "#45EF56"}} />
               </button>
               <button
