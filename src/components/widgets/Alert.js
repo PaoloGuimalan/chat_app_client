@@ -41,14 +41,16 @@ function Alert({al}) {
   }
 
   useEffect(() => {
-    if(rejectcalls.includes(al.callmetadata.conversationID)){
-      dispatch({
-          type: REMOVE_REJECTED_CALL_LIST,
-          payload: {
-            callID: al.callmetadata.conversationID
-          }
-      })
-      rejectCallProcess("ended")
+    if(al.type == "incomingcall"){
+      if(rejectcalls.includes(al.callmetadata.conversationID)){
+        dispatch({
+            type: REMOVE_REJECTED_CALL_LIST,
+            payload: {
+              callID: al.callmetadata.conversationID
+            }
+        })
+        rejectCallProcess("ended")
+      }
     }
   },[alerts, rejectcalls])
 
