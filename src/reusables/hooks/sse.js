@@ -115,6 +115,10 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
             if(parsedresponse.status){
                 const decodedResult = jwt_decode(parsedresponse.result)
 
+                dispatch({ type: SET_MESSAGES_LIST, payload: {
+                    messageslist: decodedResult.conversationslist
+                } })
+
                 if(authentication.user.userID != parsedresponse.message){
                     if(parsedresponse.onseen){
                         //play ringtone
@@ -146,10 +150,6 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
                         });
                     }
                 }
-                
-                dispatch({ type: SET_MESSAGES_LIST, payload: {
-                    messageslist: decodedResult.conversationslist
-                } })
             }
         }
     })
