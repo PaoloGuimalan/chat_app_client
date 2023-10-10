@@ -13,11 +13,12 @@ import { CallRequest, InitConversationRequest, SeenMessageRequest, SendFilesRequ
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { getBase64, importData, isUserOnline, makeid } from '../../../reusables/hooks/reusable'
-import { REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
+import { MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
 
 function Conversation({ conversationsetup }) {
 
   const authentication = useSelector(state => state.authentication)
+  const mediatrackholder = useSelector(state => state.mediatrackholder);
   const pendingcallalerts = useSelector(state => state.pendingcallalerts);
   const pendingmessageslist = useSelector(state => state.pendingmessageslist)
   const messageslist = useSelector(state => state.messageslist)
@@ -239,6 +240,34 @@ function Conversation({ conversationsetup }) {
     setrawFilesList(mutatedPrevRaw)
   }
 
+  const initMediaDevices = (callType) => {
+    if(mediatrackholder.length > 0) {
+        triggerCall(callType);
+    }
+    else{
+        navigator.mediaDevices.getUserMedia({
+            video: true,
+            audio: true
+          }).then((value) => {
+              dispatch({
+                  type: MEDIA_MY_VIDEO_HOLDER,
+                  payload: {
+                      mediamyvideoholder: value
+                 }
+              })
+              dispatch({
+                  type: MEDIA_TRACK_HOLDER,
+                  payload: {
+                      mediatrackholder: value.getTracks()
+                  }
+              })
+              triggerCall(callType);
+          }).catch((err) => {
+              console.log(err)
+        })
+    }
+  }
+
   const triggerCall = (callType) => {
     const checkIfOnCall = callslist.filter((onc) => onc.conversationID == conversationsetup.conversationid);
     const checkIfOnPending = pendingcallalerts.filter((fltcall) => fltcall.callID == conversationsetup.conversationid);
@@ -380,7 +409,7 @@ function Conversation({ conversationsetup }) {
                             backgroundColor: "#e6e6e6"
                         }}
                         onClick={() => {
-                            triggerCall("audio")
+                            initMediaDevices("audio")
                         }}
                         className='btn_conversation_header_navigation'><BiSolidPhoneCall style={{fontSize: "25px", color: "#4994ec"}} /></motion.button>
                         <motion.button
@@ -393,7 +422,7 @@ function Conversation({ conversationsetup }) {
                             backgroundColor: "#e6e6e6"
                         }}
                         onClick={() => {
-                            triggerCall("video")
+                            initMediaDevices("video")
                         }}
                         className='btn_conversation_header_navigation'><FcVideoCall style={{fontSize: "25px"}} /></motion.button>
                         <motion.button

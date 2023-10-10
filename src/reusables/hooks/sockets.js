@@ -14,8 +14,11 @@ const socketInit = async () => {
     }
 }
 
-const socketConversationInit = (data) => {
-    socket.emit("init", data)
+const socketConversationInit = async (data, resolve) => {
+    await socket.emit("init", data);
+    await socket.on('newcaller', (data) => {
+        resolve(data);
+    })
 }
 
 const socketCloseCall = async (data) => {

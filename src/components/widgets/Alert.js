@@ -10,12 +10,13 @@ import { HiPhoneMissedCall } from 'react-icons/hi'
 import { useDispatch, useSelector } from 'react-redux';
 import { callalert } from '../../reusables/hooks/soundmodules';
 import alert_incoming_call from '../../assets/sounds/alert_call_tune.mp3'
-import { CHECK_AND_ADD_NEW_CALL_LIST_WINDOW, REMOVE_PENDING_CALL_ALERTS, REMOVE_REJECTED_CALL_LIST, SET_FILTERED_ALERTS, SET_PENDING_CALL_ALERTS } from '../../redux/types';
+import { CHECK_AND_ADD_NEW_CALL_LIST_WINDOW, MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_PENDING_CALL_ALERTS, REMOVE_REJECTED_CALL_LIST, SET_FILTERED_ALERTS, SET_PENDING_CALL_ALERTS } from '../../redux/types';
 import { RejectCallRequest } from '../../reusables/hooks/requests';
 
 function Alert({al}) {
 
   const alerts = useSelector(state => state.alerts)
+  const mediatrackholder = useSelector(state => state.mediatrackholder);
   const rejectcalls = useSelector(state => state.rejectcalls);
   const [timerUnToggle, settimerUnToggle] = useState(true);
   const [displayUntoggle, setdisplayUntoggle] = useState(true);
@@ -111,6 +112,34 @@ function Alert({al}) {
     }
   }
 
+  const initMediaDevices = (callmetadata) => {
+    if(mediatrackholder.length > 0){
+      acceptCallProcess(callmetadata);
+    }
+    else{
+      navigator.mediaDevices.getUserMedia({
+        video: true,
+        audio: true
+      }).then((value) => {
+          dispatch({
+              type: MEDIA_MY_VIDEO_HOLDER,
+              payload: {
+                  mediamyvideoholder: value
+            }
+          })
+          dispatch({
+              type: MEDIA_TRACK_HOLDER,
+              payload: {
+                  mediatrackholder: value.getTracks()
+              }
+          })
+          acceptCallProcess(callmetadata);
+      }).catch((err) => {
+          console.log(err)
+      })
+    }
+  }
+
   const acceptCallProcess = (callmetadata) => {
     setonStop(true);
     audioMessage.pause()
@@ -179,7 +208,7 @@ function Alert({al}) {
           <div id='div_close_alert_container_ic'>
               <button
               onClick={() => {
-                acceptCallProcess(al.callmetadata)
+                initMediaDevices(al.callmetadata)
               }}
               id='btn_close_alert'>
                 <BiSolidPhoneCall style={{fontSize: "25px", color: "#45EF56"}} />

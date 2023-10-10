@@ -7,15 +7,17 @@ import { RxEnterFullScreen } from 'react-icons/rx'
 import { BsFillMicFill, BsFillMicMuteFill, BsCameraVideoFill, BsCameraVideoOffFill } from 'react-icons/bs'
 import { HiPhoneMissedCall } from 'react-icons/hi'
 import { useDispatch, useSelector } from 'react-redux'
-import { END_CALL_LIST, REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST } from '../../../redux/types'
+import { END_CALL_LIST, MEDIA_TRACK_HOLDER, REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST } from '../../../redux/types'
 import { endSocket, socketCloseCall, socketConversationInit, socketInit, socketSendData } from '../../../reusables/hooks/sockets'
 import { EndCallRequest } from '../../../reusables/hooks/requests'
+import CallVideoBlocks from './CallVideoBlocks'
 
 function CallWindow({ data, lineNum }) {
 
+  const mediatrackholder = useSelector(state => state.mediatrackholder);
   const callslist = useSelector(state => state.callslist);
   const rejectcalls = useSelector(state => state.rejectcalls);
-  const authentication = useSelector(state => state.authentication)
+  const authentication = useSelector(state => state.authentication);
 
   const [isAnswered, setisAnswered] = useState(false);
   const [isFullScreen, setisFullScreen] = useState(false);
@@ -29,6 +31,10 @@ function CallWindow({ data, lineNum }) {
       socketConversationInit({
         conversationID: data.conversationID,
         userID: authentication.user.userID
+      }, (data) => {
+        if(data.length > 1){
+          setisAnswered(true);
+        }
       })
     })
   },[])
@@ -133,6 +139,19 @@ function CallWindow({ data, lineNum }) {
         callID: data.conversationID
       }
     })
+
+    if(callslist.length == 1){
+      mediatrackholder.map((mp) => {
+        mp.stop()
+      })
+  
+      dispatch({
+        type: MEDIA_TRACK_HOLDER,
+        payload: {
+            mediatrackholder: []
+        }
+      })
+    }
   }
 
   return (
@@ -165,7 +184,14 @@ function CallWindow({ data, lineNum }) {
             <RxEnterFullScreen style={{ fontSize: "20px", color: "white" }} />
           </button>
         </div>
-        {isAnswered? null : (
+        {!isAnswered? (
+          <div className='div_video_blocks_holder'>
+            <CallVideoBlocks />
+            {/* {isFullScreen && (
+              <CallVideoBlocks />
+            )} */}
+          </div>
+        ) : (
           data.conversationType == 'single'? (
             <div className='div_callwindow_content_not_answered'>
               <span className='span_callwindow_content_not_answered_label'>...waiting for {data.callDisplayName}</span>
