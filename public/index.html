@@ -32,6 +32,17 @@
       Learn how to configure a non-root public URL by running `npm run build`.
     -->
     <title>ChatterLoop</title>
+    <script>
+      if('serviceWorker' in navigator){
+        navigator.serviceWorker.register('/sw.js', { scope: '/' })
+        .then((registration) => {
+          console.log('SW -R');
+        });
+        navigator.serviceWorker.ready.then((registration) => {
+          console.log('SW -RD');
+        })
+      }
+    </script>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>

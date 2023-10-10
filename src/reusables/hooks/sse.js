@@ -144,10 +144,19 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
                             content: decodedResult.conversationslist[0].content
                         };
 
-                        new Notification(`${NativeNotificationAlert.from}`, {
-                            body: NativeNotificationAlert.content,
-                            icon: chatterloop_icon
-                        });
+                        // new Notification(`${NativeNotificationAlert.from}`, {
+                        //     body: NativeNotificationAlert.content,
+                        //     icon: chatterloop_icon
+                        // });
+
+                        if(Notification.permission === "granted"){
+                            navigator.serviceWorker.ready.then((reg) => {
+                                reg.showNotification(`${NativeNotificationAlert.from}`, {
+                                    body: NativeNotificationAlert.content,
+                                    icon: chatterloop_icon
+                                })
+                            })
+                        }
                     }
                 }
             }
