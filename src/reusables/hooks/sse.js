@@ -4,6 +4,7 @@ import { END_CALL_LIST, SET_ALERTS, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NO
 import message_ringtone from '../../assets/sounds/message_alert.mp3'
 import notification_ringtone from '../../assets/sounds/notification_alert.mp3'
 import seen_rightone from '../../assets/sounds/seen_alert.mp3'
+import chatterloop_icon from '../../assets/imgs/chatterloop.png'
 
 const API = process.env.REACT_APP_CHATTERLOOP_API;
 const SECRET = process.env.REACT_APP_JWT_SECRET
@@ -124,6 +125,25 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
                         //play ringtone
                         let audioMessage = new Audio(message_ringtone);
                         audioMessage.play();
+
+                        var NativeNotificationAlert = {
+                            userID: decodedResult.conversationslist[0].sender,
+                            from: decodedResult.conversationslist[0].users[0].userID == decodedResult.conversationslist[0].sender?
+                            `${decodedResult.conversationslist[0].users[0].fullname.firstName} ${
+                                decodedResult.conversationslist[0].users[0].fullname.middleName == "N/A"?
+                                "" : `${decodedResult.conversationslist[0].users[0].fullname.middleName} `
+                            }${decodedResult.conversationslist[0].users[0].fullname.lastName}` : 
+                            `${decodedResult.conversationslist[0].users[1].fullname.firstName} ${
+                                decodedResult.conversationslist[0].users[1].fullname.middleName == "N/A"?
+                                "" : `${decodedResult.conversationslist[0].users[1].fullname.middleName} `
+                            }${decodedResult.conversationslist[0].users[1].fullname.lastName}`,
+                            content: decodedResult.conversationslist[0].content
+                        };
+
+                        new Notification(`${NativeNotificationAlert.from}`, {
+                            body: NativeNotificationAlert.content,
+                            icon: chatterloop_icon
+                        });
                     }
                 }
                 

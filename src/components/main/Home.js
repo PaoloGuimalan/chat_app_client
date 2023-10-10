@@ -93,6 +93,16 @@ function Home() {
     SSENotificationsTRequest({}, dispatch, alerts, authentication)
     InitConversationListRequest({}, dispatch, () => {})
     ActiveContactsRequest(dispatch)
+    
+    initPushNotification()
+  }
+
+  const initPushNotification = () => {
+    if(Notification.permission === "denied" || Notification.permission === "default"){
+      Notification.requestPermission().then((permission) => {
+        //check if granted after allow
+      })
+    }
   }
 
   const settogglerightwidget = (toggle) => {
