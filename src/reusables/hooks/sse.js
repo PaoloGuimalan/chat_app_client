@@ -130,17 +130,20 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
                         let audioMessage = new Audio(message_ringtone);
                         audioMessage.play();
 
+                        var conversationType = decodedResult.conversationslist[0].conversationType == "group"?
+                        ` from ${decodedResult.conversationslist[0].groupdetails.groupName}` : '';
+
                         var NativeNotificationAlert = {
                             userID: decodedResult.conversationslist[0].sender,
                             from: decodedResult.conversationslist[0].users[0].userID == decodedResult.conversationslist[0].sender?
                             `${decodedResult.conversationslist[0].users[0].fullname.firstName} ${
                                 decodedResult.conversationslist[0].users[0].fullname.middleName == "N/A"?
                                 "" : `${decodedResult.conversationslist[0].users[0].fullname.middleName} `
-                            }${decodedResult.conversationslist[0].users[0].fullname.lastName}` : 
+                            }${decodedResult.conversationslist[0].users[0].fullname.lastName}${conversationType}` : 
                             `${decodedResult.conversationslist[0].users[1].fullname.firstName} ${
                                 decodedResult.conversationslist[0].users[1].fullname.middleName == "N/A"?
                                 "" : `${decodedResult.conversationslist[0].users[1].fullname.middleName} `
-                            }${decodedResult.conversationslist[0].users[1].fullname.lastName}`,
+                            }${decodedResult.conversationslist[0].users[1].fullname.lastName}${conversationType}`,
                             content: decodedResult.conversationslist[0].content
                         };
 
