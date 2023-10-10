@@ -184,7 +184,7 @@ function CallWindow({ data, lineNum }) {
             <RxEnterFullScreen style={{ fontSize: "20px", color: "white" }} />
           </button>
         </div>
-        {!isAnswered? (
+        {isAnswered? (
           <div className='div_video_blocks_holder'>
             <CallVideoBlocks />
             {/* {isFullScreen && (
