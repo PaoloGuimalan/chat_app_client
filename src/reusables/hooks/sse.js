@@ -148,10 +148,12 @@ const SSENotificationsTRequest = (params, dispatch, currentAlertState, authentic
                         };
 
                         if(!document.hasFocus()){
-                            new Notification(`${NativeNotificationAlert.from}`, {
-                                body: NativeNotificationAlert.content,
-                                icon: chatterloop_icon
-                            });
+                            if(Notification.permission === "granted"){
+                                new Notification(`${NativeNotificationAlert.from}`, {
+                                    body: NativeNotificationAlert.content,
+                                    icon: chatterloop_icon
+                                });
+                            }
                         }
 
                         // if(Notification.permission === "granted"){
