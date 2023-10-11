@@ -15,6 +15,7 @@ import CallVideoBlocks from './CallVideoBlocks'
 function CallWindow({ data, lineNum }) {
 
   const mediatrackholder = useSelector(state => state.mediatrackholder);
+  const mediamyvideoholder = useSelector(state => state.mediamyvideoholder);
   const callslist = useSelector(state => state.callslist);
   const rejectcalls = useSelector(state => state.rejectcalls);
   const authentication = useSelector(state => state.authentication);
@@ -23,6 +24,7 @@ function CallWindow({ data, lineNum }) {
   const [isFullScreen, setisFullScreen] = useState(false);
   const [enableMic, setenableMic] = useState(true);
   const [enableCamera, setenableCamera] = useState(data.callType == "video"? true : false)
+  const [testlistenerforsendata, settestlistenerforsendata] = useState(false);
 
   const dispatch = useDispatch()
 
@@ -35,9 +37,17 @@ function CallWindow({ data, lineNum }) {
         if(data.length > 1){
           setisAnswered(true);
         }
+
+        settestlistenerforsendata(!testlistenerforsendata)
       })
     })
   },[])
+
+  useEffect(() => {
+    if(isAnswered && mediamyvideoholder){ /** isAnswered by default and ! only for testing  */
+      sendVideoData()
+    }
+  },[isAnswered, mediamyvideoholder, testlistenerforsendata])
 
   useEffect(() => {
     if(rejectcalls.includes(data.conversationID)){
@@ -87,7 +97,8 @@ function CallWindow({ data, lineNum }) {
   const sendVideoData = () => {
     socketSendData({
       conversationID: data.conversationID,
-      userID: authentication.user.userID
+      userID: authentication.user.userID,
+      stream: mediamyvideoholder
     })
   }
 
@@ -165,8 +176,8 @@ function CallWindow({ data, lineNum }) {
       left: `${20*lineNum == 0? 5 : 20*lineNum}px`,
     }}
     animate={{
-      maxWidth: isFullScreen? "100vw" : "300px",
-      minHeight: isFullScreen? "100vh" : "170px",
+      maxWidth: isFullScreen? "100%" : "300px",
+      minHeight: isFullScreen? "100%" : "170px",
       top: isFullScreen? "0px" : `${20*lineNum == 0? 5 : 20*lineNum}px`,
       left: isFullScreen? "0px" : `${20*lineNum == 0? 5 : 20*lineNum}px`,
       borderRadius: isFullScreen? "0px" : "5px",
@@ -184,7 +195,7 @@ function CallWindow({ data, lineNum }) {
             <RxEnterFullScreen style={{ fontSize: "20px", color: "white" }} />
           </button>
         </div>
-        {isAnswered? (
+        {isAnswered? (  /** isAnswered by default and ! only for testing  */
           <div className='div_video_blocks_holder'>
             <CallVideoBlocks />
             {/* {isFullScreen && (

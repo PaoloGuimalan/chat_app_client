@@ -11,6 +11,7 @@ function CallVideoBlocks() {
         if(mediamyvideoholder){
             videoRef.current.srcObject = mediamyvideoholder;
             videoRef.current.addEventListener('loadedmetadata', () => {
+                videoRef.current.muted = true;
                 videoRef.current.play()
             })
         }

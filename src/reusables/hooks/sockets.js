@@ -26,9 +26,10 @@ const socketCloseCall = async (data) => {
     return true;
 }
 
-const socketSendData = (data) => {
-    if(socket){
-        socket.emit("data", data)
+const socketSendData = async (data) => {
+    if(await socket){
+        // console.log(data)
+        await socket.emit("data", data)
     }
 }
 
