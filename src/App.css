@@ -1,9 +1,17 @@
+/* @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap'); */
+
+@font-face {
+  font-family: 'Inter';
+  src: url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+}
+
 .App {
   text-align: center;
   width: 100%;
   height: 100%;
   position: absolute;
   background-color: #f0f2f5;
+  font-family: Inter;
 }
 
 #div_alerts_container{
