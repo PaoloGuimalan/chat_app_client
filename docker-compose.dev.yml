@@ -1,0 +1,23 @@
+version: "3"
+
+services:
+  app:
+    container_name: video_cutter
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    env_file:
+      - ./.env
+    # volumes:
+    #   - ./:/app:delegated
+    ports:
+      - 3000:3000
+
+  # express-server:
+  #   build: ./server
+  #   volumes:
+  #     - ./myvideos:/video
+  #   environment:
+  #     - PORT=3003
+  #   ports:
+  #     - 3003:3003

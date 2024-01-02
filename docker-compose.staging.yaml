@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  app:
+    container_name: video_cutter_ui_staging
+    image: zen0hub/video_cutter_ui:staging-23.11.06.1
+    ports:
+      - 3000:80
+    restart: always

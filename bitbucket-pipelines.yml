@@ -1,0 +1,97 @@
+image: atlassian/default-image:3
+options:
+  docker: true
+  size: 2x
+
+pipelines:
+  tags:
+    "staging-*.*.*.*":
+      - step:
+          name: Build Staging Image
+          # runs-on:
+          #   - self.hosted
+          #   - linux
+          script:
+            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+            - IMAGE_NAME=$BITBUCKET_REPO_SLUG
+            - docker build . --file Dockerfile.staging
+              --build-arg VITE_APP_GOOGLE_CLIENT_SECRET=$VITE_APP_GOOGLE_CLIENT_SECRET
+              --build-arg VITE_APP_API_ACCESS_TOKEN_SECRET=$VITE_APP_API_ACCESS_TOKEN_SECRET
+              --tag ${IMAGE_NAME}
+            - docker save ${IMAGE_NAME} --output "${IMAGE_NAME}.tar"
+          services:
+            - docker
+          caches:
+            - docker
+          artifacts:
+            - "*.tar"
+      - step:
+          name: Push to Dockerhub
+          # deployment: Staging
+          # runs-on:
+          #   - self.hosted
+          #   - linux
+          script:
+            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+            - IMAGE_NAME=$BITBUCKET_REPO_SLUG
+            - docker load --input "${IMAGE_NAME}.tar"
+            # - VERSION="prod-4.1.${BITBUCKET_BUILD_NUMBER}"
+            - IMAGE=${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}
+            - docker tag "${IMAGE_NAME}" "${IMAGE}:${BITBUCKET_TAG}"
+            - docker push "${IMAGE}:${BITBUCKET_TAG}"
+          services:
+            - docker
+      - step:
+          name: Deploy to local video machine
+          deployment: Staging
+          # runs-on:
+          #   - self.hosted
+          #   - linux
+          script:
+            - curl -X POST https://portainer.media-meter.net/api/stacks/webhooks/19d17c60-2aef-417b-8196-72624302f545
+          services:
+            - docker
+
+    "prod-*.*.*.*":
+      - step:
+          name: Build and Test
+          # runs-on:
+          #   - self.hosted
+          #   - linux
+          script:
+            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+            - IMAGE_NAME=$BITBUCKET_REPO_SLUG
+            - docker build . --file Dockerfile.prod
+              --build-arg TWYGR_UI_VITE_APP_API_ACCESS_TOKEN_SECRET=$TWYGR_UI_VITE_APP_API_ACCESS_TOKEN_SECRET
+              --build-arg VITE_APP_GOOGLE_CLIENT_SECRET=$VITE_APP_GOOGLE_CLIENT_SECRET
+              --tag ${IMAGE_NAME}
+            - docker save ${IMAGE_NAME} --output "${IMAGE_NAME}.tar"
+          services:
+            - docker
+          caches:
+            - docker
+          artifacts:
+            - "*.tar"
+      - step:
+          name: Deploy to Production
+          deployment: Production
+          # runs-on:
+          #   - self.hosted
+          #   - linux
+          script:
+            - echo ${DOCKERHUB_PASSWORD} | docker login --username "$DOCKERHUB_USERNAME" --password-stdin
+            - IMAGE_NAME=$BITBUCKET_REPO_SLUG
+            - docker load --input "${IMAGE_NAME}.tar"
+            # - VERSION="prod-4.1.${BITBUCKET_BUILD_NUMBER}"
+            - IMAGE=${DOCKERHUB_NAMESPACE}/${IMAGE_NAME}
+            - docker tag "${IMAGE_NAME}" "${IMAGE}:${BITBUCKET_TAG}"
+            - docker push "${IMAGE}:${BITBUCKET_TAG}"
+            - docker tag "${IMAGE_NAME}" "${IMAGE}:latest"
+            - docker push "${IMAGE}:latest"
+          services:
+            - docker
+
+definitions:
+  services:
+    docker:
+      memory: 4096
