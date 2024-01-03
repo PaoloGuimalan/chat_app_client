@@ -1,7 +1,7 @@
 import { CHECK_AND_ADD_NEW_CALL_LIST_WINDOW, CLEAR_PENDING_CALL_ALERTS, END_CALL_LIST, MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_PENDING_CALL_ALERTS, REMOVE_REJECTED_CALL_LIST, SET_ACTIVE_USERS_LIST, SET_ALERTS, SET_APPROVED_PENDING_MESSAGES_LIST, SET_AUTHENTICATION, SET_CALLS_LIST, SET_CLEAR_ALERTS, SET_CONTACTS_LIST, SET_CONVERSATION_SETUP, SET_FILTERED_ALERTS, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PATHNAME_LISTENER, SET_PENDING_CALL_ALERTS, SET_PENDING_MESSAGES_LIST, SET_REJECTED_CALL_LIST, SET_SCREEN_SIZE_LISTENER, SET_TOGGLE_RIGHT_WIDGET, UPDATE_ACTIVE_USERS_LIST } from "../types";
 import { authenticationstate, conversationsetupstate, screensizelistenerstate } from "./states";
 
-export const setauthentication = (state = authenticationstate, action) => {
+export const setauthentication = (state = authenticationstate, action: any) => {
     switch(action.type){
         case SET_AUTHENTICATION:
             return action.payload.authentication;
@@ -10,7 +10,7 @@ export const setauthentication = (state = authenticationstate, action) => {
     }
 }
 
-export const setalerts = (state = [], action) => {
+export const setalerts = (state = [], action: any) => {
     switch(action.type){
         case SET_ALERTS:
             return [
@@ -18,7 +18,7 @@ export const setalerts = (state = [], action) => {
                 action.payload.alerts
             ];
         case SET_FILTERED_ALERTS:
-            var filterstate = state.filter((flt) => flt.id != action.payload.alertID);
+            var filterstate = state.filter((flt: any) => flt.id != action.payload.alertID);
             return filterstate;
         case SET_CLEAR_ALERTS:
             return action.payload.alerts
@@ -27,7 +27,7 @@ export const setalerts = (state = [], action) => {
     }
 }
 
-export const setcontactslist = (state = [], action) => {
+export const setcontactslist = (state = [], action: any) => {
     switch(action.type){
         case SET_CONTACTS_LIST:
             return action.payload.contactslist;
@@ -36,7 +36,7 @@ export const setcontactslist = (state = [], action) => {
     }
 }
 
-export const setnotificationslist = (state = [], action) => {
+export const setnotificationslist = (state = [], action: any) => {
     switch(action.type){
         case SET_NOTIFICATIONS_LIST:
             return action.payload.notficationslist;
@@ -45,7 +45,7 @@ export const setnotificationslist = (state = [], action) => {
     }
 }
 
-export const setmessageslist = (state = [], action) => {
+export const setmessageslist = (state = [], action: any) => {
     switch(action.type){
         case SET_MESSAGES_LIST:
             return action.payload.messageslist;
@@ -54,7 +54,7 @@ export const setmessageslist = (state = [], action) => {
     }
 }
 
-export const setconversationsetup = (state = conversationsetupstate, action) => {
+export const setconversationsetup = (state = conversationsetupstate, action: any) => {
     switch(action.type){
         case SET_CONVERSATION_SETUP:
             return action.payload.conversationsetup;
@@ -63,7 +63,7 @@ export const setconversationsetup = (state = conversationsetupstate, action) => 
     }
 }
 
-export const settogglerightwidget = (state = "notifs", action) => {
+export const settogglerightwidget = (state = "notifs", action: any) => {
     switch(action.type){
         case SET_TOGGLE_RIGHT_WIDGET:
             return action.payload.togglerightwidget;
@@ -72,7 +72,7 @@ export const settogglerightwidget = (state = "notifs", action) => {
     }
 }
 
-export const setscreensizelistener = (state = screensizelistenerstate, action) => {
+export const setscreensizelistener = (state = screensizelistenerstate, action: any) => {
     switch(action.type){
         case SET_SCREEN_SIZE_LISTENER:
             return action.payload.screensizelistener;
@@ -81,7 +81,7 @@ export const setscreensizelistener = (state = screensizelistenerstate, action) =
     }
 }
 
-export const setpathnamelistener = (state = "/app", action) => {
+export const setpathnamelistener = (state = "/app", action: any) => {
     switch(action.type){
         case SET_PATHNAME_LISTENER:
             return action.payload.pathnamelistener;
@@ -90,7 +90,7 @@ export const setpathnamelistener = (state = "/app", action) => {
     }
 }
 
-export const setpendingmessageslist = (state = [], action) => {
+export const setpendingmessageslist = (state = [], action: any) => {
     switch(action.type){
         case SET_PENDING_MESSAGES_LIST:
             return action.payload.pendingmessageslist;
@@ -99,7 +99,7 @@ export const setpendingmessageslist = (state = [], action) => {
     }
 }
 
-export const setapprovedpendingmessageslist = (state = [], action) => {
+export const setapprovedpendingmessageslist = (state = [], action: any) => {
     switch(action.type){
         case SET_APPROVED_PENDING_MESSAGES_LIST:
             return action.payload.approvedpendingmessageslist;
@@ -108,28 +108,31 @@ export const setapprovedpendingmessageslist = (state = [], action) => {
     }
 }
 
-export const setcallslist = (state = [], action) => {
+export const setcallslist = (state = [], action: any) => {
     switch(action.type){
         case SET_CALLS_LIST:
             return action.payload.callslist;
         case CHECK_AND_ADD_NEW_CALL_LIST_WINDOW:
             const newconversationID = action.payload.callmetadata.conversationID;
-            const ifWindowExists = state.map((mp) => mp.conversationID).includes(newconversationID);
+            const ifWindowExists = state.map((mp: any) => mp.conversationID).includes(newconversationID);
             if(!ifWindowExists){
                 return [
                     ...state,
                     action.payload.callmetadata
                 ]
             }
+            else{
+                return state;
+            }
         case END_CALL_LIST:
-            const newCallsList = state.filter((onc) => onc.conversationID != action.payload.callID);
+            const newCallsList = state.filter((onc: any) => onc.conversationID != action.payload.callID);
             return newCallsList;
         default:
             return state;
     }
 }
 
-export const setpendingcallalerts = (state = [], action) => {
+export const setpendingcallalerts = (state = [], action: any) => {
     switch(action.type){
         case SET_PENDING_CALL_ALERTS:
             var newState = [
@@ -138,7 +141,7 @@ export const setpendingcallalerts = (state = [], action) => {
             ]
             return newState;
         case REMOVE_PENDING_CALL_ALERTS:
-            var newFilterState = state.filter((flt) => flt.callID != action.payload.callID)
+            var newFilterState = state.filter((flt: any) => flt.callID != action.payload.callID)
             return newFilterState;
         case CLEAR_PENDING_CALL_ALERTS:
             return action.payload.clearstate;
@@ -147,13 +150,13 @@ export const setpendingcallalerts = (state = [], action) => {
     }
 }
 
-export const setactiveuserslist = (state = [], action) => {
+export const setactiveuserslist = (state = [], action: any) => {
     switch(action.type){
         case SET_ACTIVE_USERS_LIST:
             return action.payload.activeuserslist;
         case UPDATE_ACTIVE_USERS_LIST:
             var updatedUser = action.payload.updatedUser;
-            var newState = state.filter((mp) => mp._id != updatedUser._id);
+            var newState = state.filter((mp: any) => mp._id != updatedUser._id);
             return [
                 ...newState,
                 updatedUser
@@ -163,7 +166,7 @@ export const setactiveuserslist = (state = [], action) => {
     }
 }
 
-export const setrejectedcalllist = (state = [], action) => {
+export const setrejectedcalllist = (state = [], action: any) => {
     switch(action.type){
         case SET_REJECTED_CALL_LIST:
             var conversationID = action.payload.callID;
@@ -180,7 +183,7 @@ export const setrejectedcalllist = (state = [], action) => {
     }
 }
 
-export const setmediatrackholder = (state = [], action) => {
+export const setmediatrackholder = (state = [], action: any) => {
     switch(action.type){
         case MEDIA_TRACK_HOLDER:
             return action.payload.mediatrackholder;
@@ -189,7 +192,7 @@ export const setmediatrackholder = (state = [], action) => {
     }
 }
 
-export const setmediamyvideoholder = (state = null, action) => {
+export const setmediamyvideoholder = (state = null, action: any) => {
     switch(action.type){
         case MEDIA_MY_VIDEO_HOLDER:
             return action.payload.mediamyvideoholder;
