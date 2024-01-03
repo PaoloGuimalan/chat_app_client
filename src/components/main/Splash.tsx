@@ -17,7 +17,7 @@ function Splash() {
         src={ChatterLoopImg} id='img_icon_splash' />
       </div>
       <div id='div_icon_labels'>
-        <span className='span_icon_label'>ChatterLoop</span>
+        <span className='span_icon_label'>Chatterloop</span>
         <span className='span_icon_label'>Link . Share . Explore</span>
       </div>
     </div>
