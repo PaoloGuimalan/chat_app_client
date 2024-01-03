@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import '../../styles/modals/index.css'
+import '../../styles/styles.css'
 import { IoClose } from 'react-icons/io5'
 import { BiGroup } from 'react-icons/bi'
 import { useSelector } from 'react-redux'

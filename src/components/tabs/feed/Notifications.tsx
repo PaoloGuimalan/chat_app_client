@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import '../../../styles/tabs/feed/index.css'
+import '../../../styles/styles.css'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { useDispatch, useSelector } from 'react-redux'
 import { AcceptContactRequest, DeclineContactRequest, NotificationInitRequest } from '../../../reusables/hooks/requests'

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import '../../../styles/tabs/feed/index.css'
+import '../../../styles/styles.css'
 import { FcContacts } from 'react-icons/fc'
 import { AiOutlineLoading3Quarters, AiOutlineMessage } from 'react-icons/ai'
 import { BiUserMinus } from 'react-icons/bi'

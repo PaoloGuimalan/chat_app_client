@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import '../../../styles/absolutes/index.css'
+import '../../../styles/styles.css'
 import { motion, useDragControls } from 'framer-motion'
 import { RxEnterFullScreen } from 'react-icons/rx'
 import { BsFillMicFill, BsFillMicMuteFill, BsCameraVideoFill, BsCameraVideoOffFill } from 'react-icons/bs'

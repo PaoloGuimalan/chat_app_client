@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import '../../styles/auth/index.css'
+import '../../styles/styles.css'
 import { motion } from 'framer-motion'
 import VerificationImg from '../../assets/imgs/verification_icon.png'
 import { useDispatch, useSelector } from 'react-redux'

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
-import '../../styles/widgets/index.css'
+import '../../styles/styles.css'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { BiUserMinus, BiUserPlus, BiUserX, BiUserCheck } from 'react-icons/bi'
 import { TbInputSearch } from 'react-icons/tb'

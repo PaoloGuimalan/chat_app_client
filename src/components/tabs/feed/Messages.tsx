@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import '../../../styles/tabs/feed/index.css'
+import '../../../styles/styles.css'
 import { AiOutlineMessage, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { TbServer2 } from 'react-icons/tb'
 import { BiGroup } from 'react-icons/bi'

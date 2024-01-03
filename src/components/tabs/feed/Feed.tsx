@@ -1,4 +1,4 @@
-import '../../../styles/tabs/feed/index.css'
+import '../../../styles/styles.css'
 import DefaultProfile from '../../../assets/imgs/default.png'
 import { FcAddImage } from 'react-icons/fc'
 import ChatterLoopImg from '../../../assets/imgs/chatterloop.png'

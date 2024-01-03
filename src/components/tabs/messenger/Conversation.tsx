@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import '../../../styles/tabs/messenger/index.css'
+import '../../../styles/styles.css'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
 import GroupChatIcon from '../../../assets/imgs/group-chat-icon.jpg'

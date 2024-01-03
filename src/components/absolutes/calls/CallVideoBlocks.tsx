@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useSelector } from 'react-redux'
+import '../../../styles/styles.css'
 
 function CallVideoBlocks() {
 

@@ -1,4 +1,4 @@
-import '../../../styles/absolutes/index.css'
+import '../../../styles/styles.css'
 import CallWindow from './CallWindow'
 import { useSelector } from 'react-redux'
 

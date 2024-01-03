@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import '../../styles/auth/index.css'
+import '../../styles/styles.css'
 import { motion } from 'framer-motion'
 import ChatterLoopImg from '../../assets/imgs/chatterloop.png'
 import { useNavigate } from 'react-router-dom'

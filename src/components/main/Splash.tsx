@@ -1,4 +1,4 @@
-import '../../styles/main/index.css'
+import '../../styles/styles.css'
 import ChatterLoopImg from '../../assets/imgs/chatterloop.png'
 import { motion } from 'framer-motion'
 

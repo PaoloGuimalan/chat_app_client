@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import '../../styles/main/index.css'
+import '../../styles/styles.css'
 import DefaultProfile from '../../assets/imgs/default.png'
 import { useDispatch, useSelector } from 'react-redux'
 import { motion } from 'framer-motion'

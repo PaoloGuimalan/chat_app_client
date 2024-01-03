@@ -1,4 +1,4 @@
-import '../../styles/main/index.css'
+import '../../styles/styles.css'
 import Contacts from '../tabs/feed/Contacts'
 import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
