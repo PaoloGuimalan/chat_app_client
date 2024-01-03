@@ -18,6 +18,7 @@ import { Route, Routes, useNavigate } from 'react-router-dom'
 import DesktopHome from './DesktopHome'
 import CallCollection from '../absolutes/calls/CallCollection'
 import { endSocket } from '../../reusables/hooks/sockets'
+import MapFeed from '../tabs/mapfeed/MapFeed'
 
 function Home() {
 
@@ -120,7 +121,7 @@ function Home() {
   return (
     <div id='div_home'>
       <CallCollection />
-      <div id='div_home_navigations'>
+      <div id='div_home_navigations' className='tw-z-[10]'>
         <div id='div_profile_search_container'>
           <motion.div
           whileHover={{
@@ -151,6 +152,9 @@ function Home() {
           <motion.button
           whileHover={{
             backgroundColor: "#e6e6e6"
+          }}
+          onClick={() => {
+            navigate("/app/mapfeed")
           }}
           className='btn_navigations'><FiMap style={{fontSize: "22px", color: "#4A4A4A"}} /></motion.button>
           {screensizelistener.W <= 1100 && (
@@ -230,6 +234,7 @@ function Home() {
         <Route path='/messages' element={<Messages />} />
         <Route path='/notifications' element={<Notifications />} />
         <Route path='/contacts' element={<Contacts />} />
+        <Route path='/mapfeed' element={<MapFeed />}/>
       </Routes>
     </div>
   )
