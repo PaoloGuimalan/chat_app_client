@@ -510,14 +510,16 @@ const InitConversationListRequest = (dispatch: Dispatch<any>, setisLoading: any)
 }
 
 const SeenMessageRequest = async (params: any) => {
-    const payload = params
+    const payload = params;
+    const range = params.range;
     const encodedParams = sign(payload, SECRET)
 
     return await Axios.post(`${API}/u/seenNewMessages`, {
         token: encodedParams
     },{
         headers:{
-            "x-access-token": localStorage.getItem("authtoken")
+            "x-access-token": localStorage.getItem("authtoken"),
+            "range": range || 20
         }
     }).then((response) => {
         if(response.data.status){
@@ -532,19 +534,22 @@ const SeenMessageRequest = async (params: any) => {
     })
 }
 
-const InitConversationRequest = (params: any, dispatch: Dispatch<any>, setisLoading: any, scrollBottom: any) => {
-    const conversationID = params.conversationID
+const InitConversationRequest = (params: any, dispatch: Dispatch<any>, settotalMessages: any, setisLoading: any, scrollBottom: any) => {
+    const conversationID = params.conversationID;
+    const range = params.range;
     // const receivers = params.receivers
 
     Axios.get(`${API}/u/initConversation/${conversationID}`,{
         headers:{
-            "x-access-token": localStorage.getItem("authtoken")
+            "x-access-token": localStorage.getItem("authtoken"),
+            "range": range || 20
         }
     }).then((response) => {
         if(response.data.status){
             const decodedResult: any = jwt_decode(response.data.result)
             setisLoading(false)
             dispatch(decodedResult.messages)
+            settotalMessages(decodedResult.total);
             scrollBottom()
             
             // setTimeout(() => {

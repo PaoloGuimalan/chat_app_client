@@ -31,6 +31,7 @@ function Conversation({ conversationsetup }: any) {
 
   const [messageValue, setmessageValue] = useState<string>("");
   const [conversationList, setconversationList] = useState<any[]>([])
+  const [totalMessages, settotalMessages] = useState<number>(0);
   const [isLoading, setisLoading] = useState<boolean>(true);
   const [autoScroll, setautoScroll] = useState<boolean>(true)
   const [isReplying, _] = useState<any>({
@@ -39,14 +40,17 @@ function Conversation({ conversationsetup }: any) {
   const [imgList, setimgList] = useState<any[]>([]);
   const [rawFilesList, setrawFilesList] = useState<any[]>([])
 
+  const [range, setrange] = useState<number>(20);
+
   const [fullImageScreen, setfullImageScreen] = useState<any>({
     preview: "",
     toggle: false,
   })
   
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
 
-  const divcontentRef = useRef(null)
+  const divcontentRef = useRef<HTMLDivElement | null>(null);
+  const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
 
 //   useEffect(() => {
 //     if(!isLoading){
@@ -77,8 +81,26 @@ function Conversation({ conversationsetup }: any) {
   }
 
   useEffect(() => {
+    var currentView = false;
+    if(divcontentRef){
+        if(divcontentRef.current){
+            divcontentRef.current.onscroll = () => {
+                if(divlazyloaderRef && divlazyloaderRef.current){
+                    const top = divlazyloaderRef.current.getBoundingClientRect().top;
+                    const isVisible = top > 0 ? true : false;
+                    if(currentView != isVisible){
+                        currentView = isVisible;
+                        if(currentView){
+                            setrange((prev) => prev + 10);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     scrollBottom()
-  },[autoScroll, conversationsetup, messageslist, divcontentRef, isLoading, conversationList, pendingmessageslist])
+  },[autoScroll, conversationsetup, messageslist, divcontentRef, divlazyloaderRef, isLoading, conversationList, pendingmessageslist])
 
   const addPendingMessage = (pendingLoad: any) => {
     dispatch({
@@ -193,23 +215,29 @@ function Conversation({ conversationsetup }: any) {
   },[conversationsetup])
 
   useEffect(() => {
+    setrange((prev) => prev + 1);
+  },[messageslist]) //conversationsetup
+
+  useEffect(() => {
     SeenMessageRequest({
         conversationID: conversationsetup.conversationid,
+        range: range,
         receivers: conversationsetup.type == "single"? [
             authentication.user.userID,
             conversationsetup.userdetails.userID
         ] : conversationsetup.groupdetails.receivers
     })
-  },[conversationsetup, messageslist])
+  },[range])
 
   useEffect(() => {
     InitConversationRequest({
         conversationID: conversationsetup.conversationid,
+        range: range,
         receivers: conversationsetup.type == "single"? [
             conversationsetup.userdetails.userID
         ] : conversationsetup.groupdetails.receivers
-    }, setconversationList, setisLoading, scrollBottom)
-  },[conversationsetup, messageslist])
+    }, setconversationList, settotalMessages, setisLoading, scrollBottom)
+  },[range])
 
   const sendImageProcess = () => {
     importData((arr: any) => {
@@ -455,6 +483,21 @@ function Conversation({ conversationsetup }: any) {
                             setautoScroll(true)
                         }
                     }}>
+                        {conversationList.length > 0 && totalMessages > range && (
+                            <div ref={divlazyloaderRef} id='divlazyloader' className='tw-bg-transparent tw-flex tw-items-center tw-justify-center tw--mt-[15px] tw-mb-[5px]'>
+                                <motion.div
+                                animate={{
+                                rotate: -360
+                                }}
+                                transition={{
+                                duration: 1,
+                                repeat: Infinity
+                                }}
+                                id='div_loader_request_conv'>
+                                    <AiOutlineLoading3Quarters style={{fontSize: "20px"}} />
+                                </motion.div>
+                            </div>
+                        )}
                         {conversationList.map((cnvs, i) => {
                             if(cnvs.messageType == "text"){
                                 return(

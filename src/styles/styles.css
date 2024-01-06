@@ -1639,8 +1639,12 @@ input:checked + .slider:before {
     padding: 20px;
     padding-top: 5px;
     padding-bottom: 5px;
-    overflow-y: auto;
+    overflow-y: hidden;
     gap: 3px;
+}
+
+#div_contacts_list_container:hover{
+    overflow-y: auto;
 }
 
 #div_contacts_list_empty_container{
@@ -1663,8 +1667,12 @@ input:checked + .slider:before {
     padding: 20px;
     padding-top: 5px;
     padding-bottom: 5px;
-    overflow-y: auto;
+    overflow-y: hidden;
     gap: 5px;
+}
+
+#div_notifications_list_container:hover{
+    overflow-y: auto;
 }
 
 .div_ntfs_cards{
@@ -1795,9 +1803,13 @@ input:checked + .slider:before {
     flex-direction: column;
     padding: 20px;
     padding-top: 0px;
-    overflow-y: auto;
+    overflow-y: hidden;
     gap: 5px;
     overflow-x: hidden;
+}
+
+#div_messages_list_container:hover{
+    overflow-y: auto;
 }
 
 .div_messages_list_cards{
