@@ -61,7 +61,7 @@ function Login() {
         delay: 0.5
       }}
       id='div_login_form'>
-        <span id='span_login_label'>ChatterLoop</span>
+        <span id='span_login_label'>Chatterloop</span>
         <div id='div_img_icon_login_container'>
           <img src={ChatterLoopImg} id='img_icon_login' />
         </div>

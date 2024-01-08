@@ -6,14 +6,14 @@ import GroupChatIcon from '../../../assets/imgs/group-chat-icon.jpg'
 import { FcVideoCall, FcInfo, FcAddImage } from 'react-icons/fc'
 import { BiSolidPhoneCall } from 'react-icons/bi'
 import { RiAddCircleFill } from 'react-icons/ri'
-import { IoSend } from 'react-icons/io5'
+import { IoDocumentOutline, IoSend } from 'react-icons/io5'
 import { AiOutlineClose } from 'react-icons/ai';
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
 import { CallRequest, InitConversationRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
-import { importData, isUserOnline, makeid } from '../../../reusables/hooks/reusable'
-import { MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
+import { importData, importNonImageData, isUserOnline, makeid } from '../../../reusables/hooks/reusable'
+import { MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST, SET_MUTATE_ALERTS, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
 
 function Conversation({ conversationsetup }: any) {
 
@@ -39,6 +39,8 @@ function Conversation({ conversationsetup }: any) {
   })
   const [imgList, setimgList] = useState<any[]>([]);
   const [rawFilesList, setrawFilesList] = useState<any[]>([])
+  const [nonImgList, setnonImgList] = useState<any[]>([]);
+  const [nonImageRawFilesList, setnonImageRawFilesList] = useState<any[]>([])
 
   const [range, setrange] = useState<number>(20);
 
@@ -245,7 +247,7 @@ function Conversation({ conversationsetup }: any) {
             ...prev,
             {
                 id: prev.length + 1,
-                base: arr,
+                base: arr.data,
                 type: "image"
             }
         ])
@@ -254,7 +256,7 @@ function Conversation({ conversationsetup }: any) {
             ...prev,
             {
                 id: prev.length + 1,
-                base: rawFiles,
+                base: rawFiles.data,
                 type: "image"
             }
         ])
@@ -266,6 +268,13 @@ function Conversation({ conversationsetup }: any) {
     var mutatedPrevRaw = rawFilesList.filter((flt) => flt.id != prevID);
     setimgList(mutatedPrevArr)
     setrawFilesList(mutatedPrevRaw)
+  }
+
+  const removeSelectedPreviewNonImg = (prevID: any) => {
+    var mutatedPrevArr = nonImgList.filter((flt) => flt.id != prevID);
+    var mutatedPrevRaw = nonImageRawFilesList.filter((flt) => flt.id != prevID);
+    setnonImgList(mutatedPrevArr)
+    setnonImageRawFilesList(mutatedPrevRaw)
   }
 
   const initMediaDevices = (callType: any) => {
@@ -344,10 +353,66 @@ function Conversation({ conversationsetup }: any) {
     }
   }
 
-//   useEffect(() => {
-//     // console.log(pendingmessageslist)
-//     console.log(rawFilesList)
-//   },[pendingmessageslist, rawFilesList])
+  const sendNonImageFilesProcess = () => {
+    importNonImageData((arr: any) => {
+        if(arr){
+            if(arr.type.includes("image")){
+                setimgList((prev: any) => [
+                    ...prev,
+                    {
+                        id: prev.length + 1,
+                        base: arr.data,
+                        type: "image"
+                    }
+                ])
+            }
+            else{
+                setnonImgList((prev: any) => [
+                    ...prev,
+                    {
+                        id: prev.length + 1,
+                        base: arr.data,
+                        type: arr.type,
+                        name: arr.name
+                    }
+                ])
+            }
+        }
+        else{
+            dispatch({ type: SET_MUTATE_ALERTS, payload:{
+                alerts: {
+                    type: "warning",
+                    content: "Cannot upload files greater than 25mb"
+                }
+            }})
+        }
+    }, (rawFiles: any) => {
+        if(rawFiles){
+            if(rawFiles.type.includes("image")){
+                setrawFilesList((prev) => [
+                    ...prev,
+                    {
+                        id: prev.length + 1,
+                        base: rawFiles.data,
+                        type: "image"
+                    }
+                ])
+            }
+            else{
+                // console.log(rawFiles)
+                setnonImageRawFilesList((prev: any) => [
+                    ...prev,
+                    {
+                        id: prev.length + 1,
+                        base: rawFiles.data,
+                        type: rawFiles.type,
+                        name: rawFiles.name
+                    }
+                ])   
+            }
+        }
+    })
+  }
 
   return (
     <motion.div
@@ -726,12 +791,41 @@ function Conversation({ conversationsetup }: any) {
                     paddingBottom: "0px"
                 }}
                 animate={{
-                    height: imgList.length > 0? "auto" : "0px",
-                    paddingTop: imgList.length > 0? "10px" : "0px",
-                    paddingBottom: imgList.length > 0? "10px" : "0px"
+                    height: imgList.length || nonImgList.length > 0? "auto" : "0px",
+                    paddingTop: imgList.length || nonImgList.length > 0? "10px" : "0px",
+                    paddingBottom: imgList.length || nonImgList.length > 0? "10px" : "0px"
                 }}
                 id='div_selected_images_container'
                 className='theme_scroller'>
+                    {nonImgList.map((nonimgl: any, i: number) => {
+                        if(nonimgl.type.includes("video")){
+                            return(
+                                <div key={`nonimg_${i}`} className='div_img_selected_preview'>
+                                    <div className='div_btn_remove_container'>
+                                        <button onClick={() => { removeSelectedPreviewNonImg(nonimgl.id) }} className='btn_remove_preview'>
+                                            <AiOutlineClose />
+                                        </button>
+                                    </div>
+                                    <video src={nonimgl.base} className='img_selected_preview' onClick={() => { removeSelectedPreviewNonImg(nonimgl.id) }} />
+                                </div>
+                            )
+                        }
+                        else{
+                            return(
+                                <div title={nonimgl.name} key={`nonimg_${i}`} className='div_img_selected_preview_non_img'>
+                                    <div className='div_btn_remove_container'>
+                                        <button onClick={() => { removeSelectedPreviewNonImg(nonimgl.id) }} className='btn_remove_preview'>
+                                            <AiOutlineClose />
+                                        </button>
+                                    </div>
+                                    <div className='img_selected_preview tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[7px]'>
+                                        <IoDocumentOutline style={{ fontSize: "40px" }} />
+                                        <span className='tw-w-[calc(100%-20px)] tw-text-[10px] tw-truncate'>{nonimgl.name}</span>
+                                    </div>
+                                </div>
+                            )
+                        }
+                    })}
                     {imgList.map((imgl, i) => {
                         return(
                             <div key={i} className='div_img_selected_preview'>
@@ -753,6 +847,9 @@ function Conversation({ conversationsetup }: any) {
                             cursor: isLoading? "default" : "pointer"
                         }}
                         disabled={isLoading}
+                        onClick={() => {
+                            sendNonImageFilesProcess()
+                        }}
                         className='btn_options_send'><RiAddCircleFill style={{fontSize: "25px", color: "#90caf9"}} /></motion.button>
                         <motion.button
                         whileHover={{

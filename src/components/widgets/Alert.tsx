@@ -253,7 +253,7 @@ function Alert({al}: any) {
           </div>
           </div>
           <div id='div_alert_content_container'>
-          <p id='p_alert_content'>{al.content}</p>
+          <p id='p_alert_content' className='tw-text-left'>{al.content}</p>
           </div>
       </motion.div>
     )

@@ -27,7 +27,7 @@ function Feed() {
                         <img src={ChatterLoopImg} id='img_welcome_post_pic' />
                     </div>
                     <div id='div_welcome_post_labels_container'>
-                        <span id='span_welcome_post_label_cl'>Welcome to ChatterLoop</span>
+                        <span id='span_welcome_post_label_cl'>Welcome to Chatterloop</span>
                         <span id='span_welcome_post_label_h2'>Link . Share . Explore</span>
                         <span id='span_welcome_post_par_cl'>A new way of connection. A visual connection, more visible and interactable way of social media.</span>
                     </div>
