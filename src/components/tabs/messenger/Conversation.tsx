@@ -829,10 +829,7 @@ function Conversation({ conversationsetup }: any) {
                                         alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
                                     }}
                                     onClick={() => {
-                                        setfullImageScreen({
-                                            preview: cnvs.content,
-                                            toggle: true
-                                        })
+                                        window.open(cnvs.content.split("%%%")[0].replace("###", "%23%23%23"), '_blank')
                                     }} className='div_pending_images div_messages_result'>
                                         {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                                         <div className='tw-w-full tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]'
