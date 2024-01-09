@@ -2530,6 +2530,14 @@ input:checked + .slider:before {
     /* object-fit: cover; */
 }
 
+.ellipsis-3-lines { 
+    display: -webkit-box; 
+    -webkit-box-orient: vertical; 
+    -webkit-line-clamp: 3; 
+    overflow: hidden; 
+    text-overflow: ellipsis; 
+} 
+
 .img_selected_preview{
     height: 100%;
     width: 100px;
@@ -2570,6 +2578,17 @@ input:checked + .slider:before {
 
 .div_pending_images{
     width: fit-content;
+    max-width: 70%;
+    height: auto;
+    margin-left: auto;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+}
+
+.div_pending_audios{
+    width: 100%;
     max-width: 70%;
     height: auto;
     margin-left: auto;

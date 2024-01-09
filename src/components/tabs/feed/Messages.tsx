@@ -60,6 +60,13 @@ function Messages() {
     }
   }
 
+  const messageTypeChecker: any = {
+    video: "a video",
+    audio: "an audio",
+    image: "an photo",
+    any: "a file"
+  }
+
   return (
     conversationsetup.conversationid? (
       <Conversation conversationsetup={conversationsetup} />
@@ -131,7 +138,11 @@ function Messages() {
                             </div>
                             <div id='div_messages_list_name'>
                               <span className='span_messages_list_name'>{msgsurs.fullname.firstName}{msgsurs.fullname.middleName == "N/A"? "" : ` ${msgsurs.fullname.middleName}`} {msgsurs.fullname.lastName}</span>
-                              <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you:": ""} {msgslst.messageType == "image"? "Sent an photo" : msgslst.content}</span>
+                              <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you: ": ""} 
+                                {
+                                  msgslst.messageType == "text"? msgslst.content : !msgslst.messageType.includes("image") && !msgslst.messageType.includes("video") && !msgslst.messageType.includes("audio") ? messageTypeChecker["any"] : `Sent ${messageTypeChecker[msgslst.messageType.split("/")[0]]}`
+                                }
+                              </span>
                               <span className='span_messages_list_name'>{msgslst.messageDate.date} . {msgslst.messageDate.time}</span>
                             </div>
                             {msgslst.unread > 0 && (
@@ -164,7 +175,11 @@ function Messages() {
                         </div>
                         <div id='div_messages_list_name'>
                           <span className='span_messages_list_name'>{msgslst.groupdetails.groupName} (Group Chat)</span>
-                          <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you:": ""} {msgslst.messageType == "image"? "Sent an photo" : msgslst.content}</span>
+                          <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you: ": ""}
+                            {
+                              msgslst.messageType == "text"? msgslst.content : !msgslst.messageType.includes("image") && !msgslst.messageType.includes("video") && !msgslst.messageType.includes("audio") ? messageTypeChecker["any"] : `Sent ${messageTypeChecker[msgslst.messageType.split("/")[0]]}`
+                            }
+                          </span>
                           <span className='span_messages_list_name'>{msgslst.messageDate.date} . {msgslst.messageDate.time}</span>
                         </div>
                         {msgslst.unread > 0 && (

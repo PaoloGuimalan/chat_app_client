@@ -7,6 +7,7 @@ import { FcVideoCall, FcInfo, FcAddImage } from 'react-icons/fc'
 import { BiSolidPhoneCall } from 'react-icons/bi'
 import { RiAddCircleFill } from 'react-icons/ri'
 import { IoDocumentOutline, IoSend } from 'react-icons/io5'
+import { MdAudiotrack } from "react-icons/md";
 import { AiOutlineClose } from 'react-icons/ai';
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
 import { CallRequest, InitConversationRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
@@ -167,13 +168,16 @@ function Conversation({ conversationsetup }: any) {
         }
     }
 
-    if(imgList.length > 0){
-        var pendingArrImages = imgList.map((mp: any, i: number) => ({
+    if(imgList.length > 0 || nonImgList.length > 0){
+        var pendingArrImages = [...imgList, ...nonImgList].map((mp: any, i: number) => ({
             conversationID: conversationsetup.conversationid,
             pendingID: `${pendingID}_${i}`,
             content: mp.base,
-            type: "image"
+            type: mp.type,
+            name: mp.name
         }))
+
+        // console.log(pendingArrImages)
 
         // var pendingArrImagesRaw = rawFilesList.map((mp, i) => ({
         //     conversationID: conversationsetup.conversationid,
@@ -204,8 +208,10 @@ function Conversation({ conversationsetup }: any) {
                 conversationType: "group"
             });
         }
-        setimgList([])
-        setrawFilesList([])
+        setimgList([]);
+        setnonImgList([]);
+        setrawFilesList([]);
+        setnonImageRawFilesList([]);
     }
 
     setmessageValue("")
@@ -247,6 +253,7 @@ function Conversation({ conversationsetup }: any) {
             ...prev,
             {
                 id: prev.length + 1,
+                name: null,
                 base: arr.data,
                 type: "image"
             }
@@ -256,6 +263,7 @@ function Conversation({ conversationsetup }: any) {
             ...prev,
             {
                 id: prev.length + 1,
+                name: null,
                 base: rawFiles.data,
                 type: "image"
             }
@@ -361,6 +369,7 @@ function Conversation({ conversationsetup }: any) {
                     ...prev,
                     {
                         id: prev.length + 1,
+                        name: null,
                         base: arr.data,
                         type: "image"
                     }
@@ -393,6 +402,7 @@ function Conversation({ conversationsetup }: any) {
                     ...prev,
                     {
                         id: prev.length + 1,
+                        name: null,
                         base: rawFiles.data,
                         type: "image"
                     }
@@ -692,9 +702,181 @@ function Conversation({ conversationsetup }: any) {
                                     </motion.div>
                                 )
                             }
+                            else if(cnvs.messageType.includes("video")){
+                                return(
+                                    <motion.div
+                                    key={i} 
+                                    initial={{
+                                        marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
+                                        alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
+                                    }}
+                                    animate={{
+                                        marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
+                                        alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
+                                    }}
+                                    className='div_pending_images div_messages_result'>
+                                        {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                                        <div className='div_pending_content_container'
+                                        title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
+                                            <video src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")} controls className='tw-w-full tw-h-[300px] tw-border-[7px]' onLoad={() => {
+                                                scrollBottom()
+                                            }} />
+                                        </div>
+                                        {conversationsetup.type == "group"? (
+                                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                                                <motion.div
+                                                initial={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                animate={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                className='div_seen_container'>
+                                                    <span className='span_seenby'>Seen by </span>
+                                                    {cnvs.seeners.filter((mp: any) => mp != cnvs.sender).map((mp: any, i: number) => {
+                                                        if(mp != authentication.user.userID){
+                                                            return(
+                                                                <span className='span_seenby' key={i}>{mp}</span>
+                                                            )
+                                                        }
+                                                    })}
+                                                </motion.div>
+                                            )
+                                        ) : (
+                                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                                                <motion.div
+                                                initial={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                animate={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                className='div_seen_container'>
+                                                    <span className='span_seenby'>Seen</span>
+                                                </motion.div>
+                                            )
+                                        )}
+                                    </motion.div>
+                                )
+                            }
+                            else if(cnvs.messageType.includes("audio")){
+                                return(
+                                    <motion.div
+                                    key={i} 
+                                    initial={{
+                                        marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
+                                        alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
+                                    }}
+                                    animate={{
+                                        marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
+                                        alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
+                                    }}
+                                    className='div_pending_audios div_messages_result'>
+                                        {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                                        <div className='tw-w-full'
+                                        title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
+                                            <audio src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")} controls className='tw-w-full tw-border-[7px]' onLoad={() => {
+                                                scrollBottom()
+                                            }} />
+                                        </div>
+                                        {conversationsetup.type == "group"? (
+                                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                                                <motion.div
+                                                initial={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                animate={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                className='div_seen_container'>
+                                                    <span className='span_seenby'>Seen by </span>
+                                                    {cnvs.seeners.filter((mp: any) => mp != cnvs.sender).map((mp: any, i: number) => {
+                                                        if(mp != authentication.user.userID){
+                                                            return(
+                                                                <span className='span_seenby' key={i}>{mp}</span>
+                                                            )
+                                                        }
+                                                    })}
+                                                </motion.div>
+                                            )
+                                        ) : (
+                                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                                                <motion.div
+                                                initial={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                animate={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                className='div_seen_container'>
+                                                    <span className='span_seenby'>Seen</span>
+                                                </motion.div>
+                                            )
+                                        )}
+                                    </motion.div>
+                                )
+                            }
                             else{
                                 return(
-                                    <span key={i} className='span_gc_notif_label'>{cnvs.content}</span>
+                                    <motion.div
+                                    key={i} 
+                                    initial={{
+                                        marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
+                                        alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
+                                    }}
+                                    animate={{
+                                        marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px",
+                                        alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
+                                    }}
+                                    onClick={() => {
+                                        setfullImageScreen({
+                                            preview: cnvs.content,
+                                            toggle: true
+                                        })
+                                    }} className='div_pending_images div_messages_result'>
+                                        {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                                        <div className='tw-w-full tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]'
+                                        title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
+                                            <div className='tw-w-full tw-max-w-[40px]'>
+                                                <IoDocumentOutline style={{ fontSize: "40px" }} />
+                                            </div>
+                                            <span className='tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold'>{cnvs.content.split("%%%")[1]}</span>
+                                        </div>
+                                        {conversationsetup.type == "group"? (
+                                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                                                <motion.div
+                                                initial={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                animate={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                className='div_seen_container'>
+                                                    <span className='span_seenby'>Seen by </span>
+                                                    {cnvs.seeners.filter((mp: any) => mp != cnvs.sender).map((mp: any, i: number) => {
+                                                        if(mp != authentication.user.userID){
+                                                            return(
+                                                                <span className='span_seenby' key={i}>{mp}</span>
+                                                            )
+                                                        }
+                                                    })}
+                                                </motion.div>
+                                            )
+                                        ) : (
+                                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                                                <motion.div
+                                                initial={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                animate={{
+                                                    justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
+                                                }}
+                                                className='div_seen_container'>
+                                                    <span className='span_seenby'>Seen</span>
+                                                </motion.div>
+                                            )
+                                        )}
+                                    </motion.div>
                                 )
                             }
                         })}
@@ -755,9 +937,67 @@ function Conversation({ conversationsetup }: any) {
                                     </motion.div>
                                 )
                             }
+                            else if(cnvs.type.includes("video")){
+                                return(
+                                    <motion.div
+                                    initial={{
+                                        marginLeft: "auto",
+                                        alignItems: "flex-end"
+                                    }}
+                                    animate={{
+                                        marginLeft: "auto",
+                                        alignItems: "flex-end"
+                                    }}
+                                    key={i} className='div_pending_images div_messages_result'>
+                                        <div className='div_pending_content_container_sending'>
+                                            <video src={cnvs.content} controls className='tw-w-full tw-h-[300px] tw-border-[7px]' onLoad={() => {
+                                                scrollBottom()
+                                            }} />
+                                        </div>
+                                        <span className='span_sending_label'>...Sending</span>
+                                    </motion.div>
+                                )
+                            }
+                            else if(cnvs.type.includes("audio")){
+                                return(
+                                    <motion.div
+                                    initial={{
+                                        marginLeft: "auto",
+                                        alignItems: "flex-end"
+                                    }}
+                                    animate={{
+                                        marginLeft: "auto",
+                                        alignItems: "flex-end"
+                                    }}
+                                    key={i} className='div_pending_audios div_messages_result'>
+                                        <audio src={cnvs.content} controls className='tw-w-full  tw-border-[7px]' onLoad={() => {
+                                                scrollBottom()
+                                        }} />
+                                        <span className='span_sending_label'>...Sending</span>
+                                    </motion.div>
+                                )
+                            }
                             else{
                                 return(
-                                    <span key={i} className='span_gc_notif_label'>{cnvs.content}</span>
+                                    <motion.div
+                                    initial={{
+                                        marginLeft: "auto",
+                                        alignItems: "flex-end"
+                                    }}
+                                    animate={{
+                                        marginLeft: "auto",
+                                        alignItems: "flex-end"
+                                    }}
+                                    title={cnvs.name}
+                                    key={i} className='div_pending_audios div_messages_result'>
+                                        <div className='tw-w-full tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]'>
+                                            <div className='tw-w-full tw-max-w-[40px]'>
+                                                <IoDocumentOutline style={{ fontSize: "40px" }} />
+                                            </div>
+                                            <span className='tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold'>{cnvs.name}</span>
+                                        </div>
+                                        <span className='span_sending_label'>...Sending</span>
+                                    </motion.div>
                                 )
                             }
                         })}
@@ -807,6 +1047,21 @@ function Conversation({ conversationsetup }: any) {
                                         </button>
                                     </div>
                                     <video src={nonimgl.base} className='img_selected_preview' onClick={() => { removeSelectedPreviewNonImg(nonimgl.id) }} />
+                                </div>
+                            )
+                        }
+                        else if(nonimgl.type.includes("audio")){
+                            return(
+                                <div title={nonimgl.name} key={`nonimg_${i}`} className='div_img_selected_preview_non_img'>
+                                    <div className='div_btn_remove_container'>
+                                        <button onClick={() => { removeSelectedPreviewNonImg(nonimgl.id) }} className='btn_remove_preview'>
+                                            <AiOutlineClose />
+                                        </button>
+                                    </div>
+                                    <div className='img_selected_preview tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[7px]'>
+                                        <MdAudiotrack style={{ fontSize: "40px" }} />
+                                        <span className='tw-w-[calc(100%-20px)] tw-text-[10px] tw-truncate'>{nonimgl.name}</span>
+                                    </div>
                                 </div>
                             )
                         }
