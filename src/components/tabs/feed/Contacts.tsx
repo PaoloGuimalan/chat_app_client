@@ -51,7 +51,7 @@ function Contacts() {
             }
           }
         })
-        navigate("/app/messages")
+        navigate("/messages")
       }
       else{
         dispatch({
@@ -65,7 +65,7 @@ function Contacts() {
             }
           }
         })
-        navigate("/app/messages")
+        navigate("/messages")
       }
     }
     else{

@@ -89,7 +89,7 @@ export const setscreensizelistener = (state = screensizelistenerstate, action: a
     }
 }
 
-export const setpathnamelistener = (state = "/app", action: any) => {
+export const setpathnamelistener = (state = "/", action: any) => {
     switch(action.type){
         case SET_PATHNAME_LISTENER:
             return action.payload.pathnamelistener;

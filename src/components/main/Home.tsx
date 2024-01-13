@@ -146,7 +146,7 @@ function Home() {
             backgroundColor: "#e6e6e6"
           }}
           onClick={() => {
-            navigate("/app")
+            navigate("/")
           }}
           className='btn_navigations'><AiOutlineHome style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
           <motion.button
@@ -154,7 +154,7 @@ function Home() {
             backgroundColor: "#e6e6e6"
           }}
           onClick={() => {
-            navigate("/app/mapfeed")
+            navigate("/mapfeed")
           }}
           className='btn_navigations'><FiMap style={{fontSize: "22px", color: "#4A4A4A"}} /></motion.button>
           {screensizelistener.W <= 1100 && (
@@ -163,7 +163,7 @@ function Home() {
               backgroundColor: "#e6e6e6"
             }}
             onClick={() => {
-              navigate("/app/contacts")
+              navigate("/contacts")
             }}
             className='btn_navigations'><RiContactsBook2Line style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
           )}
@@ -179,7 +179,7 @@ function Home() {
                   conversationsetup: conversationsetupstate
                 }
               })
-              navigate("/app/messages")
+              navigate("/messages")
             }
             else{
               settogglerightwidget("messages")
@@ -205,7 +205,7 @@ function Home() {
                   conversationsetup: conversationsetupstate
                 }
               })
-              navigate("/app/notifications")
+              navigate("/notifications")
             }
             else{
               settogglerightwidget("notifs")
