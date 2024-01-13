@@ -19,11 +19,13 @@ import DesktopHome from './DesktopHome'
 import CallCollection from '../absolutes/calls/CallCollection'
 import { endSocket } from '../../reusables/hooks/sockets'
 import MapFeed from '../tabs/mapfeed/MapFeed'
+import Profile from '../tabs/profile/Profile'
+import { AuthenticationInterface } from '@/reusables/vars/interfaces'
 
 function Home() {
 
   const togglerightwidget = useSelector((state: any) => state.togglerightwidget)
-  const authentication = useSelector((state: any) => state.authentication)
+  const authentication : AuthenticationInterface = useSelector((state: any) => state.authentication)
   const screensizelistener = useSelector((state: any) => state.screensizelistener)
   const messageslist = useSelector((state: any) => state.messageslist)
   const alerts = useSelector((state: any) => state.alerts)
@@ -126,6 +128,9 @@ function Home() {
           <motion.div
           whileHover={{
             backgroundColor: "#e6e6e6"
+          }}
+          onClick={() => {
+            navigate(`/${authentication.user.userID}`)
           }}
           id='img_profile_container'>
             <div id='img_default_profile_container'>
@@ -231,6 +236,7 @@ function Home() {
       )}
       <Routes>
         <Route path='/' element={<DesktopHome togglerightwidget={togglerightwidget} />} />
+        <Route path='/:userID' element={<Profile />} />
         <Route path='/messages' element={<Messages />} />
         <Route path='/notifications' element={<Notifications />} />
         <Route path='/contacts' element={<Contacts />} />

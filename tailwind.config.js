@@ -17,6 +17,7 @@ module.exports = {
       center: true,
       padding: "2rem",
       screens: {
+        "sm": "650px",
         "2xl": "1400px",
         'tall': { 'raw': '(min-height: 825px)' },
       },

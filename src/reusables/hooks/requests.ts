@@ -16,6 +16,7 @@ const AuthCheck = (dispatch: any) => {
     }).then((response) => {
         if(response.data.status){
             const userData: any = jwt_decode(response.data.result.usertoken)
+            // console.log(userData)
             dispatch({ type: SET_AUTHENTICATION, payload: {
                 authentication: {
                     auth: true,
@@ -28,7 +29,9 @@ const AuthCheck = (dispatch: any) => {
                         },
                         email: userData.email,
                         isActivated: userData.isActivated,
-                        isVerified: userData.isVerified
+                        isVerified: userData.isVerified,
+                        profile: userData.profile,
+                        coverphoto: ""
                     }
                 }
             } })
