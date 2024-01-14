@@ -667,6 +667,20 @@ const EndCallRequest = (params: any) => {
     })
 }
 
+const GetProfileInfo = async (params: any) => {
+    const userID = params.userID;
+
+    return await Axios.get(`${API}/p/userinfo/${userID}`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response: any) => {
+        return response;
+    }).catch((err) => {
+        throw new Error(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -688,5 +702,6 @@ export {
     CallRequest,
     ActiveContactsRequest,
     RejectCallRequest,
-    EndCallRequest
+    EndCallRequest,
+    GetProfileInfo
 }

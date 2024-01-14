@@ -151,7 +151,7 @@ function Contacts() {
                             )}
                           </div>
                           <div className='div_contact_fullname_container'>
-                            <span className='span_cncts_fullname_label'>{cnts.userdetails.usertwo.fullname.firstName}{cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} {cnts.userdetails.usertwo.fullname.lastName}</span>
+                            <span className='span_cncts_fullname_label tw-border-b tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]' onClick={() => { navigate(`/${cnts.userdetails.usertwo.userID}`) }}>{cnts.userdetails.usertwo.fullname.firstName}{cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} {cnts.userdetails.usertwo.fullname.lastName}</span>
                           </div>
                           <div className='div_cncts_navigations'>
                             <motion.button
@@ -197,7 +197,7 @@ function Contacts() {
                             )}
                           </div>
                           <div className='div_contact_fullname_container'>
-                            <span className='span_cncts_fullname_label'>{cnts.userdetails.userone.fullname.firstName}{cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} {cnts.userdetails.userone.fullname.lastName}</span>
+                            <span className='span_cncts_fullname_label tw-border-b tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]' onClick={() => { navigate(`/${cnts.userdetails.userone.userID}`) }}>{cnts.userdetails.userone.fullname.firstName}{cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} {cnts.userdetails.userone.fullname.lastName}</span>
                           </div>
                           <div className='div_cncts_navigations'>
                             <motion.button
