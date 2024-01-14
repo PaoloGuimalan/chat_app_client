@@ -5,6 +5,7 @@ import DefaultProfile from '../../../assets/imgs/default.png'
 import { IoArrowBack } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { GetProfileInfo } from "@/reusables/hooks/requests";
+import jwtDecode from "jwt-decode";
 
 function Profile() {
 
@@ -19,7 +20,8 @@ function Profile() {
         userID: params.userID
     }).then((response) => {
         if(response.data.status){
-            setprofileInfo(response.data.result);
+            const result: any = jwtDecode(response.data.result);
+            setprofileInfo(result.data);
         }
     }).catch((err) => {
         console.log(err);
