@@ -90,7 +90,7 @@ function Profile() {
                     </div>
                 </div>
                 <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
-                    <div className="tw-w-full tw-h-fit tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px] tw-bg-white tw-border-solid tw-border-[0px] tw-border-[1px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+                    <div className="tw-w-full tw-h-fit md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px] tw-bg-white tw-border-solid tw-border-[0px] tw-border-[1px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
                         <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
                             <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
                                 {genderIcons[profileInfo.gender]}
