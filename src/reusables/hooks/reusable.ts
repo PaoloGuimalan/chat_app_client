@@ -75,10 +75,40 @@ function isUserOnline(state: any, userID: string){
     }
 }
 
+function ordinal_suffix_of(i: number) {
+    let j = i % 10,
+        k = i % 100;
+    if (j === 1 && k !== 11) {
+        return i + "st";
+    }
+    if (j === 2 && k !== 12) {
+        return i + "nd";
+    }
+    if (j === 3 && k !== 13) {
+        return i + "rd";
+    }
+    return i + "th";
+}
+
+function formattedDateToWords(formattedDate: string){
+    const splittedDate = formattedDate.split("/");
+    const month = splittedDate[0];
+    const day = splittedDate[1];
+    const year = splittedDate[2];
+
+    const mL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+
+    const finalDateToWords = `${ordinal_suffix_of(parseInt(day))} of ${mL[parseInt(month)]} ${year}`
+
+    return finalDateToWords;
+}
+
 export {
     importData,
     importNonImageData,
     getBase64,
     makeid,
-    isUserOnline
+    isUserOnline,
+    formattedDateToWords,
+    ordinal_suffix_of
 }
