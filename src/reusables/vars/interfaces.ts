@@ -37,3 +37,8 @@ export interface ProfileUserInfoInterface{
     isActivated: boolean,
     isVerified: boolean
 }
+
+export interface ProfilePostState{
+    posts: any[],
+    totalposts: number
+}

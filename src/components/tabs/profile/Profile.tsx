@@ -1,29 +1,43 @@
-import { AuthenticationInterface, ProfileUserInfoInterface } from "@/reusables/vars/interfaces";
-import { useSelector } from "react-redux";
+import { AuthenticationInterface, ProfilePostState, ProfileUserInfoInterface } from "@/reusables/vars/interfaces";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom"
 import DefaultProfile from '../../../assets/imgs/default.png'
 import { IoArrowBack } from "react-icons/io5";
-import { useEffect, useState } from "react";
-import { GetProfileInfo } from "@/reusables/hooks/requests";
+import { useEffect, useRef, useState } from "react";
+import { CreatePostRequest, GetPostRequest, GetProfileInfo } from "@/reusables/hooks/requests";
 import jwtDecode from "jwt-decode";
 import { FaLinkSlash } from "react-icons/fa6";
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { FaTransgender, FaFileAlt } from "react-icons/fa";
 import { IoMale, IoFemale, IoTime } from "react-icons/io5";
+// import { IoMdCheckmark } from "react-icons/io";
 import { FcAddImage } from 'react-icons/fc'
 import { MdCake } from "react-icons/md";
 import { motion } from "framer-motion";
 import { formattedDateToWords, ordinal_suffix_of } from "@/reusables/hooks/reusable";
+import { SET_MUTATE_ALERTS } from "../../../redux/types/index";
+import PostItem from "./PostItem";
 
 function Profile() {
 
   const authentication : AuthenticationInterface = useSelector((state: any) => state.authentication);
+  const dispatch = useDispatch();
   const navigate = useNavigate();
   const params = useParams();
 
+  const postsstate = {
+    posts: [],
+    totalposts: 0
+  }
+
   const [profileInfo, setprofileInfo] = useState<ProfileUserInfoInterface | null>(null);
-  const [posts, setposts] = useState<any[]>([]);
+  const [posts, setposts] = useState<ProfilePostState>(postsstate);
   const [isloaded, setisloaded] = useState<boolean>(true);
+  const [createposttext, setcreateposttext] = useState<string>("");
+
+  const [range, _] = useState<number>(20);
+
+  const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     GetProfileInfo({
@@ -31,7 +45,7 @@ function Profile() {
     }).then((response) => {
         if(response.data.status){
             const result: any = jwtDecode(response.data.result);
-            setposts([]) //temporary
+            setposts(postsstate) //temporary
             if(result.data){
                 setisloaded(true);
                 setprofileInfo(result.data);
@@ -57,12 +71,72 @@ function Profile() {
     "Female": <IoFemale style={{ fontSize: "17px", color: "#666666" }} />,
     "Others": <FaTransgender style={{ fontSize: "17px", color: "#666666" }} />
   }
+
+  const CreatePostProcess = () => {
+    if(authentication.user.userID == profileInfo?.userID){
+        CreatePostRequest({
+            content: {
+                isShared: false,
+                references: [],
+                data: createposttext
+            },
+            type: {
+                fileType: "text", //text, image, video, file
+                contentType: "text" //text, image, video
+            },
+            tagging: {
+                isTagged: false,
+                users: []
+            },
+            privacy: {
+                status: "public",
+                users: [], //userID for filteration depending on status
+            }, //public, friends, filtered
+            onfeed: "feed",
+        }).then((response) => {
+            if(response.data.status){
+                // console.log(response.data);
+                setcreateposttext("");
+                dispatch({ 
+                    type: SET_MUTATE_ALERTS, 
+                    payload:{
+                        alerts: {
+                            type: "success",
+                            content: "Your post has been saved"
+                        }
+                    }
+                })
+            }
+        }).catch((err) => {
+            console.log(err);
+        })
+    }
+  }
+
+  const GetPostProcess = () => {
+    GetPostRequest({
+        userID: params.userID,
+        range: range
+    }).then((response) => {
+        const decodedResult: any = jwtDecode(response.data.result);
+        setposts({
+            posts: decodedResult.data.posts,
+            totalposts: decodedResult.data.total
+        })
+    }).catch((err) => {
+        console.log(err);
+    })
+  }
+
+  useEffect(() => {
+    GetPostProcess()
+  }, [params.userID])
     
   return (
     isloaded ? (
         profileInfo ? (
             <div className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll">
-                <button onClick={() => { navigate("/"); }} className="tw-bg-[#d2d2d2] tw-absolute tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer">
+                <button onClick={() => { navigate("/"); }} className="tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer">
                     <IoArrowBack style={{ fontSize: "20px" }} />
                 </button>
                 <div className="tw-bg-white tw-w-full tw-h-[60%] tw-min-h-[60%] tw-border-solid tw-border-[0px] tw-border-b-[1px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
@@ -109,25 +183,50 @@ function Profile() {
                         </div>
                     </div>
                     <div className="tw-w-full tw-pb-[20px] tw-flex tw-flex-col tw-items-center">
-                        {profileInfo.userID === authentication.user.userID && (
-                            <div id='div_feed_header_post_input_profile'>
-                                <div id='div_img_feed_header_container'>
-                                    <img src={DefaultProfile} id='img_feed_header' />
-                                </div>
-                                <div id='div_input_feed_flex'>
-                                    <input type='text' placeholder="Share your thoughts..." id='input_feed_box' />
-                                </div>
-                                <div id='div_btn_image_container'>
-                                    <button id='btn_image_feed' disabled={true}>
-                                        <FcAddImage style={{fontSize: "35px"}} />
-                                    </button>
-                                </div>
+                        <div id='div_feed_header_post_input_profile'>
+                            <div id='div_img_feed_header_container'>
+                                <img src={DefaultProfile} id='img_feed_header' />
                             </div>
-                        )}
-                        {posts.length > 0 ? (
-                            <div />
+                            <div id='div_input_feed_flex'>
+                                <input type='text' value={createposttext} onChange={(e) => { setcreateposttext(e.target.value) }} onKeyDown={(e) => {
+                                    if(createposttext.trim() !== ""){
+                                        if(e.key == "Enter"){
+                                            CreatePostProcess()
+                                        }
+                                    }
+                                }} className="tw-font-Inter" placeholder={profileInfo.userID === authentication.user.userID ? "Share your thoughts..." : `Write on ${profileInfo.fullname.firstName}'s wall...`} id='input_feed_box' />
+                            </div>
+                            <div id='div_btn_image_container'>
+                                <button id='btn_image_feed' disabled={true}>
+                                    <FcAddImage style={{fontSize: "35px"}} />
+                                </button>
+                            </div>
+                        </div>
+                        {posts.totalposts > 0 ? (
+                            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
+                                {posts.posts.map((mp: any, i: number) => {
+                                    return(
+                                        <PostItem key={i} mp={mp} />
+                                    )
+                                })}
+                                {posts.posts.length > 0 && posts.totalposts > range && (
+                                    <div ref={divlazyloaderRef} id='divlazyloader' className='tw-bg-transparent tw-w-full tw-flex tw-items-center tw-justify-center tw-mt-[5px] tw-mb-[5px]'>
+                                        <motion.div
+                                        animate={{
+                                            rotate: -360
+                                        }}
+                                        transition={{
+                                            duration: 1,
+                                            repeat: Infinity
+                                        }}
+                                        id='div_loader_request_conv'>
+                                            <AiOutlineLoading3Quarters style={{fontSize: "20px"}} />
+                                        </motion.div>
+                                    </div>
+                                )}
+                            </div>
                         ) : (
-                            <div className="tw-full tw-h-[300px] tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[15px]">
+                            <div className="tw-w-full tw-h-[300px] tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[15px]">
                                 <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
                                 <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
                                     <span className="tw-font-semibold tw-text-[14px]">No Posts yet</span>
@@ -139,7 +238,7 @@ function Profile() {
             </div>
         ) : (
             <div className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px]">
-                <button onClick={() => { navigate("/"); }} className="tw-bg-[#d2d2d2] tw-absolute tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer">
+                <button onClick={() => { navigate("/"); }} className="tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer">
                     <IoArrowBack style={{ fontSize: "20px" }} />
                 </button>
                 <div className="tw-w-full tw-h-full tw-flex tw-flex-col tw-gap-[15px] tw-items-center tw-justify-center">
@@ -159,7 +258,7 @@ function Profile() {
         )
     ) : (
         <div className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px]">
-            <button onClick={() => { navigate("/"); }} className="tw-bg-[#d2d2d2] tw-absolute tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer">
+            <button onClick={() => { navigate("/"); }} className="tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer">
                 <IoArrowBack style={{ fontSize: "20px" }} />
             </button>
             <div className="tw-w-full tw-h-full tw-flex tw-flex-col tw-gap-[15px] tw-items-center tw-justify-center">

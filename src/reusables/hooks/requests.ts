@@ -31,7 +31,7 @@ const AuthCheck = (dispatch: any) => {
                         isActivated: userData.isActivated,
                         isVerified: userData.isVerified,
                         profile: userData.profile,
-                        coverphoto: ""
+                        coverphoto: userData.coverphoto || ""
                     }
                 }
             } })
@@ -681,6 +681,39 @@ const GetProfileInfo = async (params: any) => {
     })
 }
 
+const CreatePostRequest = async (payload: any) => {
+    const rawpayload = payload;
+    const encodedPayload = sign(rawpayload, SECRET);
+
+    return await Axios.post(`${API}/posts/createpost`, {
+        token: encodedPayload
+    }, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        return response;
+    }).catch((err) => {
+        throw new Error(err);
+    })
+}
+
+const GetPostRequest = async (params: any) => {
+    const userID = params.userID;
+    const range = params.range;
+
+    return await Axios.get(`${API}/posts/userposts/${userID}`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken"),
+            "range": range || 20
+        }
+    }).then((response) => {
+        return response;
+    }).catch((err) => {
+        throw new Error(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -703,5 +736,7 @@ export {
     ActiveContactsRequest,
     RejectCallRequest,
     EndCallRequest,
-    GetProfileInfo
+    GetProfileInfo,
+    CreatePostRequest,
+    GetPostRequest
 }

@@ -1,5 +1,5 @@
 import { createStore, combineReducers } from "redux";
-import { setactiveuserslist, setalerts, setapprovedpendingmessageslist, setauthentication, setcallslist, setcontactslist, setconversationsetup, setmediamyvideoholder, setmediatrackholder, setmessageslist, setnotificationslist, setpathnamelistener, setpendingcallalerts, setpendingmessageslist, setrejectedcalllist, setscreensizelistener, settogglerightwidget } from "../actions";
+import { setactiveuserslist, setalerts, setapprovedpendingmessageslist, setauthentication, setcallslist, setcontactslist, setconversationsetup, setmediamyvideoholder, setmediatrackholder, setmessageslist, setnotificationslist, setpathnamelistener, setpendingcallalerts, setpendingmessageslist, setpostsfeedlist, setrejectedcalllist, setscreensizelistener, settogglerightwidget } from "../actions";
 
 const combiner = combineReducers({
     authentication: setauthentication,
@@ -18,7 +18,8 @@ const combiner = combineReducers({
     activeuserslist: setactiveuserslist,
     rejectcalls: setrejectedcalllist,
     mediatrackholder: setmediatrackholder,
-    mediamyvideoholder: setmediamyvideoholder
+    mediamyvideoholder: setmediamyvideoholder,
+    postsfeedlist: setpostsfeedlist
 });
 
 const store = createStore(combiner)

@@ -201,7 +201,7 @@ function Alert({al}: any) {
           marginLeft: timerUnToggle? "0px" : "-800px",
           display: displayUntoggle? "flex" : "none"
       }}
-      className={`div_alerts_prompt ${al.type}`}>
+      className={`div_alerts_prompt ${al.type} tw-z-[3]`}>
           <div id='div_header_alert'>
           {alertIcons[al.type].component}
           <span id='span_header_label_ic'>{alertIcons[al.type].title} ({al.callmetadata.callType == "audio"? "Audio" : "Video"})</span>
@@ -242,7 +242,7 @@ function Alert({al}: any) {
           marginLeft: timerUnToggle? "0px" : "-800px",
           display: displayUntoggle? "flex" : "none"
       }}
-      className={`div_alerts_prompt ${al.type}`}>
+      className={`div_alerts_prompt ${al.type} tw-z-[3]`}>
           <div id='div_header_alert'>
           {alertIcons[al.type].component}
           <span id='span_header_label'>{alertIcons[al.type].title}</span>
