@@ -130,7 +130,7 @@ function Profile() {
 
   useEffect(() => {
     GetPostProcess()
-  }, [params.userID])
+  }, [params.userID, range, profileInfo])
     
   return (
     isloaded ? (
