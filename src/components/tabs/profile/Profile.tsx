@@ -36,6 +36,7 @@ function Profile() {
   const [createposttext, setcreateposttext] = useState<string>("");
 
   const [range, _] = useState<number>(20);
+  const [taggedList, __] = useState<string[]>([]);
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
 
@@ -93,45 +94,45 @@ function Profile() {
   }, [params.userID, range, profileInfo])
 
   const CreatePostProcess = () => {
-    if(authentication.user.userID == profileInfo?.userID){
-        CreatePostRequest({
-            content: {
-                isShared: false,
-                references: [],
-                data: createposttext
-            },
-            type: {
-                fileType: "text", //text, image, video, file
-                contentType: "text" //text, image, video
-            },
-            tagging: {
-                isTagged: false,
-                users: []
-            },
-            privacy: {
-                status: "public",
-                users: [], //userID for filteration depending on status
-            }, //public, friends, filtered
-            onfeed: "feed",
-        }).then((response) => {
-            if(response.data.status){
-                // console.log(response.data);
-                setcreateposttext("");
-                dispatch({ 
-                    type: SET_MUTATE_ALERTS, 
-                    payload:{
-                        alerts: {
-                            type: "success",
-                            content: "Your post has been saved"
-                        }
+    const validatedTaggedList = authentication.user.userID == profileInfo?.userID ? [] : [profileInfo?.userID, ...taggedList]
+
+    CreatePostRequest({
+        content: {
+            isShared: false,
+            references: [],
+            data: createposttext
+        },
+        type: {
+            fileType: "text", //text, image, video, file
+            contentType: "text" //text, image, video
+        },
+        tagging: {
+            isTagged: validatedTaggedList.length > 0 ? true : false,
+            users: validatedTaggedList
+        },
+        privacy: {
+            status: "public",
+            users: [], //userID for filteration depending on status
+        }, //public, friends, filtered
+        onfeed: "feed",
+    }).then((response) => {
+        if(response.data.status){
+            // console.log(response.data);
+            setcreateposttext("");
+            dispatch({ 
+                type: SET_MUTATE_ALERTS, 
+                payload:{
+                    alerts: {
+                        type: "success",
+                        content: "Your post has been saved"
                     }
-                })
-                GetPostProcess();
-            }
-        }).catch((err) => {
-            console.log(err);
-        })
-    }
+                }
+            })
+            GetPostProcess();
+        }
+    }).catch((err) => {
+        console.log(err);
+    })
   }
     
   return (
