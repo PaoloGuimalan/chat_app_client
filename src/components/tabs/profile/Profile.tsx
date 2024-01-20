@@ -72,6 +72,26 @@ function Profile() {
     "Others": <FaTransgender style={{ fontSize: "17px", color: "#666666" }} />
   }
 
+  const GetPostProcess = () => {
+    GetPostRequest({
+        userID: params.userID,
+        range: range
+    }).then((response) => {
+        const decodedResult: any = jwtDecode(response.data.result);
+        // console.log(decodedResult.data.posts)
+        setposts({
+            posts: decodedResult.data.posts,
+            totalposts: decodedResult.data.total
+        })
+    }).catch((err) => {
+        console.log(err);
+    })
+  }
+
+  useEffect(() => {
+    GetPostProcess()
+  }, [params.userID, range, profileInfo])
+
   const CreatePostProcess = () => {
     if(authentication.user.userID == profileInfo?.userID){
         CreatePostRequest({
@@ -106,31 +126,13 @@ function Profile() {
                         }
                     }
                 })
+                GetPostProcess();
             }
         }).catch((err) => {
             console.log(err);
         })
     }
   }
-
-  const GetPostProcess = () => {
-    GetPostRequest({
-        userID: params.userID,
-        range: range
-    }).then((response) => {
-        const decodedResult: any = jwtDecode(response.data.result);
-        setposts({
-            posts: decodedResult.data.posts,
-            totalposts: decodedResult.data.total
-        })
-    }).catch((err) => {
-        console.log(err);
-    })
-  }
-
-  useEffect(() => {
-    GetPostProcess()
-  }, [params.userID, range, profileInfo])
     
   return (
     isloaded ? (

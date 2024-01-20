@@ -1545,6 +1545,17 @@ input:checked + .slider:before {
     border: solid 1px rgb(210, 210, 210);
 }
 
+#div_img_feed_post_container{
+    width: 40px;
+    height: 40px;
+    background-color: rgb(210, 210, 210);
+    border-radius: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border: solid 1px rgb(210, 210, 210);
+}
+
 #img_feed_header{
     width: 60%;
     height: 60%;
