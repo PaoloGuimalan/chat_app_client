@@ -33,7 +33,7 @@ function PostItem({ mp }: any) {
         </div>
         <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px] tw-min-h-[35px] tw-justify-center">
           <div ref={textContainerRef} className={`tw-w-full tw-flex tw-justify-center`}>
-            <span ref={textRef} className='tw-text-[14px] tw-text-left'>{mp.content.data}</span>
+            <span ref={textRef} className='tw-text-[14px] tw-text-left c1'>{mp.content.data}</span>
           </div>
         </div>
     </div>

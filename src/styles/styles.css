@@ -2452,7 +2452,7 @@ input:checked + .slider:before {
     background-color: rgb(222, 222, 222);
     border: solid 1px rgb(222, 222, 222);
     text-align: left;
-    word-break: break-all;
+    /* word-break: break-all; */
 }
 
 .span_gc_notif_label{
@@ -2944,6 +2944,22 @@ input:checked + .slider:before {
     justify-content: center;
     align-items: center;
 }
+
+.c1 {
+   /* These are technically the same, but use both */
+   overflow-wrap: break-word;
+   word-wrap: break-word;
+ 
+   -ms-word-break: break-word;
+   word-break: break-word;
+ 
+   /* Adds a hyphen where the word breaks, if supported (No Blink) */
+   -ms-hyphens: auto;
+   -moz-hyphens: auto;
+   -webkit-hyphens: auto;
+   hyphens: auto;
+ 
+ }
 
 @media screen and (max-width: 600px) {
     #div_searchminidrawer{

@@ -602,7 +602,7 @@ function Conversation({ conversationsetup }: any) {
                                             color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b",
                                             // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                                         }}
-                                        className='span_messages_result'>{cnvs.content}</motion.span>
+                                        className='span_messages_result c1'>{cnvs.content}</motion.span>
                                         {conversationsetup.type == "group"? (
                                             conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                                 <motion.div

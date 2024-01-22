@@ -78,7 +78,9 @@ const LoginRequest = (params: any, dispatch: Dispatch<any>, currentAlertState: a
                         },
                         email: userData.email,
                         isActivated: userData.isActivated,
-                        isVerified: userData.isVerified
+                        isVerified: userData.isVerified,
+                        profile: userData.profile,
+                        coverphoto: userData.coverphoto || ""
                     }
                 }
             }})
