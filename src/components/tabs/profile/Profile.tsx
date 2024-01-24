@@ -40,7 +40,7 @@ function Profile() {
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
 
-  useEffect(() => {
+  const GetProfileInfoProcess = () => {
     GetProfileInfo({
         userID: params.userID
     }).then((response) => {
@@ -65,7 +65,20 @@ function Profile() {
         setisloaded(false);
         console.log(err);
     })
-  },[])
+  }
+
+  useEffect(() => {
+    GetProfileInfoProcess()
+
+    return () => {
+        setprofileInfo(null);
+        setposts(postsstate);
+    }
+  },[params.userID])
+
+//   useEffect(() => {
+//     GetProfileInfoProcess()
+//   },[])
 
   const genderIcons: any = {
     "Male": <IoMale style={{ fontSize: "20px", color: "#666666" }} />,
