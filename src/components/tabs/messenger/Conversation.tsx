@@ -822,6 +822,13 @@ function Conversation({ conversationsetup }: any) {
                                     </motion.div>
                                 )
                             }
+                            else if(cnvs.messageType.includes("notif")){
+                                return(
+                                    <div key={i} className='tw-w-full tw-pt-[5px] tw-pb-[10px]'>
+                                        <span className='tw-text-[12px] tw-font-inter'>{cnvs.content}</span>
+                                    </div>
+                                )
+                            }
                             else{
                                 return(
                                     <motion.div
