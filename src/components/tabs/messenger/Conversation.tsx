@@ -15,6 +15,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { importData, importNonImageData, isUserOnline, makeid } from '../../../reusables/hooks/reusable'
 import { MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST, SET_MUTATE_ALERTS, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
+import { useNavigate } from 'react-router-dom'
 
 function Conversation({ conversationsetup }: any) {
 
@@ -51,6 +52,7 @@ function Conversation({ conversationsetup }: any) {
   })
   
   const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
@@ -476,7 +478,11 @@ function Conversation({ conversationsetup }: any) {
                         </div>
                         <div id='div_conversation_user_name'>
                             {conversationsetup.type == "single"? (
-                                <span className='span_userdetails_name'>{conversationsetup.userdetails.fullname.firstName}{conversationsetup.userdetails.fullname.middleName == "N/A"? "" : ` ${conversationsetup.userdetails.fullname.middleName}`} {conversationsetup.userdetails.fullname.lastName}</span>
+                                <span className='span_userdetails_name tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]'
+                                onClick={() => {
+                                  navigate(`/${conversationsetup.userdetails.userID}`)
+                                }}
+                              >{conversationsetup.userdetails.fullname.firstName}{conversationsetup.userdetails.fullname.middleName == "N/A"? "" : ` ${conversationsetup.userdetails.fullname.middleName}`} {conversationsetup.userdetails.fullname.lastName}</span>
                             ) : (
                                 <span className='span_userdetails_name'>{conversationsetup.groupdetails.groupName}</span>
                             )}
@@ -908,7 +914,7 @@ function Conversation({ conversationsetup }: any) {
                                             color: "white",
                                             // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                                         }}
-                                        className='span_messages_result'>{cnvs.content}</motion.span>
+                                        className='span_messages_result c1'>{cnvs.content}</motion.span>
                                         <span className='span_sending_label'>...Sending</span>
                                     </motion.div>
                                 )

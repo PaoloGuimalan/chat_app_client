@@ -24,10 +24,11 @@ const SSENotificationsTRequest = (dispatch: Dispatch<any>, currentAlertState: an
     
     sseNtfsSource.addEventListener('notifications', (e: any) => {
         const parsedresponse = JSON.parse(e.data)
+        // console.log(parsedresponse)
         if(parsedresponse.auth){
             if(parsedresponse.status){
                 const decodedResult: any = jwt_decode(parsedresponse.result)
-
+                // console.log(decodedResult)
                 //play ringtone
                 let audioMessage = new Audio(notification_ringtone);
                 audioMessage.play();
