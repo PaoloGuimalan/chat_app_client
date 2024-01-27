@@ -38,7 +38,8 @@ function Conversation({ conversationsetup }: any) {
   const [isLoading, setisLoading] = useState<boolean>(true);
   const [autoScroll, setautoScroll] = useState<boolean>(true)
   const [isReplying, _] = useState<any>({
-    isReply: false
+    isReply: false,
+    replyingTo: ""
   })
   const [imgList, setimgList] = useState<any[]>([]);
   const [rawFilesList, setrawFilesList] = useState<any[]>([])
@@ -148,6 +149,7 @@ function Conversation({ conversationsetup }: any) {
                 receivers: [conversationsetup.userdetails.userID, authentication.user.userID],
                 content: messageValue,
                 isReply: isReplying.isReply,
+                replyingTo: isReplying.replyingTo,
                 messageType: "text",
                 conversationType: "single"
             });
@@ -165,6 +167,7 @@ function Conversation({ conversationsetup }: any) {
                 receivers: conversationsetup.groupdetails.receivers,
                 content: messageValue,
                 isReply: isReplying.isReply,
+                replyingTo: isReplying.replyingTo,
                 messageType: "text",
                 conversationType: "group"
             });
@@ -198,6 +201,7 @@ function Conversation({ conversationsetup }: any) {
                 receivers: [conversationsetup.userdetails.userID, authentication.user.userID],
                 files: pendingArrImages,
                 isReply: isReplying.isReply,
+                replyingTo: isReplying.replyingTo,
                 conversationType: "single"
             });
         }
@@ -208,6 +212,7 @@ function Conversation({ conversationsetup }: any) {
                 receivers: conversationsetup.groupdetails.receivers,
                 files: pendingArrImages,
                 isReply: isReplying.isReply,
+                replyingTo: isReplying.replyingTo,
                 conversationType: "group"
             });
         }
