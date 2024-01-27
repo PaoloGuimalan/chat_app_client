@@ -63,7 +63,7 @@ function Messages() {
   const messageTypeChecker: any = {
     video: "a video",
     audio: "an audio",
-    image: "an photo",
+    image: "a photo",
     any: "a file"
   }
 
@@ -177,7 +177,7 @@ function Messages() {
                           <span className='span_messages_list_name'>{msgslst.groupdetails.groupName} (Group Chat)</span>
                           <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you: ": ""}
                             {
-                              msgslst.messageType == "text"? msgslst.content : !msgslst.messageType.includes("image") && !msgslst.messageType.includes("video") && !msgslst.messageType.includes("audio") ? messageTypeChecker["any"] : `Sent ${messageTypeChecker[msgslst.messageType.split("/")[0]]}`
+                              msgslst.messageType == "text"? msgslst.content : !msgslst.messageType.includes("image") && !msgslst.messageType.includes("video") && !msgslst.messageType.includes("audio") ? `Sent ${messageTypeChecker["any"]}` : `Sent ${messageTypeChecker[msgslst.messageType.split("/")[0]]}`
                             }
                           </span>
                           <span className='span_messages_list_name'>{msgslst.messageDate.date} . {msgslst.messageDate.time}</span>

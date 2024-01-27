@@ -2435,11 +2435,11 @@ input:checked + .slider:before {
 
 .div_messages_result{
     background-color: transparent;
-    width: fit-content;
-    max-width: 70%;
+    width: 100%;
+    max-width: 100%;
     text-align: left;
     display: flex;
-    flex-direction: column;
+    flex-direction: row;
 }
 
 .span_messages_result{
@@ -2602,25 +2602,25 @@ input:checked + .slider:before {
 }
 
 .div_pending_images{
-    width: fit-content;
-    max-width: 70%;
+    width: 100%;
+    max-width: 100%;
     height: auto;
     margin-left: auto;
     cursor: pointer;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    flex-direction: row;
+    align-items: center;
 }
 
 .div_pending_audios{
     width: 100%;
-    max-width: 70%;
+    max-width: 100%;
     height: auto;
     margin-left: auto;
     cursor: pointer;
     display: flex;
-    flex-direction: column;
-    align-items: flex-end;
+    flex-direction: row;
+    align-items: center;
 }
 
 .div_pending_content_container{
@@ -2635,6 +2635,14 @@ input:checked + .slider:before {
     height: auto;
     border-radius: 7px;
     border: solid 1px rgb(233, 233, 233);
+    opacity: 0.5;
+}
+
+.div_pending_audio_content_container_sending{
+    width: 100%;
+    height: auto;
+    border-radius: 7px;
+    /* border: solid 1px rgb(233, 233, 233); */
     opacity: 0.5;
 }
 
