@@ -17,6 +17,7 @@ import { importData, importNonImageData, isUserOnline, makeid } from '../../../r
 import { MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST, SET_MUTATE_ALERTS, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
 import { useNavigate } from 'react-router-dom'
 import MessageOptions from './MessageOptions'
+import ReplyingToPreview from './partials/ReplyingToPreview'
 
 function Conversation({ conversationsetup }: any) {
 
@@ -37,7 +38,7 @@ function Conversation({ conversationsetup }: any) {
   const [totalMessages, settotalMessages] = useState<number>(0);
   const [isLoading, setisLoading] = useState<boolean>(true);
   const [autoScroll, setautoScroll] = useState<boolean>(true)
-  const [isReplying, _] = useState<any>({
+  const [isReplying, setisReplying] = useState<any>({
     isReply: false,
     replyingTo: ""
   })
@@ -223,6 +224,10 @@ function Conversation({ conversationsetup }: any) {
     }
 
     setmessageValue("")
+    setisReplying({
+        isReply: false,
+        replyingTo: ""
+    })
   }
 
   useEffect(() => {
@@ -432,6 +437,13 @@ function Conversation({ conversationsetup }: any) {
     })
   }
 
+  const messageTypeChecker: any = {
+    video: "a video",
+    audio: "an audio",
+    image: "a photo",
+    any: "a file"
+  }
+
   return (
     <motion.div
     animate={{
@@ -592,7 +604,7 @@ function Conversation({ conversationsetup }: any) {
                                     key={i}
                                     className='div_messages_result tw-items-center'>
                                         {cnvs.sender === authentication.user.userID && (
-                                            <MessageOptions type='sender' />
+                                            <MessageOptions type='sender' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                                         )}
                                         <motion.div
                                         initial={{
@@ -604,7 +616,15 @@ function Conversation({ conversationsetup }: any) {
                                             alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
                                         }}
                                         className='tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]'>
+                                            {cnvs.isReply && (
+                                                <span className='span_sender_reply_label'>replied to {
+                                                    cnvs.replyedmessage[0].sender === authentication.user.userID ? "your message" : `@${cnvs.replyedmessage[0].sender}`
+                                                }</span>
+                                            )}
                                             {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                                            {cnvs.isReply && (
+                                                <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                                            )}
                                             <motion.span
                                             title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
                                             initial={{
@@ -656,7 +676,7 @@ function Conversation({ conversationsetup }: any) {
                                             )}
                                         </motion.div>
                                         {cnvs.sender !== authentication.user.userID && (
-                                            <MessageOptions type='receiver' />
+                                            <MessageOptions type='receiver' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                                         )}
                                     </motion.div>
                                 )
@@ -666,7 +686,7 @@ function Conversation({ conversationsetup }: any) {
                                     <motion.div
                                     key={i} className='div_pending_images div_messages_result'>
                                         {cnvs.sender === authentication.user.userID && (
-                                            <MessageOptions type='sender' />
+                                            <MessageOptions type='sender' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                                         )}
                                         <motion.div
                                         initial={{
@@ -678,7 +698,15 @@ function Conversation({ conversationsetup }: any) {
                                             alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
                                         }}
                                         className='tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]'>
+                                            {cnvs.isReply && (
+                                                <span className='span_sender_reply_label'>replied to {
+                                                    cnvs.replyedmessage[0].sender === authentication.user.userID ? "your message" : `@${cnvs.replyedmessage[0].sender}`
+                                                }</span>
+                                            )}
                                             {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                                            {cnvs.isReply && (
+                                                <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                                            )}
                                             <div className='div_pending_content_container'
                                             title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
                                                 <img src={cnvs.content} className='img_pending_images' onClick={() => {
@@ -726,7 +754,7 @@ function Conversation({ conversationsetup }: any) {
                                             )}
                                         </motion.div>
                                         {cnvs.sender !== authentication.user.userID && (
-                                            <MessageOptions type='receiver' />
+                                            <MessageOptions type='receiver' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                                         )}
                                     </motion.div>
                                 )
@@ -737,7 +765,7 @@ function Conversation({ conversationsetup }: any) {
                                     key={i}
                                     className='div_pending_images div_messages_result'>
                                         {cnvs.sender === authentication.user.userID && (
-                                            <MessageOptions type='sender' />
+                                            <MessageOptions type='sender' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                                         )}
                                         <motion.div
                                         initial={{
@@ -749,7 +777,15 @@ function Conversation({ conversationsetup }: any) {
                                             alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
                                         }}
                                         className='tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]'>
+                                            {cnvs.isReply && (
+                                                <span className='span_sender_reply_label'>replied to {
+                                                    cnvs.replyedmessage[0].sender === authentication.user.userID ? "your message" : `@${cnvs.replyedmessage[0].sender}`
+                                                }</span>
+                                            )}
                                             {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                                            {cnvs.isReply && (
+                                                <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                                            )}
                                             <div className='div_pending_content_container'
                                             title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
                                                 <video src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")} controls className='tw-w-full tw-h-[300px] tw-border-[7px]' onLoad={() => {
@@ -792,7 +828,7 @@ function Conversation({ conversationsetup }: any) {
                                             )}
                                         </motion.div>
                                         {cnvs.sender !== authentication.user.userID && (
-                                            <MessageOptions type='receiver' />
+                                            <MessageOptions type='receiver' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                                         )}
                                     </motion.div>
                                 )
@@ -803,7 +839,7 @@ function Conversation({ conversationsetup }: any) {
                                     key={i}
                                     className='div_pending_audios div_messages_result'>
                                         {cnvs.sender === authentication.user.userID && (
-                                            <MessageOptions type='sender' />
+                                            <MessageOptions type='sender' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                                         )}
                                         <motion.div
                                         initial={{
@@ -815,7 +851,15 @@ function Conversation({ conversationsetup }: any) {
                                             alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
                                         }}
                                         className='tw-flex tw-flex-col tw-w-full tw-max-w-[70%]'>
+                                            {cnvs.isReply && (
+                                                <span className='span_sender_reply_label'>replied to {
+                                                    cnvs.replyedmessage[0].sender === authentication.user.userID ? "your message" : `@${cnvs.replyedmessage[0].sender}`
+                                                }</span>
+                                            )}
                                             {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                                            {cnvs.isReply && (
+                                                <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                                            )}
                                             <div className='tw-w-full'
                                             title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
                                                 <audio src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")} controls className='tw-w-full tw-border-[7px]' onLoad={() => {
@@ -858,7 +902,7 @@ function Conversation({ conversationsetup }: any) {
                                             )}
                                         </motion.div>
                                         {cnvs.sender !== authentication.user.userID && (
-                                            <MessageOptions type='receiver' />
+                                            <MessageOptions type='receiver' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                                         )}
                                     </motion.div>
                                 )
@@ -874,11 +918,9 @@ function Conversation({ conversationsetup }: any) {
                                 return(
                                     <motion.div
                                     key={i}
-                                    onClick={() => {
-                                        window.open(cnvs.content.split("%%%")[0].replace("###", "%23%23%23"), '_blank')
-                                    }} className='div_pending_images div_messages_result'>
+                                    className='div_pending_images div_messages_result'>
                                         {cnvs.sender === authentication.user.userID && (
-                                            <MessageOptions type='sender' />
+                                            <MessageOptions type='sender' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                                         )}
                                         <motion.div
                                         initial={{
@@ -890,8 +932,18 @@ function Conversation({ conversationsetup }: any) {
                                             alignItems: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start"
                                         }}
                                         className='tw-flex tw-flex-col tw-w-full tw-max-w-[70%]'>
+                                            {cnvs.isReply && (
+                                                <span className='span_sender_reply_label'>replied to {
+                                                    cnvs.replyedmessage[0].sender === authentication.user.userID ? "your message" : `@${cnvs.replyedmessage[0].sender}`
+                                                }</span>
+                                            )}
                                             {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
-                                            <div className='tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]'
+                                            {cnvs.isReply && (
+                                                <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                                            )}
+                                            <div onClick={() => {
+                                                window.open(cnvs.content.split("%%%")[0].replace("###", "%23%23%23"), '_blank')
+                                            }} className='tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]'
                                             title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
                                                 <div className='tw-w-full tw-max-w-[40px]'>
                                                     <IoDocumentOutline style={{ fontSize: "40px" }} />
@@ -934,7 +986,7 @@ function Conversation({ conversationsetup }: any) {
                                             )}
                                         </motion.div>
                                         {cnvs.sender !== authentication.user.userID && (
-                                            <MessageOptions type='receiver' />
+                                            <MessageOptions type='receiver' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                                         )}
                                     </motion.div>
                                 )
@@ -1104,6 +1156,46 @@ function Conversation({ conversationsetup }: any) {
                         <img src={fullImageScreen.preview} id='img_fip' />
                     </div>
                 )}
+                <motion.div
+                initial={{
+                    height: "0px",
+                    paddingTop: "0px",
+                    paddingBottom: "0px",
+                    backgroundColor: "white",
+                    color: "white",
+                    borderRadius: "10px"
+                }}
+                animate={{
+                    height: isReplying.isReply? "auto" : "0px",
+                    paddingTop: isReplying.isReply? "10px" : "0px",
+                    paddingBottom: isReplying.isReply? "10px" : "0px",
+                    borderRadius: "10px",
+                    backgroundColor: isReplying.isReply? conversationList.filter((flt: any) => flt.messageID == isReplying.replyingTo)[0].sender === authentication.user.userID? "#1c7def" : "#dedede" : "white",
+                    color: isReplying.isReply? conversationList.filter((flt: any) => flt.messageID == isReplying.replyingTo)[0].sender === authentication.user.userID? "white" : "black" : "white"
+                }}
+                id='div_selected_images_container'
+                className='theme_scroller'>
+                    <div className='tw-w-full tw-flex tw-flex-row'>
+                        <div className='tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px] ellipsis-3-lines'>
+                            <span className='tw-text-[12px] tw-font-semibold tw-font-inter ellipsis-1-line'>
+                                {isReplying.isReply && (
+                                    conversationList.filter((flt: any) => flt.messageID == isReplying.replyingTo)[0].sender === authentication.user.userID?
+                                    "Replying to your message" : `Replying to @${conversationList.filter((flt: any) => flt.messageID == isReplying.replyingTo)[0].sender}`
+                                )}
+                            </span>
+                            <span className='tw-text-[12px] tw-font-inter tw-w-full tw-text-left ellipsis-3-lines'>
+                                {isReplying.isReply && (
+                                    conversationList.filter((flt: any) => flt.messageID == isReplying.replyingTo)[0].messageType === "text"?
+                                    conversationList.filter((flt: any) => flt.messageID == isReplying.replyingTo)[0].content : 
+                                    `${messageTypeChecker[conversationList.filter((flt: any) => flt.messageID == isReplying.replyingTo)[0].messageType.split("/")[0]] || 'a file'}`
+                                )}
+                            </span>
+                        </div>
+                        <button onClick={() => { setisReplying({ isReply: false, replyingTo: "" }) }} className='btn_remove_preview'>
+                            <AiOutlineClose />
+                        </button>
+                    </div>
+                </motion.div>
                 <motion.div
                 initial={{
                     height: "0px",
