@@ -716,6 +716,22 @@ const GetPostRequest = async (params: any) => {
     })
 }
 
+const DeleteMessageRequest = async (params: any) => {
+    const encodedParams = sign(params, SECRET);
+
+    return await Axios.post(`${API}/m/deletemessage`, {
+        token: encodedParams
+    },{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        return response;
+    }).catch((err) => {
+        throw new Error(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -740,5 +756,6 @@ export {
     EndCallRequest,
     GetProfileInfo,
     CreatePostRequest,
-    GetPostRequest
+    GetPostRequest,
+    DeleteMessageRequest
 }
