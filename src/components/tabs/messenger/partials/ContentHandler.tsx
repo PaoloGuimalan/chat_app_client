@@ -99,7 +99,6 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
         if(cnvs.messageType == "text"){
             return(
                 <motion.div
-                key={i}
                 className='div_messages_result tw-items-center'>
                     {cnvs.sender === authentication.user.userID && (
                         <MessageOptions conversationID={cnvs.conversationID} messageID={cnvs.messageID} type='sender' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
@@ -222,8 +221,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
         }
         else if(cnvs.messageType == "image"){
             return(
-                <motion.div
-                key={i} className='div_pending_images div_messages_result'>
+                <motion.div className='div_pending_images div_messages_result'>
                     {cnvs.sender === authentication.user.userID && (
                         <MessageOptions conversationID={cnvs.conversationID} messageID={cnvs.messageID} type='sender' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
                     )}
@@ -301,7 +299,6 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
         else if(cnvs.messageType.includes("video")){
             return(
                 <motion.div
-                key={i}
                 className='div_pending_images div_messages_result'>
                     {cnvs.sender === authentication.user.userID && (
                         <MessageOptions conversationID={cnvs.conversationID} messageID={cnvs.messageID} type='sender' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
@@ -375,7 +372,6 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
         else if(cnvs.messageType.includes("audio")){
             return(
                 <motion.div
-                key={i}
                 className='div_pending_audios div_messages_result'>
                     {cnvs.sender === authentication.user.userID && (
                         <MessageOptions conversationID={cnvs.conversationID} messageID={cnvs.messageID} type='sender' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />
@@ -456,7 +452,6 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
         else{
             return(
                 <motion.div
-                key={i}
                 className='div_pending_images div_messages_result'>
                     {cnvs.sender === authentication.user.userID && (
                         <MessageOptions conversationID={cnvs.conversationID} messageID={cnvs.messageID} type='sender' setisReplying={() => { setisReplying({ isReply: true, replyingTo: cnvs.messageID }) }} />

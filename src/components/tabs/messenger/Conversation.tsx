@@ -79,7 +79,7 @@ function Conversation({ conversationsetup }: any) {
                 if(last){
                     last.scrollIntoView({
                         behavior: "instant",
-                        block: "start"
+                        block: "end"
                     });
                 }
             }
@@ -726,7 +726,7 @@ function Conversation({ conversationsetup }: any) {
                         {conversationList.map((cnvs, i) => {
                             return(
                                 <ContentHandler 
-                                    key={i} 
+                                    key={cnvs.messageID} 
                                     i={i} 
                                     cnvs={cnvs} 
                                     conversationsetup={conversationsetup}
