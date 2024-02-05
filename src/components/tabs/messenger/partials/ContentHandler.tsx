@@ -16,8 +16,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
     const [reactions, setreactions] = useState<any[]>(cnvs.reactions ? cnvs.reactions : []);
 
     useEffect(() => {
-        setreactions(cnvs.reactions);
-        console.log("OK")
+        setreactions(cnvs.reactions ? cnvs.reactions : []);
     },[cnvs.reactions])
 
     if(cnvs.isDeleted){
