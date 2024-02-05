@@ -13,6 +13,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
     const authentication = useSelector((state: any) => state.authentication)
 
     const [toggleEmojiPicker, settoggleEmojiPicker] = useState<boolean>(false);
+    const [reactions, setreactions] = useState<any[]>(cnvs.reactions ? cnvs.reactions : []);
 
     if(cnvs.isDeleted){
         return(
@@ -142,11 +143,35 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                     border: "solid 1px rgb(222, 222, 222)"
                                 }}>
                                     {toggleEmojiPicker && (
-                                        <EmojiPickerHandler fromSender={cnvs.sender == authentication.user.userID? true : false} />
+                                        <EmojiPickerHandler conversationID={cnvs.conversationID} messageID={cnvs.messageID} fromSender={cnvs.sender == authentication.user.userID? true : false} settoggleEmojiPicker={settoggleEmojiPicker} setreactions={setreactions} />
                                     )}
-                                    <button onClick={() => { settoggleEmojiPicker(!toggleEmojiPicker) }} className="tw-h-[20px] tw-w-[30px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer">
-                                        <MdOutlineAddReaction />
-                                    </button>
+                                    <div className="tw-select-none tw-cursor-pointer tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
+                                        {cnvs.sender === authentication.user.userID && (
+                                            <div className="tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden">
+                                                {reactions.map((mp: any) => {
+                                                    return(mp.emoji);
+                                                })}
+                                            </div>
+                                        )}
+                                        {cnvs.sender === authentication.user.userID && reactions.length > 4 && (
+                                            <span className="tw-text-[10px] tw-w-fit" style={{ whiteSpace: "nowrap" }}>+{reactions.length - 4}</span>
+                                        )}
+                                        {reactions.filter((flt: any) => flt.userID === authentication.user.userID).length === 0 && (
+                                            <button onClick={() => { settoggleEmojiPicker(!toggleEmojiPicker) }} className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer">
+                                                <MdOutlineAddReaction />
+                                            </button>
+                                        )}
+                                        {cnvs.sender !== authentication.user.userID && reactions.length > 4 && (
+                                            <span className="tw-text-[10px] tw-w-fit" style={{ whiteSpace: "nowrap" }}>+{reactions.length - 4}</span>
+                                        )}
+                                        {cnvs.sender !== authentication.user.userID && (
+                                            <div className="tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden">
+                                                {reactions.map((mp: any) => {
+                                                    return(mp.emoji);
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
                                 </div>
                             </div>
                         </motion.div>
