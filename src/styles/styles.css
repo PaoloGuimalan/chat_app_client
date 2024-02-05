@@ -2731,7 +2731,7 @@ input:checked + .slider:before {
     flex-direction: row;
     flex-wrap: wrap;
     gap: 5px;
-    padding-top: 10px;
+    padding-top: 5px;
     /* justify-content: flex-end; */
     padding-left: 4px;
     padding-right: 4px;

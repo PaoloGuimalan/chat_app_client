@@ -5,7 +5,7 @@ import MessageOptions from "../MessageOptions"
 import { IoDocumentOutline } from "react-icons/io5"
 import { ContentHandlerProp } from "@/reusables/vars/props"
 import { MdOutlineAddReaction } from "react-icons/md"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import EmojiPickerHandler from "./EmojiPickerHandler"
 
 function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImageScreen, scrollBottom }: ContentHandlerProp) {
@@ -14,6 +14,11 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
 
     const [toggleEmojiPicker, settoggleEmojiPicker] = useState<boolean>(false);
     const [reactions, setreactions] = useState<any[]>(cnvs.reactions ? cnvs.reactions : []);
+
+    useEffect(() => {
+        setreactions(cnvs.reactions);
+        console.log("OK")
+    },[cnvs.reactions])
 
     if(cnvs.isDeleted){
         return(
@@ -133,7 +138,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                             color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b",
                             // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                         }}
-                        className='span_messages_result c1'>
+                        className='span_messages_result c1 tw-mb-[7px]'>
                             <span>{cnvs.content}</span>
                             <div 
                             className={`tw-w-full tw--mb-[15px] tw-mt-[5px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${cnvs.sender == authentication.user.userID? "tw-justify-end" : "tw-justify-start"}`}>
