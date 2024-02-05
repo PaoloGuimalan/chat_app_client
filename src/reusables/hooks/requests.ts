@@ -553,7 +553,7 @@ const InitConversationRequest = (params: any, dispatch: Dispatch<any>, settotalM
         if(response.data.status){
             const decodedResult: any = jwt_decode(response.data.result)
             setisLoading(false)
-            dispatch(decodedResult.messages)
+            dispatch(decodedResult.messages.reverse())
             settotalMessages(decodedResult.total);
             scrollBottom()
             

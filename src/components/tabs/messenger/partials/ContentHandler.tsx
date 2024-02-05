@@ -8,7 +8,7 @@ import { MdOutlineAddReaction } from "react-icons/md"
 import { useState } from "react"
 import EmojiPickerHandler from "./EmojiPickerHandler"
 
-function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisReplying, setfullImageScreen, scrollBottom }: ContentHandlerProp) {
+function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImageScreen, scrollBottom }: ContentHandlerProp) {
 
     const authentication = useSelector((state: any) => state.authentication)
 
@@ -53,7 +53,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                         }}
                         className='span_messages_result c1'>Message deleted</motion.span>
                         {conversationsetup.type == "group"? (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && ( //conversationList.length - 1 == i
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -73,7 +73,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                                 </motion.div>
                             )
                         ) : (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -151,7 +151,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                             </div>
                         </motion.div>
                         {conversationsetup.type == "group"? (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -171,7 +171,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                                 </motion.div>
                             )
                         ) : (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -229,7 +229,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                             }} />
                         </div>
                         {conversationsetup.type == "group"? (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -249,7 +249,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                                 </motion.div>
                             )
                         ) : (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -303,7 +303,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                             }} />
                         </div>
                         {conversationsetup.type == "group"? (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -323,7 +323,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                                 </motion.div>
                             )
                         ) : (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -377,7 +377,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                             }} />
                         </div>
                         {conversationsetup.type == "group"? (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -397,7 +397,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                                 </motion.div>
                             )
                         ) : (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -461,7 +461,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                             <span className='tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold'>{cnvs.content.split("%%%")[1]}</span>
                         </div>
                         {conversationsetup.type == "group"? (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",
@@ -481,7 +481,7 @@ function ContentHandler({ i, cnvs, conversationsetup, conversationList, setisRep
                                 </motion.div>
                             )
                         ) : (
-                            conversationList.length - 1 == i && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
+                            i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
                                     justifyContent: cnvs.sender == authentication.user.userID? "flex-end" : "flex-start",

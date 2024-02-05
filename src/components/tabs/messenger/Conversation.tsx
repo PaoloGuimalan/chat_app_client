@@ -69,7 +69,7 @@ function Conversation({ conversationsetup }: any) {
 
   const scrollBottom = () => {
     var items = document.querySelectorAll(".div_messages_result");
-    var last = items[items.length-1];
+    var last = items[0];
 
     if(!isLoading){
         if(divcontentRef){
@@ -79,7 +79,7 @@ function Conversation({ conversationsetup }: any) {
                 if(last){
                     last.scrollIntoView({
                         behavior: "instant",
-                        block: "end"
+                        block: "start"
                     });
                 }
             }
@@ -581,35 +581,7 @@ function Conversation({ conversationsetup }: any) {
                             setautoScroll(true)
                         }
                     }}>
-                        {conversationList.length > 0 && totalMessages > range && (
-                            <div ref={divlazyloaderRef} id='divlazyloader' className='tw-bg-transparent tw-flex tw-items-center tw-justify-center tw--mt-[15px] tw-mb-[5px]'>
-                                <motion.div
-                                animate={{
-                                rotate: -360
-                                }}
-                                transition={{
-                                duration: 1,
-                                repeat: Infinity
-                                }}
-                                id='div_loader_request_conv'>
-                                    <AiOutlineLoading3Quarters style={{fontSize: "20px"}} />
-                                </motion.div>
-                            </div>
-                        )}
-                        {conversationList.map((cnvs, i) => {
-                            return(
-                                <ContentHandler 
-                                key={i} 
-                                i={i} 
-                                cnvs={cnvs} 
-                                conversationsetup={conversationsetup} 
-                                conversationList={conversationList} 
-                                setisReplying={setisReplying} 
-                                setfullImageScreen={setfullImageScreen} 
-                                scrollBottom={scrollBottom} 
-                            />
-                            )
-                        })}
+                        
                         {pendingmessageslist.filter((flt: any) => 
                             flt.conversationID == conversationsetup.conversationid 
                             && !flt.status 
@@ -751,6 +723,36 @@ function Conversation({ conversationsetup }: any) {
                                 )
                             }
                         })}
+                        {conversationList.map((cnvs, i) => {
+                            return(
+                                <ContentHandler 
+                                    key={i} 
+                                    i={i} 
+                                    cnvs={cnvs} 
+                                    conversationsetup={conversationsetup}
+                                    setisReplying={setisReplying} 
+                                    setfullImageScreen={setfullImageScreen} 
+                                    scrollBottom={scrollBottom} 
+                                />
+                            )
+                        })}
+                        {conversationList.length > 0 && totalMessages > range && (
+                            <div ref={divlazyloaderRef} id='divlazyloader' className='tw-flex tw-items-center tw-justify-center tw--mt-[15px] tw-mb-[5px]'>
+                                <div className='tw-h-[50px] tw-flex tw-items-center tw-justify-center'>
+                                    <motion.div
+                                        animate={{
+                                            rotate: -360
+                                        }}
+                                        transition={{
+                                            duration: 1,
+                                            repeat: Infinity
+                                        }}
+                                    id='div_loader_request_conv'>
+                                        <AiOutlineLoading3Quarters style={{fontSize: "20px"}} />
+                                    </motion.div>
+                                </div>
+                            </div>
+                        )}
                     </div>
                 )}
                 {fullImageScreen.toggle && (

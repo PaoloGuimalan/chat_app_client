@@ -8,8 +8,7 @@ export interface MessageOptionsProp{
 export interface ContentHandlerProp{ 
     i: number; 
     cnvs: any; 
-    conversationsetup: any; 
-    conversationList: any[]; 
+    conversationsetup: any;
     setisReplying: (data: any) => void; 
     setfullImageScreen: (data: any) => void; 
     scrollBottom : () => void;
