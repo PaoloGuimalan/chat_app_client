@@ -139,6 +139,14 @@ function Register() {
                   )
                 })}
               </select>
+              <select className='input_dates' placeholder='Year' value={year} onChange={(e) => { setyear(e.target.value) }}>
+                <option value="" defaultValue={""}>Year</option>
+                {years.map((val, i) => {
+                  return(
+                    <option key={i} value={val}>{val}</option>
+                  )
+                })}
+              </select>
               <select className='input_dates' placeholder='Day' value={day} onChange={(e) => {
                 setday(e.target.value)
               }}>
@@ -150,14 +158,6 @@ function Register() {
                     )
                   })
                 ) : null}
-              </select>
-              <select className='input_dates' placeholder='Year' value={year} onChange={(e) => { setyear(e.target.value) }}>
-                <option value="" defaultValue={""}>Year</option>
-                {years.map((val, i) => {
-                  return(
-                    <option key={i} value={val}>{val}</option>
-                  )
-                })}
               </select>
             </div>
           </div>
