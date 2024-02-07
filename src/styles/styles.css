@@ -1071,10 +1071,6 @@
 
 #div_modal_container{
     background-color: white;
-    position: absolute;
-    left: 50%;
-    transform: translate(-50%, 0);
-    top: calc(0% + 10px);
     width: calc(98% - 20px);
     height: calc(98% - 30px);
     max-width: calc(400px - 20px);
@@ -1089,7 +1085,7 @@
 #div_modal_header{
     background-color: transparent;
     width: calc(100% - 20px);
-    height: 50px;
+    min-height: 50px;
     display: flex;
     align-items: center;
     padding-left: 10px;
@@ -1116,8 +1112,8 @@
     gap: 15px;
     padding-left: 10px;
     padding-right: 10px;
-    flex: 1;
-    overflow-y: auto;
+    height: calc(100% - 50px);
+    /* overflow-y: auto; */
 }
 
 #div_modal_input_columns{
@@ -1131,14 +1127,14 @@
 
 #div_modal_input_columns_add_people{
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: flex-start;
     gap: 5px;
     background-color: transparent;
-    flex: 1;
     /* height: auto; */
-    /* overflow-y: auto; */
-    /* overflow-y: hidden; */
+    overflow-y: hidden;
+    overflow-x: hidden;
 }
 
 #span_input_label{
@@ -1199,13 +1195,13 @@
 #div_contacts_select_container{
     background-color: transparent;
     width: 100%;
-    /* height: auto; */
     /* height: 100%; */
+    /* max-height: calc(100% - 520px); */
     display: flex;
     flex: 1;
-    flex-direction: column;
+    flex-direction: row;
     gap: 2px;
-    /* overflow-y: auto; */
+    overflow-y: scroll;
 }
 
 .div_cncts_cards{
@@ -1283,11 +1279,15 @@
     background-color: transparent;
     width: 100%;
     padding-top: 10px;
-    padding-bottom: 10px;
+    padding-bottom: 5px;
     display: flex;
     flex-direction: row;
-    flex-wrap: wrap;
+    /* flex-wrap: wrap; */
     gap: 5px;
+    height: 40px;
+    min-height: 40px;
+    overflow: hidden;
+    border-radius: 10px;
 }
 
 .div_selected_holder{
@@ -1301,6 +1301,9 @@
     justify-content: center;
     align-items: center;
     gap: 2px;
+    height: 25px;
+    min-height: 25px;
+    white-space: nowrap;
 }
 
 .span_selected_label{
@@ -1329,7 +1332,7 @@
     flex-direction: row;
     gap: 5px;
     justify-content: flex-end;
-    padding-top: 10px;
+    padding-top: 5px;
     padding-bottom: 10px;
 }
 
@@ -1365,6 +1368,22 @@
 .scroller::-webkit-scrollbar-thumb {
     background: #888;
     border-radius: 5px;
+}
+
+.scrollervert::-webkit-scrollbar {
+    height: 10px;
+}
+  
+/* Track */
+.scrollervert::-webkit-scrollbar-track {
+    background: #f1f1f1; 
+    border-radius: 0px;
+}
+   
+/* Handle */
+.scrollervert::-webkit-scrollbar-thumb {
+    background: #888;
+    border-radius: 0px;
 }
 
 .thinscroller::-webkit-scrollbar-track {
