@@ -230,8 +230,9 @@ function Conversation({ conversationsetup }: any) {
   }
 
   useEffect(() => {
-    setisLoading(true)
-    setconversationList([])
+    setisLoading(true);
+    setconversationList([]);
+    setrange(20);
   },[conversationsetup])
 
   useEffect(() => {
@@ -247,7 +248,7 @@ function Conversation({ conversationsetup }: any) {
             conversationsetup.userdetails.userID
         ] : conversationsetup.groupdetails.receivers
     })
-  },[range])
+  },[range, conversationsetup])
 
   useEffect(() => {
     InitConversationRequest({
@@ -257,7 +258,7 @@ function Conversation({ conversationsetup }: any) {
             conversationsetup.userdetails.userID
         ] : conversationsetup.groupdetails.receivers
     }, setconversationList, settotalMessages, setisLoading, scrollBottom)
-  },[range])
+  },[range, conversationsetup])
 
   const sendImageProcess = () => {
     importData((arr: any) => {
