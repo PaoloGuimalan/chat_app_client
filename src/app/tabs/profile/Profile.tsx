@@ -17,6 +17,7 @@ import { motion } from "framer-motion";
 import { formattedDateToWords, ordinal_suffix_of } from "@/reusables/hooks/reusable";
 import { SET_MUTATE_ALERTS } from "../../../redux/types/index";
 import PostItem from "./PostItem";
+import { NewPostModal } from "@/app/widgets/modals/NewPostModal";
 
 function Profile() {
 
@@ -34,6 +35,8 @@ function Profile() {
   const [posts, setposts] = useState<ProfilePostState>(postsstate);
   const [isloaded, setisloaded] = useState<boolean>(true);
   const [createposttext, setcreateposttext] = useState<string>("");
+
+  const [toggleNewPostModal, settoggleNewPostModal] = useState<boolean>(false);
 
   const [range, _] = useState<number>(20);
   const [taggedList, __] = useState<string[]>([]);
@@ -204,7 +207,10 @@ function Profile() {
                                 <img src={DefaultProfile} id='img_feed_header' />
                             </div>
                             <div id='div_input_feed_flex'>
-                                <input type='text' value={createposttext} onChange={(e) => { setcreateposttext(e.target.value) }} onKeyDown={(e) => {
+                                {toggleNewPostModal && (
+                                    <NewPostModal onclose={settoggleNewPostModal} />
+                                )}
+                                <input type='text' value={createposttext} onFocus={() => { settoggleNewPostModal(true) }} onChange={(e) => { setcreateposttext(e.target.value) }} onKeyDown={(e) => {
                                     if(createposttext.trim() !== ""){
                                         if(e.key == "Enter"){
                                             CreatePostProcess()

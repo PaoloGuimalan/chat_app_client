@@ -10,7 +10,7 @@ import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
 import GroupChatIcon from '../../../assets/imgs/group-chat-icon.jpg'
 import { SET_CONVERSATION_SETUP } from '../../../redux/types'
-import CreateGroupChatModal from '../../modals/CreateGroupChatModal'
+import CreateGroupChatModal from '../../widgets/modals/CreateGroupChatModal'
 import { conversationsetupstate } from '../../../redux/actions/states'
 import { isUserOnline } from '../../../reusables/hooks/reusable'
 

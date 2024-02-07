@@ -1,12 +1,12 @@
 import { useState } from 'react'
-import '../../styles/styles.css'
+import '../../../styles/styles.css'
 import { IoClose } from 'react-icons/io5'
 import { BiGroup } from 'react-icons/bi'
 import { useSelector } from 'react-redux'
 import { motion } from 'framer-motion'
-import DefaultProfile from '../../assets/imgs/default.png'
-import { CreateGroupChatRequest } from '../../reusables/hooks/requests'
-import Modal from '../reusables/Modal'
+import DefaultProfile from '../../../assets/imgs/default.png'
+import { CreateGroupChatRequest } from '../../../reusables/hooks/requests'
+import Modal from '../../reusables/Modal'
 
 function CreateGroupChatModal({ setisCreateGCToggle }: any) {
 
