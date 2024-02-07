@@ -1,14 +1,14 @@
 import './App.css';
 import { Navigate, Route, Routes, useLocation } from 'react-router-dom';
-import Login from './components/auth/Login';
+import Login from './app/auth/Login';
 import { useDispatch, useSelector } from 'react-redux';
-import Splash from './components/main/Splash';
-import Home from './components/main/Home';
-import Register from './components/auth/Register';
-import Verification from './components/auth/Verification';
+import Splash from './app/main/Splash';
+import Home from './app/main/Home';
+import Register from './app/auth/Register';
+import Verification from './app/auth/Verification';
 import { useEffect, useRef } from 'react';
 import { AuthCheck } from './reusables/hooks/requests';
-import Alert from './components/widgets/Alert';
+import Alert from './app/widgets/Alert';
 import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER } from './redux/types';
 
 function App() {
