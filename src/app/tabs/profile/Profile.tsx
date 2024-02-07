@@ -1,10 +1,10 @@
 import { AuthenticationInterface, ProfilePostState, ProfileUserInfoInterface } from "@/reusables/vars/interfaces";
-import { useDispatch, useSelector } from "react-redux";
+import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom"
 import DefaultProfile from '../../../assets/imgs/default.png'
 import { IoArrowBack } from "react-icons/io5";
 import { useEffect, useRef, useState } from "react";
-import { CreatePostRequest, GetPostRequest, GetProfileInfo } from "@/reusables/hooks/requests";
+import { GetPostRequest, GetProfileInfo } from "@/reusables/hooks/requests";
 import jwtDecode from "jwt-decode";
 import { FaLinkSlash } from "react-icons/fa6";
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
@@ -15,14 +15,12 @@ import { FcAddImage } from 'react-icons/fc'
 import { MdCake } from "react-icons/md";
 import { motion } from "framer-motion";
 import { formattedDateToWords, ordinal_suffix_of } from "@/reusables/hooks/reusable";
-import { SET_MUTATE_ALERTS } from "../../../redux/types/index";
 import PostItem from "./PostItem";
-import { NewPostModal } from "@/app/widgets/modals/NewPostModal";
+import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 
 function Profile() {
 
   const authentication : AuthenticationInterface = useSelector((state: any) => state.authentication);
-  const dispatch = useDispatch();
   const navigate = useNavigate();
   const params = useParams();
 
@@ -39,7 +37,6 @@ function Profile() {
   const [toggleNewPostModal, settoggleNewPostModal] = useState<boolean>(false);
 
   const [range, _] = useState<number>(20);
-  const [taggedList, __] = useState<string[]>([]);
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
 
@@ -108,48 +105,6 @@ function Profile() {
   useEffect(() => {
     GetPostProcess()
   }, [params.userID, range, profileInfo])
-
-  const CreatePostProcess = () => {
-    const validatedTaggedList = authentication.user.userID == profileInfo?.userID ? [] : [profileInfo?.userID, ...taggedList]
-
-    CreatePostRequest({
-        content: {
-            isShared: false,
-            references: [],
-            data: createposttext
-        },
-        type: {
-            fileType: "text", //text, image, video, file
-            contentType: "text" //text, image, video
-        },
-        tagging: {
-            isTagged: validatedTaggedList.length > 0 ? true : false,
-            users: validatedTaggedList
-        },
-        privacy: {
-            status: "public",
-            users: [], //userID for filteration depending on status
-        }, //public, friends, filtered
-        onfeed: "feed",
-    }).then((response) => {
-        if(response.data.status){
-            // console.log(response.data);
-            setcreateposttext("");
-            dispatch({ 
-                type: SET_MUTATE_ALERTS, 
-                payload:{
-                    alerts: {
-                        type: "success",
-                        content: "Your post has been saved"
-                    }
-                }
-            })
-            GetPostProcess();
-        }
-    }).catch((err) => {
-        console.log(err);
-    })
-  }
     
   return (
     isloaded ? (
@@ -208,12 +163,12 @@ function Profile() {
                             </div>
                             <div id='div_input_feed_flex'>
                                 {toggleNewPostModal && (
-                                    <NewPostModal onclose={settoggleNewPostModal} />
+                                    <NewPostModal profileInfo={profileInfo} setcreateposttext={setcreateposttext} getpostprocess={GetPostProcess} onclose={settoggleNewPostModal} />
                                 )}
                                 <input type='text' value={createposttext} onFocus={() => { settoggleNewPostModal(true) }} onChange={(e) => { setcreateposttext(e.target.value) }} onKeyDown={(e) => {
                                     if(createposttext.trim() !== ""){
                                         if(e.key == "Enter"){
-                                            CreatePostProcess()
+                                            // CreatePostProcess()
                                         }
                                     }
                                 }} className="tw-font-Inter" placeholder={profileInfo.userID === authentication.user.userID ? "Share your thoughts..." : `Write on ${profileInfo.fullname.firstName}'s wall...`} id='input_feed_box' />

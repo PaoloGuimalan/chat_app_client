@@ -8,6 +8,8 @@ import { BsPinMap } from 'react-icons/bs';
 import { AuthenticationInterface } from '@/reusables/vars/interfaces';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
+import "react-responsive-carousel/lib/styles/carousel.min.css";
+import { Carousel } from 'react-responsive-carousel';
 
 function PostItem({ mp }: any) {
 
@@ -51,10 +53,32 @@ function PostItem({ mp }: any) {
             <span className='tw-text-[12px]'>{dateposted.toUTCString().split(" ").splice(0, 4).join(" ")}</span>
           </div>
         </div>
-        <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px] tw-min-h-[35px] tw-justify-center">
+        <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center">
           <div ref={textContainerRef} className={`tw-w-full tw-flex tw-justify-center`}>
             <span ref={textRef} className='tw-text-[14px] tw-text-left c1'>{mp.content.data}</span>
           </div>
+          {mp.content.references.length > 0 && (
+            <div className='tw-bg-black tw-w-[calc(100%+40px)]'>
+              <Carousel className='tw-bg-black' showIndicators={false} showThumbs={false}>
+                {mp.content.references.map((mp: any) => {
+                  if(mp.referenceMediaType.includes("image")){
+                    return(
+                      <div key={mp.referenceID}>
+                        <img src={mp.reference} className="tw-w-full tw-h-[450px] tw-object-cover"/>
+                      </div>
+                    )
+                  }
+                  else if(mp.referenceMediaType.includes("video")){
+                    return(
+                      <div key={mp.referenceID}>
+                        <video controls src={mp.reference} className="tw-w-full tw-h-[450px]"/>
+                      </div>
+                    )
+                  }
+                })}
+              </Carousel>
+            </div>
+          )}
         </div>
         <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
           <hr className='tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px]' />
