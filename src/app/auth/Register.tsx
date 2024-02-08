@@ -55,28 +55,22 @@ function Register() {
       }
       else{
         dispatch({ type: SET_ALERTS, payload:{
-          alerts: [
-            ...alerts,
-            {
+          alerts: {
               id: alerts.length,
               type: "warning",
               content: "Please complete the fields."
             }
-          ]
         }})
         setisWaitingRequest(false)
       }
     }
     else{
       dispatch({ type: SET_ALERTS, payload:{
-        alerts: [
-          ...alerts,
-          {
+        alerts: {
             id: alerts.length,
             type: "warning",
             content: "Please agree with the Terms and Conditions."
           }
-        ]
       }})
       setisWaitingRequest(false)
     }

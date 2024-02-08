@@ -30,14 +30,11 @@ function Login() {
     else{
       setisWaitingRequest(false)
       dispatch({ type: SET_ALERTS, payload:{
-        alerts: [
-          ...alerts,
-          {
+        alerts: {
             id: alerts.length,
             type: "warning",
             content: "Please complete the field."
           }
-        ]
       }})
     }
   }

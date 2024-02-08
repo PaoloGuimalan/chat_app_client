@@ -28,28 +28,22 @@ function Verification() {
       }
       else{
         dispatch({ type: SET_ALERTS, payload:{
-            alerts: [
-              ...alerts,
-              {
+            alerts: {
                 id: alerts.length,
                 type: "warning",
                 content: "Please complete your verification code."
               }
-            ]
         }})
         setisWaitingRequest(false)
       }
     }
     else{
       dispatch({ type: SET_ALERTS, payload:{
-        alerts: [
-          ...alerts,
-          {
+        alerts: {
             id: alerts.length,
             type: "warning",
             content: "Please input your verification code."
           }
-        ]
       }})
       setisWaitingRequest(false)
     }
