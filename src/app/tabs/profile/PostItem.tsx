@@ -1,5 +1,5 @@
 // import React from 'react'
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import DefaultProfile from '../../../assets/imgs/default.png'
 import { BiLike } from 'react-icons/bi';
 import { LiaComment } from "react-icons/lia";
@@ -10,11 +10,15 @@ import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from 'react-responsive-carousel';
+import Modal from '@/app/reusables/Modal';
+import { IoMdClose } from 'react-icons/io';
 
 function PostItem({ mp }: any) {
 
   const authentication : AuthenticationInterface = useSelector((state: any) => state.authentication);
   const navigate = useNavigate();
+
+  const [togglePostCarousel, settogglePostCarousel] = useState<boolean>(false);
 
   const dateposted = new Date(mp.dateposted * 1000);
   const textRef = useRef<HTMLSpanElement | null>(null);
@@ -58,25 +62,70 @@ function PostItem({ mp }: any) {
             <span ref={textRef} className='tw-text-[14px] tw-text-left c1'>{mp.content.data}</span>
           </div>
           {mp.content.references.length > 0 && (
-            <div className='tw-bg-black tw-w-[calc(100%+40px)]'>
-              <Carousel className='tw-bg-black' showIndicators={false} showThumbs={false}>
-                {mp.content.references.map((mp: any) => {
+            <div className='tw-bg-white tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px]'> { /**tw-bg-black*/}
+              {mp.content.references.map((mp: any, i: number) => {
+                if(i <= 3){
                   if(mp.referenceMediaType.includes("image")){
                     return(
-                      <div key={mp.referenceID}>
-                        <img src={mp.reference} className="tw-w-full tw-h-[450px] tw-object-cover"/>
+                      <div key={mp.referenceID} className='tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
+                        <img src={mp.reference} className="tw-w-full tw-h-full tw-object-cover"/>
                       </div>
                     )
                   }
                   else if(mp.referenceMediaType.includes("video")){
                     return(
-                      <div key={mp.referenceID}>
-                        <video controls src={mp.reference} className="tw-w-full tw-h-[450px]"/>
+                      <div key={mp.referenceID} className='tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
+                        <video controls src={mp.reference} className="tw-w-full tw-h-full"/>
                       </div>
                     )
                   }
-                })}
-              </Carousel>
+                }
+              })}
+              {togglePostCarousel && (
+                <Modal component={
+                  <div className='tw-bg-white tw-rounded-[7px] tw-w-[95%] tw-max-w-[600px] tw-h-[95%] tw-max-h-[700px]'>
+                    <div className="tw-w-[calc(100%-22px)] tw-p-[10px] tw-pl-[12px] tw-pr-[10px] tw-pt-[10px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
+                      <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1 tw-font-Inter">Post</span>
+                      <button onClick={() => { settogglePostCarousel(false) }} className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer">
+                        <IoMdClose style={{ fontSize: "17px" }} />
+                      </button>
+                    </div>
+                    <Carousel className='tw-bg-black tw-w-full tw-h-[calc(100%-55px)]' showIndicators={false} showThumbs={false}>
+                      {mp.content.references.map((mp: any) => {
+                        if(mp.referenceMediaType.includes("image")){
+                          return(
+                            <div key={mp.referenceID} className='tw-h-full tw-bg-black'>
+                              <img src={mp.reference} className="tw-w-full tw-h-full tw-object-contain"/>
+                            </div>
+                          )
+                        }
+                        else if(mp.referenceMediaType.includes("video")){
+                          return(
+                            <div key={mp.referenceID} className='tw-h-full tw-max-h-[700px] tw-bg-black'>
+                              <video controls src={mp.reference} className="tw-w-full tw-h-full"/>
+                            </div>
+                          )
+                        }
+                      })}
+                    </Carousel>
+                    <div className='tw-h-[15px]'/>
+                  </div>
+                } />
+              )}
+              {mp.content.references.length > 3 && (
+                <div onClick={() => { settogglePostCarousel(true) }} className='tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[200px]'>
+                  <div className='tw-cursor-pointer tw-select-none tw-relative tw-h-full tw-w-full tw-bg-black tw-opacity-[0.8] tw-top-0 tw-left-0 tw-z-[1] tw-flex tw-items-center tw-justify-center'>
+                    <div>
+                      <span className='tw-text-white tw-font-Inter tw-font-semibold tw-text-[40px]'>+ {mp.content.references.length - 4}</span>
+                    </div>
+                  </div>
+                  {mp.content.references[4].referenceMediaType === "image" ? (
+                    <img src={mp.content.references[4].reference} className="tw-w-full tw-h-full tw--ml-[100%]"/>
+                  ) : (
+                    <video src={mp.content.references[4].reference} className="tw-w-full tw-h-full tw--ml-[100%]"/>
+                  )}
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -2793,6 +2793,13 @@ input:checked + .slider:before {
     color: #888;
 }
 
+.carousel-wrapper,
+.carousel,
+.carousel > .slider-wrapper,
+.carousel > .slider-wrapper > .slider {
+  height: 100%;
+}
+
 /* width */
 #div_conversation_content::-webkit-scrollbar {
     width: 10px;

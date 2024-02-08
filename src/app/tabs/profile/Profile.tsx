@@ -174,7 +174,7 @@ function Profile() {
                                 }} className="tw-font-Inter" placeholder={profileInfo.userID === authentication.user.userID ? "Share your thoughts..." : `Write on ${profileInfo.fullname.firstName}'s wall...`} id='input_feed_box' />
                             </div>
                             <div id='div_btn_image_container'>
-                                <button id='btn_image_feed' disabled={true}>
+                                <button onClick={() => { settoggleNewPostModal(true) }} id='btn_image_feed'>
                                     <FcAddImage style={{fontSize: "35px"}} />
                                 </button>
                             </div>
