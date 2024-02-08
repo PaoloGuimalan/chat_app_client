@@ -149,13 +149,24 @@ const SSENotificationsTRequest = (dispatch: Dispatch<any>, currentAlertState: an
                             content: decodedResult.conversationslist[0].content
                         };
 
-                        if(!document.hasFocus()){
-                            if(Notification.permission === "granted"){
-                                new Notification(`${NativeNotificationAlert.from}`, {
-                                    body: NativeNotificationAlert.content,
-                                    icon: chatterloop_icon
-                                });
+                        try{
+                            if(!document.hasFocus()){
+                                if(Notification.permission === "granted"){
+                                    new Notification(`${NativeNotificationAlert.from}`, {
+                                        body: NativeNotificationAlert.content,
+                                        icon: chatterloop_icon
+                                    });
+                                }
                             }
+                        }
+                        catch(ex){
+                            dispatch({ type: SET_ALERTS, payload:{
+                                alerts: {
+                                    id: currentAlertState.length,
+                                    type: "info",
+                                    content: "Notification permission is only available for Windows and Android"
+                                  }
+                            }})
                         }
 
                         // if(Notification.permission === "granted"){
