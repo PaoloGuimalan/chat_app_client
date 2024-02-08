@@ -5,8 +5,9 @@ import MessageOptions from "../MessageOptions"
 import { IoDocumentOutline } from "react-icons/io5"
 import { ContentHandlerProp } from "@/reusables/vars/props"
 import { MdOutlineAddReaction } from "react-icons/md"
-import { useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import EmojiPickerHandler from "./EmojiPickerHandler"
+import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal"
 
 function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImageScreen, scrollBottom }: ContentHandlerProp) {
 
@@ -14,6 +15,10 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
 
     const [toggleEmojiPicker, settoggleEmojiPicker] = useState<boolean>(false);
     const [reactions, setreactions] = useState<any[]>(cnvs.reactions ? cnvs.reactions : []);
+
+    const [toggleReactions, settoggleReactions] = useState<boolean>(false);
+
+    const reactionsWithInfoVar = useMemo(() => reactions.map(t1 => ({...t1, ...cnvs.reactionsWithInfo.find((t2: any) => t2.userID === t1.userID)})), [reactions, cnvs.reactions]);
 
     useEffect(() => {
         setreactions(cnvs.reactions ? cnvs.reactions : []);
@@ -148,9 +153,12 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                     {toggleEmojiPicker && (
                                         <EmojiPickerHandler conversationID={cnvs.conversationID} messageID={cnvs.messageID} fromSender={cnvs.sender == authentication.user.userID? true : false} settoggleEmojiPicker={settoggleEmojiPicker} setreactions={setreactions} />
                                     )}
-                                    <div className="tw-select-none tw-cursor-pointer tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
+                                    <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
+                                        {toggleReactions && (
+                                            <ReactionsModal reactions={reactionsWithInfoVar} onclose={settoggleReactions} />
+                                        )}
                                         {cnvs.sender === authentication.user.userID && (
-                                            <div className="tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden">
+                                            <div onClick={() => { settoggleReactions(true) }} className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden">
                                                 {reactions.map((mp: any) => {
                                                     return(mp.emoji);
                                                 })}
@@ -168,7 +176,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                             <span className="tw-text-[10px] tw-w-fit" style={{ whiteSpace: "nowrap" }}>+{reactions.length - 4}</span>
                                         )}
                                         {cnvs.sender !== authentication.user.userID && (
-                                            <div className="tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden">
+                                            <div onClick={() => { settoggleReactions(true) }} className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden">
                                                 {reactions.map((mp: any) => {
                                                     return(mp.emoji);
                                                 })}

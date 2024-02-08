@@ -2332,6 +2332,12 @@ input:checked + .slider:before {
     text-overflow: ellipsis;
 }
 
+.span_userdetails_ellipsis{
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
 .span_userdetails_name:last-of-type{
     font-size: 12px;
     font-weight: normal;

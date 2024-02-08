@@ -87,11 +87,11 @@ function Messages() {
         <div id='div_messages_options'>
           <motion.button id='btn_create_gc' onClick={() => { setisCreateGCToggle(true) }}>
             <BiGroup style={{ fontSize: "20px" }} />
-            <span id='span_btn_label'>Create Group Chat</span>
+            <span id='span_btn_label' className='tw-font-Inter'>Create Group Chat</span>
           </motion.button>
           <motion.button id='btn_create_server' onClick={() => {  }}>
             <TbServer2 style={{ fontSize: "20px" }} />
-            <span id='span_btn_label'>Create Server</span>
+            <span id='span_btn_label' className='tw-font-Inter'>Create Server</span>
           </motion.button>
         </div>
         {isLoading? (
@@ -174,7 +174,7 @@ function Messages() {
                           </div>
                         </div>
                         <div id='div_messages_list_name'>
-                          <span className='span_messages_list_name tw-flex tw-items-end tw-gap-[3px]'>{msgslst.groupdetails.groupName} <BiGroup style={{ fontSize: "20px" }} /></span>
+                          <span className='span_messages_list_name tw-flex tw-items-end tw-gap-[3px] tw-text-[#1c7DEF]'>{msgslst.groupdetails.groupName} <BiGroup style={{ fontSize: "20px", color: "#1c7DEF" }} /></span>
                           <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you: ": ""}
                             {
                               msgslst.messageType == "text"? msgslst.content : !msgslst.messageType.includes("image") && !msgslst.messageType.includes("video") && !msgslst.messageType.includes("audio") ? `Sent ${messageTypeChecker["any"]}` : `Sent ${messageTypeChecker[msgslst.messageType.split("/")[0]]}`
