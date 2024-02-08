@@ -98,10 +98,15 @@ function Home() {
   }
 
   const initPushNotification = () => {
-    if(Notification.permission === "denied" || Notification.permission === "default"){
-      Notification.requestPermission().then((_) => {
-        //check if granted after allow
-      })
+    try{
+      if(Notification.permission === "denied" || Notification.permission === "default"){
+        Notification.requestPermission().then((_) => {
+          //check if granted after allow
+        })
+      }
+    }
+    catch(ex){
+      console.log(ex)
     }
   }
 
