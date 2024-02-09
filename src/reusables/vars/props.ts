@@ -1,3 +1,5 @@
+import { ConversationInfoInterface } from "./interfaces";
+
 export interface MessageOptionsProp{
     messageID: string;
     conversationID: string;
@@ -12,4 +14,9 @@ export interface ContentHandlerProp{
     setisReplying: (data: any) => void; 
     setfullImageScreen: (data: any) => void; 
     scrollBottom : () => void;
+}
+
+export interface ConversationInfoModalProp{
+    conversationinfo: ConversationInfoInterface,
+    onclose: any
 }

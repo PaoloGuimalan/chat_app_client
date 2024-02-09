@@ -10,13 +10,15 @@ import { IoDocumentOutline, IoSend } from 'react-icons/io5'
 import { MdAudiotrack } from "react-icons/md";
 import { AiOutlineClose } from 'react-icons/ai';
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
-import { CallRequest, InitConversationRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
+import { CallRequest, ConversationInfoRequest, InitConversationRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { importData, importNonImageData, isUserOnline, makeid } from '../../../reusables/hooks/reusable'
 import { MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST, SET_MUTATE_ALERTS, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
 import { useNavigate } from 'react-router-dom'
 import ContentHandler from './partials/ContentHandler'
+import ConversationInfoModal from '@/app/widgets/modals/Conversation/ConversationInfoModal'
+import { ConversationInfoInterface } from '@/reusables/vars/interfaces'
 
 function Conversation({ conversationsetup }: any) {
 
@@ -48,6 +50,9 @@ function Conversation({ conversationsetup }: any) {
 
   const [range, setrange] = useState<number>(20);
 
+  const [toggleConversationInfoModal, settoggleConversationInfoModal] = useState<boolean>(false);
+  const [conversationinfo, setconversationinfo] = useState<ConversationInfoInterface | null>(null);
+
   const [fullImageScreen, setfullImageScreen] = useState<any>({
     preview: "",
     toggle: false,
@@ -66,6 +71,23 @@ function Conversation({ conversationsetup }: any) {
 //         }
 //     }
 //   },[conversationsetup, messageslist, divcontentRef, isLoading])
+
+  const ConversationInfoProcess = () => {
+    ConversationInfoRequest({
+        conversationID: conversationsetup.conversationid,
+        type: conversationsetup.type
+    }).then((response: any) => {
+        if(response){
+            setconversationinfo(response.data)
+        }
+    }).catch((err) => {
+        console.log(err);
+    })
+  }
+
+  useEffect(() => {
+    ConversationInfoProcess();
+  },[conversationsetup]);
 
   const scrollBottom = () => {
     var items = document.querySelectorAll(".div_messages_result");
@@ -232,6 +254,7 @@ function Conversation({ conversationsetup }: any) {
   useEffect(() => {
     setisLoading(true);
     setconversationList([]);
+    setconversationinfo(null);
     setrange(20);
     dispatch({
         type: SET_PENDING_MESSAGES_LIST,
@@ -532,6 +555,9 @@ function Conversation({ conversationsetup }: any) {
                         </div>
                     </div>
                     <div id='div_conversation_header_navigations'>
+                        {toggleConversationInfoModal && conversationinfo && (
+                            <ConversationInfoModal conversationinfo={conversationinfo} onclose={settoggleConversationInfoModal} />
+                        )}
                         <motion.button
                         // disabled={true}
                         disabled={
@@ -562,7 +588,9 @@ function Conversation({ conversationsetup }: any) {
                         whileHover={{
                             backgroundColor: "#e6e6e6"
                         }}
-                        className='btn_conversation_header_navigation'><FcInfo style={{fontSize: "25px"}} /></motion.button>
+                        className='btn_conversation_header_navigation' disabled={conversationinfo ? false : true} onClick={() => { 
+                            settoggleConversationInfoModal(!toggleConversationInfoModal) 
+                        }}><FcInfo style={{fontSize: "25px"}} /></motion.button>
                     </div>
                 </div>
                 {isLoading? (

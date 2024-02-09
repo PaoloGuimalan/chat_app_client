@@ -748,6 +748,27 @@ const ReactToMessageRequest = async (params: any) => {
     })
 }
 
+const ConversationInfoRequest = async (params: any) => {
+    const conversationID = params.conversationID;
+    const type = params.type;
+
+    return await Axios.get(`${API}/m/conversationinfo/${conversationID}/${type}`, {
+        headers: {
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            const decodedResult: any = jwt_decode(response.data.result)
+            return decodedResult?.data;
+        }
+        else{
+            return false;
+        }
+    }).catch((err) => {
+        throw new Error(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -774,5 +795,6 @@ export {
     CreatePostRequest,
     GetPostRequest,
     DeleteMessageRequest,
-    ReactToMessageRequest
+    ReactToMessageRequest,
+    ConversationInfoRequest
 }

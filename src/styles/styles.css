@@ -1269,6 +1269,11 @@
     border: solid 1px rgb(210, 210, 210);
 }
 
+.div_conversationinfomodalimg{
+    background-color: rgb(210, 210, 210);
+    border: solid 1px rgb(210, 210, 210);
+}
+
 .div_contact_fullname_container{
     background-color: transparent;
     display: flex;

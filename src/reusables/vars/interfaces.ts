@@ -42,3 +42,65 @@ export interface ProfilePostState{
     posts: any[],
     totalposts: number
 }
+
+export interface UsersInConversation{
+    userID: string,
+    _id: any
+}
+
+export interface ConversationDetails{
+    _id: any,
+    groupID: string,
+    groupName: string,
+    profile?: string,
+    dateCreated: { date: string, time: string },
+    createdBy: string,
+    type: string,
+    privacy?: boolean,
+    __v: number
+}
+
+export interface UserWithInfoConversationInterface{
+    _id: any,
+    userID: string,
+    fullname: {
+        firstName: string,
+        middleName: string,
+        lastName: string
+    },
+    profile?: string,
+    isActivated: boolean,
+    isVerified: boolean,
+    __v: 0
+}
+
+export interface ConversationFilesInterface{
+    _id: any,
+    fileID: string,     
+    foreignID: any[],
+    fileDetails: {
+        data: string
+    },
+    fileOrigin: string,
+    fileType: string,
+    action: string,
+    dateUploaded: {
+        time: string,
+        date: string
+    },
+    __v: 0
+}
+
+export interface ConversationInfoInterface{
+    _id: any,
+    contactID: string,
+    actionBy: string,
+    actionDate: { date: string, time: string },
+    status: boolean,
+    type: string,
+    users: UsersInConversation[],
+    __v: any,
+    conversationInfo?: ConversationDetails,
+    usersWithInfo: UserWithInfoConversationInterface[],
+    conversationfiles: ConversationFilesInterface[]
+}

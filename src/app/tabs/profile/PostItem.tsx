@@ -63,19 +63,28 @@ function PostItem({ mp }: any) {
           </div>
           {mp.content.references.length > 0 && (
             <div className='tw-bg-white tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px]'> { /**tw-bg-black*/}
-              {mp.content.references.map((mp: any, i: number) => {
+              {mp.content.references.map((mpu: any, i: number) => {
                 if(i <= 3){
-                  if(mp.referenceMediaType.includes("image")){
-                    return(
-                      <div key={mp.referenceID} className='tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
-                        <img src={mp.reference} className="tw-w-full tw-h-full tw-object-cover"/>
-                      </div>
-                    )
+                  if(mpu.referenceMediaType.includes("image")){
+                    if(mp.content.references.length === 1){
+                      return(
+                        <div key={mpu.referenceID} className='tw-flex tw-max-h-[500px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
+                          <img src={mpu.reference} className="tw-w-full tw-h-full tw-object-contain"/>
+                        </div>
+                      )
+                    }
+                    else{
+                      return(
+                        <div key={mpu.referenceID} className='tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
+                          <img src={mpu.reference} className="tw-w-full tw-h-full tw-object-cover"/>
+                        </div>
+                      )
+                    }
                   }
-                  else if(mp.referenceMediaType.includes("video")){
+                  else if(mpu.referenceMediaType.includes("video")){
                     return(
-                      <div key={mp.referenceID} className='tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
-                        <video controls src={mp.reference} className="tw-w-full tw-h-full"/>
+                      <div key={mpu.referenceID} className='tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
+                        <video controls src={mpu.reference} className="tw-w-full tw-h-full"/>
                       </div>
                     )
                   }

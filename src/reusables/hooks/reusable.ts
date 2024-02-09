@@ -98,7 +98,7 @@ function formattedDateToWords(formattedDate: string){
 
     const mL = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
 
-    const finalDateToWords = `${ordinal_suffix_of(parseInt(day))} of ${mL[parseInt(month)]} ${year}`
+    const finalDateToWords = `${ordinal_suffix_of(parseInt(day))} of ${mL[parseInt(month) - 1]} ${year}`
 
     return finalDateToWords;
 }
