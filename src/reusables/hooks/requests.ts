@@ -539,7 +539,7 @@ const SeenMessageRequest = async (params: any) => {
     })
 }
 
-const InitConversationRequest = (params: any, dispatch: Dispatch<any>, settotalMessages: any, setisLoading: any, scrollBottom: any) => {
+const InitConversationRequest = (params: any, dispatch: Dispatch<any>, setpendingIDs: any, settotalMessages: any, setisLoading: any, scrollBottom: any) => {
     const conversationID = params.conversationID;
     const range = params.range;
     // const receivers = params.receivers
@@ -554,6 +554,7 @@ const InitConversationRequest = (params: any, dispatch: Dispatch<any>, settotalM
             const decodedResult: any = jwt_decode(response.data.result)
             setisLoading(false)
             dispatch(decodedResult.messages.reverse())
+            setpendingIDs(decodedResult.pendingIDs)
             settotalMessages(decodedResult.total);
             scrollBottom()
             
