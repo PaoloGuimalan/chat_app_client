@@ -35,7 +35,6 @@ function Conversation({ conversationsetup }: any) {
   const [messageValue, setmessageValue] = useState<string>("");
   const [conversationList, setconversationList] = useState<any[]>([])
   const [totalMessages, settotalMessages] = useState<number>(0);
-  const [pendingIDs, setpendingIDs] = useState<any[]>([]);
   const [isLoading, setisLoading] = useState<boolean>(true);
   const [autoScroll, setautoScroll] = useState<boolean>(true)
   const [isReplying, setisReplying] = useState<any>({
@@ -233,9 +232,16 @@ function Conversation({ conversationsetup }: any) {
   useEffect(() => {
     setisLoading(true);
     setconversationList([]);
-    setpendingIDs([]);
     setrange(20);
+    dispatch({
+        type: SET_PENDING_MESSAGES_LIST,
+        payload: {
+            pendingmessageslist: []
+        }
+    })
   },[conversationsetup])
+
+  console.log(pendingmessageslist)
 
   useEffect(() => {
     setrange((prev) => prev + 1);
@@ -259,7 +265,7 @@ function Conversation({ conversationsetup }: any) {
         receivers: conversationsetup.type == "single"? [
             conversationsetup.userdetails.userID
         ] : conversationsetup.groupdetails.receivers
-    }, setconversationList, setpendingIDs, settotalMessages, setisLoading, scrollBottom)
+    }, setconversationList, settotalMessages, setisLoading, scrollBottom)
   },[range, conversationsetup])
 
   const sendImageProcess = () => {
@@ -588,7 +594,7 @@ function Conversation({ conversationsetup }: any) {
                         {pendingmessageslist.reverse().filter((flt: any) => 
                             flt.conversationID == conversationsetup.conversationid 
                             && !flt.status 
-                            && !pendingIDs.includes(flt.pendingID)
+                            && !conversationList.map((mp) => mp.pendingID).includes(flt.pendingID)
                         ).map((cnvs: any, i: number) => {
                             if(cnvs.type == "text"){
                                 return(
