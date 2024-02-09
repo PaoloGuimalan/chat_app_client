@@ -241,8 +241,6 @@ function Conversation({ conversationsetup }: any) {
     })
   },[conversationsetup])
 
-  console.log(pendingmessageslist)
-
   useEffect(() => {
     setrange((prev) => prev + 1);
   },[messageslist]) //conversationsetup
