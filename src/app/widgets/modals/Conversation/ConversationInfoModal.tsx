@@ -8,6 +8,7 @@ import { useSelector } from "react-redux";
 import { AuthenticationInterface, ConversationFilesInterface, UserWithInfoConversationInterface } from "@/reusables/vars/interfaces";
 import { useState } from "react";
 import { motion } from "framer-motion";
+import { IoDocumentOutline } from "react-icons/io5";
 
 function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoModalProp) {
 
@@ -15,6 +16,7 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
   const navigate = useNavigate();
 
   const [toggleMemberDropper, settoggleMemberDropper] = useState<boolean>(false);
+  const [toggledfiles, settoggledfiles] = useState<string>("media");
 
   return (
     <Modal component={
@@ -78,17 +80,78 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
                 </div>
                 <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-p-[10px] tw-pr-[0px] tw-pt-[0px]">
                     <div className="tw-w-full tw-flex tw-items-center tw-h-[30px] tw-pb-[5px]">
-                        <button className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Media</button>
+                        <motion.button onClick={() => { settoggledfiles("media") }} 
+                        animate={{ 
+                            borderColor: toggledfiles === "media" ? "black" : "transparent"
+                        }} 
+                        className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Media</motion.button>
+                        <motion.button onClick={() => { settoggledfiles("audio") }} 
+                        animate={{ 
+                            borderColor: toggledfiles === "audio" ? "black" : "transparent"
+                        }} 
+                        className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Audio</motion.button>
+                        <motion.button onClick={() => { settoggledfiles("files") }} 
+                        animate={{ 
+                            borderColor: toggledfiles === "files" ? "black" : "transparent"
+                        }} 
+                        className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Files</motion.button>
                     </div>
-                    <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[2px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                        {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
-                            if(mp.fileDetails.data){
-                                return(
-                                    <img key={i} src={mp.fileDetails.data}  className="tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black" />
-                                )
-                            }
-                        })}
-                    </div>
+                    {toggledfiles === "media" && (
+                        <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[2px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
+                            {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
+                                if(mp.fileDetails.data){
+                                    if(mp.fileType.includes("image")){
+                                        return(
+                                            <img key={i} src={mp.fileDetails.data}  className="tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black" />
+                                        )
+                                    }
+                                    else if(mp.fileType.includes("video")){
+                                        // console.log(mp.fileDetails.data.split("%%")[0])
+                                        return(
+                                            <video controls key={i} src={mp.fileDetails.data.split("%%%")[0].replace("###", "%23%23%23")}  className="tw-w-full tw-flex tw-flex-1 tw-max-h-[200px] tw-object-cover tw-bg-black" />
+                                        )
+                                    }
+                                }
+                            })}
+                        </div>
+                    )}
+                    {toggledfiles === "audio" && (
+                        <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[5px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
+                            {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
+                                if(mp.fileDetails.data){
+                                    if(mp.fileType.includes("audio")){
+                                        return(
+                                            <div key={i} className='tw-w-full'
+                                            title={`${mp.dateUploaded.date} ${mp.dateUploaded.time}`}>
+                                                <audio src={mp.fileDetails.data.split("%%%")[0].replace("###", "%23%23%23")} controls className='tw-w-full tw-border-[7px]' />
+                                            </div>
+                                        )
+                                    }
+                                }
+                            })}
+                        </div>
+                    )}
+                    {toggledfiles === "files" && (
+                        <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[5px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
+                            {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
+                                if(mp.fileDetails.data){
+                                    if(!mp.fileType.includes("image") && !mp.fileType.includes("video") && !mp.fileType.includes("audio")){
+                                        return(
+                                            <div key={i} onClick={() => {
+                                                window.open(mp.fileDetails.data.split("%%%")[0].replace("###", "%23%23%23"), '_blank')
+                                            }} className='tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]'
+                                            title={`${mp.dateUploaded.date} ${mp.dateUploaded.time}`}>
+                                                <div className='tw-w-full tw-max-w-[40px]'>
+                                                    <IoDocumentOutline style={{ fontSize: "40px" }} />
+                                                </div>
+                                                <span className='tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left'>{mp.fileDetails.data.split("%%%")[1]}</span>
+                                            </div>
+                                        )
+                                    }
+                                }
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
           ) : (
@@ -133,17 +196,78 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
                 </div>
                 <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-p-[10px] tw-pr-[0px] tw-pt-[0px]">
                     <div className="tw-w-full tw-flex tw-items-center tw-h-[30px] tw-pb-[5px]">
-                        <button className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Media</button>
+                        <motion.button onClick={() => { settoggledfiles("media") }} 
+                        animate={{ 
+                            borderColor: toggledfiles === "media" ? "black" : "transparent"
+                        }} 
+                        className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Media</motion.button>
+                        <motion.button onClick={() => { settoggledfiles("audio") }} 
+                        animate={{ 
+                            borderColor: toggledfiles === "audio" ? "black" : "transparent"
+                        }} 
+                        className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Audio</motion.button>
+                        <motion.button onClick={() => { settoggledfiles("files") }} 
+                        animate={{ 
+                            borderColor: toggledfiles === "files" ? "black" : "transparent"
+                        }} 
+                        className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Files</motion.button>
                     </div>
-                    <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[2px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                        {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
-                            if(mp.fileDetails.data){
-                                return(
-                                    <img key={i} src={mp.fileDetails.data}  className="tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black" />
-                                )
-                            }
-                        })}
-                    </div>
+                    {toggledfiles === "media" && (
+                        <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[2px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
+                            {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
+                                if(mp.fileDetails.data){
+                                    if(mp.fileType.includes("image")){
+                                        return(
+                                            <img key={i} src={mp.fileDetails.data}  className="tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black" />
+                                        )
+                                    }
+                                    else if(mp.fileType.includes("video")){
+                                        // console.log(mp.fileDetails.data.split("%%")[0])
+                                        return(
+                                            <video controls key={i} src={mp.fileDetails.data.split("%%%")[0].replace("###", "%23%23%23")}  className="tw-w-full tw-flex tw-flex-1 tw-max-h-[200px] tw-object-cover tw-bg-black" />
+                                        )
+                                    }
+                                }
+                            })}
+                        </div>
+                    )}
+                    {toggledfiles === "audio" && (
+                        <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[5px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
+                            {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
+                                if(mp.fileDetails.data){
+                                    if(mp.fileType.includes("audio")){
+                                        return(
+                                            <div key={i} className='tw-w-full'
+                                            title={`${mp.dateUploaded.date} ${mp.dateUploaded.time}`}>
+                                                <audio src={mp.fileDetails.data.split("%%%")[0].replace("###", "%23%23%23")} controls className='tw-w-full tw-border-[7px]' />
+                                            </div>
+                                        )
+                                    }
+                                }
+                            })}
+                        </div>
+                    )}
+                    {toggledfiles === "files" && (
+                        <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[5px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
+                            {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
+                                if(mp.fileDetails.data){
+                                    if(!mp.fileType.includes("image") && !mp.fileType.includes("video") && !mp.fileType.includes("audio")){
+                                        return(
+                                            <div key={i} onClick={() => {
+                                                window.open(mp.fileDetails.data.split("%%%")[0].replace("###", "%23%23%23"), '_blank')
+                                            }} className='tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]'
+                                            title={`${mp.dateUploaded.date} ${mp.dateUploaded.time}`}>
+                                                <div className='tw-w-full tw-max-w-[40px]'>
+                                                    <IoDocumentOutline style={{ fontSize: "40px" }} />
+                                                </div>
+                                                <span className='tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left'>{mp.fileDetails.data.split("%%%")[1]}</span>
+                                            </div>
+                                        )
+                                    }
+                                }
+                            })}
+                        </div>
+                    )}
                 </div>
             </div>
           ) }

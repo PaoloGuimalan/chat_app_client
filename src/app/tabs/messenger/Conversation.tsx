@@ -609,7 +609,9 @@ function Conversation({ conversationsetup }: any) {
                     </div>
                 ) : (
                     <div id='div_conversation_content' ref={divcontentRef} onScroll={(e) => {
-                        if((e.currentTarget.scrollHeight - e.currentTarget.offsetHeight) - 100 > e.currentTarget.scrollTop){
+                        // console.log((e.currentTarget.scrollHeight - e.currentTarget.offsetHeight) - 100, e.currentTarget.scrollTop) OLD
+                        // console.log(0 - 100, e.currentTarget.scrollTop) NEW
+                        if(0 - 100 > e.currentTarget.scrollTop){
                             setautoScroll(false)
                         }
                         else{
