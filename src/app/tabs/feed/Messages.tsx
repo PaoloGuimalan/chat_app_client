@@ -140,7 +140,7 @@ function Messages() {
                               <span className='span_messages_list_name'>{msgsurs.fullname.firstName}{msgsurs.fullname.middleName == "N/A"? "" : ` ${msgsurs.fullname.middleName}`} {msgsurs.fullname.lastName}</span>
                               <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you: ": ""} 
                                 {
-                                  msgslst.messageType == "text"? msgslst.content : !msgslst.messageType.includes("image") && !msgslst.messageType.includes("video") && !msgslst.messageType.includes("audio") ? `Sent ${messageTypeChecker["any"]}` : `Sent ${messageTypeChecker[msgslst.messageType.split("/")[0]]}`
+                                  msgslst.messageType === "text" || msgslst.messageType === "notif"? msgslst.content : !msgslst.messageType.includes("image") && !msgslst.messageType.includes("video") && !msgslst.messageType.includes("audio") ? `Sent ${messageTypeChecker["any"]}` : `Sent ${messageTypeChecker[msgslst.messageType.split("/")[0]]}`
                                 }
                               </span>
                               <span className='span_messages_list_name'>{msgslst.messageDate.date} . {msgslst.messageDate.time}</span>
@@ -177,7 +177,7 @@ function Messages() {
                           <span className='span_messages_list_name tw-flex tw-items-end tw-gap-[3px] tw-text-[#1c7DEF]'>{msgslst.groupdetails.groupName} <BiGroup style={{ fontSize: "20px", color: "#1c7DEF" }} /></span>
                           <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you: ": ""}
                             {
-                              msgslst.messageType == "text"? msgslst.content : !msgslst.messageType.includes("image") && !msgslst.messageType.includes("video") && !msgslst.messageType.includes("audio") ? `Sent ${messageTypeChecker["any"]}` : `Sent ${messageTypeChecker[msgslst.messageType.split("/")[0]]}`
+                              msgslst.messageType === "text" || msgslst.messageType === "notif" ? msgslst.content : !msgslst.messageType.includes("image") && !msgslst.messageType.includes("video") && !msgslst.messageType.includes("audio") ? `Sent ${messageTypeChecker["any"]}` : `Sent ${messageTypeChecker[msgslst.messageType.split("/")[0]]}`
                             }
                           </span>
                           <span className='span_messages_list_name'>{msgslst.messageDate.date} . {msgslst.messageDate.time}</span>
