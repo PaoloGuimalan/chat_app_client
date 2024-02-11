@@ -34,7 +34,10 @@ const SSENotificationsTRequest = (dispatch: Dispatch<any>, currentAlertState: an
                 audioMessage.play();
 
                 dispatch({ type: SET_NOTIFICATIONS_LIST, payload: {
-                    notficationslist: decodedResult.notifications
+                    notficationslist: {
+                        list: decodedResult.notifications,
+                        totalunread: decodedResult.totalunread
+                    }
                 } })
 
                 dispatch({ type: SET_ALERTS, payload:{
@@ -44,6 +47,23 @@ const SSENotificationsTRequest = (dispatch: Dispatch<any>, currentAlertState: an
                         content: parsedresponse.message
                       }
                 }})
+            }
+        }
+    })
+
+    sseNtfsSource.addEventListener('notifications_reload', (e: any) => {
+        const parsedresponse = JSON.parse(e.data)
+        // console.log(parsedresponse)
+        if(parsedresponse.auth){
+            if(parsedresponse.status){
+                const decodedResult: any = jwt_decode(parsedresponse.result)
+
+                dispatch({ type: SET_NOTIFICATIONS_LIST, payload: {
+                    notficationslist: {
+                        list: decodedResult.notifications,
+                        totalunread: decodedResult.totalunread
+                    }
+                } })
             }
         }
     })

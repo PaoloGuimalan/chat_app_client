@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { AiOutlineSearch, AiOutlineHome, AiOutlineMessage, AiOutlineBell, AiOutlineLogout } from 'react-icons/ai'
 import { FiMap } from 'react-icons/fi'
 import { RiContactsBook2Line } from 'react-icons/ri'
-import { ActiveContactsRequest, InitConversationListRequest, LogoutRequest } from '../../reusables/hooks/requests'
+import { ActiveContactsRequest, InitConversationListRequest, LogoutRequest, NotificationInitRequest } from '../../reusables/hooks/requests'
 import Contacts from '../tabs/feed/Contacts'
 import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
@@ -27,7 +27,8 @@ function Home() {
   const togglerightwidget = useSelector((state: any) => state.togglerightwidget)
   const authentication : AuthenticationInterface = useSelector((state: any) => state.authentication)
   const screensizelistener = useSelector((state: any) => state.screensizelistener)
-  const messageslist = useSelector((state: any) => state.messageslist)
+  const messageslist = useSelector((state: any) => state.messageslist);
+  const notificationslist = useSelector((state: any) => state.notificationslist);
   const alerts = useSelector((state: any) => state.alerts)
   // const [togglerightwidget, settogglerightwidget] = useState("notifs")
 
@@ -92,6 +93,7 @@ function Home() {
   const initEventSources = () => {
     SSENotificationsTRequest(dispatch, alerts, authentication)
     InitConversationListRequest(dispatch, () => {})
+    NotificationInitRequest(dispatch, () => {})
     ActiveContactsRequest(dispatch)
     
     initPushNotification()
@@ -221,7 +223,12 @@ function Home() {
               settogglerightwidget("notifs")
             }
           }}
-          className='btn_navigations'><AiOutlineBell style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
+          className='btn_navigations'>
+            {notificationslist.totalunread > 0 && (
+              <span className='span_icon_counts'>{notificationslist.totalunread}</span>
+           )}
+            <AiOutlineBell style={{fontSize: "25px", color: "#4A4A4A"}} />
+          </motion.button>
           <motion.button
           initial={{
             color: "#4A4A4A"

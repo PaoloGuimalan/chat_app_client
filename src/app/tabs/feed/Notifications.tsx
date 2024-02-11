@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import '../../../styles/styles.css'
 import { AiOutlineBell, AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { useDispatch, useSelector } from 'react-redux'
-import { AcceptContactRequest, DeclineContactRequest, NotificationInitRequest } from '../../../reusables/hooks/requests'
+import { AcceptContactRequest, DeclineContactRequest, NotificationInitRequest, ReadNotificationsRequest } from '../../../reusables/hooks/requests'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
 
@@ -11,15 +11,19 @@ function Notifications() {
   const [isLoading, setisLoading] = useState(true)
   const [isDisabledByRequest, setisDisabledByRequest] = useState(false)
 
-  const notificationslist = useSelector((state: any) => state.notificationslist)
+  const notificationslist = useSelector((state: any) => state.notificationslist);
   const screensizelistener = useSelector((state: any) => state.screensizelistener);
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener)
   const alerts = useSelector((state: any) => state.alerts)
   const dispatch = useDispatch()
 
   useEffect(() => {
-    NotificationInitRequest(dispatch, setisLoading)
+    NotificationInitRequest(dispatch, setisLoading);
   },[])
+
+  useEffect(() => {
+    ReadNotificationsRequest();
+  },[notificationslist.list.length])
 
   const declineRequestProcess = (ntfsType: any, ntfsID: any, refID: any, reverttoUserID: any, revertfromUserID: any) => {
     setisDisabledByRequest(true)
@@ -69,13 +73,13 @@ function Notifications() {
             </motion.div>
         </div>
       ) : (
-        notificationslist.length == 0? (
+        notificationslist.list.length == 0? (
           <div id='div_notifications_list_empty_container'>
             <span className='span_empty_list_label'>No Notifications</span>
           </div>
         ) : (
           <div id='div_notifications_list_container' className='scroller'>
-            {notificationslist.map((ntfs: any, i: number) => {
+            {notificationslist.list.map((ntfs: any, i: number) => {
               return(
                 <motion.div
                 whileHover={{

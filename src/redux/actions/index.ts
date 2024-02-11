@@ -44,7 +44,7 @@ export const setcontactslist = (state = [], action: any) => {
     }
 }
 
-export const setnotificationslist = (state = [], action: any) => {
+export const setnotificationslist = (state = { list: [], totalunread: 0 }, action: any) => {
     switch(action.type){
         case SET_NOTIFICATIONS_LIST:
             return action.payload.notficationslist;
@@ -71,7 +71,7 @@ export const setconversationsetup = (state = conversationsetupstate, action: any
     }
 }
 
-export const settogglerightwidget = (state = "notifs", action: any) => {
+export const settogglerightwidget = (state = "messages", action: any) => { //notifs
     switch(action.type){
         case SET_TOGGLE_RIGHT_WIDGET:
             return action.payload.togglerightwidget;

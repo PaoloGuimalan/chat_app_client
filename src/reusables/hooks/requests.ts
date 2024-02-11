@@ -321,12 +321,29 @@ const NotificationInitRequest = (dispatch: Dispatch<any>, setisLoading: any) => 
             var decodedResult: any = jwt_decode(response.data.result)
 
             dispatch({ type: SET_NOTIFICATIONS_LIST, payload: {
-                notficationslist: decodedResult.notifications
+                notficationslist: {
+                    list: decodedResult.notifications,
+                    totalunread: decodedResult.totalunread
+                }
             } })
         }
         setisLoading(false)
     }).catch((err) => {
         setisLoading(false)
+        console.log(err)
+    })
+}
+
+const ReadNotificationsRequest = () => {
+    Axios.post(`${API}/u/readnotifications`,{}, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            // OK
+        }
+    }).catch((err) => {
         console.log(err)
     })
 }
@@ -778,6 +795,7 @@ export {
     SearchRequest,
     ContactRequest,
     NotificationInitRequest,
+    ReadNotificationsRequest,
     DeclineContactRequest,
     AcceptContactRequest,
     ContactsListInitRequest,
