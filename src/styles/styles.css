@@ -2744,6 +2744,7 @@ input:checked + .slider:before {
     display: flex;
     justify-content: center;
     align-items: center;
+    z-index: 10;
 }
 
 #div_fip_onblur{

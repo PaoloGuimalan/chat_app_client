@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import '../../../styles/styles.css'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
@@ -10,7 +10,7 @@ import { IoDocumentOutline, IoSend } from 'react-icons/io5'
 import { MdAudiotrack } from "react-icons/md";
 import { AiOutlineClose } from 'react-icons/ai';
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
-import { CallRequest, ConversationInfoRequest, InitConversationRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
+import { CallRequest, ConversationInfoRequest, InitConversationRequest, IsTypingBroadcastRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { importData, importNonImageData, isUserOnline, makeid } from '../../../reusables/hooks/reusable'
@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom'
 import ContentHandler from './partials/ContentHandler'
 import ConversationInfoModal from '@/app/widgets/modals/Conversation/ConversationInfoModal'
 import { ConversationInfoInterface } from '@/reusables/vars/interfaces'
+import IsTypingLoader from './partials/IsTypingLoader'
 
 function Conversation({ conversationsetup }: any) {
 
@@ -30,9 +31,12 @@ function Conversation({ conversationsetup }: any) {
   const screensizelistener = useSelector((state: any) => state.screensizelistener);
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener)
   const callslist = useSelector((state: any) => state.callslist);
-  const activeuserslist = useSelector((state: any) => state.activeuserslist)
+  const activeuserslist = useSelector((state: any) => state.activeuserslist);
+  const istypinglist = useSelector((state: any) => state.istypinglist);
   const activeusersmapper = activeuserslist.map((mp: any) => mp._id);
+
   const activeuserSpecific = conversationsetup.type == "single" && activeuserslist.filter((flt: any) => flt._id == conversationsetup.userdetails.userID);
+  const filteredistypinglist = useMemo(() => istypinglist.filter((flt: any) => flt.conversationID === conversationsetup.conversationid), [conversationsetup, istypinglist]);
 
   const [messageValue, setmessageValue] = useState<string>("");
   const [conversationList, setconversationList] = useState<any[]>([])
@@ -43,6 +47,7 @@ function Conversation({ conversationsetup }: any) {
     isReply: false,
     replyingTo: ""
   })
+  const [isalreadytyping, setisalreadytyping] = useState<boolean>(false);
   const [imgList, setimgList] = useState<any[]>([]);
   const [rawFilesList, setrawFilesList] = useState<any[]>([])
   const [nonImgList, setnonImgList] = useState<any[]>([]);
@@ -63,6 +68,15 @@ function Conversation({ conversationsetup }: any) {
 
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
+  const inputMessageRef = useRef<HTMLInputElement | null>(null);
+
+  useEffect(() => {
+    if(isalreadytyping){
+        setTimeout(() => {
+            setisalreadytyping(false);
+        },5000);
+    }
+  },[isalreadytyping]);
 
 //   useEffect(() => {
 //     if(!isLoading){
@@ -84,6 +98,25 @@ function Conversation({ conversationsetup }: any) {
         console.log(err);
     })
   }
+
+  const InputFocusInit = () => {
+    if(inputMessageRef){
+        if(inputMessageRef.current){
+            if(!isLoading){
+                inputMessageRef.current.focus();
+            }
+        }
+    }
+  }
+
+  const setisReplyingTrigger = (data: any) => {
+    setisReplying(data);
+    InputFocusInit();
+  }
+
+  useEffect(() => {
+    InputFocusInit();
+  },[conversationsetup, inputMessageRef, isLoading]);
 
   useEffect(() => {
     ConversationInfoProcess();
@@ -618,8 +651,10 @@ function Conversation({ conversationsetup }: any) {
                             setautoScroll(true)
                         }
                     }}>
-                        
-                        {pendingmessageslist.reverse().filter((flt: any) => 
+                        {filteredistypinglist.length > 0 && (
+                            <IsTypingLoader />
+                        )}
+                        {pendingmessageslist.filter((flt: any) => 
                             flt.conversationID == conversationsetup.conversationid 
                             && !flt.status 
                             && !conversationList.map((mp) => mp.pendingID).includes(flt.pendingID)
@@ -653,7 +688,7 @@ function Conversation({ conversationsetup }: any) {
                                                 // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                                             }}
                                             className='span_messages_result c1'>{cnvs.content}</motion.span>
-                                            <span className='span_sending_label'>...Sending</span>
+                                            <span className='span_sending_label'>Sending...</span>
                                         </motion.div>
                                     </motion.div>
                                 )
@@ -767,7 +802,7 @@ function Conversation({ conversationsetup }: any) {
                                     i={i} 
                                     cnvs={cnvs} 
                                     conversationsetup={conversationsetup}
-                                    setisReplying={setisReplying} 
+                                    setisReplying={setisReplyingTrigger} 
                                     setfullImageScreen={setfullImageScreen} 
                                     scrollBottom={scrollBottom} 
                                 />
@@ -947,13 +982,20 @@ function Conversation({ conversationsetup }: any) {
                         className='btn_options_send'><FcAddImage style={{fontSize: "25px"}} /></motion.button>
                     </div>
                     <div id='div_input_text_content'>
-                        <input type='text' autoComplete="off" id='input_text_content_send'
+                        <input type='text' ref={inputMessageRef} autoComplete="off" id='input_text_content_send'
                         onKeyDown={(e) => {
                             if(e.code == "Enter"){
                                 sendMessageProcess()
                             }
                         }}
                         disabled={isLoading} placeholder='Write a message....'value={messageValue} onChange={(e) => {
+                            if(!isalreadytyping && e.target.value !== ""){
+                                setisalreadytyping(true);
+                                IsTypingBroadcastRequest({
+                                    conversationID: conversationsetup.conversationid,
+                                    receivers: conversationsetup.type == "single" ? [conversationsetup.userdetails.userID] : conversationsetup.groupdetails.receivers
+                                });
+                            }
                             setmessageValue(e.target.value)
                         }} />
                     </div>

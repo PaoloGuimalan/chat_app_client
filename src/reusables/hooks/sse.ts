@@ -1,6 +1,6 @@
 import sign from 'jwt-encode'
 import jwt_decode from 'jwt-decode'
-import { SET_ALERTS, SET_CONTACTS_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PENDING_CALL_ALERTS, SET_REJECTED_CALL_LIST, UPDATE_ACTIVE_USERS_LIST } from '../../redux/types';
+import { SET_ALERTS, SET_CONTACTS_LIST, SET_IS_TYPING_LIST, SET_MESSAGES_LIST, SET_NOTIFICATIONS_LIST, SET_PENDING_CALL_ALERTS, SET_REJECTED_CALL_LIST, UPDATE_ACTIVE_USERS_LIST } from '../../redux/types';
 import message_ringtone from '../../assets/sounds/message_alert.mp3'
 import notification_ringtone from '../../assets/sounds/notification_alert.mp3'
 import seen_rightone from '../../assets/sounds/seen_alert.mp3'
@@ -66,7 +66,26 @@ const SSENotificationsTRequest = (dispatch: Dispatch<any>, currentAlertState: an
                 } })
             }
         }
-    })
+    });
+
+    sseNtfsSource.addEventListener('istyping_broadcast', (e: any) => {
+        const parsedresponse = JSON.parse(e.data)
+        // console.log(parsedresponse)
+        if(parsedresponse.auth){
+            if(parsedresponse.status){
+                const decodedResult: any = jwt_decode(parsedresponse.result)
+
+                dispatch({
+                    type: SET_IS_TYPING_LIST,
+                    payload: {
+                        istyping: decodedResult.istyping
+                    }
+                })
+
+                // console.log(decodedResult.istyping);
+            }
+        }
+    });
 
     sseNtfsSource.addEventListener('incomingcall', (e: any) => {
         const parsedresponse = JSON.parse(e.data)

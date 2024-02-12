@@ -1,4 +1,4 @@
-import { CHECK_AND_ADD_NEW_CALL_LIST_WINDOW, CLEAR_PENDING_CALL_ALERTS, END_CALL_LIST, MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_PENDING_CALL_ALERTS, REMOVE_REJECTED_CALL_LIST, SET_ACTIVE_USERS_LIST, SET_ALERTS, SET_APPROVED_PENDING_MESSAGES_LIST, SET_AUTHENTICATION, SET_CALLS_LIST, SET_CLEAR_ALERTS, SET_CONTACTS_LIST, SET_CONVERSATION_SETUP, SET_FILTERED_ALERTS, SET_MESSAGES_LIST, SET_MUTATE_ALERTS, SET_MUTATE_POSTS_FEED_LIST, SET_NOTIFICATIONS_LIST, SET_PATHNAME_LISTENER, SET_PENDING_CALL_ALERTS, SET_PENDING_MESSAGES_LIST, SET_POSTS_FEED_LIST, SET_REJECTED_CALL_LIST, SET_SCREEN_SIZE_LISTENER, SET_TOGGLE_RIGHT_WIDGET, UPDATE_ACTIVE_USERS_LIST } from "../types";
+import { CHECK_AND_ADD_NEW_CALL_LIST_WINDOW, CLEAR_PENDING_CALL_ALERTS, END_CALL_LIST, MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_PENDING_CALL_ALERTS, REMOVE_REJECTED_CALL_LIST, SET_ACTIVE_USERS_LIST, SET_ALERTS, SET_APPROVED_PENDING_MESSAGES_LIST, SET_AUTHENTICATION, SET_CALLS_LIST, SET_CLEAR_ALERTS, SET_CONTACTS_LIST, SET_CONVERSATION_SETUP, SET_FILTERED_ALERTS, SET_IS_TYPING_LIST, SET_MESSAGES_LIST, SET_MUTATE_ALERTS, SET_MUTATE_POSTS_FEED_LIST, SET_NOTIFICATIONS_LIST, SET_PATHNAME_LISTENER, SET_PENDING_CALL_ALERTS, SET_PENDING_MESSAGES_LIST, SET_POSTS_FEED_LIST, SET_REJECTED_CALL_LIST, SET_REMOVE_IS_TYPING_LIST, SET_SCREEN_SIZE_LISTENER, SET_TOGGLE_RIGHT_WIDGET, UPDATE_ACTIVE_USERS_LIST } from "../types";
 import { authenticationstate, conversationsetupstate, screensizelistenerstate } from "./states";
 
 export const setauthentication = (state = authenticationstate, action: any) => {
@@ -101,9 +101,9 @@ export const setpathnamelistener = (state = "/", action: any) => {
 export const setpendingmessageslist = (state = [], action: any) => {
     switch(action.type){
         case SET_PENDING_MESSAGES_LIST:
-            return action.payload.pendingmessageslist;
+            return action.payload.pendingmessageslist.reverse();
         default:
-            return state;
+            return state.reverse();
     }
 }
 
@@ -218,6 +218,22 @@ export const setpostsfeedlist = (state: any[] = [], action: any) => {
                 ...state,
                 action.payload.newpostfeedlist
             ];
+        default:
+            return state;
+    }
+}
+
+export const setistypinglist = (state: any[] = [], action: any) => {
+    switch(action.type){
+        case SET_IS_TYPING_LIST:
+            const filtrationstatus = state.filter((flt: any) => flt.userID !== action.payload.istyping.userID && flt.conversationID !== action.payload.istyping.conversationID);
+            return [
+                ...filtrationstatus,
+                action.payload.istyping
+            ];
+        case SET_REMOVE_IS_TYPING_LIST:
+            const filtrationstatusremove = state.filter((flt: any) => flt.userID !== action.payload.istyping.userID && flt.conversationID !== action.payload.istyping.conversationID);
+            return filtrationstatusremove;
         default:
             return state;
     }

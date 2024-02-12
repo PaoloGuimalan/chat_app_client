@@ -786,6 +786,24 @@ const ConversationInfoRequest = async (params: any) => {
     })
 }
 
+const IsTypingBroadcastRequest = (payload: any) => {
+    const encodedPayload = sign(payload, SECRET);
+
+    Axios.post(`${API}/m/istypingbroadcast`, {
+        token: encodedPayload
+    }, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            // OK
+        }
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -814,5 +832,6 @@ export {
     GetPostRequest,
     DeleteMessageRequest,
     ReactToMessageRequest,
-    ConversationInfoRequest
+    ConversationInfoRequest,
+    IsTypingBroadcastRequest
 }

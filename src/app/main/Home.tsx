@@ -12,7 +12,7 @@ import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
 import SearchMiniDrawer from '../widgets/SearchMiniDrawer'
 import { CloseSSENotifications, SSENotificationsTRequest } from '../../reusables/hooks/sse'
-import { CLEAR_PENDING_CALL_ALERTS, SET_CALLS_LIST, SET_CLEAR_ALERTS, SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
+import { CLEAR_PENDING_CALL_ALERTS, SET_CALLS_LIST, SET_CLEAR_ALERTS, SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_REMOVE_IS_TYPING_LIST, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
 import { conversationsetupstate } from '../../redux/actions/states'
 import { Route, Routes, useNavigate } from 'react-router-dom'
 import DesktopHome from './DesktopHome'
@@ -30,13 +30,27 @@ function Home() {
   const messageslist = useSelector((state: any) => state.messageslist);
   const notificationslist = useSelector((state: any) => state.notificationslist);
   const alerts = useSelector((state: any) => state.alerts)
+  const istypinglist = useSelector((state: any) => state.istypinglist);
   // const [togglerightwidget, settogglerightwidget] = useState("notifs")
 
   const [searchBoxFocus, setsearchBoxFocus] = useState(false)
   const [searchbox, setsearchbox] = useState("")
 
-  const dispatch = useDispatch()
-  const navigate = useNavigate()
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    istypinglist.map((mp: any) => {
+      setTimeout(() => {
+        dispatch({
+          type: SET_REMOVE_IS_TYPING_LIST,
+          payload: {
+            istyping: mp
+          }
+        })
+      },4000);
+    })
+  },[istypinglist]);
 
   const clearStates = () => {
     dispatch({
