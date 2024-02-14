@@ -50,13 +50,13 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
     const initialpayload = {
         conversationID: conversationinfo.conversationInfo?.groupID,
         memberstoadd: markedMembers,
-        receivers: [...conversationinfo.users.map((mp) => mp.userID), ...markedMembers.map((mp) => mp.userID)]
+        receivers: [...markedMembers.map((mp) => mp.userID)]
     }
     AddNewMemberRequest(initialpayload).then((response) => {
         if(response.data.status){
             setmarkedMembers([]);
             setexpandcontacts(false);
-            console.log(response.data);
+            // console.log(response.data);
         }
     }).catch((err) => {
         console.log(err);

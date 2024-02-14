@@ -135,7 +135,7 @@ function Conversation({ conversationsetup }: any) {
 
   useEffect(() => {
     ConversationInfoProcess();
-  },[range, conversationsetup]);
+  },[conversationsetup]);
 
   const scrollBottom = () => {
     var items = document.querySelectorAll(".div_messages_result");
