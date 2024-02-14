@@ -57,6 +57,20 @@ function Conversation({ conversationsetup }: any) {
 
   const [toggleConversationInfoModal, settoggleConversationInfoModal] = useState<boolean>(false);
   const [conversationinfo, setconversationinfo] = useState<ConversationInfoInterface | null>(null);
+  
+  const isConversationDisabled = useMemo(() => {
+    if(conversationinfo?.users){
+        if(conversationinfo.users.length > 0){
+            return isLoading;
+        }
+        else{
+            return true;
+        }
+    }
+    else{
+        return true;
+    }
+  }, [conversationinfo, isLoading]);
 
   const [fullImageScreen, setfullImageScreen] = useState<any>({
     preview: "",
@@ -92,7 +106,8 @@ function Conversation({ conversationsetup }: any) {
         type: conversationsetup.type
     }).then((response: any) => {
         if(response){
-            setconversationinfo(response.data)
+            setconversationinfo(response.data);
+            // console.log(response.data.users.map((mp:any) => mp.userID))
         }
     }).catch((err) => {
         console.log(err);
@@ -120,7 +135,7 @@ function Conversation({ conversationsetup }: any) {
 
   useEffect(() => {
     ConversationInfoProcess();
-  },[conversationsetup]);
+  },[range, conversationsetup]);
 
   const scrollBottom = () => {
     var items = document.querySelectorAll(".div_messages_result");
@@ -201,7 +216,7 @@ function Conversation({ conversationsetup }: any) {
             SendMessageRequest({
                 conversationID: conversationsetup.conversationid,
                 pendingID: pendingID,
-                receivers: [conversationsetup.userdetails.userID, authentication.user.userID],
+                receivers: conversationinfo?.users.map((mp:any) => mp.userID),
                 content: messageValue,
                 isReply: isReplying.isReply,
                 replyingTo: isReplying.replyingTo,
@@ -219,7 +234,7 @@ function Conversation({ conversationsetup }: any) {
             SendMessageRequest({
                 conversationID: conversationsetup.conversationid,
                 pendingID: pendingID,
-                receivers: conversationsetup.groupdetails.receivers,
+                receivers: conversationinfo?.users.map((mp:any) => mp.userID),
                 content: messageValue,
                 isReply: isReplying.isReply,
                 replyingTo: isReplying.replyingTo,
@@ -253,7 +268,7 @@ function Conversation({ conversationsetup }: any) {
             addMultiplePendingMessage(pendingArrImages)
             SendFilesRequest({
                 conversationID: conversationsetup.conversationid,
-                receivers: [conversationsetup.userdetails.userID, authentication.user.userID],
+                receivers: conversationinfo?.users.map((mp:any) => mp.userID),
                 files: pendingArrImages,
                 isReply: isReplying.isReply,
                 replyingTo: isReplying.replyingTo,
@@ -264,7 +279,7 @@ function Conversation({ conversationsetup }: any) {
             addMultiplePendingMessage(pendingArrImages)
             SendFilesRequest({
                 conversationID: conversationsetup.conversationid,
-                receivers: conversationsetup.groupdetails.receivers,
+                receivers: conversationinfo?.users.map((mp:any) => mp.userID),
                 files: pendingArrImages,
                 isReply: isReplying.isReply,
                 replyingTo: isReplying.replyingTo,
@@ -302,23 +317,22 @@ function Conversation({ conversationsetup }: any) {
   },[messageslist]) //conversationsetup
 
   useEffect(() => {
-    SeenMessageRequest({
-        conversationID: conversationsetup.conversationid,
-        range: range,
-        receivers: conversationsetup.type == "single"? [
-            authentication.user.userID,
-            conversationsetup.userdetails.userID
-        ] : conversationsetup.groupdetails.receivers
-    })
-  },[range, conversationsetup])
+    if(conversationinfo?.users){
+        if(conversationinfo.users.length > 0){
+            SeenMessageRequest({
+                conversationID: conversationsetup.conversationid,
+                range: range,
+                receivers: conversationinfo?.users.map((mp:any) => mp.userID)
+            })
+        }
+    }
+  },[range, conversationsetup, conversationinfo])
 
   useEffect(() => {
     InitConversationRequest({
         conversationID: conversationsetup.conversationid,
         range: range,
-        receivers: conversationsetup.type == "single"? [
-            conversationsetup.userdetails.userID
-        ] : conversationsetup.groupdetails.receivers
+        receivers: conversationinfo?.users.map((mp:any) => mp.userID)
     }, setconversationList, settotalMessages, setisLoading, scrollBottom)
   },[range, conversationsetup])
 
@@ -402,7 +416,7 @@ function Conversation({ conversationsetup }: any) {
                 name: authentication.user.fullName.firstName,
                 userID: authentication.user.userID
             },
-            recepients: conversationsetup.type == "single"? [conversationsetup.userdetails.userID] : conversationsetup.groupdetails.receivers.filter((flt: any) => flt != authentication.user.userID),
+            recepients: conversationsetup.type == "single"? [conversationsetup.userdetails.userID] : conversationinfo?.users.map((mp:any) => mp.userID).filter((flt: any) => flt != authentication.user.userID),
             displayImage: conversationsetup.type == "single"? conversationsetup.userdetails.profile : "none"
         }).then(() => {
             dispatch({
@@ -425,7 +439,7 @@ function Conversation({ conversationsetup }: any) {
                                 name: authentication.user.fullName.firstName,
                                 userID: authentication.user.userID
                             },
-                            recepients: conversationsetup.type == "single"? [conversationsetup.userdetails.userID, authentication.user.userID] : conversationsetup.groupdetails.receivers
+                            recepients: conversationinfo?.users.map((mp:any) => mp.userID)
                         }
                     ]
                 }
@@ -965,7 +979,7 @@ function Conversation({ conversationsetup }: any) {
                             backgroundColor: isLoading? "transparent" : "#e6e6e6",
                             cursor: isLoading? "default" : "pointer"
                         }}
-                        disabled={isLoading}
+                        disabled={isConversationDisabled}
                         onClick={() => {
                             sendNonImageFilesProcess()
                         }}
@@ -975,7 +989,7 @@ function Conversation({ conversationsetup }: any) {
                             backgroundColor: isLoading? "transparent" : "#e6e6e6",
                             cursor: isLoading? "default" : "pointer"
                         }}
-                        disabled={isLoading}
+                        disabled={isConversationDisabled}
                         onClick={() => {
                             sendImageProcess()
                         }}
@@ -988,12 +1002,12 @@ function Conversation({ conversationsetup }: any) {
                                 sendMessageProcess()
                             }
                         }}
-                        disabled={isLoading} placeholder='Write a message....'value={messageValue} onChange={(e) => {
+                        disabled={isConversationDisabled} placeholder='Write a message....'value={messageValue} onChange={(e) => {
                             if(!isalreadytyping && e.target.value !== ""){
                                 setisalreadytyping(true);
                                 IsTypingBroadcastRequest({
                                     conversationID: conversationsetup.conversationid,
-                                    receivers: conversationsetup.type == "single" ? [conversationsetup.userdetails.userID] : conversationsetup.groupdetails.receivers
+                                    receivers: conversationinfo?.users.map((mp:any) => mp.userID)
                                 });
                             }
                             setmessageValue(e.target.value)
@@ -1008,7 +1022,7 @@ function Conversation({ conversationsetup }: any) {
                         onClick={() => {
                             sendMessageProcess()
                         }}
-                        disabled={isLoading}
+                        disabled={isConversationDisabled}
                         className='btn_options_send'><IoSend style={{fontSize: "25px", color: "#1c7DEF"}} /></motion.button>
                     </div>
                 </div>

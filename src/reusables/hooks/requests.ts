@@ -462,6 +462,28 @@ const ContactsListInitRequest = (dispatch: Dispatch<any>, setisLoading: any) => 
     })
 }
 
+const ContactsListReusableRequest = (dispatch: any, setisLoading: any) => {
+    Axios.get(`${API}/u/getContacts`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            const decodedResult: any = jwt_decode(response.data.result);
+
+            dispatch(decodedResult.contacts);
+            setisLoading(false)
+
+            // console.log(decodedResult.contacts)
+        }
+        else{
+
+        }
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 const SendMessageRequest = (params: any) => {
     const payload = params
     const encodedPayload = sign(payload, SECRET)
@@ -804,6 +826,23 @@ const IsTypingBroadcastRequest = (payload: any) => {
     })
 }
 
+const AddNewMemberRequest = async (payload: any) => {
+    const encodedPayload = sign(payload, SECRET);
+
+    return await Axios.post(`${API}/m/addnewmember`, {
+        token: encodedPayload
+    }, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        return response;
+    }).catch((err) => {
+        console.log(err);
+        throw new Error(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -821,6 +860,7 @@ export {
     SendFilesRequest,
     InitConversationRequest,
     InitConversationListRequest,
+    ContactsListReusableRequest,
     CreateGroupChatRequest,
     SeenMessageRequest,
     CallRequest,
@@ -833,5 +873,6 @@ export {
     DeleteMessageRequest,
     ReactToMessageRequest,
     ConversationInfoRequest,
-    IsTypingBroadcastRequest
+    IsTypingBroadcastRequest,
+    AddNewMemberRequest
 }

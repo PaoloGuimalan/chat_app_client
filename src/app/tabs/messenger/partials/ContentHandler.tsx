@@ -452,8 +452,8 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
         }
         else if(cnvs.messageType.includes("notif")){
             return(
-                <div key={i} className='tw-w-full tw-pt-[5px] tw-pb-[10px]'>
-                    <span className='tw-text-[12px] tw-font-inter'>{cnvs.content}</span>
+                <div key={i} className='tw-w-full tw-pt-[5px] tw-pb-[10px] div_messages_result tw-justify-center'>
+                    <span className='tw-text-[12px] tw-font-inter tw-text-[#888]'>{cnvs.content}</span>
                 </div>
             )
         }
