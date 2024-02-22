@@ -11,12 +11,14 @@ import PostMediaPreview from "./PostMediaPreview";
 import { CreatePostRequest } from "@/reusables/hooks/requests";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
+import { BiSolidImageAdd } from "react-icons/bi";
 
- export function NewPostModal({ profileInfo, setcreateposttext, getpostprocess, onclose }: any) {
+ export function NewPostModal({ withImage, profileInfo, setcreateposttext, getpostprocess, onclose }: any) {
 
   const authentication = useSelector((state: any) => state.authentication);
 
   const [isuploadingpost, setisuploadingpost] = useState<boolean>(false);
+  const [iswithImage, setiswithImage] = useState<boolean>(withImage);
 
   const [mainpostcaption, setmainpostcaption] = useState<string>("");
   const [_, setcurrenttab] = useState<string>("content"); //currenttab
@@ -101,10 +103,11 @@ import { motion } from "framer-motion";
   }
 
   const CreatePostProcess = () => {
-    setisuploadingpost(true);
-    const validatedTaggedList = authentication.user.userID == profileInfo?.userID ? [] : [profileInfo?.userID, ...taggedList]
+    if(mainpostcaption.trim() !== "" || medialist.length > 0){
+      setisuploadingpost(true);
+      const validatedTaggedList = authentication.user.userID == profileInfo?.userID ? [] : [profileInfo?.userID, ...taggedList]
 
-    CreatePostRequest({
+      CreatePostRequest({
         content: {
             isShared: false,
             references: medialist,
@@ -123,33 +126,45 @@ import { motion } from "framer-motion";
             users: [], //userID for filteration depending on status
         }, //public, friends, filtered
         onfeed: "feed",
-    }).then((response) => {
-        if(response.data.status){
-            // console.log(response.data);
-            onclose(false);
-            setisuploadingpost(false);
-            setcreateposttext("");
-            dispatch({ 
-                type: SET_MUTATE_ALERTS, 
-                payload:{
-                    alerts: {
-                        type: "success",
-                        content: "Your post has been saved"
-                    }
-                }
-            })
-            getpostprocess();
-        }
-    }).catch((err) => {
-        console.log(err);
-    })
+      }).then((response) => {
+          if(response.data.status){
+              // console.log(response.data);
+              onclose(false);
+              setisuploadingpost(false);
+              setcreateposttext("");
+              dispatch({ 
+                  type: SET_MUTATE_ALERTS, 
+                  payload:{
+                      alerts: {
+                          type: "success",
+                          content: "Your post has been saved"
+                      }
+                  }
+              })
+              getpostprocess();
+          }
+      }).catch((err) => {
+          console.log(err);
+      })
+    }
+    else{
+      dispatch({ 
+        type: SET_MUTATE_ALERTS, 
+        payload:{
+            alerts: {
+                type: "warning",
+                content: "Please provide a caption or media"
+            }
+          }
+      })
+    }
   }
   
   return (
     <Modal component={
-      <div className="div_modal_container tw-max-w-[600px] tw-max-h-[600px]">
+      <div className={`div_modal_container tw-max-w-[600px] ${iswithImage ? "tw-max-h-[600px]" : "tw-max-h-[250px]"}`}>
         {isuploadingpost && (
-          <div className="tw-absolute tw-h-full tw-w-full tw-max-w-[600px] tw-max-h-[600px] tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center">
+          <div className={`tw-absolute tw-h-full tw-w-full tw-max-w-[600px] ${iswithImage ? "tw-max-h-[600px]" : "tw-max-h-[250px]"} tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}>
             <div id='div_conversation_content_loader'>
               <motion.div
                 animate={{
@@ -174,35 +189,40 @@ import { motion } from "framer-motion";
         <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-flex tw-flex-1 tw-items-center tw-justify-center tw-pl-[10px] tw-pr-[10px] tw-pb-[10px] scroller tw-overflow-y-auto">
           <div className="tw-w-full tw-h-full tw-bg-transparent tw-flex tw-flex-col">
             <textarea value={mainpostcaption} onChange={(e) => { setcreateposttext(e.target.value); setmainpostcaption(e.target.value) }} className="tw-w-full tw-min-h-[80px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller" placeholder="Type your caption"  />
-            <div className="tw-flex tw-flex-1 tw-flex-col tw-w-full tw-gap-[12px] tw-bg-transparent tw-rounded-[7px] scroller">
-              {medialist.length > 0 ? (
-                <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px]">
-                  {
-                    medialist.sort(function(a, b) { 
-                      return a.id - b.id  ||  a.name.localeCompare(b.name);
-                    }).map((mp: any) => {
-                      return(
-                        <PostMediaPreview key={mp.id} mp={mp} setrawmedialist={setrawmedialist} setmedialist={setmedialist} />
-                      )
-                    })
-                  }
-                  <div onClick={() => { sendNonImageFilesProcess() }} className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-bg-transparent tw-border-solid tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center">
-                    <MdAddToPhotos style={{ fontSize: "20px", color: "#888888" }} />
+            {iswithImage && (
+              <div className="tw-flex tw-flex-1 tw-flex-col tw-w-full tw-gap-[12px] tw-bg-transparent tw-rounded-[7px] scroller">
+                {medialist.length > 0 ? (
+                  <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px]">
+                    {
+                      medialist.sort(function(a, b) { 
+                        return a.id - b.id  ||  a.name.localeCompare(b.name);
+                      }).map((mp: any) => {
+                        return(
+                          <PostMediaPreview key={mp.id} mp={mp} setrawmedialist={setrawmedialist} setmedialist={setmedialist} />
+                        )
+                      })
+                    }
+                    <div onClick={() => { sendNonImageFilesProcess() }} className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-bg-transparent tw-border-solid tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center">
+                      <MdAddToPhotos style={{ fontSize: "20px", color: "#888888" }} />
+                      <span className="tw-text-[14px] tw-font-semibold tw-text-[#888888]">Add a Photo or Video</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div onClick={() => { sendNonImageFilesProcess() }} className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-bg-transparent tw-border-solid tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center">
+                    <MdAddToPhotos style={{ fontSize: "60px", color: "#888888" }} />
                     <span className="tw-text-[14px] tw-font-semibold tw-text-[#888888]">Add a Photo or Video</span>
                   </div>
-                </div>
-              ) : (
-                <div onClick={() => { sendNonImageFilesProcess() }} className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-bg-transparent tw-border-solid tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center">
-                  <MdAddToPhotos style={{ fontSize: "60px", color: "#888888" }} />
-                  <span className="tw-text-[14px] tw-font-semibold tw-text-[#888888]">Add a Photo or Video</span>
-                </div>
-              )}
-            </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
         <div className="tw-w-[calc(100%-20px)] tw-flex tw-flex-row tw-gap-[5px] tw-pl-[10px] tw-pr-[10px] tw-pt-[5px]">
           <button onClick={() => { setcurrenttab("privacy") }} className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#194888]">
             <FaGlobeAsia style={{ fontSize: "20px" }} />
+          </button>
+          <button onClick={() => { setiswithImage(true) }} className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#1c7DEF]">
+            <BiSolidImageAdd style={{ fontSize: "24px" }} />
           </button>
           <button onClick={() => { setcurrenttab("content") }} className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#1c7DEF]">
             <BsFileEarmarkPost style={{ fontSize: "20px" }} />

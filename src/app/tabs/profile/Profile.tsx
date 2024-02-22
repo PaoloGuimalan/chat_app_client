@@ -34,7 +34,7 @@ function Profile() {
   const [isloaded, setisloaded] = useState<boolean>(true);
   const [createposttext, setcreateposttext] = useState<string>("");
 
-  const [toggleNewPostModal, settoggleNewPostModal] = useState<boolean>(false);
+  const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({ toggle: false, withImage: false });
 
   const [range, _] = useState<number>(20);
 
@@ -162,10 +162,10 @@ function Profile() {
                                 <img src={DefaultProfile} id='img_feed_header' />
                             </div>
                             <div id='div_input_feed_flex'>
-                                {toggleNewPostModal && (
-                                    <NewPostModal profileInfo={profileInfo} setcreateposttext={setcreateposttext} getpostprocess={GetPostProcess} onclose={settoggleNewPostModal} />
+                                {toggleNewPostModal.toggle && (
+                                    <NewPostModal withImage={toggleNewPostModal.withImage} profileInfo={profileInfo} setcreateposttext={setcreateposttext} getpostprocess={GetPostProcess} onclose={settoggleNewPostModal} />
                                 )}
-                                <input type='text' value={createposttext} onFocus={() => { settoggleNewPostModal(true) }} onChange={(e) => { setcreateposttext(e.target.value) }} onKeyDown={(e) => {
+                                <input type='text' value={createposttext} onFocus={() => { settoggleNewPostModal({ toggle: true, withImage: false }) }} onChange={(e) => { setcreateposttext(e.target.value) }} onKeyDown={(e) => {
                                     if(createposttext.trim() !== ""){
                                         if(e.key == "Enter"){
                                             // CreatePostProcess()
@@ -174,7 +174,7 @@ function Profile() {
                                 }} className="tw-font-Inter" placeholder={profileInfo.userID === authentication.user.userID ? "Share your thoughts..." : `Write on ${profileInfo.fullname.firstName}'s wall...`} id='input_feed_box' />
                             </div>
                             <div id='div_btn_image_container'>
-                                <button onClick={() => { settoggleNewPostModal(true) }} id='btn_image_feed'>
+                                <button onClick={() => { settoggleNewPostModal({ toggle: true, withImage: true }) }} id='btn_image_feed'>
                                     <FcAddImage style={{fontSize: "35px"}} />
                                 </button>
                             </div>
