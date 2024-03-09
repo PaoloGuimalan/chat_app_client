@@ -14,10 +14,22 @@ const socketInit = async () => {
     }
 }
 
-const socketConversationInit = async (data: any, resolve: any) => {
+const socketConversationInit = async (data: any, resolve: any, peerservicecallback: any, answerservicecallback: any, pushnegotiationcallback: any, pushfinishnegotiationcallback: any) => {
     await socket.emit("init", data);
     await socket.on('newcaller', (data: any) => {
         resolve(data);
+    })
+    await socket.on('connect_peer_service', (data: any) => {
+        peerservicecallback(data);
+    })
+    await socket.on('answer_peer_service', (data: any) => {
+        answerservicecallback(data)
+    })
+    await socket.on('push_negotiation_data', (data: any) => {
+        pushnegotiationcallback(data)
+    })
+    await socket.on('push_finish_negotiation_data', (data: any) => {
+        pushfinishnegotiationcallback(data)
     })
 }
 
@@ -33,6 +45,27 @@ const socketSendData = async (data: any) => {
     }
 }
 
+const socketSendAnswerData = async (data: any) => {
+    if(await socket){
+        // console.log(data)
+        await socket.emit("answer_data", data)
+    }
+}
+
+const socketSendNegotiationData = async (data: any) => {
+    if(await socket){
+        // console.log(data)
+        await socket.emit("answer_negotiation_data", data)
+    }
+}
+
+const socketFinishNegotiationData = async (data: any) => {
+    if(await socket){
+        // console.log(data)
+        await socket.emit("finish_negotiation_data", data)
+    }
+}
+
 const endSocket = () => {
     if(socket){
         socket.close();
@@ -44,6 +77,9 @@ export {
     socketInit,
     socketConversationInit,
     socketSendData,
+    socketSendAnswerData,
+    socketSendNegotiationData,
+    socketFinishNegotiationData,
     socketCloseCall,
     endSocket
 }

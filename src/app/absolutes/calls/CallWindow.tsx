@@ -9,6 +9,8 @@ import { END_CALL_LIST, MEDIA_TRACK_HOLDER, REMOVE_REJECTED_CALL_LIST } from '..
 import { endSocket, socketCloseCall, socketConversationInit, socketInit, socketSendData } from '../../../reusables/hooks/sockets'
 import { EndCallRequest } from '../../../reusables/hooks/requests'
 import CallVideoBlocks from './CallVideoBlocks'
+// import peer from '@/reusables/hooks/peer'
+// import RemoteCallVideoBlocks from './RemoteCallVideoBlocks'
 
 function CallWindow({ data, lineNum }: any) {
 
@@ -24,28 +26,43 @@ function CallWindow({ data, lineNum }: any) {
   const [enableCamera, setenableCamera] = useState(data.callType == "video"? true : false)
   const [testlistenerforsendata, settestlistenerforsendata] = useState(false);
 
+  const [_, setcurrentusers] = useState<any[]>([]);
+
   const dispatch = useDispatch()
 
   useEffect(() => {
-    socketInit().then(() => {
-      socketConversationInit({
-        conversationID: data.conversationID,
-        userID: authentication.user.userID
-      }, (data: any) => {
-        if(data.length > 1){
-          setisAnswered(true);
-        }
+    if(mediamyvideoholder && mediatrackholder){
+      socketInit().then(() => {
+        socketConversationInit({
+          conversationID: data.conversationID,
+          userID: authentication.user.userID
+        }, (data: any) => {
+          if(data.length > 1){
+            setisAnswered(true);
+          }
 
-        settestlistenerforsendata(!testlistenerforsendata)
+          setcurrentusers(data);
+  
+          settestlistenerforsendata(!testlistenerforsendata)
+        }, async (data: any) => {
+          console.log(data);
+        }, async (data: any) => {
+          
+          console.log(data);
+        }, async (data: any) => {
+          console.log(data);
+        }, async (data: any) => {
+          console.log(data);
+        })
       })
-    })
-  },[])
+    }
+  },[mediamyvideoholder, mediatrackholder])
 
   useEffect(() => {
     if(isAnswered && mediamyvideoholder){ /** isAnswered by default and ! only for testing  */
-      sendVideoData()
+      sendVideoData();
     }
-  },[isAnswered, mediamyvideoholder, testlistenerforsendata])
+  },[isAnswered, mediamyvideoholder, testlistenerforsendata]) /** remove testlistenerforsendata to prevent sending video data once every user joined */
 
   useEffect(() => {
     if(rejectcalls.includes(data.conversationID)){
@@ -92,7 +109,7 @@ function CallWindow({ data, lineNum }: any) {
     dragcontrol.start(event)
   }
 
-  const sendVideoData = () => {
+  const sendVideoData = async () => {
     socketSendData({
       conversationID: data.conversationID,
       userID: authentication.user.userID,
@@ -169,6 +186,7 @@ function CallWindow({ data, lineNum }: any) {
     dragConstraints={{top: 0, bottom: windowHeight - 185, left: 0, right: windowWidth - 315}}
     dragControls={dragcontrol}
     onPointerDown={dragCallWindow}
+    // onClick={sendStreams}
     initial={{
       top: `${20*lineNum == 0? 5 : 20*lineNum}px`,
       left: `${20*lineNum == 0? 5 : 20*lineNum}px`,
@@ -186,7 +204,7 @@ function CallWindow({ data, lineNum }: any) {
           <span id='span_call_displayname'>{data.callDisplayName}</span>
           <button
           onClick={() => {
-            sendVideoData()
+            // sendVideoData()
             setisFullScreen(!isFullScreen)
           }}
           className='btn_top_nav_call_window'>
@@ -195,7 +213,8 @@ function CallWindow({ data, lineNum }: any) {
         </div>
         {isAnswered? (  /** isAnswered by default and ! only for testing  */
           <div className='div_video_blocks_holder'>
-            <CallVideoBlocks />
+            <CallVideoBlocks/>
+            {/* <RemoteCallVideoBlocks remoteStream={remoteStream} /> */}
             {/* {isFullScreen && (
               <CallVideoBlocks />
             )} */}
