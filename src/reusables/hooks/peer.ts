@@ -5,9 +5,9 @@ class PeerService{
             this.peer = new RTCPeerConnection({
                 iceServers: [
                     {
-                        urls: [
-                            "stun:stun.l.google.com:19302",
-                            "stun:global.stun.twilio.com:3478"
+                        urls:[
+                            'stun:stun.l.google.com:19302',
+                            'stun:stun1.l.google.com:19302'
                         ]
                     }
                 ]
@@ -15,25 +15,25 @@ class PeerService{
         }
     }
 
-    async getAnswer(offer: any){
+    async getAnswer(_: any){
         if(this.peer){
-            await this.peer.setRemoteDescription(offer);
+            // await this.peer.setRemoteDescription(offer);
             const answer = await this.peer.createAnswer();
-            await this.peer.setLocalDescription(new RTCSessionDescription(answer));
+            await this.peer.setLocalDescription(answer);
             return answer;
         }
     }
 
     async setLocalDescription(answer: any){
         if(this.peer){
-            await this.peer.setRemoteDescription(new RTCSessionDescription(answer));
+            await this.peer.setRemoteDescription(answer);
         }
     }
 
     async getOffer(){
         if(this.peer){
             const offer = await this.peer.createOffer();
-            await this.peer.setLocalDescription(new RTCSessionDescription(offer));
+            await this.peer.setLocalDescription(offer);
             return offer;
         }
     }

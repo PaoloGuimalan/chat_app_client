@@ -1,3 +1,5 @@
+import PeerService from "../hooks/peer"
+
 export interface AuthenticationInterface{
     auth: boolean | null,
     user: {
@@ -103,4 +105,11 @@ export interface ConversationInfoInterface{
     conversationInfo?: ConversationDetails,
     usersWithInfo: UserWithInfoConversationInterface[],
     conversationfiles: ConversationFilesInterface[]
+}
+
+export interface RemoteStreams{
+    userID: string,
+    peer?: typeof PeerService,
+    mediastreamid: string;
+    stream: MediaStreamTrack | any
 }
