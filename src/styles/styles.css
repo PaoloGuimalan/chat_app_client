@@ -6,6 +6,7 @@
     width: calc(100% - 10px);
     height: calc(100% - 10px);
     pointer-events: none;
+    z-index: 2;
     /* padding: 5px; */
 }
 
@@ -126,14 +127,15 @@
 
 .div_video_blocks{
     width: 100%;
-    max-width: 270px;
+    max-width: 370px;
     height: 100%;
-    max-height: 150px;
+    max-height: 250px;
     background-color: #3d4043;
     display: flex;
     justify-content: center;
     align-items: center;
     border-radius: 5px;
+    z-index: 10;
 }
 
 .video_call_display{

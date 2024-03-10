@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import '../../../styles/styles.css'
 import { motion, useDragControls } from 'framer-motion'
 import { RxEnterFullScreen } from 'react-icons/rx'
@@ -360,18 +360,21 @@ function CallWindow({ data, lineNum }: any) {
         </div>
         {isAnswered? (  /** isAnswered by default and ! only for testing  */
           <div className='div_video_blocks_holder'>
-            <CallVideoBlocks/>
-            {remoteStream && (
-              <RemoteCallVideoBlocks remoteStream={remoteStream} />
-            )}
             {/* {remoteStreams.map((mp: RemoteStreams, i: number) => {
               return(
                 <RemoteCallVideoBlocks key={i} remoteStream={mp.stream} />
               )
             })} */}
-            {/* {isFullScreen && (
-              <CallVideoBlocks />
-            )} */}
+            {!isFullScreen ? (
+              <RemoteCallVideoBlocks remoteStream={remoteStream} />
+            ) : (
+              <React.Fragment>
+                <CallVideoBlocks/>
+                {remoteStream && (
+                  <RemoteCallVideoBlocks remoteStream={remoteStream} />
+                )}
+              </React.Fragment>
+            )}
           </div>
         ) : (
           data.conversationType == 'single'? (
