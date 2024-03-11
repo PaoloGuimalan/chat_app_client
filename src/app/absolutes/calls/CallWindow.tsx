@@ -35,7 +35,7 @@ function CallWindow({ data, lineNum }: any) {
   const [icecandidatestrigger, seticecandidatestrigger] = useState<any | null>(null);
   const [answerresponsetrigger, setanswerresponsetrigger] = useState<any | null>(null)
 
-  const [localGlobalPeer, setlocalGlobalPeer] = useState<typeof PeerService | null>(null);
+  const [localGlobalPeer, setlocalGlobalPeer] = useState<PeerService | null>(null);
 
   const dispatch = useDispatch()
 
@@ -58,7 +58,7 @@ function CallWindow({ data, lineNum }: any) {
   // console.log(socket);
 
   const createPeerConnection = async (userdata?: any) => {
-      const peer = PeerService;
+      const peer = new PeerService();
       const pendingRemoteStream = new MediaStream();
       setremoteStream(pendingRemoteStream);
 
@@ -150,7 +150,7 @@ function CallWindow({ data, lineNum }: any) {
         },(data: any) => {
           console.log(data)
           setcurrentusers(data);
-          setisAnswered(true);
+          // setisAnswered(true);
         },(data: any) => {
           console.log("RECEIVED AN OFFER FROM CALLER", data);
           setisOfferReceived(data);
@@ -206,6 +206,7 @@ function CallWindow({ data, lineNum }: any) {
     else{
       if(currentusers.length > 1){
         // console.log("NEW CALLER", currentusers);
+        setisAnswered(true);
         if(isCaller){
           callerPeerInit();
         }
