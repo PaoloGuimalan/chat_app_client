@@ -5,14 +5,12 @@ class PeerService{
             this.peer = new RTCPeerConnection({
                 iceServers: [
                     { 
+                        urls: 'stun:freeturn.net:5349' 
+                    }, 
+                    { 
                         urls: 'turns:freeturn.tel:5349', 
                         username: 'free', 
-                        credential: 'free'
-                    },
-                    { 
-                        urls: 'turns:freeturn.tel:3478', 
-                        username: 'free', 
-                        credential: 'free'
+                        credential: 'free' 
                     }
                 ]
             })
