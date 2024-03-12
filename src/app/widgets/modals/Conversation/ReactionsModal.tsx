@@ -3,6 +3,9 @@ import { IoMdClose } from "react-icons/io"
 import DefaultProfile from '../../../../assets/imgs/default.png'
 
 function ReactionsModal({ reactions, onclose }: any) {
+
+  console.log(reactions)
+
   return (
     <Modal component={
       <div className="div_modal_container tw-max-w-[400px] tw-max-h-[300px] tw-items-center">
@@ -19,8 +22,10 @@ function ReactionsModal({ reactions, onclose }: any) {
                     <div id='div_img_search_profiles_container_cncts'>
                       <img src={mp.profile == "none"? DefaultProfile : mp.profile} className='img_search_profiles_ntfs' />
                     </div>
-                    <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                      <span className="tw-flex tw-flex-1">{mp.fullname.firstName}{mp.fullname.middleName == "N/A"? "" : ` ${mp.fullname.middleName}`} {mp.fullname.lastName}</span>
+                    <div className="tw-flex tw-flex-1 span_userdetails_ellipsis tw-items-center">
+                      {mp.fullname && (
+                        <span className="tw-flex tw-flex-1 tw-text-[14px] tw-font-Inter">{mp.fullname.firstName}{mp.fullname.middleName == "N/A"? "" : ` ${mp.fullname.middleName}`} {mp.fullname.lastName}</span>
+                      )}
                       <span className="tw-text-[18px]">{mp.emoji}</span>
                     </div>
                   </div>
