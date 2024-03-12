@@ -1516,6 +1516,20 @@ input:checked + .slider:before {
     overflow-y: auto;
 }
 
+#div_app_menu{
+    background-color: transparent;
+    /* background-color: green; */
+    width: 100%;
+    max-width: 350px;
+    display: flex;
+    flex-direction: column;
+    /* flex: 1; */
+    height: auto;
+    max-height: 250px;
+    align-items: center;
+    overflow-y: auto;
+}
+
 #div_feed{
     background-color: transparent;
     flex: 1;
@@ -1663,6 +1677,16 @@ input:checked + .slider:before {
     gap: 7px;
 }
 
+#div_app_menu_label_container{
+    width: calc(100% - 40px);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding: 20px;
+    padding-bottom: 10px;
+    gap: 7px;
+}
+
 .span_contacts_label{
     font-size: 15px;
     font-weight: bold;
@@ -1716,12 +1740,16 @@ input:checked + .slider:before {
     padding: 20px;
     padding-top: 5px;
     padding-bottom: 5px;
-    overflow-y: hidden;
+    overflow-y: auto;
     gap: 3px;
 }
 
-#div_contacts_list_container:hover{
-    overflow-y: auto;
+#div_contacts_list_container::-webkit-scrollbar-thumb{
+    background-color: transparent !important;
+}
+
+#div_contacts_list_container:hover::-webkit-scrollbar-thumb{
+    background-color: grey !important;
 }
 
 #div_contacts_list_empty_container{
@@ -1744,12 +1772,16 @@ input:checked + .slider:before {
     padding: 20px;
     padding-top: 5px;
     padding-bottom: 5px;
-    overflow-y: hidden;
+    overflow-y: auto;
     gap: 5px;
 }
 
-#div_notifications_list_container:hover{
-    overflow-y: auto;
+#div_notifications_list_container::-webkit-scrollbar-thumb{
+    background-color: transparent !important;
+}
+
+#div_notifications_list_container:hover::-webkit-scrollbar-thumb{
+    background-color: grey !important;
 }
 
 .div_ntfs_cards{
@@ -1880,13 +1912,17 @@ input:checked + .slider:before {
     flex-direction: column;
     padding: 20px;
     padding-top: 0px;
-    overflow-y: hidden;
+    overflow-y: auto;
     gap: 5px;
     overflow-x: hidden;
 }
 
-#div_messages_list_container:hover{
-    overflow-y: auto;
+#div_messages_list_container::-webkit-scrollbar-thumb{
+    background-color: transparent !important;
+}
+
+#div_messages_list_container:hover::-webkit-scrollbar-thumb{
+    background-color: grey !important;
 }
 
 .div_messages_list_cards{

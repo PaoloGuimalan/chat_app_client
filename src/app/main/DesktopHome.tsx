@@ -1,13 +1,14 @@
 import '../../styles/styles.css'
-import Contacts from '../tabs/feed/Contacts'
+// import Contacts from '../tabs/feed/Contacts'
 import Notifications from '../tabs/feed/Notifications'
 import Messages from '../tabs/feed/Messages'
 import Feed from '../tabs/feed/Feed'
+import LeftContainers from './Desktop/LeftContainers'
 
 function DesktopHome({togglerightwidget}: any) {
   return (
     <div id='div_main_home'>
-        <Contacts />
+        <LeftContainers />
         <Feed />
         {togglerightwidget == "notifs"? (
           <Notifications />

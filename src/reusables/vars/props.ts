@@ -20,3 +20,7 @@ export interface ConversationInfoModalProp{
     conversationinfo: ConversationInfoInterface,
     onclose: any
 }
+
+export interface AppItemProp{
+    mp: any
+}
