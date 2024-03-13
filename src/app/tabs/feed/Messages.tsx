@@ -205,7 +205,7 @@ function Messages() {
                       </motion.div>
                     )
                   }
-                  else if(msgslst.conversationType == "server"){
+                  else if(msgslst.conversationType === "server"){
                     return(
                       <motion.div
                       whileHover={{
@@ -223,7 +223,7 @@ function Messages() {
                         <div id='div_messages_list_name'>
                           <span className='span_messages_list_name_server tw-flex tw-items-start tw-gap-[3px] tw-text-[#e69500]'>
                             <div className='tw-flex tw-flex-col'>
-                              <span className='tw-text-[14px]'>{msgslst.serverdetails.serverName}</span>
+                              <span className='tw-text-[14px]'>{msgslst.serverdetails?.serverName}</span>
                               <span className='tw-text-[12px]'>{msgslst.groupdetails.groupName}</span>
                             </div>
                             <TbServer2 style={{ fontSize: "20px", color: "#e69500" }} />
