@@ -21,6 +21,7 @@ import { endSocket } from '../../reusables/hooks/sockets'
 import MapFeed from '../tabs/mapfeed/MapFeed'
 import Profile from '../tabs/profile/Profile'
 import { AuthenticationInterface } from '@/reusables/vars/interfaces'
+import Servers from '../tabs/servers/Servers'
 
 function Home() {
 
@@ -267,6 +268,7 @@ function Home() {
         <Route path='/notifications' element={<Notifications />} />
         <Route path='/contacts' element={<Contacts />} />
         <Route path='/mapfeed' element={<MapFeed />}/>
+        <Route path='/servers/*' element={<Servers />} />
       </Routes>
     </div>
   )

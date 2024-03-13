@@ -15,6 +15,7 @@ import CreateGroupChatModal from '../../widgets/modals/CreateGroupChatModal'
 import { conversationsetupstate } from '../../../redux/actions/states'
 import { isUserOnline } from '../../../reusables/hooks/reusable'
 import CreateServerModal from '@/app/widgets/modals/CreateServerModal'
+import { useNavigate } from 'react-router-dom'
 
 function Messages() {
 
@@ -29,7 +30,8 @@ function Messages() {
   const conversationsetup = useSelector((state: any) => state.conversationsetup);
   const messageslist = useSelector((state: any) => state.messageslist);
   const istypinglist = useSelector((state: any) => state.istypinglist);
-  const dispatch = useDispatch()
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
   useEffect(() => {
     InitConversationListRequest(dispatch, setisLoading)
@@ -212,7 +214,7 @@ function Messages() {
                         backgroundColor: "rgb(200, 200, 200)"
                       }}
                       onClick={() => {
-                        
+                        navigate(`/servers/${msgslst.serverdetails?.serverID}`);
                       }}
                       key={i} className='div_messages_list_cards'>
                         <div id='div_img_cncts_container'>
