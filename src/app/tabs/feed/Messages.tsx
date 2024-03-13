@@ -9,22 +9,25 @@ import { InitConversationListRequest } from '../../../reusables/hooks/requests'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
 import GroupChatIcon from '../../../assets/imgs/group-chat-icon.jpg'
+import ServerIcon from '../../../assets/imgs/servericon.png'
 import { SET_CONVERSATION_SETUP } from '../../../redux/types'
 import CreateGroupChatModal from '../../widgets/modals/CreateGroupChatModal'
 import { conversationsetupstate } from '../../../redux/actions/states'
 import { isUserOnline } from '../../../reusables/hooks/reusable'
+import CreateServerModal from '@/app/widgets/modals/CreateServerModal'
 
 function Messages() {
 
-  const [isLoading, setisLoading] = useState(true)
-  const [isCreateGCToggle, setisCreateGCToggle] = useState(false)
+  const [isLoading, setisLoading] = useState<boolean>(true);
+  const [isCreateGCToggle, setisCreateGCToggle] = useState<boolean>(false);
+  const [isCreateServerToggle, setisCreateServerToggle] = useState<boolean>(false);
 
-  const authentication = useSelector((state: any) => state.authentication)
-  const activeuserslist = useSelector((state: any) => state.activeuserslist)
+  const authentication = useSelector((state: any) => state.authentication);
+  const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const screensizelistener = useSelector((state: any) => state.screensizelistener);
-  const pathnamelistener = useSelector((state: any) => state.pathnamelistener)
-  const conversationsetup = useSelector((state: any) => state.conversationsetup)
-  const messageslist = useSelector((state: any) => state.messageslist)
+  const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
+  const conversationsetup = useSelector((state: any) => state.conversationsetup);
+  const messageslist = useSelector((state: any) => state.messageslist);
   const istypinglist = useSelector((state: any) => state.istypinglist);
   const dispatch = useDispatch()
 
@@ -81,6 +84,9 @@ function Messages() {
         {isCreateGCToggle && (
           <CreateGroupChatModal setisCreateGCToggle={setisCreateGCToggle} />
         )}
+        {isCreateServerToggle && (
+          <CreateServerModal setisCreateServerToggle={setisCreateServerToggle} />
+        )}
         <div id='div_messages_label_container'>
             <AiOutlineMessage style={{fontSize: "20px", color: "white", backgroundColor: "#9cc2ff", borderRadius: "7px", padding: "3px"}} />
             <span className='span_messages_label'>Messages</span>
@@ -90,7 +96,7 @@ function Messages() {
             <BiGroup style={{ fontSize: "20px" }} />
             <span id='span_btn_label' className='tw-font-Inter'>Create Group Chat</span>
           </motion.button>
-          <motion.button id='btn_create_server' onClick={() => {  }}>
+          <motion.button id='btn_create_server' onClick={() => { setisCreateServerToggle(true) }}>
             <TbServer2 style={{ fontSize: "20px" }} />
             <span id='span_btn_label' className='tw-font-Inter'>Create Server</span>
           </motion.button>
@@ -180,6 +186,48 @@ function Messages() {
                         </div>
                         <div id='div_messages_list_name'>
                           <span className='span_messages_list_name tw-flex tw-items-end tw-gap-[3px] tw-text-[#1c7DEF]'>{msgslst.groupdetails.groupName} <BiGroup style={{ fontSize: "20px", color: "#1c7DEF" }} /></span>
+                          {istypinglist.filter((flt: any) => flt.conversationID === msgslst.conversationID).length > 0 ? (
+                            <span className='span_messages_list_name'>someone is typing...</span>
+                          ) : (
+                            <span className='span_messages_list_name'>{msgslst.sender == authentication.user.userID? "you: ": ""}
+                              {
+                                msgslst.messageType === "text" || msgslst.messageType === "notif" ? msgslst.content : !msgslst.messageType.includes("image") && !msgslst.messageType.includes("video") && !msgslst.messageType.includes("audio") ? `Sent ${messageTypeChecker["any"]}` : `Sent ${messageTypeChecker[msgslst.messageType.split("/")[0]]}`
+                              }
+                            </span>
+                          )}
+                          <span className='span_messages_list_name'>{msgslst.messageDate.date} . {msgslst.messageDate.time}</span>
+                        </div>
+                        {msgslst.unread > 0 && (
+                          <div>
+                            <span className='span_messages_list_counts'>{msgslst.unread}</span>
+                          </div>
+                        )}
+                      </motion.div>
+                    )
+                  }
+                  else if(msgslst.conversationType == "server"){
+                    return(
+                      <motion.div
+                      whileHover={{
+                        backgroundColor: "rgb(200, 200, 200)"
+                      }}
+                      onClick={() => {
+                        
+                      }}
+                      key={i} className='div_messages_list_cards'>
+                        <div id='div_img_cncts_container'>
+                          <div id='div_img_search_profiles_container_cncts'>
+                            <img src={ServerIcon} className='img_server_profiles_ntfs' />
+                          </div>
+                        </div>
+                        <div id='div_messages_list_name'>
+                          <span className='span_messages_list_name_server tw-flex tw-items-start tw-gap-[3px] tw-text-[#e69500]'>
+                            <div className='tw-flex tw-flex-col'>
+                              <span className='tw-text-[14px]'>{msgslst.serverdetails.serverName}</span>
+                              <span className='tw-text-[12px]'>{msgslst.groupdetails.groupName}</span>
+                            </div>
+                            <TbServer2 style={{ fontSize: "20px", color: "#e69500" }} />
+                          </span>
                           {istypinglist.filter((flt: any) => flt.conversationID === msgslst.conversationID).length > 0 ? (
                             <span className='span_messages_list_name'>someone is typing...</span>
                           ) : (

@@ -1110,8 +1110,18 @@
     display: flex;
     flex-direction: row;
     justify-content: center;
+    align-items: center;
     gap: 5px;
     color: #1c7DEF;
+}
+
+#div_server_modal_header_label{
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    color: #e69500;
 }
 
 .div_modal_header_label{
@@ -1306,6 +1316,13 @@
 .checkbox_selector_people{
     margin-right: 10px;
     cursor: pointer;
+    accent-color: #1c7DEF;
+}
+
+.checkbox_selector_people_server{
+    margin-right: 10px;
+    cursor: pointer;
+    accent-color: #e69500;
 }
 
 #div_selected_container{
@@ -1321,6 +1338,22 @@
     min-height: 0px;
     overflow: hidden;
     border-radius: 10px;
+}
+
+.div_selected_server_holder{
+    background-color: #e69500;
+    padding: 5px;
+    padding-left: 10px;
+    padding-right: 5px;
+    width: fit-content;
+    border-radius: 40px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 2px;
+    height: 25px;
+    min-height: 25px;
+    white-space: nowrap;
 }
 
 .div_selected_holder{
@@ -1383,6 +1416,24 @@
 }
 
 .btns_create_cancel:last-of-type{
+    background-color: #888;
+    color: white;
+}
+
+.btns_create_server_cancel{
+    width: 80px;
+    height: 30px;
+    border-radius: 7px;
+    border: none;
+    cursor: pointer;
+}
+
+.btns_create_server_cancel:first-of-type{
+    background-color: #e69500;
+    color: white;
+}
+
+.btns_create_server_cancel:last-of-type{
     background-color: #888;
     color: white;
 }
@@ -1483,6 +1534,20 @@ input:focus + .slider {
 }
   
 input:checked + .slider:before {
+    -webkit-transform: translateX(18px);
+    -ms-transform: translateX(18px);
+    transform: translateX(18px);
+}
+
+#input_switch_server_create:checked + .slider {
+    background-color: #e69500;
+}
+  
+#input_switch_server_create:focus + .slider {
+    box-shadow: 0 0 1px #e69500;
+}
+  
+#input_switch_server_create:checked + .slider:before {
     -webkit-transform: translateX(18px);
     -ms-transform: translateX(18px);
     transform: translateX(18px);
@@ -1894,6 +1959,11 @@ input:checked + .slider:before {
     height: 85%;
 }
 
+.img_server_profiles_ntfs{
+    width: 75%;
+    height: 75%;
+}
+
 #div_notifications_list_empty_container{
     background-color: transparent;
     width: calc(100% - 40px);
@@ -1949,6 +2019,16 @@ input:checked + .slider:before {
     align-items: flex-start;
     gap: 2px;
     overflow-x: hidden;
+}
+
+.span_messages_list_name_server{
+    /* font-size: 14px; */
+    font-weight: bold;
+    color: #3b3b3b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    text-align: left;
 }
 
 .span_messages_list_name:first-of-type{

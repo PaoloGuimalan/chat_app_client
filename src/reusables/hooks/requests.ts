@@ -631,6 +631,25 @@ const CreateGroupChatRequest = (params: any, setisCreateGCToggle: any) => {
     })
 }
 
+const CreateServerRequest = (params: any, setisCreateGCToggle: any) => {
+    const payload = params
+    const encodedPayload = sign(payload, SECRET)
+
+    Axios.post(`${API}/u/createserver`, {
+        token: encodedPayload
+    },{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            setisCreateGCToggle(false)
+        }
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 const CallRequest = async (params: any) => {
     const payload = params
     const encodedPayload = sign(payload, SECRET)
@@ -862,6 +881,7 @@ export {
     InitConversationListRequest,
     ContactsListReusableRequest,
     CreateGroupChatRequest,
+    CreateServerRequest,
     SeenMessageRequest,
     CallRequest,
     ActiveContactsRequest,
