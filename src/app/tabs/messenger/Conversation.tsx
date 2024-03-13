@@ -37,6 +37,7 @@ function Conversation({ conversationsetup }: any) {
 
   const activeuserSpecific = conversationsetup.type == "single" && activeuserslist.filter((flt: any) => flt._id == conversationsetup.userdetails.userID);
   const filteredistypinglist = useMemo(() => istypinglist.filter((flt: any) => flt.conversationID === conversationsetup.conversationid), [conversationsetup, istypinglist]);
+  const conversationType = useMemo(() => conversationsetup.type, [conversationsetup]);
 
   const [messageValue, setmessageValue] = useState<string>("");
   const [conversationList, setconversationList] = useState<any[]>([])
@@ -221,7 +222,7 @@ function Conversation({ conversationsetup }: any) {
                 isReply: isReplying.isReply,
                 replyingTo: isReplying.replyingTo,
                 messageType: "text",
-                conversationType: "single"
+                conversationType: conversationType
             });
         }
         else{
@@ -239,7 +240,7 @@ function Conversation({ conversationsetup }: any) {
                 isReply: isReplying.isReply,
                 replyingTo: isReplying.replyingTo,
                 messageType: "text",
-                conversationType: "group"
+                conversationType: conversationType
             });
         }
     }
@@ -272,7 +273,7 @@ function Conversation({ conversationsetup }: any) {
                 files: pendingArrImages,
                 isReply: isReplying.isReply,
                 replyingTo: isReplying.replyingTo,
-                conversationType: "single"
+                conversationType: conversationType
             });
         }
         else{
@@ -283,7 +284,7 @@ function Conversation({ conversationsetup }: any) {
                 files: pendingArrImages,
                 isReply: isReplying.isReply,
                 replyingTo: isReplying.replyingTo,
-                conversationType: "group"
+                conversationType: conversationType
             });
         }
         setimgList([]);
@@ -523,23 +524,23 @@ function Conversation({ conversationsetup }: any) {
   return (
     <motion.div
     animate={{
-        display: pathnamelistener.includes("messages")? "flex" : screensizelistener.W <= 900? "none" : "flex",
-        maxWidth: pathnamelistener.includes("messages")? "100%" : screensizelistener.W <= 900? "350px" : "350px",
-        paddingTop: pathnamelistener.includes("messages")? "10px" : screensizelistener.W <= 900? "20px" : "20px"
+        display: pathnamelistener.includes("messages") || conversationType === "server" ? "flex" : screensizelistener.W <= 900? "none" : "flex",
+        maxWidth: pathnamelistener.includes("messages") || conversationType === "server" ? "100%" : screensizelistener.W <= 900? "350px" : "350px",
+        paddingTop: pathnamelistener.includes("messages") || conversationType === "server" ? conversationType === "server" ? "0px" : "10px" : screensizelistener.W <= 900? "20px" : "20px"
     }}
     id='div_conversation'>
         <motion.div
         initial={{
-            paddingRight: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "20px" : "20px",
-            paddingBottom: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "10px" : "10px",
-            width: pathnamelistener.includes("messages")? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 20px)" : "calc(100% - 20px)",
-            height: pathnamelistener.includes("messages")? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 10px)" : "calc(100% - 10px)"
+            paddingRight: pathnamelistener.includes("messages") || conversationType === "server" ? "0px" : screensizelistener.W <= 900? "20px" : "20px",
+            paddingBottom: pathnamelistener.includes("messages") || conversationType === "server" ? "0px" : screensizelistener.W <= 900? "10px" : "10px",
+            width: pathnamelistener.includes("messages") || conversationType === "server" ? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 20px)" : "calc(100% - 20px)",
+            height: pathnamelistener.includes("messages") || conversationType === "server" ? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 10px)" : "calc(100% - 10px)"
         }} 
         animate={{
-            paddingRight: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "20px" : "20px",
-            paddingBottom: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "10px" : "10px",
-            width: pathnamelistener.includes("messages")? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 20px)" : "calc(100% - 20px)",
-            height: pathnamelistener.includes("messages")? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 10px)" : "calc(100% - 10px)"
+            paddingRight: pathnamelistener.includes("messages") || conversationType === "server" ? "0px" : screensizelistener.W <= 900? "20px" : "20px",
+            paddingBottom: pathnamelistener.includes("messages") || conversationType === "server" ? "0px" : screensizelistener.W <= 900? "10px" : "10px",
+            width: pathnamelistener.includes("messages") || conversationType === "server" ? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 20px)" : "calc(100% - 20px)",
+            height: pathnamelistener.includes("messages") || conversationType === "server" ? "calc(100% - 0px)" : screensizelistener.W <= 900? "calc(100% - 10px)" : "calc(100% - 10px)"
         }} 
         id='div_conversation_container'>
            <motion.div
@@ -547,13 +548,13 @@ function Conversation({ conversationsetup }: any) {
                 height: "0px",
                 paddingBottom: "0px",
                 paddingTop: "0px",
-                borderRadius: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "10px" : "10px"
+                borderRadius: pathnamelistener.includes("messages") || conversationType === "server" ? "0px" : screensizelistener.W <= 900? "10px" : "10px"
            }}
            animate={{
                 height: "calc(100% - 10px)",
                 paddingBottom: "5px",
                 paddingTop: "5px",
-                borderRadius: pathnamelistener.includes("messages")? "0px" : screensizelistener.W <= 900? "10px" : "10px"
+                borderRadius: pathnamelistener.includes("messages") || conversationType === "server" ? "0px" : screensizelistener.W <= 900? "10px" : "10px"
            }}
            id='div_conversation_content_handler'>
                 <div id='div_conversation_header'>

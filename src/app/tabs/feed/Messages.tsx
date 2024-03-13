@@ -214,7 +214,7 @@ function Messages() {
                         backgroundColor: "rgb(200, 200, 200)"
                       }}
                       onClick={() => {
-                        navigate(`/servers/${msgslst.serverdetails?.serverID}`);
+                        navigate(`/servers/${msgslst.serverdetails?.serverID}/${msgslst.groupdetails.groupID}`);
                       }}
                       key={i} className='div_messages_list_cards'>
                         <div id='div_img_cncts_container'>
