@@ -53,7 +53,7 @@ function ServerConversation() {
   },[])
 
   return (
-    <div className="tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full">
+    <div className="tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-bg-[#f1f1f2] tw-rounded-tr-[10px] tw-rounded-br-[10px]">
         {conversationsetup.conversationid && isconversationsetuploaded ? (
             <Conversation conversationsetup={conversationsetup} />
         ) : (

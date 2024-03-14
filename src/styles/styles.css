@@ -2342,6 +2342,27 @@ input:checked + .slider:before {
     margin-left: -15px; */
 }
 
+.span_channel_messages_list_counts{
+    /* position: relative; */
+    background-color: red;
+    color: white;
+    min-width: 13px;
+    width: auto;
+    padding-left: 4px;
+    padding-right: 4px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    height: 13px;
+    font-size: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 15px;
+    /* margin-top: -20px;
+    margin-right: -15px;
+    margin-left: -15px; */
+}
+
 .scroller::-webkit-scrollbar {
     width: 10px;
 }
@@ -2413,7 +2434,7 @@ input:checked + .slider:before {
     width: 100%;
     height: calc(100% - 10px);
     border-radius: 10px;
-    border: solid 1px rgb(210, 210, 210);
+    /* border: solid 1px rgb(210, 210, 210); */
     display: flex;
     flex: 1;
     flex-direction: column;
@@ -2440,6 +2461,24 @@ input:checked + .slider:before {
     padding-top: 5px;
 }
 
+#div_server_channel_header{
+    width: calc(95% - 6px);
+    height: calc(55px - 10px);
+    /* background-color: #1c7DEF; */
+    background-color: transparent;
+    border-radius: 10px;
+    border-bottom-left-radius: 0px;
+    border-bottom-right-radius: 0px;
+    border-bottom: solid 1px rgb(210, 210, 210);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    padding-left: 3px;
+    padding-right: 3px;
+    padding-bottom: 7px;
+    padding-top: 8px;
+}
+
 #div_conversation_user{
     display: flex;
     flex: 1;
@@ -2458,6 +2497,15 @@ input:checked + .slider:before {
     flex: 1;
     justify-content: center;
     align-items: flex-start;
+}
+
+.span_server_name_label{
+    font-size: 14px;
+    font-weight: bold;
+    color: #3b3b3b;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .span_userdetails_name:first-of-type{

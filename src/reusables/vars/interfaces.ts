@@ -113,3 +113,42 @@ export interface RemoteStreams{
     mediastreamid: string;
     stream: MediaStreamTrack | any
 }
+
+interface ChannelMembersInterface{
+    userID: string
+}
+
+interface MessagesUnreadInterface{
+    unread: number;
+}
+
+export interface ChannelsListInterface{
+    _id: string;
+    serverID: string;
+    groupID: string;
+    groupName: string;
+    profile: string;
+    dateCreated: {
+        date: string;
+        time: string;
+    };
+    createdBy: string;
+    type: string;
+    privacy: boolean;
+    messages: MessagesUnreadInterface[];
+}
+
+export interface ServerChannelsListInterface{
+    _id: string;
+    serverID: string;
+    serverName: string;
+    profile: string;
+    dateCreated: {
+        date: string;
+        time: string;
+    };
+    members: ChannelMembersInterface[],
+    createdBy: string;
+    privacy: boolean;
+    channels: ChannelsListInterface[]
+}

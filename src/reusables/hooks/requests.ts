@@ -902,6 +902,27 @@ const InitServerConversationRequest = async (params: any) => {
     })
 }
 
+const InitServerChannelsRequest = async (params: any) => {
+    const serverID = params.serverID;
+
+    return await Axios.get(`${API}/s/initserverchannels/${serverID}`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            const decodedResult: any = jwt_decode(response.data.result);
+            return decodedResult.data;
+        }
+        else{
+            return false;
+        }
+    }).catch((err) => {
+        console.log(err);
+        throw new Error(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -936,5 +957,6 @@ export {
     IsTypingBroadcastRequest,
     AddNewMemberRequest,
     InitServerListRequest,
-    InitServerConversationRequest
+    InitServerConversationRequest,
+    InitServerChannelsRequest
 }

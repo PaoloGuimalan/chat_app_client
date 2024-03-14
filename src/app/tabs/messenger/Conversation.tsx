@@ -548,29 +548,32 @@ function Conversation({ conversationsetup }: any) {
                 height: "0px",
                 paddingBottom: "0px",
                 paddingTop: "0px",
-                borderRadius: pathnamelistener.includes("messages") || conversationType === "server" ? "0px" : screensizelistener.W <= 900? "10px" : "10px"
+                borderRadius: pathnamelistener.includes("messages") ? "0px" : screensizelistener.W <= 900? "10px" : "10px",
+                border: conversationType === "server" ? "none" : "solid 1px rgb(210, 210, 210)"
            }}
            animate={{
                 height: "calc(100% - 10px)",
                 paddingBottom: "5px",
                 paddingTop: "5px",
-                borderRadius: pathnamelistener.includes("messages") || conversationType === "server" ? "0px" : screensizelistener.W <= 900? "10px" : "10px"
+                borderRadius: pathnamelistener.includes("messages") ? "0px" : screensizelistener.W <= 900? "10px" : "10px"
            }}
            id='div_conversation_content_handler'>
                 <div id='div_conversation_header'>
                     <div id='div_conversation_user'>
-                        <div id='div_img_cncts_container'>
-                          <div id='div_img_search_profiles_container_cncts'>
-                            {conversationsetup.type == "single"? (
-                                <img src={conversationsetup.userdetails.profile == "none"? DefaultProfile : conversationsetup.userdetails.profile} className='img_search_profiles_ntfs' />
-                            ) : (
-                                <img src={GroupChatIcon} className='img_gc_profiles_ntfs' />
-                            )}
-                          </div>
-                          {isUserOnline(activeuserslist, conversationsetup.userdetails.userID) && (
-                             <div className='div_online_indicator' />
-                          )}
-                        </div>
+                        {conversationType !== "server" && (
+                            <div id='div_img_cncts_container'>
+                                <div id='div_img_search_profiles_container_cncts'>
+                                    {conversationsetup.type == "single"? (
+                                        <img src={conversationsetup.userdetails.profile == "none"? DefaultProfile : conversationsetup.userdetails.profile} className='img_search_profiles_ntfs' />
+                                    ) : (
+                                        <img src={GroupChatIcon} className='img_gc_profiles_ntfs' />
+                                    )}
+                                </div>
+                                {isUserOnline(activeuserslist, conversationsetup.userdetails.userID) && (
+                                    <div className='div_online_indicator' />
+                                )}
+                            </div>
+                        )}
                         <div id='div_conversation_user_name'>
                             {conversationsetup.type == "single"? (
                                 <span className='span_userdetails_name tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]'
@@ -606,32 +609,36 @@ function Conversation({ conversationsetup }: any) {
                         {toggleConversationInfoModal && conversationinfo && (
                             <ConversationInfoModal conversationinfo={conversationinfo} onclose={settoggleConversationInfoModal} />
                         )}
-                        <motion.button
-                        // disabled={true}
-                        disabled={
-                            pendingcallalerts.filter((fltcall: any) => fltcall.callID == conversationsetup.conversationid).length > 0?
-                            true : false
-                        }
-                        whileHover={{
-                            backgroundColor: "#e6e6e6"
-                        }}
-                        onClick={() => {
-                            initMediaDevices("audio")
-                        }}
-                        className='btn_conversation_header_navigation'><BiSolidPhoneCall style={{fontSize: "25px", color: "#4994ec"}} /></motion.button>
-                        <motion.button
-                        // disabled={true}
-                        disabled={
-                            pendingcallalerts.filter((fltcall: any) => fltcall.callID == conversationsetup.conversationid).length > 0?
-                            true : false
-                        }
-                        whileHover={{
-                            backgroundColor: "#e6e6e6"
-                        }}
-                        onClick={() => {
-                            initMediaDevices("video")
-                        }}
-                        className='btn_conversation_header_navigation'><FcVideoCall style={{fontSize: "25px"}} /></motion.button>
+                        {conversationType !== "server" && (
+                            <motion.button
+                            // disabled={true}
+                            disabled={
+                                pendingcallalerts.filter((fltcall: any) => fltcall.callID == conversationsetup.conversationid).length > 0?
+                                true : false
+                            }
+                            whileHover={{
+                                backgroundColor: "#e6e6e6"
+                            }}
+                            onClick={() => {
+                                initMediaDevices("audio")
+                            }}
+                            className='btn_conversation_header_navigation'><BiSolidPhoneCall style={{fontSize: "25px", color: "#4994ec"}} /></motion.button>
+                        )}
+                        {conversationType !== "server" && (
+                            <motion.button
+                            // disabled={true}
+                            disabled={
+                                pendingcallalerts.filter((fltcall: any) => fltcall.callID == conversationsetup.conversationid).length > 0?
+                                true : false
+                            }
+                            whileHover={{
+                                backgroundColor: "#e6e6e6"
+                            }}
+                            onClick={() => {
+                                initMediaDevices("video")
+                            }}
+                            className='btn_conversation_header_navigation'><FcVideoCall style={{fontSize: "25px"}} /></motion.button>
+                        )}
                         <motion.button
                         whileHover={{
                             backgroundColor: "#e6e6e6"
