@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import Conversation from "../../messenger/Conversation";
+import { motion } from "framer-motion";
 
 function ServerConversation() {
 
@@ -16,6 +17,7 @@ function ServerConversation() {
   const conversationID = useMemo(() => params.conversationID, [params]);
 
   useEffect(() => {
+    setisconversationsetuploaded(false);
     InitServerConversationRequest({
         conversationID: conversationID
     }).then((response) => {
@@ -53,13 +55,16 @@ function ServerConversation() {
   },[])
 
   return (
-    <div className="tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-bg-[#f1f1f2] tw-rounded-tr-[10px] tw-rounded-br-[10px]">
+    <motion.div
+    className="tw-bg-[#f1f1f2] tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]">
         {conversationsetup.conversationid && isconversationsetuploaded ? (
             <Conversation conversationsetup={conversationsetup} />
         ) : (
-            <span>Loading...</span>
+            <div className="tw-rounded-[10px] tw-bg-white tw-flex tw-items-center tw-justify-center tw-w-full tw-h-full">
+                <span className="tw-text-[13px]">Loading...</span>
+            </div>
         )}
-    </div>
+    </motion.div>
   )
 }
 

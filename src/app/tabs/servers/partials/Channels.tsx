@@ -4,14 +4,17 @@ import NoChannel from "./NoChannel";
 import ServerIcon from '../../../../assets/imgs/servericon.png'
 import ServerConversation from "./ServerConversation";
 import { InitServerChannelsRequest } from "@/reusables/hooks/requests";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { ChannelsListInterface, ServerChannelsListInterface } from "@/reusables/vars/interfaces";
 import { FaHashtag, FaLocationArrow } from "react-icons/fa6";
 import { motion } from "framer-motion";
+import { SET_CONVERSATION_SETUP } from "@/redux/types";
+import { conversationsetupstate } from "@/redux/actions/states";
 
 function Channels() {
 
-  const messageslist = useSelector((state: any) => state.messageslist)
+  const messageslist = useSelector((state: any) => state.messageslist);
+  const dispatch = useDispatch();
   const params = useParams();
   const urllocation = useLocation();
   const navigate = useNavigate();
@@ -64,6 +67,12 @@ function Channels() {
                       backgroundColor: "#deddde"
                     }}
                     onClick={() => {
+                      dispatch({
+                          type: SET_CONVERSATION_SETUP,
+                          payload:{
+                              conversationsetup: conversationsetupstate
+                          }
+                      })
                       navigate(`/servers/${serverID}/${mp.groupID}`)
                     }}
                     className="tw-select-none tw-cursor-pointer tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[calc(100%-10px)] tw-rounded-[4px]">
