@@ -8,7 +8,8 @@ import Conversation from "../../messenger/Conversation";
 import { motion } from "framer-motion";
 
 function ServerConversation() {
-
+    
+  const screensizelistener = useSelector((state: any) => state.screensizelistener);
   const conversationsetup = useSelector((state: any) => state.conversationsetup);
   const params = useParams();
   const dispatch = useDispatch();
@@ -56,6 +57,14 @@ function ServerConversation() {
 
   return (
     <motion.div
+    initial={{
+       borderBottomLeftRadius: screensizelistener.W <= 900 ? "10px" : "0px",
+       borderTopLeftRadius: screensizelistener.W <= 900 ? "10px" : "0px"
+    }}
+    animate={{
+        borderBottomLeftRadius: screensizelistener.W <= 900 ? "10px" : "0px",
+        borderTopLeftRadius: screensizelistener.W <= 900 ? "10px" : "0px"
+    }}
     className="tw-bg-[#f1f1f2] tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]">
         {conversationsetup.conversationid && isconversationsetuploaded ? (
             <Conversation conversationsetup={conversationsetup} />

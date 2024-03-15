@@ -23,7 +23,7 @@ function Servers() {
 
   return (
     <div className='tw-w-full tw-h-full tw-bg-[#d8d8da] tw-absolute tw-z-[2] tw-flex tw-flex-row'>
-      <div className="thinscroller tw-bg-[#d8d8da] tw-flex tw-flex-col tw-flex-1 tw-max-w-[70px] tw-items-center tw-pt-[10px] tw-pb-[10px] tw-overflow-y-auto">
+      <div className="thinscroller tw-bg-[#d8d8da] tw-flex tw-flex-col tw-flex-1 tw-max-w-[70px] tw-min-w-[70px] tw-items-center tw-pt-[10px] tw-pb-[10px] tw-overflow-y-auto">
           <motion.button
           whileHover={{
             backgroundColor: "#e6e6e6"

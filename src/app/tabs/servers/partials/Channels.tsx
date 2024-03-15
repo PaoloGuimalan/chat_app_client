@@ -14,6 +14,7 @@ import { conversationsetupstate } from "@/redux/actions/states";
 function Channels() {
 
   const messageslist = useSelector((state: any) => state.messageslist);
+  const screensizelistener = useSelector((state: any) => state.screensizelistener);
   const dispatch = useDispatch();
   const params = useParams();
   const urllocation = useLocation();
@@ -40,7 +41,20 @@ function Channels() {
 
   return (
     <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-start tw-pt-[15px] tw-pb-[10px] tw-pr-[7px]">
-        <div className="tw-bg-[#f1f1f2] tw-flex tw-flex-1 tw-flex-col tw-h-full tw-max-w-[250px] tw-rounded-tl-[10px] tw-rounded-bl-[10px] tw-items-center">
+        <motion.div
+        initial={{
+          maxWidth: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "100%" : "0px" : "250px",
+          borderBottomRightRadius: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "10px" : "0px" : "0px",
+          borderTopRightRadius: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "10px" : "0px" : "0px",
+          opacity: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? 1 : 0 : 1
+        }}
+        animate={{
+          maxWidth: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "100%" : "0px" : "250px",
+          borderBottomRightRadius: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "10px" : "0px" : "0px",
+          borderTopRightRadius: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "10px" : "0px" : "0px",
+          opacity: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? 1 : 0 : 1
+        }}
+        className="tw-bg-[#f1f1f2] tw-flex tw-flex-1 tw-flex-col tw-h-full tw-rounded-tl-[10px] tw-rounded-bl-[10px] tw-items-center tw-overflow-x-hidden">
           <div id='div_server_channel_header'>
             <div id='div_conversation_user'>
               <div id='div_img_cncts_container'>
@@ -67,13 +81,15 @@ function Channels() {
                       backgroundColor: "#deddde"
                     }}
                     onClick={() => {
-                      dispatch({
-                          type: SET_CONVERSATION_SETUP,
-                          payload:{
-                              conversationsetup: conversationsetupstate
-                          }
-                      })
-                      navigate(`/servers/${serverID}/${mp.groupID}`)
+                      if(!urllocation.pathname.includes(mp.groupID)){
+                        dispatch({
+                            type: SET_CONVERSATION_SETUP,
+                            payload:{
+                                conversationsetup: conversationsetupstate
+                            }
+                        })
+                        navigate(`/servers/${serverID}/${mp.groupID}`)
+                      }
                     }}
                     className="tw-select-none tw-cursor-pointer tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[calc(100%-10px)] tw-rounded-[4px]">
                       <FaHashtag />
@@ -90,11 +106,20 @@ function Channels() {
               </div>
             </div>
           </div>
-        </div>
-        <Routes>
-            <Route path="/" element={<NoChannel />} />
-            <Route path="/:conversationID" element={<ServerConversation />} />
-        </Routes>
+        </motion.div>
+        <motion.div
+        initial={{
+          maxWidth: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "0px" : "none" : "none"
+        }}
+        animate={{
+          maxWidth: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "0px" : "none" : "none"
+        }}
+        className="tw-flex tw-flex-1 tw-h-full tw-overflow-x-hidden tw-rounded-tr-[10px] tw-rounded-br-[10px]">
+          <Routes>
+              <Route path="/" element={<NoChannel />} />
+              <Route path="/:conversationID" element={<ServerConversation />} />
+          </Routes>
+        </motion.div>
     </div>
   )
 }
