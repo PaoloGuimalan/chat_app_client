@@ -11,7 +11,7 @@ function UserMenu() {
   const navigate = useNavigate();
 
   return (
-    <div className='tw-w-[calc(100%-20px)] tw-max-w-[calc(600px-20px)] tw-bg-transparent tw-flex-1 tw-flex tw-flex-col tw-items-center tw-p-[10px] tw-pt-[0px] tw-overflow-y-auto scroller'>
+    <div className='tw-w-[calc(100%-0px)] tw-max-w-[calc(600px-0px)] tw-bg-transparent tw-flex-1 tw-flex tw-flex-col tw-items-center tw-p-[10px] tw-pt-[0px] tw-pl-[0px] tw-pr-[0px] tw-overflow-y-auto scroller'>
         <div className="tw-w-full tw-flex tw-flex-col">
             <div id='div_app_menu_label_container' className="tw-items-center">
                 <BsPersonFill style={{fontSize: "22px", color: "#1c7DEF"}} />
@@ -22,7 +22,7 @@ function UserMenu() {
                 onClick={() => {
                     navigate(`/${authentication.user.userID}`);
                 }}
-                className="tw-select-none tw-cursor-pointer tw-w-[calc(85%-20px)] tw-bg-white tw-max-w-[550px] tw-min-h-[55px] tw-shadow-sm tw-p-[10px] tw-rounded-[5px] tw-flex tw-flex-row tw-items-center tw-gap-[10px]">
+                className="tw-select-none tw-cursor-pointer tw-w-[calc(90%-20px)] tw-bg-white tw-max-w-[550px] tw-min-h-[55px] tw-shadow-sm tw-p-[10px] tw-rounded-[5px] tw-flex tw-flex-row tw-items-center tw-gap-[10px]">
                     <div id='img_default_profile_container'>
                         <img src={DefaultProfile} id='img_default_profile' />
                     </div>
