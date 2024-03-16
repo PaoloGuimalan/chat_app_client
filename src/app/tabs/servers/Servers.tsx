@@ -3,12 +3,15 @@ import { motion } from "framer-motion"
 import { useEffect, useState } from "react";
 import { AiOutlineHome } from "react-icons/ai";
 import ServerIcon from '../../../assets/imgs/servericon.png'
-import { Route, Routes, useNavigate } from "react-router-dom"
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import Default from "./partials/Default";
 import Channels from "./partials/Channels";
+import { useSelector } from "react-redux";
 
 function Servers() {
 
+  const screensizelistener = useSelector((state: any) => state.screensizelistener);
+  const urllocation = useLocation();
   const navigate = useNavigate();
 
   const [serverlist, setserverlist] = useState<any[]>([])
@@ -23,7 +26,16 @@ function Servers() {
 
   return (
     <div className='tw-w-full tw-h-full tw-bg-[#d8d8da] tw-absolute tw-z-[2] tw-flex tw-flex-row'>
-      <div className="thinscroller tw-bg-[#d8d8da] tw-flex tw-flex-col tw-flex-1 tw-max-w-[70px] tw-min-w-[70px] tw-items-center tw-pt-[10px] tw-pb-[10px] tw-overflow-y-auto">
+      <motion.div
+      initial={{
+        minWidth: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "70px" : "0px" : "70px",
+        width: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "70px" : "0px" : "70px"
+      }}
+      animate={{
+        minWidth: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "70px" : "0px" : "70px",
+        width: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "70px" : "0px" : "70px"
+      }}
+      className="thinscroller tw-bg-[#d8d8da] tw-flex tw-flex-col tw-max-w-[70px] tw-items-center tw-pt-[10px] tw-pb-[10px] overflowx-hidden tw-overflow-y-auto">
           <motion.button
           whileHover={{
             backgroundColor: "#e6e6e6"
@@ -55,7 +67,7 @@ function Servers() {
               )
             })}
           </div>
-      </div>
+      </motion.div>
       <Routes>
         <Route path="/" element={<Default />} />
         <Route path="/:serverID/*" element={<Channels />} />

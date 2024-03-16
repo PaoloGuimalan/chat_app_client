@@ -40,7 +40,14 @@ function Channels() {
   },[serverID, messageslist])
 
   return (
-    <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-start tw-pt-[15px] tw-pb-[10px] tw-pr-[7px]">
+    <motion.div
+    initial={{
+      paddingLeft: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "0px" : "7px" : "0px"
+    }}
+    animate={{
+      paddingLeft: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "0px" : "7px" : "0px"
+    }} 
+    className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-start tw-pt-[15px] tw-pb-[10px] tw-pr-[7px]">
         <motion.div
         initial={{
           maxWidth: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "100%" : "0px" : "250px",
@@ -120,7 +127,7 @@ function Channels() {
               <Route path="/:conversationID" element={<ServerConversation />} />
           </Routes>
         </motion.div>
-    </div>
+    </motion.div>
   )
 }
 

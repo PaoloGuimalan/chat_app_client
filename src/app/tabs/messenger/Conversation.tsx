@@ -6,7 +6,7 @@ import GroupChatIcon from '../../../assets/imgs/group-chat-icon.jpg'
 import { FcVideoCall, FcInfo, FcAddImage } from 'react-icons/fc'
 import { BiSolidPhoneCall } from 'react-icons/bi'
 import { RiAddCircleFill } from 'react-icons/ri'
-import { IoDocumentOutline, IoSend } from 'react-icons/io5'
+import { IoChevronBack, IoDocumentOutline, IoSend } from 'react-icons/io5'
 import { MdAudiotrack } from "react-icons/md";
 import { AiOutlineClose } from 'react-icons/ai';
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
@@ -15,7 +15,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import { AiOutlineLoading3Quarters } from 'react-icons/ai'
 import { importData, importNonImageData, isUserOnline, makeid } from '../../../reusables/hooks/reusable'
 import { MEDIA_MY_VIDEO_HOLDER, MEDIA_TRACK_HOLDER, REMOVE_REJECTED_CALL_LIST, SET_CALLS_LIST, SET_MUTATE_ALERTS, SET_PENDING_MESSAGES_LIST } from '../../../redux/types'
-import { useNavigate } from 'react-router-dom'
+import { useLocation, useNavigate } from 'react-router-dom'
 import ContentHandler from './partials/ContentHandler'
 import ConversationInfoModal from '@/app/widgets/modals/Conversation/ConversationInfoModal'
 import { ConversationInfoInterface } from '@/reusables/vars/interfaces'
@@ -78,6 +78,7 @@ function Conversation({ conversationsetup }: any) {
     toggle: false,
   })
   
+  const urllocation = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
@@ -558,9 +559,27 @@ function Conversation({ conversationsetup }: any) {
                 borderRadius: pathnamelistener.includes("messages") ? "0px" : screensizelistener.W <= 900? "10px" : "10px"
            }}
            id='div_conversation_content_handler'>
-                <div id='div_conversation_header'>
+                <motion.div
+                initial={{
+                    paddingLeft: conversationType === "server" ? screensizelistener.W <= 900 ? "0px" : "10px" : "10px"
+                }}
+                animate={{
+                    paddingLeft: conversationType === "server" ? screensizelistener.W <= 900 ? "0px" : "10px" : "10px"
+                }}
+                id='div_conversation_header'>
                     <div id='div_conversation_user'>
-                        {conversationType !== "server" && (
+                        {conversationType === "server" ? (
+                            screensizelistener.W <= 900 && (
+                                <div onClick={() => {
+                                    // console.log(conversationsetup);
+                                    navigate(urllocation.pathname.split("/").slice(0, urllocation.pathname.split("/").length - 1).join("/"))
+                                }} id='div_img_cncts_container'>
+                                    <div id='div_img_server_back_container_cncts'>
+                                        <IoChevronBack />
+                                    </div>
+                                </div>
+                            )
+                        ) : (
                             <div id='div_img_cncts_container'>
                                 <div id='div_img_search_profiles_container_cncts'>
                                     {conversationsetup.type == "single"? (
@@ -647,7 +666,7 @@ function Conversation({ conversationsetup }: any) {
                             settoggleConversationInfoModal(!toggleConversationInfoModal) 
                         }}><FcInfo style={{fontSize: "25px"}} /></motion.button>
                     </div>
-                </div>
+                </motion.div>
                 {isLoading? (
                     <div id='div_conversation_content_loader'>
                         <motion.div
