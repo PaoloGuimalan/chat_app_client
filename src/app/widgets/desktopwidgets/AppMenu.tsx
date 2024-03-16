@@ -2,6 +2,7 @@ import { motion } from "framer-motion"
 import { useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FcList, FcPuzzle, FcSettings } from "react-icons/fc";
+import { TbServer2 } from 'react-icons/tb'
 import { useSelector } from "react-redux";
 import AppItems from "../items/AppItems";
 
@@ -14,18 +15,25 @@ function AppMenu() {
 
   const menulist: any[] = [
     {
-        _id: 2,
+        _id: 1,
         appname: "Settings",
         icon: <FcSettings style={{fontSize: "40px"}} />,
         description: "Organize you account settings.",
-        navigation: ""
+        navigation: null
     },
     {
-        _id: 1,
+        _id: 2,
+        appname: "Servers",
+        icon: <TbServer2 style={{fontSize: "40px", color: "#e69500"}} />,
+        description: "Browse and Socialize through servers",
+        navigation: "/servers"
+    },
+    {
+        _id: 3,
         appname: "Chatterloop Extension",
         icon: <FcPuzzle style={{fontSize: "40px"}} />,
         description: "Merge your contents from accross different platforms.",
-        navigation: ""
+        navigation: null
     }
   ]
 

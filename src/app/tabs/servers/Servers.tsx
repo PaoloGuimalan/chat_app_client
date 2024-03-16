@@ -1,12 +1,13 @@
 import { InitServerListRequest } from "@/reusables/hooks/requests";
 import { motion } from "framer-motion"
 import { useEffect, useState } from "react";
-import { AiOutlineHome } from "react-icons/ai";
 import ServerIcon from '../../../assets/imgs/servericon.png'
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom"
 import Default from "./partials/Default";
 import Channels from "./partials/Channels";
 import { useSelector } from "react-redux";
+import { IoArrowBack } from "react-icons/io5";
+import { TbServer2 } from "react-icons/tb";
 
 function Servers() {
 
@@ -35,7 +36,7 @@ function Servers() {
         minWidth: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "70px" : "0px" : "70px",
         width: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "70px" : "0px" : "70px"
       }}
-      className="thinscroller tw-bg-[#d8d8da] tw-flex tw-flex-col tw-max-w-[70px] tw-items-center tw-pt-[10px] tw-pb-[10px] overflowx-hidden tw-overflow-y-auto">
+      className="thinscroller tw-bg-[#d8d8da] tw-flex tw-flex-col tw-max-w-[70px] tw-items-center tw-pt-[10px] tw-pb-[10px] tw-overflow-x-hidden tw-overflow-y-auto">
           <motion.button
           whileHover={{
             backgroundColor: "#e6e6e6"
@@ -43,7 +44,15 @@ function Servers() {
           onClick={() => {
             navigate("/")
           }}
-          className='btn_server_navigations'><AiOutlineHome style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
+          className='btn_server_navigations'><IoArrowBack style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
+          <motion.button
+          whileHover={{
+            backgroundColor: "#e6e6e6"
+          }}
+          onClick={() => {
+            navigate("/servers")
+          }}
+          className='btn_server_navigations'><TbServer2 style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
           <hr className="tw-w-[65%]" />
           <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[2px]">
             {serverlist.map((mp: any, i: number) => {

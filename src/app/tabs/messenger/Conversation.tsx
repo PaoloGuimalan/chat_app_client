@@ -6,7 +6,7 @@ import GroupChatIcon from '../../../assets/imgs/group-chat-icon.jpg'
 import { FcVideoCall, FcInfo, FcAddImage } from 'react-icons/fc'
 import { BiSolidPhoneCall } from 'react-icons/bi'
 import { RiAddCircleFill } from 'react-icons/ri'
-import { IoChevronBack, IoDocumentOutline, IoSend } from 'react-icons/io5'
+import { IoArrowBack, IoDocumentOutline, IoSend } from 'react-icons/io5'
 import { MdAudiotrack } from "react-icons/md";
 import { AiOutlineClose } from 'react-icons/ai';
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
@@ -575,7 +575,7 @@ function Conversation({ conversationsetup }: any) {
                                     navigate(urllocation.pathname.split("/").slice(0, urllocation.pathname.split("/").length - 1).join("/"))
                                 }} id='div_img_cncts_container'>
                                     <div id='div_img_server_back_container_cncts'>
-                                        <IoChevronBack />
+                                        <IoArrowBack style={{ fontSize: "20px" }} />
                                     </div>
                                 </div>
                             )
