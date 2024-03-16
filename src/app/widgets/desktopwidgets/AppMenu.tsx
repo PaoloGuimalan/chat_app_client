@@ -1,10 +1,11 @@
 import { motion } from "framer-motion"
 import { useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { FcList, FcPuzzle, FcSettings } from "react-icons/fc";
+import { FcPuzzle, FcSettings } from "react-icons/fc"; /**FcList */
 import { TbServer2 } from 'react-icons/tb'
 import { useSelector } from "react-redux";
 import AppItems from "../items/AppItems";
+import { PiListBold } from "react-icons/pi";
 
 function AppMenu() {
 
@@ -40,12 +41,12 @@ function AppMenu() {
   return (
     <motion.div
     animate={{
-      display: pathnamelistener.includes("contacts")? "flex" : screensizelistener.W <= 1100? "none" : "flex",
-      maxWidth: pathnamelistener.includes("contacts")? "600px" : screensizelistener.W <= 900? "350px" : "350px"
+      display: pathnamelistener.includes("contacts") || pathnamelistener.includes("user")? "flex" : screensizelistener.W <= 1100? "none" : "flex",
+      maxWidth: pathnamelistener.includes("contacts") || pathnamelistener.includes("user")? "600px" : screensizelistener.W <= 900? "350px" : "350px"
     }}
     id='div_app_menu'>
         <div id='div_app_menu_label_container'>
-          <FcList style={{fontSize: "28px"}} />
+          <PiListBold style={{fontSize: "27px", color: "#2196f3"}} />
           <span className='span_contacts_label'>Menu</span>
         </div>
         {isLoading? (

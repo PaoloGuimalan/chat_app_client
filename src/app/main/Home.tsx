@@ -14,7 +14,7 @@ import SearchMiniDrawer from '../widgets/SearchMiniDrawer'
 import { CloseSSENotifications, SSENotificationsTRequest } from '../../reusables/hooks/sse'
 import { CLEAR_PENDING_CALL_ALERTS, SET_CALLS_LIST, SET_CLEAR_ALERTS, SET_CONVERSATION_SETUP, SET_MESSAGES_LIST, SET_REMOVE_IS_TYPING_LIST, SET_TOGGLE_RIGHT_WIDGET } from '../../redux/types'
 import { conversationsetupstate } from '../../redux/actions/states'
-import { Route, Routes, useNavigate } from 'react-router-dom'
+import { Navigate, Route, Routes, useNavigate } from 'react-router-dom'
 import DesktopHome from './DesktopHome'
 import CallCollection from '../absolutes/calls/CallCollection'
 import { endSocket } from '../../reusables/hooks/sockets'
@@ -22,6 +22,7 @@ import MapFeed from '../tabs/mapfeed/MapFeed'
 import Profile from '../tabs/profile/Profile'
 import { AuthenticationInterface } from '@/reusables/vars/interfaces'
 import Servers from '../tabs/servers/Servers'
+import UserMenu from '../tabs/profile/UserMenu'
 
 function Home() {
 
@@ -152,7 +153,12 @@ function Home() {
             backgroundColor: "#e6e6e6"
           }}
           onClick={() => {
-            navigate(`/${authentication.user.userID}`)
+            if(screensizelistener.W <= 1100){
+              navigate("/user");
+            }
+            else{
+              navigate(`/${authentication.user.userID}`);
+            }
           }}
           id='img_profile_container'>
             <div id='img_default_profile_container'>
@@ -264,6 +270,7 @@ function Home() {
       <Routes>
         <Route path='/' element={<DesktopHome togglerightwidget={togglerightwidget} />} />
         <Route path='/:userID' element={<Profile />} />
+        <Route path='/user' element={screensizelistener.W <= 1100 ? <UserMenu /> : <Navigate to={'/'} />} />
         <Route path='/messages' element={<Messages />} />
         <Route path='/notifications' element={<Notifications />} />
         <Route path='/contacts' element={<Contacts />} />

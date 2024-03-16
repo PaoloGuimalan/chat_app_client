@@ -1605,6 +1605,7 @@ input:checked + .slider:before {
     /* flex: 1; */
     height: auto;
     max-height: 250px;
+    min-height: 155px;
     align-items: center;
     overflow-y: auto;
 }
