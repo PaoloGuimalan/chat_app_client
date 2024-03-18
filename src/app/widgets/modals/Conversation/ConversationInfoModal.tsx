@@ -13,6 +13,7 @@ import { IoCheckmark, IoClose, IoDocumentOutline } from "react-icons/io5";
 import { MdOutlineGroupAdd } from "react-icons/md";
 import { AddNewMemberRequest, ContactsListReusableRequest } from "@/reusables/hooks/requests";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { FaHashtag } from "react-icons/fa6";
 
 function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoModalProp) {
 
@@ -204,11 +205,15 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
             <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-flex tw-h-[calc(100%-70px)] tw-flex-col lg:tw-flex-row tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-y-scroll lg:tw-overflow-y-none thinscroller">
                 <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-items-center tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
                     <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-flex-col tw-items-center tw-gap-[10px]">
-                        <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
-                          <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
-                            <img src={conversationinfo.type === "server" ? ServerIcon : GroupChatIcon} className='img_gc_profiles_ntfs' />
-                          </div>
-                        </div>
+                        {conversationinfo.type === "server" ? (
+                            <FaHashtag style={{ fontSize: '120px' }} />
+                        ): (
+                            <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
+                                <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
+                                    <img src={conversationinfo.type === "server" ? ServerIcon : GroupChatIcon} className='img_gc_profiles_ntfs' />
+                                </div>
+                            </div>
+                        )}
                         <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">{conversationinfo.conversationInfo?.groupName}</span>
                     </div>
                     <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start">
