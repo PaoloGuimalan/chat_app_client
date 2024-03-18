@@ -4,6 +4,7 @@ import { IoMdClose } from "react-icons/io"
 import { useNavigate } from "react-router-dom"
 import DefaultProfile from '../../../../assets/imgs/default.png'
 import GroupChatIcon from '../../../../assets/imgs/group-chat-icon.jpg'
+import ServerIcon from '../../../../assets/imgs/servericon.png'
 import { useSelector } from "react-redux";
 import { AuthenticationInterface, ConversationFilesInterface, UserWithInfoConversationInterface } from "@/reusables/vars/interfaces";
 import { useState } from "react";
@@ -71,7 +72,7 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
                 <span className='tw-text-[14px] tw-font-semibold tw-flex tw-flex-1'
                 >Conversation</span>
             ) : (
-                <span className='tw-text-[14px] tw-font-semibold tw-flex tw-flex-1'>Group Chat</span>
+                <span className='tw-text-[14px] tw-font-semibold tw-flex tw-flex-1'>{conversationinfo.type === "server" ? "Channel" : "Group Chat"}</span>
             )}
             <button onClick={() => { onclose(false) }} className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer">
               <IoMdClose style={{ fontSize: "17px" }} />
@@ -205,7 +206,7 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
                     <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-flex-col tw-items-center tw-gap-[10px]">
                         <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
                           <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
-                            <img src={GroupChatIcon} className='img_gc_profiles_ntfs' />
+                            <img src={conversationinfo.type === "server" ? ServerIcon : GroupChatIcon} className='img_gc_profiles_ntfs' />
                           </div>
                         </div>
                         <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">{conversationinfo.conversationInfo?.groupName}</span>
@@ -243,20 +244,39 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
                                     })}
                                 </motion.div>
                             )}
-                            <div onClick={() => {
-                                GetContactsListProcess(!expandcontacts);
-                            }} className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer">
-                                <div id='div_img_search_profiles_container_cncts' className="tw-bg-transparent tw-border-transparent">
-                                    {expandcontacts ? (
-                                        <IoClose style={{ fontSize: "20px" }} />
-                                    ) : (
-                                        <MdOutlineGroupAdd style={{ fontSize: "20px" }} />
-                                    )}
+                            {conversationinfo.conversationInfo?.type === "server" ? (
+                                conversationinfo.conversationInfo?.privacy && (
+                                    <div onClick={() => {
+                                        GetContactsListProcess(!expandcontacts);
+                                    }} className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer">
+                                        <div id='div_img_search_profiles_container_cncts' className="tw-bg-transparent tw-border-transparent">
+                                            {expandcontacts ? (
+                                                <IoClose style={{ fontSize: "20px" }} />
+                                            ) : (
+                                                <MdOutlineGroupAdd style={{ fontSize: "20px" }} />
+                                            )}
+                                        </div>
+                                        <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
+                                            <span className="tw-flex tw-flex-1 tw-text-[13px]">{expandcontacts ? "Close list" : "Add a user"}</span>
+                                        </div>
+                                    </div>
+                                )
+                            ): (
+                                <div onClick={() => {
+                                    GetContactsListProcess(!expandcontacts);
+                                }} className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer">
+                                    <div id='div_img_search_profiles_container_cncts' className="tw-bg-transparent tw-border-transparent">
+                                        {expandcontacts ? (
+                                            <IoClose style={{ fontSize: "20px" }} />
+                                        ) : (
+                                            <MdOutlineGroupAdd style={{ fontSize: "20px" }} />
+                                        )}
+                                    </div>
+                                    <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
+                                        <span className="tw-flex tw-flex-1 tw-text-[13px]">{expandcontacts ? "Close list" : "Add a user"}</span>
+                                    </div>
                                 </div>
-                                <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                                    <span className="tw-flex tw-flex-1 tw-text-[13px]">{expandcontacts ? "Close list" : "Add a user"}</span>
-                                </div>
-                            </div>
+                            )}
                             {markedMembers.length > 0 && expandcontacts && (
                                 <div onClick={() => {
                                     AddNewMemberProcess();

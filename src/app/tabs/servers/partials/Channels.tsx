@@ -76,7 +76,7 @@ function Channels() {
           </div>
           <div className="tw-bg-transparent tw-w-[calc(100%-16px)] tw-flex tw-flex-col tw-pl-[8px] tw-pr-[8px] tw-pt-[10px] tw-pb-[10px] tw-items-start">
             <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[7px]">
-              <span className="tw-text-[14px] tw-font-semibold">Channels</span>
+              <span className="tw-text-[14px] tw-font-semibold">{serverdetails?.channels && serverdetails?.channels.length > 0 && "Channels"}</span>
               <div className="tw-bg-transparent tw-gap-[3px] tw-w-[calc(100%-20px)] tw-pb-[5px] tw-pl-[10px] tw-pr-[10px] tw-flex tw-flex-1 tw-flex-col tw-items-start">
                 {serverdetails?.channels.map((mp: ChannelsListInterface, i: number) => {
                   return(
