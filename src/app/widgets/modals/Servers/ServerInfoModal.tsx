@@ -8,21 +8,20 @@ import { useState } from "react"
 import { IoCheckmark, IoClose } from "react-icons/io5"
 import { MdOutlineGroupAdd } from "react-icons/md"
 import { AiOutlineLoading3Quarters } from "react-icons/ai"
-import { ContactsListReusableRequest } from "@/reusables/hooks/requests"
-import { AuthenticationInterface, ChannelMembersInterface } from "@/reusables/vars/interfaces"
+import { AddNewMemberToServer, ContactsListReusableRequest } from "@/reusables/hooks/requests"
+import { AuthenticationInterface, ChannelMembersInterface, ServerUsersWithInfo } from "@/reusables/vars/interfaces"
 import { useSelector } from "react-redux"
-// import { useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
 
 function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
 
   const authentication: AuthenticationInterface = useSelector((state: any) => state.authentication);
-//   const navigate = useNavigate();
+  const navigate = useNavigate();
 
   const [toggleMemberDropper, settoggleMemberDropper] = useState<boolean>(true);
   const [expandcontacts, setexpandcontacts] = useState<boolean>(false);
   const [isLoading, setisLoading] = useState<boolean>(true);
   const [searchFilter, _] = useState("");
-  const [toggledfiles, settoggledfiles] = useState<string>("media");
 
   const [markedMembers, setmarkedMembers] = useState<any[]>([]);
   const [contactslist, setcontactslist] = useState<any[]>([]);
@@ -47,33 +46,33 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   }
 
   const AddNewMemberProcess = () => {
-    // const initialpayload = {
-    //     conversationID: conversationinfo.conversationInfo?.groupID,
-    //     memberstoadd: markedMembers,
-    //     receivers: [...markedMembers.map((mp) => mp.userID)]
-    // }
-    // AddNewMemberRequest(initialpayload).then((response) => {
-    //     if(response.data.status){
-    //         setmarkedMembers([]);
-    //         setexpandcontacts(false);
-    //         // console.log(response.data);
-    //     }
-    // }).catch((err) => {
-    //     console.log(err);
-    // })
+    const initialpayload = {
+        serverID: serverdetails.serverID,
+        memberstoadd: markedMembers,
+        receivers: [...markedMembers.map((mp) => mp.userID)]
+    }
+    AddNewMemberToServer(initialpayload).then((response) => {
+        if(response.data.status){
+            setmarkedMembers([]);
+            setexpandcontacts(false);
+            // console.log(response.data);
+        }
+    }).catch((err) => {
+        console.log(err);
+    })
   }
 
   return (
     <Modal component={
-        <div className="div_modal_container tw-max-w-[800px] tw-max-h-[550px] tw-items-center">
+        <div className="div_modal_container tw-max-w-[600px] tw-max-h-[550px] tw-items-center">
           <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-pl-[10px] tw-pr-[10px] tw-pt-[7px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
             <span className='tw-text-[14px] tw-font-semibold tw-flex tw-flex-1'>Server</span>
             <button onClick={() => { onclose(false) }} className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer">
               <IoMdClose style={{ fontSize: "17px" }} />
             </button>
           </div>
-          <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-flex tw-h-[calc(100%-70px)] tw-flex-col lg:tw-flex-row tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-y-scroll lg:tw-overflow-y-none thinscroller">
-                <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-items-center tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
+          <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-flex tw-h-[calc(100%-70px)] tw-flex-col tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-y-scroll lg:tw-overflow-y-none thinscroller">
+                <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-items-center tw-overflow-y-none thinscroller">
                     <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-flex-col tw-items-center tw-gap-[10px]">
                         <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
                             <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
@@ -268,7 +267,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                     </motion.div>
                                 )}
                             </motion.div>
-                            {/* {conversationinfo.usersWithInfo.map((mp: UserWithInfoConversationInterface, i: number) => {
+                            {serverdetails.usersWithInfo.map((mp: ServerUsersWithInfo, i: number) => {
                                 return(
                                     <div key={i} onClick={() => {
                                         navigate(`/${mp.userID}`)
@@ -281,84 +280,9 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                         </div>
                                     </div>
                                 )
-                            })} */}
+                            })}
                         </motion.div>
                     </div>
-                </div>
-                <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-p-[10px] tw-pr-[0px] tw-pt-[0px]">
-                    <div className="tw-w-full tw-flex tw-items-center tw-h-[30px] tw-pb-[5px]">
-                        <motion.button onClick={() => { settoggledfiles("media") }} 
-                        animate={{ 
-                            borderColor: toggledfiles === "media" ? "black" : "transparent"
-                        }} 
-                        className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Media</motion.button>
-                        <motion.button onClick={() => { settoggledfiles("audio") }} 
-                        animate={{ 
-                            borderColor: toggledfiles === "audio" ? "black" : "transparent"
-                        }} 
-                        className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Audio</motion.button>
-                        <motion.button onClick={() => { settoggledfiles("files") }} 
-                        animate={{ 
-                            borderColor: toggledfiles === "files" ? "black" : "transparent"
-                        }} 
-                        className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer">Files</motion.button>
-                    </div>
-                    {toggledfiles === "media" && (
-                        <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[2px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                            {/* {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
-                                if(mp.fileDetails.data){
-                                    if(mp.fileType.includes("image")){
-                                        return(
-                                            <img key={i} src={mp.fileDetails.data}  className="tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black" />
-                                        )
-                                    }
-                                    else if(mp.fileType.includes("video")){
-                                        // console.log(mp.fileDetails.data.split("%%")[0])
-                                        return(
-                                            <video controls key={i} src={mp.fileDetails.data.split("%%%")[0].replace("###", "%23%23%23")}  className="tw-w-full tw-flex tw-flex-1 tw-max-h-[200px] tw-object-cover tw-bg-black" />
-                                        )
-                                    }
-                                }
-                            })} */}
-                        </div>
-                    )}
-                    {toggledfiles === "audio" && (
-                        <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[5px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                            {/* {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
-                                if(mp.fileDetails.data){
-                                    if(mp.fileType.includes("audio")){
-                                        return(
-                                            <div key={i} className='tw-w-full'
-                                            title={`${mp.dateUploaded.date} ${mp.dateUploaded.time}`}>
-                                                <audio src={mp.fileDetails.data.split("%%%")[0].replace("###", "%23%23%23")} controls className='tw-w-full tw-border-[7px]' />
-                                            </div>
-                                        )
-                                    }
-                                }
-                            })} */}
-                        </div>
-                    )}
-                    {toggledfiles === "files" && (
-                        <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[5px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                            {/* {conversationinfo.conversationfiles.map((mp: ConversationFilesInterface, i: number) => {
-                                if(mp.fileDetails.data){
-                                    if(!mp.fileType.includes("image") && !mp.fileType.includes("video") && !mp.fileType.includes("audio")){
-                                        return(
-                                            <div key={i} onClick={() => {
-                                                window.open(mp.fileDetails.data.split("%%%")[0].replace("###", "%23%23%23"), '_blank')
-                                            }} className='tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]'
-                                            title={`${mp.dateUploaded.date} ${mp.dateUploaded.time}`}>
-                                                <div className='tw-w-full tw-max-w-[40px]'>
-                                                    <IoDocumentOutline style={{ fontSize: "40px" }} />
-                                                </div>
-                                                <span className='tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left'>{mp.fileDetails.data.split("%%%")[1]}</span>
-                                            </div>
-                                        )
-                                    }
-                                }
-                            })} */}
-                        </div>
-                    )}
                 </div>
             </div>
       </div>

@@ -138,6 +138,16 @@ export interface ChannelsListInterface{
     messages: MessagesUnreadInterface[];
 }
 
+export interface ServerUsersWithInfo{
+    userID: string;
+    fullname: { 
+        firstName: string; 
+        middleName: string; 
+        lastName: string; 
+    };
+    profile: string;
+}
+
 export interface ServerChannelsListInterface{
     _id: string;
     serverID: string;
@@ -147,8 +157,9 @@ export interface ServerChannelsListInterface{
         date: string;
         time: string;
     };
-    members: ChannelMembersInterface[],
+    members: ChannelMembersInterface[];
     createdBy: string;
     privacy: boolean;
-    channels: ChannelsListInterface[]
+    channels: ChannelsListInterface[];
+    usersWithInfo: ServerUsersWithInfo[];
 }

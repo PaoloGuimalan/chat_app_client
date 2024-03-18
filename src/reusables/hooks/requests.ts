@@ -923,6 +923,22 @@ const InitServerChannelsRequest = async (params: any) => {
     })
 }
 
+const AddNewMemberToServer = async (payload: any) => {
+    const encodedParams = sign(payload, SECRET);
+
+    return await Axios.post(`${API}/s/addnewmembertoserver`, {
+        token: encodedParams
+    },{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        return response;
+    }).catch((err) => {
+        throw new Error(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -958,5 +974,6 @@ export {
     AddNewMemberRequest,
     InitServerListRequest,
     InitServerConversationRequest,
-    InitServerChannelsRequest
+    InitServerChannelsRequest,
+    AddNewMemberToServer
 }
