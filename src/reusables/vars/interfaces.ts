@@ -114,7 +114,7 @@ export interface RemoteStreams{
     stream: MediaStreamTrack | any
 }
 
-interface ChannelMembersInterface{
+export interface ChannelMembersInterface{
     userID: string
 }
 

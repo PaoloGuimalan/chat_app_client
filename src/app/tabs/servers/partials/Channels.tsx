@@ -10,6 +10,8 @@ import { FaHashtag, FaLocationArrow } from "react-icons/fa6";
 import { motion } from "framer-motion";
 import { SET_CONVERSATION_SETUP } from "@/redux/types";
 import { conversationsetupstate } from "@/redux/actions/states";
+import { FcInfo } from "react-icons/fc";
+import ServerInfoModal from "@/app/widgets/modals/Servers/ServerInfoModal";
 
 function Channels() {
 
@@ -23,6 +25,7 @@ function Channels() {
   const serverID = useMemo(() => params.serverID, [params]);
 
   const [serverdetails, setserverdetails] = useState<ServerChannelsListInterface | null>(null);
+  const [toggleserverinfomodal, settoggleserverinfomodal] = useState<boolean>(false);
 
   const InitServerChannelsProcess = () => {
     InitServerChannelsRequest({
@@ -63,7 +66,7 @@ function Channels() {
         }}
         className="tw-bg-[#f1f1f2] tw-flex tw-flex-1 tw-flex-col tw-h-full tw-rounded-tl-[10px] tw-rounded-bl-[10px] tw-items-center tw-overflow-x-hidden">
           <div id='div_server_channel_header'>
-            <div id='div_conversation_user'>
+            <div id='div_conversation_user' className="tw-items-center">
               <div id='div_img_cncts_container'>
                 <div id='div_img_search_profiles_container_cncts'>
                   <img src={ServerIcon} className='img_gc_profiles_ntfs' />
@@ -71,6 +74,18 @@ function Channels() {
               </div>
               <div id='div_conversation_user_name'>
                 <span className='span_server_name_label'>{serverdetails?.serverName}</span>
+              </div>
+              <div id='div_conversation_header_navigations'>
+                {toggleserverinfomodal && serverdetails && (
+                  <ServerInfoModal serverdetails={serverdetails} onclose={settoggleserverinfomodal} />
+                )}
+                <motion.button
+                whileHover={{
+                  backgroundColor: "#e6e6e6"
+                }}
+                className='btn_conversation_header_navigation' disabled={serverdetails ? false : true} onClick={() => { 
+                  settoggleserverinfomodal(!toggleserverinfomodal);
+                }}><FcInfo style={{fontSize: "25px"}} /></motion.button>
               </div>
             </div>
           </div>

@@ -1,4 +1,4 @@
-import { ConversationInfoInterface } from "./interfaces";
+import { ConversationInfoInterface, ServerChannelsListInterface } from "./interfaces";
 
 export interface MessageOptionsProp{
     messageID: string;
@@ -18,6 +18,11 @@ export interface ContentHandlerProp{
 
 export interface ConversationInfoModalProp{
     conversationinfo: ConversationInfoInterface,
+    onclose: any
+}
+
+export interface ServerInfoModalProp{
+    serverdetails: ServerChannelsListInterface,
     onclose: any
 }
 
