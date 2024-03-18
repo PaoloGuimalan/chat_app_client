@@ -2517,6 +2517,7 @@ input:checked + .slider:before {
     flex: 1;
     justify-content: center;
     align-items: flex-start;
+    overflow: hidden;
 }
 
 .span_server_name_label{
@@ -2526,6 +2527,8 @@ input:checked + .slider:before {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+    width: 100%;
+    text-align: left;
 }
 
 .span_userdetails_name:first-of-type{
