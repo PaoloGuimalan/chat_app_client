@@ -213,7 +213,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                                             }
                                                         }
                                                         else{
-                                                            if(serverdetails.members.filter((flt: ChannelMembersInterface) => flt.userID === cnts.userdetails.usertwo.userID).length === 0){
+                                                            if(serverdetails.members.filter((flt: ChannelMembersInterface) => flt.userID === cnts.userdetails.userone.userID).length === 0){
                                                                 var fullNameFilter = `${cnts.userdetails.userone.fullname.firstName}${cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} ${cnts.userdetails.userone.fullname.lastName}`
                                                                 if(fullNameFilter.includes(searchFilter)){
                                                                     return(
