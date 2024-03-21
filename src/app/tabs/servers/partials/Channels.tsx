@@ -6,7 +6,7 @@ import ServerConversation from "./ServerConversation";
 import { InitServerChannelsRequest } from "@/reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
 import { ChannelsListInterface, ServerChannelsListInterface } from "@/reusables/vars/interfaces";
-import { FaHashtag, FaLocationArrow } from "react-icons/fa6";
+import { FaHashtag, FaLocationArrow, FaLock } from "react-icons/fa6";
 import { motion } from "framer-motion";
 import { SET_CONVERSATION_SETUP } from "@/redux/types";
 import { conversationsetupstate } from "@/redux/actions/states";
@@ -127,7 +127,11 @@ function Channels() {
                       }
                     }}
                     className="tw-select-none tw-cursor-pointer tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[calc(100%-10px)] tw-rounded-[4px]">
-                      <FaHashtag />
+                      {mp.privacy ? (
+                        <FaLock style={{ fontSize: "13px" }} />
+                      ): (
+                        <FaHashtag />
+                      )}
                       <span className={`tw-bg-transparent tw-flex tw-flex-1 ${mp.messages.length > 0 && "tw-font-semibold"} `}>{mp.groupName}</span>
                       {urllocation.pathname.includes(mp.groupID) && (
                         <FaLocationArrow />

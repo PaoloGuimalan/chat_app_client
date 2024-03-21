@@ -1,5 +1,5 @@
 import Modal from "@/app/reusables/Modal"
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { BiGroup } from "react-icons/bi"
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
@@ -53,7 +53,11 @@ function CreateChannelModal({ serverID, setisCreateChannelToggle, servermembersl
 
   return (
     <Modal component={
-        <div id='div_modal_container'>
+        <motion.div
+        animate={{
+            maxHeight: gcprivacy ? "700px" : "240px"
+        }}
+        id='div_modal_container'>
             <div className='tw-flex tw-flex-1 tw-flex-col tw-max-h-[100%] tw-bg-transparent'>
                 <div id='div_modal_header'>
                     <div id='div_server_modal_header_label'>
@@ -85,97 +89,101 @@ function CreateChannelModal({ serverID, setisCreateChannelToggle, servermembersl
                         </div>
                     </div>
                     <div id='div_modal_input_columns_add_people'>
-                        <div id='div_input_filter_container'>
-                            <span id='span_input_label'>Add People</span>
-                            <input id='input_searchfilter' 
-                                value={searchFilter}
-                                onChange={(e) => {
-                                    setsearchFilter(e.target.value)
-                                }}
-                                type='text' placeholder="Type a name of a user" 
-                            />
-                        </div>
-                        <motion.div
-                        animate={{
-                            minHeight: markedMembers.length > 0? "40px" : "0px",
-                            height: markedMembers.length > 0? "40px" : "0px"
-                        }}
-                        id='div_selected_container' className='scrollervert'>
-                            {markedMembers.map((mrkm: any, i: number) => {
-                                return(
-                                    <div key={i} className='div_selected_server_holder'>
-                                        <span className='span_selected_label'>{mrkm.fullName}</span>
-                                        <button className='btn_remove_selected' onClick={() => {
-                                            removeFromList(mrkm.userID)
-                                        }}>
-                                            <IoClose style={{ fontSize: "17px", color: "white" }} />
-                                        </button>
-                                    </div>
-                                )
-                            })}
-                        </motion.div>
-                        {isLoading ? (
-                            <div className='tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center'>
+                        {gcprivacy && (
+                            <React.Fragment>
+                                <div id='div_input_filter_container'>
+                                    <span id='span_input_label'>Add People</span>
+                                    <input id='input_searchfilter' 
+                                        value={searchFilter}
+                                        onChange={(e) => {
+                                            setsearchFilter(e.target.value)
+                                        }}
+                                        type='text' placeholder="Type a name of a user" 
+                                    />
+                                </div>
                                 <motion.div
                                 animate={{
-                                    rotate: -360
+                                    minHeight: markedMembers.length > 0? "40px" : "0px",
+                                    height: markedMembers.length > 0? "40px" : "0px"
                                 }}
-                                transition={{
-                                    duration: 1,
-                                    repeat: Infinity
-                                }}
-                                id='div_loader_request'>
-                                    <AiOutlineLoading3Quarters style={{fontSize: "28px"}} />
-                                </motion.div>
-                            </div>
-                        ) : (
-                            <motion.div id='div_contacts_select_container' className='scroller'
-                                // animate={{
-                                //     maxHeight: markedMembers.length > 0 ? "calc(100% - 520px)" : "calc(100% - 440px)"
-                                // }}
-                            >
-                                <div className='tw-w-full tw-flex tw-flex-col tw-h-auto'>
-                                    {contactslist.map((cnts: any, i: number) => {
-                                        if(cnts.userID !== authentication.user.userID){
-                                            return(
-                                                <motion.div
-                                                whileHover={{
-                                                    backgroundColor: "#e6e6e6"
-                                                }}
-                                                key={i} className='div_cncts_cards'>
-                                                    <input type="checkbox" checked={valueToArrayChecker(cnts.userID)}
-                                                        onChange={() => {
-                                                            if(!valueToArrayChecker(cnts.userID)){
-                                                                    setmarkedMembers([
-                                                                    ...markedMembers,
-                                                                    {
-                                                                        userID: cnts.userID,
-                                                                        fullName: `${cnts.fullname.firstName}${cnts.fullname.middleName == "N/A"? "" : ` ${cnts.fullname.middleName}`} ${cnts.fullname.lastName}`
-                                                                    }
-                                                                ])
-                                                            }
-                                                            else{
-                                                                removeFromList(cnts.userID)
-                                                            }
-                                                        }}
-                                                        className='checkbox_selector_people_server' />
-                                                    <div id='div_img_cncts_container'>
-                                                        <div id='div_img_search_profiles_container_cncts'>
-                                                        <img src={cnts.profile == "none"? DefaultProfile : cnts.profile} className='img_search_profiles_ntfs' />
-                                                    </div>
-                                                </div>
-                                                <div className='div_contact_fullname_container'>
-                                                    <span className='span_cncts_fullname_label'>{cnts.fullname.firstName}{cnts.fullname.middleName == "N/A"? "" : ` ${cnts.fullname.middleName}`} {cnts.fullname.lastName}</span>
-                                                </div>
-                                            </motion.div>
-                                            )
-                                        }
-                                        else{
-                                            return null
-                                        }
+                                id='div_selected_container' className='scrollervert'>
+                                    {markedMembers.map((mrkm: any, i: number) => {
+                                        return(
+                                            <div key={i} className='div_selected_server_holder'>
+                                                <span className='span_selected_label'>{mrkm.fullName}</span>
+                                                <button className='btn_remove_selected' onClick={() => {
+                                                    removeFromList(mrkm.userID)
+                                                }}>
+                                                    <IoClose style={{ fontSize: "17px", color: "white" }} />
+                                                </button>
+                                            </div>
+                                        )
                                     })}
-                                </div>
-                            </motion.div>
+                                </motion.div>
+                                {isLoading ? (
+                                    <div className='tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center'>
+                                        <motion.div
+                                        animate={{
+                                            rotate: -360
+                                        }}
+                                        transition={{
+                                            duration: 1,
+                                            repeat: Infinity
+                                        }}
+                                        id='div_loader_request'>
+                                            <AiOutlineLoading3Quarters style={{fontSize: "28px"}} />
+                                        </motion.div>
+                                    </div>
+                                ) : (
+                                    <motion.div id='div_contacts_select_container' className='scroller'
+                                        // animate={{
+                                        //     maxHeight: markedMembers.length > 0 ? "calc(100% - 520px)" : "calc(100% - 440px)"
+                                        // }}
+                                    >
+                                        <div className='tw-w-full tw-flex tw-flex-col tw-h-auto'>
+                                            {contactslist.map((cnts: any, i: number) => {
+                                                if(cnts.userID !== authentication.user.userID){
+                                                    return(
+                                                        <motion.div
+                                                        whileHover={{
+                                                            backgroundColor: "#e6e6e6"
+                                                        }}
+                                                        key={i} className='div_cncts_cards'>
+                                                            <input type="checkbox" checked={valueToArrayChecker(cnts.userID)}
+                                                                onChange={() => {
+                                                                    if(!valueToArrayChecker(cnts.userID)){
+                                                                            setmarkedMembers([
+                                                                            ...markedMembers,
+                                                                            {
+                                                                                userID: cnts.userID,
+                                                                                fullName: `${cnts.fullname.firstName}${cnts.fullname.middleName == "N/A"? "" : ` ${cnts.fullname.middleName}`} ${cnts.fullname.lastName}`
+                                                                            }
+                                                                        ])
+                                                                    }
+                                                                    else{
+                                                                        removeFromList(cnts.userID)
+                                                                    }
+                                                                }}
+                                                                className='checkbox_selector_people_server' />
+                                                            <div id='div_img_cncts_container'>
+                                                                <div id='div_img_search_profiles_container_cncts'>
+                                                                <img src={cnts.profile == "none"? DefaultProfile : cnts.profile} className='img_search_profiles_ntfs' />
+                                                            </div>
+                                                        </div>
+                                                        <div className='div_contact_fullname_container'>
+                                                            <span className='span_cncts_fullname_label'>{cnts.fullname.firstName}{cnts.fullname.middleName == "N/A"? "" : ` ${cnts.fullname.middleName}`} {cnts.fullname.lastName}</span>
+                                                        </div>
+                                                    </motion.div>
+                                                    )
+                                                }
+                                                else{
+                                                    return null
+                                                }
+                                            })}
+                                        </div>
+                                    </motion.div>
+                                )}
+                            </React.Fragment>
                         )}
                         <div id='div_create_cancel_btns'>
                             <button disabled={false} className='btns_create_server_cancel'
@@ -192,7 +200,7 @@ function CreateChannelModal({ serverID, setisCreateChannelToggle, servermembersl
                     </div>
                 </div>
             </div>
-        </div>
+        </motion.div>
     } />
   )
 }
