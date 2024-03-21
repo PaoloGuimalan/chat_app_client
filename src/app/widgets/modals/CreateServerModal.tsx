@@ -46,6 +46,8 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
     ContactsListReusableRequest(setcontactslist, setisLoading);
   },[]);
 
+//   console.log(contactslist)
+
   return (
     <Modal component={
         <div id='div_modal_container'>

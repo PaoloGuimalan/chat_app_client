@@ -13,6 +13,7 @@ import { conversationsetupstate } from "@/redux/actions/states";
 import { FcInfo } from "react-icons/fc";
 import ServerInfoModal from "@/app/widgets/modals/Servers/ServerInfoModal";
 import { IoMdAdd } from "react-icons/io";
+import CreateChannelModal from "@/app/widgets/modals/Servers/CreateChannelModal";
 
 function Channels() {
 
@@ -27,6 +28,7 @@ function Channels() {
 
   const [serverdetails, setserverdetails] = useState<ServerChannelsListInterface | null>(null);
   const [toggleserverinfomodal, settoggleserverinfomodal] = useState<boolean>(false);
+  const [toggleserveraddchannelmodal, settoggleserveraddchannelmodal] = useState<boolean>(false);
 
   const InitServerChannelsProcess = () => {
     InitServerChannelsRequest({
@@ -94,9 +96,14 @@ function Channels() {
             <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[7px]">
               <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-w-full tw-items-center">
                 <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">{serverdetails?.channels && serverdetails?.channels.length > 0 && "Channels"}</span>
-                <button className="tw-w-[30px] tw-h-[30px] tw-p-0 tw-flex tw-items-center tw-justify-center tw-border-none tw-rounded-[7px] hover:tw-bg-[#d8d8da] tw-cursor-pointer">
-                  <IoMdAdd style={{ fontSize: "17px" }} />
-                </button>
+                {toggleserveraddchannelmodal && (
+                  <CreateChannelModal setisCreateChannelToggle={settoggleserveraddchannelmodal} servermemberslist={serverdetails?.usersWithInfo} />
+                )}
+                {serverdetails?.channels && serverdetails?.channels.length > 0 && (
+                  <button onClick={() => { settoggleserveraddchannelmodal(!toggleserveraddchannelmodal) }} className="tw-w-[30px] tw-h-[30px] tw-p-0 tw-flex tw-items-center tw-justify-center tw-border-none tw-rounded-[7px] hover:tw-bg-[#d8d8da] tw-cursor-pointer">
+                    <IoMdAdd style={{ fontSize: "17px" }} />
+                  </button>
+                )}
               </div>
               <div className="tw-bg-transparent tw-gap-[3px] tw-w-[calc(100%-20px)] tw-pb-[5px] tw-pl-[10px] tw-pr-[10px] tw-flex tw-flex-1 tw-flex-col tw-items-start">
                 {serverdetails?.channels.map((mp: ChannelsListInterface, i: number) => {
