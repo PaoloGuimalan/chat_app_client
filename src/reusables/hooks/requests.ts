@@ -939,6 +939,25 @@ const AddNewMemberToServer = async (payload: any) => {
     })
 }
 
+const CreateChannelRequest = (payloadprop: any, setisCreateGCToggle: any) => {
+    const payload = payloadprop
+    const encodedPayload = sign(payload, SECRET)
+
+    Axios.post(`${API}/u/createchannel`, {
+        token: encodedPayload
+    },{
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            setisCreateGCToggle(false)
+        }
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -975,5 +994,6 @@ export {
     InitServerListRequest,
     InitServerConversationRequest,
     InitServerChannelsRequest,
-    AddNewMemberToServer
+    AddNewMemberToServer,
+    CreateChannelRequest
 }

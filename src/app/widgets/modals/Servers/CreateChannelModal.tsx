@@ -7,8 +7,9 @@ import { IoClose } from "react-icons/io5";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import DefaultProfile from '../../../../assets/imgs/default.png'
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import { CreateChannelRequest } from "@/reusables/hooks/requests";
 
-function CreateChannelModal({ setisCreateChannelToggle, servermemberslist }: any) {
+function CreateChannelModal({ serverID, setisCreateChannelToggle, servermemberslist }: any) {
 
   const authentication: AuthenticationInterface = useSelector((state: any) => state.authentication);
 //   const contactslist = useSelector((state: any) => state.contactslist)
@@ -34,12 +35,13 @@ function CreateChannelModal({ setisCreateChannelToggle, servermemberslist }: any
   }
 
   const processCreateGroupChat = () => {
-    // var markedMembersFinal = markedMembers.map((mrkd: any) => (mrkd.userID))
-    // CreateServerRequest({
-    //     groupName: gcName,
-    //     privacy: gcprivacy,
-    //     otherUsers: markedMembersFinal
-    // }, setisCreateServerToggle)
+    var markedMembersFinal = markedMembers.map((mrkd: any) => (mrkd.userID))
+    CreateChannelRequest({
+        serverID: serverID,
+        groupName: gcName,
+        privacy: gcprivacy,
+        otherUsers: markedMembersFinal
+    }, setisCreateChannelToggle)
   }
 
   useEffect(() => {

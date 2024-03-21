@@ -97,7 +97,7 @@ function Channels() {
               <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-w-full tw-items-center">
                 <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">{serverdetails?.channels && serverdetails?.channels.length > 0 && "Channels"}</span>
                 {toggleserveraddchannelmodal && (
-                  <CreateChannelModal setisCreateChannelToggle={settoggleserveraddchannelmodal} servermemberslist={serverdetails?.usersWithInfo} />
+                  <CreateChannelModal serverID={serverdetails?.serverID} setisCreateChannelToggle={settoggleserveraddchannelmodal} servermemberslist={serverdetails?.usersWithInfo} />
                 )}
                 {serverdetails?.channels && serverdetails?.channels.length > 0 && (
                   <button onClick={() => { settoggleserveraddchannelmodal(!toggleserveraddchannelmodal) }} className="tw-w-[30px] tw-h-[30px] tw-p-0 tw-flex tw-items-center tw-justify-center tw-border-none tw-rounded-[7px] hover:tw-bg-[#d8d8da] tw-cursor-pointer">
