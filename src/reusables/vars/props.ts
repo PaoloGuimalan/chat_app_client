@@ -14,6 +14,7 @@ export interface ContentHandlerProp{
     setisReplying: (data: any) => void; 
     setfullImageScreen: (data: any) => void; 
     scrollBottom : () => void;
+    theme: any;
 }
 
 export interface ConversationInfoModalProp{

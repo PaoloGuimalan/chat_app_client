@@ -9,7 +9,7 @@ import { useEffect, useMemo, useState } from "react"
 import EmojiPickerHandler from "./EmojiPickerHandler"
 import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal"
 
-function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImageScreen, scrollBottom }: ContentHandlerProp) {
+function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImageScreen, scrollBottom, theme }: ContentHandlerProp) {
 
     const authentication = useSelector((state: any) => state.authentication)
 
@@ -45,13 +45,13 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                         )}
                         {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
-                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
                         <motion.span
                         title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
                         initial={{
                             backgroundColor: cnvs.sender == authentication.user.userID? "white" : "white",
-                            border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
+                            border: cnvs.sender == authentication.user.userID? "solid 1px ${theme.primary}" : "solid 1px rgb(222, 222, 222)",
                             color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b",
                             // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                         }}
@@ -125,19 +125,19 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                         )}
                         {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label tw-font-Inter'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
-                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
                         <motion.div
                         title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
                         initial={{
-                            backgroundColor: cnvs.sender == authentication.user.userID? "#1c7DEF" : "rgb(222, 222, 222)",
-                            border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
+                            backgroundColor: cnvs.sender == authentication.user.userID? theme.primary : "rgb(222, 222, 222)",
+                            border: cnvs.sender == authentication.user.userID? `solid 1px ${theme.primary}` : "solid 1px rgb(222, 222, 222)",
                             color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b",
                             // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                         }}
                         animate={{
-                            backgroundColor: cnvs.sender == authentication.user.userID? "#1c7DEF" : "rgb(222, 222, 222)",
-                            border: cnvs.sender == authentication.user.userID? "solid 1px #1c7DEF" : "solid 1px rgb(222, 222, 222)",
+                            backgroundColor: cnvs.sender == authentication.user.userID? theme.primary : "rgb(222, 222, 222)",
+                            border: cnvs.sender == authentication.user.userID? `solid 1px ${theme.primary}` : "solid 1px rgb(222, 222, 222)",
                             color: cnvs.sender == authentication.user.userID? "white" : "#3b3b3b",
                             // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                         }}
@@ -250,7 +250,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                         )}
                         {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
-                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
                         <div className='div_pending_content_container'
                         title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
@@ -370,7 +370,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                         )}
                         {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
-                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
                         <div className='div_pending_content_container'
                         title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
@@ -485,7 +485,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                         )}
                         {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
-                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
                         <div className='tw-w-full'
                         title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}>
@@ -609,7 +609,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                         )}
                         {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
-                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} />
+                            <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
                         <div className="tw-w-full tw-flex tw-flex-col">
                             <div onClick={() => {

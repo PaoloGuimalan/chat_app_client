@@ -67,7 +67,7 @@ function ServerConversation() {
     }}
     className="tw-bg-[#f1f1f2] tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]">
         {conversationsetup.conversationid && isconversationsetuploaded ? (
-            <Conversation conversationsetup={conversationsetup} />
+            <Conversation conversationsetup={conversationsetup} theme={{ primary: "#e69500", lighten: "#ffc965" }} />
         ) : (
             <div className="tw-rounded-[10px] tw-bg-white tw-flex tw-items-center tw-justify-center tw-w-full tw-h-full">
                 <span className="tw-text-[13px]">Loading...</span>

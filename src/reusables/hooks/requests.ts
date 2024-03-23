@@ -958,6 +958,28 @@ const CreateChannelRequest = (payloadprop: any, setisCreateGCToggle: any) => {
     })
 }
 
+const GetMembersListInServer = (serverID: string, dispatch: any, setisLoading: any) => {
+    Axios.get(`${API}/s/getservermembers/${serverID}`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        if(response.data.status){
+            const decodedResult: any = jwt_decode(response.data.result);
+
+            dispatch(decodedResult.members);
+            setisLoading(false)
+
+            // console.log(decodedResult.members)
+        }
+        else{
+
+        }
+    }).catch((err) => {
+        console.log(err)
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -995,5 +1017,6 @@ export {
     InitServerConversationRequest,
     InitServerChannelsRequest,
     AddNewMemberToServer,
-    CreateChannelRequest
+    CreateChannelRequest,
+    GetMembersListInServer
 }

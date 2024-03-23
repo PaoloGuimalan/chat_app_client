@@ -52,6 +52,7 @@ export interface UsersInConversation{
 
 export interface ConversationDetails{
     _id: any,
+    serverID? : string,
     groupID: string,
     groupName: string,
     profile?: string,

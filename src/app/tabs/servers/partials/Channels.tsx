@@ -10,10 +10,11 @@ import { FaHashtag, FaLocationArrow, FaLock } from "react-icons/fa6";
 import { motion } from "framer-motion";
 import { SET_CONVERSATION_SETUP } from "@/redux/types";
 import { conversationsetupstate } from "@/redux/actions/states";
-import { FcInfo } from "react-icons/fc";
+// import { FcInfo } from "react-icons/fc";
 import ServerInfoModal from "@/app/widgets/modals/Servers/ServerInfoModal";
 import { IoMdAdd } from "react-icons/io";
 import CreateChannelModal from "@/app/widgets/modals/Servers/CreateChannelModal";
+import { BiSolidInfoCircle } from "react-icons/bi";
 
 function Channels() {
 
@@ -88,7 +89,7 @@ function Channels() {
                 }}
                 className='btn_conversation_header_navigation' disabled={serverdetails ? false : true} onClick={() => { 
                   settoggleserverinfomodal(!toggleserverinfomodal);
-                }}><FcInfo style={{fontSize: "25px"}} /></motion.button>
+                }}><BiSolidInfoCircle style={{fontSize: "25px", color: "#e69500"}} /></motion.button>
               </div>
             </div>
           </div>
@@ -100,7 +101,7 @@ function Channels() {
                   <CreateChannelModal serverID={serverdetails?.serverID} setisCreateChannelToggle={settoggleserveraddchannelmodal} servermemberslist={serverdetails?.usersWithInfo} />
                 )}
                 {serverdetails?.channels && serverdetails?.channels.length > 0 && (
-                  <button onClick={() => { settoggleserveraddchannelmodal(!toggleserveraddchannelmodal) }} className="tw-w-[30px] tw-h-[30px] tw-p-0 tw-flex tw-items-center tw-justify-center tw-border-none tw-rounded-[7px] hover:tw-bg-[#d8d8da] tw-cursor-pointer">
+                  <button onClick={() => { settoggleserveraddchannelmodal(!toggleserveraddchannelmodal) }} className="tw-w-[30px] tw-h-[30px] tw-p-0 tw-flex tw-items-center tw-justify-center tw-border-none tw-rounded-[7px] hover:tw-bg-[#ffc965] hover:tw-text-white tw-cursor-pointer"> {/** bg hover #d8d8da */}
                     <IoMdAdd style={{ fontSize: "17px" }} />
                   </button>
                 )}
@@ -110,10 +111,15 @@ function Channels() {
                   return(
                     <motion.div key={i}
                     initial={{
-                      backgroundColor: "transparent"
+                      backgroundColor: "transparent",
+                      color: urllocation.pathname.includes(mp.groupID) ? "#e69500" : "black"
+                    }}
+                    animate={{
+                      color: urllocation.pathname.includes(mp.groupID) ? "#e69500" : "black"
                     }}
                     whileHover={{
-                      backgroundColor: "#deddde"
+                      backgroundColor: "#ffc965",
+                      color: "white"
                     }}
                     onClick={() => {
                       if(!urllocation.pathname.includes(mp.groupID)){
@@ -132,7 +138,7 @@ function Channels() {
                       ): (
                         <FaHashtag />
                       )}
-                      <span className={`tw-bg-transparent tw-flex tw-flex-1 ${mp.messages.length > 0 && "tw-font-semibold"} `}>{mp.groupName}</span>
+                      <span className={`tw-bg-transparent tw-flex ${urllocation.pathname.includes(mp.groupID) ? "tw-font-semibold" : "tw-font-normal"} tw-flex-1 ${mp.messages.length > 0 && "tw-font-semibold"} `}>{mp.groupName}</span>
                       {urllocation.pathname.includes(mp.groupID) && (
                         <FaLocationArrow />
                       )}

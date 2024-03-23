@@ -3,12 +3,12 @@ import '../../../styles/styles.css'
 import { motion } from 'framer-motion'
 import DefaultProfile from '../../../assets/imgs/default.png'
 import GroupChatIcon from '../../../assets/imgs/group-chat-icon.jpg'
-import { FcVideoCall, FcInfo, FcAddImage } from 'react-icons/fc'
-import { BiSolidPhoneCall } from 'react-icons/bi'
+import { FcVideoCall, FcAddImage } from 'react-icons/fc' //FcInfo
+import { BiSolidInfoCircle, BiSolidPhoneCall } from 'react-icons/bi'
 import { RiAddCircleFill } from 'react-icons/ri'
 import { IoArrowBack, IoDocumentOutline, IoSend } from 'react-icons/io5'
 import { MdAudiotrack } from "react-icons/md";
-import { AiOutlineClose } from 'react-icons/ai';
+import { AiOutlineClose } from 'react-icons/ai'; //AiFillInfoCircle
 import { checkIfValid } from '../../../reusables/hooks/validatevariables'
 import { CallRequest, ConversationInfoRequest, InitConversationRequest, IsTypingBroadcastRequest, SeenMessageRequest, SendFilesRequest, SendMessageRequest } from '../../../reusables/hooks/requests'
 import { useDispatch, useSelector } from 'react-redux'
@@ -20,8 +20,9 @@ import ContentHandler from './partials/ContentHandler'
 import ConversationInfoModal from '@/app/widgets/modals/Conversation/ConversationInfoModal'
 import { ConversationInfoInterface } from '@/reusables/vars/interfaces'
 import IsTypingLoader from './partials/IsTypingLoader'
+import { FaHashtag, FaLock } from 'react-icons/fa6'
 
-function Conversation({ conversationsetup }: any) {
+function Conversation({ conversationsetup, theme }: any) {
 
   const authentication = useSelector((state: any) => state.authentication)
   const mediatrackholder = useSelector((state: any) => state.mediatrackholder);
@@ -522,6 +523,8 @@ function Conversation({ conversationsetup }: any) {
     any: "a file"
   }
 
+//   console.log(conversationsetup)
+
   return (
     <motion.div
     animate={{
@@ -601,7 +604,7 @@ function Conversation({ conversationsetup }: any) {
                                 }}
                               >{conversationsetup.userdetails.fullname.firstName}{conversationsetup.userdetails.fullname.middleName == "N/A"? "" : ` ${conversationsetup.userdetails.fullname.middleName}`} {conversationsetup.userdetails.fullname.lastName}</span>
                             ) : (
-                                <span className='span_userdetails_name'>{conversationsetup.groupdetails.groupName}</span>
+                                <span className='span_userdetails_name tw-flex tw-items-center tw-gap-[3px]'>{conversationsetup.type === "server" && (conversationsetup.groupdetails.privacy ? <FaLock style={{ fontSize: "13px" }} /> : <FaHashtag />) } {conversationsetup.groupdetails.groupName}</span>
                             )}
                             {conversationsetup.type == "single"? (
                                 activeusersmapper.includes(conversationsetup.userdetails.userID)? (
@@ -664,7 +667,7 @@ function Conversation({ conversationsetup }: any) {
                         }}
                         className='btn_conversation_header_navigation' disabled={conversationinfo ? false : true} onClick={() => { 
                             settoggleConversationInfoModal(!toggleConversationInfoModal) 
-                        }}><FcInfo style={{fontSize: "25px"}} /></motion.button>
+                        }}><BiSolidInfoCircle style={{fontSize: "27px", color: theme.primary}} /></motion.button>
                     </div>
                 </motion.div>
                 {isLoading? (
@@ -717,14 +720,14 @@ function Conversation({ conversationsetup }: any) {
                                         className='tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]'>
                                             <motion.span
                                             initial={{
-                                                backgroundColor: "#82b7f6",
-                                                border: "solid 1px #82b7f6",
+                                                backgroundColor: theme.lighten,
+                                                border: `solid 1px ${theme.lighten}`,
                                                 color: "white",
                                                 // marginLeft: "auto" : "0px"
                                             }}
                                             animate={{
-                                                backgroundColor: "#82b7f6",
-                                                border: "solid 1px #82b7f6",
+                                                backgroundColor: theme.lighten,
+                                                border: `solid 1px ${theme.lighten}`,
                                                 color: "white",
                                                 // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                                             }}
@@ -846,6 +849,7 @@ function Conversation({ conversationsetup }: any) {
                                     setisReplying={setisReplyingTrigger} 
                                     setfullImageScreen={setfullImageScreen} 
                                     scrollBottom={scrollBottom} 
+                                    theme={theme}
                                 />
                             )
                         })}
@@ -903,7 +907,7 @@ function Conversation({ conversationsetup }: any) {
                     paddingTop: isReplying.isReply? "10px" : "0px",
                     paddingBottom: isReplying.isReply? "10px" : "0px",
                     borderRadius: "10px",
-                    backgroundColor: isReplying.isReply? conversationList.filter((flt: any) => flt.messageID == isReplying.replyingTo)[0].sender === authentication.user.userID? "#1c7def" : "#dedede" : "white",
+                    backgroundColor: isReplying.isReply? conversationList.filter((flt: any) => flt.messageID == isReplying.replyingTo)[0].sender === authentication.user.userID? theme.primary : "#dedede" : "white",
                     color: isReplying.isReply? conversationList.filter((flt: any) => flt.messageID == isReplying.replyingTo)[0].sender === authentication.user.userID? "white" : "black" : "white"
                 }}
                 id='div_selected_images_container'
@@ -1050,7 +1054,7 @@ function Conversation({ conversationsetup }: any) {
                             sendMessageProcess()
                         }}
                         disabled={isConversationDisabled}
-                        className='btn_options_send'><IoSend style={{fontSize: "25px", color: "#1c7DEF"}} /></motion.button>
+                        className='btn_options_send'><IoSend style={{fontSize: "25px", color: theme.primary}} /></motion.button>
                     </div>
                 </div>
            </motion.div>

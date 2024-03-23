@@ -1,7 +1,7 @@
 import { IoDocumentOutline } from "react-icons/io5"
 import { motion } from "framer-motion"
 
-function ReplyingToPreview({ cnvs, fromOther, yourReply }: any) {
+function ReplyingToPreview({ cnvs, fromOther, yourReply, theme }: any) {
     if(cnvs){
         const ifFromUser = cnvs.sender === fromOther;
         if(cnvs.isDeleted){
@@ -53,14 +53,14 @@ function ReplyingToPreview({ cnvs, fromOther, yourReply }: any) {
                         className='tw-flex tw-flex-col tw-w-fit tw-max-w-[100%]'>
                             <motion.span
                             initial={{
-                                backgroundColor: ifFromUser? "#82b7f6" : "#ececec",
-                                border: ifFromUser? "solid 1px #82b7f6" : "solid 1px #ececec",
+                                backgroundColor: ifFromUser? theme.lighten : "#ececec",
+                                border: ifFromUser? `solid 1px ${theme.lighten}` : "solid 1px #ececec",
                                 color: ifFromUser? "white" : "#878787",
                                 // marginLeft: "auto" : "0px"
                             }}
                             animate={{
-                                backgroundColor: ifFromUser? "#82b7f6" : "#ececec",
-                                border: ifFromUser? "solid 1px #82b7f6" : "solid 1px #ececec",
+                                backgroundColor: ifFromUser? theme.lighten : "#ececec",
+                                border: ifFromUser? `solid 1px ${theme.lighten}` : "solid 1px #ececec",
                                 color: ifFromUser? "white" : "#878787",
                                 // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                             }}

@@ -6,12 +6,12 @@ import DefaultProfile from '../../../../assets/imgs/default.png'
 import GroupChatIcon from '../../../../assets/imgs/group-chat-icon.jpg'
 import ServerIcon from '../../../../assets/imgs/servericon.png'
 import { useSelector } from "react-redux";
-import { AuthenticationInterface, ConversationFilesInterface, UserWithInfoConversationInterface } from "@/reusables/vars/interfaces";
+import { AuthenticationInterface, ConversationFilesInterface, UserWithInfoConversationInterface, UsersInConversation } from "@/reusables/vars/interfaces";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { IoCheckmark, IoClose, IoDocumentOutline } from "react-icons/io5";
 import { MdOutlineGroupAdd } from "react-icons/md";
-import { AddNewMemberRequest, ContactsListReusableRequest } from "@/reusables/hooks/requests";
+import { AddNewMemberRequest, ContactsListReusableRequest, GetMembersListInServer } from "@/reusables/hooks/requests";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaHashtag } from "react-icons/fa6";
 
@@ -44,7 +44,14 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
   const GetContactsListProcess = (bool: boolean) => {
     setexpandcontacts(bool);
     if(bool){
-        ContactsListReusableRequest(setcontactslist, setisLoading);
+        if(conversationinfo.type === "server"){
+            if(conversationinfo.conversationInfo?.serverID){
+                GetMembersListInServer(conversationinfo.conversationInfo.serverID, setcontactslist, setisLoading);
+            }
+        }
+        else{
+            ContactsListReusableRequest(setcontactslist, setisLoading);
+        }
     }
   }
 
@@ -324,51 +331,54 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
                                     >
                                         <div className='tw-w-full tw-flex tw-flex-col tw-h-auto'>
                                             {contactslist.map((cnts: any, i: number) => {
-                                                if(cnts.type == "single"){
-                                                    if(cnts.userdetails.userone && cnts.userdetails.usertwo){
-                                                        if(cnts.userdetails.userone.userID === authentication.user.userID && conversationinfo.usersWithInfo.filter((flt: any) => flt.userID === cnts.userdetails.usertwo.userID).length === 0){
-                                                            var fullNameFilter = `${cnts.userdetails.usertwo.fullname.firstName}${cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} ${cnts.userdetails.usertwo.fullname.lastName}`
-                                                            if(fullNameFilter.includes(searchFilter)){
-                                                                return(
-                                                                    <motion.div
-                                                                    whileHover={{
+                                                if(conversationinfo.type === "server"){
+                                                    var fullNameFilter = `${cnts.fullname.firstName}${cnts.fullname.middleName == "N/A"? "" : ` ${cnts.fullname.middleName}`} ${cnts.fullname.lastName}`
+                                                    const checkmemberslist = conversationinfo.users.map((mp: UsersInConversation) => mp.userID);
+                                                    if(!checkmemberslist.includes(cnts.userID)){
+                                                        if(fullNameFilter.includes(searchFilter)){
+                                                            return(
+                                                                <motion.div
+                                                                whileHover={{
                                                                     backgroundColor: "#e6e6e6"
+                                                                }}
+                                                                key={i} className='div_cncts_cards'>
+                                                                    <input type="checkbox" checked={valueToArrayChecker(cnts.userID)}
+                                                                    onChange={() => {
+                                                                        if(!valueToArrayChecker(cnts.userID)){
+                                                                            setmarkedMembers([
+                                                                                ...markedMembers,
+                                                                                {
+                                                                                    userID: cnts.userID,
+                                                                                    fullName: `${cnts.fullname.firstName}${cnts.fullname.middleName == "N/A"? "" : ` ${cnts.fullname.middleName}`} ${cnts.fullname.lastName}`
+                                                                                }
+                                                                            ])
+                                                                        }
+                                                                        else{
+                                                                            removeFromList(cnts.userID)
+                                                                        }
                                                                     }}
-                                                                    key={i} className='div_cncts_cards'>
-                                                                        <input type="checkbox" checked={valueToArrayChecker(cnts.userdetails.usertwo.userID)}
-                                                                        onChange={() => {
-                                                                            if(!valueToArrayChecker(cnts.userdetails.usertwo.userID)){
-                                                                                    setmarkedMembers([
-                                                                                    ...markedMembers,
-                                                                                    {
-                                                                                        userID: cnts.userdetails.usertwo.userID,
-                                                                                        fullName: `${cnts.userdetails.usertwo.fullname.firstName}${cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} ${cnts.userdetails.usertwo.fullname.lastName}`
-                                                                                    }
-                                                                                ])
-                                                                            }
-                                                                            else{
-                                                                                removeFromList(cnts.userdetails.usertwo.userID)
-                                                                            }
-                                                                        }}
                                                                         className='checkbox_selector_people' />
                                                                         <div id='div_img_cncts_container'>
                                                                             <div id='div_img_search_profiles_container_cncts'>
-                                                                            <img src={cnts.userdetails.usertwo.profile == "none"? DefaultProfile : cnts.userdetails.usertwo.profile} className='img_search_profiles_ntfs' />
+                                                                                <img src={cnts.profile == "none"? DefaultProfile : cnts.profile} className='img_search_profiles_ntfs' />
                                                                             </div>
                                                                         </div>
                                                                         <div className='div_contact_fullname_container'>
-                                                                            <span className="tw-flex tw-flex-1 tw-text-[13px]">{cnts.userdetails.usertwo.fullname.firstName}{cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} {cnts.userdetails.usertwo.fullname.lastName}</span>
+                                                                            <span className="tw-flex tw-flex-1 tw-text-[13px]">{cnts.fullname.firstName}{cnts.fullname.middleName == "N/A"? "" : ` ${cnts.fullname.middleName}`} {cnts.fullname.lastName}</span>
                                                                         </div>
-                                                                    </motion.div>
-                                                                )
-                                                            }
-                                                            else{
-                                                                return null
-                                                            }
+                                                                </motion.div>
+                                                            )
                                                         }
                                                         else{
-                                                            if(conversationinfo.usersWithInfo.filter((flt: any) => flt.userID === cnts.userdetails.userone.userID).length === 0){
-                                                                var fullNameFilter = `${cnts.userdetails.userone.fullname.firstName}${cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} ${cnts.userdetails.userone.fullname.lastName}`
+                                                            return null
+                                                        }
+                                                    }
+                                                }
+                                                else{
+                                                    if(cnts.type == "single"){
+                                                        if(cnts.userdetails.userone && cnts.userdetails.usertwo){
+                                                            if(cnts.userdetails.userone.userID === authentication.user.userID && conversationinfo.usersWithInfo.filter((flt: any) => flt.userID === cnts.userdetails.usertwo.userID).length === 0){
+                                                                var fullNameFilter = `${cnts.userdetails.usertwo.fullname.firstName}${cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} ${cnts.userdetails.usertwo.fullname.lastName}`
                                                                 if(fullNameFilter.includes(searchFilter)){
                                                                     return(
                                                                         <motion.div
@@ -376,29 +386,29 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
                                                                         backgroundColor: "#e6e6e6"
                                                                         }}
                                                                         key={i} className='div_cncts_cards'>
-                                                                            <input type="checkbox" checked={valueToArrayChecker(cnts.userdetails.userone.userID)}
+                                                                            <input type="checkbox" checked={valueToArrayChecker(cnts.userdetails.usertwo.userID)}
                                                                             onChange={() => {
-                                                                                if(!valueToArrayChecker(cnts.userdetails.userone.userID)){
-                                                                                    setmarkedMembers([
+                                                                                if(!valueToArrayChecker(cnts.userdetails.usertwo.userID)){
+                                                                                        setmarkedMembers([
                                                                                         ...markedMembers,
                                                                                         {
-                                                                                            userID: cnts.userdetails.userone.userID,
-                                                                                            fullName: `${cnts.userdetails.userone.fullname.firstName}${cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} ${cnts.userdetails.userone.fullname.lastName}`
+                                                                                            userID: cnts.userdetails.usertwo.userID,
+                                                                                            fullName: `${cnts.userdetails.usertwo.fullname.firstName}${cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} ${cnts.userdetails.usertwo.fullname.lastName}`
                                                                                         }
                                                                                     ])
                                                                                 }
                                                                                 else{
-                                                                                    removeFromList(cnts.userdetails.userone.userID)
+                                                                                    removeFromList(cnts.userdetails.usertwo.userID)
                                                                                 }
                                                                             }}
                                                                             className='checkbox_selector_people' />
                                                                             <div id='div_img_cncts_container'>
                                                                                 <div id='div_img_search_profiles_container_cncts'>
-                                                                                <img src={cnts.userdetails.userone.profile == "none"? DefaultProfile : cnts.userdetails.userone.profile} className='img_search_profiles_ntfs' />
+                                                                                <img src={cnts.userdetails.usertwo.profile == "none"? DefaultProfile : cnts.userdetails.usertwo.profile} className='img_search_profiles_ntfs' />
                                                                                 </div>
                                                                             </div>
                                                                             <div className='div_contact_fullname_container'>
-                                                                                <span className="tw-flex tw-flex-1 tw-text-[13px]">{cnts.userdetails.userone.fullname.firstName}{cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} {cnts.userdetails.userone.fullname.lastName}</span>
+                                                                                <span className="tw-flex tw-flex-1 tw-text-[13px]">{cnts.userdetails.usertwo.fullname.firstName}{cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} {cnts.userdetails.usertwo.fullname.lastName}</span>
                                                                             </div>
                                                                         </motion.div>
                                                                     )
@@ -407,14 +417,56 @@ function ConversationInfoModal({ conversationinfo, onclose }: ConversationInfoMo
                                                                     return null
                                                                 }
                                                             }
+                                                            else{
+                                                                if(conversationinfo.usersWithInfo.filter((flt: any) => flt.userID === cnts.userdetails.userone.userID).length === 0){
+                                                                    var fullNameFilter = `${cnts.userdetails.userone.fullname.firstName}${cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} ${cnts.userdetails.userone.fullname.lastName}`
+                                                                    if(fullNameFilter.includes(searchFilter)){
+                                                                        return(
+                                                                            <motion.div
+                                                                            whileHover={{
+                                                                            backgroundColor: "#e6e6e6"
+                                                                            }}
+                                                                            key={i} className='div_cncts_cards'>
+                                                                                <input type="checkbox" checked={valueToArrayChecker(cnts.userdetails.userone.userID)}
+                                                                                onChange={() => {
+                                                                                    if(!valueToArrayChecker(cnts.userdetails.userone.userID)){
+                                                                                        setmarkedMembers([
+                                                                                            ...markedMembers,
+                                                                                            {
+                                                                                                userID: cnts.userdetails.userone.userID,
+                                                                                                fullName: `${cnts.userdetails.userone.fullname.firstName}${cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} ${cnts.userdetails.userone.fullname.lastName}`
+                                                                                            }
+                                                                                        ])
+                                                                                    }
+                                                                                    else{
+                                                                                        removeFromList(cnts.userdetails.userone.userID)
+                                                                                    }
+                                                                                }}
+                                                                                className='checkbox_selector_people' />
+                                                                                <div id='div_img_cncts_container'>
+                                                                                    <div id='div_img_search_profiles_container_cncts'>
+                                                                                    <img src={cnts.userdetails.userone.profile == "none"? DefaultProfile : cnts.userdetails.userone.profile} className='img_search_profiles_ntfs' />
+                                                                                    </div>
+                                                                                </div>
+                                                                                <div className='div_contact_fullname_container'>
+                                                                                    <span className="tw-flex tw-flex-1 tw-text-[13px]">{cnts.userdetails.userone.fullname.firstName}{cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} {cnts.userdetails.userone.fullname.lastName}</span>
+                                                                                </div>
+                                                                            </motion.div>
+                                                                        )
+                                                                    }
+                                                                    else{
+                                                                        return null
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                        else{
+                                                            return null
                                                         }
                                                     }
                                                     else{
                                                         return null
                                                     }
-                                                }
-                                                else{
-                                                    return null
                                                 }
                                             })}
                                         </div>

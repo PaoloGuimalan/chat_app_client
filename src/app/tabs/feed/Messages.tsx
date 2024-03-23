@@ -75,7 +75,7 @@ function Messages() {
 
   return (
     conversationsetup.conversationid? (
-      <Conversation conversationsetup={conversationsetup} />
+      <Conversation conversationsetup={conversationsetup} theme={{ primary: "#1c7def", lighten: "#82b7f6" }} />
     ) : (
       <motion.div
       animate={{

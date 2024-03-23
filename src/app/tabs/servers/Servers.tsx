@@ -44,7 +44,7 @@ function Servers() {
           onClick={() => {
             navigate("/")
           }}
-          className='btn_server_navigations'><IoArrowBack style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
+          className='btn_server_navigations'><IoArrowBack style={{fontSize: "25px", color: "#e69500"}} /></motion.button>
           <motion.button
           whileHover={{
             backgroundColor: "#e6e6e6"
@@ -52,15 +52,18 @@ function Servers() {
           onClick={() => {
             navigate("/servers")
           }}
-          className='btn_server_navigations'><TbServer2 style={{fontSize: "25px", color: "#4A4A4A"}} /></motion.button>
+          className='btn_server_navigations'><TbServer2 style={{fontSize: "25px", color: "#e69500"}} /></motion.button>
           <hr className="tw-w-[65%]" />
           <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[2px]">
             {serverlist.map((mp: any, i: number) => {
               return(
                 <motion.button
                 key={i}
+                animate={{
+                  backgroundColor: urllocation.pathname.includes(mp.serverID) ? "#e6e6e6" : "transparent"
+                }}
                 whileHover={{
-                  backgroundColor: "#e6e6e6"
+                  backgroundColor: "#e69500"
                 }}
                 onClick={() => {
                   navigate(`/servers/${mp.serverID}`);
