@@ -46,6 +46,7 @@ function Channels() {
 
   useEffect(() => {
     setisLoaded(false);
+    setserverdetails(null);
   },[serverID]);
 
   useEffect(() => {
