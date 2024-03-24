@@ -33,7 +33,6 @@ function Channels() {
   const [isLoaded, setisLoaded] = useState<boolean>(false);
 
   const InitServerChannelsProcess = () => {
-    setisLoaded(false);
     InitServerChannelsRequest({
       serverID: serverID
     }).then((response: any) => {
@@ -46,8 +45,12 @@ function Channels() {
   }
 
   useEffect(() => {
+    setisLoaded(false);
+  },[serverID]);
+
+  useEffect(() => {
     InitServerChannelsProcess();
-  },[serverID, messageslist])
+  },[serverID, messageslist]);
 
   return (
     <motion.div
