@@ -30,13 +30,16 @@ function Channels() {
   const [serverdetails, setserverdetails] = useState<ServerChannelsListInterface | null>(null);
   const [toggleserverinfomodal, settoggleserverinfomodal] = useState<boolean>(false);
   const [toggleserveraddchannelmodal, settoggleserveraddchannelmodal] = useState<boolean>(false);
+  const [isLoaded, setisLoaded] = useState<boolean>(false);
 
   const InitServerChannelsProcess = () => {
+    setisLoaded(false);
     InitServerChannelsRequest({
       serverID: serverID
     }).then((response: any) => {
       // console.log(response.data[0]);
       setserverdetails(response.data[0]);
+      setTimeout(() => { setisLoaded(true); }, 1000)
     }).catch((err) => {
       console.log(err);
     })
@@ -71,14 +74,50 @@ function Channels() {
         className="tw-bg-[#f1f1f2] tw-flex tw-flex-1 tw-flex-col tw-h-full tw-rounded-tl-[10px] tw-rounded-bl-[10px] tw-items-center tw-overflow-x-hidden">
           <div id='div_server_channel_header'>
             <div id='div_conversation_user' className="tw-items-center">
-              <div id='div_img_cncts_container'>
-                <div id='div_img_search_profiles_container_cncts'>
-                  <img src={ServerIcon} className='img_gc_profiles_ntfs' />
+              {isLoaded ? (
+                <div id='div_img_cncts_container'>
+                  <div id='div_img_search_profiles_container_cncts'>
+                    <img src={ServerIcon} className='img_gc_profiles_ntfs' />
+                  </div>
                 </div>
-              </div>
-              <div id='div_conversation_user_name'>
-                <span className='span_server_name_label'>{serverdetails?.serverName}</span>
-              </div>
+              ) : (
+                <motion.button
+                initial={{
+                  backgroundColor: "#d2d2d2"
+                }}
+                animate={{
+                  backgroundColor: "#9c9c9c"
+                }}
+                transition={{
+                  duration: 0.7,
+                  delay: 0,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className='btn_server_navigations'>
+                  <div id='div_img_search_profiles_container_cncts' />
+                </motion.button>
+              )}
+              {isLoaded ? (
+                <div id='div_conversation_user_name'>
+                  <span className='span_server_name_label'>{serverdetails?.serverName}</span>
+                </div>
+              ) : (
+                <motion.div
+                initial={{
+                  backgroundColor: "#d2d2d2"
+                }}
+                animate={{
+                  backgroundColor: "#9c9c9c"
+                }}
+                transition={{
+                  duration: 0.7,
+                  delay: 0,
+                  repeat: Infinity,
+                  ease: "easeInOut"
+                }}
+                className="tw-select-none tw-h-[12px] tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[100%] tw-rounded-[4px]" />
+              )}
               <div id='div_conversation_header_navigations'>
                 {toggleserverinfomodal && serverdetails && (
                   <ServerInfoModal serverdetails={serverdetails} onclose={settoggleserverinfomodal} />
@@ -107,47 +146,69 @@ function Channels() {
                 )}
               </div>
               <div className="tw-bg-transparent tw-gap-[3px] tw-w-[calc(100%-20px)] tw-pb-[5px] tw-pl-[10px] tw-pr-[10px] tw-flex tw-flex-1 tw-flex-col tw-items-start">
-                {serverdetails?.channels.map((mp: ChannelsListInterface, i: number) => {
-                  return(
-                    <motion.div key={i}
-                    initial={{
-                      backgroundColor: "transparent",
-                      color: urllocation.pathname.includes(mp.groupID) ? "#e69500" : "black"
-                    }}
-                    animate={{
-                      color: urllocation.pathname.includes(mp.groupID) ? "#e69500" : "black"
-                    }}
-                    whileHover={{
-                      backgroundColor: "#ffc965",
-                      color: "white"
-                    }}
-                    onClick={() => {
-                      if(!urllocation.pathname.includes(mp.groupID)){
-                        dispatch({
-                            type: SET_CONVERSATION_SETUP,
-                            payload:{
-                                conversationsetup: conversationsetupstate
-                            }
-                        })
-                        navigate(`/servers/${serverID}/${mp.groupID}`)
-                      }
-                    }}
-                    className="tw-select-none tw-cursor-pointer tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[calc(100%-10px)] tw-rounded-[4px]">
-                      {mp.privacy ? (
-                        <FaLock style={{ fontSize: "13px" }} />
-                      ): (
-                        <FaHashtag />
-                      )}
-                      <span className={`tw-bg-transparent tw-flex ${urllocation.pathname.includes(mp.groupID) ? "tw-font-semibold" : "tw-font-normal"} tw-flex-1 ${mp.messages.length > 0 && "tw-font-semibold"} `}>{mp.groupName}</span>
-                      {urllocation.pathname.includes(mp.groupID) && (
-                        <FaLocationArrow />
-                      )}
-                      {mp.messages.length > 0 && (
-                        <span className='span_channel_messages_list_counts'>{mp.messages[0].unread}</span>
-                      )}
-                    </motion.div>
-                  )
-                })}
+                {isLoaded ? (
+                  serverdetails?.channels.map((mp: ChannelsListInterface) => {
+                    return(
+                      <motion.div 
+                      key={mp.groupID}
+                      initial={{
+                        backgroundColor: "transparent",
+                        color: urllocation.pathname.includes(mp.groupID) ? "#e69500" : "black"
+                      }}
+                      animate={{
+                        color: urllocation.pathname.includes(mp.groupID) ? "#e69500" : "black"
+                      }}
+                      whileHover={{
+                        backgroundColor: "#ffc965",
+                        color: "white"
+                      }}
+                      onClick={() => {
+                        if(!urllocation.pathname.includes(mp.groupID)){
+                          dispatch({
+                              type: SET_CONVERSATION_SETUP,
+                              payload:{
+                                  conversationsetup: conversationsetupstate
+                              }
+                          })
+                          navigate(`/servers/${serverID}/${mp.groupID}`)
+                        }
+                      }}
+                      className="tw-select-none tw-cursor-pointer tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[calc(100%-10px)] tw-rounded-[4px]">
+                        {mp.privacy ? (
+                          <FaLock style={{ fontSize: "13px" }} />
+                        ): (
+                          <FaHashtag />
+                        )}
+                        <span className={`tw-bg-transparent tw-flex ${urllocation.pathname.includes(mp.groupID) ? "tw-font-semibold" : "tw-font-normal"} tw-flex-1 ${mp.messages.length > 0 && "tw-font-semibold"} `}>{mp.groupName}</span>
+                        {urllocation.pathname.includes(mp.groupID) && (
+                          <FaLocationArrow />
+                        )}
+                        {mp.messages.length > 0 && (
+                          <span className='span_channel_messages_list_counts'>{mp.messages[0].unread}</span>
+                        )}
+                      </motion.div>
+                    )
+                  })
+                ) : (
+                  Array.from({ length: 5 }).map((_: any, i: number) => {
+                    return(
+                      <motion.div key={i}
+                      initial={{
+                        backgroundColor: "#d2d2d2"
+                      }}
+                      animate={{
+                        backgroundColor: "#9c9c9c"
+                      }}
+                      transition={{
+                        duration: 0.7,
+                        delay: i - 1,
+                        repeat: Infinity,
+                        ease: "easeInOut"
+                      }}
+                      className="tw-select-none tw-h-[12px] tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[calc(100%-10px)] tw-rounded-[4px]" />
+                    )
+                  })
+                )}
               </div>
             </div>
           </div>

@@ -15,11 +15,13 @@ function Servers() {
   const urllocation = useLocation();
   const navigate = useNavigate();
 
-  const [serverlist, setserverlist] = useState<any[]>([])
+  const [serverlist, setserverlist] = useState<any[]>([]);
+  const [isLoaded, setisLoaded] = useState<boolean>(false);
 
   useEffect(() => {
     InitServerListRequest().then((response) => {
       setserverlist(response);
+      setTimeout(() => { setisLoaded(true); }, 1000)
     }).catch((err) => {
       console.log(err);
     })
@@ -55,29 +57,57 @@ function Servers() {
           className='btn_server_navigations'><TbServer2 style={{fontSize: "25px", color: "#e69500"}} /></motion.button>
           <hr className="tw-w-[65%]" />
           <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[2px]">
-            {serverlist.map((mp: any, i: number) => {
-              return(
-                <motion.button
-                key={i}
-                animate={{
-                  backgroundColor: urllocation.pathname.includes(mp.serverID) ? "#e6e6e6" : "transparent"
-                }}
-                whileHover={{
-                  backgroundColor: "#e69500"
-                }}
-                onClick={() => {
-                  navigate(`/servers/${mp.serverID}`);
-                }}
-                title={mp.serverName}
-                className='btn_server_navigations'>
-                  <div id='div_img_cncts_container'>
-                    <div id='div_img_search_profiles_container_cncts'>
-                      <img src={ServerIcon} className='img_server_profiles_ntfs' />
+            {isLoaded ? (
+              serverlist.map((mp: any) => {
+                return(
+                  <motion.button
+                  key={mp.serverID}
+                  animate={{
+                    backgroundColor: urllocation.pathname.includes(mp.serverID) ? "#e6e6e6" : "transparent"
+                  }}
+                  whileHover={{
+                    backgroundColor: "#e69500"
+                  }}
+                  onClick={() => {
+                    navigate(`/servers/${mp.serverID}`);
+                  }}
+                  title={mp.serverName}
+                  className='btn_server_navigations'>
+                    <div id='div_img_cncts_container'>
+                      <div id='div_img_search_profiles_container_cncts'>
+                        <img src={ServerIcon} className='img_server_profiles_ntfs' />
+                      </div>
                     </div>
-                  </div>
-                </motion.button>
-              )
-            })}
+                  </motion.button>
+                )
+              })
+            ) : (
+              Array.from({ length: 5 }).map((_: any, i: number) => {
+                return(
+                  <motion.button
+                  key={i}
+                  initial={{
+                    backgroundColor: "#d2d2d2"
+                  }}
+                  animate={{
+                    backgroundColor: "#9c9c9c"
+                  }}
+                  transition={{
+                    duration: 0.7,
+                    delay: i - 1,
+                    repeat: Infinity,
+                    ease: "easeInOut"
+                  }}
+                  className='btn_server_navigations'>
+                    <div id='div_img_cncts_container'>
+                      {/* <div id='div_img_search_profiles_container_cncts'>
+                        <img src={ServerIcon} className='img_server_profiles_ntfs' />
+                      </div> */}
+                    </div>
+                  </motion.button>
+                )
+              })
+            )}
           </div>
       </motion.div>
       <Routes>
