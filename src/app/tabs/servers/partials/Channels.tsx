@@ -71,7 +71,7 @@ function Channels() {
           borderTopRightRadius: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? "10px" : "0px" : "0px",
           opacity: screensizelistener.W <= 900 ? urllocation.pathname.split("/").length < 4 ? 1 : 0 : 1
         }}
-        className="tw-bg-[#f1f1f2] tw-flex tw-flex-1 tw-flex-col tw-h-full tw-rounded-tl-[10px] tw-rounded-bl-[10px] tw-items-center tw-overflow-x-hidden">
+        className="tw-bg-[#f1f1f2] tw-shadow-lg tw-flex tw-flex-1 tw-flex-col tw-h-full tw-rounded-tl-[10px] tw-rounded-bl-[10px] tw-items-center tw-overflow-x-hidden">
           <div id='div_server_channel_header'>
             <div id='div_conversation_user' className="tw-items-center">
               {isLoaded ? (
