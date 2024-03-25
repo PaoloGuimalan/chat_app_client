@@ -36,9 +36,33 @@ function Profile() {
 
   const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({ toggle: false, withImage: false });
 
-  const [range, _] = useState<number>(20);
+  const [range, setrange] = useState<number>(20);
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
+  const divcontentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    var currentView = false;
+    if(divcontentRef){
+        if(divcontentRef.current){
+            divcontentRef.current.onscroll = () => {
+                // console.log("Hello")
+                if(divlazyloaderRef && divlazyloaderRef.current){
+                    const top = divlazyloaderRef.current.getBoundingClientRect().top;
+                    const isVisible = (top + 0) >= 0 && (top - 0) <= window.innerHeight;
+                    // const isVisible = top > 0 ? true : false;
+                    // console.log((top + 0) >= 0 && (top - 0) <= window.innerHeight);
+                    if(currentView != isVisible){
+                        currentView = isVisible;
+                        if(currentView){
+                            setrange((prev) => prev + 20);
+                        }
+                    }
+                }
+            }
+        }
+    }
+  },[divcontentRef, divlazyloaderRef, isloaded, profileInfo]);
 
   const GetProfileInfoProcess = () => {
     GetProfileInfo({
@@ -109,7 +133,7 @@ function Profile() {
   return (
     isloaded ? (
         profileInfo ? (
-            <div className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll">
+            <div ref={divcontentRef} className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll">
                 <button onClick={() => { navigate("/"); }} className="tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer">
                     <IoArrowBack style={{ fontSize: "20px" }} />
                 </button>

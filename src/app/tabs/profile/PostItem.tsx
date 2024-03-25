@@ -129,7 +129,7 @@ function PostItem({ mp }: any) {
                     </div>
                   </div>
                   {mp.content.references[4].referenceMediaType === "image" ? (
-                    <img src={mp.content.references[4].reference} className="tw-w-full tw-h-full tw--ml-[100%]"/>
+                    <img src={mp.content.references[4].reference} className="tw-w-full tw-h-full tw--ml-[100%] tw-object-cover"/>
                   ) : (
                     <video src={mp.content.references[4].reference} className="tw-w-full tw-h-full tw--ml-[100%]"/>
                   )}

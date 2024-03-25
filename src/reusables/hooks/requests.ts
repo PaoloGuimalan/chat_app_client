@@ -980,6 +980,22 @@ const GetMembersListInServer = (serverID: string, dispatch: any, setisLoading: a
     })
 }
 
+const GetFeedRequest = async (params: any) => {
+    const range = params.range;
+
+    return await Axios.get(`${API}/posts/feed`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken"),
+            "range": range || 20
+        }
+    }).then((response) => {
+        const decodedResult: any = jwt_decode(response.data.result);
+        return decodedResult.data;
+    }).catch((err) => {
+        throw new Error(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -1018,5 +1034,6 @@ export {
     InitServerChannelsRequest,
     AddNewMemberToServer,
     CreateChannelRequest,
-    GetMembersListInServer
+    GetMembersListInServer,
+    GetFeedRequest
 }
