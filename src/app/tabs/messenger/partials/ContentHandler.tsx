@@ -62,7 +62,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                             // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                         }}
                         className='span_messages_result c1'>Message deleted</motion.span>
-                        {conversationsetup.type == "group"? (
+                        {conversationsetup.type == "group" || conversationsetup.type == "server"? (
                             i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && ( //conversationList.length - 1 == i
                                 <motion.div
                                 initial={{
@@ -123,7 +123,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                 cnvs.replyedmessage[0].sender === authentication.user.userID ? "your message" : `@${cnvs.replyedmessage[0].sender}`
                             }</span>
                         )}
-                        {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label tw-font-Inter'>{cnvs.sender}</span>)}
+                        {(conversationsetup.type == "group" || conversationsetup.type == "server") && authentication.user.userID != cnvs.sender && (<span className='span_sender_label tw-font-Inter'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
                             <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
@@ -186,7 +186,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                 </div>
                             </div>
                         </motion.div>
-                        {conversationsetup.type == "group"? (
+                        {conversationsetup.type == "group" || conversationsetup.type == "server"? (
                             i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
@@ -248,7 +248,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                 cnvs.replyedmessage[0].sender === authentication.user.userID ? "your message" : `@${cnvs.replyedmessage[0].sender}`
                             }</span>
                         )}
-                        {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                        {(conversationsetup.type == "group" || conversationsetup.type == "server") && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
                             <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
@@ -305,7 +305,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                 </div>
                             </div>
                         </div>
-                        {conversationsetup.type == "group"? (
+                        {conversationsetup.type == "group" || conversationsetup.type == "server"? (
                             i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
@@ -368,7 +368,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                 cnvs.replyedmessage[0].sender === authentication.user.userID ? "your message" : `@${cnvs.replyedmessage[0].sender}`
                             }</span>
                         )}
-                        {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                        {(conversationsetup.type == "group" || conversationsetup.type == "server") && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
                             <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
@@ -420,7 +420,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                 </div>
                             </div>
                         </div>
-                        {conversationsetup.type == "group"? (
+                        {conversationsetup.type == "group" || conversationsetup.type == "server"? (
                             i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
@@ -483,7 +483,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                 cnvs.replyedmessage[0].sender === authentication.user.userID ? "your message" : `@${cnvs.replyedmessage[0].sender}`
                             }</span>
                         )}
-                        {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                        {(conversationsetup.type == "group" || conversationsetup.type == "server") && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
                             <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
@@ -537,7 +537,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                 </div>
                             </div>
                         </div>
-                        {conversationsetup.type == "group"? (
+                        {conversationsetup.type == "group" || conversationsetup.type == "server"? (
                             i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
@@ -607,7 +607,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                 cnvs.replyedmessage[0].sender === authentication.user.userID ? "your message" : `@${cnvs.replyedmessage[0].sender}`
                             }</span>
                         )}
-                        {conversationsetup.type == "group" && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
+                        {(conversationsetup.type == "group" || conversationsetup.type == "server") && authentication.user.userID != cnvs.sender && (<span className='span_sender_label'>{cnvs.sender}</span>)}
                         {cnvs.isReply && (
                             <ReplyingToPreview cnvs={cnvs.replyedmessage[0]} fromOther={authentication.user.userID} yourReply={cnvs.sender == authentication.user.userID ? true : false} theme={theme}/>
                         )}
@@ -664,7 +664,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                                 </div>
                             </div>
                         </div>
-                        {conversationsetup.type == "group"? (
+                        {conversationsetup.type == "group" || conversationsetup.type == "server"? (
                             i === 0 && cnvs.seeners.filter((mp: any) => mp != cnvs.sender && mp != authentication.user.userID).length > 0 && (
                                 <motion.div
                                 initial={{
