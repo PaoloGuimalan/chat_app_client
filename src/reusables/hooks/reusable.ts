@@ -103,6 +103,15 @@ function formattedDateToWords(formattedDate: string){
     return finalDateToWords;
 }
 
+function urlify(text: string) {
+    var urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, function(url) {
+      return '<a href="' + url + '" target="_blank">' + url + '</a>';
+    })
+    // or alternatively
+    // return text.replace(urlRegex, '<a href="$1">$1</a>')
+}
+
 export {
     importData,
     importNonImageData,
@@ -110,5 +119,6 @@ export {
     makeid,
     isUserOnline,
     formattedDateToWords,
-    ordinal_suffix_of
+    ordinal_suffix_of,
+    urlify
 }

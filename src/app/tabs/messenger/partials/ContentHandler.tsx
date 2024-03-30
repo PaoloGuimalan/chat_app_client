@@ -8,6 +8,7 @@ import { MdOutlineAddReaction } from "react-icons/md"
 import { useEffect, useMemo, useState } from "react"
 import EmojiPickerHandler from "./EmojiPickerHandler"
 import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal"
+import { urlify } from "@/reusables/hooks/reusable"
 
 function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImageScreen, scrollBottom, theme }: ContentHandlerProp) {
 
@@ -142,7 +143,7 @@ function ContentHandler({ i, cnvs, conversationsetup, setisReplying, setfullImag
                             // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                         }}
                         className='span_messages_result c1 tw-mb-[7px]'>
-                            <span>{cnvs.content}</span>
+                            <span dangerouslySetInnerHTML={{ __html: urlify(cnvs.content) }} />
                             <div 
                             className={`tw-w-full tw--mb-[15px] tw-mt-[5px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${cnvs.sender == authentication.user.userID? "tw-justify-end" : "tw-justify-start"}`}>
                                 <div 
