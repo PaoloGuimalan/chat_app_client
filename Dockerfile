@@ -1,30 +1,26 @@
-# builder
-FROM node:16-alpine as build
+FROM node:22-alpine AS build
+
 WORKDIR /app
-ARG TWYGR_UI_VITE_APP_API_ACCESS_TOKEN_SECRET
-ARG VITE_APP_GOOGLE_CLIENT_SECRET
-COPY package.json .
-RUN yarn install
+
+COPY package*.json yarn.lock ./
+
+RUN yarn
+
 COPY . .
-ENV VITE_API_URL=https://api.twygr.ai/v1/
-ENV VITE_PUBLIC_API_URL=https://api.twygr.ai
 
-ENV VITE_VC_API_URL=http://localhost:8000/
-ENV VITE_NODE_VC_DIR_LIB=http://localhost:3003/
-ENV VITE_VC_API_DIR=/
+ENV VITE_CHATTERLOOP_API=https://api.chatterloop.app
+ENV VITE_JWT_SECRET=chatterloop12345678
 
-ENV VITE_APP_API_ACCESS_TOKEN_SECRET=$TWYGR_UI_VITE_APP_API_ACCESS_TOKEN_SECRET
-ENV VITE_APP_BASENAME=
-ENV VITE_APP_GOOGLE_CLIENT_ID=562917551456-48glgrapqh96p3okljistfegdqra1gfa.apps.googleusercontent.com
-ENV VITE_APP_GOOGLE_CLIENT_SECRET=$VITE_APP_GOOGLE_CLIENT_SECRET
-ENV VITE_APP_GOOGLE_USERINFO_API=https://www.googleapis.com/oauth2/v1/userinfo
-ENV NODE_ENV=production
-# RUN chown -R node: /app/node_modules
 RUN yarn build
 
-# runner
-FROM nginx:1.21-alpine
-COPY --from=build /app/dist /usr/share/nginx/html
-COPY nginx/nginx-staging.conf /etc/nginx/conf.d/default.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:22-alpine
+
+RUN yarn global add serve
+
+WORKDIR /app
+
+COPY --from=build /app/dist ./dist
+
+EXPOSE 3004
+
+CMD ["serve", "-s", "dist", "-l", "3004"]
