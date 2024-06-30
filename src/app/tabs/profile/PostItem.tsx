@@ -1,5 +1,5 @@
 // import React from 'react'
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import DefaultProfile from '../../../assets/imgs/default.png'
 import { BiLike } from 'react-icons/bi';
 import { LiaComment } from "react-icons/lia";
@@ -19,6 +19,7 @@ function PostItem({ mp }: any) {
   const navigate = useNavigate();
 
   const [togglePostCarousel, settogglePostCarousel] = useState<boolean>(false);
+  const [minimizedCaption, setminimizedCaption] = useState<boolean | null>(null);
 
   const dateposted = new Date(mp.dateposted * 1000);
   const textRef = useRef<HTMLSpanElement | null>(null);
@@ -26,22 +27,36 @@ function PostItem({ mp }: any) {
 
   const postOwnerUserID = mp.post_owner.userID;
 
+  useEffect(() => {
+    if(mp){
+      if(mp.content.data.length >= 600){
+        setminimizedCaption(true);
+      }
+      else{
+        setminimizedCaption(false);
+      }
+    }
+  },[mp]);
+
   return (
-    <div className=" tw-bg-white tw-border-solid tw-border-[0px] tw-border-[1px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]">
+    minimizedCaption !== null && (
+      <div className=" tw-bg-white tw-border-solid tw-border-[0px] tw-border-[1px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]">
         <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
           <div id='div_img_feed_post_container'>
               <img src={DefaultProfile} id='img_feed_header' />
           </div>
           <div className='tw-flex tw-flex-col tw-items-start tw-gap-[2px]'>
-            <div className='tw-flex tw-flex-row tw-gap-[5px]'>
-              <span className='tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]'
+            <div className='tw-text-left'>
+              <span className='tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]'
                 onClick={() => {
                   navigate(`/${mp.post_owner.userID}`)
                 }}
               >{mp.post_owner.fullname.firstName}{mp.post_owner.fullname.middleName == "N/A"? "" : ` ${mp.post_owner.fullname.middleName}`} {mp.post_owner.fullname.lastName}</span>
+              &nbsp;
               {mp.tagged_users.length > 0 && (
                 <span className='tw-text-[14px]'>is with</span>
               )}
+              &nbsp;
               {mp.tagged_users.length > 0 && (
                 mp.tagged_users.map((mptg: any, i: number) => {
                   return(
@@ -57,10 +72,18 @@ function PostItem({ mp }: any) {
             <span className='tw-text-[12px]'>{dateposted.toUTCString().split(" ").splice(0, 4).join(" ")}</span>
           </div>
         </div>
-        <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center">
-          <div ref={textContainerRef} className={`tw-w-full tw-flex tw-justify-center`}>
-            <span ref={textRef} className='tw-text-[14px] tw-text-left c1'>{mp.content.data}</span>
+        <div className={`tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}>
+          <div ref={textContainerRef} className={`tw-w-full tw-flex tw-justify-center ${minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"} tw-overflow-y-hidden`}>
+            <span ref={textRef} className={`tw-text-[14px] tw-text-left c1`}>
+              {mp.content.data}
+            </span>
           </div>
+          {minimizedCaption && (
+            <button onClick={() => { setminimizedCaption(false); }} className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}>Expand</button>
+          )}
+          {!minimizedCaption && mp.content.data.length >= 600 && (
+            <button onClick={() => { setminimizedCaption(true); }} className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}>See less</button>
+          )}
           {mp.content.references.length > 0 && (
             <div className='tw-bg-white tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px]'> { /**tw-bg-black*/}
               {mp.content.references.map((mpu: any, i: number) => {
@@ -68,14 +91,14 @@ function PostItem({ mp }: any) {
                   if(mpu.referenceMediaType.includes("image")){
                     if(mp.content.references.length === 1){
                       return(
-                        <div key={mpu.referenceID} className='tw-flex tw-max-h-[500px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
-                          <img src={mpu.reference} className="tw-w-full tw-h-full tw-object-contain"/>
+                        <div onClick={() => { settogglePostCarousel(true) }} key={mpu.referenceID} className='tw-flex tw-max-h-[500px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
+                          <img src={mpu.reference} className="tw-w-full tw-h-full tw-object-cover"/>
                         </div>
                       )
                     }
                     else{
                       return(
-                        <div key={mpu.referenceID} className='tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
+                        <div onClick={() => { settogglePostCarousel(true) }} key={mpu.referenceID} className='tw-flex tw-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
                           <img src={mpu.reference} className="tw-w-full tw-h-full tw-object-cover"/>
                         </div>
                       )
@@ -83,8 +106,8 @@ function PostItem({ mp }: any) {
                   }
                   else if(mpu.referenceMediaType.includes("video")){
                     return(
-                      <div key={mpu.referenceID} className='tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
-                        <video controls src={mpu.reference} className="tw-w-full tw-h-full"/>
+                      <div key={mpu.referenceID} className='tw-flex tw-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
+                        <video controls src={mpu.reference} className="tw-w-full tw-h-full tw-object-cover"/>
                       </div>
                     )
                   }
@@ -158,6 +181,7 @@ function PostItem({ mp }: any) {
           </div>
         </div>
     </div>
+    )
   )
 }
 
