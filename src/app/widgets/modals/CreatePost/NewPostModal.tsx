@@ -12,13 +12,15 @@ import { CreatePostRequest } from "@/reusables/hooks/requests";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { BiSolidImageAdd } from "react-icons/bi";
+import { PiShareFat } from "react-icons/pi";
+import PostItem from "@/app/tabs/profile/PostItem";
 
- export function NewPostModal({ withImage, profileInfo, setcreateposttext, getpostprocess, onclose }: any) {
+ export function NewPostModal({ toShare, sharePreviewData, withImage, profileInfo, setcreateposttext, getpostprocess, onclose }: any) {
 
   const authentication = useSelector((state: any) => state.authentication);
 
   const [isuploadingpost, setisuploadingpost] = useState<boolean>(false);
-  const [iswithImage, setiswithImage] = useState<boolean>(withImage);
+  const [iswithImage, setiswithImage] = useState<boolean>(toShare ? false : withImage);
 
   const [mainpostcaption, setmainpostcaption] = useState<string>("");
   const [_, setcurrenttab] = useState<string>("content"); //currenttab
@@ -103,19 +105,27 @@ import { BiSolidImageAdd } from "react-icons/bi";
   }
 
   const CreatePostProcess = () => {
-    if(mainpostcaption.trim() !== "" || medialist.length > 0){
+    if(toShare || (mainpostcaption.trim() !== "" || medialist.length > 0)){
       setisuploadingpost(true);
       const validatedTaggedList = authentication.user.userID == profileInfo?.userID ? [] : [profileInfo?.userID, ...taggedList]
 
       CreatePostRequest({
         content: {
-            isShared: false,
-            references: medialist,
+            isShared: toShare,
+            references: toShare ? [
+              {
+                  id: 1,
+                  name: null,
+                  reference: sharePreviewData.postID,
+                  caption: "",
+                  referenceMediaType: "shared_post"
+              }
+            ] : medialist,
             data: mainpostcaption
         },
         type: {
-            fileType: medialist.length > 0 ? "media" : "text", //text, image, video, file
-            contentType: medialist.length > 0 ? "media" : "text" //text, image, video
+            fileType: toShare ? "shared_post" : medialist.length > 0 ? "media" : "text", //text, image, video, file
+            contentType: toShare ? "shared_post" : medialist.length > 0 ? "media" : "text" //text, image, video
         },
         tagging: {
             isTagged: validatedTaggedList.length > 0 ? true : false,
@@ -162,9 +172,9 @@ import { BiSolidImageAdd } from "react-icons/bi";
   
   return (
     <Modal component={
-      <div className={`div_modal_container tw-max-w-[600px] ${iswithImage ? "tw-max-h-[600px]" : "tw-max-h-[250px]"}`}>
-        {isuploadingpost && (
-          <div className={`tw-absolute tw-h-full tw-w-full tw-max-w-[600px] ${iswithImage ? "tw-max-h-[600px]" : "tw-max-h-[250px]"} tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}>
+      <div className={`div_modal_container tw-max-w-[600px] ${toShare ? "tw-max-h-[600px]" : iswithImage ? "tw-max-h-[600px]" : "tw-max-h-[250px]"}`}>
+        {isuploadingpost && !toShare && (
+          <div className={`tw-absolute tw-h-full tw-w-full tw-max-w-[600px] ${toShare ? "tw-max-h-[600px]" : iswithImage ? "tw-max-h-[520px]" : "tw-max-h-[220px]"} tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}>
             <div id='div_conversation_content_loader'>
               <motion.div
                 animate={{
@@ -182,15 +192,19 @@ import { BiSolidImageAdd } from "react-icons/bi";
         )}
         <div id='div_modal_header'>
             <div className='div_modal_header_label'>
-              <BsFileEarmarkPost style={{ fontSize: "20px" }} />
-              <span className='span_modal_header_label tw-font-inter'>Create a Post</span>
+              {toShare ? (
+                <PiShareFat style={{ fontSize: "22px" }} />
+              ) : (
+                <BsFileEarmarkPost style={{ fontSize: "20px" }} />
+              )}
+              <span className='span_modal_header_label tw-font-inter'>{toShare ? "Share Post" : "Create a Post"}</span>
             </div>
         </div>
-        <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-flex tw-flex-1 tw-items-center tw-justify-center tw-pl-[10px] tw-pr-[10px] tw-pb-[10px] scroller tw-overflow-y-auto">
+        <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-items-center tw-justify-center tw-pl-[10px] tw-pr-[10px] tw-pb-[10px] scroller tw-overflow-y-auto"> {/**tw-flex tw-flex-1 */}
           <div className="tw-w-full tw-h-full tw-bg-transparent tw-flex tw-flex-col">
-            <textarea value={mainpostcaption} onChange={(e) => { setcreateposttext(e.target.value); setmainpostcaption(e.target.value) }} className="tw-w-full tw-min-h-[80px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller" placeholder="Type your caption"  />
+            <textarea disabled={isuploadingpost} value={mainpostcaption} onChange={(e) => { setcreateposttext(e.target.value); setmainpostcaption(e.target.value) }} className="tw-w-full tw-min-h-[80px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller" placeholder="Type your caption"  />
             {iswithImage && (
-              <div className="tw-flex tw-flex-1 tw-flex-col tw-w-full tw-gap-[12px] tw-bg-transparent tw-rounded-[7px] scroller">
+              <div className="tw-flex tw-h-[300px] tw-flex-col tw-w-full tw-gap-[12px] tw-bg-transparent tw-rounded-[7px] scroller">
                 {medialist.length > 0 ? (
                   <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px]">
                     {
@@ -215,15 +229,20 @@ import { BiSolidImageAdd } from "react-icons/bi";
                 )}
               </div>
             )}
+            {toShare && (
+              <PostItem isSharePreview={true} mp={sharePreviewData} />
+            )}
           </div>
         </div>
         <div className="tw-w-[calc(100%-20px)] tw-flex tw-flex-row tw-gap-[5px] tw-pl-[10px] tw-pr-[10px] tw-pt-[5px]">
           <button onClick={() => { setcurrenttab("privacy") }} className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#194888]">
             <FaGlobeAsia style={{ fontSize: "20px" }} />
           </button>
-          <button onClick={() => { setiswithImage(true) }} className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#1c7DEF]">
-            <BiSolidImageAdd style={{ fontSize: "24px" }} />
-          </button>
+          {!toShare && (
+            <button onClick={() => { setiswithImage(true) }} className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#1c7DEF]">
+              <BiSolidImageAdd style={{ fontSize: "24px" }} />
+            </button>
+          )}
           <button onClick={() => { setcurrenttab("content") }} className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#1c7DEF]">
             <BsFileEarmarkPost style={{ fontSize: "20px" }} />
           </button>
@@ -235,12 +254,26 @@ import { BiSolidImageAdd } from "react-icons/bi";
           </button>
         </div>
         <div id='div_create_cancel_btns'>
-          <button className='btns_create_cancel'
+          <button disabled={isuploadingpost} className='btns_create_cancel'
             onClick={() => {
                     CreatePostProcess();
                 }}
-            >Create</button>
-            <button className='btns_create_cancel'
+            >{toShare ? isuploadingpost? (
+              <div id='div_conversation_content_loader'>
+                <motion.div
+                  animate={{
+                    rotate: -360
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity
+                  }}
+                  id='div_loader_share_conv'>
+                      <AiOutlineLoading3Quarters style={{fontSize: "18px"}} />
+                  </motion.div>
+              </div>
+            ) : "Share" : "Create"}</button>
+            <button disabled={isuploadingpost} className='btns_create_cancel'
                 onClick={() => {
                     onclose(false)
                 }}

@@ -12,14 +12,16 @@ import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from 'react-responsive-carousel';
 import Modal from '@/app/reusables/Modal';
 import { IoMdClose } from 'react-icons/io';
+import { NewPostModal } from '@/app/widgets/modals/CreatePost/NewPostModal';
 
-function PostItem({ mp }: any) {
+function PostItem({isSharePreview, mp }: any) {
 
   const authentication : AuthenticationInterface = useSelector((state: any) => state.authentication);
   const navigate = useNavigate();
 
   const [togglePostCarousel, settogglePostCarousel] = useState<boolean>(false);
   const [minimizedCaption, setminimizedCaption] = useState<boolean | null>(null);
+  const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({ toggle: false, withImage: false });
 
   const dateposted = new Date(mp.dateposted * 1000);
   const textRef = useRef<HTMLSpanElement | null>(null);
@@ -84,21 +86,21 @@ function PostItem({ mp }: any) {
           {!minimizedCaption && mp.content.data.length >= 600 && (
             <button onClick={() => { setminimizedCaption(true); }} className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}>See less</button>
           )}
-          {mp.content.references.length > 0 && (
+          {mp.content.references.length > 0 && !mp.content.isShared && (
             <div className='tw-bg-white tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px]'> { /**tw-bg-black*/}
               {mp.content.references.map((mpu: any, i: number) => {
                 if(i <= 3){
                   if(mpu.referenceMediaType.includes("image")){
                     if(mp.content.references.length === 1){
                       return(
-                        <div onClick={() => { settogglePostCarousel(true) }} key={mpu.referenceID} className='tw-flex tw-max-h-[500px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
+                        <div onClick={() => { if(!isSharePreview) { settogglePostCarousel(true) } }} key={mpu.referenceID} className='tw-flex tw-max-h-[500px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
                           <img src={mpu.reference} className="tw-w-full tw-h-full tw-object-cover"/>
                         </div>
                       )
                     }
                     else{
                       return(
-                        <div onClick={() => { settogglePostCarousel(true) }} key={mpu.referenceID} className='tw-flex tw-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
+                        <div onClick={() => { if(!isSharePreview) { settogglePostCarousel(true) } }} key={mpu.referenceID} className='tw-flex tw-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]'>
                           <img src={mpu.reference} className="tw-w-full tw-h-full tw-object-cover"/>
                         </div>
                       )
@@ -160,26 +162,31 @@ function PostItem({ mp }: any) {
               )}
             </div>
           )}
+          {toggleNewPostModal.toggle && (
+            <NewPostModal toShare={true} sharePreviewData={mp} withImage={toggleNewPostModal.withImage} profileInfo={authentication.user} setcreateposttext={() => {}} getpostprocess={() => {}} onclose={settoggleNewPostModal} />
+          )}
         </div>
-        <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
-          <hr className='tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px]' />
-          <div className='tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center'>
-            <button className='tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]'>
-              <BiLike style={{ fontSize: "25px", color: "#666666" }} />
-            </button>
-            <button className='tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]'>
-              <LiaComment style={{ fontSize: "25px", color: "#666666" }} />
-            </button>
-            <button className='tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]'>
-              <PiShareFat style={{ fontSize: "25px", color: "#666666" }} />
-            </button>
-            {postOwnerUserID === authentication.user.userID && (
+        {!isSharePreview && (
+          <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
+            <hr className='tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px]' />
+            <div className='tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center'>
               <button className='tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]'>
-                <BsPinMap style={{ fontSize: "22px", color: "#666666" }} />
+                <BiLike style={{ fontSize: "25px", color: "#666666" }} />
               </button>
-            )}
+              <button className='tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]'>
+                <LiaComment style={{ fontSize: "25px", color: "#666666" }} />
+              </button>
+              <button onClick={() => { settoggleNewPostModal({ toggle: true, withImage: false }) }} className='tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]'>
+                <PiShareFat style={{ fontSize: "25px", color: "#666666" }} />
+              </button>
+              {postOwnerUserID === authentication.user.userID && (
+                <button className='tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]'>
+                  <BsPinMap style={{ fontSize: "22px", color: "#666666" }} />
+                </button>
+              )}
+            </div>
           </div>
-        </div>
+        )}
     </div>
     )
   )

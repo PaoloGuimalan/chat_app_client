@@ -187,9 +187,9 @@ function Profile() {
                             </div>
                             <div id='div_input_feed_flex'>
                                 {toggleNewPostModal.toggle && (
-                                    <NewPostModal withImage={toggleNewPostModal.withImage} profileInfo={profileInfo} setcreateposttext={setcreateposttext} getpostprocess={GetPostProcess} onclose={settoggleNewPostModal} />
+                                    <NewPostModal toShare={false} sharePreviewData={null} withImage={toggleNewPostModal.withImage} profileInfo={profileInfo} setcreateposttext={setcreateposttext} getpostprocess={GetPostProcess} onclose={settoggleNewPostModal} />
                                 )}
-                                <input type='text' value={createposttext} onFocus={() => { settoggleNewPostModal({ toggle: true, withImage: false }) }} onChange={(e) => { setcreateposttext(e.target.value) }} onKeyDown={(e) => {
+                                <input type='text' autoComplete="off" value={createposttext} onFocus={() => { settoggleNewPostModal({ toggle: true, withImage: false }) }} onChange={(e) => { setcreateposttext(e.target.value) }} onKeyDown={(e) => {
                                     if(createposttext.trim() !== ""){
                                         if(e.key == "Enter"){
                                             // CreatePostProcess()
@@ -207,7 +207,7 @@ function Profile() {
                             <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
                                 {posts.posts.map((mp: any, i: number) => {
                                     return(
-                                        <PostItem key={i} mp={mp} />
+                                        <PostItem key={i} isSharePreview={false} mp={mp} />
                                     )
                                 })}
                                 {posts.posts.length > 0 && posts.totalposts > range && (

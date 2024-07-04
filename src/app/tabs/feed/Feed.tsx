@@ -88,7 +88,7 @@ function Feed() {
             {/* map posts here */}
             {posts.map((mp: any, i: number) => {
                 return(
-                    <PostItem key={i} mp={mp} />
+                    <PostItem key={i} isSharePreview={false} mp={mp} />
                 )
             })}
             {posts.length > 0 && (
