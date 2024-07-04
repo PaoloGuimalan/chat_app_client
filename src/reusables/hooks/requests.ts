@@ -996,6 +996,21 @@ const GetFeedRequest = async (params: any) => {
     })
 }
 
+const GetPostPreviewRequest = async (params: any) => {
+    const postID = params.postID;
+
+    return await Axios.get(`${API}/posts/preview/${postID}`, {
+        headers:{
+            "x-access-token": localStorage.getItem("authtoken")
+        }
+    }).then((response) => {
+        const decodedResult: any = jwt_decode(response.data.result);
+        return decodedResult.data;
+    }).catch((err) => {
+        throw new Error(err);
+    })
+}
+
 export {
     AuthCheck,
     LoginRequest,
@@ -1035,5 +1050,6 @@ export {
     AddNewMemberToServer,
     CreateChannelRequest,
     GetMembersListInServer,
-    GetFeedRequest
+    GetFeedRequest,
+    GetPostPreviewRequest
 }

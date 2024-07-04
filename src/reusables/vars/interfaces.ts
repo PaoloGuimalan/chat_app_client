@@ -164,3 +164,77 @@ export interface ServerChannelsListInterface{
     channels: ChannelsListInterface[];
     usersWithInfo: ServerUsersWithInfo[];
 }
+
+// POST DATA INTERFACE
+
+export interface PostDataInterface {
+    _id:          string;
+    postID:       string;
+    userID:       string;
+    content:      Content;
+    type:         Type;
+    tagging:      Tagging;
+    privacy:      Privacy;
+    onfeed:       string;
+    isSponsored:  boolean;
+    isLive:       boolean;
+    isOnMap:      IsOnMap;
+    fromSystem:   boolean;
+    dateposted:   number;
+    __v:          number;
+    tagged_users: any[];
+    post_owner:   PostOwner;
+}
+
+export interface Content {
+    isShared:   boolean;
+    references: any[];
+    data:       string;
+}
+
+export interface IsOnMap {
+    status:       boolean;
+    isStationary: boolean;
+}
+
+export interface PostOwner {
+    _id:         string;
+    userID:      string;
+    fullname:    Fullname;
+    birthdate:   Birthdate;
+    profile:     string;
+    gender:      string;
+    isActivated: boolean;
+    isVerified:  boolean;
+    __v:         number;
+}
+
+export interface Birthdate {
+    month: string;
+    day:   string;
+    year:  string;
+}
+
+export interface Fullname {
+    firstName:  string;
+    middleName: string;
+    lastName:   string;
+}
+
+export interface Privacy {
+    status: string;
+    users:  any[];
+}
+
+export interface Tagging {
+    isTagged: boolean;
+    users:    any[];
+}
+
+export interface Type {
+    fileType:    string;
+    contentType: string;
+}
+
+
+//POST DATA INTERFACE END

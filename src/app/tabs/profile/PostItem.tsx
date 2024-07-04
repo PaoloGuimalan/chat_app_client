@@ -13,6 +13,7 @@ import { Carousel } from 'react-responsive-carousel';
 import Modal from '@/app/reusables/Modal';
 import { IoMdClose } from 'react-icons/io';
 import { NewPostModal } from '@/app/widgets/modals/CreatePost/NewPostModal';
+import LoadedPostItem from './LoadedPostItem';
 
 function PostItem({isSharePreview, mp }: any) {
 
@@ -161,6 +162,13 @@ function PostItem({isSharePreview, mp }: any) {
                 </div>
               )}
             </div>
+          )}
+          {mp.content.isShared && (
+            mp.content.references.map((mpu: any, i: number) => {
+              return (
+                <LoadedPostItem key={i} postID={mpu.reference} />
+              )
+            })
           )}
           {toggleNewPostModal.toggle && (
             <NewPostModal toShare={true} sharePreviewData={mp} withImage={toggleNewPostModal.withImage} profileInfo={authentication.user} setcreateposttext={() => {}} getpostprocess={() => {}} onclose={settoggleNewPostModal} />
