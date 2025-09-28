@@ -97,6 +97,7 @@ function Conversation({ conversationsetup, theme }: any) {
 
   const [page, setpage] = useState<number>(1);
   const [range, setrange] = useState<number>(20);
+  const [incrementer, setincrementer] = useState<number>(1);
 
   const [toggleConversationInfoModal, settoggleConversationInfoModal] =
     useState<boolean>(false);
@@ -381,7 +382,7 @@ function Conversation({ conversationsetup, theme }: any) {
         });
       }
     }
-  }, [range, conversationsetup, conversationinfo, page]);
+  }, [range, conversationsetup, conversationinfo, incrementer]);
 
   useEffect(() => {
     InitConversationRequest(
@@ -399,6 +400,7 @@ function Conversation({ conversationsetup, theme }: any) {
   }, [page, conversationsetup, range]);
 
   const GetConversation = () => {
+    setincrementer((prev) => prev + 1);
     InitConversationRequest(
       {
         conversationID: conversationsetup.conversationid,

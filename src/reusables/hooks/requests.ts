@@ -789,7 +789,7 @@ const InitConversationRequest = (
         const decodedResult: any = jwt_decode(response.data.result);
         setisLoading(false);
         dispatch((prev: any) => {
-          const combinedList = [...prev, ...decodedResult.messages.reverse()];
+          const combinedList = [...decodedResult.messages.reverse(), ...prev];
           const uniqueById = combinedList.filter(
             (obj, index, self) =>
               index === self.findIndex((t) => t._id === obj._id)
