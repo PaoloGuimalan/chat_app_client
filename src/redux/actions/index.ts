@@ -16,6 +16,7 @@ import {
   SET_CALLS_LIST,
   SET_CLEAR_ALERTS,
   SET_CONTACTS_LIST,
+  SET_CONTACTS_LIST_OVERRIDE,
   SET_CONVERSATION_SETUP,
   SET_FILTERED_ALERTS,
   SET_IS_TYPING_LIST,
@@ -24,6 +25,7 @@ import {
   SET_MUTATE_ALERTS,
   SET_MUTATE_POSTS_FEED_LIST,
   SET_NOTIFICATIONS_LIST,
+  SET_NOTIFICATIONS_LIST_OVERRIDE,
   SET_PATHNAME_LISTENER,
   SET_PENDING_CALL_ALERTS,
   SET_PENDING_MESSAGES_LIST,
@@ -76,6 +78,14 @@ export const setalerts = (state = [], action: any) => {
 export const setcontactslist = (state = [], action: any) => {
   switch (action.type) {
     case SET_CONTACTS_LIST:
+      const combinedList = [...state, ...action.payload.contactslist];
+      const uniqueById = combinedList.filter(
+        (obj, index, self) =>
+          index === self.findIndex((t) => t.contactID === obj.contactID)
+      );
+      return uniqueById;
+    //   return action.payload.contactslist;
+    case SET_CONTACTS_LIST_OVERRIDE:
       return action.payload.contactslist;
     default:
       return state;
@@ -88,6 +98,15 @@ export const setnotificationslist = (
 ) => {
   switch (action.type) {
     case SET_NOTIFICATIONS_LIST:
+      const incominglist = action.payload.notficationslist.list;
+      const combinedList = [...state.list, ...incominglist];
+      const uniqueById = combinedList.filter(
+        (obj, index, self) =>
+          index ===
+          self.findIndex((t) => t.notificationID === obj.notificationID)
+      );
+      return { ...action.payload.notficationslist, list: uniqueById };
+    case SET_NOTIFICATIONS_LIST_OVERRIDE:
       return action.payload.notficationslist;
     default:
       return state;

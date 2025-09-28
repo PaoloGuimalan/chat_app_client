@@ -149,7 +149,7 @@ function Home() {
       });
       // setisLoading(false);
     });
-    NotificationInitRequest(dispatch, () => {});
+    NotificationInitRequest(1, 10, dispatch, () => {});
     ActiveContactsRequest(dispatch);
 
     initPushNotification();

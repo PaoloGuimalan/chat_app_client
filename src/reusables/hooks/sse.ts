@@ -3,10 +3,11 @@ import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import {
   SET_ALERTS,
-  SET_CONTACTS_LIST,
+  SET_CONTACTS_LIST_OVERRIDE,
   SET_IS_TYPING_LIST,
   SET_MESSAGES_LIST_OVERRIDE,
   SET_NOTIFICATIONS_LIST,
+  SET_NOTIFICATIONS_LIST_OVERRIDE,
   SET_PENDING_CALL_ALERTS,
   SET_REJECTED_CALL_LIST,
   UPDATE_ACTIVE_USERS_LIST,
@@ -81,7 +82,7 @@ const SSENotificationsTRequest = (
         const decodedResult: any = jwt_decode(parsedresponse.result);
 
         dispatch({
-          type: SET_NOTIFICATIONS_LIST,
+          type: SET_NOTIFICATIONS_LIST_OVERRIDE,
           payload: {
             notficationslist: {
               list: decodedResult.notifications,
@@ -172,7 +173,7 @@ const SSENotificationsTRequest = (
         //play ringtone
 
         dispatch({
-          type: SET_CONTACTS_LIST,
+          type: SET_CONTACTS_LIST_OVERRIDE,
           payload: {
             contactslist: decodedResult.contacts,
           },

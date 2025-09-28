@@ -425,12 +425,16 @@ const ContactRequest = (
 };
 
 const NotificationInitRequest = (
+  page: number,
+  range: number,
   dispatch: Dispatch<any>,
   setisLoading: any
 ) => {
   Axios.get(`${API}/u/getNotifications`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
+      page: page || 1,
+      range: range || 20,
     },
   })
     .then((response) => {
@@ -598,12 +602,16 @@ const AcceptContactRequest = (
 };
 
 const ContactsListInitRequest = (
+  page: number,
+  range: number,
   dispatch: Dispatch<any>,
   setisLoading: any
 ) => {
   Axios.get(`${API}/u/getContacts`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
+      page: page,
+      range: range,
     },
   })
     .then((response) => {

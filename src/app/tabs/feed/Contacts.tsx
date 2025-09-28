@@ -1,245 +1,394 @@
-import { useState, useEffect } from 'react'
-import '../../../styles/styles.css'
-import { FcContacts } from 'react-icons/fc'
-import { AiOutlineLoading3Quarters, AiOutlineMessage } from 'react-icons/ai'
-import { BiUserMinus } from 'react-icons/bi'
-import { useDispatch, useSelector } from 'react-redux'
-import { motion } from 'framer-motion'
-import { ContactsListInitRequest } from '../../../reusables/hooks/requests'
-import DefaultProfile from '../../../assets/imgs/default.png'
-import { SET_CONVERSATION_SETUP, SET_TOGGLE_RIGHT_WIDGET } from '../../../redux/types'
-import { useNavigate } from 'react-router-dom'
-import { conversationsetupstate } from '../../../redux/actions/states'
-import { isUserOnline } from '../../../reusables/hooks/reusable'
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState, useEffect, useRef } from "react";
+import "../../../styles/styles.css";
+import { FcContacts } from "react-icons/fc";
+import { AiOutlineLoading3Quarters, AiOutlineMessage } from "react-icons/ai";
+import { BiUserMinus } from "react-icons/bi";
+import { useDispatch, useSelector } from "react-redux";
+import { motion } from "framer-motion";
+import { ContactsListInitRequest } from "../../../reusables/hooks/requests";
+import DefaultProfile from "../../../assets/imgs/default.png";
+import {
+  SET_CONVERSATION_SETUP,
+  SET_TOGGLE_RIGHT_WIDGET,
+} from "../../../redux/types";
+import { useNavigate } from "react-router-dom";
+import { conversationsetupstate } from "../../../redux/actions/states";
+import { isUserOnline } from "../../../reusables/hooks/reusable";
 
 function Contacts() {
+  const activeuserslist = useSelector((state: any) => state.activeuserslist);
+  const authentication = useSelector((state: any) => state.authentication);
+  const contactslist = useSelector((state: any) => state.contactslist);
+  const screensizelistener = useSelector(
+    (state: any) => state.screensizelistener
+  );
+  const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  const activeuserslist = useSelector((state: any) => state.activeuserslist)
-  const authentication = useSelector((state: any) => state.authentication)
-  const contactslist = useSelector((state: any) => state.contactslist)
-  const screensizelistener = useSelector((state: any) => state.screensizelistener);
-  const pathnamelistener = useSelector((state: any) => state.pathnamelistener)
-  const navigate = useNavigate()
-  const dispatch = useDispatch()
+  const [isLoading, setisLoading] = useState(true);
 
-  const [isLoading, setisLoading] = useState(true)
+  const [page, setpage] = useState(1);
+  const [range] = useState(50);
 
   useEffect(() => {
-    ContactsListInitRequest(dispatch, setisLoading)
-  },[])
+    ContactsListInitRequest(page, range, dispatch, setisLoading);
+  }, [page, range]);
 
   const settogglerightwidget = (toggle: any) => {
     dispatch({
       type: SET_TOGGLE_RIGHT_WIDGET,
-      payload:{
-        togglerightwidget: toggle
-      }
-    })
-  }
+      payload: {
+        togglerightwidget: toggle,
+      },
+    });
+  };
 
-  const navigateToConversation = (type: any, conversationID: any, userdetails: any) => {
-    if(screensizelistener.W <= 1100){
-      if(type == "single"){
+  const navigateToConversation = (
+    type: any,
+    conversationID: any,
+    userdetails: any
+  ) => {
+    if (screensizelistener.W <= 1100) {
+      if (type == "single") {
         dispatch({
           type: SET_CONVERSATION_SETUP,
-          payload:{
+          payload: {
             conversationsetup: {
               conversationid: conversationID,
               userdetails: userdetails,
               groupdetails: conversationsetupstate.groupdetails,
-              type: "single"
-            }
-          }
-        })
-        navigate("/messages")
-      }
-      else{
+              type: "single",
+            },
+          },
+        });
+        navigate("/messages");
+      } else {
         dispatch({
           type: SET_CONVERSATION_SETUP,
-          payload:{
+          payload: {
             conversationsetup: {
               conversationid: conversationID,
               userdetails: conversationsetupstate.userdetails,
               groupdetails: userdetails,
-              type: "group"
-            }
-          }
-        })
-        navigate("/messages")
+              type: "group",
+            },
+          },
+        });
+        navigate("/messages");
       }
-    }
-    else{
-      if(type == "single"){
+    } else {
+      if (type == "single") {
         dispatch({
           type: SET_CONVERSATION_SETUP,
-          payload:{
+          payload: {
             conversationsetup: {
               conversationid: conversationID,
               userdetails: userdetails,
               groupdetails: conversationsetupstate.groupdetails,
-              type: "single"
-            }
-          }
-        })
-        settogglerightwidget("messages")
-      }
-      else{
+              type: "single",
+            },
+          },
+        });
+        settogglerightwidget("messages");
+      } else {
         dispatch({
           type: SET_CONVERSATION_SETUP,
-          payload:{
+          payload: {
             conversationsetup: {
               conversationid: conversationID,
               userdetails: conversationsetupstate.userdetails,
               groupdetails: userdetails,
-              type: "group"
-            }
-          }
-        })
-        settogglerightwidget("messages")
+              type: "group",
+            },
+          },
+        });
+        settogglerightwidget("messages");
       }
     }
-  }
+  };
+
+  const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
+  const divcontentRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let currentView = false;
+    if (divcontentRef) {
+      if (divcontentRef.current) {
+        divcontentRef.current.onscroll = () => {
+          // console.log("Hello")
+          if (divlazyloaderRef && divlazyloaderRef.current) {
+            const top = divlazyloaderRef.current.getBoundingClientRect().top;
+            const isVisible = top + 0 >= 0 && top - 0 <= window.innerHeight;
+            // const isVisible = top > 0 ? true : false;
+            // console.log((top + 0) >= 0 && (top - 0) <= window.innerHeight);
+            if (currentView != isVisible) {
+              currentView = isVisible;
+              if (currentView) {
+                // setrange((prev) => prev + 20);
+                setpage((prev) => prev + 1);
+              }
+            }
+          }
+        };
+      }
+    }
+  }, [divcontentRef, divlazyloaderRef, isLoading]);
 
   return (
     <motion.div
-    animate={{
-      display: pathnamelistener.includes("contacts")? "flex" : screensizelistener.W <= 1100? "none" : "flex",
-      maxWidth: pathnamelistener.includes("contacts")? "600px" : screensizelistener.W <= 900? "350px" : "350px"
-    }}
-    id='div_contacts'>
-        <div id='div_contacts_label_container'>
-          <FcContacts style={{fontSize: "28px"}} />
-          <span className='span_contacts_label'>Contacts</span>
+      animate={{
+        display: pathnamelistener.includes("contacts")
+          ? "flex"
+          : screensizelistener.W <= 1100
+          ? "none"
+          : "flex",
+        maxWidth: pathnamelistener.includes("contacts")
+          ? "600px"
+          : screensizelistener.W <= 900
+          ? "350px"
+          : "350px",
+      }}
+      id="div_contacts"
+    >
+      <div id="div_contacts_label_container">
+        <FcContacts style={{ fontSize: "28px" }} />
+        <span className="span_contacts_label">Contacts</span>
+      </div>
+      {isLoading ? (
+        <div id="div_isLoading_notifications">
+          <motion.div
+            animate={{
+              rotate: -360,
+            }}
+            transition={{
+              duration: 1,
+              repeat: Infinity,
+            }}
+            id="div_loader_request"
+          >
+            <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+          </motion.div>
         </div>
-        {isLoading? (
-          <div id='div_isLoading_notifications'>
+      ) : contactslist.length == 0 ? (
+        <div id="div_contacts_list_empty_container">
+          <span className="span_empty_list_label">No Contacts</span>
+        </div>
+      ) : (
+        <div
+          ref={divcontentRef}
+          id="div_contacts_list_container"
+          className="scroller"
+        >
+          {contactslist.map((cnts: any, i: number) => {
+            if (cnts.type == "single") {
+              if (cnts.userdetails.userone && cnts.userdetails.usertwo) {
+                if (
+                  cnts.userdetails.userone.userID == authentication.user.userID
+                ) {
+                  return (
+                    <motion.div
+                      whileHover={{
+                        backgroundColor: "#e6e6e6",
+                      }}
+                      key={i}
+                      className="div_cncts_cards"
+                    >
+                      <div id="div_img_cncts_container">
+                        <div id="div_img_search_profiles_container_cncts">
+                          <img
+                            src={
+                              cnts.userdetails.usertwo.profile == "none"
+                                ? DefaultProfile
+                                : cnts.userdetails.usertwo.profile
+                            }
+                            className="img_search_profiles_ntfs"
+                          />
+                        </div>
+                        {isUserOnline(
+                          activeuserslist,
+                          cnts.userdetails.usertwo.userID
+                        ) && <div className="div_online_indicator" />}
+                      </div>
+                      <div className="div_contact_fullname_container">
+                        <span
+                          className="span_cncts_fullname_label tw-border-b tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
+                          onClick={() => {
+                            navigate(`/${cnts.userdetails.usertwo.userID}`);
+                          }}
+                        >
+                          {cnts.userdetails.usertwo.fullname.firstName}
+                          {cnts.userdetails.usertwo.fullname.middleName == "N/A"
+                            ? ""
+                            : ` ${cnts.userdetails.usertwo.fullname.middleName}`}{" "}
+                          {cnts.userdetails.usertwo.fullname.lastName}
+                        </span>
+                      </div>
+                      <div className="div_cncts_navigations">
+                        <motion.button
+                          initial={{
+                            backgroundColor: "transparent",
+                            color: "#9cc2ff",
+                          }}
+                          whileHover={{
+                            backgroundColor: "#9cc2ff",
+                            color: "white",
+                          }}
+                          onClick={() => {
+                            navigateToConversation(
+                              "single",
+                              cnts.contactID,
+                              cnts.userdetails.usertwo
+                            );
+                          }}
+                          className="btn_cncts_navigations"
+                        >
+                          <AiOutlineMessage
+                            style={{
+                              fontSize: "20px",
+                              borderRadius: "7px",
+                              padding: "3px",
+                            }}
+                          />
+                        </motion.button>
+                        <motion.button
+                          initial={{
+                            backgroundColor: "transparent",
+                            color: "#ff6675",
+                          }}
+                          whileHover={{
+                            backgroundColor: "#ff6675",
+                            color: "white",
+                          }}
+                          className="btn_cncts_navigations"
+                        >
+                          <BiUserMinus
+                            style={{
+                              fontSize: "20px",
+                              borderRadius: "7px",
+                              padding: "3px",
+                            }}
+                          />
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  );
+                } else {
+                  return (
+                    <motion.div
+                      whileHover={{
+                        backgroundColor: "#e6e6e6",
+                      }}
+                      key={i}
+                      className="div_cncts_cards"
+                    >
+                      <div id="div_img_cncts_container">
+                        <div id="div_img_search_profiles_container_cncts">
+                          <img
+                            src={
+                              cnts.userdetails.userone.profile == "none"
+                                ? DefaultProfile
+                                : cnts.userdetails.userone.profile
+                            }
+                            className="img_search_profiles_ntfs"
+                          />
+                        </div>
+                        {isUserOnline(
+                          activeuserslist,
+                          cnts.userdetails.userone.userID
+                        ) && <div className="div_online_indicator" />}
+                      </div>
+                      <div className="div_contact_fullname_container">
+                        <span
+                          className="span_cncts_fullname_label tw-border-b tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
+                          onClick={() => {
+                            navigate(`/${cnts.userdetails.userone.userID}`);
+                          }}
+                        >
+                          {cnts.userdetails.userone.fullname.firstName}
+                          {cnts.userdetails.userone.fullname.middleName == "N/A"
+                            ? ""
+                            : ` ${cnts.userdetails.userone.fullname.middleName}`}{" "}
+                          {cnts.userdetails.userone.fullname.lastName}
+                        </span>
+                      </div>
+                      <div className="div_cncts_navigations">
+                        <motion.button
+                          initial={{
+                            backgroundColor: "transparent",
+                            color: "#9cc2ff",
+                          }}
+                          whileHover={{
+                            backgroundColor: "#9cc2ff",
+                            color: "white",
+                          }}
+                          onClick={() => {
+                            navigateToConversation(
+                              "single",
+                              cnts.contactID,
+                              cnts.userdetails.userone
+                            );
+                          }}
+                          className="btn_cncts_navigations"
+                        >
+                          <AiOutlineMessage
+                            style={{
+                              fontSize: "20px",
+                              borderRadius: "7px",
+                              padding: "3px",
+                            }}
+                          />
+                        </motion.button>
+                        <motion.button
+                          initial={{
+                            backgroundColor: "transparent",
+                            color: "#ff6675",
+                          }}
+                          whileHover={{
+                            backgroundColor: "#ff6675",
+                            color: "white",
+                          }}
+                          className="btn_cncts_navigations"
+                        >
+                          <BiUserMinus
+                            style={{
+                              fontSize: "20px",
+                              borderRadius: "7px",
+                              padding: "3px",
+                            }}
+                          />
+                        </motion.button>
+                      </div>
+                    </motion.div>
+                  );
+                }
+              } else {
+                return null;
+              }
+            } else {
+              return null;
+            }
+          })}
+          <div ref={divlazyloaderRef} id="div_isLoading_notifications">
             <motion.div
               animate={{
-                rotate: -360
+                rotate: -360,
               }}
               transition={{
                 duration: 1,
-                repeat: Infinity
+                repeat: Infinity,
               }}
-              id='div_loader_request'>
-                  <AiOutlineLoading3Quarters style={{fontSize: "25px"}} />
-              </motion.div>
+              id="div_loader_request"
+            >
+              <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+            </motion.div>
           </div>
-        ) : (
-          contactslist.length == 0? (
-            <div id='div_contacts_list_empty_container'>
-              <span className='span_empty_list_label'>No Contacts</span>
-            </div>
-          ) : (
-            <div id='div_contacts_list_container' className='scroller'>
-              {contactslist.map((cnts: any, i: number) => {
-                if(cnts.type == "single"){
-                  if(cnts.userdetails.userone && cnts.userdetails.usertwo){
-                    if(cnts.userdetails.userone.userID == authentication.user.userID){
-                      return(
-                        <motion.div
-                        whileHover={{
-                          backgroundColor: "#e6e6e6"
-                        }}
-                        key={i} className='div_cncts_cards'>
-                          <div id='div_img_cncts_container'>
-                            <div id='div_img_search_profiles_container_cncts'>
-                              <img src={cnts.userdetails.usertwo.profile == "none"? DefaultProfile : cnts.userdetails.usertwo.profile} className='img_search_profiles_ntfs' />
-                            </div>
-                            {isUserOnline(activeuserslist, cnts.userdetails.usertwo.userID) && (
-                              <div className='div_online_indicator' />
-                            )}
-                          </div>
-                          <div className='div_contact_fullname_container'>
-                            <span className='span_cncts_fullname_label tw-border-b tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]' onClick={() => { navigate(`/${cnts.userdetails.usertwo.userID}`) }}>{cnts.userdetails.usertwo.fullname.firstName}{cnts.userdetails.usertwo.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.usertwo.fullname.middleName}`} {cnts.userdetails.usertwo.fullname.lastName}</span>
-                          </div>
-                          <div className='div_cncts_navigations'>
-                            <motion.button
-                            initial={{
-                              backgroundColor: "transparent",
-                              color: "#9cc2ff"
-                            }}
-                            whileHover={{
-                              backgroundColor: "#9cc2ff",
-                              color: "white"
-                            }}
-                            onClick={() => {
-                              navigateToConversation("single", cnts.contactID, cnts.userdetails.usertwo)
-                            }}
-                            className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
-                            <motion.button
-                            initial={{
-                              backgroundColor: "transparent",
-                              color: "#ff6675"
-                            }}
-                            whileHover={{
-                              backgroundColor: "#ff6675",
-                              color: "white"
-                            }}
-                            className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
-                          </div>
-                        </motion.div>
-                      )
-                    }
-                    else{
-                      return(
-                        <motion.div
-                        whileHover={{
-                          backgroundColor: "#e6e6e6"
-                        }}
-                        key={i} className='div_cncts_cards'>
-                          <div id='div_img_cncts_container'>
-                            <div id='div_img_search_profiles_container_cncts'>
-                              <img src={cnts.userdetails.userone.profile == "none"? DefaultProfile : cnts.userdetails.userone.profile} className='img_search_profiles_ntfs' />
-                            </div>
-                            {isUserOnline(activeuserslist, cnts.userdetails.userone.userID) && (
-                              <div className='div_online_indicator' />
-                            )}
-                          </div>
-                          <div className='div_contact_fullname_container'>
-                            <span className='span_cncts_fullname_label tw-border-b tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]' onClick={() => { navigate(`/${cnts.userdetails.userone.userID}`) }}>{cnts.userdetails.userone.fullname.firstName}{cnts.userdetails.userone.fullname.middleName == "N/A"? "" : ` ${cnts.userdetails.userone.fullname.middleName}`} {cnts.userdetails.userone.fullname.lastName}</span>
-                          </div>
-                          <div className='div_cncts_navigations'>
-                            <motion.button
-                            initial={{
-                              backgroundColor: "transparent",
-                              color: "#9cc2ff"
-                            }}
-                            whileHover={{
-                              backgroundColor: "#9cc2ff",
-                              color: "white"
-                            }}
-                            onClick={() => {
-                              navigateToConversation("single", cnts.contactID, cnts.userdetails.userone)
-                            }}
-                            className='btn_cncts_navigations'><AiOutlineMessage style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
-                            <motion.button
-                            initial={{
-                              backgroundColor: "transparent",
-                              color: "#ff6675"
-                            }}
-                            whileHover={{
-                              backgroundColor: "#ff6675",
-                              color: "white"
-                            }}className='btn_cncts_navigations'><BiUserMinus style={{fontSize: "20px", borderRadius: "7px", padding: "3px"}} /></motion.button>
-                          </div>
-                        </motion.div>
-                      )
-                    }
-                  }
-                  else{
-                    return null
-                  }
-                }
-                else{
-                  return null
-                }
-              })}
-            </div>
-          )
-        )}
+        </div>
+      )}
     </motion.div>
-  )
+  );
 }
 
-export default Contacts
+export default Contacts;
