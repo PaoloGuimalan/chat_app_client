@@ -707,13 +707,12 @@ const SendFilesRequest = (params: any) => {
     });
 };
 
-const InitConversationListRequest = (
-  dispatch: Dispatch<any>,
-  setisLoading: any
-) => {
-  Axios.get(`${API}/u/initConversationList`, {
+const InitConversationListRequest = async (page: number, range: number) => {
+  return await Axios.get(`${API}/u/initConversationList`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
+      page: page,
+      range: range,
     },
   })
     .then((response) => {
@@ -721,13 +720,7 @@ const InitConversationListRequest = (
         const decodedResult: any = jwt_decode(response.data.result);
 
         // console.log(decodedResult.conversationslist)
-        dispatch({
-          type: SET_MESSAGES_LIST,
-          payload: {
-            messageslist: decodedResult.conversationslist,
-          },
-        });
-        setisLoading(false);
+        return decodedResult.conversationslist;
       }
     })
     .catch((err) => {
@@ -773,12 +766,14 @@ const InitConversationRequest = (
   scrollBottom: any
 ) => {
   const conversationID = params.conversationID;
+  const page = params.page;
   const range = params.range;
   // const receivers = params.receivers
 
   Axios.get(`${API}/u/initConversation/${conversationID}`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
+      page: page || 1,
       range: range || 20,
     },
   })
@@ -786,7 +781,18 @@ const InitConversationRequest = (
       if (response.data.status) {
         const decodedResult: any = jwt_decode(response.data.result);
         setisLoading(false);
-        dispatch(decodedResult.messages.reverse());
+        dispatch((prev: any) => {
+          const combinedList = [...prev, ...decodedResult.messages.reverse()];
+          const uniqueById = combinedList.filter(
+            (obj, index, self) =>
+              index === self.findIndex((t) => t._id === obj._id)
+          );
+          const sortedPostsDesc = uniqueById.sort((a, b) =>
+            b._id.localeCompare(a._id)
+          );
+          return sortedPostsDesc;
+        });
+        // dispatch(decodedResult.messages.reverse());
         settotalMessages(decodedResult.total);
         scrollBottom();
 
