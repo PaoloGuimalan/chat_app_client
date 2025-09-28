@@ -6,7 +6,6 @@ import {
   SET_ALERTS,
   SET_AUTHENTICATION,
   SET_CONTACTS_LIST,
-  SET_MESSAGES_LIST,
   SET_NOTIFICATIONS_LIST,
 } from "../../redux/types";
 import { authenticationstate } from "../../redux/actions/states";
