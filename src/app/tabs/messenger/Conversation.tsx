@@ -381,7 +381,7 @@ function Conversation({ conversationsetup, theme }: any) {
         });
       }
     }
-  }, [range, conversationsetup, conversationinfo]);
+  }, [range, conversationsetup, conversationinfo, page]);
 
   useEffect(() => {
     InitConversationRequest(
