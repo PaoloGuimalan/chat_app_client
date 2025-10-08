@@ -12,8 +12,11 @@ import { authenticationstate } from "../../redux/actions/states";
 import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import { Dispatch } from "react";
+import { convertLoginResponse } from "./reusable";
+import { ConvertedResponse } from "../vars/types";
 
 const API = import.meta.env.VITE_CHATTERLOOP_API;
+const USER_SERVICE_API = import.meta.env.VITE_CHATTERLOOP_USER_SERVICE_API;
 const SECRET = import.meta.env.VITE_JWT_SECRET;
 
 const AuthCheck = (dispatch: any) => {
@@ -80,15 +83,15 @@ const LoginRequest = (
   setisWaitingRequest: any
 ) => {
   const payload = params;
-  const encodedPayload = sign(payload, SECRET);
+  // const encodedPayload = sign(payload, SECRET);
 
-  Axios.post(`${API}/auth/login`, {
-    token: encodedPayload,
-  })
+  // previous: `${API}/auth/login`
+  Axios.post(`${USER_SERVICE_API}/api/user/auth`, payload)
     .then((response) => {
       if (response.data.status) {
         localStorage.setItem("authtoken", response.data.result.authtoken);
-        const userData: any = jwt_decode(response.data.result.usertoken);
+        const userDataRaw: any = jwt_decode(response.data.result.usertoken);
+        const userData: ConvertedResponse = convertLoginResponse(userDataRaw);
 
         dispatch({
           type: SET_AUTHENTICATION,
