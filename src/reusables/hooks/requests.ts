@@ -638,22 +638,17 @@ const ContactsListInitRequest = (
 };
 
 const ContactsListReusableRequest = (dispatch: any, setisLoading: any) => {
-  Axios.get(`${API}/u/getContacts`, {
+  Axios.get(`${USER_SERVICE_API}/api/user/contacts`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
+      paginated: "false",
     },
   })
     .then((response) => {
-      if (response.data.status) {
-        const decodedResult: any = jwt_decode(response.data.result);
+      const bulkResponse: IContact[] = response.data;
 
-        dispatch(decodedResult.contacts);
-        setisLoading(false);
-
-        // console.log(decodedResult.contacts)
-      } else {
-        /* empty */
-      }
+      dispatch(bulkResponse);
+      setisLoading(false);
     })
     .catch((err) => {
       console.log(err);
