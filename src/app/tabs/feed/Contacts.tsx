@@ -15,12 +15,20 @@ import {
 } from "../../../redux/types";
 import { useNavigate } from "react-router-dom";
 import { conversationsetupstate } from "../../../redux/actions/states";
-import { isUserOnline } from "../../../reusables/hooks/reusable";
+import {
+  contactsToUserdetails,
+  isUserOnline,
+} from "../../../reusables/hooks/reusable";
+import { PaginationProp } from "@/reusables/vars/props";
+import { IContact } from "@/reusables/vars/interfaces";
 
 function Contacts() {
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const authentication = useSelector((state: any) => state.authentication);
-  const contactslist = useSelector((state: any) => state.contactslist);
+  const contacts: PaginationProp<IContact> = useSelector(
+    (state: any) => state.contactslist
+  );
+  const contactslist: IContact[] = contacts.results;
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener
   );
@@ -182,12 +190,10 @@ function Contacts() {
           id="div_contacts_list_container"
           className="scroller"
         >
-          {contactslist.map((cnts: any, i: number) => {
+          {contactslist.map((cnts: IContact, i: number) => {
             if (cnts.type == "single") {
-              if (cnts.userdetails.userone && cnts.userdetails.usertwo) {
-                if (
-                  cnts.userdetails.userone.userID == authentication.user.userID
-                ) {
+              if (cnts.involved_user && cnts.action_by) {
+                if (cnts.action_by.username == authentication.user.userID) {
                   return (
                     <motion.div
                       whileHover={{
@@ -200,30 +206,30 @@ function Contacts() {
                         <div id="div_img_search_profiles_container_cncts">
                           <img
                             src={
-                              cnts.userdetails.usertwo.profile == "none"
+                              cnts.involved_user.profile == "none"
                                 ? DefaultProfile
-                                : cnts.userdetails.usertwo.profile
+                                : cnts.involved_user.profile
                             }
                             className="img_search_profiles_ntfs"
                           />
                         </div>
                         {isUserOnline(
                           activeuserslist,
-                          cnts.userdetails.usertwo.userID
+                          cnts.involved_user.username
                         ) && <div className="div_online_indicator" />}
                       </div>
                       <div className="div_contact_fullname_container">
                         <span
                           className="span_cncts_fullname_label tw-border-b tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
                           onClick={() => {
-                            navigate(`/${cnts.userdetails.usertwo.userID}`);
+                            navigate(`/${cnts.involved_user.username}`);
                           }}
                         >
-                          {cnts.userdetails.usertwo.fullname.firstName}
-                          {cnts.userdetails.usertwo.fullname.middleName == "N/A"
+                          {cnts.involved_user.first_name}
+                          {cnts.involved_user.middle_name == "N/A"
                             ? ""
-                            : ` ${cnts.userdetails.usertwo.fullname.middleName}`}{" "}
-                          {cnts.userdetails.usertwo.fullname.lastName}
+                            : ` ${cnts.involved_user.middle_name}`}{" "}
+                          {cnts.involved_user.last_name}
                         </span>
                       </div>
                       <div className="div_cncts_navigations">
@@ -239,8 +245,8 @@ function Contacts() {
                           onClick={() => {
                             navigateToConversation(
                               "single",
-                              cnts.contactID,
-                              cnts.userdetails.usertwo
+                              cnts.connection_id,
+                              contactsToUserdetails(cnts, false)
                             );
                           }}
                           className="btn_cncts_navigations"
@@ -288,30 +294,30 @@ function Contacts() {
                         <div id="div_img_search_profiles_container_cncts">
                           <img
                             src={
-                              cnts.userdetails.userone.profile == "none"
+                              cnts.action_by.profile == "none"
                                 ? DefaultProfile
-                                : cnts.userdetails.userone.profile
+                                : cnts.action_by.profile
                             }
                             className="img_search_profiles_ntfs"
                           />
                         </div>
                         {isUserOnline(
                           activeuserslist,
-                          cnts.userdetails.userone.userID
+                          cnts.action_by.username
                         ) && <div className="div_online_indicator" />}
                       </div>
                       <div className="div_contact_fullname_container">
                         <span
                           className="span_cncts_fullname_label tw-border-b tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
                           onClick={() => {
-                            navigate(`/${cnts.userdetails.userone.userID}`);
+                            navigate(`/${cnts.action_by.username}`);
                           }}
                         >
-                          {cnts.userdetails.userone.fullname.firstName}
-                          {cnts.userdetails.userone.fullname.middleName == "N/A"
+                          {cnts.action_by.first_name}
+                          {cnts.action_by.middle_name == "N/A"
                             ? ""
-                            : ` ${cnts.userdetails.userone.fullname.middleName}`}{" "}
-                          {cnts.userdetails.userone.fullname.lastName}
+                            : ` ${cnts.action_by.middle_name}`}{" "}
+                          {cnts.action_by.last_name}
                         </span>
                       </div>
                       <div className="div_cncts_navigations">
@@ -327,8 +333,8 @@ function Contacts() {
                           onClick={() => {
                             navigateToConversation(
                               "single",
-                              cnts.contactID,
-                              cnts.userdetails.userone
+                              cnts.connection_id,
+                              contactsToUserdetails(cnts, true)
                             );
                           }}
                           className="btn_cncts_navigations"
@@ -371,20 +377,22 @@ function Contacts() {
               return null;
             }
           })}
-          <div ref={divlazyloaderRef} id="div_isLoading_notifications">
-            <motion.div
-              animate={{
-                rotate: -360,
-              }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-              }}
-              id="div_loader_request"
-            >
-              <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-            </motion.div>
-          </div>
+          {contacts.next && (
+            <div ref={divlazyloaderRef} id="div_isLoading_notifications">
+              <motion.div
+                animate={{
+                  rotate: -360,
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                }}
+                id="div_loader_request"
+              >
+                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+              </motion.div>
+            </div>
+          )}
         </div>
       )}
     </motion.div>

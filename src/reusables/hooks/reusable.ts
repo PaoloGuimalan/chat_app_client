@@ -1,3 +1,4 @@
+import { IContact } from "../vars/interfaces";
 import { ConvertedResponse, OriginalResponse } from "../vars/types";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -179,6 +180,32 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
   };
 }
 
+function contactsToUserdetails(contact: IContact, isUserOne: boolean) {
+  if (isUserOne) {
+    return {
+      userID: contact.action_by.username,
+      fullname: {
+        firstName: contact.action_by.first_name,
+        middleName: contact.action_by.middle_name,
+        lastName: contact.action_by.last_name,
+      },
+      profile: contact.action_by.profile,
+      coverphoto: "",
+    };
+  }
+
+  return {
+    userID: contact.involved_user.username,
+    fullname: {
+      firstName: contact.involved_user.first_name,
+      middleName: contact.involved_user.middle_name,
+      lastName: contact.involved_user.last_name,
+    },
+    profile: contact.involved_user.profile,
+    coverphoto: "",
+  };
+}
+
 export {
   importData,
   importNonImageData,
@@ -189,4 +216,5 @@ export {
   ordinal_suffix_of,
   urlify,
   convertLoginResponse,
+  contactsToUserdetails,
 };

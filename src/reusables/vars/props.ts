@@ -34,3 +34,10 @@ export interface ServerInfoModalProp {
 export interface AppItemProp {
   mp: any;
 }
+
+export interface PaginationProp<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}

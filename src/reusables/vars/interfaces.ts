@@ -237,4 +237,25 @@ export interface Type {
   contentType: string;
 }
 
+export interface IUserContactPreview {
+  id: string;
+  username: string;
+  first_name: string;
+  middle_name: string | null;
+  last_name: string;
+  profile: string;
+  gender: string;
+}
+
+export interface IContact {
+  id: string;
+  action_by: IUserContactPreview;
+  involved_user: IUserContactPreview;
+  connection_id: string;
+  nickname: string | null;
+  status: boolean;
+  action_date: string; // or Date if you prefer
+  type: string;
+}
+
 //POST DATA INTERFACE END

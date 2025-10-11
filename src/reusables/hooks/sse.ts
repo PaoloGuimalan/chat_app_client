@@ -3,7 +3,7 @@ import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import {
   SET_ALERTS,
-  SET_CONTACTS_LIST_OVERRIDE,
+  // SET_CONTACTS_LIST_OVERRIDE,
   SET_IS_TYPING_LIST,
   SET_MESSAGES_LIST_OVERRIDE,
   SET_NOTIFICATIONS_LIST,
@@ -17,6 +17,7 @@ import notification_ringtone from "../../assets/sounds/notification_alert.mp3";
 import seen_rightone from "../../assets/sounds/seen_alert.mp3";
 import chatterloop_icon from "../../assets/imgs/chatterloop.png";
 import { Dispatch } from "react";
+import { ContactsListInitRequest } from "./requests";
 
 const API = import.meta.env.VITE_CHATTERLOOP_API;
 const SECRET = import.meta.env.VITE_JWT_SECRET;
@@ -168,15 +169,16 @@ const SSENotificationsTRequest = (
     const parsedresponse = JSON.parse(e.data);
     if (parsedresponse.auth) {
       if (parsedresponse.status) {
-        const decodedResult: any = jwt_decode(parsedresponse.result);
-
+        // const decodedResult: any = jwt_decode(parsedresponse.result);
         //play ringtone
-
-        dispatch({
-          type: SET_CONTACTS_LIST_OVERRIDE,
-          payload: {
-            contactslist: decodedResult.contacts,
-          },
+        // dispatch({
+        //   type: SET_CONTACTS_LIST_OVERRIDE,
+        //   payload: {
+        //     contactslist: decodedResult.contacts,
+        //   },
+        // });
+        ContactsListInitRequest(1, 50, dispatch, (bool: boolean) => {
+          return bool;
         });
       }
     }

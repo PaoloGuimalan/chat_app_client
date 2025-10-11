@@ -14,6 +14,8 @@ import jwt_decode from "jwt-decode";
 import { Dispatch } from "react";
 import { convertLoginResponse } from "./reusable";
 import { ConvertedResponse } from "../vars/types";
+import { PaginationProp } from "../vars/props";
+import { IContact, IUserContactPreview } from "../vars/interfaces";
 
 const API = import.meta.env.VITE_CHATTERLOOP_API;
 const USER_SERVICE_API = import.meta.env.VITE_CHATTERLOOP_USER_SERVICE_API;
@@ -609,28 +611,25 @@ const ContactsListInitRequest = (
   dispatch: Dispatch<any>,
   setisLoading: any
 ) => {
-  Axios.get(`${API}/u/getContacts`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
-      page: page,
-      range: range,
-    },
-  })
+  // `${API}/u/getContacts`
+  Axios.get(
+    `${USER_SERVICE_API}/api/user/contacts?page=${page}&page_size=${range}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    }
+  )
     .then((response) => {
-      if (response.data.status) {
-        const decodedResult: any = jwt_decode(response.data.result);
+      const paginatedContacts: PaginationProp<IContact> = response.data;
 
-        dispatch({
-          type: SET_CONTACTS_LIST,
-          payload: {
-            contactslist: decodedResult.contacts,
-          },
-        });
+      dispatch({
+        type: SET_CONTACTS_LIST,
+        payload: {
+          contactslist: paginatedContacts,
+        },
+      });
 
-        // console.log(decodedResult.contacts)
-      } else {
-        /* empty */
-      }
       setisLoading(false);
     })
     .catch((err) => {

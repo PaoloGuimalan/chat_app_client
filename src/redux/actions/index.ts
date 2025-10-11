@@ -1,6 +1,7 @@
 /* eslint-disable no-var */
 /* eslint-disable no-case-declarations */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { PaginationProp } from "@/reusables/vars/props";
 import {
   CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
   CLEAR_PENDING_CALL_ALERTS,
@@ -38,9 +39,11 @@ import {
 } from "../types";
 import {
   authenticationstate,
+  contactsliststate,
   conversationsetupstate,
   screensizelistenerstate,
 } from "./states";
+import { IContact } from "@/reusables/vars/interfaces";
 
 export const setauthentication = (state = authenticationstate, action: any) => {
   switch (action.type) {
@@ -75,15 +78,21 @@ export const setalerts = (state = [], action: any) => {
   }
 };
 
-export const setcontactslist = (state = [], action: any) => {
+export const setcontactslist = (
+  state: PaginationProp<IContact> = contactsliststate,
+  action: any
+) => {
   switch (action.type) {
     case SET_CONTACTS_LIST:
-      const combinedList = [...state, ...action.payload.contactslist];
+      const combinedList = [
+        ...state.results,
+        ...action.payload.contactslist.results,
+      ];
       const uniqueById = combinedList.filter(
         (obj, index, self) =>
-          index === self.findIndex((t) => t.contactID === obj.contactID)
+          index === self.findIndex((t) => t.connection_id === obj.connection_id)
       );
-      return uniqueById;
+      return { ...action.payload.contactslist, results: uniqueById };
     //   return action.payload.contactslist;
     case SET_CONTACTS_LIST_OVERRIDE:
       return action.payload.contactslist;
