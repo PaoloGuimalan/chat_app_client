@@ -234,7 +234,9 @@ function PostItem({
                                 />
                               </div>
                             );
-                          } else if (mpr.referenceMediaType.includes("video")) {
+                          } else if (
+                            mpr.reference_media_type.includes("video")
+                          ) {
                             return (
                               <div
                                 key={mpr.reference_id}
@@ -271,7 +273,7 @@ function PostItem({
                       </span>
                     </div>
                   </div>
-                  {mp.references[4].referenceMediaType === "image" ? (
+                  {mp.references[4].reference_media_type === "image" ? (
                     <img
                       src={mp.references[4].reference}
                       className="tw-w-full tw-h-full tw--ml-[100%] tw-object-cover"
