@@ -10,11 +10,16 @@ import { GetFeedRequest } from "@/reusables/hooks/requests";
 import PostItem from "../profile/PostItem";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
+import { postsliststate } from "@/redux/actions/states";
+import { PaginationProp } from "@/reusables/vars/props";
+import { IPost } from "@/reusables/vars/interfaces";
 
 function Feed() {
   const [page, setpage] = useState<number>(1); //setrange
   const [range] = useState<number>(20); //setrange
-  const [posts, setposts] = useState<any[]>([]);
+  const [paginatedPosts, setpaginatedPosts] =
+    useState<PaginationProp<IPost>>(postsliststate);
+  const posts: IPost[] = paginatedPosts.results;
 
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
@@ -25,15 +30,17 @@ function Feed() {
       range: range,
     })
       .then((response) => {
-        // console.log(response);
-        setposts((prev) => {
-          const combinedList = [...prev, ...response.posts];
+        setpaginatedPosts((prev) => {
+          const combinedList = [...prev.results, ...response.results];
           const uniqueById = combinedList.filter(
             (obj, index, self) =>
-              index === self.findIndex((t) => t._id === obj._id)
+              index === self.findIndex((t) => t.post_id === obj.post_id)
           );
 
-          return uniqueById;
+          return {
+            ...response,
+            results: uniqueById,
+          };
         });
       })
       .catch((err) => {
@@ -114,10 +121,10 @@ function Feed() {
           </div>
         )}
         {/* map posts here */}
-        {posts.map((mp: any, i: number) => {
+        {posts.map((mp: IPost, i: number) => {
           return <PostItem key={i} isSharePreview={false} mp={mp} />;
         })}
-        {posts.length > 0 && (
+        {paginatedPosts.next && (
           <div
             ref={divlazyloaderRef}
             id="divlazyloader"

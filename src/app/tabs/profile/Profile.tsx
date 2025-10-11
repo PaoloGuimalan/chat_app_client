@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   AuthenticationInterface,
-  ProfilePostState,
+  IPost,
   ProfileUserInfoInterface,
 } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
@@ -27,6 +27,8 @@ import {
 } from "@/reusables/hooks/reusable";
 import PostItem from "./PostItem";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
+import { postsliststate } from "@/redux/actions/states";
+import { PaginationProp } from "@/reusables/vars/props";
 
 function Profile() {
   const authentication: AuthenticationInterface = useSelector(
@@ -35,14 +37,11 @@ function Profile() {
   const navigate = useNavigate();
   const params = useParams();
 
-  const postsstate = {
-    posts: [],
-    totalposts: 0,
-  };
-
   const [profileInfo, setprofileInfo] =
     useState<ProfileUserInfoInterface | null>(null);
-  const [posts, setposts] = useState<ProfilePostState>(postsstate);
+  const [paginatedPosts, setpaginatedPosts] =
+    useState<PaginationProp<IPost>>(postsliststate);
+  const posts: IPost[] = paginatedPosts.results;
   const [isloaded, setisloaded] = useState<boolean>(true);
   const [createposttext, setcreateposttext] = useState<string>("");
 
@@ -88,7 +87,7 @@ function Profile() {
       .then((response) => {
         if (response.data.status) {
           const result: any = jwtDecode(response.data.result);
-          setposts(postsstate); //temporary
+          setpaginatedPosts(postsliststate); //temporary
           if (result.data) {
             setisloaded(true);
             setprofileInfo(result.data);
@@ -113,7 +112,7 @@ function Profile() {
 
     return () => {
       setprofileInfo(null);
-      setposts(postsstate);
+      setpaginatedPosts(postsliststate);
     };
   }, [params.userID]);
 
@@ -134,18 +133,16 @@ function Profile() {
       range: range,
     })
       .then((response) => {
-        // const decodedResult: any = jwtDecode(response.data.result);
-        const decodedResult: any = response.data.result;
-        // console.log(decodedResult.data.posts)
-        setposts((prev) => {
-          const combinedList = [...prev.posts, ...decodedResult.posts];
+        setpaginatedPosts((prev) => {
+          const combinedList = [...prev.results, ...response.results];
           const uniqueById = combinedList.filter(
             (obj, index, self) =>
-              index === self.findIndex((t) => t._id === obj._id)
+              index === self.findIndex((t) => t.post_id === obj.post_id)
           );
+
           return {
-            posts: uniqueById,
-            totalposts: decodedResult.total,
+            ...response,
+            results: uniqueById,
           };
         });
       })
@@ -293,12 +290,12 @@ function Profile() {
                 </button>
               </div>
             </div>
-            {posts.totalposts > 0 ? (
+            {paginatedPosts.count > 0 ? (
               <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
-                {posts.posts.map((mp: any, i: number) => {
+                {posts.map((mp: any, i: number) => {
                   return <PostItem key={i} isSharePreview={false} mp={mp} />;
                 })}
-                {posts.posts.length > 0 && posts.totalposts > range && (
+                {paginatedPosts.next && (
                   <div
                     ref={divlazyloaderRef}
                     id="divlazyloader"

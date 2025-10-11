@@ -1012,15 +1012,16 @@ const GetPostRequest = async (params: any) => {
   const page = params.page;
   const range = params.range;
 
-  return await Axios.get(`${API}/posts/userposts/${userID}`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
-      page: page || 1,
-      range: range || 20,
-    },
-  })
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/newsfeed/profile/${userID}?page=${page}&page_size=${range}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    }
+  )
     .then((response) => {
-      return response;
+      return response.data;
     })
     .catch((err) => {
       throw new Error(err);
@@ -1285,18 +1286,16 @@ const GetFeedRequest = async (params: any) => {
   const range = params.range;
   const page = params.page;
 
-  return await Axios.get(`${API}/posts/feed`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
-      page: page || 1,
-      range: range || 20,
-    },
-  })
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/newsfeed/default?page=${page}&page_size=${range}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    }
+  )
     .then((response) => {
-      //   const decodedResult: any = jwt_decode(response.data.result);
-      const decodedResult: any = response.data.result;
-      //   return decodedResult.data;
-      return decodedResult;
+      return response.data;
     })
     .catch((err) => {
       throw new Error(err);
@@ -1306,14 +1305,13 @@ const GetFeedRequest = async (params: any) => {
 const GetPostPreviewRequest = async (params: any) => {
   const postID = params.postID;
 
-  return await Axios.get(`${API}/posts/preview/${postID}`, {
+  return await Axios.get(`${USER_SERVICE_API}/api/newsfeed/preview/${postID}`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
     },
   })
     .then((response) => {
-      const decodedResult: any = jwt_decode(response.data.result);
-      return decodedResult.data;
+      return response.data;
     })
     .catch((err) => {
       throw new Error(err);

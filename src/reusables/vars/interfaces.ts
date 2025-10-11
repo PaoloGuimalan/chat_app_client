@@ -168,47 +168,49 @@ export interface ServerChannelsListInterface {
 
 // POST DATA INTERFACE
 
-export interface PostDataInterface {
-  _id: string;
-  postID: string;
-  userID: string;
-  content: Content;
-  type: Type;
-  tagging: Tagging;
-  privacy: Privacy;
-  onfeed: string;
-  isSponsored: boolean;
-  isLive: boolean;
-  isOnMap: IsOnMap;
-  fromSystem: boolean;
-  dateposted: number;
-  __v: number;
-  tagged_users: any[];
-  post_owner: PostOwner;
+export interface ITagging {
+  post_tag_id: string;
+  post: string;
+  user: IUserContactPreview;
 }
 
-export interface Content {
-  isShared: boolean;
-  references: any[];
-  data: string;
+export interface IReference {
+  reference_id: string;
+  reference: string;
+  caption: string;
+  reference_media_type: string;
+  reference_name: string | null;
+  post: string;
 }
 
-export interface IsOnMap {
+export interface IMapInfo {
+  map_view_id: string;
   status: boolean;
-  isStationary: boolean;
+  is_stationary: boolean;
+  post: string;
 }
 
-export interface PostOwner {
-  _id: string;
-  userID: string;
-  fullname: Fullname;
-  birthdate: Birthdate;
-  profile: string;
-  gender: string;
-  isActivated: boolean;
-  isVerified: boolean;
-  __v: number;
+export interface IPost {
+  post_id: string;
+  tagging: ITagging[];
+  privacy_users: any[]; // you can replace 'any' with specific type if known
+  references: IReference[];
+  map_info: IMapInfo;
+  user: IUserContactPreview;
+  is_shared: boolean;
+  file_type: string;
+  caption: string;
+  content_type: string;
+  is_tagged: boolean;
+  privacy_status: string;
+  is_sponsored: boolean;
+  is_live: boolean;
+  on_feed: string;
+  date_posted: string; // ISO string, or Date if preferred
+  from_system: boolean;
 }
+
+//POST DATA INTERFACE END
 
 export interface Birthdate {
   month: string;
@@ -220,21 +222,6 @@ export interface Fullname {
   firstName: string;
   middleName: string;
   lastName: string;
-}
-
-export interface Privacy {
-  status: string;
-  users: any[];
-}
-
-export interface Tagging {
-  isTagged: boolean;
-  users: any[];
-}
-
-export interface Type {
-  fileType: string;
-  contentType: string;
 }
 
 export interface IUserContactPreview {
@@ -257,5 +244,3 @@ export interface IContact {
   action_date: string; // or Date if you prefer
   type: string;
 }
-
-//POST DATA INTERFACE END
