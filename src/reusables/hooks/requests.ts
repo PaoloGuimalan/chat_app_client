@@ -15,7 +15,7 @@ import { Dispatch } from "react";
 import { convertLoginResponse } from "./reusable";
 import { ConvertedResponse } from "../vars/types";
 import { PaginationProp } from "../vars/props";
-import { IContact, IUserContactPreview } from "../vars/interfaces";
+import { IContact } from "../vars/interfaces";
 
 const API = import.meta.env.VITE_CHATTERLOOP_API;
 const USER_SERVICE_API = import.meta.env.VITE_CHATTERLOOP_USER_SERVICE_API;
