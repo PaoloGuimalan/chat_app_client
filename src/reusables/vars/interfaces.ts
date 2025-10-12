@@ -244,3 +244,22 @@ export interface IContact {
   action_date: string; // or Date if you prefer
   type: string;
 }
+
+export interface UserSearchResult {
+  id: string;
+  username: string;
+  first_name: string;
+  middle_name: string;
+  last_name: string;
+  birthdate: string; // ISO date string
+  profile: string;
+  gender: string;
+  email: string;
+  date_created: string; // ISO date string
+  is_active: boolean;
+  is_verified: boolean;
+  has_connection: boolean;
+  connection_accomplished: boolean;
+  connection_id: string | null;
+  is_action_by_user: boolean;
+}

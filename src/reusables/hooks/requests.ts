@@ -326,28 +326,21 @@ const SearchRequest = (
   dispatch: Dispatch<any>,
   setisLoading: any,
   currentAlertState: any,
-  setsearchresults: any,
-  authentication: any
+  setsearchresults: any
 ) => {
   const searchdata = params.searchdata;
 
-  Axios.get(`${API}/u/search/${searchdata}`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
-    },
-  })
+  Axios.get(
+    `${USER_SERVICE_API}/api/user/search/${searchdata}/?page=1&page_size=10`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    }
+  )
     .then((response) => {
       setisLoading(false);
-      if (response.data.status) {
-        const decodedResult: any = jwt_decode(response.data.result);
-        const searchres = decodedResult.searchresults.filter(
-          (flt: any) => flt.userID != authentication.user.userID
-        );
-        setsearchresults(searchres);
-        // console.log(decodedResult)
-      } else {
-        setsearchresults([]);
-      }
+      setsearchresults(response.data.results);
     })
     .catch((err) => {
       setisLoading(false);

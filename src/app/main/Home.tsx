@@ -346,7 +346,12 @@ function Home() {
           </motion.button>
         </div>
       </div>
-      {searchBoxFocus && <SearchMiniDrawer searchbox={searchbox} />}
+      {searchBoxFocus && (
+        <SearchMiniDrawer
+          searchbox={searchbox}
+          setsearchBoxFocus={setsearchBoxFocus}
+        />
+      )}
       <Routes>
         <Route
           path="/"
