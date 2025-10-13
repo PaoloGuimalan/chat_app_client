@@ -34,8 +34,10 @@ function Notifications() {
   }, [page, range]);
 
   useEffect(() => {
-    ReadNotificationsRequest();
-  }, [notificationslist.list.length]);
+    if (!isLoading) {
+      ReadNotificationsRequest();
+    }
+  }, [isLoading]); //notificationslist.list.length,
 
   const declineRequestProcess = (
     ntfsType: any,

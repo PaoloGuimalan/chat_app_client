@@ -6,6 +6,7 @@ import {
   SET_ALERTS,
   SET_AUTHENTICATION,
   SET_CONTACTS_LIST,
+  SET_CONTACTS_LIST_OVERRIDE,
   SET_NOTIFICATIONS_LIST,
 } from "../../redux/types";
 import { authenticationstate } from "../../redux/actions/states";
@@ -365,18 +366,13 @@ const ContactRequest = (
   setisDisabledByRequest: any
 ) => {
   const payload = params;
-  const encodedPayload = sign(payload, SECRET);
-  Axios.post(
-    `${API}/u/requestContact`,
-    {
-      token: encodedPayload,
+  // const encodedPayload = sign(payload, SECRET);
+  // ${API}/u/requestContact`
+  Axios.post(`${USER_SERVICE_API}/api/user/contacts`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
     },
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
-    }
-  )
+  })
     .then((response) => {
       if (response.data.status) {
         dispatch({
@@ -401,6 +397,53 @@ const ContactRequest = (
           },
         });
       }
+      setisDisabledByRequest(false);
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: [
+            ...currentAlertState,
+            {
+              id: currentAlertState.length,
+              type: "error",
+              content: err.message,
+            },
+          ],
+        },
+      });
+      setisDisabledByRequest(false);
+    });
+};
+
+const DeclineContactRequest = (
+  params: any,
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisDisabledByRequest: any
+) => {
+  const payload = params;
+  // const encodedPayload = sign(payload, SECRET);
+  // ${API}/u/requestContact`
+  Axios.delete(`${USER_SERVICE_API}/api/user/contacts`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+      action: payload.action,
+    },
+    data: { connection_id: payload.connection_id },
+  })
+    .then((response) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "success",
+            content: response.data.message,
+          },
+        },
+      });
       setisDisabledByRequest(false);
     })
     .catch((err) => {
@@ -476,66 +519,66 @@ const ReadNotificationsRequest = () => {
     });
 };
 
-const DeclineContactRequest = (
-  params: any,
-  dispatch: Dispatch<any>,
-  currentAlertState: any,
-  setisDisabledByRequest: any
-) => {
-  const payload = params;
-  const encodedPayload = sign(payload, SECRET);
+// const DeclineContactRequest = (
+//   params: any,
+//   dispatch: Dispatch<any>,
+//   currentAlertState: any,
+//   setisDisabledByRequest: any
+// ) => {
+//   const payload = params;
+//   const encodedPayload = sign(payload, SECRET);
 
-  Axios.post(
-    `${API}/u/declineContactRequest`,
-    {
-      token: encodedPayload,
-    },
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
-    }
-  )
-    .then((response) => {
-      if (response.data.status) {
-        // dispatch({ type: SET_ALERTS, payload:{
-        //     alerts: [
-        //       ...currentAlertState,
-        //       {
-        //         id: currentAlertState.length,
-        //         type: "success",
-        //         content: response.data.message
-        //       }
-        //     ]
-        // }})
-      } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
-      }
-      // setisDisabledByRequest(false)
-    })
-    .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
-      setisDisabledByRequest(false);
-    });
-};
+//   Axios.post(
+//     `${API}/u/declineContactRequest`,
+//     {
+//       token: encodedPayload,
+//     },
+//     {
+//       headers: {
+//         "x-access-token": localStorage.getItem("authtoken"),
+//       },
+//     }
+//   )
+//     .then((response) => {
+//       if (response.data.status) {
+//         // dispatch({ type: SET_ALERTS, payload:{
+//         //     alerts: [
+//         //       ...currentAlertState,
+//         //       {
+//         //         id: currentAlertState.length,
+//         //         type: "success",
+//         //         content: response.data.message
+//         //       }
+//         //     ]
+//         // }})
+//       } else {
+//         dispatch({
+//           type: SET_ALERTS,
+//           payload: {
+//             alerts: {
+//               id: currentAlertState.length,
+//               type: "warning",
+//               content: response.data.message,
+//             },
+//           },
+//         });
+//       }
+//       // setisDisabledByRequest(false)
+//     })
+//     .catch((err) => {
+//       dispatch({
+//         type: SET_ALERTS,
+//         payload: {
+//           alerts: {
+//             id: currentAlertState.length,
+//             type: "error",
+//             content: err.message,
+//           },
+//         },
+//       });
+//       setisDisabledByRequest(false);
+//     });
+// };
 
 const AcceptContactRequest = (
   params: any,
@@ -544,31 +587,26 @@ const AcceptContactRequest = (
   setisDisabledByRequest: any
 ) => {
   const payload = params;
-  const encodedPayload = sign(payload, SECRET);
+  // const encodedPayload = sign(payload, SECRET);
 
-  Axios.post(
-    `${API}/u/acceptContactRequest`,
-    {
-      token: encodedPayload,
+  // `${API}/u/acceptContactRequest`
+  Axios.put(`${USER_SERVICE_API}/api/user/contacts`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
     },
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
-    }
-  )
+  })
     .then((response) => {
       if (response.data.status) {
-        // dispatch({ type: SET_ALERTS, payload:{
-        //     alerts: [
-        //       ...currentAlertState,
-        //       {
-        //         id: currentAlertState.length,
-        //         type: "success",
-        //         content: response.data.message
-        //       }
-        //     ]
-        // }})
+        dispatch({
+          type: SET_ALERTS,
+          payload: {
+            alerts: {
+              id: currentAlertState.length,
+              type: "success",
+              content: response.data.message,
+            },
+          },
+        });
       } else {
         dispatch({
           type: SET_ALERTS,
@@ -601,6 +639,7 @@ const AcceptContactRequest = (
 const ContactsListInitRequest = (
   page: number,
   range: number,
+  override: boolean,
   dispatch: Dispatch<any>,
   setisLoading: any
 ) => {
@@ -616,12 +655,21 @@ const ContactsListInitRequest = (
     .then((response) => {
       const paginatedContacts: PaginationProp<IContact> = response.data;
 
-      dispatch({
-        type: SET_CONTACTS_LIST,
-        payload: {
-          contactslist: paginatedContacts,
-        },
-      });
+      if (override) {
+        dispatch({
+          type: SET_CONTACTS_LIST_OVERRIDE,
+          payload: {
+            contactslist: paginatedContacts,
+          },
+        });
+      } else {
+        dispatch({
+          type: SET_CONTACTS_LIST,
+          payload: {
+            contactslist: paginatedContacts,
+          },
+        });
+      }
 
       setisLoading(false);
     })

@@ -7,13 +7,15 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BiUserMinus, BiUserPlus, BiUserX, BiUserCheck } from "react-icons/bi";
 import { TbInputSearch } from "react-icons/tb";
 import {
-  // ContactRequest,
+  AcceptContactRequest,
+  ContactRequest,
+  DeclineContactRequest,
   SearchRequest,
 } from "../../reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
 import DefaultProfile from "../../assets/imgs/default.png";
 import { UserSearchResult } from "@/reusables/vars/interfaces";
-import { SET_MUTATE_ALERTS } from "@/redux/types";
+// import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { useNavigate } from "react-router-dom";
 
 function SearchMiniDrawer({
@@ -61,26 +63,61 @@ function SearchMiniDrawer({
     };
   }, [searchbox]);
 
+  const acceptContactRequestProcess = (connection_id: string) => {
+    setisDisabledByRequest(true);
+    AcceptContactRequest(
+      {
+        connection_id,
+      },
+      dispatch,
+      alerts,
+      setisDisabledByRequest
+    );
+  };
+
   const contactRequestProcess = (addUserID: any) => {
     setisDisabledByRequest(true);
-    console.log(addUserID);
-    dispatch({
-      type: SET_MUTATE_ALERTS,
-      payload: {
-        alerts: {
-          type: "warning",
-          content: "Add Connection is temporary disabled",
-        },
-      },
-    });
-    // ContactRequest(
-    //   {
-    //     addUserID: addUserID,
+    // console.log(addUserID);
+    // dispatch({
+    //   type: SET_MUTATE_ALERTS,
+    //   payload: {
+    //     alerts: {
+    //       type: "warning",
+    //       content: "Add Connection is temporary disabled",
+    //     },
     //   },
-    //   dispatch,
-    //   alerts,
-    //   setisDisabledByRequest
-    // );
+    // });
+    ContactRequest(
+      {
+        addUsername: addUserID,
+      },
+      dispatch,
+      alerts,
+      setisDisabledByRequest
+    );
+  };
+
+  const declineRequestProcess = (connection_id: any, action: string) => {
+    setisDisabledByRequest(true);
+    // console.log(addUserID);
+    // dispatch({
+    //   type: SET_MUTATE_ALERTS,
+    //   payload: {
+    //     alerts: {
+    //       type: "warning",
+    //       content: "Add Connection is temporary disabled",
+    //     },
+    //   },
+    // });
+    DeclineContactRequest(
+      {
+        connection_id,
+        action,
+      },
+      dispatch,
+      alerts,
+      setisDisabledByRequest
+    );
   };
 
   return (
@@ -158,6 +195,7 @@ function SearchMiniDrawer({
                             color: "white",
                           }}
                           onClick={() => {
+                            declineRequestProcess(srch.connection_id, "remove");
                             // console.log(srch.userID)
                           }}
                           disabled={isDisabledByRequest}
@@ -175,6 +213,9 @@ function SearchMiniDrawer({
                             color: "white",
                           }}
                           onClick={() => {
+                            if (srch.connection_id) {
+                              acceptContactRequestProcess(srch.connection_id);
+                            }
                             // console.log(srch.userID)
                           }}
                           disabled={isDisabledByRequest}
@@ -189,6 +230,10 @@ function SearchMiniDrawer({
                             color: "white",
                           }}
                           onClick={() => {
+                            declineRequestProcess(
+                              srch.connection_id,
+                              "decline"
+                            );
                             // console.log(srch.userID)
                           }}
                           disabled={isDisabledByRequest}

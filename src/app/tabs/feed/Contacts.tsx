@@ -7,7 +7,10 @@ import { AiOutlineLoading3Quarters, AiOutlineMessage } from "react-icons/ai";
 import { BiUserMinus } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import { ContactsListInitRequest } from "../../../reusables/hooks/requests";
+import {
+  ContactsListInitRequest,
+  DeclineContactRequest,
+} from "../../../reusables/hooks/requests";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import {
   SET_CONVERSATION_SETUP,
@@ -33,16 +36,18 @@ function Contacts() {
     (state: any) => state.screensizelistener
   );
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
+  const alerts = useSelector((state: any) => state.alerts);
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
   const [isLoading, setisLoading] = useState(true);
+  const [isDisabledByRequest, setisDisabledByRequest] = useState(false);
 
   const [page, setpage] = useState(1);
   const [range] = useState(50);
 
   useEffect(() => {
-    ContactsListInitRequest(page, range, dispatch, setisLoading);
+    ContactsListInitRequest(page, range, false, dispatch, setisLoading);
   }, [page, range]);
 
   const settogglerightwidget = (toggle: any) => {
@@ -52,6 +57,29 @@ function Contacts() {
         togglerightwidget: toggle,
       },
     });
+  };
+
+  const declineRequestProcess = (connection_id: any, action: string) => {
+    setisDisabledByRequest(true);
+    // console.log(addUserID);
+    // dispatch({
+    //   type: SET_MUTATE_ALERTS,
+    //   payload: {
+    //     alerts: {
+    //       type: "warning",
+    //       content: "Add Connection is temporary disabled",
+    //     },
+    //   },
+    // });
+    DeclineContactRequest(
+      {
+        connection_id,
+        action,
+      },
+      dispatch,
+      alerts,
+      setisDisabledByRequest
+    );
   };
 
   const navigateToConversation = (
@@ -269,6 +297,10 @@ function Contacts() {
                             color: "white",
                           }}
                           className="btn_cncts_navigations"
+                          onClick={() => {
+                            declineRequestProcess(cnts.connection_id, "remove");
+                          }}
+                          disabled={isDisabledByRequest}
                         >
                           <BiUserMinus
                             style={{
@@ -357,6 +389,10 @@ function Contacts() {
                             color: "white",
                           }}
                           className="btn_cncts_navigations"
+                          onClick={() => {
+                            declineRequestProcess(cnts.connection_id, "remove");
+                          }}
+                          disabled={isDisabledByRequest}
                         >
                           <BiUserMinus
                             style={{

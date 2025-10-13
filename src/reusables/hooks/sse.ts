@@ -6,8 +6,8 @@ import {
   // SET_CONTACTS_LIST_OVERRIDE,
   SET_IS_TYPING_LIST,
   SET_MESSAGES_LIST_OVERRIDE,
-  SET_NOTIFICATIONS_LIST,
-  SET_NOTIFICATIONS_LIST_OVERRIDE,
+  // SET_NOTIFICATIONS_LIST,
+  // SET_NOTIFICATIONS_LIST_OVERRIDE,
   SET_PENDING_CALL_ALERTS,
   SET_REJECTED_CALL_LIST,
   UPDATE_ACTIVE_USERS_LIST,
@@ -17,7 +17,7 @@ import notification_ringtone from "../../assets/sounds/notification_alert.mp3";
 import seen_rightone from "../../assets/sounds/seen_alert.mp3";
 import chatterloop_icon from "../../assets/imgs/chatterloop.png";
 import { Dispatch } from "react";
-import { ContactsListInitRequest } from "./requests";
+import { ContactsListInitRequest, NotificationInitRequest } from "./requests";
 
 const API = import.meta.env.VITE_CHATTERLOOP_API;
 const SECRET = import.meta.env.VITE_JWT_SECRET;
@@ -45,20 +45,24 @@ const SSENotificationsTRequest = (
     // console.log(parsedresponse)
     if (parsedresponse.auth) {
       if (parsedresponse.status) {
-        const decodedResult: any = jwt_decode(parsedresponse.result);
+        // const decodedResult: any = jwt_decode(parsedresponse.result);
         // console.log(decodedResult)
         //play ringtone
         const audioMessage = new Audio(notification_ringtone);
         audioMessage.play();
 
-        dispatch({
-          type: SET_NOTIFICATIONS_LIST,
-          payload: {
-            notficationslist: {
-              list: decodedResult.notifications,
-              totalunread: decodedResult.totalunread,
-            },
-          },
+        // dispatch({
+        //   type: SET_NOTIFICATIONS_LIST,
+        //   payload: {
+        //     notficationslist: {
+        //       list: decodedResult.notifications,
+        //       totalunread: decodedResult.totalunread,
+        //     },
+        //   },
+        // });
+
+        NotificationInitRequest(1, 10, dispatch, (bool: boolean) => {
+          return bool;
         });
 
         dispatch({
@@ -80,16 +84,20 @@ const SSENotificationsTRequest = (
     // console.log(parsedresponse)
     if (parsedresponse.auth) {
       if (parsedresponse.status) {
-        const decodedResult: any = jwt_decode(parsedresponse.result);
+        // const decodedResult: any = jwt_decode(parsedresponse.result);
 
-        dispatch({
-          type: SET_NOTIFICATIONS_LIST_OVERRIDE,
-          payload: {
-            notficationslist: {
-              list: decodedResult.notifications,
-              totalunread: decodedResult.totalunread,
-            },
-          },
+        // dispatch({
+        //   type: SET_NOTIFICATIONS_LIST_OVERRIDE,
+        //   payload: {
+        //     notficationslist: {
+        //       list: decodedResult.notifications,
+        //       totalunread: decodedResult.totalunread,
+        //     },
+        //   },
+        // });
+
+        NotificationInitRequest(1, 10, dispatch, (bool: boolean) => {
+          return bool;
         });
       }
     }
@@ -177,7 +185,7 @@ const SSENotificationsTRequest = (
         //     contactslist: decodedResult.contacts,
         //   },
         // });
-        ContactsListInitRequest(1, 50, dispatch, (bool: boolean) => {
+        ContactsListInitRequest(1, 50, true, dispatch, (bool: boolean) => {
           return bool;
         });
       }
