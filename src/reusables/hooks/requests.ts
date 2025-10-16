@@ -8,6 +8,7 @@ import {
   SET_CONTACTS_LIST,
   SET_CONTACTS_LIST_OVERRIDE,
   SET_NOTIFICATIONS_LIST,
+  SET_NOTIFICATIONS_LIST_OVERRIDE,
 } from "../../redux/types";
 import { authenticationstate } from "../../redux/actions/states";
 import sign from "jwt-encode";
@@ -480,6 +481,41 @@ const NotificationInitRequest = (
 
         dispatch({
           type: SET_NOTIFICATIONS_LIST,
+          payload: {
+            notficationslist: {
+              list: decodedResult.notifications,
+              totalunread: decodedResult.totalunread,
+            },
+          },
+        });
+      }
+      setisLoading(false);
+    })
+    .catch((err) => {
+      setisLoading(false);
+      console.log(err);
+    });
+};
+
+const NotificationOverrideRequest = (
+  page: number,
+  range: number,
+  dispatch: Dispatch<any>,
+  setisLoading: any
+) => {
+  Axios.get(`${API}/u/getNotifications`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+      page: page || 1,
+      range: range || 20,
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        const decodedResult: any = jwt_decode(response.data.result);
+
+        dispatch({
+          type: SET_NOTIFICATIONS_LIST_OVERRIDE,
           payload: {
             notficationslist: {
               list: decodedResult.notifications,
@@ -1392,4 +1428,5 @@ export {
   GetMembersListInServer,
   GetFeedRequest,
   GetPostPreviewRequest,
+  NotificationOverrideRequest,
 };

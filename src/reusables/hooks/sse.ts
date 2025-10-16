@@ -17,7 +17,10 @@ import notification_ringtone from "../../assets/sounds/notification_alert.mp3";
 import seen_rightone from "../../assets/sounds/seen_alert.mp3";
 import chatterloop_icon from "../../assets/imgs/chatterloop.png";
 import { Dispatch } from "react";
-import { ContactsListInitRequest, NotificationInitRequest } from "./requests";
+import {
+  ContactsListInitRequest,
+  NotificationOverrideRequest,
+} from "./requests";
 
 const API = import.meta.env.VITE_CHATTERLOOP_API;
 const SECRET = import.meta.env.VITE_JWT_SECRET;
@@ -61,7 +64,7 @@ const SSENotificationsTRequest = (
         //   },
         // });
 
-        NotificationInitRequest(1, 10, dispatch, (bool: boolean) => {
+        NotificationOverrideRequest(1, 10, dispatch, (bool: boolean) => {
           return bool;
         });
 
@@ -96,7 +99,7 @@ const SSENotificationsTRequest = (
         //   },
         // });
 
-        NotificationInitRequest(1, 10, dispatch, (bool: boolean) => {
+        NotificationOverrideRequest(1, 10, dispatch, (bool: boolean) => {
           return bool;
         });
       }
