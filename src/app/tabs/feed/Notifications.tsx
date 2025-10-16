@@ -195,7 +195,7 @@ function Notifications() {
                           onClick={() => {
                             acceptRequestProcess(
                               ntfs.referenceID,
-                              ntfs.toUserID
+                              ntfs.fromUserID
                             );
                           }}
                         >
@@ -207,7 +207,7 @@ function Notifications() {
                           onClick={() => {
                             declineRequestProcess(
                               ntfs.referenceID,
-                              ntfs.toUserID,
+                              ntfs.fromUserID,
                               "decline"
                             );
                           }}
