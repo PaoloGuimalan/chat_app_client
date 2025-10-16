@@ -403,14 +403,11 @@ const ContactRequest = (
       dispatch({
         type: SET_ALERTS,
         payload: {
-          alerts: [
-            ...currentAlertState,
-            {
-              id: currentAlertState.length,
-              type: "error",
-              content: err.message,
-            },
-          ],
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
         },
       });
       setisDisabledByRequest(false);
@@ -431,7 +428,10 @@ const DeclineContactRequest = (
       "x-access-token": localStorage.getItem("authtoken"),
       action: payload.action,
     },
-    data: { connection_id: payload.connection_id },
+    data: {
+      connection_id: payload.connection_id,
+      to_user_id: payload.to_user_id,
+    },
   })
     .then((response) => {
       dispatch({
@@ -450,14 +450,11 @@ const DeclineContactRequest = (
       dispatch({
         type: SET_ALERTS,
         payload: {
-          alerts: [
-            ...currentAlertState,
-            {
-              id: currentAlertState.length,
-              type: "error",
-              content: err.message,
-            },
-          ],
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
         },
       });
       setisDisabledByRequest(false);

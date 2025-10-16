@@ -40,20 +40,16 @@ function Notifications() {
   }, [isLoading]); //notificationslist.list.length,
 
   const declineRequestProcess = (
-    ntfsType: any,
-    ntfsID: any,
-    refID: any,
-    reverttoUserID: any,
-    revertfromUserID: any
+    connection_id: any,
+    to_user_id: string,
+    action: string
   ) => {
     setisDisabledByRequest(true);
     DeclineContactRequest(
       {
-        type: ntfsType,
-        notificationID: ntfsID,
-        referenceID: refID,
-        toUserID: revertfromUserID,
-        fromUserID: reverttoUserID,
+        connection_id,
+        to_user_id,
+        action,
       },
       dispatch,
       alerts,
@@ -61,21 +57,12 @@ function Notifications() {
     );
   };
 
-  const acceptRequestProcess = (
-    ntfsType: any,
-    ntfsID: any,
-    refID: any,
-    reverttoUserID: any,
-    revertfromUserID: any
-  ) => {
+  const acceptRequestProcess = (connection_id: string, to_user_id: string) => {
     setisDisabledByRequest(true);
     AcceptContactRequest(
       {
-        type: ntfsType,
-        notificationID: ntfsID,
-        referenceID: refID,
-        toUserID: revertfromUserID,
-        fromUserID: reverttoUserID,
+        connection_id,
+        to_user_id,
       },
       dispatch,
       alerts,
@@ -207,11 +194,8 @@ function Notifications() {
                           disabled={isDisabledByRequest}
                           onClick={() => {
                             acceptRequestProcess(
-                              "contact_request",
-                              ntfs.notificationID,
                               ntfs.referenceID,
-                              ntfs.toUserID,
-                              ntfs.fromUserID
+                              ntfs.toUserID
                             );
                           }}
                         >
@@ -222,11 +206,9 @@ function Notifications() {
                           disabled={isDisabledByRequest}
                           onClick={() => {
                             declineRequestProcess(
-                              "contact_request",
-                              ntfs.notificationID,
                               ntfs.referenceID,
                               ntfs.toUserID,
-                              ntfs.fromUserID
+                              "decline"
                             );
                           }}
                         >
