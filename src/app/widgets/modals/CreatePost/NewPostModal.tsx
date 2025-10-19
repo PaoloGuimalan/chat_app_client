@@ -10,7 +10,7 @@ import { FaUserTag } from "react-icons/fa6";
 import { MdAddToPhotos } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import PostMediaPreview from "./PostMediaPreview";
-// import { CreatePostRequest } from "@/reusables/hooks/requests";
+import { CreatePostRequest } from "@/reusables/hooks/requests";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { BiSolidImageAdd } from "react-icons/bi";
@@ -128,68 +128,80 @@ export function NewPostModal({
           ? []
           : [profileInfo?.userID, ...taggedList];
 
-      console.log(validatedTaggedList);
+      // console.log(validatedTaggedList);
 
-      // CreatePostRequest({
-      //   content: {
-      //       isShared: toShare,
-      //       references: toShare ? [
-      //         {
-      //             id: 1,
-      //             name: null,
-      //             reference: sharePreviewData.postID,
-      //             caption: "",
-      //             referenceMediaType: "shared_post"
-      //         }
-      //       ] : medialist,
-      //       data: mainpostcaption
-      //   },
-      //   type: {
-      //       fileType: toShare ? "shared_post" : medialist.length > 0 ? "media" : "text", //text, image, video, file
-      //       contentType: toShare ? "shared_post" : medialist.length > 0 ? "media" : "text" //text, image, video
-      //   },
-      //   tagging: {
-      //       isTagged: validatedTaggedList.length > 0 ? true : false,
-      //       users: validatedTaggedList
-      //   },
-      //   privacy: {
-      //       status: "public",
-      //       users: [], //userID for filteration depending on status
-      //   }, //public, friends, filtered
-      //   onfeed: "feed",
-      // }).then((response) => {
-      //     if(response.data.status){
-      //         // console.log(response.data);
-      //         onclose(false);
-      //         setisuploadingpost(false);
-      //         setcreateposttext("");
-      //         dispatch({
-      //             type: SET_MUTATE_ALERTS,
-      //             payload:{
-      //                 alerts: {
-      //                     type: "success",
-      //                     content: "Your post has been saved"
-      //                 }
-      //             }
-      //         })
-      //         getpostprocess();
-      //     }
-      // }).catch((err) => {
-      //     console.log(err);
-      // })
-      onclose(false);
-      setisuploadingpost(false);
-      setcreateposttext("");
-      getpostprocess();
-      dispatch({
-        type: SET_MUTATE_ALERTS,
-        payload: {
-          alerts: {
-            type: "warning",
-            content: "Posting is temporary disabled",
-          },
+      CreatePostRequest({
+        content: {
+          isShared: toShare,
+          references: toShare
+            ? [
+                {
+                  id: 1,
+                  name: null,
+                  reference: sharePreviewData.post_id,
+                  caption: "",
+                  referenceMediaType: "shared_post",
+                },
+              ]
+            : medialist,
+          data: mainpostcaption,
         },
-      });
+        type: {
+          fileType: toShare
+            ? "shared_post"
+            : medialist.length > 0
+            ? "media"
+            : "text", //text, image, video, file
+          contentType: toShare
+            ? "shared_post"
+            : medialist.length > 0
+            ? "media"
+            : "text", //text, image, video
+        },
+        tagging: {
+          isTagged: validatedTaggedList.length > 0 ? true : false,
+          users: validatedTaggedList,
+        },
+        privacy: {
+          status: "public",
+          users: [], //userID for filteration depending on status
+        }, //public, friends, filtered
+        onfeed: "feed",
+      })
+        .then((response: any) => {
+          if (response.data.status) {
+            // console.log(response.data);
+            onclose(false);
+            setisuploadingpost(false);
+            setcreateposttext("");
+            dispatch({
+              type: SET_MUTATE_ALERTS,
+              payload: {
+                alerts: {
+                  type: "success",
+                  content: "Your post has been saved",
+                },
+              },
+            });
+            getpostprocess();
+          }
+        })
+        .catch((err: any) => {
+          console.log(err);
+        });
+      // onclose(false);
+      // setisuploadingpost(false);
+      // setcreateposttext("");
+      // getpostprocess();
+      // dispatch({
+      //   type: SET_MUTATE_ALERTS,
+      //   payload: {
+      //     alerts: {
+      //       type: "warning",
+      //       content: "Posting is temporary disabled",
+      //     },
+      //   },
+      // });
     } else {
       dispatch({
         type: SET_MUTATE_ALERTS,

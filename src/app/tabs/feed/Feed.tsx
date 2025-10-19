@@ -12,14 +12,26 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { postsliststate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
-import { IPost } from "@/reusables/vars/interfaces";
+import { AuthenticationInterface, IPost } from "@/reusables/vars/interfaces";
+import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
+import { useSelector } from "react-redux";
 
 function Feed() {
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication
+  );
+
   const [page, setpage] = useState<number>(1); //setrange
   const [range] = useState<number>(20); //setrange
   const [paginatedPosts, setpaginatedPosts] =
     useState<PaginationProp<IPost>>(postsliststate);
   const posts: IPost[] = paginatedPosts.results;
+
+  const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
+    toggle: false,
+    withImage: false,
+  });
+  const [createposttext, setcreateposttext] = useState<string>("");
 
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
@@ -83,14 +95,40 @@ function Feed() {
           <img src={DefaultProfile} id="img_feed_header" />
         </div>
         <div id="div_input_feed_flex">
+          {toggleNewPostModal.toggle && (
+            <NewPostModal
+              toShare={false}
+              sharePreviewData={null}
+              withImage={toggleNewPostModal.withImage}
+              profileInfo={{
+                userID: authentication.user.userID,
+              }}
+              setcreateposttext={setcreateposttext}
+              getpostprocess={() => {}}
+              onclose={settoggleNewPostModal}
+            />
+          )}
           <input
             type="text"
             placeholder="Share your thoughts..."
             id="input_feed_box"
+            value={createposttext}
+            onFocus={() => {
+              settoggleNewPostModal({ toggle: true, withImage: false });
+            }}
+            onChange={(e) => {
+              setcreateposttext(e.target.value);
+            }}
           />
         </div>
         <div id="div_btn_image_container">
-          <button id="btn_image_feed" disabled={true}>
+          <button
+            onClick={() => {
+              settoggleNewPostModal({ toggle: true, withImage: true });
+            }}
+            id="btn_image_feed"
+            // disabled={true}
+          >
             <FcAddImage style={{ fontSize: "35px" }} />
           </button>
         </div>

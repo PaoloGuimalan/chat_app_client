@@ -135,10 +135,16 @@ function Profile() {
       .then((response) => {
         setpaginatedPosts((prev) => {
           const combinedList = [...prev.results, ...response.results];
-          const uniqueById = combinedList.filter(
-            (obj, index, self) =>
-              index === self.findIndex((t) => t.post_id === obj.post_id)
-          );
+          const uniqueById = combinedList
+            .filter(
+              (obj, index, self) =>
+                index === self.findIndex((t) => t.post_id === obj.post_id)
+            )
+            .sort(
+              (a: any, b: any) =>
+                new Date(b.date_posted).getTime() -
+                new Date(a.date_posted).getTime()
+            );
 
           return {
             ...response,
