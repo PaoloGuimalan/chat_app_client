@@ -206,6 +206,14 @@ function contactsToUserdetails(contact: IContact, isUserOne: boolean) {
   };
 }
 
+function monthNameToNumber(monthName: string) {
+  // Create a Date object by parsing string with day 1 and year arbitrary (e.g., 2000)
+  const date = new Date(`${monthName} 1, 2000`);
+  // getMonth() returns 0-based month index, so add 1 for 1-based month number
+  const monthNumber = date.getMonth() + 1;
+  return monthNumber;
+}
+
 export {
   importData,
   importNonImageData,
@@ -217,4 +225,5 @@ export {
   urlify,
   convertLoginResponse,
   contactsToUserdetails,
+  monthNameToNumber,
 };

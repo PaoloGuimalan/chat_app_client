@@ -166,15 +166,13 @@ const RegisterRequest = (
   setisWaitingRequest: any
 ) => {
   const payload = params;
-  const encodedPayload = sign(payload, SECRET);
+  // const encodedPayload = sign(payload, SECRET);
 
-  Axios.post(`${API}/auth/register`, {
-    token: encodedPayload,
-  })
+  // `${API}/auth/register`
+  Axios.post(`${USER_SERVICE_API}/api/user/me`, payload)
     .then((response) => {
       if (response.data.status) {
-        localStorage.setItem("authtoken", response.data.result.authtoken);
-        const userData: any = jwt_decode(response.data.result.usertoken);
+        localStorage.setItem("authtoken", response.data.authtoken);
 
         dispatch({
           type: SET_AUTHENTICATION,
@@ -182,15 +180,15 @@ const RegisterRequest = (
             authentication: {
               auth: true,
               user: {
-                userID: userData.userID,
+                userID: response.data.username,
                 fullName: {
-                  firstName: userData.fullname.firstName,
-                  middleName: userData.fullname.middleName,
-                  lastName: userData.fullname.lastName,
+                  firstName: payload.firstName,
+                  middleName: payload.middleName,
+                  lastName: payload.lastName,
                 },
-                email: userData.email,
-                isActivated: userData.isActivated,
-                isVerified: userData.isVerified,
+                email: payload.email,
+                isActivated: true,
+                isVerified: false,
               },
             },
           },
@@ -255,19 +253,14 @@ const VerifyCodeRequest = (
   setisWaitingRequest: any
 ) => {
   const payload = params;
-  const encodedPayload = sign(payload, SECRET);
+  // const encodedPayload = sign(payload, SECRET);
 
-  Axios.post(
-    `${API}/auth/emailverify`,
-    {
-      token: encodedPayload,
+  // `${API}/auth/emailverify`
+  Axios.post(`${USER_SERVICE_API}/api/user/verification`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
     },
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
-    }
-  )
+  })
     .then((response) => {
       if (response.data.status) {
         dispatch({
@@ -314,12 +307,12 @@ const VerifyCodeRequest = (
           alerts: {
             id: currentAlertState.length,
             type: "error",
-            content: err.message,
+            content: err.response.data.message,
           },
         },
       });
       setisWaitingRequest(false);
-      // console.log(err)
+      // console.log(err);
     });
 };
 
@@ -1040,7 +1033,8 @@ const EndCallRequest = (params: any) => {
 const GetProfileInfo = async (params: any) => {
   const userID = params.userID;
 
-  return await Axios.get(`${API}/p/userinfo/${userID}`, {
+  // `${API}/p/userinfo/${userID}`
+  return await Axios.get(`${USER_SERVICE_API}/api/user/auth/${userID}/`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
     },

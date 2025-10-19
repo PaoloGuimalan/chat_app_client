@@ -12,7 +12,7 @@ import DefaultProfile from "../../../assets/imgs/default.png";
 import { IoArrowBack } from "react-icons/io5";
 import { useEffect, useRef, useState } from "react";
 import { GetPostRequest, GetProfileInfo } from "@/reusables/hooks/requests";
-import jwtDecode from "jwt-decode";
+// import jwtDecode from "jwt-decode";
 import { FaLinkSlash } from "react-icons/fa6";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaTransgender, FaFileAlt } from "react-icons/fa";
@@ -85,20 +85,20 @@ function Profile() {
       userID: params.userID,
     })
       .then((response) => {
-        if (response.data.status) {
-          const result: any = jwtDecode(response.data.result);
-          setpaginatedPosts(postsliststate); //temporary
-          if (result.data) {
-            setisloaded(true);
-            setprofileInfo(result.data);
-          } else {
-            setisloaded(false);
-            setprofileInfo(null);
-          }
+        // if (response.data.status) {
+        // const result: any = jwtDecode(response.data);
+        setpaginatedPosts(postsliststate); //temporary
+        if (response.data) {
+          setisloaded(true);
+          setprofileInfo(response.data.data);
         } else {
-          setprofileInfo(null);
           setisloaded(false);
+          setprofileInfo(null);
         }
+        // } else {
+        //   setprofileInfo(null);
+        //   setisloaded(false);
+        // }
       })
       .catch((err) => {
         setprofileInfo(null);
