@@ -3,28 +3,31 @@ import { useEffect, useState } from "react";
 import "../../../styles/styles.css";
 import { IoClose } from "react-icons/io5";
 import { BiGroup } from "react-icons/bi";
-import { useDispatch, useSelector } from "react-redux";
+import {
+  // useDispatch,
+  useSelector,
+} from "react-redux";
 import { motion } from "framer-motion";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import {
   ContactsListReusableRequest,
-  //   CreateGroupChatRequest,
+  CreateGroupChatRequest,
 } from "../../../reusables/hooks/requests";
 import Modal from "../../reusables/Modal";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { IContact } from "@/reusables/vars/interfaces";
-import { SET_MUTATE_ALERTS } from "@/redux/types";
+// import { SET_MUTATE_ALERTS } from "@/redux/types";
 
 function CreateGroupChatModal({ setisCreateGCToggle }: any) {
   const authentication = useSelector((state: any) => state.authentication);
   //   const contactslist = useSelector((state: any) => state.contactslist)
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   const [contactslist, setcontactslist] = useState<IContact[]>([]);
   const [isLoading, setisLoading] = useState<boolean>(true);
 
   const [gcName, setgcName] = useState(
-    `${authentication.user.first_name}'s Group Chat`
+    `${authentication.user.fullName.firstName}'s Group Chat`
   );
   const [gcprivacy, setgcprivacy] = useState(true);
   const [searchFilter, setsearchFilter] = useState("");
@@ -48,25 +51,25 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
 
   const processCreateGroupChat = () => {
     const markedMembersFinal = markedMembers.map((mrkd: any) => mrkd.userID);
-    console.log(markedMembersFinal);
-    // CreateGroupChatRequest(
-    //   {
-    //     groupName: gcName,
-    //     privacy: gcprivacy,
-    //     otherUsers: markedMembersFinal,
-    //   },
-    //   setisCreateGCToggle
-    // );
-    setisCreateGCToggle(false);
-    dispatch({
-      type: SET_MUTATE_ALERTS,
-      payload: {
-        alerts: {
-          type: "warning",
-          content: "Group Chat creation is temporary disabled",
-        },
+    // console.log(markedMembersFinal);
+    CreateGroupChatRequest(
+      {
+        groupName: gcName,
+        privacy: gcprivacy,
+        otherUsers: markedMembersFinal,
       },
-    });
+      setisCreateGCToggle
+    );
+    // setisCreateGCToggle(false);
+    // dispatch({
+    //   type: SET_MUTATE_ALERTS,
+    //   payload: {
+    //     alerts: {
+    //       type: "warning",
+    //       content: "Group Chat creation is temporary disabled",
+    //     },
+    //   },
+    // });
   };
 
   useEffect(() => {

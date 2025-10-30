@@ -3,22 +3,25 @@ import { useEffect, useState } from "react";
 import "../../../styles/styles.css";
 import { IoClose } from "react-icons/io5";
 import { BiGroup } from "react-icons/bi";
-import { useDispatch, useSelector } from "react-redux";
+import {
+  // useDispatch,
+  useSelector,
+} from "react-redux";
 import { motion } from "framer-motion";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import {
   ContactsListReusableRequest,
-  // CreateServerRequest
+  CreateServerRequest,
 } from "../../../reusables/hooks/requests";
 import Modal from "../../reusables/Modal";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { IContact } from "@/reusables/vars/interfaces";
-import { SET_MUTATE_ALERTS } from "@/redux/types";
+// import { SET_MUTATE_ALERTS } from "@/redux/types";
 
 function CreateServerModal({ setisCreateServerToggle }: any) {
   const authentication = useSelector((state: any) => state.authentication);
   //   const contactslist = useSelector((state: any) => state.contactslist)
-  const dispatch = useDispatch();
+  // const dispatch = useDispatch();
 
   const [contactslist, setcontactslist] = useState<IContact[]>([]);
   const [isLoading, setisLoading] = useState<boolean>(true);
@@ -48,22 +51,25 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
 
   const processCreateGroupChat = () => {
     const markedMembersFinal = markedMembers.map((mrkd: any) => mrkd.userID);
-    console.log(markedMembersFinal);
-    // CreateServerRequest({
-    //     groupName: gcName,
-    //     privacy: gcprivacy,
-    //     otherUsers: markedMembersFinal
-    // }, setisCreateServerToggle)
-    setisCreateServerToggle(false);
-    dispatch({
-      type: SET_MUTATE_ALERTS,
-      payload: {
-        alerts: {
-          type: "warning",
-          content: "Server creation is temporary disabled",
-        },
+    // console.log(markedMembersFinal);
+    CreateServerRequest(
+      {
+        groupName: gcName,
+        privacy: gcprivacy,
+        otherUsers: markedMembersFinal,
       },
-    });
+      setisCreateServerToggle
+    );
+    // setisCreateServerToggle(false);
+    // dispatch({
+    //   type: SET_MUTATE_ALERTS,
+    //   payload: {
+    //     alerts: {
+    //       type: "warning",
+    //       content: "Server creation is temporary disabled",
+    //     },
+    //   },
+    // });
   };
 
   useEffect(() => {
