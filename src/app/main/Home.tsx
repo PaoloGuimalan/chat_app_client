@@ -33,12 +33,13 @@ import {
   CLEAR_PENDING_CALL_ALERTS,
   SET_CALLS_LIST,
   SET_CLEAR_ALERTS,
+  SET_CONTACTS_LIST_OVERRIDE,
   SET_CONVERSATION_SETUP,
   SET_MESSAGES_LIST,
   SET_REMOVE_IS_TYPING_LIST,
   SET_TOGGLE_RIGHT_WIDGET,
 } from "../../redux/types";
-import { conversationsetupstate } from "../../redux/actions/states";
+import { contactsliststate, conversationsetupstate } from "../../redux/actions/states";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import DesktopHome from "./DesktopHome";
 import CallCollection from "../absolutes/calls/CallCollection";
@@ -119,6 +120,13 @@ function Home() {
       type: CLEAR_PENDING_CALL_ALERTS,
       payload: {
         clearstate: [],
+      },
+    });
+
+    dispatch({
+      type: SET_CONTACTS_LIST_OVERRIDE,
+      payload: {
+        contactslist: contactsliststate,
       },
     });
   };
