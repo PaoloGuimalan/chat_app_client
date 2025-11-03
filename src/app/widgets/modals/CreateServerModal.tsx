@@ -25,6 +25,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
 
   const [contactslist, setcontactslist] = useState<IContact[]>([]);
   const [isLoading, setisLoading] = useState<boolean>(true);
+  const [isSaving, setisSaving] = useState<boolean>(false);
 
   const [gcName, setgcName] = useState(
     `${authentication.user.fullName.firstName}'s Server`
@@ -52,6 +53,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
   const processCreateGroupChat = () => {
     const markedMembersFinal = markedMembers.map((mrkd: any) => mrkd.userID);
     // console.log(markedMembersFinal);
+    setisSaving(true);
     CreateServerRequest(
       {
         groupName: gcName,
@@ -82,6 +84,26 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
     <Modal
       component={
         <div id="div_modal_container">
+          {isSaving && (
+            <div
+              className={`tw-z-[2] tw-absolute tw-h-[calc(98%-90px)] tw-max-h-[700px] tw-w-[calc(98%-20px)] tw-max-w-[calc(400px-20px)] tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}
+            >
+              <div id="div_conversation_content_loader">
+                <motion.div
+                  animate={{
+                    rotate: -360,
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                  }}
+                  id="div_loader_request_conv"
+                >
+                  <AiOutlineLoading3Quarters style={{ fontSize: "28px" }} />
+                </motion.div>
+              </div>
+            </div>
+          )}
           <div className="tw-flex tw-flex-1 tw-flex-col tw-max-h-[100%] tw-bg-transparent">
             <div id="div_modal_header">
               <div id="div_server_modal_header_label">
@@ -358,6 +380,23 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                     </div>
                   </motion.div>
                 )}
+                {isSaving ? (
+                  <div className="tw-flex tw-items-center tw-justify-end tw-w-full">
+                    <span className="tw-text-[12px]">Saving...</span>
+                    <motion.div
+                      animate={{
+                        rotate: -360,
+                      }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                      }}
+                      id="div_loader_request"
+                    >
+                      <AiOutlineLoading3Quarters style={{ fontSize: "20px" }} />
+                    </motion.div>
+                  </div>
+                ) : (
                 <div id="div_create_cancel_btns">
                   <button
                     disabled={false}
@@ -377,6 +416,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                     Cancel
                   </button>
                 </div>
+                )}
               </div>
             </div>
           </div>

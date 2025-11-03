@@ -25,6 +25,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
 
   const [contactslist, setcontactslist] = useState<IContact[]>([]);
   const [isLoading, setisLoading] = useState<boolean>(true);
+  const [isSaving, setisSaving] = useState<boolean>(false);
 
   const [gcName, setgcName] = useState(
     `${authentication.user.fullName.firstName}'s Group Chat`
@@ -52,6 +53,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
   const processCreateGroupChat = () => {
     const markedMembersFinal = markedMembers.map((mrkd: any) => mrkd.userID);
     // console.log(markedMembersFinal);
+    setisSaving(true);
     CreateGroupChatRequest(
       {
         groupName: gcName,
@@ -80,6 +82,26 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
     <Modal
       component={
         <div id="div_modal_container">
+          {isSaving && (
+            <div
+              className={`tw-z-[2] tw-absolute tw-h-[calc(98%-90px)] tw-max-h-[700px] tw-w-[calc(98%-20px)] tw-max-w-[calc(400px-20px)] tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}
+            >
+              <div id="div_conversation_content_loader">
+                <motion.div
+                  animate={{
+                    rotate: -360,
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                  }}
+                  id="div_loader_request_conv"
+                >
+                  <AiOutlineLoading3Quarters style={{ fontSize: "28px" }} />
+                </motion.div>
+              </div>
+            </div>
+          )}
           <div className="tw-flex tw-flex-1 tw-flex-col tw-max-h-[100%] tw-bg-transparent">
             <div id="div_modal_header">
               <div id="div_modal_header_label">
@@ -355,24 +377,42 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                     </div>
                   </motion.div>
                 )}
-                <div id="div_create_cancel_btns">
-                  <button
-                    className="btns_create_cancel"
-                    onClick={() => {
-                      processCreateGroupChat();
-                    }}
-                  >
-                    Create
-                  </button>
-                  <button
-                    className="btns_create_cancel"
-                    onClick={() => {
-                      setisCreateGCToggle(false);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
+                {isSaving ? (
+                  <div className="tw-flex tw-items-center tw-justify-end tw-w-full">
+                    <span className="tw-text-[12px]">Saving...</span>
+                    <motion.div
+                      animate={{
+                        rotate: -360,
+                      }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                      }}
+                      id="div_loader_request"
+                    >
+                      <AiOutlineLoading3Quarters style={{ fontSize: "20px" }} />
+                    </motion.div>
+                  </div>
+                ) : (
+                  <div id="div_create_cancel_btns">
+                    <button
+                      className="btns_create_cancel"
+                      onClick={() => {
+                        processCreateGroupChat();
+                      }}
+                    >
+                      Create
+                    </button>
+                    <button
+                      className="btns_create_cancel"
+                      onClick={() => {
+                        setisCreateGCToggle(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                )}
               </div>
             </div>
           </div>
