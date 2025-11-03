@@ -36,6 +36,7 @@ import {
   SET_CONTACTS_LIST_OVERRIDE,
   SET_CONVERSATION_SETUP,
   SET_MESSAGES_LIST,
+  SET_MESSAGES_LIST_OVERRIDE,
   SET_REMOVE_IS_TYPING_LIST,
   SET_TOGGLE_RIGHT_WIDGET,
 } from "../../redux/types";
@@ -96,7 +97,7 @@ function Home() {
     });
 
     dispatch({
-      type: SET_MESSAGES_LIST,
+      type: SET_MESSAGES_LIST_OVERRIDE,
       payload: {
         messageslist: [],
       },
