@@ -20,6 +20,8 @@ import Modal from "@/app/reusables/Modal";
 import { IoMdClose } from "react-icons/io";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import LoadedPostItem from "./LoadedPostItem";
+import { motion } from "framer-motion";
+import PostEmojis from "@/app/reusables/PostEmojis";
 
 function PostItem({
   isSharePreview,
@@ -41,6 +43,7 @@ function PostItem({
     toggle: false,
     withImage: false,
   });
+  const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
 
   const dateposted = new Date(mp.date_posted);
   const textRef = useRef<HTMLSpanElement | null>(null);
@@ -308,7 +311,26 @@ function PostItem({
           <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
             <hr className="tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px] tw-z-[0]" />
             <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
-              <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
+              <button
+                onMouseEnter={() => {
+                  settoggleEmojis(true);
+                }}
+                onMouseLeave={() => {
+                  settoggleEmojis(false);
+                }}
+                className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+              >
+                <motion.div
+                  className="tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-bg-white tw-shadow-lg tw-bottom-[calc(100%+15px)]"
+                  initial={{
+                    scale: 0,
+                  }}
+                  animate={{
+                    scale: toggleEmojis ? 1 : 0,
+                  }}
+                >
+                  <PostEmojis />
+                </motion.div>
                 <BiLike style={{ fontSize: "25px", color: "#666666" }} />
               </button>
               <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">

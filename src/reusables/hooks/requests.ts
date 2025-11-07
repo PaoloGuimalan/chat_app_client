@@ -1365,6 +1365,20 @@ const GetFeedRequest = async (params: any) => {
     });
 };
 
+const GetFeedEmojisRequest = async () => {
+  return await Axios.get(`${USER_SERVICE_API}/api/newsfeed/emojis`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 const GetPostPreviewRequest = async (params: any) => {
   const postID = params.postID;
 
@@ -1423,4 +1437,5 @@ export {
   GetFeedRequest,
   GetPostPreviewRequest,
   NotificationOverrideRequest,
+  GetFeedEmojisRequest,
 };

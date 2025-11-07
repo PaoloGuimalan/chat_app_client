@@ -17,6 +17,7 @@ import { FiMap } from "react-icons/fi";
 import { RiContactsBook2Line } from "react-icons/ri";
 import {
   ActiveContactsRequest,
+  GetFeedEmojisRequest,
   InitConversationListRequest,
   LogoutRequest,
   NotificationInitRequest,
@@ -35,12 +36,17 @@ import {
   SET_CLEAR_ALERTS,
   SET_CONTACTS_LIST_OVERRIDE,
   SET_CONVERSATION_SETUP,
+  SET_EMOJIS_LIST,
   SET_MESSAGES_LIST,
   SET_MESSAGES_LIST_OVERRIDE,
+  SET_NOTIFICATIONS_LIST_OVERRIDE,
   SET_REMOVE_IS_TYPING_LIST,
   SET_TOGGLE_RIGHT_WIDGET,
 } from "../../redux/types";
-import { contactsliststate, conversationsetupstate } from "../../redux/actions/states";
+import {
+  contactsliststate,
+  conversationsetupstate,
+} from "../../redux/actions/states";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import DesktopHome from "./DesktopHome";
 import CallCollection from "../absolutes/calls/CallCollection";
@@ -130,6 +136,13 @@ function Home() {
         contactslist: contactsliststate,
       },
     });
+
+    dispatch({
+      type: SET_NOTIFICATIONS_LIST_OVERRIDE,
+      payload: {
+        notficationslist: { list: [], totalunread: 0 },
+      },
+    });
   };
 
   const logoutProcess = () => {
@@ -160,6 +173,18 @@ function Home() {
     });
     NotificationInitRequest(1, 10, dispatch, () => {});
     ActiveContactsRequest(dispatch);
+    GetFeedEmojisRequest()
+      .then((response) => {
+        dispatch({
+          type: SET_EMOJIS_LIST,
+          payload: {
+            emojis: response,
+          },
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
 
     initPushNotification();
   };

@@ -263,3 +263,17 @@ export interface UserSearchResult {
   connection_id: string | null;
   is_action_by_user: boolean;
 }
+
+export interface Emoji {
+  emoji_id: string;
+  emoji_title: string;
+  emoji_content: string;
+  emoji_tags: string[];
+  emoji_theme: string;
+  priority: number;
+  animated_preview: string | null;
+  created_at: string;
+  updated_at: string;
+  deleted_at: string | null;
+  updated_by: string;
+}

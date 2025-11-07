@@ -19,6 +19,7 @@ import {
   SET_CONTACTS_LIST,
   SET_CONTACTS_LIST_OVERRIDE,
   SET_CONVERSATION_SETUP,
+  SET_EMOJIS_LIST,
   SET_FILTERED_ALERTS,
   SET_IS_TYPING_LIST,
   SET_MESSAGES_LIST,
@@ -43,7 +44,7 @@ import {
   conversationsetupstate,
   screensizelistenerstate,
 } from "./states";
-import { IContact } from "@/reusables/vars/interfaces";
+import { Emoji, IContact } from "@/reusables/vars/interfaces";
 
 export const setauthentication = (state = authenticationstate, action: any) => {
   switch (action.type) {
@@ -311,6 +312,21 @@ export const setistypinglist = (state: any[] = [], action: any) => {
           flt.conversationID !== action.payload.istyping.conversationID
       );
       return filtrationstatusremove;
+    default:
+      return state;
+  }
+};
+
+export const setemojilist = (state: Emoji[] = [], action: any) => {
+  switch (action.type) {
+    case SET_EMOJIS_LIST:
+      const emojis = action.payload.emojis;
+      const parsedEmoji: Emoji[] = emojis.map((mp: any) => ({
+        ...mp,
+        emoji_tags: JSON.parse(mp.emoji_tags),
+      }));
+
+      return parsedEmoji;
     default:
       return state;
   }
