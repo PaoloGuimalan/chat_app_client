@@ -190,6 +190,11 @@ export interface IMapInfo {
   post: string;
 }
 
+export interface IPreviewCount {
+  count: number;
+  emoji: string;
+}
+
 export interface IPost {
   post_id: string;
   tagging: ITagging[];
@@ -208,6 +213,8 @@ export interface IPost {
   on_feed: string;
   date_posted: string; // ISO string, or Date if preferred
   from_system: boolean;
+  preview: IPreviewCount[];
+  user_reaction: string | null;
 }
 
 //POST DATA INTERFACE END

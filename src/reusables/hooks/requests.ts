@@ -1395,6 +1395,35 @@ const GetPostPreviewRequest = async (params: any) => {
     });
 };
 
+const ReactionSaveRequest = async (params: any) => {
+  const post_id = params.post_id;
+  const emoji_id = params.emoji_id;
+  const method = params.method;
+
+  return await Axios({
+    url: `${USER_SERVICE_API}/api/newsfeed/reaction`,
+    method: method,
+    data: {
+      post_id,
+      emoji_id,
+    },
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    // return await Axios.get(`${USER_SERVICE_API}/api/newsfeed/preview/${postID}`, {
+    //   headers: {
+    //     "x-access-token": localStorage.getItem("authtoken"),
+    //   },
+    // })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   AuthCheck,
   LoginRequest,
@@ -1438,4 +1467,5 @@ export {
   GetPostPreviewRequest,
   NotificationOverrideRequest,
   GetFeedEmojisRequest,
+  ReactionSaveRequest,
 };

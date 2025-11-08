@@ -8,6 +8,7 @@ import { PiShareFat } from "react-icons/pi";
 import { BsPinMap } from "react-icons/bs";
 import {
   AuthenticationInterface,
+  Emoji,
   IPost,
   IReference,
   ITagging,
@@ -33,6 +34,7 @@ function PostItem({
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication
   );
+  const emojilist: Emoji[] = useSelector((state: any) => state.emojilist);
   const navigate = useNavigate();
 
   const [togglePostCarousel, settogglePostCarousel] = useState<boolean>(false);
@@ -44,22 +46,40 @@ function PostItem({
     withImage: false,
   });
   const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
+  const [emojiLoading, setemojiLoading] = useState<boolean>(false);
+  const [postState, setpostState] = useState<IPost>(mp);
 
-  const dateposted = new Date(mp.date_posted);
+  const dateposted = new Date(postState.date_posted);
   const textRef = useRef<HTMLSpanElement | null>(null);
   const textContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const postOwnerUserID = mp.user.username;
+  const postOwnerUserID = postState.user.username;
 
   useEffect(() => {
-    if (mp) {
-      if (mp.caption.length >= 600) {
+    if (postState) {
+      if (postState.caption.length >= 600) {
         setminimizedCaption(true);
       } else {
         setminimizedCaption(false);
       }
     }
-  }, [mp]);
+  }, [postState]);
+
+  const onProcessEmojiSelection = (emoji_id: string) => {
+    settoggleEmojis(false);
+    setemojiLoading(true);
+    setpostState((prev: IPost) => ({
+      ...prev,
+      user_reaction: emoji_id,
+    }));
+  };
+  const onSuccessEmojiSelection = (isReactionProcessed: boolean) => {
+    setemojiLoading(false);
+
+    if (!isReactionProcessed) {
+      setpostState(mp);
+    }
+  };
 
   return (
     minimizedCaption !== null && (
@@ -73,22 +93,22 @@ function PostItem({
               <span
                 className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                 onClick={() => {
-                  navigate(`/${mp.user.username}`);
+                  navigate(`/${postState.user.username}`);
                 }}
               >
-                {mp.user.first_name}
-                {mp.user.middle_name == "N/A"
+                {postState.user.first_name}
+                {postState.user.middle_name == "N/A"
                   ? ""
-                  : ` ${mp.user.middle_name}`}{" "}
-                {mp.user.last_name}
+                  : ` ${postState.user.middle_name}`}{" "}
+                {postState.user.last_name}
               </span>
               &nbsp;
-              {mp.tagging.length > 0 && (
+              {postState.tagging.length > 0 && (
                 <span className="tw-text-[14px]">is with</span>
               )}
               &nbsp;
-              {mp.tagging.length > 0 &&
-                mp.tagging.map((mptg: ITagging, i: number) => {
+              {postState.tagging.length > 0 &&
+                postState.tagging.map((mptg: ITagging, i: number) => {
                   return (
                     <span
                       className="tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
@@ -121,7 +141,7 @@ function PostItem({
             } tw-overflow-y-hidden`}
           >
             <span ref={textRef} className={`tw-text-[14px] tw-text-left c1`}>
-              {mp.caption}
+              {postState.caption}
             </span>
           </div>
           {minimizedCaption && (
@@ -134,7 +154,7 @@ function PostItem({
               Expand
             </button>
           )}
-          {!minimizedCaption && mp.caption.length >= 600 && (
+          {!minimizedCaption && postState.caption.length >= 600 && (
             <button
               onClick={() => {
                 setminimizedCaption(true);
@@ -144,14 +164,14 @@ function PostItem({
               See less
             </button>
           )}
-          {mp.references.length > 0 && !mp.is_shared && (
+          {postState.references.length > 0 && !postState.is_shared && (
             <div className="tw-bg-white tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px]">
               {" "}
               {/**tw-bg-black*/}
-              {mp.references.map((mpu: IReference, i: number) => {
+              {postState.references.map((mpu: IReference, i: number) => {
                 if (i <= 3) {
                   if (mpu.reference_media_type.includes("image")) {
-                    if (mp.references.length === 1) {
+                    if (postState.references.length === 1) {
                       return (
                         <div
                           onClick={() => {
@@ -224,7 +244,7 @@ function PostItem({
                         showIndicators={false}
                         showThumbs={false}
                       >
-                        {mp.references.map((mpr: IReference) => {
+                        {postState.references.map((mpr: IReference) => {
                           if (mpr.reference_media_type.includes("image")) {
                             return (
                               <div
@@ -262,7 +282,7 @@ function PostItem({
                   }
                 />
               )}
-              {mp.references.length > 3 && (
+              {postState.references.length > 3 && (
                 <div
                   onClick={() => {
                     settogglePostCarousel(true);
@@ -272,18 +292,18 @@ function PostItem({
                   <div className="tw-cursor-pointer tw-select-none tw-relative tw-h-full tw-w-full tw-bg-black tw-opacity-[0.8] tw-top-0 tw-left-0 tw-z-[1] tw-flex tw-items-center tw-justify-center">
                     <div>
                       <span className="tw-text-white tw-font-Inter tw-font-semibold tw-text-[40px]">
-                        + {mp.references.length - 4}
+                        + {postState.references.length - 4}
                       </span>
                     </div>
                   </div>
-                  {mp.references[4].reference_media_type === "image" ? (
+                  {postState.references[4].reference_media_type === "image" ? (
                     <img
-                      src={mp.references[4].reference}
+                      src={postState.references[4].reference}
                       className="tw-w-full tw-h-full tw--ml-[100%] tw-object-cover"
                     />
                   ) : (
                     <video
-                      src={mp.references[4].reference}
+                      src={postState.references[4].reference}
                       className="tw-w-full tw-h-full tw--ml-[100%]"
                     />
                   )}
@@ -291,14 +311,14 @@ function PostItem({
               )}
             </div>
           )}
-          {mp.is_shared &&
-            mp.references.map((mpu: any, i: number) => {
+          {postState.is_shared &&
+            postState.references.map((mpu: any, i: number) => {
               return <LoadedPostItem key={i} postID={mpu.reference} />;
             })}
           {toggleNewPostModal.toggle && (
             <NewPostModal
               toShare={true}
-              sharePreviewData={mp}
+              sharePreviewData={postState}
               withImage={toggleNewPostModal.withImage}
               profileInfo={authentication.user}
               setcreateposttext={() => {}}
@@ -318,6 +338,7 @@ function PostItem({
                 onMouseLeave={() => {
                   settoggleEmojis(false);
                 }}
+                disabled={emojiLoading}
                 className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
               >
                 <motion.div
@@ -329,9 +350,24 @@ function PostItem({
                     scale: toggleEmojis ? 1 : 0,
                   }}
                 >
-                  <PostEmojis />
+                  <PostEmojis
+                    post_id={postState.post_id}
+                    reaction={postState.user_reaction}
+                    onProcessEmojiSelection={onProcessEmojiSelection}
+                    onSuccessEmojiSelection={onSuccessEmojiSelection}
+                  />
                 </motion.div>
-                <BiLike style={{ fontSize: "25px", color: "#666666" }} />
+                {postState.user_reaction ? (
+                  <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
+                    {emojilist.length > 0 &&
+                      (emojilist.filter(
+                        (flt: Emoji) => flt.emoji_id === postState.user_reaction
+                      )[0].emoji_content ??
+                        "...")}
+                  </div>
+                ) : (
+                  <BiLike style={{ fontSize: "25px", color: "#666666" }} />
+                )}
               </button>
               <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
                 <LiaComment style={{ fontSize: "25px", color: "#666666" }} />
