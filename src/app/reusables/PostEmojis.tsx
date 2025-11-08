@@ -5,7 +5,7 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { motion } from "framer-motion";
 import { useState } from "react";
 
-function DotLottieButton(props: any) {
+function DotLottieButton({ mp }: any) {
   const [onScale, setonScale] = useState<boolean>(false);
   return (
     <motion.div
@@ -19,9 +19,25 @@ function DotLottieButton(props: any) {
       onHoverEnd={() => {
         setonScale(false);
       }}
-      className="tw-w-fit tw-h-fit"
+      className="tw-w-fit tw-h-fit tw-min-h-[45px] tw-min-w-[45px] tw-flex tw-items-center tw-justify-center"
     >
-      {props.children}
+      {mp.animated_preview ? (
+        <DotLottieReact
+          src={mp.animated_preview!}
+          loop
+          autoplay
+          width={30}
+          height={30}
+          style={{ width: "100%", height: "100%" }}
+          renderConfig={{
+            devicePixelRatio: 2,
+            autoResize: false,
+          }}
+          className="hover:tw-scale-1"
+        />
+      ) : (
+        <button>{mp.emoji_content}</button>
+      )}
     </motion.div>
   );
 }
@@ -31,27 +47,9 @@ function PostEmojis() {
 
   return (
     <div className="tw-p-[0px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-h-full">
-      <div className="tw-flex tw-flex-row tw-gap-[0px] tw-w-fit">
+      <div className="tw-flex tw-flex-row tw-gap-[0px] tw-min-w-fit">
         {emojilist.map((mp: Emoji) => {
-          return (
-            <DotLottieButton key={mp.emoji_id}>
-              {mp.animated_preview ? (
-                <DotLottieReact
-                  src={mp.animated_preview!}
-                  loop
-                  autoplay
-                  style={{ width: "100%", height: "100%" }}
-                  renderConfig={{
-                    devicePixelRatio: 2,
-                    autoResize: true,
-                  }}
-                  className="hover:tw-scale-2"
-                />
-              ) : (
-                <button>{mp.emoji_content}</button>
-              )}
-            </DotLottieButton>
-          );
+          return <DotLottieButton key={mp.emoji_id} mp={mp} />;
         })}
       </div>
     </div>
