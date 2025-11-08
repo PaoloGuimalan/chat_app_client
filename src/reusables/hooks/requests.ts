@@ -1424,6 +1424,23 @@ const ReactionSaveRequest = async (params: any) => {
     });
 };
 
+const GetReactionTotalRequest = async (post_id: string) => {
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/newsfeed/total_reactions/${post_id}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    }
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   AuthCheck,
   LoginRequest,
@@ -1468,4 +1485,5 @@ export {
   NotificationOverrideRequest,
   GetFeedEmojisRequest,
   ReactionSaveRequest,
+  GetReactionTotalRequest,
 };

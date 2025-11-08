@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React from 'react'
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import { BiLike } from "react-icons/bi";
 import { LiaComment } from "react-icons/lia";
@@ -23,6 +23,7 @@ import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import LoadedPostItem from "./LoadedPostItem";
 import { motion } from "framer-motion";
 import PostEmojis from "@/app/reusables/PostEmojis";
+import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
 
 function PostItem({
   isSharePreview,
@@ -55,6 +56,11 @@ function PostItem({
 
   const postOwnerUserID = postState.user.username;
 
+  const total_reactions = useMemo(
+    () => postState.preview.reduce((sum, item) => sum + item.count, 0),
+    [postState]
+  );
+
   useEffect(() => {
     if (postState) {
       if (postState.caption.length >= 600) {
@@ -73,12 +79,26 @@ function PostItem({
       user_reaction: emoji_id,
     }));
   };
+
   const onSuccessEmojiSelection = (isReactionProcessed: boolean) => {
     setemojiLoading(false);
 
     if (!isReactionProcessed) {
       setpostState(mp);
+
+      return;
     }
+
+    GetReactionTotalRequest(postState.post_id)
+      .then((response) => {
+        setpostState((prev: IPost) => ({
+          ...prev,
+          preview: response,
+        }));
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   return (
@@ -329,6 +349,39 @@ function PostItem({
         </div>
         {!isSharePreview && (
           <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
+            <motion.div
+              initial={{
+                height: total_reactions > 0 ? "auto" : "0px",
+                paddingTop: total_reactions > 0 ? "5px" : "0px",
+              }}
+              animate={{
+                height: total_reactions > 0 ? "auto" : "0px",
+                paddingTop: total_reactions > 0 ? "5px" : "0px",
+              }}
+              className="tw-w-full tw-flex tw-flex-row tw-gap-[15px] tw-items-center tw-overflow-hidden"
+            >
+              <div className="tw-flex tw-flex-row">
+                {postState.preview
+                  .filter((flt) => flt.count > 0)
+                  .map((mp) => {
+                    if (emojilist.length > 0) {
+                      return (
+                        <span className="-tw-mr-[10px]">
+                          {
+                            emojilist.filter(
+                              (flt) => flt.emoji_id === mp.emoji
+                            )[0].emoji_content
+                          }
+                        </span>
+                      );
+                    }
+                  })}
+              </div>
+              <span className="tw-text-[12px] tw-text-gray-800">
+                {total_reactions}{" "}
+                {total_reactions === 1 ? " reaction" : " reactions"}
+              </span>
+            </motion.div>
             <hr className="tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px] tw-z-[0]" />
             <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
               <button
