@@ -86,18 +86,20 @@ function PostEmojis({
   return (
     <div className="tw-p-[0px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-h-full">
       <div className="tw-flex tw-flex-row tw-gap-[0px] tw-min-w-fit">
-        {emojilist.map((mp: Emoji) => {
-          return (
-            <DotLottieButton
-              key={mp.emoji_id}
-              mp={mp}
-              post_id={post_id}
-              reaction={reaction}
-              onProcessEmojiSelection={onProcessEmojiSelection}
-              onSuccessEmojiSelection={onSuccessEmojiSelection}
-            />
-          );
-        })}
+        {emojilist
+          .sort((a, b) => a.priority - b.priority)
+          .map((mp: Emoji) => {
+            return (
+              <DotLottieButton
+                key={mp.emoji_id}
+                mp={mp}
+                post_id={post_id}
+                reaction={reaction}
+                onProcessEmojiSelection={onProcessEmojiSelection}
+                onSuccessEmojiSelection={onSuccessEmojiSelection}
+              />
+            );
+          })}
       </div>
     </div>
   );
