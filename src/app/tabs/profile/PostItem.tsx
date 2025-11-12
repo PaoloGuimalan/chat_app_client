@@ -184,6 +184,304 @@ function PostItem({
               See less
             </button>
           )}
+          {togglePostCarousel && (
+            <Modal
+              component={
+                <div
+                  style={{
+                    maxWidth:
+                      postState.references.length > 0
+                        ? postState.is_shared
+                          ? "600px"
+                          : "1400px"
+                        : "600px",
+                  }}
+                  className="tw-bg-white tw-rounded-[7px] tw-w-[95%] tw-h-[95%] tw-max-h-[800px] tw-flex tw-flex-row tw-flex-wrap tw-overflow-auto"
+                >
+                  {/* <div className="tw-w-[calc(100%-22px)] tw-p-[10px] tw-pl-[12px] tw-pr-[10px] tw-pt-[10px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
+                        <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1 tw-font-Inter">
+                          Post
+                        </span>
+                        <button
+                          onClick={() => {
+                            settogglePostCarousel(false);
+                          }}
+                          className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
+                        >
+                          <IoMdClose style={{ fontSize: "17px" }} />
+                        </button>
+                      </div> */}
+                  {!postState.is_shared && (
+                    <Carousel
+                      className="tw-bg-black tw-w-full tw-h-full tw-flex-1 tw-min-w-[400px]"
+                      showIndicators={false}
+                      showThumbs={false}
+                    >
+                      {postState.references.map((mpr: IReference) => {
+                        if (mpr.reference_media_type.includes("image")) {
+                          return (
+                            <div
+                              key={mpr.reference_id}
+                              className="tw-h-full tw-bg-black"
+                            >
+                              <img
+                                src={mpr.reference}
+                                className="tw-w-full tw-h-full tw-object-contain"
+                              />
+                            </div>
+                          );
+                        } else if (mpr.reference_media_type.includes("video")) {
+                          return (
+                            <div
+                              key={mpr.reference_id}
+                              className="tw-h-full tw-max-h-full tw-bg-black"
+                            >
+                              <video
+                                controls
+                                src={mpr.reference}
+                                className="tw-w-full tw-h-full"
+                              />
+                            </div>
+                          );
+                        } else {
+                          return <></>;
+                        }
+                      })}
+                    </Carousel>
+                  )}
+                  <div
+                    className={`tw-flex tw-flex-1 tw-max-w-full ${
+                      postState.references.length > 0
+                        ? postState.is_shared
+                          ? "custom:tw-max-w-full"
+                          : "custom:tw-max-w-[400px]"
+                        : "custom:tw-max-w-full"
+                    } tw-min-w-[400px] tw-bg-white tw-flex-col tw-pb-[10px]`}
+                  >
+                    <div className="tw-w-[calc(100%-50px)] tw-p-[25px] tw-flex tw-justify-between">
+                      <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
+                        <div id="div_img_feed_post_container">
+                          <img src={DefaultProfile} id="img_feed_header" />
+                        </div>
+                        <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
+                          <div className="tw-text-left">
+                            <span
+                              className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                              onClick={() => {
+                                navigate(`/${postState.user.username}`);
+                              }}
+                            >
+                              {postState.user.first_name}
+                              {postState.user.middle_name == "N/A"
+                                ? ""
+                                : ` ${postState.user.middle_name}`}{" "}
+                              {postState.user.last_name}
+                            </span>
+                            &nbsp;
+                            {postState.tagging.length > 0 && (
+                              <span className="tw-text-[14px]">is with</span>
+                            )}
+                            &nbsp;
+                            {postState.tagging.length > 0 &&
+                              postState.tagging.map(
+                                (mptg: ITagging, i: number) => {
+                                  return (
+                                    <span
+                                      className="tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                                      onClick={() => {
+                                        navigate(`/${mptg.user.username}`);
+                                      }}
+                                      key={i}
+                                    >
+                                      {mptg.user.first_name}
+                                      {mptg.user.middle_name == "N/A"
+                                        ? ""
+                                        : ` ${mptg.user.middle_name}`}{" "}
+                                      {mptg.user.last_name}
+                                    </span>
+                                  );
+                                }
+                              )}
+                          </div>
+                          <span className="tw-text-[12px]">
+                            {dateposted
+                              .toUTCString()
+                              .split(" ")
+                              .splice(0, 4)
+                              .join(" ")}
+                          </span>
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          settogglePostCarousel(false);
+                        }}
+                        className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
+                      >
+                        <IoMdClose style={{ fontSize: "17px" }} />
+                      </button>
+                    </div>
+                    <div
+                      className={`tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px] tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
+                    >
+                      <div
+                        ref={textContainerRef}
+                        className={`tw-w-full tw-flex tw-justify-center ${
+                          minimizedCaption
+                            ? "tw-max-h-[120px]"
+                            : "tw-max-h-none"
+                        } tw-overflow-y-hidden`}
+                      >
+                        <span
+                          ref={textRef}
+                          className={`tw-text-[14px] tw-text-left c1`}
+                        >
+                          {postState.caption}
+                        </span>
+                      </div>
+                      {minimizedCaption && (
+                        <button
+                          onClick={() => {
+                            setminimizedCaption(false);
+                          }}
+                          className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}
+                        >
+                          Expand
+                        </button>
+                      )}
+                      {!minimizedCaption && postState.caption.length >= 600 && (
+                        <button
+                          onClick={() => {
+                            setminimizedCaption(true);
+                          }}
+                          className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}
+                        >
+                          See less
+                        </button>
+                      )}
+                    </div>
+                    <div className="tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px]">
+                      <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
+                        <motion.div
+                          initial={{
+                            height: total_reactions > 0 ? "auto" : "0px",
+                            paddingTop: total_reactions > 0 ? "5px" : "0px",
+                          }}
+                          animate={{
+                            height: total_reactions > 0 ? "auto" : "0px",
+                            paddingTop: total_reactions > 0 ? "5px" : "0px",
+                          }}
+                          className="tw-w-full tw-flex tw-flex-row tw-gap-[15px] tw-items-center tw-overflow-hidden"
+                        >
+                          <div className="tw-flex tw-flex-row">
+                            {postState.preview
+                              .filter((flt) => flt.count > 0)
+                              .map((mp) => {
+                                if (emojilist.length > 0) {
+                                  return (
+                                    <span className="-tw-mr-[10px]">
+                                      {
+                                        emojilist.filter(
+                                          (flt) => flt.emoji_id === mp.emoji
+                                        )[0].emoji_content
+                                      }
+                                    </span>
+                                  );
+                                }
+                              })}
+                          </div>
+                          <span className="tw-text-[12px] tw-text-gray-800">
+                            {total_reactions}{" "}
+                            {total_reactions === 1 ? " reaction" : " reactions"}
+                          </span>
+                        </motion.div>
+                        <hr className="tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px] tw-z-[0]" />
+                        <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
+                          <button
+                            onMouseEnter={() => {
+                              settoggleEmojis(true);
+                            }}
+                            onMouseLeave={() => {
+                              settoggleEmojis(false);
+                            }}
+                            disabled={emojiLoading}
+                            className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                          >
+                            <motion.div
+                              className="tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-bg-white tw-shadow-lg tw-bottom-[calc(100%+15px)]"
+                              initial={{
+                                scale: 0,
+                              }}
+                              animate={{
+                                scale: toggleEmojis ? 1 : 0,
+                              }}
+                            >
+                              <PostEmojis
+                                post_id={postState.post_id}
+                                reaction={postState.user_reaction}
+                                onProcessEmojiSelection={
+                                  onProcessEmojiSelection
+                                }
+                                onSuccessEmojiSelection={
+                                  onSuccessEmojiSelection
+                                }
+                              />
+                            </motion.div>
+                            {postState.user_reaction ? (
+                              <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
+                                {emojilist.length > 0 &&
+                                  (emojilist.filter(
+                                    (flt: Emoji) =>
+                                      flt.emoji_id === postState.user_reaction
+                                  )[0].emoji_content ??
+                                    "...")}
+                              </div>
+                            ) : (
+                              <BiLike
+                                style={{
+                                  fontSize: "25px",
+                                  color: "#666666",
+                                }}
+                              />
+                            )}
+                          </button>
+                          <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
+                            <LiaComment
+                              style={{ fontSize: "25px", color: "#666666" }}
+                            />
+                          </button>
+                          <button
+                            onClick={() => {
+                              settoggleNewPostModal({
+                                toggle: true,
+                                withImage: false,
+                              });
+                            }}
+                            className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                          >
+                            <PiShareFat
+                              style={{ fontSize: "25px", color: "#666666" }}
+                            />
+                          </button>
+                          {postOwnerUserID === authentication.user.userID && (
+                            <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
+                              <BsPinMap
+                                style={{
+                                  fontSize: "22px",
+                                  color: "#666666",
+                                }}
+                              />
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  {/* <div className="tw-h-[15px]" /> */}
+                </div>
+              }
+            />
+          )}
           {postState.references.length > 0 && !postState.is_shared && (
             <div className="tw-bg-white tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px]">
               {" "}
@@ -242,66 +540,6 @@ function PostItem({
                   }
                 }
               })}
-              {togglePostCarousel && (
-                <Modal
-                  component={
-                    <div className="tw-bg-white tw-rounded-[7px] tw-w-[95%] tw-max-w-[600px] tw-h-[95%] tw-max-h-[700px]">
-                      <div className="tw-w-[calc(100%-22px)] tw-p-[10px] tw-pl-[12px] tw-pr-[10px] tw-pt-[10px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
-                        <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1 tw-font-Inter">
-                          Post
-                        </span>
-                        <button
-                          onClick={() => {
-                            settogglePostCarousel(false);
-                          }}
-                          className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
-                        >
-                          <IoMdClose style={{ fontSize: "17px" }} />
-                        </button>
-                      </div>
-                      <Carousel
-                        className="tw-bg-black tw-w-full tw-h-[calc(100%-55px)]"
-                        showIndicators={false}
-                        showThumbs={false}
-                      >
-                        {postState.references.map((mpr: IReference) => {
-                          if (mpr.reference_media_type.includes("image")) {
-                            return (
-                              <div
-                                key={mpr.reference_id}
-                                className="tw-h-full tw-bg-black"
-                              >
-                                <img
-                                  src={mpr.reference}
-                                  className="tw-w-full tw-h-full tw-object-contain"
-                                />
-                              </div>
-                            );
-                          } else if (
-                            mpr.reference_media_type.includes("video")
-                          ) {
-                            return (
-                              <div
-                                key={mpr.reference_id}
-                                className="tw-h-full tw-max-h-[700px] tw-bg-black"
-                              >
-                                <video
-                                  controls
-                                  src={mpr.reference}
-                                  className="tw-w-full tw-h-full"
-                                />
-                              </div>
-                            );
-                          } else {
-                            return <></>;
-                          }
-                        })}
-                      </Carousel>
-                      <div className="tw-h-[15px]" />
-                    </div>
-                  }
-                />
-              )}
               {postState.references.length > 3 && (
                 <div
                   onClick={() => {
@@ -422,7 +660,12 @@ function PostItem({
                   <BiLike style={{ fontSize: "25px", color: "#666666" }} />
                 )}
               </button>
-              <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
+              <button
+                onClick={() => {
+                  settogglePostCarousel(true);
+                }}
+                className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+              >
                 <LiaComment style={{ fontSize: "25px", color: "#666666" }} />
               </button>
               <button
