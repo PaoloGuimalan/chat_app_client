@@ -201,7 +201,7 @@ function PostItem({
                         ? "600px"
                         : "none",
                   }}
-                  className={`tw-bg-white custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] tw-max-h-[800px] tw-flex tw-flex-row tw-flex-wrap ${
+                  className={`tw-bg-white custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full tw-flex tw-flex-row tw-flex-wrap ${
                     postState.is_shared || postState.references.length === 0
                       ? ""
                       : "custom:tw-overflow-hidden"
