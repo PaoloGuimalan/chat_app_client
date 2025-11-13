@@ -50,7 +50,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                                 {
                                     comments.results.map((mp: IPostComment) => {
                                         return (
-                                            <div key={mp.comment_id} className="tw-flex tw-gap-[15px] tw-w-full">
+                                            <div key={mp.comment_id} className="tw-flex tw-gap-[10px] tw-w-full">
                                                 <div id="div_img_cncts_container">
                                                     <div id="div_img_search_profiles_container_cncts">
                                                         <img
