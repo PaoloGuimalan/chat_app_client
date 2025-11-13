@@ -197,7 +197,11 @@ function PostItem({
                           : "1400px"
                         : "600px",
                   }}
-                  className="tw-bg-white tw-rounded-[7px] tw-w-[95%] tw-h-[95%] tw-max-h-[800px] tw-flex tw-flex-row tw-flex-wrap custom:tw-overflow-hidden tw-overflow-auto x-scroll"
+                  className={`tw-bg-white tw-rounded-[7px] tw-w-[95%] tw-h-[95%] tw-max-h-[800px] tw-flex tw-flex-row tw-flex-wrap ${
+                    postState.is_shared || postState.references.length === 0
+                      ? ""
+                      : "custom:tw-overflow-hidden"
+                  } tw-overflow-auto x-scroll`}
                 >
                   {/* <div className="tw-w-[calc(100%-22px)] tw-p-[10px] tw-pl-[12px] tw-pr-[10px] tw-pt-[10px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
                         <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1 tw-font-Inter">
@@ -257,7 +261,11 @@ function PostItem({
                           ? "custom:tw-max-w-full"
                           : "custom:tw-max-w-[400px]"
                         : "custom:tw-max-w-full"
-                    } tw-min-w-[350px] tw-bg-white tw-flex-col tw-pb-[10px] custom:tw-h-full`}
+                    } tw-min-w-[350px] tw-bg-white tw-flex-col tw-pb-[10px] ${
+                      postState.is_shared || postState.references.length === 0
+                        ? ""
+                        : "custom:tw-h-full"
+                    }`}
                   >
                     <div className="tw-w-[calc(100%-50px)] tw-p-[25px] tw-flex tw-justify-between">
                       <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
@@ -361,9 +369,11 @@ function PostItem({
                         </button>
                       )}
                       {postState.is_shared &&
-                      postState.references.map((mpu: any, i: number) => {
-                        return <LoadedPostItem key={i} postID={mpu.reference} />;
-                      })}
+                        postState.references.map((mpu: any, i: number) => {
+                          return (
+                            <LoadedPostItem key={i} postID={mpu.reference} />
+                          );
+                        })}
                     </div>
                     <div className="tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px] tw-mt-[10px]">
                       <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
@@ -481,8 +491,17 @@ function PostItem({
                         </div>
                       </div>
                     </div>
-                    <div className="custom:tw-overflow-y-scroll">
-                      <PostComment post_id={postState.post_id} parent_id={null} />
+                    <div
+                      className={
+                        postState.is_shared
+                          ? "custom:tw-overflow-y-hidden"
+                          : "custom:tw-overflow-y-auto"
+                      }
+                    >
+                      <PostComment
+                        post_id={postState.post_id}
+                        parent_id={null}
+                      />
                     </div>
                   </div>
                   {/* <div className="tw-h-[15px]" /> */}

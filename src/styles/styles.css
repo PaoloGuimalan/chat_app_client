@@ -2590,7 +2590,7 @@ input:checked + .slider:before {
   background-color: transparent;
   display: flex;
   justify-content: center;
-  align-items: start;
+  align-items: flex-start;
 }
 
 #div_img_search_profiles_container_cncts {
