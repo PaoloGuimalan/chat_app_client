@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IContact, IPost } from "@/reusables/vars/interfaces";
+import { IContact, IPost, IPostComment } from "@/reusables/vars/interfaces";
 import { PaginationProp } from "@/reusables/vars/props";
 
 export const authenticationstate = {
@@ -49,6 +49,13 @@ export const contactsliststate: PaginationProp<IContact> = {
 };
 
 export const postsliststate: PaginationProp<IPost> = {
+  count: 0,
+  next: null,
+  previous: null,
+  results: [],
+};
+
+export const commentsliststate: PaginationProp<IPostComment> = {
   count: 0,
   next: null,
   previous: null,

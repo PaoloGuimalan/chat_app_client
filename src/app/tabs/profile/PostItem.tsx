@@ -24,6 +24,7 @@ import LoadedPostItem from "./LoadedPostItem";
 import { motion } from "framer-motion";
 import PostEmojis from "@/app/reusables/PostEmojis";
 import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
+import PostComment from "@/app/widgets/items/PostComment";
 
 function PostItem({
   isSharePreview,
@@ -196,7 +197,7 @@ function PostItem({
                           : "1400px"
                         : "600px",
                   }}
-                  className="tw-bg-white tw-rounded-[7px] tw-w-[95%] tw-h-[95%] tw-max-h-[800px] tw-flex tw-flex-row tw-flex-wrap tw-overflow-auto"
+                  className="tw-bg-white tw-rounded-[7px] tw-w-[95%] tw-h-[95%] tw-max-h-[800px] tw-flex tw-flex-row tw-flex-wrap tw-overflow-auto x-scroll"
                 >
                   {/* <div className="tw-w-[calc(100%-22px)] tw-p-[10px] tw-pl-[12px] tw-pr-[10px] tw-pt-[10px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
                         <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1 tw-font-Inter">
@@ -254,7 +255,7 @@ function PostItem({
                       postState.references.length > 0
                         ? postState.is_shared
                           ? "custom:tw-max-w-full"
-                          : "custom:tw-max-w-[350px]"
+                          : "custom:tw-max-w-[400px]"
                         : "custom:tw-max-w-full"
                     } tw-min-w-[350px] tw-bg-white tw-flex-col tw-pb-[10px]`}
                   >
@@ -359,8 +360,12 @@ function PostItem({
                           See less
                         </button>
                       )}
+                      {postState.is_shared &&
+                      postState.references.map((mpu: any, i: number) => {
+                        return <LoadedPostItem key={i} postID={mpu.reference} />;
+                      })}
                     </div>
-                    <div className="tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px]">
+                    <div className="tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px] tw-mt-[10px]">
                       <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
                         <motion.div
                           initial={{
@@ -376,10 +381,10 @@ function PostItem({
                           <div className="tw-flex tw-flex-row">
                             {postState.preview
                               .filter((flt) => flt.count > 0)
-                              .map((mp) => {
+                              .map((mp, i) => {
                                 if (emojilist.length > 0) {
                                   return (
-                                    <span className="-tw-mr-[10px]">
+                                    <span key={i} className="-tw-mr-[10px]">
                                       {
                                         emojilist.filter(
                                           (flt) => flt.emoji_id === mp.emoji
@@ -476,6 +481,7 @@ function PostItem({
                         </div>
                       </div>
                     </div>
+                    <PostComment post_id={postState.post_id} parent_id={null} />
                   </div>
                   {/* <div className="tw-h-[15px]" /> */}
                 </div>
@@ -601,10 +607,10 @@ function PostItem({
               <div className="tw-flex tw-flex-row">
                 {postState.preview
                   .filter((flt) => flt.count > 0)
-                  .map((mp) => {
+                  .map((mp, i) => {
                     if (emojilist.length > 0) {
                       return (
-                        <span className="-tw-mr-[10px]">
+                        <span key={i} className="-tw-mr-[10px]">
                           {
                             emojilist.filter(
                               (flt) => flt.emoji_id === mp.emoji

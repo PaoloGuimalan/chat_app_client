@@ -241,6 +241,8 @@ export interface IUserContactPreview {
   gender: string;
 }
 
+
+
 export interface IContact {
   id: string;
   action_by: IUserContactPreview;
@@ -284,3 +286,17 @@ export interface Emoji {
   deleted_at: string | null;
   updated_by: string;
 }
+
+export interface IPostComment {
+  comment_id: string;
+  text: string;
+  attachment: string | null;
+  created_at: string;
+  updated_at: string | null;
+  deleted_at: string | null;
+  parent_comment: string | null;
+  post: string;
+  user: IUserContactPreview;
+  deleted_by: string | null;
+}
+

@@ -1411,11 +1411,6 @@ const ReactionSaveRequest = async (params: any) => {
       "x-access-token": localStorage.getItem("authtoken"),
     },
   })
-    // return await Axios.get(`${USER_SERVICE_API}/api/newsfeed/preview/${postID}`, {
-    //   headers: {
-    //     "x-access-token": localStorage.getItem("authtoken"),
-    //   },
-    // })
     .then((response) => {
       return response.data;
     })
@@ -1427,6 +1422,24 @@ const ReactionSaveRequest = async (params: any) => {
 const GetReactionTotalRequest = async (post_id: string) => {
   return await Axios.get(
     `${USER_SERVICE_API}/api/newsfeed/total_reactions/${post_id}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    }
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const GetCommentsRequest = async (post_id: string, parent_id: string | null, page: number = 1, range: number = 20) => {
+  const url = parent_id ? `${USER_SERVICE_API}/api/newsfeed/comments?post_id=${post_id}&parent_id=${parent_id}&page=${page}&page_size=${range}` : `${USER_SERVICE_API}/api/newsfeed/comments?post_id=${post_id}&page=${page}&page_size=${range}`;
+  return await Axios.get(
+    url,
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
@@ -1486,4 +1499,5 @@ export {
   GetFeedEmojisRequest,
   ReactionSaveRequest,
   GetReactionTotalRequest,
+  GetCommentsRequest
 };

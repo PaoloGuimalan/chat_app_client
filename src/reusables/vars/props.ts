@@ -35,6 +35,11 @@ export interface AppItemProp {
   mp: any;
 }
 
+export interface PostCommentProp {
+  post_id: string;
+  parent_id: string | null;
+}
+
 export interface PaginationProp<T> {
   count: number;
   next: string | null;
