@@ -193,15 +193,21 @@ function PostItem({
                     maxWidth:
                       postState.references.length > 0
                         ? postState.is_shared
-                          ? "600px"
+                          ? window.innerWidth >= 842
+                            ? "600px"
+                            : "none"
                           : "1400px"
-                        : "600px",
+                        : window.innerWidth >= 842
+                        ? "600px"
+                        : "none",
                   }}
-                  className={`tw-bg-white tw-rounded-[7px] tw-w-[95%] tw-h-[95%] tw-max-h-[800px] tw-flex tw-flex-row tw-flex-wrap ${
+                  className={`tw-bg-white custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] tw-max-h-[800px] tw-flex tw-flex-row tw-flex-wrap ${
                     postState.is_shared || postState.references.length === 0
                       ? ""
                       : "custom:tw-overflow-hidden"
-                  } tw-overflow-auto x-scroll`}
+                  } tw-overflow-auto ${
+                    window.innerWidth >= 842 ? "x-scroll" : "t-scroll"
+                  }`}
                 >
                   {/* <div className="tw-w-[calc(100%-22px)] tw-p-[10px] tw-pl-[12px] tw-pr-[10px] tw-pt-[10px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
                         <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1 tw-font-Inter">
