@@ -197,7 +197,7 @@ function PostItem({
                           : "1400px"
                         : "600px",
                   }}
-                  className="tw-bg-white tw-rounded-[7px] tw-w-[95%] tw-h-[95%] tw-max-h-[800px] tw-flex tw-flex-row tw-flex-wrap tw-overflow-auto x-scroll"
+                  className="tw-bg-white tw-rounded-[7px] tw-w-[95%] tw-h-[95%] tw-max-h-[800px] tw-flex tw-flex-row tw-flex-wrap custom:tw-overflow-hidden tw-overflow-auto x-scroll"
                 >
                   {/* <div className="tw-w-[calc(100%-22px)] tw-p-[10px] tw-pl-[12px] tw-pr-[10px] tw-pt-[10px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
                         <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1 tw-font-Inter">

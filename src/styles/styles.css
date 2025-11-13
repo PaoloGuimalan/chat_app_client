@@ -2584,6 +2584,15 @@ input:checked + .slider:before {
   align-items: center;
 }
 
+#div_img_comments_container {
+  height: 100%;
+  width: 45px;
+  background-color: transparent;
+  display: flex;
+  justify-content: center;
+  align-items: start;
+}
+
 #div_img_search_profiles_container_cncts {
   width: 100%;
   height: 100%;
