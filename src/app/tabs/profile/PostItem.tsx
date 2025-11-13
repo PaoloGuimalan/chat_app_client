@@ -257,7 +257,7 @@ function PostItem({
                           ? "custom:tw-max-w-full"
                           : "custom:tw-max-w-[400px]"
                         : "custom:tw-max-w-full"
-                    } tw-min-w-[350px] tw-bg-white tw-flex-col tw-pb-[10px]`}
+                    } tw-min-w-[350px] tw-bg-white tw-flex-col tw-pb-[10px] custom:tw-h-full`}
                   >
                     <div className="tw-w-[calc(100%-50px)] tw-p-[25px] tw-flex tw-justify-between">
                       <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
@@ -481,7 +481,9 @@ function PostItem({
                         </div>
                       </div>
                     </div>
-                    <PostComment post_id={postState.post_id} parent_id={null} />
+                    <div className="custom:tw-overflow-y-scroll">
+                      <PostComment post_id={postState.post_id} parent_id={null} />
+                    </div>
                   </div>
                   {/* <div className="tw-h-[15px]" /> */}
                 </div>
