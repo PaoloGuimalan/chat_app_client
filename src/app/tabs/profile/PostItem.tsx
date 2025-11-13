@@ -213,7 +213,7 @@ function PostItem({
                       </div> */}
                   {!postState.is_shared && (
                     <Carousel
-                      className="tw-bg-black tw-w-full tw-h-full tw-flex-1 tw-min-w-[400px]"
+                      className="tw-bg-black tw-w-full tw-h-full tw-flex-1 tw-min-w-[350px]"
                       showIndicators={false}
                       showThumbs={false}
                     >
@@ -254,9 +254,9 @@ function PostItem({
                       postState.references.length > 0
                         ? postState.is_shared
                           ? "custom:tw-max-w-full"
-                          : "custom:tw-max-w-[400px]"
+                          : "custom:tw-max-w-[350px]"
                         : "custom:tw-max-w-full"
-                    } tw-min-w-[400px] tw-bg-white tw-flex-col tw-pb-[10px]`}
+                    } tw-min-w-[350px] tw-bg-white tw-flex-col tw-pb-[10px]`}
                   >
                     <div className="tw-w-[calc(100%-50px)] tw-p-[25px] tw-flex tw-justify-between">
                       <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
