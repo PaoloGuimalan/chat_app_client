@@ -18,6 +18,7 @@ import { convertLoginResponse } from "./reusable";
 import { ConvertedResponse } from "../vars/types";
 import { PaginationProp } from "../vars/props";
 import { IContact } from "../vars/interfaces";
+import { removeNullsFromObject } from "./validatevariables";
 
 const API = import.meta.env.VITE_CHATTERLOOP_API;
 const USER_SERVICE_API = import.meta.env.VITE_CHATTERLOOP_USER_SERVICE_API;
@@ -1436,10 +1437,43 @@ const GetReactionTotalRequest = async (post_id: string) => {
     });
 };
 
-const GetCommentsRequest = async (post_id: string, parent_id: string | null, page: number = 1, range: number = 20) => {
-  const url = parent_id ? `${USER_SERVICE_API}/api/newsfeed/comments?post_id=${post_id}&parent_id=${parent_id}&page=${page}&page_size=${range}` : `${USER_SERVICE_API}/api/newsfeed/comments?post_id=${post_id}&page=${page}&page_size=${range}`;
-  return await Axios.get(
-    url,
+const GetCommentsRequest = async (
+  post_id: string,
+  parent_id: string | null,
+  page: number = 1,
+  range: number = 20
+) => {
+  const url = parent_id
+    ? `${USER_SERVICE_API}/api/newsfeed/comments?post_id=${post_id}&parent_id=${parent_id}&page=${page}&page_size=${range}`
+    : `${USER_SERVICE_API}/api/newsfeed/comments?post_id=${post_id}&page=${page}&page_size=${range}`;
+  return await Axios.get(url, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const SaveCommentRequest = async (
+  post_id: string,
+  parent_id: string | null,
+  new_comment: string,
+  new_attachment: string | null
+) => {
+  const payload = {
+    post_id,
+    parent_id,
+    new_comment,
+    new_attachment,
+  };
+  return await Axios.post(
+    `${USER_SERVICE_API}/api/newsfeed/comments`,
+    removeNullsFromObject(payload),
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
@@ -1499,5 +1533,6 @@ export {
   GetFeedEmojisRequest,
   ReactionSaveRequest,
   GetReactionTotalRequest,
-  GetCommentsRequest
+  GetCommentsRequest,
+  SaveCommentRequest,
 };

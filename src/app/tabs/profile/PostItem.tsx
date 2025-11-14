@@ -381,7 +381,7 @@ function PostItem({
                           );
                         })}
                     </div>
-                    <div className="tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px] tw-mt-[10px]">
+                    <div className="tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px] tw-mt-[10px] tw-pb-[5px]">
                       <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
                         <motion.div
                           initial={{

@@ -1745,6 +1745,19 @@ input:checked + .slider:before {
   outline: none;
 }
 
+#textarea_feed_box {
+  width: 100%;
+  height: 40px;
+  border: none;
+  border-radius: 10px;
+  background-color: #eaecef;
+  padding-left: 10px;
+  padding-right: 10px;
+  font-size: 13px;
+  outline: none;
+  padding-top: 10px;
+}
+
 #div_btn_image_container {
   background-color: transparent;
   height: 100%;
