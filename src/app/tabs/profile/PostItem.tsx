@@ -9,6 +9,7 @@ import { BsPinMap } from "react-icons/bs";
 import {
   AuthenticationInterface,
   Emoji,
+  IActivityCounts,
   IPost,
   IReference,
   ITagging,
@@ -57,8 +58,36 @@ function PostItem({
 
   const postOwnerUserID = postState.user.username;
 
+  const toggleActivityCounts = useMemo(() => {
+    const reactionsCount = postState.preview.reduce(
+      (sum, item) => sum + item.count,
+      0
+    );
+    const activityCount = postState.activity_counts.reduce(
+      (sum, item) => sum + item.count,
+      0
+    );
+
+    return reactionsCount + activityCount;
+  }, [postState]);
+
   const total_reactions = useMemo(
     () => postState.preview.reduce((sum, item) => sum + item.count, 0),
+    [postState]
+  );
+
+  const commentsCount = useMemo(
+    () =>
+      postState.activity_counts.filter(
+        (filter: IActivityCounts) => filter.count_type === "comment"
+      )[0].count,
+    [postState]
+  );
+  const shareCount = useMemo(
+    () =>
+      postState.activity_counts.filter(
+        (filter: IActivityCounts) => filter.count_type === "share"
+      )[0].count,
     [postState]
   );
 
@@ -390,12 +419,14 @@ function PostItem({
                       <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
                         <motion.div
                           initial={{
-                            height: total_reactions > 0 ? "auto" : "0px",
-                            paddingTop: total_reactions > 0 ? "5px" : "0px",
+                            height: toggleActivityCounts > 0 ? "auto" : "0px",
+                            paddingTop:
+                              toggleActivityCounts > 0 ? "5px" : "0px",
                           }}
                           animate={{
-                            height: total_reactions > 0 ? "auto" : "0px",
-                            paddingTop: total_reactions > 0 ? "5px" : "0px",
+                            height: toggleActivityCounts > 0 ? "auto" : "0px",
+                            paddingTop:
+                              toggleActivityCounts > 0 ? "5px" : "0px",
                           }}
                           className="tw-w-full tw-flex tw-flex-row tw-gap-[15px] tw-items-center tw-overflow-hidden"
                         >
@@ -416,10 +447,32 @@ function PostItem({
                                 }
                               })}
                           </div>
-                          <span className="tw-text-[12px] tw-text-gray-800">
-                            {total_reactions}{" "}
-                            {total_reactions === 1 ? " reaction" : " reactions"}
-                          </span>
+                          <div className="tw-w-full tw-flex tw-justify-between tw-items-center">
+                            {total_reactions > 0 && (
+                              <span className="tw-text-[12px] tw-text-gray-800">
+                                {total_reactions}{" "}
+                                {total_reactions === 1
+                                  ? " reaction"
+                                  : " reactions"}
+                              </span>
+                            )}
+                            <div className="tw-flex tw-gap-[10px] tw-items-center">
+                              {commentsCount > 0 && (
+                                <span className="tw-text-[12px] tw-text-gray-800">
+                                  {commentsCount}{" "}
+                                  {commentsCount === 1
+                                    ? " comment"
+                                    : " comments"}
+                                </span>
+                              )}
+                              {shareCount > 0 && (
+                                <span className="tw-text-[12px] tw-text-gray-800">
+                                  {shareCount}{" "}
+                                  {shareCount === 1 ? " share" : " shares"}
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </motion.div>
                         <hr className="tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px] tw-z-[0]" />
                         <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
@@ -653,10 +706,27 @@ function PostItem({
                     }
                   })}
               </div>
-              <span className="tw-text-[12px] tw-text-gray-800">
-                {total_reactions}{" "}
-                {total_reactions === 1 ? " reaction" : " reactions"}
-              </span>
+              <div className="tw-w-full tw-flex tw-justify-between tw-items-center">
+                {total_reactions > 0 && (
+                  <span className="tw-text-[12px] tw-text-gray-800">
+                    {total_reactions}{" "}
+                    {total_reactions === 1 ? " reaction" : " reactions"}
+                  </span>
+                )}
+                <div className="tw-flex tw-gap-[10px] tw-items-center">
+                  {commentsCount > 0 && (
+                    <span className="tw-text-[12px] tw-text-gray-800">
+                      {commentsCount}{" "}
+                      {commentsCount === 1 ? " comment" : " comments"}
+                    </span>
+                  )}
+                  {shareCount > 0 && (
+                    <span className="tw-text-[12px] tw-text-gray-800">
+                      {shareCount} {shareCount === 1 ? " share" : " shares"}
+                    </span>
+                  )}
+                </div>
+              </div>
             </motion.div>
             <hr className="tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px] tw-z-[0]" />
             <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">

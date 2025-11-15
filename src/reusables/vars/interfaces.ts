@@ -195,6 +195,11 @@ export interface IPreviewCount {
   emoji: string;
 }
 
+export interface IActivityCounts {
+  count_type: string;
+  count: number;
+}
+
 export interface IPost {
   post_id: string;
   tagging: ITagging[];
@@ -215,6 +220,7 @@ export interface IPost {
   from_system: boolean;
   preview: IPreviewCount[];
   user_reaction: string | null;
+  activity_counts: IActivityCounts[];
 }
 
 //POST DATA INTERFACE END
@@ -240,8 +246,6 @@ export interface IUserContactPreview {
   profile: string;
   gender: string;
 }
-
-
 
 export interface IContact {
   id: string;
@@ -299,4 +303,3 @@ export interface IPostComment {
   user: IUserContactPreview;
   deleted_by: string | null;
 }
-
