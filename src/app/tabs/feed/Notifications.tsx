@@ -12,6 +12,7 @@ import {
 } from "../../../reusables/hooks/requests";
 import { motion } from "framer-motion";
 import DefaultProfile from "../../../assets/imgs/default.png";
+import NotificationItemLoader from "@/app/reusables/loaders/NotificationItemLoader";
 
 function Notifications() {
   const [isLoading, setisLoading] = useState(true);
@@ -126,19 +127,24 @@ function Notifications() {
         <span className="span_notifications_label">Notifications</span>
       </div>
       {isLoading ? (
-        <div id="div_isLoading_notifications">
-          <motion.div
-            animate={{
-              rotate: -360,
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-            }}
-            id="div_loader_request"
-          >
-            <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-          </motion.div>
+        // <div id="div_isLoading_notifications">
+        //   <motion.div
+        //     animate={{
+        //       rotate: -360,
+        //     }}
+        //     transition={{
+        //       duration: 1,
+        //       repeat: Infinity,
+        //     }}
+        //     id="div_loader_request"
+        //   >
+        //     <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+        //   </motion.div>
+        // </div>
+        <div id="div_notifications_list_container" className="scroller">
+          {Array.from({ length: 20 }, (_, i: number) => {
+            return <NotificationItemLoader key={i} />;
+          })}
         </div>
       ) : notificationslist.list.length == 0 ? (
         <div id="div_notifications_list_empty_container">

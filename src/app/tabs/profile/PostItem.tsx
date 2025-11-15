@@ -104,7 +104,12 @@ function PostItem({
 
   return (
     minimizedCaption !== null && (
-      <div className=" tw-bg-white tw-border-solid tw-border-[0px] tw-border-[1px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]">
+      <div
+        style={{
+          borderWidth: isSharePreview ? "1px" : "0px",
+        }}
+        className=" tw-bg-white tw-border-solid tw-border-[#d2d2d2] tw-rounded-[7px] tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]"
+      >
         <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
           <div id="div_img_feed_post_container">
             <img src={DefaultProfile} id="img_feed_header" />

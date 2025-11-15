@@ -29,6 +29,7 @@ import PostItem from "./PostItem";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { postsliststate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
+import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 
 function Profile() {
   const authentication: AuthenticationInterface = useSelector(
@@ -175,7 +176,7 @@ function Profile() {
         >
           <IoArrowBack style={{ fontSize: "20px" }} />
         </button>
-        <div className="tw-bg-white tw-w-full tw-h-[60%] tw-min-h-[60%] tw-border-solid tw-border-[0px] tw-border-b-[1px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
+        <div className="tw-bg-white tw-w-full tw-h-[60%] tw-min-h-[60%] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
           {authentication.user.coverphoto !== "" ? (
             <img
               src={authentication.user.coverphoto}
@@ -211,7 +212,7 @@ function Profile() {
           </div>
         </div>
         <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
-          <div className="tw-w-full tw-h-fit md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px] tw-bg-white tw-border-solid tw-border-[0px] tw-border-[1px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+          <div className="tw-w-full tw-h-fit md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px] tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
             <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
               <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
                 {genderIcons[profileInfo.gender]}
@@ -243,7 +244,10 @@ function Profile() {
             </div>
           </div>
           <div className="tw-w-full tw-pb-[20px] tw-flex tw-flex-col tw-items-center">
-            <div id="div_feed_header_post_input_profile">
+            <div
+              id="div_feed_header_post_input_profile"
+              className="tw-border-[0px]"
+            >
               <div id="div_img_feed_header_container">
                 <img src={DefaultProfile} id="img_feed_header" />
               </div>
@@ -323,13 +327,16 @@ function Profile() {
                 )}
               </div>
             ) : (
-              <div className="tw-w-full tw-h-[300px] tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[15px]">
-                <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
+              <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
+                {/* <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
                 <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
                   <span className="tw-font-semibold tw-text-[14px]">
                     No Posts yet
                   </span>
-                </div>
+                </div> */}
+                {Array.from({ length: 8 }, (_, i: number) => {
+                  return <PostItemLoader key={i} />;
+                })}
               </div>
             )}
           </div>

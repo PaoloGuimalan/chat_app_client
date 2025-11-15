@@ -21,6 +21,7 @@ import { conversationsetupstate } from "../../../redux/actions/states";
 import { isUserOnline } from "../../../reusables/hooks/reusable";
 import CreateServerModal from "@/app/widgets/modals/CreateServerModal";
 import { useNavigate } from "react-router-dom";
+import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
 
 function Messages() {
   const [isLoading, setisLoading] = useState<boolean>(true);
@@ -187,19 +188,24 @@ function Messages() {
         </motion.button>
       </div>
       {isLoading ? (
-        <div id="div_isLoading_notifications">
-          <motion.div
-            animate={{
-              rotate: -360,
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-            }}
-            id="div_loader_request"
-          >
-            <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-          </motion.div>
+        // <div id="div_isLoading_notifications">
+        //   <motion.div
+        //     animate={{
+        //       rotate: -360,
+        //     }}
+        //     transition={{
+        //       duration: 1,
+        //       repeat: Infinity,
+        //     }}
+        //     id="div_loader_request"
+        //   >
+        //     <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+        //   </motion.div>
+        // </div>
+        <div id="div_messages_list_container" className="scroller">
+          {Array.from({ length: 20 }, (_, i: number) => {
+            return <MessageItemLoader key={i} />;
+          })}
         </div>
       ) : messageslist.length == 0 ? (
         <div id="div_messages_list_empty_container">
@@ -228,7 +234,7 @@ function Messages() {
                         );
                       }}
                       key={i}
-                      className="div_messages_list_cards"
+                      className="div_messages_list_cards tw-border-[0px]"
                     >
                       <div id="div_img_cncts_container">
                         <div id="div_img_search_profiles_container_cncts">
@@ -308,7 +314,7 @@ function Messages() {
                     });
                   }}
                   key={i}
-                  className="div_messages_list_cards"
+                  className="div_messages_list_cards tw-border-[0px]"
                 >
                   <div id="div_img_cncts_container">
                     <div id="div_img_search_profiles_container_cncts">
@@ -374,7 +380,7 @@ function Messages() {
                     );
                   }}
                   key={i}
-                  className="div_messages_list_cards"
+                  className="div_messages_list_cards tw-border-[0px]"
                 >
                   <div id="div_img_cncts_container">
                     <div id="div_img_search_profiles_container_cncts">

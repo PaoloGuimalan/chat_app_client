@@ -984,7 +984,8 @@
 }
 
 #div_input_container {
-  background-color: white;
+  /* background-color: white; */
+  background-color: #eaecef;
   display: flex;
   flex-direction: row;
   width: 100%;
@@ -992,11 +993,11 @@
   max-height: 40px;
   justify-content: center;
   align-items: center;
-  border-radius: 20px;
+  border-radius: 10px;
   padding-left: 10px;
   padding-right: 10px;
   gap: 5px;
-  border: solid 1px rgb(210, 210, 210);
+  border: solid 0px rgb(210, 210, 210);
 }
 
 #input_search_box {
@@ -1007,6 +1008,7 @@
   border: none;
   outline: none;
   color: #4a4a4a;
+  background-color: #eaecef;
 }
 
 #div_buttons_navigation {
@@ -1331,6 +1333,21 @@
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.div_contact_fullname_loader {
+  background-color: transparent;
+  display: flex;
+  /* height: calc(100% - 10px); */
+  height: 100%;
+  width: 100%;
+  flex: 1;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  /* padding-top: 10px; */
+  padding-left: 10px;
+  padding-right: 10px;
 }
 
 .span_cncts_fullname_label {

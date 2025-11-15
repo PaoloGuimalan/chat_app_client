@@ -222,7 +222,7 @@ function Home() {
   return (
     <div id="div_home">
       <CallCollection />
-      <div id="div_home_navigations" className="tw-z-[1]">
+      <div id="div_home_navigations" className="tw-z-[1] tw-border-[0px]">
         <div id="div_profile_search_container">
           <motion.div
             whileHover={{

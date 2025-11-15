@@ -24,6 +24,7 @@ import {
 } from "../../../reusables/hooks/reusable";
 import { PaginationProp } from "@/reusables/vars/props";
 import { IContact } from "@/reusables/vars/interfaces";
+import ContactItemLoader from "@/app/reusables/loaders/ContactItemLoader";
 
 function Contacts() {
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
@@ -194,19 +195,24 @@ function Contacts() {
         <span className="span_contacts_label">Contacts</span>
       </div>
       {isLoading ? (
-        <div id="div_isLoading_notifications">
-          <motion.div
-            animate={{
-              rotate: -360,
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-            }}
-            id="div_loader_request"
-          >
-            <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-          </motion.div>
+        // <div id="div_isLoading_notifications">
+        //   <motion.div
+        //     animate={{
+        //       rotate: -360,
+        //     }}
+        //     transition={{
+        //       duration: 1,
+        //       repeat: Infinity,
+        //     }}
+        //     id="div_loader_request"
+        //   >
+        //     <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+        //   </motion.div>
+        // </div>
+        <div id="div_contacts_list_container" className="scroller">
+          {Array.from({ length: 20 }, (_, i: number) => {
+            return <ContactItemLoader key={i} />;
+          })}
         </div>
       ) : contactslist.length == 0 ? (
         <div id="div_contacts_list_empty_container">

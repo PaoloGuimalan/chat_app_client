@@ -752,6 +752,7 @@ function Conversation({ conversationsetup, theme }: any) {
               : "10px",
           }}
           id="div_conversation_content_handler"
+          className="tw-border-[0px]"
         >
           <motion.div
             initial={{

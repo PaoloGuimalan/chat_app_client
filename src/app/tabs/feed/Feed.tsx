@@ -15,6 +15,7 @@ import { PaginationProp } from "@/reusables/vars/props";
 import { AuthenticationInterface, IPost } from "@/reusables/vars/interfaces";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { useSelector } from "react-redux";
+import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 
 function Feed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -90,7 +91,7 @@ function Feed() {
 
   return (
     <div id="div_feed" className="thinscroller" ref={divcontentRef}>
-      <div id="div_feed_header_post_input">
+      <div id="div_feed_header_post_input" className="tw-border-[0px]">
         <div id="div_img_feed_header_container">
           <img src={DefaultProfile} id="img_feed_header" />
         </div>
@@ -135,11 +136,10 @@ function Feed() {
       </div>
       <div id="div_feed_contents_container">
         {/* map posts here */}
-        {posts.length === 0 && (
-          <div className="div_feed_post_container">
-            {" "}
-            {/** div container fpr all posts */}
-            <div className="div_post_content">
+        {/* {posts.length === 0 && (
+          <div className="div_feed_post_container"> */}{" "}
+        {/** div container fpr all posts */}
+        {/* <div className="div_post_content">
               <div id="div_img_welcome_container">
                 <img src={ChatterLoopImg} id="img_welcome_post_pic" />
               </div>
@@ -156,12 +156,16 @@ function Feed() {
                 </span>
               </div>
             </div>
-          </div>
-        )}
+          </div> */}
+        {/* )} */}
         {/* map posts here */}
-        {posts.map((mp: IPost, i: number) => {
-          return <PostItem key={i} isSharePreview={false} mp={mp} />;
-        })}
+        {posts.length === 0
+          ? Array.from({ length: 10 }, (_, i: number) => {
+              return <PostItemLoader key={i} />;
+            })
+          : posts.map((mp: IPost, i: number) => {
+              return <PostItem key={i} isSharePreview={false} mp={mp} />;
+            })}
         {paginatedPosts.next && (
           <div
             ref={divlazyloaderRef}
