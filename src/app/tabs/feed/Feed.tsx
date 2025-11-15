@@ -4,7 +4,7 @@
 import "../../../styles/styles.css";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import { FcAddImage } from "react-icons/fc";
-import ChatterLoopImg from "../../../assets/imgs/chatterloop.png";
+// import ChatterLoopImg from "../../../assets/imgs/chatterloop.png";
 import { useEffect, useRef, useState } from "react";
 import { GetFeedRequest } from "@/reusables/hooks/requests";
 import PostItem from "../profile/PostItem";

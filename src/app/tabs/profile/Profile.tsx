@@ -15,7 +15,10 @@ import { GetPostRequest, GetProfileInfo } from "@/reusables/hooks/requests";
 // import jwtDecode from "jwt-decode";
 import { FaLinkSlash } from "react-icons/fa6";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { FaTransgender, FaFileAlt } from "react-icons/fa";
+import {
+  FaTransgender,
+  // FaFileAlt
+} from "react-icons/fa";
 import { IoMale, IoFemale, IoTime } from "react-icons/io5";
 // import { IoMdCheckmark } from "react-icons/io";
 import { FcAddImage } from "react-icons/fc";
