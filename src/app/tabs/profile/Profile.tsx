@@ -17,7 +17,7 @@ import { FaLinkSlash } from "react-icons/fa6";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
   FaTransgender,
-  // FaFileAlt
+  FaFileAlt
 } from "react-icons/fa";
 import { IoMale, IoFemale, IoTime } from "react-icons/io5";
 // import { IoMdCheckmark } from "react-icons/io";
@@ -47,6 +47,7 @@ function Profile() {
     useState<PaginationProp<IPost>>(postsliststate);
   const posts: IPost[] = paginatedPosts.results;
   const [isloaded, setisloaded] = useState<boolean>(true);
+  const [ispostsloaded, setispostsloaded] = useState<boolean>(false);
   const [createposttext, setcreateposttext] = useState<string>("");
 
   const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
@@ -155,11 +156,16 @@ function Profile() {
             results: uniqueById,
           };
         });
+        setispostsloaded(true);
       })
       .catch((err) => {
         console.log(err);
       });
   };
+
+  useEffect(() => {
+    setispostsloaded(false);
+  }, [profileInfo, params.userID])
 
   useEffect(() => {
     GetPostProcess();
@@ -330,17 +336,22 @@ function Profile() {
                 )}
               </div>
             ) : (
-              <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
-                {/* <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
-                <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
-                  <span className="tw-font-semibold tw-text-[14px]">
-                    No Posts yet
-                  </span>
-                </div> */}
-                {Array.from({ length: 8 }, (_, i: number) => {
-                  return <PostItemLoader key={i} />;
-                })}
-              </div>
+              ispostsloaded ? (
+                <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
+                  <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
+                  <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
+                    <span className="tw-font-semibold tw-text-[14px]">
+                      No Posts yet
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
+                  {Array.from({ length: 8 }, (_, i: number) => {
+                    return <PostItemLoader key={i} />;
+                  })}
+                </div>
+              )
             )}
           </div>
         </div>

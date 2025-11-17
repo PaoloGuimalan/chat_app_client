@@ -13,6 +13,8 @@ import { useNavigate } from "react-router-dom";
 import { getUniqueItemsOfObjects } from "@/reusables/hooks/validatevariables";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
+import { FaFileAlt } from "react-icons/fa";
+import PostCommentLoader from "@/app/reusables/loaders/PostCommentLoader";
 
 function PostComment({ post_id, parent_id }: PostCommentProp) {
   const [comments, setComments] =
@@ -139,7 +141,16 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
         {isError ? (
           <span>Error</span>
         ) : comments.results.length === 0 ? (
-          isLoaded && <span className="tw-text-[12px]">No Comments yet</span>
+          isLoaded && (
+            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[40px]">
+              <FaFileAlt style={{ fontSize: "40px", color: "#333333" }} />
+              <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
+                <span className="tw-font-semibold tw-text-[12px]">
+                  No Comments yet
+                </span>
+              </div>
+            </div>
+          )
         ) : (
           <div className="tw-flex tw-flex-col tw-gap-[15px] tw-items-start">
             {comments.results.map((mp: IPostComment) => {
@@ -195,7 +206,9 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
             )}
           </div>
         )}
-        {!isLoaded && <span className="tw-text-[12px]">Loading...</span>}
+        {!isLoaded && (
+          <PostCommentLoader />
+        )}
       </div>
       {parent_id && (
         <div className="tw-min-h-[60px] tw-flex tw-items-center tw-pb-[0px] tw-pt-[10px]">
@@ -207,13 +220,13 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
               type="text"
               placeholder="Write a comment..."
               id="input_feed_box"
-              // value={createposttext}
-              // onFocus={() => {
-              //   settoggleNewPostModal({ toggle: true, withImage: false });
-              // }}
-              // onChange={(e) => {
-              //   setcreateposttext(e.target.value);
-              // }}
+            // value={createposttext}
+            // onFocus={() => {
+            //   settoggleNewPostModal({ toggle: true, withImage: false });
+            // }}
+            // onChange={(e) => {
+            //   setcreateposttext(e.target.value);
+            // }}
             />
           </div>
           <div id="div_confirm_send">
@@ -222,7 +235,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                 // settoggleNewPostModal({ toggle: true, withImage: true });
               }}
               id="btn_image_feed"
-              // disabled={true}
+            // disabled={true}
             >
               <IoSend style={{ fontSize: "20px", color: "#3d4551" }} />
             </button>
