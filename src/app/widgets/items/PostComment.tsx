@@ -172,8 +172,8 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                     </div>
                   </div>
                   <div className="tw-w-fit tw-flex tw-flex-col tw-items-start tw-gap-[5px] tw-text-left">
-                    <span
-                      className="tw-break-keep tw-text-[12px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                    {/* <span
+                      className="tw-break-keep tw-text-[12px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                       onClick={() => {
                         navigate(`/${mp.user.username}`);
                       }}
@@ -183,12 +183,27 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                         ? ""
                         : ` ${mp.user.middle_name}`}{" "}
                       {mp.user.last_name}
-                    </span>
+                    </span> */}
                     <div
                       style={{ backgroundColor: "rgb(222, 222, 222)" }}
                       className="tw-p-[10px] tw-rounded-[10px] tw-text-left"
                     >
-                      <span className="tw-text-[14px]">{mp.text}</span>
+                      <div className="tw-w-fit tw-flex tw-flex-col tw-gap-[2px]">
+                        <span
+                          className="tw-break-keep tw-text-[12px] tw-w-fit tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                          onClick={() => {
+                            navigate(`/${mp.user.username}`);
+                          }}
+                        >
+                          {mp.user.first_name}
+                          {mp.user.middle_name == "N/A"
+                            ? ""
+                            : ` ${mp.user.middle_name}`}{" "}
+                          {mp.user.last_name}
+                        </span>
+                        <span className="tw-text-[14px]">{mp.text}</span>
+                      </div>
+                      {/* <span className="tw-text-[14px]">{mp.text}</span> */}
                     </div>
                   </div>
                 </div>
@@ -206,9 +221,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
             )}
           </div>
         )}
-        {!isLoaded && (
-          <PostCommentLoader />
-        )}
+        {!isLoaded && <PostCommentLoader />}
       </div>
       {parent_id && (
         <div className="tw-min-h-[60px] tw-flex tw-items-center tw-pb-[0px] tw-pt-[10px]">
@@ -220,13 +233,13 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
               type="text"
               placeholder="Write a comment..."
               id="input_feed_box"
-            // value={createposttext}
-            // onFocus={() => {
-            //   settoggleNewPostModal({ toggle: true, withImage: false });
-            // }}
-            // onChange={(e) => {
-            //   setcreateposttext(e.target.value);
-            // }}
+              // value={createposttext}
+              // onFocus={() => {
+              //   settoggleNewPostModal({ toggle: true, withImage: false });
+              // }}
+              // onChange={(e) => {
+              //   setcreateposttext(e.target.value);
+              // }}
             />
           </div>
           <div id="div_confirm_send">
@@ -235,7 +248,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                 // settoggleNewPostModal({ toggle: true, withImage: true });
               }}
               id="btn_image_feed"
-            // disabled={true}
+              // disabled={true}
             >
               <IoSend style={{ fontSize: "20px", color: "#3d4551" }} />
             </button>
