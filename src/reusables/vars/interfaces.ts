@@ -200,6 +200,18 @@ export interface IActivityCounts {
   count: number;
 }
 
+export interface IPostScore {
+  id: number;
+  affinity_score: number;
+  content_type_weight: number;
+  recent_update_boost: number;
+  likes_count: number;
+  comments_count: number;
+  shares_count: number;
+  ranking_score: number;
+  post: string;
+}
+
 export interface IPost {
   post_id: string;
   tagging: ITagging[];
@@ -220,7 +232,8 @@ export interface IPost {
   from_system: boolean;
   preview: IPreviewCount[];
   user_reaction: string | null;
-  activity_counts: IActivityCounts[];
+  // activity_counts: IActivityCounts[];
+  score: IPostScore;
 }
 
 //POST DATA INTERFACE END

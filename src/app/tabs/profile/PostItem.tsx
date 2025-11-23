@@ -9,7 +9,7 @@ import { BsPinMap } from "react-icons/bs";
 import {
   AuthenticationInterface,
   Emoji,
-  IActivityCounts,
+  // IActivityCounts,
   IPost,
   IReference,
   ITagging,
@@ -63,10 +63,8 @@ function PostItem({
       (sum, item) => sum + item.count,
       0
     );
-    const activityCount = postState.activity_counts.reduce(
-      (sum, item) => sum + item.count,
-      0
-    );
+    const activityCount =
+      postState.score.comments_count + postState.score.shares_count;
 
     return reactionsCount + activityCount;
   }, [postState]);
@@ -77,19 +75,10 @@ function PostItem({
   );
 
   const commentsCount = useMemo(
-    () =>
-      postState.activity_counts.filter(
-        (filter: IActivityCounts) => filter.count_type === "comment"
-      )[0].count,
+    () => postState.score.comments_count,
     [postState]
   );
-  const shareCount = useMemo(
-    () =>
-      postState.activity_counts.filter(
-        (filter: IActivityCounts) => filter.count_type === "share"
-      )[0].count,
-    [postState]
-  );
+  const shareCount = useMemo(() => postState.score.shares_count, [postState]);
 
   useEffect(() => {
     if (postState) {
