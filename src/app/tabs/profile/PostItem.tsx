@@ -669,12 +669,12 @@ function PostItem({
           <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
             <motion.div
               initial={{
-                height: total_reactions > 0 ? "auto" : "0px",
-                paddingTop: total_reactions > 0 ? "5px" : "0px",
+                height: toggleActivityCounts > 0 ? "auto" : "0px",
+                paddingTop: toggleActivityCounts > 0 ? "5px" : "0px",
               }}
               animate={{
-                height: total_reactions > 0 ? "auto" : "0px",
-                paddingTop: total_reactions > 0 ? "5px" : "0px",
+                height: toggleActivityCounts > 0 ? "auto" : "0px",
+                paddingTop: toggleActivityCounts > 0 ? "5px" : "0px",
               }}
               className="tw-w-full tw-flex tw-flex-row tw-gap-[15px] tw-items-center tw-overflow-hidden"
             >
