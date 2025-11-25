@@ -3342,6 +3342,13 @@ input:checked + .slider:before {
   background-position: center;
 }
 
+#div_server_conversation_list{
+  background-image: url("../assets/svgs/server-conversation-bg.svg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
 @media screen and (max-width: 600px) {
   #div_searchminidrawer {
     top: 115px;
