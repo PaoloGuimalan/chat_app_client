@@ -3335,6 +3335,13 @@ input:checked + .slider:before {
   hyphens: auto;
 }
 
+#div_server_list{
+  background-image: url("../assets/svgs/server-list-bg.svg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
 @media screen and (max-width: 600px) {
   #div_searchminidrawer {
     top: 115px;
