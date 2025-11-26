@@ -1488,6 +1488,25 @@ const SaveCommentRequest = async (
     });
 };
 
+const PublicServersListRequest = async () => {
+  return await Axios.get(`${API}/s/publicservers`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   AuthCheck,
   LoginRequest,
@@ -1535,4 +1554,5 @@ export {
   GetReactionTotalRequest,
   GetCommentsRequest,
   SaveCommentRequest,
+  PublicServersListRequest,
 };

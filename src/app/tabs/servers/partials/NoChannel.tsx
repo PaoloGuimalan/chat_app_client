@@ -28,9 +28,9 @@ function NoChannel({ server }: any) {
         className="tw-rounded-[10px] tw-bg-white tw-flex tw-flex-col tw-items-center tw-justify-start tw-w-full tw-h-full tw-gap-[20px]"
       >
         <div className="tw-bg-white tw-w-full tw-h-[40%] tw-min-h-[40%] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
-          {server.coverphoto ? (
+          {server.cover_photo ? (
             <img
-              src={server.coverphoto}
+              src={server.cover_photo}
               className="tw-bg-black tw-full tw-flex tw-flex-1 tw-max-w-[1500px]"
             />
           ) : (

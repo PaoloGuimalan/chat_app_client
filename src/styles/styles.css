@@ -2125,6 +2125,13 @@ input:checked + .slider:before {
   text-align: left;
 }
 
+.line_clamp {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+
 #div_messages_list_empty_container {
   background-color: transparent;
   width: calc(100% - 40px);
@@ -3335,14 +3342,14 @@ input:checked + .slider:before {
   hyphens: auto;
 }
 
-#div_server_list{
+#div_server_list {
   background-image: url("../assets/svgs/server-list-bg.svg");
   background-repeat: no-repeat;
   background-size: cover;
   background-position: center;
 }
 
-#div_server_conversation_list{
+#div_server_conversation_list {
   background-image: url("../assets/svgs/server-conversation-bg.svg");
   background-repeat: no-repeat;
   background-size: cover;
