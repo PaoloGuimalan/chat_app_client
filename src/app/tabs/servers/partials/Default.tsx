@@ -75,17 +75,25 @@ function Default() {
                           ) : (
                             <div className="tw-bg-black tw-w-full tw-flex tw-max-w-[1500px] tw-rounded-b-[0px] tw-h-[120px] tw-rounded-t-[5px]" />
                           )}
-                          <div className="tw-w-[calc(100%-30px)] tw-pl-[15px] tw-pr-[15px] tw-flex tw-flex-col tw-items-start tw-gap-[5px]">
+                          <div className="tw-w-[calc(100%-30px)] tw-pl-[15px] tw-pr-[15px] tw-flex tw-flex-col tw-items-start tw-gap-[5px] tw-flex-1">
                             <div className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-[50px] tw-h-[50px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[20px] tw-relative tw--mt-[30px]">
                               <img src={ServerIcon} id="img_default_profile" />
                             </div>
-                            <div className="tw-w-[calc(100%-10px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[5px]">
+                            <div className="tw-w-[calc(100%-10px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[5px] tw-flex-1">
                               <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                                 {mp.serverName}
                               </span>
-                              <span className="tw-text-[14px] tw-font-Inter tw-text-left line_clamp tw-text-[#3f3f3f]">
+                              <span className="tw-text-[12px] tw-font-Inter tw-text-left line_clamp tw-text-[#3f3f3f]">
                                 {mp.description}
                               </span>
+                              <div className="tw-w-full tw-flex tw-flex-row tw-flex-1 tw-justify-between tw-items-end tw-pb-[15px]">
+                                <span className="tw-text-[12px] tw-text-[#3f3f3f] tw-mb-[5px]">{mp.member_count} member/s</span>
+                                {mp.is_joined ? (
+                                  <button disabled className="tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none tw-bg-[#dfdfdf] tw-rounded-[4px]">Joined</button>
+                                ) : (
+                                  <button className="tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none tw-bg-[#e69500] tw-rounded-[4px] tw-cursor-pointer tw-text-white">Join</button>
+                                )}
+                              </div>
                             </div>
                           </div>
                         </div>
