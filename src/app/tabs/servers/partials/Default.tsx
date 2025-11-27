@@ -58,7 +58,7 @@ function Default() {
             <span className="tw-text-[16px] tw-font-Inter tw-font-semibold">
               Top Servers
             </span>
-            <div className="tw-w-full tw-flex tw-justify-evenly tw-gap-[10px] tw-flex-wrap">
+            <div className="tw-w-full tw-flex tw-justify-evenly tw-gap-[10px] tw-flex-wrap tw-pb-[20px]">
               {isLoaded
                 ? publicServers.map((mp: any, i: number) => {
                     return (
