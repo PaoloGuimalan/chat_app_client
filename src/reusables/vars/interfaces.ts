@@ -30,6 +30,11 @@ export interface ProfileUserInfoInterface {
     day: string;
     year: string;
   };
+  connection: {
+    is_connection_present: boolean | null;
+    is_connection_handshaked: boolean | null;
+    is_user_connection_initiator: boolean | null;
+  };
   profile: string;
   gender: string;
   email: string;

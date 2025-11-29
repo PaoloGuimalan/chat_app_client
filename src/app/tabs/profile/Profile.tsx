@@ -15,10 +15,7 @@ import { GetPostRequest, GetProfileInfo } from "@/reusables/hooks/requests";
 // import jwtDecode from "jwt-decode";
 import { FaLinkSlash } from "react-icons/fa6";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import {
-  FaTransgender,
-  FaFileAlt
-} from "react-icons/fa";
+import { FaTransgender, FaFileAlt } from "react-icons/fa";
 import { IoMale, IoFemale, IoTime } from "react-icons/io5";
 // import { IoMdCheckmark } from "react-icons/io";
 import { FcAddImage } from "react-icons/fc";
@@ -165,7 +162,7 @@ function Profile() {
 
   useEffect(() => {
     setispostsloaded(false);
-  }, [profileInfo, params.userID])
+  }, [profileInfo, params.userID]);
 
   useEffect(() => {
     GetPostProcess();
@@ -216,7 +213,39 @@ function Profile() {
                   @{profileInfo.userID}
                 </span>
               </div>
-              <div>{/* for add friend button */}</div>
+              {authentication.user.userID !== params.userID &&
+                profileInfo.connection.is_connection_present !== null && (
+                  <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px]">
+                    {/* for add friend button */}
+                    {!profileInfo.connection.is_connection_present ? (
+                      <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]">
+                        Add Contact
+                      </button>
+                    ) : profileInfo.connection.is_connection_handshaked ? (
+                      <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                        <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#a7a7a7] tw-text-white tw-rounded-[6px] tw-text-[12px]">
+                          Connected
+                        </button>
+                        <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]">
+                          Message
+                        </button>
+                      </div>
+                    ) : profileInfo.connection.is_user_connection_initiator ? (
+                      <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                        <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]">
+                          Accept
+                        </button>
+                        <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#666666] tw-text-white tw-rounded-[6px] tw-text-[12px]">
+                          Decline
+                        </button>
+                      </div>
+                    ) : (
+                      <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-red-500 tw-text-white tw-rounded-[6px] tw-text-[12px]">
+                        Cancel Request
+                      </button>
+                    )}
+                  </div>
+                )}
             </div>
           </div>
         </div>
@@ -335,23 +364,21 @@ function Profile() {
                   </div>
                 )}
               </div>
+            ) : ispostsloaded ? (
+              <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
+                <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
+                <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
+                  <span className="tw-font-semibold tw-text-[14px]">
+                    No Posts yet
+                  </span>
+                </div>
+              </div>
             ) : (
-              ispostsloaded ? (
-                <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
-                  <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
-                  <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
-                    <span className="tw-font-semibold tw-text-[14px]">
-                      No Posts yet
-                    </span>
-                  </div>
-                </div>
-              ) : (
-                <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
-                  {Array.from({ length: 8 }, (_, i: number) => {
-                    return <PostItemLoader key={i} />;
-                  })}
-                </div>
-              )
+              <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
+                {Array.from({ length: 8 }, (_, i: number) => {
+                  return <PostItemLoader key={i} />;
+                })}
+              </div>
             )}
           </div>
         </div>
