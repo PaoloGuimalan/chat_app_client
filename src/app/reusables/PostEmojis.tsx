@@ -1,10 +1,18 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Emoji } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { motion } from "framer-motion";
-import { useState } from "react";
-import { ReactionSaveRequest } from "@/reusables/hooks/requests";
+import { useEffect, useState } from "react";
+import {
+  LottieJSONRequest,
+  ReactionSaveRequest,
+} from "@/reusables/hooks/requests";
+import {
+  getLottieData,
+  persistLottieData,
+} from "@/reusables/hooks/localforagehelper";
 
 function DotLottieButton({
   mp,
@@ -14,6 +22,34 @@ function DotLottieButton({
   onSuccessEmojiSelection,
 }: any) {
   const [onScale, setonScale] = useState<boolean>(false);
+  const [lottieData, setlottieData] = useState<any>(null);
+
+  const LottieJsonProcess = () => {
+    getLottieData("lottie", mp.animated_preview)
+      .then((value) => {
+        if (value) {
+          setlottieData(value);
+        } else {
+          LottieJSONRequest(mp.animated_preview)
+            .then((response) => {
+              if (response) {
+                setlottieData(response);
+                persistLottieData("lottie", mp.animated_preview, response);
+              }
+            })
+            .catch((err) => {
+              console.log(err);
+            });
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    LottieJsonProcess();
+  }, []);
 
   const onSelectEmoji = () => {
     const reactionMethod = reaction
@@ -53,9 +89,10 @@ function DotLottieButton({
       }}
       className="tw-w-fit tw-h-fit tw-min-h-[45px] tw-min-w-[45px] tw-flex tw-items-center tw-justify-center tw-rounded-[100px]"
     >
-      {mp.animated_preview ? (
+      {mp.animated_preview && lottieData ? (
         <DotLottieReact
-          src={mp.animated_preview!}
+          // src={mp.animated_preview!}
+          data={lottieData}
           loop
           autoplay
           width={30}
@@ -67,6 +104,7 @@ function DotLottieButton({
           }}
           onClick={onSelectEmoji}
           className="hover:tw-scale-1"
+          useFrameInterpolation
         />
       ) : (
         <button onClick={onSelectEmoji}>{mp.emoji_content}</button>

@@ -1507,6 +1507,17 @@ const PublicServersListRequest = async () => {
     });
 };
 
+const LottieJSONRequest = async (url: string) => {
+  return await Axios.get(url)
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   AuthCheck,
   LoginRequest,
@@ -1555,4 +1566,5 @@ export {
   GetCommentsRequest,
   SaveCommentRequest,
   PublicServersListRequest,
+  LottieJSONRequest,
 };
