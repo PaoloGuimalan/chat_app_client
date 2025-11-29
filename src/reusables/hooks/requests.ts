@@ -646,7 +646,7 @@ const AcceptContactRequest = (
           },
         });
       }
-      // setisDisabledByRequest(false)
+      setisDisabledByRequest(false);
     })
     .catch((err) => {
       dispatch({
