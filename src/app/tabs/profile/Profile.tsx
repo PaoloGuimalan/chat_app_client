@@ -6,12 +6,18 @@ import {
   IPost,
   ProfileUserInfoInterface,
 } from "@/reusables/vars/interfaces";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import { IoArrowBack } from "react-icons/io5";
 import { useEffect, useRef, useState } from "react";
-import { GetPostRequest, GetProfileInfo } from "@/reusables/hooks/requests";
+import {
+  AcceptContactRequest,
+  ContactRequest,
+  DeclineContactRequest,
+  GetPostRequest,
+  GetProfileInfo,
+} from "@/reusables/hooks/requests";
 // import jwtDecode from "jwt-decode";
 import { FaLinkSlash } from "react-icons/fa6";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -35,8 +41,10 @@ function Profile() {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication
   );
+  const alerts = useSelector((state: any) => state.alerts);
   const navigate = useNavigate();
   const params = useParams();
+  const dispatch = useDispatch();
 
   const [profileInfo, setprofileInfo] =
     useState<ProfileUserInfoInterface | null>(null);
@@ -45,6 +53,8 @@ function Profile() {
   const posts: IPost[] = paginatedPosts.results;
   const [isloaded, setisloaded] = useState<boolean>(true);
   const [ispostsloaded, setispostsloaded] = useState<boolean>(false);
+  const [isConnectionButtonsLoading, setisConnectionButtonsLoading] =
+    useState<boolean>(false);
   const [createposttext, setcreateposttext] = useState<string>("");
 
   const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
@@ -90,6 +100,7 @@ function Profile() {
         // if (response.data.status) {
         // const result: any = jwtDecode(response.data);
         setpaginatedPosts(postsliststate); //temporary
+        setisConnectionButtonsLoading(false);
         if (response.data) {
           setisloaded(true);
           setprofileInfo(response.data.data);
@@ -121,6 +132,82 @@ function Profile() {
   //   useEffect(() => {
   //     GetProfileInfoProcess()
   //   },[])
+
+  const initiateConnectionProcess = (mode: string) => {
+    setisConnectionButtonsLoading(true);
+    switch (mode) {
+      case "add":
+        ContactRequest(
+          {
+            addUsername: profileInfo?.userID,
+          },
+          dispatch,
+          alerts,
+          (_: boolean) => {
+            GetProfileInfoProcess();
+          }
+        );
+        break;
+      case "remove":
+        DeclineContactRequest(
+          {
+            connection_id: profileInfo?.connection.connection_id,
+            to_user_id: profileInfo?.userID,
+            action: "remove",
+          },
+          dispatch,
+          alerts,
+          (_: boolean) => {
+            GetProfileInfoProcess();
+          }
+        );
+        break;
+      case "accept":
+        AcceptContactRequest(
+          {
+            connection_id: profileInfo?.connection.connection_id,
+            to_user_id: profileInfo?.userID,
+          },
+          dispatch,
+          alerts,
+          (_: boolean) => {
+            GetProfileInfoProcess();
+          }
+        );
+        break;
+      case "decline":
+        DeclineContactRequest(
+          {
+            connection_id: profileInfo?.connection.connection_id,
+            to_user_id: profileInfo?.userID,
+            action: "decline",
+          },
+          dispatch,
+          alerts,
+          (_: boolean) => {
+            GetProfileInfoProcess();
+          }
+        );
+        break;
+      case "cancel":
+        DeclineContactRequest(
+          {
+            connection_id: profileInfo?.connection.connection_id,
+            to_user_id: profileInfo?.userID,
+            action: "remove",
+          },
+          dispatch,
+          alerts,
+          (_: boolean) => {
+            GetProfileInfoProcess();
+          }
+        );
+        break;
+      default:
+        setisConnectionButtonsLoading(false);
+        break;
+    }
+  };
 
   const genderIcons: any = {
     Male: <IoMale style={{ fontSize: "20px", color: "#666666" }} />,
@@ -218,13 +305,59 @@ function Profile() {
                   <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px]">
                     {/* for add friend button */}
                     {!profileInfo.connection.is_connection_present ? (
-                      <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]">
-                        Add Contact
+                      <button
+                        disabled={isConnectionButtonsLoading}
+                        onClick={() => {
+                          initiateConnectionProcess("add");
+                        }}
+                        className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                      >
+                        {isConnectionButtonsLoading ? (
+                          <motion.div
+                            animate={{
+                              rotate: -360,
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                            }}
+                            id="div_loader_request_nano_light"
+                          >
+                            <AiOutlineLoading3Quarters
+                              style={{ fontSize: "15px" }}
+                            />
+                          </motion.div>
+                        ) : (
+                          "Add Contact"
+                        )}
                       </button>
                     ) : profileInfo.connection.is_connection_handshaked ? (
                       <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
-                        <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#a7a7a7] tw-text-white tw-rounded-[6px] tw-text-[12px]">
-                          Connected
+                        <button
+                          disabled={isConnectionButtonsLoading}
+                          onClick={() => {
+                            initiateConnectionProcess("remove");
+                          }}
+                          className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#a7a7a7] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        >
+                          {isConnectionButtonsLoading ? (
+                            <motion.div
+                              animate={{
+                                rotate: -360,
+                              }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                              }}
+                              id="div_loader_request_nano_light"
+                            >
+                              <AiOutlineLoading3Quarters
+                                style={{ fontSize: "15px" }}
+                              />
+                            </motion.div>
+                          ) : (
+                            "Connected"
+                          )}
                         </button>
                         <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]">
                           Message
@@ -232,16 +365,85 @@ function Profile() {
                       </div>
                     ) : profileInfo.connection.is_user_connection_initiator ? (
                       <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
-                        <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]">
-                          Accept
+                        <button
+                          disabled={isConnectionButtonsLoading}
+                          onClick={() => {
+                            initiateConnectionProcess("accept");
+                          }}
+                          className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        >
+                          {isConnectionButtonsLoading ? (
+                            <motion.div
+                              animate={{
+                                rotate: -360,
+                              }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                              }}
+                              id="div_loader_request_nano_light"
+                            >
+                              <AiOutlineLoading3Quarters
+                                style={{ fontSize: "15px" }}
+                              />
+                            </motion.div>
+                          ) : (
+                            "Accept"
+                          )}
                         </button>
-                        <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#666666] tw-text-white tw-rounded-[6px] tw-text-[12px]">
-                          Decline
+                        <button
+                          disabled={isConnectionButtonsLoading}
+                          onClick={() => {
+                            initiateConnectionProcess("decline");
+                          }}
+                          className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#666666] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        >
+                          {isConnectionButtonsLoading ? (
+                            <motion.div
+                              animate={{
+                                rotate: -360,
+                              }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                              }}
+                              id="div_loader_request_nano_light"
+                            >
+                              <AiOutlineLoading3Quarters
+                                style={{ fontSize: "15px" }}
+                              />
+                            </motion.div>
+                          ) : (
+                            "Decline"
+                          )}
                         </button>
                       </div>
                     ) : (
-                      <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-red-500 tw-text-white tw-rounded-[6px] tw-text-[12px]">
-                        Cancel Request
+                      <button
+                        disabled={isConnectionButtonsLoading}
+                        onClick={() => {
+                          initiateConnectionProcess("cancel");
+                        }}
+                        className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-red-500 tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                      >
+                        {isConnectionButtonsLoading ? (
+                          <motion.div
+                            animate={{
+                              rotate: -360,
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                            }}
+                            id="div_loader_request_nano_light"
+                          >
+                            <AiOutlineLoading3Quarters
+                              style={{ fontSize: "15px" }}
+                            />
+                          </motion.div>
+                        ) : (
+                          "Cancel Request"
+                        )}
                       </button>
                     )}
                   </div>

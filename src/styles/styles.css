@@ -819,6 +819,20 @@
   align-items: center;
 }
 
+#div_loader_request_nano_light {
+  background-color: transparent;
+  width: 15px;
+  height: 15px;
+  border: none;
+  border-radius: 15px;
+  color: white;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 #div_loader_request_verify {
   background-color: transparent;
   width: 40px;

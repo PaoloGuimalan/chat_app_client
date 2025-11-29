@@ -31,6 +31,7 @@ export interface ProfileUserInfoInterface {
     year: string;
   };
   connection: {
+    connection_id: string | null;
     is_connection_present: boolean | null;
     is_connection_handshaked: boolean | null;
     is_user_connection_initiator: boolean | null;
