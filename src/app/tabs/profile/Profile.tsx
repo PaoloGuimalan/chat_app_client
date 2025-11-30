@@ -36,10 +36,14 @@ import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { postsliststate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
 import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
+import { SET_CONVERSATION_SETUP, SET_TOGGLE_RIGHT_WIDGET } from "@/redux/types";
 
 function Profile() {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication
+  );
+  const screensizelistener = useSelector(
+    (state: any) => state.screensizelistener
   );
   const alerts = useSelector((state: any) => state.alerts);
   const navigate = useNavigate();
@@ -255,6 +259,80 @@ function Profile() {
     GetPostProcess();
   }, [params.userID, page, profileInfo]);
 
+  const settogglerightwidget = (toggle: any) => {
+    navigate("/");
+    dispatch({
+      type: SET_TOGGLE_RIGHT_WIDGET,
+      payload: {
+        togglerightwidget: toggle,
+      },
+    });
+  };
+
+  const navigateToConversation = (
+    type: any,
+    conversationID: any,
+    userdetails: any
+  ) => {
+    if (screensizelistener.W <= 1100) {
+      if (type == "single") {
+        dispatch({
+          type: SET_CONVERSATION_SETUP,
+          payload: {
+            conversationsetup: {
+              conversationid: conversationID,
+              userdetails: userdetails,
+              groupdetails: null,
+              type: "single",
+            },
+          },
+        });
+        navigate("/messages");
+      } else {
+        dispatch({
+          type: SET_CONVERSATION_SETUP,
+          payload: {
+            conversationsetup: {
+              conversationid: conversationID,
+              userdetails: null,
+              groupdetails: userdetails,
+              type: "group",
+            },
+          },
+        });
+        navigate("/messages");
+      }
+    } else {
+      if (type == "single") {
+        dispatch({
+          type: SET_CONVERSATION_SETUP,
+          payload: {
+            conversationsetup: {
+              conversationid: conversationID,
+              userdetails: userdetails,
+              groupdetails: null,
+              type: "single",
+            },
+          },
+        });
+        settogglerightwidget("messages");
+      } else {
+        dispatch({
+          type: SET_CONVERSATION_SETUP,
+          payload: {
+            conversationsetup: {
+              conversationid: conversationID,
+              userdetails: null,
+              groupdetails: userdetails,
+              type: "group",
+            },
+          },
+        });
+        settogglerightwidget("messages");
+      }
+    }
+  };
+
   return isloaded ? (
     profileInfo ? (
       <div
@@ -310,7 +388,7 @@ function Profile() {
                         onClick={() => {
                           initiateConnectionProcess("add");
                         }}
-                        className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
                       >
                         {isConnectionButtonsLoading ? (
                           <motion.div
@@ -338,7 +416,7 @@ function Profile() {
                           onClick={() => {
                             initiateConnectionProcess("remove");
                           }}
-                          className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#a7a7a7] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                          className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#a7a7a7] tw-text-white tw-rounded-[6px] tw-text-[12px]"
                         >
                           {isConnectionButtonsLoading ? (
                             <motion.div
@@ -359,7 +437,16 @@ function Profile() {
                             "Connected"
                           )}
                         </button>
-                        <button className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]">
+                        <button
+                          onClick={() => {
+                            navigateToConversation(
+                              "single",
+                              profileInfo.connection.connection_id,
+                              profileInfo
+                            );
+                          }}
+                          className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        >
                           Message
                         </button>
                       </div>
@@ -370,7 +457,7 @@ function Profile() {
                           onClick={() => {
                             initiateConnectionProcess("accept");
                           }}
-                          className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                          className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
                         >
                           {isConnectionButtonsLoading ? (
                             <motion.div
@@ -396,7 +483,7 @@ function Profile() {
                           onClick={() => {
                             initiateConnectionProcess("decline");
                           }}
-                          className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#666666] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                          className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#666666] tw-text-white tw-rounded-[6px] tw-text-[12px]"
                         >
                           {isConnectionButtonsLoading ? (
                             <motion.div
@@ -424,7 +511,7 @@ function Profile() {
                         onClick={() => {
                           initiateConnectionProcess("cancel");
                         }}
-                        className="tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-red-500 tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-red-500 tw-text-white tw-rounded-[6px] tw-text-[12px]"
                       >
                         {isConnectionButtonsLoading ? (
                           <motion.div
