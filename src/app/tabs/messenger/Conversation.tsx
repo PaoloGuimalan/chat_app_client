@@ -63,6 +63,20 @@ function Conversation({ conversationsetup, theme }: any) {
   const istypinglist = useSelector((state: any) => state.istypinglist);
   const activeusersmapper = activeuserslist.map((mp: any) => mp._id);
 
+  const messagelistListener = useMemo(() => {
+    const initialconvometadata = messageslist.filter(
+      (flt: any) => flt.conversationID === conversationsetup.conversationid
+    );
+
+    if (initialconvometadata.length > 0) {
+      const convometadata = initialconvometadata[0];
+
+      return convometadata.unread;
+    }
+
+    return 0;
+  }, [messageslist]);
+
   const activeuserSpecific =
     conversationsetup.type == "single" &&
     activeuserslist.filter(
@@ -401,6 +415,7 @@ function Conversation({ conversationsetup, theme }: any) {
 
   const GetConversation = () => {
     setincrementer((prev) => prev + 1);
+    // console.log("reload");
     InitConversationRequest(
       {
         conversationID: conversationsetup.conversationid,
@@ -416,8 +431,10 @@ function Conversation({ conversationsetup, theme }: any) {
   };
 
   useEffect(() => {
-    GetConversation();
-  }, [messageslist]);
+    if (messagelistListener > 0) {
+      GetConversation();
+    }
+  }, [messageslist, messagelistListener]);
 
   const sendImageProcess = () => {
     importData(
