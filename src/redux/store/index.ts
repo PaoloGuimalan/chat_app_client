@@ -12,6 +12,7 @@ import {
   setmediamyvideoholder,
   setmediatrackholder,
   setmessageslist,
+  setminimizedconversation,
   setnotificationslist,
   setpathnamelistener,
   setpendingcallalerts,
@@ -43,6 +44,7 @@ const combiner = combineReducers({
   postsfeedlist: setpostsfeedlist,
   istypinglist: setistypinglist,
   emojilist: setemojilist,
+  minimizedconversation: setminimizedconversation,
 });
 
 const store = createStore(combiner);

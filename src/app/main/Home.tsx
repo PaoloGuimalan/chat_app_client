@@ -39,6 +39,7 @@ import {
   SET_EMOJIS_LIST,
   SET_MESSAGES_LIST,
   SET_MESSAGES_LIST_OVERRIDE,
+  SET_MINIMIZED_CONVERSATION_OVERRIDE,
   SET_NOTIFICATIONS_LIST_OVERRIDE,
   SET_REMOVE_IS_TYPING_LIST,
   SET_TOGGLE_RIGHT_WIDGET,
@@ -68,6 +69,10 @@ function Home() {
     (state: any) => state.screensizelistener
   );
   const messageslist = useSelector((state: any) => state.messageslist);
+  const minimizedconversation = useSelector(
+    (state: any) => state.minimizedconversation
+  );
+  console.log(minimizedconversation);
   const notificationslist = useSelector(
     (state: any) => state.notificationslist
   );
@@ -134,6 +139,13 @@ function Home() {
       type: SET_CONTACTS_LIST_OVERRIDE,
       payload: {
         contactslist: contactsliststate,
+      },
+    });
+
+    dispatch({
+      type: SET_MINIMIZED_CONVERSATION_OVERRIDE,
+      payload: {
+        conversations: [],
       },
     });
 

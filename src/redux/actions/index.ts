@@ -24,6 +24,8 @@ import {
   SET_IS_TYPING_LIST,
   SET_MESSAGES_LIST,
   SET_MESSAGES_LIST_OVERRIDE,
+  SET_MINIMIZED_CONVERSATION,
+  SET_MINIMIZED_CONVERSATION_OVERRIDE,
   SET_MUTATE_ALERTS,
   SET_MUTATE_POSTS_FEED_LIST,
   SET_NOTIFICATIONS_LIST,
@@ -327,6 +329,22 @@ export const setemojilist = (state: Emoji[] = [], action: any) => {
       }));
 
       return parsedEmoji;
+    default:
+      return state;
+  }
+};
+
+export const setminimizedconversation = (state: any = [], action: any) => {
+  switch (action.type) {
+    case SET_MINIMIZED_CONVERSATION:
+      const conversation = action.payload.conversation;
+      const finalset = state.filter(
+        (flt: any) => flt.conversationid !== conversation.conversationid
+      );
+
+      return [...finalset, conversation];
+    case SET_MINIMIZED_CONVERSATION_OVERRIDE:
+      return action.payload.conversations;
     default:
       return state;
   }
