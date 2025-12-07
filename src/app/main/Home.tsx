@@ -57,6 +57,7 @@ import Profile from "../tabs/profile/Profile";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import Servers from "../tabs/servers/Servers";
 import UserMenu from "../tabs/profile/UserMenu";
+import Conversation from "../tabs/messenger/Conversation";
 
 function Home() {
   const togglerightwidget = useSelector(
@@ -72,7 +73,7 @@ function Home() {
   const minimizedconversation = useSelector(
     (state: any) => state.minimizedconversation
   );
-  console.log(minimizedconversation);
+
   const notificationslist = useSelector(
     (state: any) => state.notificationslist
   );
@@ -397,6 +398,24 @@ function Home() {
           searchbox={searchbox}
           setsearchBoxFocus={setsearchBoxFocus}
         />
+      )}
+      {!(screensizelistener.W <= 900) && (
+        <div className="tw-z-[100] tw-absolute tw-bottom-0 tw-bg-transparent tw-left-0 tw-h-auto tw-p-[0px] tw-pl-[10px] tw-flex -row tw-gap-[10px]">
+          {minimizedconversation.map((mp: any) => {
+            return (
+              <div
+                className="tw-w-[330px] tw-h-[500px] tw-max-h-[600px] tw-max-w-[330px] tw-flex"
+                key={mp.conversationid}
+              >
+                <Conversation
+                  conversationsetup={mp}
+                  theme={{ primary: "#1c7def", lighten: "#82b7f6" }}
+                  isMinimized={true}
+                />
+              </div>
+            );
+          })}
+        </div>
       )}
       <Routes>
         <Route

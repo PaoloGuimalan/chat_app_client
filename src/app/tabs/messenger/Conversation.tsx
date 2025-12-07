@@ -34,6 +34,7 @@ import {
   MEDIA_TRACK_HOLDER,
   REMOVE_REJECTED_CALL_LIST,
   SET_CALLS_LIST,
+  SET_CONVERSATION_SETUP,
   SET_MINIMIZED_CONVERSATION,
   SET_MUTATE_ALERTS,
   SET_PENDING_MESSAGES_LIST,
@@ -45,6 +46,7 @@ import { ConversationInfoInterface } from "@/reusables/vars/interfaces";
 import IsTypingLoader from "./partials/IsTypingLoader";
 import { FaHashtag, FaLock } from "react-icons/fa6";
 import { HiDotsVertical } from "react-icons/hi";
+import { conversationsetupstate } from "@/redux/actions/states";
 
 function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const authentication = useSelector((state: any) => state.authentication);
@@ -772,7 +774,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               : "10px",
           }}
           id="div_conversation_content_handler"
-          className="tw-border-[0px]"
+          className={`tw-border-[0px] ${isMinimized && "tw-shadow-md"}`}
         >
           <motion.div
             initial={{
@@ -996,34 +998,42 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     />
                     <span className="tw-text-[12px] tw-font-Inter">Info</span>
                   </motion.button>
-                  {!isMinimized && (
-                    <motion.button
-                      initial={{
-                        backgroundColor: "white",
-                      }}
-                      whileHover={{
-                        backgroundColor: "#e6e6e6",
-                      }}
-                      className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
-                      disabled={conversationinfo ? false : true}
-                      onClick={() => {
-                        dispatch({
-                          type: SET_MINIMIZED_CONVERSATION,
-                          payload: {
-                            conversation: conversationsetup,
-                          },
-                        });
-                        settoggleMenu(false);
-                      }}
-                    >
-                      <BiWindows
-                        style={{ fontSize: "20px", color: theme.primary }}
-                      />
-                      <span className="tw-text-[12px] tw-font-Inter">
-                        Minimize
-                      </span>
-                    </motion.button>
-                  )}
+                  {!isMinimized &&
+                    !(screensizelistener.W <= 900) &&
+                    conversationType !== "server" && (
+                      <motion.button
+                        initial={{
+                          backgroundColor: "white",
+                        }}
+                        whileHover={{
+                          backgroundColor: "#e6e6e6",
+                        }}
+                        className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                        disabled={conversationinfo ? false : true}
+                        onClick={() => {
+                          dispatch({
+                            type: SET_MINIMIZED_CONVERSATION,
+                            payload: {
+                              conversation: conversationsetup,
+                            },
+                          });
+                          dispatch({
+                            type: SET_CONVERSATION_SETUP,
+                            payload: {
+                              conversationsetup: conversationsetupstate,
+                            },
+                          });
+                          settoggleMenu(false);
+                        }}
+                      >
+                        <BiWindows
+                          style={{ fontSize: "20px", color: theme.primary }}
+                        />
+                        <span className="tw-text-[12px] tw-font-Inter">
+                          Minimize
+                        </span>
+                      </motion.button>
+                    )}
                 </motion.div>
               </div>
             </div>
