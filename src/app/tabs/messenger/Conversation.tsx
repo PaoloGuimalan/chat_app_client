@@ -957,9 +957,9 @@ function Conversation({ conversationsetup, theme }: any) {
                   onClick={() => {
                     settoggleMenu(!toggleMenu);
                   }}
-                  onBlur={() => {
-                    settoggleMenu(false);
-                  }}
+                  // onBlur={() => {
+                  //   settoggleMenu(false);
+                  // }}
                 >
                   <HiDotsVertical
                     style={{ fontSize: "25px", color: theme.primary }}
@@ -987,6 +987,7 @@ function Conversation({ conversationsetup, theme }: any) {
                       settoggleConversationInfoModal(
                         !toggleConversationInfoModal
                       );
+                      settoggleMenu(false);
                     }}
                   >
                     <BiSolidInfoCircle
@@ -1003,11 +1004,12 @@ function Conversation({ conversationsetup, theme }: any) {
                     }}
                     className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                     disabled={conversationinfo ? false : true}
-                    // onClick={() => {
-                    //   settoggleConversationInfoModal(
-                    //     !toggleConversationInfoModal
-                    //   );
-                    // }}
+                    onClick={() => {
+                      // settoggleConversationInfoModal(
+                      //   !toggleConversationInfoModal
+                      // );
+                      settoggleMenu(false);
+                    }}
                   >
                     <BiWindows
                       style={{ fontSize: "20px", color: theme.primary }}
