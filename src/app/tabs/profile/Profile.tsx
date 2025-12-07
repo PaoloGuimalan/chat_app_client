@@ -36,7 +36,11 @@ import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { postsliststate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
 import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
-import { SET_CONVERSATION_SETUP, SET_TOGGLE_RIGHT_WIDGET } from "@/redux/types";
+import {
+  SET_CONVERSATION_SETUP,
+  SET_MINIMIZED_CONVERSATION,
+  SET_TOGGLE_RIGHT_WIDGET,
+} from "@/redux/types";
 
 function Profile() {
   const authentication: AuthenticationInterface = useSelector(
@@ -304,10 +308,22 @@ function Profile() {
       }
     } else {
       if (type == "single") {
+        // dispatch({
+        //   type: SET_CONVERSATION_SETUP,
+        //   payload: {
+        //     conversationsetup: {
+        //       conversationid: conversationID,
+        //       userdetails: userdetails,
+        //       groupdetails: null,
+        //       type: "single",
+        //     },
+        //   },
+        // });
+        // settogglerightwidget("messages");
         dispatch({
-          type: SET_CONVERSATION_SETUP,
+          type: SET_MINIMIZED_CONVERSATION,
           payload: {
-            conversationsetup: {
+            conversation: {
               conversationid: conversationID,
               userdetails: userdetails,
               groupdetails: null,
@@ -315,7 +331,6 @@ function Profile() {
             },
           },
         });
-        settogglerightwidget("messages");
       } else {
         dispatch({
           type: SET_CONVERSATION_SETUP,
