@@ -5,6 +5,7 @@ import { PaginationProp } from "@/reusables/vars/props";
 import {
   CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
   CLEAR_PENDING_CALL_ALERTS,
+  CLOSE_MINIMIZED_CONVERSATION,
   END_CALL_LIST,
   MEDIA_MY_VIDEO_HOLDER,
   MEDIA_TRACK_HOLDER,
@@ -345,6 +346,13 @@ export const setminimizedconversation = (state: any = [], action: any) => {
       return [...finalset, conversation];
     case SET_MINIMIZED_CONVERSATION_OVERRIDE:
       return action.payload.conversations;
+    case CLOSE_MINIMIZED_CONVERSATION:
+      const conversationID = action.payload.conversationID;
+      const setToRemove = state.filter(
+        (flt: any) => flt.conversationid !== conversationID
+      );
+
+      return setToRemove;
     default:
       return state;
   }

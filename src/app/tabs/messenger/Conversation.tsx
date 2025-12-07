@@ -30,6 +30,7 @@ import {
   makeid,
 } from "../../../reusables/hooks/reusable";
 import {
+  CLOSE_MINIMIZED_CONVERSATION,
   MEDIA_MY_VIDEO_HOLDER,
   MEDIA_TRACK_HOLDER,
   REMOVE_REJECTED_CALL_LIST,
@@ -47,6 +48,7 @@ import IsTypingLoader from "./partials/IsTypingLoader";
 import { FaHashtag, FaLock } from "react-icons/fa6";
 import { HiDotsVertical } from "react-icons/hi";
 import { conversationsetupstate } from "@/redux/actions/states";
+import { IoMdClose } from "react-icons/io";
 
 function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const authentication = useSelector((state: any) => state.authentication);
@@ -1034,6 +1036,32 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         </span>
                       </motion.button>
                     )}
+                  {isMinimized && (
+                    <motion.button
+                      initial={{
+                        backgroundColor: "white",
+                      }}
+                      whileHover={{
+                        backgroundColor: "#e6e6e6",
+                      }}
+                      className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                      disabled={conversationinfo ? false : true}
+                      onClick={() => {
+                        dispatch({
+                          type: CLOSE_MINIMIZED_CONVERSATION,
+                          payload: {
+                            conversationID: conversationsetup.conversationid,
+                          },
+                        });
+                        settoggleMenu(false);
+                      }}
+                    >
+                      <IoMdClose style={{ fontSize: "20px", color: "red" }} />
+                      <span className="tw-text-[12px] tw-font-Inter">
+                        Close
+                      </span>
+                    </motion.button>
+                  )}
                 </motion.div>
               </div>
             </div>
