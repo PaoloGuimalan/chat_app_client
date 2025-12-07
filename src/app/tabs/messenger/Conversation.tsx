@@ -6,7 +6,7 @@ import { motion } from "framer-motion";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import GroupChatIcon from "../../../assets/imgs/group-chat-icon.jpg";
 import { FcVideoCall, FcAddImage } from "react-icons/fc"; //FcInfo
-import { BiSolidInfoCircle, BiSolidPhoneCall } from "react-icons/bi";
+import { BiSolidInfoCircle, BiSolidPhoneCall, BiWindows } from "react-icons/bi";
 import { RiAddCircleFill } from "react-icons/ri";
 import { IoArrowBack, IoDocumentOutline, IoSend } from "react-icons/io5";
 import { MdAudiotrack } from "react-icons/md";
@@ -43,6 +43,7 @@ import ConversationInfoModal from "@/app/widgets/modals/Conversation/Conversatio
 import { ConversationInfoInterface } from "@/reusables/vars/interfaces";
 import IsTypingLoader from "./partials/IsTypingLoader";
 import { FaHashtag, FaLock } from "react-icons/fa6";
+import { HiDotsVertical } from "react-icons/hi";
 
 function Conversation({ conversationsetup, theme }: any) {
   const authentication = useSelector((state: any) => state.authentication);
@@ -117,6 +118,7 @@ function Conversation({ conversationsetup, theme }: any) {
     useState<boolean>(false);
   const [conversationinfo, setconversationinfo] =
     useState<ConversationInfoInterface | null>(null);
+  const [toggleMenu, settoggleMenu] = useState<boolean>(false);
 
   const isConversationDisabled = useMemo(() => {
     if (conversationinfo?.users) {
@@ -838,7 +840,7 @@ function Conversation({ conversationsetup, theme }: any) {
               <div id="div_conversation_user_name">
                 {conversationsetup.type == "single" ? (
                   <span
-                    className="span_userdetails_name tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                    className="span_userdetails_name tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                     onClick={() => {
                       navigate(`/${conversationsetup.userdetails.userID}`);
                     }}
@@ -945,20 +947,77 @@ function Conversation({ conversationsetup, theme }: any) {
                   <FcVideoCall style={{ fontSize: "25px" }} />
                 </motion.button>
               )}
-              <motion.button
-                whileHover={{
-                  backgroundColor: "#e6e6e6",
-                }}
-                className="btn_conversation_header_navigation"
-                disabled={conversationinfo ? false : true}
-                onClick={() => {
-                  settoggleConversationInfoModal(!toggleConversationInfoModal);
-                }}
-              >
-                <BiSolidInfoCircle
-                  style={{ fontSize: "27px", color: theme.primary }}
-                />
-              </motion.button>
+              <div className="tw-relative">
+                <motion.button
+                  whileHover={{
+                    backgroundColor: "#e6e6e6",
+                  }}
+                  className="btn_conversation_header_navigation"
+                  disabled={conversationinfo ? false : true}
+                  onClick={() => {
+                    settoggleMenu(!toggleMenu);
+                  }}
+                  onBlur={() => {
+                    settoggleMenu(false);
+                  }}
+                >
+                  <HiDotsVertical
+                    style={{ fontSize: "25px", color: theme.primary }}
+                  />
+                </motion.button>
+                <motion.div
+                  initial={{
+                    scale: 0,
+                  }}
+                  animate={{
+                    scale: toggleMenu ? 1 : 0,
+                  }}
+                  className="tw-flex-col tw-absolute tw--bottom-[80px] tw-min-w-[80px] tw-right-0 tw-rounded-md tw-bg-white tw-p-[5px] tw-shadow-md"
+                >
+                  <motion.button
+                    initial={{
+                      backgroundColor: "white",
+                    }}
+                    whileHover={{
+                      backgroundColor: "#e6e6e6",
+                    }}
+                    className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                    disabled={conversationinfo ? false : true}
+                    onClick={() => {
+                      settoggleConversationInfoModal(
+                        !toggleConversationInfoModal
+                      );
+                    }}
+                  >
+                    <BiSolidInfoCircle
+                      style={{ fontSize: "20px", color: theme.primary }}
+                    />
+                    <span className="tw-text-[12px] tw-font-Inter">Info</span>
+                  </motion.button>
+                  <motion.button
+                    initial={{
+                      backgroundColor: "white",
+                    }}
+                    whileHover={{
+                      backgroundColor: "#e6e6e6",
+                    }}
+                    className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                    disabled={conversationinfo ? false : true}
+                    // onClick={() => {
+                    //   settoggleConversationInfoModal(
+                    //     !toggleConversationInfoModal
+                    //   );
+                    // }}
+                  >
+                    <BiWindows
+                      style={{ fontSize: "20px", color: theme.primary }}
+                    />
+                    <span className="tw-text-[12px] tw-font-Inter">
+                      Minimize
+                    </span>
+                  </motion.button>
+                </motion.div>
+              </div>
             </div>
           </motion.div>
           {isLoading ? (
