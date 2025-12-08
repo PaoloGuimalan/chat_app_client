@@ -1,16 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import {
-  Map,
-  Source,
-  Layer,
-  GeolocateControl,
-  Popup,
-} from "@vis.gl/react-maplibre";
+import { Map, Source, Layer, GeolocateControl } from "@vis.gl/react-maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import DefaultProfile from "../../../assets/imgs/default.png";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
+import ProfilePopup from "./partials/ProfilePopup";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -160,32 +154,7 @@ function MapFeed() {
         }}
       /> */}
 
-      <Popup
-        longitude={coordinates.longitude}
-        latitude={coordinates.latitude}
-        anchor="bottom"
-        style={{ width: "auto", minWidth: "250px", height: "auto" }}
-        closeOnClick={false}
-        closeButton={false}
-      >
-        <div className="tw-p-[2px] tw-flex tw-w-full tw-gap-[10px]">
-          <div className="tw-bg-transparent tw-w-full tw-max-w-[40px] tw-flex tw-justify-center">
-            <div className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-min-w-[40px] tw-max-w-[40px] tw-h-[40px] sm:tw-max-w-[40px] sm:tw-h-[40px] tw-border-solid tw-border-[0px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative">
-              <img src={DefaultProfile} id="img_default_profile" />
-            </div>
-          </div>
-          <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-font-Inter">
-            <span className="tw-text-[14px] tw-font-semibold tw-text-left">
-              {authentication.user.fullName.firstName}
-              {authentication.user.fullName.middleName == "N/A"
-                ? ""
-                : ` ${authentication.user.fullName.middleName}`}{" "}
-              {authentication.user.fullName.lastName}
-            </span>
-            <span>@{authentication.user.userID} (you)</span>
-          </div>
-        </div>
-      </Popup>
+      <ProfilePopup coordinates={coordinates} user={authentication.user} />
 
       <Source
         id="gps-marker"
