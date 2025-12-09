@@ -1,10 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Map, Source, Layer, GeolocateControl } from "@vis.gl/react-maplibre";
+import { Map, Source, Layer, 
+  // GeolocateControl
+ } from "@vis.gl/react-maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
 import { AuthenticationInterface, ICoordinatesAnchor } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
 import ProfilePopup from "./partials/ProfilePopup";
+import { FaLocationCrosshairs } from "react-icons/fa6";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -230,7 +233,7 @@ function MapFeed() {
           type="circle"
           paint={{
             "circle-radius": 8,
-            "circle-color": followLocation ? "#00ff88" : "#ffaa00",
+            "circle-color": followLocation === authentication.user.userID ? "#00ff88" : "#ffaa00",
             "circle-stroke-color": "white",
             "circle-stroke-width": 2,
             "circle-opacity": 0.9,
@@ -238,14 +241,30 @@ function MapFeed() {
         />
       </Source>
 
-      <GeolocateControl 
+      {/* <GeolocateControl 
         position="bottom-right"
-        trackUserLocation={followLocation}
+        // trackUserLocation={followLocation}
         showAccuracyCircle={true}
         showUserHeading={true}
         onTrackUserLocationStart={() => setFollowLocation(authentication.user.userID)}
         onTrackUserLocationEnd={() => setFollowLocation(null)}
-      />
+      /> */}
+      <button
+        onClick={() => setFollowLocation((prev: string | null) => {
+          if (!prev) {
+            return authentication.user.userID
+          }
+
+          return null;
+        })}
+        className="tw-cursor-pointer tw-absolute tw-bottom-6 tw-right-6 tw-z-[1000] tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-4 tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+        style={{ pointerEvents: 'auto' }}
+      >
+        <FaLocationCrosshairs style={{
+          color: followLocation === authentication.user.userID ? "#00ff88" : "#ffaa00"
+        }} />
+      </button>
+
     </Map>
   );
 }
