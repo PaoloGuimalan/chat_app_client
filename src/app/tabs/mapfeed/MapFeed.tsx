@@ -91,6 +91,8 @@ function MapFeed() {
       dragRotate={!followLocation}
       dragPan={!followLocation}
       doubleClickZoom={!followLocation}
+      touchPitch={!followLocation}
+      touchZoomRotate={!followLocation}
       // longitude={coordinates.longitude}
       // latitude={coordinates.latitude}
       style={{
