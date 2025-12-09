@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Map, Source, Layer, GeolocateControl } from "@vis.gl/react-maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import { AuthenticationInterface, ICoordinatesAnchor } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
 import ProfilePopup from "./partials/ProfilePopup";
 
@@ -11,30 +11,86 @@ function MapFeed() {
     (state: any) => state.authentication
   );
 
-  const [coordinates, setcoordinates] = useState<{
-    longitude: number;
-    latitude: number;
-  }>({ longitude: 120.9842, latitude: 14.5995 });
+  const [coordinates, setcoordinates] = useState<ICoordinatesAnchor[]>([{ referenceID: authentication.user.userID, longitude: 120.9842, latitude: 14.5995 }]);
+
+  const [followLocation, setFollowLocation] = useState<string | null>(authentication.user.userID);
+
+  const myLocation = useMemo<ICoordinatesAnchor | null>(() => {
+    if(authentication.user.userID){
+      const currentCoordinates = coordinates.filter((flt: ICoordinatesAnchor) => flt.referenceID === authentication.user.userID);
+
+      if(currentCoordinates.length > 0){
+        const finalCoordinates = currentCoordinates[0];
+
+        return finalCoordinates;
+      }
+
+      return null;
+    }
+
+    return null;
+  }, [authentication.user.userID, coordinates]);
+
+  const toFollowLocation = useMemo<ICoordinatesAnchor | null>(() => {
+    if(followLocation){
+      const currentCoordinates = coordinates.filter((flt: ICoordinatesAnchor) => flt.referenceID === followLocation);
+
+      if(currentCoordinates.length > 0){
+        const finalCoordinates = currentCoordinates[0];
+
+        return finalCoordinates;
+      }
+
+      return null;
+    }
+
+    return null;
+  }, [followLocation, coordinates]);
+
+  const mapRef = useRef<any>(null);
 
   useEffect(() => {
     // window.locationiq.key = "pk.f9b59be5e6653ab04296d123446a4564"
     navigator.geolocation.watchPosition((position: GeolocationPosition) => {
-      setcoordinates({
-        longitude: position.coords.longitude,
-        latitude: position.coords.latitude,
+      setcoordinates((prev: ICoordinatesAnchor[]) => {
+        return [
+          ...prev,
+          { referenceID: authentication.user.userID,
+            longitude: position.coords.longitude,
+            latitude: position.coords.latitude,
+          }
+        ]
       });
     });
-  }, []);
+  }, [authentication.user.userID]);
+
+  useEffect(() => {
+    if (!mapRef.current || !toFollowLocation) return;
+
+    mapRef.current.flyTo({
+      center: [toFollowLocation.longitude, toFollowLocation.latitude],
+      zoom: 15,
+      pitch: 45,
+      bearing: -17.6,
+      duration: 800
+    });
+  }, [coordinates, toFollowLocation]);
 
   return (
     <Map
+      ref={mapRef}
       initialViewState={{
         ...coordinates,
         zoom: 15,
         pitch: 45,
         bearing: -17.6,
       }}
+      sky={false}
       antialias={true}
+      scrollZoom={!followLocation}
+      dragRotate={!followLocation}
+      dragPan={!followLocation}
+      doubleClickZoom={!followLocation}
       // longitude={coordinates.longitude}
       // latitude={coordinates.latitude}
       style={{
@@ -154,7 +210,7 @@ function MapFeed() {
         }}
       /> */}
 
-      <ProfilePopup coordinates={coordinates} user={authentication.user} />
+      <ProfilePopup coordinates={myLocation!} user={authentication.user} />
 
       <Source
         id="gps-marker"
@@ -163,7 +219,7 @@ function MapFeed() {
           type: "Feature",
           geometry: {
             type: "Point",
-            coordinates: [coordinates.longitude, coordinates.latitude],
+            coordinates: [myLocation!.longitude, myLocation!.latitude],
           },
         }}
       >
@@ -172,7 +228,7 @@ function MapFeed() {
           type="circle"
           paint={{
             "circle-radius": 8,
-            "circle-color": "#00ff88",
+            "circle-color": followLocation ? "#00ff88" : "#ffaa00",
             "circle-stroke-color": "white",
             "circle-stroke-width": 2,
             "circle-opacity": 0.9,
@@ -180,7 +236,14 @@ function MapFeed() {
         />
       </Source>
 
-      <GeolocateControl />
+      <GeolocateControl 
+        position="bottom-right"
+        trackUserLocation={followLocation}
+        showAccuracyCircle={true}
+        showUserHeading={true}
+        onTrackUserLocationStart={() => setFollowLocation(authentication.user.userID)}
+        onTrackUserLocationEnd={() => setFollowLocation(null)}
+      />
     </Map>
   );
 }

@@ -322,3 +322,9 @@ export interface IPostComment {
   user: IUserContactPreview;
   deleted_by: string | null;
 }
+
+export interface ICoordinatesAnchor {
+    referenceID: string;
+    longitude: number;
+    latitude: number;
+  }
