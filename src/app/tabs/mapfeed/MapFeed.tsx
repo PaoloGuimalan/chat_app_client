@@ -54,11 +54,25 @@ function MapFeed() {
 
   useEffect(() => {
     // window.locationiq.key = "pk.f9b59be5e6653ab04296d123446a4564"
+    navigator.geolocation.getCurrentPosition((position: GeolocationPosition) => {
+      setcoordinates((prev: ICoordinatesAnchor[]) => {
+        return [
+          ...prev,
+          { 
+            referenceID: authentication.user.userID,
+            longitude: position.coords.longitude,
+            latitude: position.coords.latitude,
+          }
+        ]
+      });
+    });
+
     navigator.geolocation.watchPosition((position: GeolocationPosition) => {
       setcoordinates((prev: ICoordinatesAnchor[]) => {
         return [
           ...prev,
-          { referenceID: authentication.user.userID,
+          { 
+            referenceID: authentication.user.userID,
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
           }
@@ -72,8 +86,8 @@ function MapFeed() {
 
     mapRef.current.flyTo({
       center: [toFollowLocation.longitude, toFollowLocation.latitude],
-      zoom: 15,
-      pitch: 45,
+      zoom: 16,
+      pitch: 60,
       bearing: -17.6,
       duration: 800
     });
