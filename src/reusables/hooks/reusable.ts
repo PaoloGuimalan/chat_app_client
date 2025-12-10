@@ -131,7 +131,7 @@ function urlify(text: string) {
 }
 
 function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
-  const birthdate = new Date(response.birthdate);
+  const birthdate = response.birthdate ? new Date(response.birthdate) : null;
   const dateCreated = new Date(response.date_created);
 
   function formatTime(date: Date): string {
@@ -140,7 +140,7 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
     const seconds = date.getSeconds();
     const ampm = hours >= 12 ? "pm" : "am";
     hours = hours % 12;
-    hours = hours ? hours : 12; // the hour '0' should be '12'
+    hours = hours ? hours : 12;
 
     const twoDigit = (n: number) => (n < 10 ? "0" + n : n);
 
@@ -149,28 +149,45 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
     )} ${ampm}`;
   }
 
-  const monthName = birthdate.toLocaleString("en-US", { month: "long" });
-
-  return {
-    fullname: {
-      firstName: response.first_name,
-      middleName: response.middle_name,
-      lastName: response.last_name,
-    },
-    birthdate: {
+  // Handle birthdate safely
+  let birthdateFormatted = null;
+  if (birthdate && !isNaN(birthdate.getTime())) {
+    const monthName = birthdate.toLocaleString("en-US", { month: "long" });
+    birthdateFormatted = {
       month: monthName,
       day: birthdate.getDate().toString().padStart(2, "0"),
       year: birthdate.getFullYear().toString(),
+    };
+  }
+
+  // Handle gender safely
+  let genderFormatted = null;
+  if (
+    response.gender &&
+    typeof response.gender === "string" &&
+    response.gender.trim() !== ""
+  ) {
+    genderFormatted =
+      response.gender.charAt(0).toUpperCase() +
+      response.gender.slice(1).toLowerCase();
+  }
+
+  return {
+    fullname: {
+      firstName: response.first_name || "",
+      middleName: response.middle_name || "",
+      lastName: response.last_name || "",
     },
+    birthdate: birthdateFormatted,
     dateCreated: {
       date: dateCreated.toLocaleDateString("en-US"),
       time: formatTime(dateCreated),
     },
-    id: response.id, // fixed example value
+    id: response.id,
     userID: response.username,
-    profile: response.profile,
-    gender: response.gender.charAt(0).toUpperCase() + response.gender.slice(1),
-    email: response.email,
+    profile: response.profile || "none",
+    gender: genderFormatted,
+    email: response.email || "",
     password: null,
     isActivated: response.is_active,
     isVerified: response.is_verified,

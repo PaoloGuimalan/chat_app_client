@@ -9,7 +9,17 @@ import {
   ThirdPartyAuthenticationRequest,
 } from "../../reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
-import { SET_ALERTS } from "../../redux/types";
+import {
+  CLEAR_PENDING_CALL_ALERTS,
+  SET_ALERTS,
+  SET_CALLS_LIST,
+  SET_CLEAR_ALERTS,
+  SET_CONTACTS_LIST_OVERRIDE,
+  SET_CONVERSATION_SETUP,
+  SET_MESSAGES_LIST_OVERRIDE,
+  SET_MINIMIZED_CONVERSATION_OVERRIDE,
+  SET_NOTIFICATIONS_LIST_OVERRIDE,
+} from "../../redux/types";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
   CredentialResponse,
@@ -17,6 +27,10 @@ import {
   GoogleOAuthProvider,
 } from "@react-oauth/google";
 import envs from "../../reusables/hooks/env_configs";
+import {
+  contactsliststate,
+  conversationsetupstate,
+} from "@/redux/actions/states";
 
 function Login() {
   const alerts = useSelector((state: any) => state.alerts);
@@ -28,7 +42,66 @@ function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
+  const clearStates = () => {
+    dispatch({
+      type: SET_CONVERSATION_SETUP,
+      payload: {
+        conversationsetup: conversationsetupstate,
+      },
+    });
+
+    dispatch({
+      type: SET_MESSAGES_LIST_OVERRIDE,
+      payload: {
+        messageslist: [],
+      },
+    });
+
+    dispatch({
+      type: SET_CLEAR_ALERTS,
+      payload: {
+        alerts: [],
+      },
+    });
+
+    dispatch({
+      type: SET_CALLS_LIST,
+      payload: {
+        callslist: [],
+      },
+    });
+
+    dispatch({
+      type: CLEAR_PENDING_CALL_ALERTS,
+      payload: {
+        clearstate: [],
+      },
+    });
+
+    dispatch({
+      type: SET_CONTACTS_LIST_OVERRIDE,
+      payload: {
+        contactslist: contactsliststate,
+      },
+    });
+
+    dispatch({
+      type: SET_MINIMIZED_CONVERSATION_OVERRIDE,
+      payload: {
+        conversations: [],
+      },
+    });
+
+    dispatch({
+      type: SET_NOTIFICATIONS_LIST_OVERRIDE,
+      payload: {
+        notficationslist: { list: [], totalunread: 0 },
+      },
+    });
+  };
+
   const verifyLogin = () => {
+    clearStates();
     setisWaitingRequest(true);
     if (email_username.trim() != "" && password.trim() != "") {
       LoginRequest(
@@ -56,6 +129,7 @@ function Login() {
   };
 
   const verifyTPAuthentication = (token: string) => {
+    clearStates();
     setisWaitingRequest(true);
     ThirdPartyAuthenticationRequest(
       {

@@ -25,7 +25,7 @@ export type ConvertedResponse = {
     month: string;
     day: string;
     year: string;
-  };
+  } | null;
   dateCreated: {
     date: string;
     time: string;
@@ -33,7 +33,7 @@ export type ConvertedResponse = {
   id: string;
   userID: string;
   profile: string;
-  gender: string;
+  gender: string | null;
   email: string;
   password: null;
   isActivated: boolean;

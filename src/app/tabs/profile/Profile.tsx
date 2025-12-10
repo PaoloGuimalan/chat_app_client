@@ -556,12 +556,14 @@ function Profile() {
         <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
           <div className="tw-w-full tw-h-fit md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px] tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
             <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
-              <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
-                {genderIcons[profileInfo.gender]}
-                <span className="tw-text-[14px] tw-font-semibold">
-                  {profileInfo.gender}
-                </span>
-              </div>
+              {profileInfo.gender && (
+                <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
+                  {genderIcons[profileInfo.gender]}
+                  <span className="tw-text-[14px] tw-font-semibold">
+                    {profileInfo.gender}
+                  </span>
+                </div>
+              )}
               <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
                 <IoTime style={{ fontSize: "20px", color: "#666666" }} />
                 <span className="tw-text-[14px]">Joined </span>
@@ -579,8 +581,12 @@ function Profile() {
                 />
                 <span className="tw-text-[14px]">Born in </span>
                 <span className="tw-text-[14px] tw-font-semibold tw-text-left">
-                  {ordinal_suffix_of(parseInt(profileInfo.birthdate.day))} of{" "}
-                  {profileInfo.birthdate.month} {profileInfo.birthdate.year}
+                  {profileInfo.birthdate
+                    ? `${ordinal_suffix_of(
+                        parseInt(profileInfo.birthdate.day)
+                      )} of 
+                  ${profileInfo.birthdate.month} ${profileInfo.birthdate.year}`
+                    : "not provided"}
                 </span>
               </div>
             </div>

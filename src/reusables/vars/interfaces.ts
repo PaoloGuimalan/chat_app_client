@@ -29,7 +29,7 @@ export interface ProfileUserInfoInterface {
     month: string;
     day: string;
     year: string;
-  };
+  } | null;
   connection: {
     connection_id: string | null;
     is_connection_present: boolean | null;
@@ -37,7 +37,7 @@ export interface ProfileUserInfoInterface {
     is_user_connection_initiator: boolean | null;
   };
   profile: string;
-  gender: string;
+  gender: string | null;
   email: string;
   dateCreated: {
     date: string;
@@ -324,7 +324,7 @@ export interface IPostComment {
 }
 
 export interface ICoordinatesAnchor {
-    referenceID: string;
-    longitude: number;
-    latitude: number;
-  }
+  referenceID: string;
+  longitude: number;
+  latitude: number;
+}
