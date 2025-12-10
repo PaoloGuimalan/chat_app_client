@@ -160,6 +160,85 @@ const LoginRequest = (
     });
 };
 
+const ThirdPartyAuthenticationRequest = (
+  params: any,
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any
+) => {
+  const payload = params;
+  // const encodedPayload = sign(payload, SECRET);
+
+  // previous: `${API}/auth/login`
+  Axios.post(`${USER_SERVICE_API}/api/user/tp_auth`, payload)
+    .then((response) => {
+      if (response.data.status) {
+        localStorage.setItem("authtoken", response.data.result.authtoken);
+        const userDataRaw: any = jwt_decode(response.data.result.usertoken);
+        const userData: ConvertedResponse = convertLoginResponse(userDataRaw);
+
+        dispatch({
+          type: SET_AUTHENTICATION,
+          payload: {
+            authentication: {
+              auth: true,
+              user: {
+                userID: userData.userID,
+                fullName: {
+                  firstName: userData.fullname.firstName,
+                  middleName: userData.fullname.middleName,
+                  lastName: userData.fullname.lastName,
+                },
+                email: userData.email,
+                isActivated: userData.isActivated,
+                isVerified: userData.isVerified,
+                profile: userData.profile,
+                coverphoto: userData.coverphoto || "",
+              },
+            },
+          },
+        });
+        dispatch({
+          type: SET_ALERTS,
+          payload: {
+            alerts: {
+              id: currentAlertState.length,
+              type: "success",
+              content: "You have been Logged In.",
+            },
+          },
+        });
+      } else {
+        dispatch({
+          type: SET_ALERTS,
+          payload: {
+            alerts: {
+              id: currentAlertState.length,
+              type: "warning",
+              content: response.data.message,
+            },
+          },
+        });
+        // console.log(response.data)
+      }
+      setisWaitingRequest(false);
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      // console.log(err)
+    });
+};
+
 const RegisterRequest = (
   params: any,
   dispatch: Dispatch<any>,
@@ -1521,6 +1600,7 @@ const LottieJSONRequest = async (url: string) => {
 export {
   AuthCheck,
   LoginRequest,
+  ThirdPartyAuthenticationRequest,
   RegisterRequest,
   LogoutRequest,
   VerifyCodeRequest,
