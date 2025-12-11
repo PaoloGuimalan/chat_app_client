@@ -327,4 +327,5 @@ export interface ICoordinatesAnchor {
   referenceID: string;
   longitude: number;
   latitude: number;
+  heading: number | null;
 }

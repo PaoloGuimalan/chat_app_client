@@ -14,7 +14,7 @@ function MapFeed() {
     (state: any) => state.authentication
   );
 
-  const [coordinates, setcoordinates] = useState<ICoordinatesAnchor[]>([{ referenceID: authentication.user.userID, longitude: 120.9842, latitude: 14.5995 }]);
+  const [coordinates, setcoordinates] = useState<ICoordinatesAnchor[]>([{ referenceID: authentication.user.userID, longitude: 120.9842, latitude: 14.5995, heading: -17.6 }]);
 
   const [followLocation, setFollowLocation] = useState<string | null>(authentication.user.userID);
 
@@ -56,12 +56,14 @@ function MapFeed() {
     // window.locationiq.key = "pk.f9b59be5e6653ab04296d123446a4564"
     navigator.geolocation.getCurrentPosition((position: GeolocationPosition) => {
       setcoordinates((prev: ICoordinatesAnchor[]) => {
+        const prevNoUser = prev.filter((flt: ICoordinatesAnchor) => flt.referenceID !== authentication.user.userID);
         return [
-          ...prev,
+          ...prevNoUser,
           { 
             referenceID: authentication.user.userID,
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
+            heading: position.coords.heading
           }
         ]
       });
@@ -69,12 +71,14 @@ function MapFeed() {
 
     navigator.geolocation.watchPosition((position: GeolocationPosition) => {
       setcoordinates((prev: ICoordinatesAnchor[]) => {
+        const prevNoUser = prev.filter((flt: ICoordinatesAnchor) => flt.referenceID !== authentication.user.userID);
         return [
-          ...prev,
+          ...prevNoUser,
           { 
             referenceID: authentication.user.userID,
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
+            heading: position.coords.heading
           }
         ]
       });
@@ -88,7 +92,7 @@ function MapFeed() {
       center: [toFollowLocation.longitude, toFollowLocation.latitude],
       zoom: 16,
       pitch: 60,
-      bearing: -17.6,
+      bearing: toFollowLocation.heading ? toFollowLocation.heading * 1 : -17.6,
       duration: 800
     });
   }, [coordinates, toFollowLocation]);
@@ -97,10 +101,11 @@ function MapFeed() {
     <Map
       ref={mapRef}
       initialViewState={{
-        ...coordinates,
+        longitude: toFollowLocation?.longitude,
+        latitude: toFollowLocation?.latitude,
         zoom: 15,
         pitch: 45,
-        bearing: -17.6,
+        bearing: toFollowLocation?.heading ? toFollowLocation.heading * 1 : -17.6,
       }}
       sky={false}
       antialias={true}
@@ -110,6 +115,7 @@ function MapFeed() {
       doubleClickZoom={!followLocation}
       touchPitch={!followLocation}
       touchZoomRotate={!followLocation}
+      // bearing={toFollowLocation?.heading ?? -17.6}
       // longitude={coordinates.longitude}
       // latitude={coordinates.latitude}
       style={{
