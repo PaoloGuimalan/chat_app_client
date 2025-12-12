@@ -328,4 +328,5 @@ export interface ICoordinatesAnchor {
   longitude: number;
   latitude: number;
   heading: number | null;
+  speed: number | null;
 }

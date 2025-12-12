@@ -14,7 +14,7 @@ function MapFeed() {
     (state: any) => state.authentication
   );
 
-  const [coordinates, setcoordinates] = useState<ICoordinatesAnchor[]>([{ referenceID: authentication.user.userID, longitude: 120.9842, latitude: 14.5995, heading: -17.6 }]);
+  const [coordinates, setcoordinates] = useState<ICoordinatesAnchor[]>([{ referenceID: authentication.user.userID, longitude: 120.9842, latitude: 14.5995, heading: -17.6, speed: 0 }]);
 
   const [followLocation, setFollowLocation] = useState<string | null>(authentication.user.userID);
 
@@ -52,6 +52,16 @@ function MapFeed() {
 
   const mapRef = useRef<any>(null);
 
+  const speedToZoom = (speedKmh: number | null): number => {
+    if (speedKmh === null) return 17; // default walking zoom
+
+    if (speedKmh < 5) return 18;        // standing/very slow
+    if (speedKmh < 15) return 17;       // walking/jogging
+    if (speedKmh < 40) return 16;       // bike/slow car
+    if (speedKmh < 80) return 15;       // city driving
+    return 14;                          // highway
+  };
+
   useEffect(() => {
     // window.locationiq.key = "pk.f9b59be5e6653ab04296d123446a4564"
     navigator.geolocation.getCurrentPosition((position: GeolocationPosition) => {
@@ -63,10 +73,16 @@ function MapFeed() {
             referenceID: authentication.user.userID,
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
-            heading: position.coords.heading
+            heading: position.coords.heading,
+            speed: position.coords.speed ?? 0
           }
         ]
       });
+    }, 
+    null,
+    {
+      enableHighAccuracy: true,
+      maximumAge: 1000,
     });
 
     navigator.geolocation.watchPosition((position: GeolocationPosition) => {
@@ -78,10 +94,16 @@ function MapFeed() {
             referenceID: authentication.user.userID,
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
-            heading: position.coords.heading
+            heading: position.coords.heading,
+            speed: position.coords.speed ?? 0
           }
         ]
       });
+    },
+    null,
+    {
+      enableHighAccuracy: true,
+      maximumAge: 1000,
     });
   }, [authentication.user.userID]);
 
@@ -90,7 +112,7 @@ function MapFeed() {
 
     mapRef.current.flyTo({
       center: [toFollowLocation.longitude, toFollowLocation.latitude],
-      zoom: 16,
+      zoom: speedToZoom(toFollowLocation.speed) ?? 10,
       pitch: 60,
       bearing: toFollowLocation.heading ? toFollowLocation.heading * 1 : -17.6,
       duration: 800
@@ -103,7 +125,7 @@ function MapFeed() {
       initialViewState={{
         longitude: toFollowLocation?.longitude,
         latitude: toFollowLocation?.latitude,
-        zoom: 15,
+        zoom: 17,
         pitch: 45,
         bearing: toFollowLocation?.heading ? toFollowLocation.heading * 1 : -17.6,
       }}
