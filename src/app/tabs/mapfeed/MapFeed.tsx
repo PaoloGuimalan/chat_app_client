@@ -1,10 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Map, Source, Layer, 
+import {
+  Map,
+  Source,
+  Layer,
   // GeolocateControl
- } from "@vis.gl/react-maplibre";
+} from "@vis.gl/react-maplibre";
 import "maplibre-gl/dist/maplibre-gl.css";
-import { AuthenticationInterface, ICoordinatesAnchor } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  ICoordinatesAnchor,
+} from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
 import ProfilePopup from "./partials/ProfilePopup";
 import { FaLocationCrosshairs } from "react-icons/fa6";
@@ -14,15 +20,28 @@ function MapFeed() {
     (state: any) => state.authentication
   );
 
-  const [coordinates, setcoordinates] = useState<ICoordinatesAnchor[]>([{ referenceID: authentication.user.userID, longitude: 120.9842, latitude: 14.5995, heading: -17.6, speed: 0 }]);
+  const [coordinates, setcoordinates] = useState<ICoordinatesAnchor[]>([
+    {
+      referenceID: authentication.user.userID,
+      longitude: 120.9842,
+      latitude: 14.5995,
+      heading: -17.6,
+      speed: 0,
+    },
+  ]);
 
-  const [followLocation, setFollowLocation] = useState<string | null>(authentication.user.userID);
+  const [followLocation, setFollowLocation] = useState<string | null>(
+    authentication.user.userID
+  );
 
   const myLocation = useMemo<ICoordinatesAnchor | null>(() => {
-    if(authentication.user.userID){
-      const currentCoordinates = coordinates.filter((flt: ICoordinatesAnchor) => flt.referenceID === authentication.user.userID);
+    if (authentication.user.userID) {
+      const currentCoordinates = coordinates.filter(
+        (flt: ICoordinatesAnchor) =>
+          flt.referenceID === authentication.user.userID
+      );
 
-      if(currentCoordinates.length > 0){
+      if (currentCoordinates.length > 0) {
         const finalCoordinates = currentCoordinates[0];
 
         return finalCoordinates;
@@ -35,10 +54,12 @@ function MapFeed() {
   }, [authentication.user.userID, coordinates]);
 
   const toFollowLocation = useMemo<ICoordinatesAnchor | null>(() => {
-    if(followLocation){
-      const currentCoordinates = coordinates.filter((flt: ICoordinatesAnchor) => flt.referenceID === followLocation);
+    if (followLocation) {
+      const currentCoordinates = coordinates.filter(
+        (flt: ICoordinatesAnchor) => flt.referenceID === followLocation
+      );
 
-      if(currentCoordinates.length > 0){
+      if (currentCoordinates.length > 0) {
         const finalCoordinates = currentCoordinates[0];
 
         return finalCoordinates;
@@ -55,56 +76,66 @@ function MapFeed() {
   const speedToZoom = (speedKmh: number | null): number => {
     if (speedKmh === null) return 17; // default walking zoom
 
-    if (speedKmh < 5) return 18;        // standing/very slow
-    if (speedKmh < 15) return 17;       // walking/jogging
-    if (speedKmh < 40) return 16;       // bike/slow car
-    if (speedKmh < 80) return 15;       // city driving
-    return 14;                          // highway
+    if (speedKmh < 5) return 18; // standing/very slow
+    if (speedKmh < 15) return 17; // walking/jogging
+    if (speedKmh < 40) return 16; // bike/slow car
+    if (speedKmh < 80) return 15; // city driving
+    return 14; // highway
   };
 
   useEffect(() => {
     // window.locationiq.key = "pk.f9b59be5e6653ab04296d123446a4564"
-    navigator.geolocation.getCurrentPosition((position: GeolocationPosition) => {
-      setcoordinates((prev: ICoordinatesAnchor[]) => {
-        const prevNoUser = prev.filter((flt: ICoordinatesAnchor) => flt.referenceID !== authentication.user.userID);
-        return [
-          ...prevNoUser,
-          { 
-            referenceID: authentication.user.userID,
-            longitude: position.coords.longitude,
-            latitude: position.coords.latitude,
-            heading: position.coords.heading,
-            speed: position.coords.speed ?? 0
-          }
-        ]
-      });
-    }, 
-    null,
-    {
-      enableHighAccuracy: true,
-      maximumAge: 1000,
-    });
+    navigator.geolocation.getCurrentPosition(
+      (position: GeolocationPosition) => {
+        setcoordinates((prev: ICoordinatesAnchor[]) => {
+          const prevNoUser = prev.filter(
+            (flt: ICoordinatesAnchor) =>
+              flt.referenceID !== authentication.user.userID
+          );
+          return [
+            ...prevNoUser,
+            {
+              referenceID: authentication.user.userID,
+              longitude: position.coords.longitude,
+              latitude: position.coords.latitude,
+              heading: position.coords.heading,
+              speed: position.coords.speed ?? 0,
+            },
+          ];
+        });
+      },
+      null,
+      {
+        enableHighAccuracy: true,
+        maximumAge: 1000,
+      }
+    );
 
-    navigator.geolocation.watchPosition((position: GeolocationPosition) => {
-      setcoordinates((prev: ICoordinatesAnchor[]) => {
-        const prevNoUser = prev.filter((flt: ICoordinatesAnchor) => flt.referenceID !== authentication.user.userID);
-        return [
-          ...prevNoUser,
-          { 
-            referenceID: authentication.user.userID,
-            longitude: position.coords.longitude,
-            latitude: position.coords.latitude,
-            heading: position.coords.heading,
-            speed: position.coords.speed ?? 0
-          }
-        ]
-      });
-    },
-    null,
-    {
-      enableHighAccuracy: true,
-      maximumAge: 1000,
-    });
+    navigator.geolocation.watchPosition(
+      (position: GeolocationPosition) => {
+        setcoordinates((prev: ICoordinatesAnchor[]) => {
+          const prevNoUser = prev.filter(
+            (flt: ICoordinatesAnchor) =>
+              flt.referenceID !== authentication.user.userID
+          );
+          return [
+            ...prevNoUser,
+            {
+              referenceID: authentication.user.userID,
+              longitude: position.coords.longitude,
+              latitude: position.coords.latitude,
+              heading: position.coords.heading,
+              speed: position.coords.speed ?? 0,
+            },
+          ];
+        });
+      },
+      null,
+      {
+        enableHighAccuracy: true,
+        maximumAge: 1000,
+      }
+    );
   }, [authentication.user.userID]);
 
   useEffect(() => {
@@ -115,7 +146,7 @@ function MapFeed() {
       zoom: speedToZoom(toFollowLocation.speed) ?? 10,
       pitch: 60,
       bearing: toFollowLocation.heading ? toFollowLocation.heading * 1 : -17.6,
-      duration: 800
+      duration: 800,
     });
   }, [coordinates, toFollowLocation]);
 
@@ -127,7 +158,9 @@ function MapFeed() {
         latitude: toFollowLocation?.latitude,
         zoom: 17,
         pitch: 45,
-        bearing: toFollowLocation?.heading ? toFollowLocation.heading * 1 : -17.6,
+        bearing: toFollowLocation?.heading
+          ? toFollowLocation.heading * 1
+          : -17.6,
       }}
       sky={false}
       antialias={true}
@@ -148,6 +181,35 @@ function MapFeed() {
       }}
       mapStyle="https://api.maptiler.com/maps/basic-v2-dark/style.json?key=AqtwgEiGiqzjVxuM07x4"
     >
+      <ProfilePopup coordinates={myLocation!} user={authentication.user} />
+
+      <Source
+        id="gps-marker"
+        type="geojson"
+        data={{
+          type: "Feature",
+          geometry: {
+            type: "Point",
+            coordinates: [myLocation!.longitude, myLocation!.latitude],
+          },
+        }}
+      >
+        <Layer
+          id="gps-circle"
+          type="circle"
+          paint={{
+            "circle-radius": 8,
+            "circle-color":
+              followLocation === authentication.user.userID
+                ? "#00ff88"
+                : "#ffaa00",
+            "circle-stroke-color": "white",
+            "circle-stroke-width": 2,
+            "circle-opacity": 0.9,
+          }}
+        />
+      </Source>
+
       <Source
         id="openmaptiles"
         type="vector"
@@ -257,32 +319,6 @@ function MapFeed() {
         }}
       /> */}
 
-      <ProfilePopup coordinates={myLocation!} user={authentication.user} />
-
-      <Source
-        id="gps-marker"
-        type="geojson"
-        data={{
-          type: "Feature",
-          geometry: {
-            type: "Point",
-            coordinates: [myLocation!.longitude, myLocation!.latitude],
-          },
-        }}
-      >
-        <Layer
-          id="gps-circle"
-          type="circle"
-          paint={{
-            "circle-radius": 8,
-            "circle-color": followLocation === authentication.user.userID ? "#00ff88" : "#ffaa00",
-            "circle-stroke-color": "white",
-            "circle-stroke-width": 2,
-            "circle-opacity": 0.9,
-          }}
-        />
-      </Source>
-
       {/* <GeolocateControl 
         position="bottom-right"
         // trackUserLocation={followLocation}
@@ -292,21 +328,27 @@ function MapFeed() {
         onTrackUserLocationEnd={() => setFollowLocation(null)}
       /> */}
       <button
-        onClick={() => setFollowLocation((prev: string | null) => {
-          if (!prev) {
-            return authentication.user.userID
-          }
+        onClick={() =>
+          setFollowLocation((prev: string | null) => {
+            if (!prev) {
+              return authentication.user.userID;
+            }
 
-          return null;
-        })}
+            return null;
+          })
+        }
         className="tw-cursor-pointer tw-absolute tw-bottom-6 tw-right-6 tw-z-[1000] tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-4 tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-        style={{ pointerEvents: 'auto' }}
+        style={{ pointerEvents: "auto" }}
       >
-        <FaLocationCrosshairs style={{
-          color: followLocation === authentication.user.userID ? "#00ff88" : "#ffaa00"
-        }} />
+        <FaLocationCrosshairs
+          style={{
+            color:
+              followLocation === authentication.user.userID
+                ? "#00ff88"
+                : "#ffaa00",
+          }}
+        />
       </button>
-
     </Map>
   );
 }
