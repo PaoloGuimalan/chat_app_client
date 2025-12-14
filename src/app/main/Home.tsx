@@ -58,6 +58,7 @@ import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import Servers from "../tabs/servers/Servers";
 import UserMenu from "../tabs/profile/UserMenu";
 import Conversation from "../tabs/messenger/Conversation";
+import CachedImage from "../reusables/cachers/CachedImage";
 
 function Home() {
   const togglerightwidget = useSelector(
@@ -251,7 +252,7 @@ function Home() {
             id="img_profile_container"
           >
             <div id="img_default_profile_container">
-              <img src={DefaultProfile} id="img_default_profile" />
+              <CachedImage src={DefaultProfile} id="img_default_profile" />
             </div>
             <span id="span_user_firstname_label">
               {authentication.user.fullName.firstName}

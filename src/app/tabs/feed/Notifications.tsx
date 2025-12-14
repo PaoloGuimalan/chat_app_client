@@ -13,6 +13,7 @@ import {
 import { motion } from "framer-motion";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import NotificationItemLoader from "@/app/reusables/loaders/NotificationItemLoader";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Notifications() {
   const [isLoading, setisLoading] = useState(true);
@@ -167,7 +168,7 @@ function Notifications() {
               >
                 <div id="div_img_ntfs_container">
                   <div id="div_img_search_profiles_container_ntfs">
-                    <img
+                    <CachedImage
                       src={
                         ntfs.fromUser.profile == "none"
                           ? DefaultProfile

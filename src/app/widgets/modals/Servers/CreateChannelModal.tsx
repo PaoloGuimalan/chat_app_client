@@ -9,6 +9,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import DefaultProfile from "../../../../assets/imgs/default.png";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { CreateChannelRequest } from "@/reusables/hooks/requests";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function CreateChannelModal({
   serverID,
@@ -244,7 +245,7 @@ function CreateChannelModal({
                                   />
                                   <div id="div_img_cncts_container">
                                     <div id="div_img_search_profiles_container_cncts">
-                                      <img
+                                      <CachedImage
                                         src={
                                           cnts.profile == "none"
                                             ? DefaultProfile

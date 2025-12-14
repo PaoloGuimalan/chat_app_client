@@ -25,6 +25,7 @@ import {
 import { PaginationProp } from "@/reusables/vars/props";
 import { IContact } from "@/reusables/vars/interfaces";
 import ContactItemLoader from "@/app/reusables/loaders/ContactItemLoader";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Contacts() {
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
@@ -238,7 +239,7 @@ function Contacts() {
                     >
                       <div id="div_img_cncts_container">
                         <div id="div_img_search_profiles_container_cncts">
-                          <img
+                          <CachedImage
                             src={
                               cnts.involved_user.profile == "none"
                                 ? DefaultProfile
@@ -254,7 +255,7 @@ function Contacts() {
                       </div>
                       <div className="div_contact_fullname_container">
                         <span
-                          className="span_cncts_fullname_label tw-border-b tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
+                          className="span_cncts_fullname_label tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
                           onClick={() => {
                             navigate(`/${cnts.involved_user.username}`);
                           }}
@@ -330,7 +331,7 @@ function Contacts() {
                     >
                       <div id="div_img_cncts_container">
                         <div id="div_img_search_profiles_container_cncts">
-                          <img
+                          <CachedImage
                             src={
                               cnts.action_by.profile == "none"
                                 ? DefaultProfile
@@ -346,7 +347,7 @@ function Contacts() {
                       </div>
                       <div className="div_contact_fullname_container">
                         <span
-                          className="span_cncts_fullname_label tw-border-b tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
+                          className="span_cncts_fullname_label tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
                           onClick={() => {
                             navigate(`/${cnts.action_by.username}`);
                           }}

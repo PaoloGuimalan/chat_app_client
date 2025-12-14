@@ -11,6 +11,7 @@ import { useEffect, useMemo, useState } from "react";
 import EmojiPickerHandler from "./EmojiPickerHandler";
 import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal";
 import { urlify } from "@/reusables/hooks/reusable";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function ContentHandler({
   i,
@@ -506,7 +507,7 @@ function ContentHandler({
               className="div_pending_content_container"
               title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
             >
-              <img
+              <CachedImage
                 src={cnvs.content}
                 className="img_pending_images"
                 onClick={() => {

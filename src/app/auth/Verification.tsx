@@ -12,6 +12,7 @@ import {
 import { checkIfValid } from "../../reusables/hooks/validatevariables";
 import { SET_ALERTS } from "../../redux/types";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import CachedImage from "../reusables/cachers/CachedImage";
 
 function Verification() {
   const authentication = useSelector((state: any) => state.authentication);
@@ -83,7 +84,7 @@ function Verification() {
       >
         <div id="div_verification_header_container">
           <div id="div_verification_icon_container">
-            <img src={VerificationImg} id="img_ver_icon" />
+            <CachedImage src={VerificationImg} id="img_ver_icon" />
             <div id="div_ver_bubble" />
             <div id="div_ver_bubble2" />
           </div>

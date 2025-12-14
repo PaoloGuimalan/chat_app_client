@@ -2,6 +2,7 @@
 import { motion } from "framer-motion";
 import ServerIcon from "../../../../assets/imgs/servericon.png";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function NoChannel({ server }: any) {
   return !server ? (
@@ -29,7 +30,7 @@ function NoChannel({ server }: any) {
       >
         <div className="tw-bg-white tw-w-full tw-h-[40%] tw-min-h-[40%] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
           {server.cover_photo ? (
-            <img
+            <CachedImage
               src={server.cover_photo}
               className="tw-bg-black tw-full tw-flex tw-flex-1 tw-max-w-[1500px]"
             />
@@ -39,7 +40,7 @@ function NoChannel({ server }: any) {
           <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1500px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
             <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center">
               <div className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[140px] sm:tw-h-[140px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[20px] tw-relative tw--mt-[80px]">
-                <img src={ServerIcon} id="img_default_profile" />
+                <CachedImage src={ServerIcon} id="img_default_profile" />
               </div>
             </div>
             <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">

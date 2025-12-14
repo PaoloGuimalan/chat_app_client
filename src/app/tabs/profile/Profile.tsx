@@ -41,6 +41,7 @@ import {
   SET_MINIMIZED_CONVERSATION,
   SET_TOGGLE_RIGHT_WIDGET,
 } from "@/redux/types";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Profile() {
   const authentication: AuthenticationInterface = useSelector(
@@ -364,7 +365,7 @@ function Profile() {
         </button>
         <div className="tw-bg-white tw-w-full tw-h-[60%] tw-min-h-[60%] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
           {authentication.user.coverphoto !== "" ? (
-            <img
+            <CachedImage
               src={authentication.user.coverphoto}
               className="tw-bg-black tw-full tw-flex tw-flex-1 tw-max-w-[1500px]"
             />
@@ -374,7 +375,7 @@ function Profile() {
           <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1500px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
             <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center">
               <div className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]">
-                <img src={DefaultProfile} id="img_default_profile" />
+                <CachedImage src={DefaultProfile} id="img_default_profile" />
               </div>
             </div>
             <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
@@ -597,7 +598,7 @@ function Profile() {
               className="tw-border-[0px]"
             >
               <div id="div_img_feed_header_container">
-                <img src={DefaultProfile} id="img_feed_header" />
+                <CachedImage src={DefaultProfile} id="img_feed_header" />
               </div>
               <div id="div_input_feed_flex">
                 {toggleNewPostModal.toggle && (

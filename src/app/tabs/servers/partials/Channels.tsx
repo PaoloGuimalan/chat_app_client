@@ -26,6 +26,7 @@ import ServerInfoModal from "@/app/widgets/modals/Servers/ServerInfoModal";
 import { IoMdAdd } from "react-icons/io";
 import CreateChannelModal from "@/app/widgets/modals/Servers/CreateChannelModal";
 import { BiSolidInfoCircle } from "react-icons/bi";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Channels({ serverlist }: any) {
   const messageslist = useSelector((state: any) => state.messageslist);
@@ -161,7 +162,10 @@ function Channels({ serverlist }: any) {
             {isLoaded ? (
               <div id="div_img_cncts_container">
                 <div id="div_img_search_profiles_container_cncts">
-                  <img src={ServerIcon} className="img_gc_profiles_ntfs" />
+                  <CachedImage
+                    src={ServerIcon}
+                    className="img_gc_profiles_ntfs"
+                  />
                 </div>
               </div>
             ) : (

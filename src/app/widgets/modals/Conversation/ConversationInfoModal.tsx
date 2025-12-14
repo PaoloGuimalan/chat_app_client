@@ -26,6 +26,7 @@ import {
 } from "@/reusables/hooks/requests";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaHashtag } from "react-icons/fa6";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function ConversationInfoModal({
   conversationinfo,
@@ -126,7 +127,7 @@ function ConversationInfoModal({
                 <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-flex-col tw-items-center tw-gap-[10px]">
                   <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
                     <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
-                      <img
+                      <CachedImage
                         src={DefaultProfile}
                         className="img_search_profiles_ntfs"
                       />
@@ -184,7 +185,7 @@ function ConversationInfoModal({
                             className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
                           >
                             <div id="div_img_search_profiles_container_cncts">
-                              <img
+                              <CachedImage
                                 src={
                                   mp.profile == "none"
                                     ? DefaultProfile
@@ -255,7 +256,7 @@ function ConversationInfoModal({
                         if (mp.fileDetails.data) {
                           if (mp.fileType.includes("image")) {
                             return (
-                              <img
+                              <CachedImage
                                 key={i}
                                 src={mp.fileDetails.data}
                                 className="tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black"
@@ -357,7 +358,7 @@ function ConversationInfoModal({
                   ) : (
                     <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
                       <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
-                        <img
+                        <CachedImage
                           src={
                             conversationinfo.type === "server"
                               ? ServerIcon
@@ -583,7 +584,7 @@ function ConversationInfoModal({
                                           />
                                           <div id="div_img_cncts_container">
                                             <div id="div_img_search_profiles_container_cncts">
-                                              <img
+                                              <CachedImage
                                                 src={
                                                   cnts.profile == "none"
                                                     ? DefaultProfile
@@ -695,7 +696,7 @@ function ConversationInfoModal({
                                               />
                                               <div id="div_img_cncts_container">
                                                 <div id="div_img_search_profiles_container_cncts">
-                                                  <img
+                                                  <CachedImage
                                                     src={
                                                       cnts.involved_user
                                                         .profile == "none"
@@ -807,7 +808,7 @@ function ConversationInfoModal({
                                                 />
                                                 <div id="div_img_cncts_container">
                                                   <div id="div_img_search_profiles_container_cncts">
-                                                    <img
+                                                    <CachedImage
                                                       src={
                                                         cnts.action_by
                                                           .profile == "none"
@@ -860,7 +861,7 @@ function ConversationInfoModal({
                             className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
                           >
                             <div id="div_img_search_profiles_container_cncts">
-                              <img
+                              <CachedImage
                                 src={
                                   mp.profile == "none"
                                     ? DefaultProfile
@@ -931,7 +932,7 @@ function ConversationInfoModal({
                         if (mp.fileDetails.data) {
                           if (mp.fileType.includes("image")) {
                             return (
-                              <img
+                              <CachedImage
                                 key={i}
                                 src={mp.fileDetails.data}
                                 className="tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black"

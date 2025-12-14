@@ -2,6 +2,7 @@
 import Modal from "@/app/reusables/Modal";
 import { IoMdClose } from "react-icons/io";
 import DefaultProfile from "../../../../assets/imgs/default.png";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function ReactionsModal({ reactions, onclose }: any) {
   console.log(reactions);
@@ -31,7 +32,7 @@ function ReactionsModal({ reactions, onclose }: any) {
                   className="tw-w-[calc(100%-10px)] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px]"
                 >
                   <div id="div_img_search_profiles_container_cncts">
-                    <img
+                    <CachedImage
                       src={mp.profile == "none" ? DefaultProfile : mp.profile}
                       className="img_search_profiles_ntfs"
                     />

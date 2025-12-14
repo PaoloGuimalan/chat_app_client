@@ -24,6 +24,7 @@ import {
   REMOVE_REJECTED_CALL_LIST,
 } from "../../redux/types";
 import { RejectCallRequest } from "../../reusables/hooks/requests";
+import CachedImage from "../reusables/cachers/CachedImage";
 
 function Alert({ al }: any) {
   const alerts = useSelector((state: any) => state.alerts);
@@ -248,7 +249,7 @@ function Alert({ al }: any) {
       <div id="div_alert_content_container_ic">
         <div id="div_img_alert_container">
           {al.callmetadata.conversationType == "single" ? (
-            <img
+            <CachedImage
               src={
                 al.callmetadata.displayImage == "none"
                   ? DefaultProfile
@@ -257,7 +258,7 @@ function Alert({ al }: any) {
               className="img_search_profiles_ntfs"
             />
           ) : (
-            <img src={GroupChatIcon} className="img_gc_profiles_ntfs" />
+            <CachedImage src={GroupChatIcon} className="img_gc_profiles_ntfs" />
           )}
         </div>
         <p id="p_alert_content_ic">{al.content}</p>

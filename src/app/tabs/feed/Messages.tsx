@@ -22,6 +22,7 @@ import { isUserOnline } from "../../../reusables/hooks/reusable";
 import CreateServerModal from "@/app/widgets/modals/CreateServerModal";
 import { useNavigate } from "react-router-dom";
 import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Messages() {
   const [isLoading, setisLoading] = useState<boolean>(true);
@@ -238,7 +239,7 @@ function Messages() {
                     >
                       <div id="div_img_cncts_container">
                         <div id="div_img_search_profiles_container_cncts">
-                          <img
+                          <CachedImage
                             src={
                               msgsurs.profile == "none"
                                 ? DefaultProfile
@@ -318,7 +319,7 @@ function Messages() {
                 >
                   <div id="div_img_cncts_container">
                     <div id="div_img_search_profiles_container_cncts">
-                      <img
+                      <CachedImage
                         src={GroupChatIcon}
                         className="img_gc_profiles_ntfs"
                       />
@@ -384,7 +385,7 @@ function Messages() {
                 >
                   <div id="div_img_cncts_container">
                     <div id="div_img_search_profiles_container_cncts">
-                      <img
+                      <CachedImage
                         src={ServerIcon}
                         className="img_server_profiles_ntfs"
                       />

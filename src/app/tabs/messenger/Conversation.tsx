@@ -49,6 +49,7 @@ import { FaHashtag, FaLock } from "react-icons/fa6";
 import { HiDotsVertical } from "react-icons/hi";
 import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdClose } from "react-icons/io";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const authentication = useSelector((state: any) => state.authentication);
@@ -821,7 +822,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 <div id="div_img_cncts_container">
                   <div id="div_img_search_profiles_container_cncts">
                     {conversationsetup.type == "single" ? (
-                      <img
+                      <CachedImage
                         src={
                           conversationsetup.userdetails.profile == "none"
                             ? DefaultProfile
@@ -830,7 +831,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         className="img_search_profiles_ntfs"
                       />
                     ) : (
-                      <img
+                      <CachedImage
                         src={GroupChatIcon}
                         className="img_gc_profiles_ntfs"
                       />
@@ -1162,7 +1163,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                           className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
                         >
                           <div className="div_pending_content_container_sending">
-                            <img
+                            <CachedImage
                               src={cnvs.content}
                               className="img_pending_images"
                               onLoad={() => {
@@ -1331,7 +1332,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   });
                 }}
               />
-              <img src={fullImageScreen.preview} id="img_fip" />
+              <CachedImage src={fullImageScreen.preview} id="img_fip" />
             </div>
           )}
           <motion.div
@@ -1514,7 +1515,10 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       <AiOutlineClose />
                     </button>
                   </div>
-                  <img src={imgl.base} className="img_selected_preview" />
+                  <CachedImage
+                    src={imgl.base}
+                    className="img_selected_preview"
+                  />
                 </div>
               );
             })}

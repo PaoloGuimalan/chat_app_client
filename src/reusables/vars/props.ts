@@ -66,3 +66,11 @@ export interface ProfilePopupProp {
     coverphoto: string;
   };
 }
+
+export interface CachedImageProp {
+  src?: string;
+  className?: string;
+  id?: string;
+  onLoad?: () => void;
+  onClick?: () => void;
+}

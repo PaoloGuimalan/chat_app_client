@@ -16,6 +16,7 @@ import { AuthenticationInterface, IPost } from "@/reusables/vars/interfaces";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { useSelector } from "react-redux";
 import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Feed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -93,7 +94,7 @@ function Feed() {
     <div id="div_feed" className="thinscroller" ref={divcontentRef}>
       <div id="div_feed_header_post_input" className="tw-border-[0px]">
         <div id="div_img_feed_header_container">
-          <img src={DefaultProfile} id="img_feed_header" />
+          <CachedImage src={DefaultProfile} id="img_feed_header" />
         </div>
         <div id="div_input_feed_flex">
           {toggleNewPostModal.toggle && (

@@ -9,6 +9,7 @@ import Channels from "./partials/Channels";
 import { useSelector } from "react-redux";
 import { IoArrowBack } from "react-icons/io5";
 import { TbServer2 } from "react-icons/tb";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Servers() {
   const screensizelistener = useSelector(
@@ -113,7 +114,7 @@ function Servers() {
                   >
                     <div id="div_img_cncts_container">
                       <div id="div_img_search_profiles_container_cncts">
-                        <img
+                        <CachedImage
                           src={ServerIcon}
                           className="img_server_profiles_ntfs"
                         />

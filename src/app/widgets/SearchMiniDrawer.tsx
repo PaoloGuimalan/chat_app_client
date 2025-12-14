@@ -17,6 +17,7 @@ import DefaultProfile from "../../assets/imgs/default.png";
 import { UserSearchResult } from "@/reusables/vars/interfaces";
 // import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { useNavigate } from "react-router-dom";
+import CachedImage from "../reusables/cachers/CachedImage";
 
 function SearchMiniDrawer({
   searchbox,
@@ -173,7 +174,7 @@ function SearchMiniDrawer({
                 className="div_search_profiles_results"
               >
                 <div id="div_img_search_profiles_container">
-                  <img
+                  <CachedImage
                     src={srch.profile == "none" ? DefaultProfile : srch.profile}
                     className="img_search_profiles"
                   />

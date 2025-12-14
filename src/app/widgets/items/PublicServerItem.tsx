@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { AddNewMemberToServer } from "@/reusables/hooks/requests";
 import { useSelector } from "react-redux";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function PublicServerItem({ mp }: any) {
   const authentication: AuthenticationInterface = useSelector(
@@ -56,7 +57,7 @@ function PublicServerItem({ mp }: any) {
         )}
         <div className="tw-w-[calc(100%-30px)] tw-pl-[15px] tw-pr-[15px] tw-flex tw-flex-col tw-items-start tw-gap-[5px] tw-flex-1">
           <div className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-[50px] tw-h-[50px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[20px] tw-relative tw--mt-[30px]">
-            <img src={ServerIcon} id="img_default_profile" />
+            <CachedImage src={ServerIcon} id="img_default_profile" />
           </div>
           <div className="tw-w-[calc(100%-10px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[5px] tw-flex-1">
             <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">

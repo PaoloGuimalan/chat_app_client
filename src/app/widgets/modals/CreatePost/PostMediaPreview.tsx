@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { AiOutlineClose } from "react-icons/ai";
 
 function PostMediaPreview({ mp, setrawmedialist, setmedialist }: any) {
@@ -44,7 +45,7 @@ function PostMediaPreview({ mp, setrawmedialist, setmedialist }: any) {
           className="tw-w-[calc(100%-4px)] tw-min-h-[50px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller"
           placeholder="Type your caption"
         />
-        <img src={mp.reference} className="tw-w-full" />
+        <CachedImage src={mp.reference} className="tw-w-full" />
       </div>
     );
   } else if (mp.referenceMediaType.includes("video")) {

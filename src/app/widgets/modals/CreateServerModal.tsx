@@ -16,6 +16,7 @@ import {
 import Modal from "../../reusables/Modal";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { IContact } from "@/reusables/vars/interfaces";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 // import { SET_MUTATE_ALERTS } from "@/redux/types";
 
 function CreateServerModal({ setisCreateServerToggle }: any) {
@@ -269,7 +270,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                     />
                                     <div id="div_img_cncts_container">
                                       <div id="div_img_search_profiles_container_cncts">
-                                        <img
+                                        <CachedImage
                                           src={
                                             cnts.involved_user.profile == "none"
                                               ? DefaultProfile
@@ -345,7 +346,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                     />
                                     <div id="div_img_cncts_container">
                                       <div id="div_img_search_profiles_container_cncts">
-                                        <img
+                                        <CachedImage
                                           src={
                                             cnts.action_by.profile == "none"
                                               ? DefaultProfile
@@ -397,25 +398,25 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                     </motion.div>
                   </div>
                 ) : (
-                <div id="div_create_cancel_btns">
-                  <button
-                    disabled={false}
-                    className="btns_create_server_cancel"
-                    onClick={() => {
-                      processCreateGroupChat();
-                    }}
-                  >
-                    Create
-                  </button>
-                  <button
-                    className="btns_create_server_cancel"
-                    onClick={() => {
-                      setisCreateServerToggle(false);
-                    }}
-                  >
-                    Cancel
-                  </button>
-                </div>
+                  <div id="div_create_cancel_btns">
+                    <button
+                      disabled={false}
+                      className="btns_create_server_cancel"
+                      onClick={() => {
+                        processCreateGroupChat();
+                      }}
+                    >
+                      Create
+                    </button>
+                    <button
+                      className="btns_create_server_cancel"
+                      onClick={() => {
+                        setisCreateServerToggle(false);
+                      }}
+                    >
+                      Cancel
+                    </button>
+                  </div>
                 )}
               </div>
             </div>

@@ -15,6 +15,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { FaFileAlt } from "react-icons/fa";
 import PostCommentLoader from "@/app/reusables/loaders/PostCommentLoader";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function PostComment({ post_id, parent_id }: PostCommentProp) {
   const [comments, setComments] =
@@ -92,7 +93,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
       {!parent_id && (
         <div className="tw-min-h-[60px] tw-flex tw-items-center tw-pb-[10px]">
           <div id="div_img_search_profiles_container_cncts">
-            <img src={DefaultProfile} id="img_feed_header" />
+            <CachedImage src={DefaultProfile} id="img_feed_header" />
           </div>
           <div id="div_input_feed_flex">
             <textarea
@@ -161,7 +162,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                 >
                   <div id="div_img_comments_container">
                     <div id="div_img_search_profiles_container_cncts">
-                      <img
+                      <CachedImage
                         src={
                           mp.user.profile == "none"
                             ? DefaultProfile
@@ -226,7 +227,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
       {parent_id && (
         <div className="tw-min-h-[60px] tw-flex tw-items-center tw-pb-[0px] tw-pt-[10px]">
           <div id="div_img_search_profiles_container_cncts">
-            <img src={DefaultProfile} id="img_feed_header" />
+            <CachedImage src={DefaultProfile} id="img_feed_header" />
           </div>
           <div id="div_input_feed_flex">
             <input

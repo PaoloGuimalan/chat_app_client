@@ -26,6 +26,7 @@ import { motion } from "framer-motion";
 import PostEmojis from "@/app/reusables/PostEmojis";
 import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
 import PostComment from "@/app/widgets/items/PostComment";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function PostItem({
   isSharePreview,
@@ -130,12 +131,12 @@ function PostItem({
       >
         <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
           <div id="div_img_feed_post_container">
-            <img src={DefaultProfile} id="img_feed_header" />
+            <CachedImage src={DefaultProfile} id="img_feed_header" />
           </div>
           <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
             <div className="tw-text-left">
               <span
-                className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                 onClick={() => {
                   navigate(`/${postState.user.username}`);
                 }}
@@ -155,7 +156,7 @@ function PostItem({
                 postState.tagging.map((mptg: ITagging, i: number) => {
                   return (
                     <span
-                      className="tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                      className="tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                       onClick={() => {
                         navigate(`/${mptg.user.username}`);
                       }}
@@ -258,7 +259,7 @@ function PostItem({
                               key={mpr.reference_id}
                               className="tw-h-full tw-bg-black"
                             >
-                              <img
+                              <CachedImage
                                 src={mpr.reference}
                                 className="tw-w-full tw-h-full tw-object-contain"
                               />
@@ -299,12 +300,15 @@ function PostItem({
                     <div className="tw-w-[calc(100%-50px)] tw-p-[25px] tw-flex tw-justify-between">
                       <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
                         <div id="div_img_feed_post_container">
-                          <img src={DefaultProfile} id="img_feed_header" />
+                          <CachedImage
+                            src={DefaultProfile}
+                            id="img_feed_header"
+                          />
                         </div>
                         <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
                           <div className="tw-text-left">
                             <span
-                              className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                              className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                               onClick={() => {
                                 navigate(`/${postState.user.username}`);
                               }}
@@ -325,7 +329,7 @@ function PostItem({
                                 (mptg: ITagging, i: number) => {
                                   return (
                                     <span
-                                      className="tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-b tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                                      className="tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                                       onClick={() => {
                                         navigate(`/${mptg.user.username}`);
                                       }}
@@ -580,7 +584,7 @@ function PostItem({
                           key={mpu.reference_id}
                           className="tw-flex tw-max-h-[500px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]"
                         >
-                          <img
+                          <CachedImage
                             src={mpu.reference}
                             className="tw-w-full tw-h-full tw-object-cover"
                           />
@@ -597,7 +601,7 @@ function PostItem({
                           key={mpu.reference_id}
                           className="tw-flex tw-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]"
                         >
-                          <img
+                          <CachedImage
                             src={mpu.reference}
                             className="tw-w-full tw-h-full tw-object-cover"
                           />
@@ -635,7 +639,7 @@ function PostItem({
                     </div>
                   </div>
                   {postState.references[4].reference_media_type === "image" ? (
-                    <img
+                    <CachedImage
                       src={postState.references[4].reference}
                       className="tw-w-full tw-h-full tw--ml-[100%] tw-object-cover"
                     />

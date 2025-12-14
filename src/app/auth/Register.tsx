@@ -11,6 +11,7 @@ import { checkIfValid } from "../../reusables/hooks/validatevariables";
 import { SET_ALERTS } from "../../redux/types";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { monthNameToNumber } from "@/reusables/hooks/reusable";
+import CachedImage from "../reusables/cachers/CachedImage";
 
 function Register() {
   const alerts = useSelector((state: any) => state.alerts);
@@ -109,7 +110,7 @@ function Register() {
         id="div_register_form"
       >
         <div id="div_icon_register_container">
-          <img src={ChatterLoopImg} id="img_icon_register" />
+          <CachedImage src={ChatterLoopImg} id="img_icon_register" />
           <span id="span_login_label">Chatterloop</span>
         </div>
         <motion.div

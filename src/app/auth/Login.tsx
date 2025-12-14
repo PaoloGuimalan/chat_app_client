@@ -31,6 +31,7 @@ import {
   contactsliststate,
   conversationsetupstate,
 } from "@/redux/actions/states";
+import CachedImage from "../reusables/cachers/CachedImage";
 
 function Login() {
   const alerts = useSelector((state: any) => state.alerts);
@@ -164,7 +165,7 @@ function Login() {
         >
           <span id="span_login_label">Chatterloop</span>
           <div id="div_img_icon_login_container">
-            <img src={ChatterLoopImg} id="img_icon_login" />
+            <CachedImage src={ChatterLoopImg} id="img_icon_login" />
           </div>
           <div id="div_login_form_inputs">
             <div id="div_inputs_container">

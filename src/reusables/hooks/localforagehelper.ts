@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+import Axios from "axios";
 import localforagemain from "localforage";
 
 async function getLottieData(stname: string, url: string) {
@@ -26,4 +27,29 @@ async function persistLottieData(stname: string, url: string, lottie: any) {
   });
 }
 
-export { getLottieData, persistLottieData };
+async function persistAndReturnImage(stname: string, url: string) {
+  const localforage = localforagemain.createInstance({
+    name: "chatterloop",
+  });
+  localforage.setDriver(localforage.INDEXEDDB);
+  localforage.config({ storeName: stname });
+
+  const cachedImage = await localforage.getItem<Blob>(url);
+
+  if (cachedImage) {
+    return URL.createObjectURL(cachedImage);
+  }
+
+  Axios.get(url, { responseType: "blob" })
+    .then((response) => {
+      const blob = response.data;
+      return localforage.setItem(url, blob);
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
+  return url;
+}
+
+export { getLottieData, persistLottieData, persistAndReturnImage };

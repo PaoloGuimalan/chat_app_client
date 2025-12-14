@@ -16,6 +16,7 @@ import {
 import Modal from "../../reusables/Modal";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { IContact } from "@/reusables/vars/interfaces";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 // import { SET_MUTATE_ALERTS } from "@/redux/types";
 
 function CreateGroupChatModal({ setisCreateGCToggle }: any) {
@@ -266,7 +267,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                     />
                                     <div id="div_img_cncts_container">
                                       <div id="div_img_search_profiles_container_cncts">
-                                        <img
+                                        <CachedImage
                                           src={
                                             cnts.involved_user.profile == "none"
                                               ? DefaultProfile
@@ -342,7 +343,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                     />
                                     <div id="div_img_cncts_container">
                                       <div id="div_img_search_profiles_container_cncts">
-                                        <img
+                                        <CachedImage
                                           src={
                                             cnts.action_by.profile == "none"
                                               ? DefaultProfile
