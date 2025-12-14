@@ -777,7 +777,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               : "10px",
           }}
           id="div_conversation_content_handler"
-          className={`tw-border-[0px] ${isMinimized && "tw-shadow-md"}`}
+          className={`tw-border-[0px] ${
+            isMinimized && "tw-shadow-md tw-border-[1px] tw-border-[#dedede]"
+          }`}
         >
           <motion.div
             initial={{
