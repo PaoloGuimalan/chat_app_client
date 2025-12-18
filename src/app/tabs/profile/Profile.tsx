@@ -3,23 +3,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   AuthenticationInterface,
+  IDiaryPreview,
   IPost,
   ProfileUserInfoInterface,
 } from "@/reusables/vars/interfaces";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import { IoArrowBack } from "react-icons/io5";
+import { TfiThought } from "react-icons/tfi";
 import { useEffect, useRef, useState } from "react";
 import {
   AcceptContactRequest,
   ContactRequest,
   DeclineContactRequest,
+  GetDiaryTotalRequest,
   GetPostRequest,
   GetProfileInfo,
 } from "@/reusables/hooks/requests";
 // import jwtDecode from "jwt-decode";
-import { FaLinkSlash } from "react-icons/fa6";
+import { FaBook, FaLinkSlash } from "react-icons/fa6";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaTransgender, FaFileAlt } from "react-icons/fa";
 import { IoMale, IoFemale, IoTime } from "react-icons/io5";
@@ -42,6 +45,8 @@ import {
   SET_TOGGLE_RIGHT_WIDGET,
 } from "@/redux/types";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { BiCalendarEdit } from "react-icons/bi";
+import { HiOutlinePencil } from "react-icons/hi";
 
 function Profile() {
   const authentication: AuthenticationInterface = useSelector(
@@ -70,6 +75,12 @@ function Profile() {
     toggle: false,
     withImage: false,
   });
+
+  const [diaryPreview, setDiaryPreview] = useState<IDiaryPreview>({
+    latest_entry: null,
+    top_tags: [],
+    total_entries: 0
+  })
 
   const [page, setpage] = useState<number>(1);
   const [range] = useState<number>(20);
@@ -129,8 +140,19 @@ function Profile() {
       });
   };
 
+  const GetDiaryTotalProcess = () => {
+    GetDiaryTotalRequest({
+      userID: params.userID,
+    }).then((response) => {
+      setDiaryPreview(response);
+    }).catch((err) => {
+      console.log(err);
+    })
+  }
+
   useEffect(() => {
     GetProfileInfoProcess();
+    GetDiaryTotalProcess();
 
     return () => {
       setprofileInfo(null);
@@ -555,40 +577,95 @@ function Profile() {
           </div>
         </div>
         <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
-          <div className="tw-w-full tw-h-fit md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px] tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
-            <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
-              {profileInfo.gender && (
+          <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
+            <div className="tw-w-full tw-h-fit tw-w-full tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+              <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
+                {profileInfo.gender && (
+                  <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
+                    {genderIcons[profileInfo.gender]}
+                    <span className="tw-text-[14px] tw-font-semibold">
+                      {profileInfo.gender}
+                    </span>
+                  </div>
+                )}
                 <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
-                  {genderIcons[profileInfo.gender]}
-                  <span className="tw-text-[14px] tw-font-semibold">
-                    {profileInfo.gender}
+                  <IoTime style={{ fontSize: "20px", color: "#666666" }} />
+                  <span className="tw-text-[14px]">Joined </span>
+                  <span className="tw-text-[14px] tw-font-semibold tw-text-left">
+                    {formattedDateToWords(profileInfo.dateCreated.date)}
                   </span>
                 </div>
-              )}
-              <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
-                <IoTime style={{ fontSize: "20px", color: "#666666" }} />
-                <span className="tw-text-[14px]">Joined </span>
-                <span className="tw-text-[14px] tw-font-semibold tw-text-left">
-                  {formattedDateToWords(profileInfo.dateCreated.date)}
-                </span>
+                <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
+                  <MdCake
+                    style={{
+                      fontSize: "20px",
+                      color: "#666666",
+                      marginTop: "-4px",
+                    }}
+                  />
+                  <span className="tw-text-[14px]">Born in </span>
+                  <span className="tw-text-[14px] tw-font-semibold tw-text-left">
+                    {profileInfo.birthdate
+                      ? `${ordinal_suffix_of(
+                          parseInt(profileInfo.birthdate.day)
+                        )} of 
+                    ${profileInfo.birthdate.month} ${profileInfo.birthdate.year}`
+                      : "not provided"}
+                  </span>
+                </div>
               </div>
-              <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
-                <MdCake
-                  style={{
-                    fontSize: "20px",
-                    color: "#666666",
-                    marginTop: "-4px",
-                  }}
-                />
-                <span className="tw-text-[14px]">Born in </span>
-                <span className="tw-text-[14px] tw-font-semibold tw-text-left">
-                  {profileInfo.birthdate
-                    ? `${ordinal_suffix_of(
-                        parseInt(profileInfo.birthdate.day)
-                      )} of 
-                  ${profileInfo.birthdate.month} ${profileInfo.birthdate.year}`
-                    : "not provided"}
-                </span>
+            </div>
+            <div className="tw-w-full tw-h-fit tw-w-full tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+              <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
+                <div className="tw-w-full tw-flex">
+                  <div className="tw-flex tw-flex-row tw-flex-1 tw-gap-[5px] tw-items-center">
+                    <FaBook style={{ fontSize: "17px", color: "#666666" }} />
+                    <span className="tw-text-[14px] tw-font-semibold">
+                      Diary
+                    </span>
+                  </div>
+                  {params.userID === authentication.user.userID && (
+                    <Link to={`/${params.userID}/diary`} className="tw-text-[14px]">
+                      View
+                    </Link>
+                  )}
+                </div>
+                <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
+                  <BiCalendarEdit
+                    style={{
+                      fontSize: "20px",
+                      color: "#666666",
+                      marginTop: "-4px",
+                    }}
+                  />
+                  {diaryPreview.latest_entry ? (
+                    <span className="tw-text-[14px]">Latest entry on {diaryPreview.latest_entry}</span>
+                  ) : (
+                    params.userID === authentication.user.userID ? (
+                      <span className="tw-text-[14px]">Write your first entry</span>
+                    ) : (
+                      <span className="tw-text-[14px]">{profileInfo.fullname.firstName} has no entries</span>
+                    )
+                  )}
+                </div>
+                {params.userID === authentication.user.userID && (
+                  <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
+                    <HiOutlinePencil style={{ fontSize: "20px", color: "#666666" }} />
+                    <span className="tw-text-[14px]">{diaryPreview.total_entries} entries made </span>
+                  </div>
+                )}
+                {diaryPreview.top_tags.length > 0 && (
+                  <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
+                    <TfiThought
+                      style={{
+                        fontSize: "20px",
+                        color: "#666666",
+                        marginTop: "-4px",
+                      }}
+                    />
+                    <span className="tw-text-[14px]">{params.userID === authentication.user.userID ? "You've" : `${profileInfo.fullname.firstName} has`} been writing a lot about:</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>

@@ -330,3 +330,9 @@ export interface ICoordinatesAnchor {
   heading: number | null;
   speed: number | null;
 }
+
+export interface IDiaryPreview {
+  latest_entry: string | null;
+  top_tags: string[];
+  total_entries: number;
+}

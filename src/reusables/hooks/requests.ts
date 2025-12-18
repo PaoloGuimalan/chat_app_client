@@ -1597,6 +1597,24 @@ const LottieJSONRequest = async (url: string) => {
     });
 };
 
+const GetDiaryTotalRequest = async (params: any) => {
+  const userID = params.userID;
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/diary/total/${userID}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    }
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   AuthCheck,
   LoginRequest,
@@ -1647,4 +1665,5 @@ export {
   SaveCommentRequest,
   PublicServersListRequest,
   LottieJSONRequest,
+  GetDiaryTotalRequest
 };
