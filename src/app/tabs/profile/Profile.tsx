@@ -625,7 +625,7 @@ function Profile() {
                     </span>
                   </div>
                   {params.userID === authentication.user.userID && (
-                    <Link to={`/${params.userID}/diary`} className="tw-text-[14px]">
+                    <Link to={`/${params.userID}/diary`} className="tw-text-[12px] tw-text-[#333333]">
                       View
                     </Link>
                   )}
