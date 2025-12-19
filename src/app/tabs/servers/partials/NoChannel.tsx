@@ -28,7 +28,7 @@ function NoChannel({ server }: any) {
         // id="div_server_conversation_list"
         className="tw-rounded-[10px] tw-bg-white tw-flex tw-flex-col tw-items-center tw-justify-start tw-w-full tw-h-full tw-gap-[20px]"
       >
-        <div className="tw-bg-white tw-w-full tw-h-[40%] tw-min-h-[40%] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
+        <div className="tw-bg-white tw-w-full tw-h-[40%] tw-min-h-[400px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
           {server.cover_photo ? (
             <CachedImage
               src={server.cover_photo}
