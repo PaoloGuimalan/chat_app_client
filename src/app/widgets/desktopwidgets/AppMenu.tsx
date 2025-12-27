@@ -5,9 +5,11 @@ import { useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FcPuzzle, FcSettings } from "react-icons/fc"; /**FcList */
 import { TbServer2 } from "react-icons/tb";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import AppItems from "../items/AppItems";
 import { PiListBold } from "react-icons/pi";
+import { SET_PAGE_MODAL } from "@/redux/types";
+import Settings from "@/app/tabs/profile/Settings";
 
 function AppMenu() {
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
@@ -17,13 +19,26 @@ function AppMenu() {
 
   const [isLoading, _] = useState(false); //setisLoading
 
+  const dispatch = useDispatch();
+
   const menulist: any[] = [
     {
       _id: 1,
       appname: "Settings",
       icon: <FcSettings style={{ fontSize: "40px" }} />,
       description: "Organize you account settings.",
-      navigation: null,
+      navigation: screensizelistener.W <= 1100 ? "/settings" : null,
+      click: () => {
+        dispatch({
+          type: SET_PAGE_MODAL,
+          payload: {
+            pagemodal: {
+              name: "Settings",
+              component: <Settings isModal={true} />,
+            },
+          },
+        });
+      },
     },
     {
       _id: 2,
@@ -31,6 +46,7 @@ function AppMenu() {
       icon: <TbServer2 style={{ fontSize: "40px", color: "#e69500" }} />,
       description: "Browse and Socialize through servers",
       navigation: "/servers",
+      click: null,
     },
     {
       _id: 3,
@@ -38,6 +54,7 @@ function AppMenu() {
       icon: <FcPuzzle style={{ fontSize: "40px" }} />,
       description: "Merge your contents from accross different platforms.",
       navigation: null,
+      click: null,
     },
   ];
 

@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { ReactNode } from "react";
 import PeerService from "../hooks/peer";
 
 export interface AuthenticationInterface {
@@ -335,4 +336,9 @@ export interface IDiaryPreview {
   latest_entry: string | null;
   top_tags: string[];
   total_entries: number;
+}
+
+export interface IPageModal {
+  name: string;
+  component: ReactNode;
 }

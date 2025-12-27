@@ -79,8 +79,8 @@ function Profile() {
   const [diaryPreview, setDiaryPreview] = useState<IDiaryPreview>({
     latest_entry: null,
     top_tags: [],
-    total_entries: 0
-  })
+    total_entries: 0,
+  });
 
   const [page, setpage] = useState<number>(1);
   const [range] = useState<number>(20);
@@ -143,12 +143,14 @@ function Profile() {
   const GetDiaryTotalProcess = () => {
     GetDiaryTotalRequest({
       userID: params.userID,
-    }).then((response) => {
-      setDiaryPreview(response);
-    }).catch((err) => {
-      console.log(err);
     })
-  }
+      .then((response) => {
+        setDiaryPreview(response);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   useEffect(() => {
     GetProfileInfoProcess();
@@ -578,7 +580,7 @@ function Profile() {
         </div>
         <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
           <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
-            <div className="tw-w-full tw-h-fit tw-w-full tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+            <div className="tw-w-full tw-h-fit tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
               <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
                 {profileInfo.gender && (
                   <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
@@ -609,13 +611,15 @@ function Profile() {
                       ? `${ordinal_suffix_of(
                           parseInt(profileInfo.birthdate.day)
                         )} of 
-                    ${profileInfo.birthdate.month} ${profileInfo.birthdate.year}`
+                    ${profileInfo.birthdate.month} ${
+                          profileInfo.birthdate.year
+                        }`
                       : "not provided"}
                   </span>
                 </div>
               </div>
             </div>
-            <div className="tw-w-full tw-h-fit tw-w-full tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+            <div className="tw-h-fit tw-w-full tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
               <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
                 <div className="tw-w-full tw-flex">
                   <div className="tw-flex tw-flex-row tw-flex-1 tw-gap-[5px] tw-items-center">
@@ -625,7 +629,10 @@ function Profile() {
                     </span>
                   </div>
                   {params.userID === authentication.user.userID && (
-                    <Link to={`/${params.userID}/diary`} className="tw-text-[12px] tw-text-[#333333]">
+                    <Link
+                      to={`/${params.userID}/diary`}
+                      className="tw-text-[12px] tw-text-[#333333]"
+                    >
                       View
                     </Link>
                   )}
@@ -639,19 +646,27 @@ function Profile() {
                     }}
                   />
                   {diaryPreview.latest_entry ? (
-                    <span className="tw-text-[14px]">Latest entry on {diaryPreview.latest_entry}</span>
+                    <span className="tw-text-[14px]">
+                      Latest entry on {diaryPreview.latest_entry}
+                    </span>
+                  ) : params.userID === authentication.user.userID ? (
+                    <span className="tw-text-[14px]">
+                      Write your first entry
+                    </span>
                   ) : (
-                    params.userID === authentication.user.userID ? (
-                      <span className="tw-text-[14px]">Write your first entry</span>
-                    ) : (
-                      <span className="tw-text-[14px]">{profileInfo.fullname.firstName} has no entries</span>
-                    )
+                    <span className="tw-text-[14px]">
+                      {profileInfo.fullname.firstName} has no entries
+                    </span>
                   )}
                 </div>
                 {params.userID === authentication.user.userID && (
                   <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
-                    <HiOutlinePencil style={{ fontSize: "20px", color: "#666666" }} />
-                    <span className="tw-text-[14px]">{diaryPreview.total_entries} entries made </span>
+                    <HiOutlinePencil
+                      style={{ fontSize: "20px", color: "#666666" }}
+                    />
+                    <span className="tw-text-[14px]">
+                      {diaryPreview.total_entries} entries made{" "}
+                    </span>
                   </div>
                 )}
                 {diaryPreview.top_tags.length > 0 && (
@@ -663,7 +678,12 @@ function Profile() {
                         marginTop: "-4px",
                       }}
                     />
-                    <span className="tw-text-[14px]">{params.userID === authentication.user.userID ? "You've" : `${profileInfo.fullname.firstName} has`} been writing a lot about:</span>
+                    <span className="tw-text-[14px]">
+                      {params.userID === authentication.user.userID
+                        ? "You've"
+                        : `${profileInfo.fullname.firstName} has`}{" "}
+                      been writing a lot about:
+                    </span>
                   </div>
                 )}
               </div>

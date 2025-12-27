@@ -1156,6 +1156,19 @@
   /* overflow-y: auto; */
 }
 
+.div_page_modal_container {
+  background-color: white;
+  width: calc(85% - 20px);
+  height: calc(98% - 30px);
+  max-width: calc(1000px - 20px);
+  max-height: 700px;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  border-radius: 7px;
+  /* overflow-y: auto; */
+}
+
 #div_modal_header {
   background-color: transparent;
   width: calc(100% - 20px);

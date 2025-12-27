@@ -31,6 +31,7 @@ import {
   SET_MUTATE_POSTS_FEED_LIST,
   SET_NOTIFICATIONS_LIST,
   SET_NOTIFICATIONS_LIST_OVERRIDE,
+  SET_PAGE_MODAL,
   SET_PATHNAME_LISTENER,
   SET_PENDING_CALL_ALERTS,
   SET_PENDING_MESSAGES_LIST,
@@ -47,7 +48,7 @@ import {
   conversationsetupstate,
   screensizelistenerstate,
 } from "./states";
-import { Emoji, IContact } from "@/reusables/vars/interfaces";
+import { Emoji, IContact, IPageModal } from "@/reusables/vars/interfaces";
 
 export const setauthentication = (state = authenticationstate, action: any) => {
   switch (action.type) {
@@ -353,6 +354,15 @@ export const setminimizedconversation = (state: any = [], action: any) => {
       );
 
       return setToRemove;
+    default:
+      return state;
+  }
+};
+
+export const setpagemodal = (state: IPageModal | null = null, action: any) => {
+  switch (action.type) {
+    case SET_PAGE_MODAL:
+      return action.payload.pagemodal;
     default:
       return state;
   }

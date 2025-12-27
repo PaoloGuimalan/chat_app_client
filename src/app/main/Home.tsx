@@ -54,11 +54,16 @@ import CallCollection from "../absolutes/calls/CallCollection";
 import { endSocket } from "../../reusables/hooks/sockets";
 import MapFeed from "../tabs/mapfeed/MapFeed";
 import Profile from "../tabs/profile/Profile";
-import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  IPageModal,
+} from "@/reusables/vars/interfaces";
 import Servers from "../tabs/servers/Servers";
 import UserMenu from "../tabs/profile/UserMenu";
 import Conversation from "../tabs/messenger/Conversation";
 import CachedImage from "../reusables/cachers/CachedImage";
+import Settings from "../tabs/profile/Settings";
+import Modal from "../reusables/Modal";
 
 function Home() {
   const togglerightwidget = useSelector(
@@ -80,6 +85,7 @@ function Home() {
   );
   const alerts = useSelector((state: any) => state.alerts);
   const istypinglist = useSelector((state: any) => state.istypinglist);
+  const pagemodal: IPageModal = useSelector((state: any) => state.pagemodal);
   // const [togglerightwidget, settogglerightwidget] = useState("notifs")
 
   const [searchBoxFocus, setsearchBoxFocus] = useState(false);
@@ -418,12 +424,22 @@ function Home() {
           })}
         </div>
       )}
+      {screensizelistener.W >= 1100 && pagemodal && (
+        <Modal
+          component={
+            <div className="div_page_modal_container">
+              {pagemodal.component}
+            </div>
+          }
+        />
+      )}
       <Routes>
         <Route
           path="/"
           element={<DesktopHome togglerightwidget={togglerightwidget} />}
         />
         <Route path="/:userID" element={<Profile />} />
+        <Route path="/settings" element={<Settings isModal={false} />} />
         <Route
           path="/user"
           element={

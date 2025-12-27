@@ -14,6 +14,7 @@ import {
   setmessageslist,
   setminimizedconversation,
   setnotificationslist,
+  setpagemodal,
   setpathnamelistener,
   setpendingcallalerts,
   setpendingmessageslist,
@@ -45,6 +46,7 @@ const combiner = combineReducers({
   istypinglist: setistypinglist,
   emojilist: setemojilist,
   minimizedconversation: setminimizedconversation,
+  pagemodal: setpagemodal,
 });
 
 const store = createStore(combiner);
