@@ -62,7 +62,7 @@ import Servers from "../tabs/servers/Servers";
 import UserMenu from "../tabs/profile/UserMenu";
 import Conversation from "../tabs/messenger/Conversation";
 import CachedImage from "../reusables/cachers/CachedImage";
-import Settings from "../tabs/profile/Settings";
+import Settings from "../tabs/settings/Settings";
 import Modal from "../reusables/Modal";
 
 function Home() {

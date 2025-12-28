@@ -9,7 +9,7 @@ import { useDispatch, useSelector } from "react-redux";
 import AppItems from "../items/AppItems";
 import { PiListBold } from "react-icons/pi";
 import { SET_PAGE_MODAL } from "@/redux/types";
-import Settings from "@/app/tabs/profile/Settings";
+import Settings from "@/app/tabs/settings/Settings";
 
 function AppMenu() {
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
