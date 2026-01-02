@@ -3397,6 +3397,10 @@ input:checked + .slider:before {
   background-position: center;
 }
 
+.maplibregl-popup-tip {
+  /* display: none; */
+}
+
 @media screen and (max-width: 600px) {
   #div_searchminidrawer {
     top: 115px;

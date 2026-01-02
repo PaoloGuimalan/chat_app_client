@@ -388,11 +388,13 @@ function Profile() {
           <IoArrowBack style={{ fontSize: "20px" }} />
         </button>
         <div className="tw-bg-white tw-w-full tw-h-[60%] tw-min-h-[500px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
-          {authentication.user.coverphoto !== "" ? (
-            <CachedImage
-              src={authentication.user.coverphoto}
-              className="tw-bg-black tw-full tw-flex tw-flex-1 tw-max-w-[1200px]"
-            />
+          {profileInfo.coverphoto !== "none" ? (
+            <div className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[10px] tw-h-[200px]">
+              <CachedImage
+                src={profileInfo.coverphoto}
+                className="tw-bg-black tw-max-h-full tw-max-w-full tw-w-full tw-h-full tw-object-cover tw-rounded-b-[10px]"
+              />
+            </div>
           ) : (
             <div className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[10px]" />
           )}

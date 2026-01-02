@@ -8,25 +8,28 @@ function ProfilePopup({ coordinates, user }: ProfilePopupProp) {
     <Popup
       longitude={coordinates.longitude}
       latitude={coordinates.latitude}
-      anchor="bottom"
+      anchor="top-left"
       style={{
         width: "auto",
         minWidth: "250px",
         height: "auto",
-        paddingTop: "0px",
+        paddingTop: "10px",
+        paddingLeft: "0px",
+        // paddingBottom: "10px",
+        // paddingLeft: "10px",
         // backgroundColor: "transparent",
       }}
       closeOnClick={false}
       closeButton={false}
     >
-      <div className="tw-w-full tw-h-[70px] tw-pb-[10px]">
-        {user.coverphoto !== "" ? (
+      <div className="tw-w-[calc(100%+20px)] tw--ml-[10px] tw--mt-[8px] tw-h-[100px] tw-pb-[10px]">
+        {user.coverphoto !== "none" ? (
           <CachedImage
             src={user.coverphoto}
-            className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-h-full"
+            className="tw-bg-black tw-max-h-full tw-max-w-full tw-w-full tw-h-full tw-object-cover"
           />
         ) : (
-          <div className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-h-full tw-rounded-[5px]" />
+          <div className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-h-full tw-rounded-t-[0px]" />
         )}
       </div>
       <div className="tw-p-[2px] tw-flex tw-w-full tw-gap-[10px]">

@@ -38,6 +38,7 @@ export interface ProfileUserInfoInterface {
     is_user_connection_initiator: boolean | null;
   };
   profile: string;
+  coverphoto: string;
   gender: string | null;
   email: string;
   dateCreated: {
