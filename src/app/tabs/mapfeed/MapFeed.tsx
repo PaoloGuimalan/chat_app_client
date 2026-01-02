@@ -14,6 +14,7 @@ import {
 import { useSelector } from "react-redux";
 import ProfilePopup from "./partials/ProfilePopup";
 import { FaLocationCrosshairs } from "react-icons/fa6";
+import { BsPersonCircle } from "react-icons/bs";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -33,6 +34,8 @@ function MapFeed() {
   const [followLocation, setFollowLocation] = useState<string | null>(
     authentication.user.userID
   );
+
+  const [toggleProfileView, settoggleProfileView] = useState<boolean>(false);
 
   const myLocation = useMemo<ICoordinatesAnchor | null>(() => {
     if (authentication.user.userID) {
@@ -147,8 +150,14 @@ function MapFeed() {
       pitch: 60,
       bearing: toFollowLocation.heading ? toFollowLocation.heading * 1 : -17.6,
       duration: 800,
+      padding: {
+        // left: 20,
+        right: toggleProfileView ? 200 : 0, // ✅ Marker LEFT side of screen
+        // top: 80,
+        // bottom: 250,
+      },
     });
-  }, [coordinates, toFollowLocation]);
+  }, [coordinates, toFollowLocation, toggleProfileView]);
 
   return (
     <Map
@@ -181,7 +190,9 @@ function MapFeed() {
       }}
       mapStyle="https://api.maptiler.com/maps/basic-v2-dark/style.json?key=AqtwgEiGiqzjVxuM07x4"
     >
-      <ProfilePopup coordinates={myLocation!} user={authentication.user} />
+      {toggleProfileView && (
+        <ProfilePopup coordinates={myLocation!} user={authentication.user} />
+      )}
 
       <Source
         id="gps-marker"
@@ -327,28 +338,43 @@ function MapFeed() {
         onTrackUserLocationStart={() => setFollowLocation(authentication.user.userID)}
         onTrackUserLocationEnd={() => setFollowLocation(null)}
       /> */}
-      <button
-        onClick={() =>
-          setFollowLocation((prev: string | null) => {
-            if (!prev) {
-              return authentication.user.userID;
-            }
+      <div className="tw-absolute tw-bottom-6 tw-right-6 tw-z-[1000] tw-flex tw-flex-col tw-gap-[5px]">
+        <button
+          onClick={() =>
+            setFollowLocation((prev: string | null) => {
+              if (!prev) {
+                return authentication.user.userID;
+              }
 
-            return null;
-          })
-        }
-        className="tw-cursor-pointer tw-absolute tw-bottom-6 tw-right-6 tw-z-[1000] tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-4 tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-        style={{ pointerEvents: "auto" }}
-      >
-        <FaLocationCrosshairs
-          style={{
-            color:
-              followLocation === authentication.user.userID
-                ? "#00ff88"
-                : "#ffaa00",
+              return null;
+            })
+          }
+          className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-4 tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+          style={{ pointerEvents: "auto" }}
+        >
+          <FaLocationCrosshairs
+            style={{
+              color:
+                followLocation === authentication.user.userID
+                  ? "#00ff88"
+                  : "#ffaa00",
+            }}
+          />
+        </button>
+        <button
+          onClick={() => {
+            settoggleProfileView(!toggleProfileView);
           }}
-        />
-      </button>
+          className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-4 tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+          style={{ pointerEvents: "auto" }}
+        >
+          <BsPersonCircle
+            style={{
+              color: toggleProfileView ? "#00ff88" : "#ffaa00",
+            }}
+          />
+        </button>
+      </div>
     </Map>
   );
 }
