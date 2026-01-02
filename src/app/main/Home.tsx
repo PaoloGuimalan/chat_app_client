@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import "../../styles/styles.css";
 import DefaultProfile from "../../assets/imgs/default.png";
 import { useDispatch, useSelector } from "react-redux";
@@ -54,6 +54,7 @@ import CallCollection from "../absolutes/calls/CallCollection";
 import { endSocket } from "../../reusables/hooks/sockets";
 import MapFeed from "../tabs/mapfeed/MapFeed";
 import Profile from "../tabs/profile/Profile";
+import { useLocation } from "react-router-dom";
 import {
   AuthenticationInterface,
   IPageModal,
@@ -66,6 +67,8 @@ import Settings from "../tabs/settings/Settings";
 import Modal from "../reusables/Modal";
 
 function Home() {
+  const location = useLocation();
+
   const togglerightwidget = useSelector(
     (state: any) => state.togglerightwidget
   );
@@ -79,6 +82,19 @@ function Home() {
   const minimizedconversation = useSelector(
     (state: any) => state.minimizedconversation
   );
+
+  const isMobileView = useMemo(
+    () => screensizelistener.W < 800,
+    [screensizelistener]
+  );
+
+  const currentPathname = location.pathname;
+
+  const isMapFeedMobileView = useMemo(() => {
+    const isMapView = currentPathname.includes("mapfeed");
+
+    return isMobileView && isMapView;
+  }, [isMobileView, currentPathname]);
 
   const notificationslist = useSelector(
     (state: any) => state.notificationslist
@@ -244,26 +260,40 @@ function Home() {
       <CallCollection />
       <div id="div_home_navigations" className="tw-z-[1] tw-border-[0px]">
         <div id="div_profile_search_container">
-          <motion.div
-            whileHover={{
-              backgroundColor: "#e6e6e6",
-            }}
-            onClick={() => {
-              if (screensizelistener.W <= 1100) {
-                navigate("/user");
-              } else {
-                navigate(`/${authentication.user.userID}`);
-              }
-            }}
-            id="img_profile_container"
-          >
-            <div id="img_default_profile_container">
-              <CachedImage src={DefaultProfile} id="img_default_profile" />
-            </div>
-            <span id="span_user_firstname_label">
-              {authentication.user.fullName.firstName}
-            </span>
-          </motion.div>
+          {isMapFeedMobileView ? (
+            <motion.button
+              whileHover={{
+                backgroundColor: "#e6e6e6",
+              }}
+              onClick={() => {
+                navigate("/");
+              }}
+              className="btn_navigations"
+            >
+              <AiOutlineHome style={{ fontSize: "25px", color: "#4A4A4A" }} />
+            </motion.button>
+          ) : (
+            <motion.div
+              whileHover={{
+                backgroundColor: "#e6e6e6",
+              }}
+              onClick={() => {
+                if (screensizelistener.W <= 1100) {
+                  navigate("/user");
+                } else {
+                  navigate(`/${authentication.user.userID}`);
+                }
+              }}
+              id="img_profile_container"
+            >
+              <div id="img_default_profile_container">
+                <CachedImage src={DefaultProfile} id="img_default_profile" />
+              </div>
+              <span id="span_user_firstname_label">
+                {authentication.user.fullName.firstName}
+              </span>
+            </motion.div>
+          )}
           <div id="div_search_container">
             <div id="div_input_container">
               <AiOutlineSearch style={{ fontSize: "20px", color: "#4A4A4A" }} />
@@ -287,118 +317,139 @@ function Home() {
               />
             </div>
           </div>
+          {isMapFeedMobileView && (
+            <motion.button
+              initial={{
+                color: "#4A4A4A",
+              }}
+              whileHover={{
+                backgroundColor: "#ff6675",
+                color: "white",
+              }}
+              onClick={() => {
+                logoutProcess();
+              }}
+              className="btn_navigations"
+            >
+              <AiOutlineLogout style={{ fontSize: "25px" }} />
+            </motion.button>
+          )}
         </div>
-        <div id="div_buttons_navigation">
-          <motion.button
-            whileHover={{
-              backgroundColor: "#e6e6e6",
-            }}
-            onClick={() => {
-              navigate("/");
-            }}
-            className="btn_navigations"
-          >
-            <AiOutlineHome style={{ fontSize: "25px", color: "#4A4A4A" }} />
-          </motion.button>
-          <motion.button
-            whileHover={{
-              backgroundColor: "#e6e6e6",
-            }}
-            onClick={() => {
-              navigate("/mapfeed");
-            }}
-            className="btn_navigations"
-          >
-            <FiMap style={{ fontSize: "22px", color: "#4A4A4A" }} />
-          </motion.button>
-          {screensizelistener.W <= 1100 && (
+        {!isMapFeedMobileView && (
+          <div id="div_buttons_navigation">
             <motion.button
               whileHover={{
                 backgroundColor: "#e6e6e6",
               }}
               onClick={() => {
-                navigate("/contacts");
+                navigate("/");
               }}
               className="btn_navigations"
             >
-              <RiContactsBook2Line
+              <AiOutlineHome style={{ fontSize: "25px", color: "#4A4A4A" }} />
+            </motion.button>
+            <motion.button
+              whileHover={{
+                backgroundColor: "#e6e6e6",
+              }}
+              onClick={() => {
+                navigate("/mapfeed");
+              }}
+              className="btn_navigations"
+            >
+              <FiMap style={{ fontSize: "22px", color: "#4A4A4A" }} />
+            </motion.button>
+            {screensizelistener.W <= 1100 && (
+              <motion.button
+                whileHover={{
+                  backgroundColor: "#e6e6e6",
+                }}
+                onClick={() => {
+                  navigate("/contacts");
+                }}
+                className="btn_navigations"
+              >
+                <RiContactsBook2Line
+                  style={{ fontSize: "25px", color: "#4A4A4A" }}
+                />
+              </motion.button>
+            )}
+            <motion.button
+              whileHover={{
+                backgroundColor: "#e6e6e6",
+              }}
+              onClick={() => {
+                if (screensizelistener.W <= 900) {
+                  dispatch({
+                    type: SET_CONVERSATION_SETUP,
+                    payload: {
+                      conversationsetup: conversationsetupstate,
+                    },
+                  });
+                  navigate("/messages");
+                } else {
+                  settogglerightwidget("messages");
+                }
+              }}
+              className="btn_navigations"
+            >
+              {messageslist.length > 0 &&
+                messageslist
+                  .map((msgs: any) => msgs.unread)
+                  .reduce((prev: any, next: any) => prev + next) > 0 && (
+                  <span className="span_icon_counts">
+                    {messageslist
+                      .map((msgs: any) => msgs.unread)
+                      .reduce((prev: any, next: any) => prev + next)}
+                  </span>
+                )}
+              <AiOutlineMessage
                 style={{ fontSize: "25px", color: "#4A4A4A" }}
               />
             </motion.button>
-          )}
-          <motion.button
-            whileHover={{
-              backgroundColor: "#e6e6e6",
-            }}
-            onClick={() => {
-              if (screensizelistener.W <= 900) {
-                dispatch({
-                  type: SET_CONVERSATION_SETUP,
-                  payload: {
-                    conversationsetup: conversationsetupstate,
-                  },
-                });
-                navigate("/messages");
-              } else {
-                settogglerightwidget("messages");
-              }
-            }}
-            className="btn_navigations"
-          >
-            {messageslist.length > 0 &&
-              messageslist
-                .map((msgs: any) => msgs.unread)
-                .reduce((prev: any, next: any) => prev + next) > 0 && (
+            <motion.button
+              whileHover={{
+                backgroundColor: "#e6e6e6",
+              }}
+              onClick={() => {
+                if (screensizelistener.W <= 900) {
+                  dispatch({
+                    type: SET_CONVERSATION_SETUP,
+                    payload: {
+                      conversationsetup: conversationsetupstate,
+                    },
+                  });
+                  navigate("/notifications");
+                } else {
+                  settogglerightwidget("notifs");
+                }
+              }}
+              className="btn_navigations"
+            >
+              {notificationslist.totalunread > 0 && (
                 <span className="span_icon_counts">
-                  {messageslist
-                    .map((msgs: any) => msgs.unread)
-                    .reduce((prev: any, next: any) => prev + next)}
+                  {notificationslist.totalunread}
                 </span>
               )}
-            <AiOutlineMessage style={{ fontSize: "25px", color: "#4A4A4A" }} />
-          </motion.button>
-          <motion.button
-            whileHover={{
-              backgroundColor: "#e6e6e6",
-            }}
-            onClick={() => {
-              if (screensizelistener.W <= 900) {
-                dispatch({
-                  type: SET_CONVERSATION_SETUP,
-                  payload: {
-                    conversationsetup: conversationsetupstate,
-                  },
-                });
-                navigate("/notifications");
-              } else {
-                settogglerightwidget("notifs");
-              }
-            }}
-            className="btn_navigations"
-          >
-            {notificationslist.totalunread > 0 && (
-              <span className="span_icon_counts">
-                {notificationslist.totalunread}
-              </span>
-            )}
-            <AiOutlineBell style={{ fontSize: "25px", color: "#4A4A4A" }} />
-          </motion.button>
-          <motion.button
-            initial={{
-              color: "#4A4A4A",
-            }}
-            whileHover={{
-              backgroundColor: "#ff6675",
-              color: "white",
-            }}
-            onClick={() => {
-              logoutProcess();
-            }}
-            className="btn_navigations"
-          >
-            <AiOutlineLogout style={{ fontSize: "25px" }} />
-          </motion.button>
-        </div>
+              <AiOutlineBell style={{ fontSize: "25px", color: "#4A4A4A" }} />
+            </motion.button>
+            <motion.button
+              initial={{
+                color: "#4A4A4A",
+              }}
+              whileHover={{
+                backgroundColor: "#ff6675",
+                color: "white",
+              }}
+              onClick={() => {
+                logoutProcess();
+              }}
+              className="btn_navigations"
+            >
+              <AiOutlineLogout style={{ fontSize: "25px" }} />
+            </motion.button>
+          </div>
+        )}
       </div>
       {searchBoxFocus && (
         <SearchMiniDrawer
