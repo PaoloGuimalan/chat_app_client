@@ -179,7 +179,7 @@ function MapFeed() {
       bearing: toFollowLocation.heading ? toFollowLocation.heading * 1 : -17.6,
       duration: 800,
       padding: {
-        left: toggleSpeed ? 100 : 0,
+        left: toggleSpeed ? 90 : 0,
         right: toggleProfileView ? 200 : 0, // ✅ Marker LEFT side of screen
         // top: 80,
         // bottom: 250,
