@@ -1156,7 +1156,7 @@ const GetPostRequest = async (params: any) => {
   const range = params.range;
 
   return await Axios.get(
-    `${USER_SERVICE_API}/api/newsfeed/profile/${userID}?page=${page}&page_size=${range}`,
+    `${USER_SERVICE_API}/api/newsfeed/profile/${userID}/?page=${page}&page_size=${range}`,
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
@@ -1430,7 +1430,7 @@ const GetFeedRequest = async (params: any) => {
   const page = params.page;
 
   return await Axios.get(
-    `${USER_SERVICE_API}/api/newsfeed/default?page=${page}&page_size=${range}`,
+    `${USER_SERVICE_API}/api/newsfeed/default/?page=${page}&page_size=${range}`,
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
@@ -1462,11 +1462,14 @@ const GetFeedEmojisRequest = async () => {
 const GetPostPreviewRequest = async (params: any) => {
   const postID = params.postID;
 
-  return await Axios.get(`${USER_SERVICE_API}/api/newsfeed/preview/${postID}`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
-    },
-  })
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/newsfeed/preview/${postID}/`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    }
+  )
     .then((response) => {
       return response.data;
     })
@@ -1501,7 +1504,7 @@ const ReactionSaveRequest = async (params: any) => {
 
 const GetReactionTotalRequest = async (post_id: string) => {
   return await Axios.get(
-    `${USER_SERVICE_API}/api/newsfeed/total_reactions/${post_id}`,
+    `${USER_SERVICE_API}/api/newsfeed/total_reactions/${post_id}/`,
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
@@ -1599,14 +1602,11 @@ const LottieJSONRequest = async (url: string) => {
 
 const GetDiaryTotalRequest = async (params: any) => {
   const userID = params.userID;
-  return await Axios.get(
-    `${USER_SERVICE_API}/api/diary/total/${userID}`,
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
-    }
-  )
+  return await Axios.get(`${USER_SERVICE_API}/api/diary/total/${userID}/`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
     .then((response) => {
       return response.data;
     })
@@ -1665,5 +1665,5 @@ export {
   SaveCommentRequest,
   PublicServersListRequest,
   LottieJSONRequest,
-  GetDiaryTotalRequest
+  GetDiaryTotalRequest,
 };
