@@ -3,10 +3,14 @@ import { ReactNode, useState } from "react";
 
 const DynamicToggleSwitch = ({
   list,
+  mode,
+  setMode,
 }: {
-  list: { icon: ReactNode; label: string }[];
+  list: { icon: ReactNode; label: string; lottie: ReactNode }[];
+  mode: number;
+  setMode: (mode: number) => void;
 }) => {
-  const [currentSelection, setcurrentSelection] = useState<number>(0);
+  const [currentSelection, setcurrentSelection] = useState<number>(mode);
 
   const options = list;
 
@@ -16,8 +20,8 @@ const DynamicToggleSwitch = ({
 
   return (
     <div className="tw-p-[10px] tw--mt-[10px] tw-relative">
-      <div className="tw-bg-[#eaecef] tw-flex tw-justify-between tw-rounded-sm tw-min-h-[35px] tw-z-[2] tw-absolute tw-w-[calc(100%-20px)]"></div>
-      <div className="tw-bg-transparent tw-flex tw-justify-between tw-rounded-sm tw-min-h-[35px] tw-z-[10] tw-absolute tw-w-[calc(100%-20px)]">
+      <div className="tw-bg-[#eaecef] tw-flex tw-justify-between tw-rounded-md tw-min-h-[35px] tw-z-[2] tw-absolute tw-w-[calc(100%-20px)]"></div>
+      <div className="tw-bg-transparent tw-flex tw-justify-between tw-rounded-md tw-min-h-[35px] tw-z-[10] tw-absolute tw-w-[calc(100%-20px)]">
         {options.map((mp: { icon: ReactNode; label: string }, i: number) => {
           return (
             <button
@@ -25,6 +29,11 @@ const DynamicToggleSwitch = ({
               className="tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-none tw-bg-transparent tw-h-[35px]"
               onClick={() => {
                 setcurrentSelection(
+                  options.findIndex(
+                    (ind: { icon: ReactNode; label: string }) => ind === mp
+                  )
+                );
+                setMode(
                   options.findIndex(
                     (ind: { icon: ReactNode; label: string }) => ind === mp
                   )
@@ -42,7 +51,7 @@ const DynamicToggleSwitch = ({
           );
         })}
       </div>
-      <div className="tw-bg-transparent tw-flex tw-justify-between tw-rounded-sm tw-min-h-[35px] tw-absolute tw-top-[10px] tw-w-[calc(100%-20px)] tw-z-[5]">
+      <div className="tw-bg-transparent tw-flex tw-justify-between tw-rounded-md tw-min-h-[35px] tw-absolute tw-top-[10px] tw-w-[calc(100%-20px)] tw-z-[5]">
         {Array.from({ length: leftMargin }).map((__, i: number) => {
           return (
             <motion.button
@@ -53,11 +62,11 @@ const DynamicToggleSwitch = ({
               animate={{
                 flex: 1,
               }}
-              className="tw-flex tw-justify-center tw-items-center tw-border-none tw-transparent tw-h-[35px] tw-rounded-sm"
+              className="tw-flex tw-justify-center tw-items-center tw-border-none tw-transparent tw-h-[35px] tw-rounded-md"
             ></motion.button>
           );
         })}
-        <button className="tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-none tw-bg-[#99a3b2] tw-h-[35px] tw-rounded-sm"></button>
+        <button className="tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-none tw-bg-[#99a3b2] tw-h-[35px] tw-rounded-md"></button>
         {Array.from({ length: rightMargin }).map((__, i: number) => {
           return (
             <motion.button
@@ -68,7 +77,7 @@ const DynamicToggleSwitch = ({
               animate={{
                 flex: 1,
               }}
-              className="tw-flex tw-justify-center tw-items-center tw-border-none tw-transparent tw-h-[35px] tw-rounded-sm"
+              className="tw-flex tw-justify-center tw-items-center tw-border-none tw-transparent tw-h-[35px] tw-rounded-md"
             ></motion.button>
           );
         })}

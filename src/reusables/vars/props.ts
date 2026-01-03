@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   ConversationInfoInterface,
+  ICoordinatesAnchor,
   ServerChannelsListInterface,
 } from "./interfaces";
 
@@ -65,6 +66,11 @@ export interface ProfilePopupProp {
     profile: string;
     coverphoto: string;
   };
+}
+
+export interface SpeedPopupProp {
+  coordinates: ICoordinatesAnchor;
+  maxSpeed: number;
 }
 
 export interface CachedImageProp {

@@ -25,6 +25,11 @@ import { BsPersonCircle } from "react-icons/bs";
 import DynamicToggleSwitch from "@/app/reusables/togglers/DynamicToggleSwitch";
 import { FaWalking } from "react-icons/fa";
 import { MdCardTravel } from "react-icons/md";
+import { SlSpeedometer } from "react-icons/sl";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import WalkingLottie from "../../../assets/lotties/walking-lottie.json";
+import SuitCaseLottie from "../../../assets/lotties/suitcase-lottie.json";
+import SpeedPopup from "./partials/SpeedPopup";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -57,6 +62,8 @@ function MapFeed() {
   const [toggleProfileView, settoggleProfileView] = useState<boolean>(false);
 
   const [toggleLevel, settoggleLevel] = useState<number>(0);
+
+  const [toggleSpeed, settoggleSpeed] = useState<boolean>(false);
 
   const myLocation = useMemo<ICoordinatesAnchor | null>(() => {
     if (authentication.user.userID) {
@@ -172,28 +179,100 @@ function MapFeed() {
       bearing: toFollowLocation.heading ? toFollowLocation.heading * 1 : -17.6,
       duration: 800,
       padding: {
-        // left: 20,
+        left: toggleSpeed ? 100 : 0,
         right: toggleProfileView ? 200 : 0, // ✅ Marker LEFT side of screen
         // top: 80,
         // bottom: 250,
       },
     });
-  }, [coordinates, toFollowLocation, toggleProfileView]);
+  }, [coordinates, toFollowLocation, toggleProfileView, toggleSpeed]);
 
   const toggleLevelHeight = ["80px", "40%", "calc(100% - 100px)"];
+
+  const [currentMode, setcurrentMode] = useState<number>(0);
 
   const toggleSwitchOptions = [
     {
       icon: <FaWalking size={12} />,
       label: "Casual",
+      lottie: (
+        <div className="tw-w-[30px]">
+          <DotLottieReact
+            // src={mp.animated_preview!}
+            data={WalkingLottie}
+            loop
+            autoplay
+            width={30}
+            height={27}
+            style={{
+              width: "auto",
+              height: "100%",
+              marginRight: "-5px",
+            }}
+            renderConfig={{
+              devicePixelRatio: 2,
+              autoResize: true,
+            }}
+            useFrameInterpolation
+          />
+        </div>
+      ),
+      items: [],
     },
     {
       icon: <MdCardTravel size={13} style={{ marginBottom: "-2px" }} />,
       label: "Travel",
+      lottie: (
+        <div className="tw-w-[30px]">
+          <DotLottieReact
+            // src={mp.animated_preview!}
+            data={SuitCaseLottie}
+            loop
+            autoplay
+            width={20}
+            height={15}
+            style={{
+              width: "auto",
+              height: "100%",
+            }}
+            renderConfig={{
+              devicePixelRatio: 2,
+              autoResize: true,
+            }}
+            useFrameInterpolation
+          />
+        </div>
+      ),
+      items: [],
     },
     {
       icon: <GiCarWheel size={14} style={{ marginBottom: "-2px" }} />,
       label: "Driving",
+      lottie: (
+        <div className="tw-w-[30px]">
+          <motion.div
+            animate={{
+              rotate: 360,
+            }}
+            transition={{
+              duration: 1,
+              repeat: Infinity,
+            }}
+            className="tw-w-[30px] tw-h-[30px] tw-flex tw-items-center tw-justify-center tw-rounded-full"
+          >
+            <GiCarWheel size={25} />
+          </motion.div>
+        </div>
+      ),
+      items: [
+        {
+          label: "Speed",
+          icon: <SlSpeedometer size={50} />,
+          click: () => {
+            settoggleSpeed((prev) => !prev);
+          },
+        },
+      ],
     },
   ];
 
@@ -231,6 +310,8 @@ function MapFeed() {
       {toggleProfileView && (
         <ProfilePopup coordinates={myLocation!} user={authentication.user} />
       )}
+
+      {toggleSpeed && <SpeedPopup coordinates={myLocation!} maxSpeed={200} />}
 
       <Source
         id="gps-marker"
@@ -424,7 +505,7 @@ function MapFeed() {
             width: isMobileView ? "100%" : "300px",
             height: toggleLevelHeight[toggleLevel],
           }}
-          className="tw-bg-white tw-absolute tw-bottom-0 tw-z-[10] tw-rounded-t-xl"
+          className="tw-bg-white tw-absolute tw-bottom-0 tw-z-[10] tw-rounded-t-xl tw-flex tw-flex-col"
         >
           <div className="tw-w-full tw-bg-transparent tw-flex tw-gap-[5px] tw-justify-center tw--mt-[20px]">
             <button
@@ -463,21 +544,39 @@ function MapFeed() {
           </div>
           <div className="tw-w-full tw-flex tw-flex-col">
             {toggleLevel > 0 && (
-              <DynamicToggleSwitch list={toggleSwitchOptions} />
+              <DynamicToggleSwitch
+                list={toggleSwitchOptions}
+                mode={currentMode}
+                setMode={(mode: number) => {
+                  setcurrentMode(mode);
+                }}
+              />
             )}
             <motion.div
               initial={{
-                marginTop: "-5px",
+                marginTop: "-10px",
+                backgroundColor: "transparent",
+                width: "calc(100% - 20px)",
+                marginRight: "0px",
+                marginLeft: "0px",
               }}
               animate={{
-                marginTop: toggleLevel > 0 ? "35px" : "-5px",
+                marginTop: toggleLevel > 0 ? "35px" : "-10px",
+                backgroundColor: toggleLevel > 0 ? "#eaecef" : "transparent",
+                width:
+                  toggleLevel > 0 ? "calc(100% - 40px)" : "calc(100% - 20px)",
+                marginRight: toggleLevel > 0 ? "10px" : "0px",
+                marginLeft: toggleLevel > 0 ? "10px" : "0px",
               }}
-              className="tw-w-[calc(100%-20px)] tw-transparent tw-p-[10px] tw-pt-0"
+              className="tw-p-[10px] tw-mb-[10px] tw-flex tw-justify-center tw-rounded-xl"
             >
+              {/* {toggleLevel > 0 && (
+                <hr className="tw-w-full tw-border-[#ffffff] tw--mt-[2px]" />
+              )} */}
               <motion.div
                 initial={{ justifyItems: "left", gap: "5px" }}
                 animate={{
-                  justifyContent: toggleLevel > 0 ? "center" : "left",
+                  justifyContent: "left",
                   gap: toggleLevel > 0 ? "7px" : "5px",
                 }}
                 className="tw-w-full tw-bg-transparent tw-flex"
@@ -548,24 +647,122 @@ function MapFeed() {
                     {toggleProfileView ? "Hide" : "Show"} Profile
                   </motion.span>
                 </div>
-                <motion.div
-                  initial={{
-                    width: "0px",
-                    flex: 0,
-                  }}
-                  animate={{
-                    width: toggleLevel > 0 ? "auto" : "0px",
-                    flex: toggleLevel > 0 ? 0 : 1,
-                  }}
-                  className="tw-flex tw-h-[35px] tw-items-center tw-justify-end tw-overflow-hidden"
-                >
-                  <span className="tw-text-[12px] tw-font-semibold tw-font-Inter">
-                    Debug Mode
-                  </span>
+                {/* Testing Items */}
+                {/* <div className="tw-flex tw-gap-[5px] tw-items-center">
+                  <button
+                    onClick={() => {
+                      settoggleProfileView(!toggleProfileView);
+                    }}
+                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <BsPersonCircle
+                      size={15}
+                      style={{
+                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
+                      }}
+                    />
+                  </button>
+                  <motion.span
+                    initial={{
+                      width: "0px",
+                    }}
+                    animate={{
+                      width: toggleLevel > 0 ? "auto" : "0px",
+                    }}
+                    className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
+                  >
+                    {toggleProfileView ? "Hide" : "Show"} Profile
+                  </motion.span>
+                </div>
+                <div className="tw-flex tw-gap-[5px] tw-items-center">
+                  <button
+                    onClick={() => {
+                      settoggleProfileView(!toggleProfileView);
+                    }}
+                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <BsPersonCircle
+                      size={15}
+                      style={{
+                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
+                      }}
+                    />
+                  </button>
+                  <motion.span
+                    initial={{
+                      width: "0px",
+                    }}
+                    animate={{
+                      width: toggleLevel > 0 ? "auto" : "0px",
+                    }}
+                    className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
+                  >
+                    {toggleProfileView ? "Hide" : "Show"} Profile
+                  </motion.span>
+                </div> */}
+                {/* END: Testing Items */}
+                <motion.div className="tw-flex tw-flex-1 tw-h-[35px] tw-items-center tw-justify-end tw-overflow-hidden">
+                  <motion.div className="tw-text-[12px] tw-font-semibold tw-font-Inter tw-overflow-hidden tw-text-right tw-whitespace-nowrap tw-flex tw-justify-end">
+                    {toggleSwitchOptions[currentMode].lottie}
+                  </motion.div>
+                  <motion.div
+                    initial={{
+                      width: "0px",
+                    }}
+                    animate={{
+                      width: toggleLevel > 0 ? "0px" : "auto",
+                    }}
+                    className="tw-text-[12px] tw-font-semibold tw-font-Inter tw-overflow-hidden tw-text-right tw-whitespace-nowrap"
+                  >
+                    {toggleSwitchOptions[currentMode].label} Mode
+                  </motion.div>
                 </motion.div>
               </motion.div>
+              {/* {toggleLevel > 0 && (
+                <hr className="tw-w-full tw-border-[#ffffff] tw-mb-[0px]" />
+              )} */}
             </motion.div>
           </div>
+          <motion.div
+            initial={{
+              flex: toggleLevel > 0 ? 1 : 0,
+              // minHeight: toggleLevel > 0 ? "none" : "0px",
+            }}
+            animate={{
+              flex: toggleLevel > 0 ? 1 : 0,
+              // minHeight: toggleLevel > 0 ? "none" : "0px",
+            }}
+            className="tw-w-[calc(100%-20px)] tw-max-h-[195px] tw-flex tw-flex-col tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-hidden"
+          >
+            <motion.div
+              initial={{
+                height: toggleLevel > 0 ? "100%" : "0px",
+              }}
+              animate={{
+                height: toggleLevel > 0 ? "100%" : "0px",
+              }}
+              className="tw-bg-[#eaecef] tw-w-full tw-rounded-md tw-overflow-hidden tw-flex"
+            >
+              <div className="tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex">
+                {toggleSwitchOptions[currentMode].items.map((mp, i: number) => {
+                  return (
+                    <button
+                      key={i}
+                      className="tw-w-[100px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
+                      onClick={mp.click}
+                    >
+                      {mp.icon}
+                      <span className="tw-text-[12px] tw-font-Inter">
+                        {mp.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
         </motion.div>
       )}
     </Map>

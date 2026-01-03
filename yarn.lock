@@ -10405,6 +10405,14 @@ react-scripts@5.0.1:
   optionalDependencies:
     fsevents "^2.3.2"
 
+react-semicircle-progressbar@^1.1.0:
+  version "1.1.0"
+  resolved "https://registry.yarnpkg.com/react-semicircle-progressbar/-/react-semicircle-progressbar-1.1.0.tgz#495a28cc9687e9ab6fda34b99a714b0f976d2789"
+  integrity sha512-OJ7XXkQrEL+q3Ja7zIOCP0CuOQyZMq/JTAaHcSFtJWJPtqkfU8mFos8PO5f+ZChWMNI5xomAE5LTcom6n52umg==
+  dependencies:
+    react "^18.2.0"
+    react-dom "^18.2.0"
+
 react-slider@^2.0.6:
   version "2.0.6"
   resolved "https://registry.yarnpkg.com/react-slider/-/react-slider-2.0.6.tgz#8c7ff0301211f7c3ff32aa0163b33bdab6258559"
