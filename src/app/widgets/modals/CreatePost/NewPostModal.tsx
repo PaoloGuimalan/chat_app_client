@@ -15,7 +15,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { BiSolidImageAdd } from "react-icons/bi";
 import { PiShareFat } from "react-icons/pi";
-import PostItem from "@/app/tabs/profile/PostItem";
+import PostItem from "@/app/tabs/profile/user/PostItem";
 
 export function NewPostModal({
   toShare,

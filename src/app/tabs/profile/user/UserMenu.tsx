@@ -3,7 +3,7 @@ import AppMenu from "@/app/widgets/desktopwidgets/AppMenu";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { BsPersonFill } from "react-icons/bs";
 import { useSelector } from "react-redux";
-import DefaultProfile from "../../../assets/imgs/default.png";
+import DefaultProfile from "../../../../assets/imgs/default.png";
 import { useNavigate } from "react-router-dom";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 

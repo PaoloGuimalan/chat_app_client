@@ -53,18 +53,18 @@ import DesktopHome from "./DesktopHome";
 import CallCollection from "../absolutes/calls/CallCollection";
 import { endSocket } from "../../reusables/hooks/sockets";
 import MapFeed from "../tabs/mapfeed/MapFeed";
-import Profile from "../tabs/profile/Profile";
 import { useLocation } from "react-router-dom";
 import {
   AuthenticationInterface,
   IPageModal,
 } from "@/reusables/vars/interfaces";
 import Servers from "../tabs/servers/Servers";
-import UserMenu from "../tabs/profile/UserMenu";
+import UserMenu from "../tabs/profile/user/UserMenu";
 import Conversation from "../tabs/messenger/Conversation";
 import CachedImage from "../reusables/cachers/CachedImage";
 import Settings from "../tabs/settings/Settings";
 import Modal from "../reusables/Modal";
+import ProfileContainer from "../tabs/profile/ProfileContainer";
 
 function Home() {
   const location = useLocation();
@@ -489,7 +489,7 @@ function Home() {
           path="/"
           element={<DesktopHome togglerightwidget={togglerightwidget} />}
         />
-        <Route path="/:userID" element={<Profile />} />
+        <Route path="/:userID/*" element={<ProfileContainer />} />
         <Route path="/settings" element={<Settings isModal={false} />} />
         <Route
           path="/user"

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React from 'react'
 import { useEffect, useMemo, useRef, useState } from "react";
-import DefaultProfile from "../../../assets/imgs/default.png";
+import DefaultProfile from "../../../../assets/imgs/default.png";
 import { BiLike } from "react-icons/bi";
 import { LiaComment } from "react-icons/lia";
 import { PiShareFat } from "react-icons/pi";

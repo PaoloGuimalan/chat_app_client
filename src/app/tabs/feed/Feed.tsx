@@ -7,7 +7,7 @@ import { FcAddImage } from "react-icons/fc";
 // import ChatterLoopImg from "../../../assets/imgs/chatterloop.png";
 import { useEffect, useRef, useState } from "react";
 import { GetFeedRequest } from "@/reusables/hooks/requests";
-import PostItem from "../profile/PostItem";
+import PostItem from "../profile/user/PostItem";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { postsliststate } from "@/redux/actions/states";

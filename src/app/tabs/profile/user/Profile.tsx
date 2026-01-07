@@ -9,7 +9,7 @@ import {
 } from "@/reusables/vars/interfaces";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import DefaultProfile from "../../../assets/imgs/default.png";
+import DefaultProfile from "../../../../assets/imgs/default.png";
 import { IoArrowBack } from "react-icons/io5";
 import { TfiThought } from "react-icons/tfi";
 import { useEffect, useRef, useState } from "react";
