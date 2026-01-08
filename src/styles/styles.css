@@ -3401,6 +3401,30 @@ input:checked + .slider:before {
   /* display: none; */
 }
 
+.my-editor-wrapper .ql-toolbar.ql-snow {
+  border-top-left-radius: 10px; /* Adjust the radius as needed */
+  border-top-right-radius: 10px; /* Adjust the radius as needed */
+  border-left: none; /* Remove left border */
+  border-right: none; /* Remove right border */
+  border-top: none; /* Remove top border if present */
+  border-bottom: 1px solid #ccc; /* Optional: keep a bottom border for separation */
+}
+
+.my-editor-wrapper .ql-container.ql-snow {
+  border-bottom-left-radius: 10px; /* Adjust the radius as needed */
+  border-bottom-right-radius: 10px; /* Adjust the radius as needed */
+  border-left: none; /* Remove left border */
+  border-right: none; /* Remove right border */
+  border-bottom: none; /* Remove bottom border if present */
+  min-height: 200px; /* Optional: set a minimum height for the editor */
+}
+
+/* Optional: remove borders completely from both container and toolbar */
+.my-editor-wrapper .ql-container.ql-snow,
+.my-editor-wrapper .ql-toolbar.ql-snow {
+  border: none !important;
+}
+
 @media screen and (max-width: 600px) {
   #div_searchminidrawer {
     top: 115px;
