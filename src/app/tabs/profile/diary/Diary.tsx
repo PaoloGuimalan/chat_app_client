@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { AiOutlineHome } from "react-icons/ai";
+import { AiOutlineHome, AiOutlineSearch } from "react-icons/ai";
 import { IoArrowBack } from "react-icons/io5";
 import { useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
@@ -12,6 +12,7 @@ import {motion} from 'framer-motion';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
 import { FaPen } from "react-icons/fa6";
+import { FaSave } from "react-icons/fa";
 
 function Diary(){
     const authentication: AuthenticationInterface = useSelector(
@@ -45,7 +46,11 @@ function Diary(){
         [{ 'color': [] }, { 'background': [] }],
         [{ 'align': [] }],
         ['clean'],
-        ['link', 'image', 'video']
+        [
+            'link', 
+            // 'image', 
+            // 'video'
+        ]
     ];
 
     const modules = {
@@ -54,7 +59,7 @@ function Diary(){
 
     return(
         <div
-            className="tw-bg-[#d8d8da] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll"
+            className="tw-bg-[#d8d8da] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-hidden x-scroll"
         >
             <div className="tw-flex tw-items-center tw-gap-[5px] tw-pt-[10px] tw-pl-[20px] tw-pr-[20px] sm:tw-left-[20px] tw-w-[calc(100%-40px)] tw-h-full tw-max-h-[50px]">
                 <button
@@ -76,7 +81,7 @@ function Diary(){
                 <TypeAnimation
                     sequence={[
                         // Same substring at the start will only be typed out once, initially
-                        'Chaterloop Diary 🖊️',
+                        'Chatterloop Diary 🖊️',
                         1000, // wait 1s before replacing "Mice" with "Hamsters"
                         'Your Untold Stories 📖',
                         1000,
@@ -88,7 +93,7 @@ function Diary(){
                         1000,
                         "Unless you Share it 😉",
                         1000,
-                        'Chaterloop Diary 🖊️',
+                        'Chatterloop Diary 🖊️',
                         1000,
                     ]}
                     preRenderFirstString={false}
@@ -112,7 +117,7 @@ function Diary(){
                     )}
                 </div>
             </div>
-            <div className={`tw-h-[calc(100%-30px)] tw-flex tw-items-end tw-pb-[15px] ${isMobileView ? "tw-pl-[10px] tw-pr-[10px] tw-w-[calc(100%-20px)]" : "tw-w-[calc(100%-40px)]"} tw-pt-[10px]`}>
+            <div className={`tw-h-[calc(100%-90px)] tw-flex tw-items-end tw-pb-[15px] ${isMobileView ? "tw-pl-[10px] tw-pr-[10px] tw-w-[calc(100%-20px)]" : "tw-w-[calc(100%-40px)]"} tw-pt-[10px]`}>
                 <div className={`tw-bg-transparent ${isMobileView ? "tw-gap-[0px]" : "tw-gap-[7px]"} tw-w-full tw-h-full tw-rounded-xl tw-flex`}>
                     <motion.div 
                     initial={{
@@ -123,10 +128,10 @@ function Diary(){
                         flex: isMobileView ? entry_id !== null || entry_id === "new" ? 0 : 1 : 1,
                         maxWidth: isMobileView ? entry_id !== null || entry_id === "new" ? "0px" : "100%" : "350px"
                     }}
-                    className="tw-flex tw-flex-col tw-overflow-x-hidden tw-bg-white tw-rounded-[7px] tw-items-center">
-                        <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[18px] tw-pl-[20px] tw-pr-[20px] tw-items-center tw-justify-between">
+                    className="tw-flex tw-flex-col tw-overflow-x-hidden tw-overflow-y-scroll tw-bg-white tw-rounded-[7px] tw-items-center">
+                        <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[18px] tw-h-[30px] tw-pl-[20px] tw-pr-[20px] tw-items-center tw-justify-between">
                             <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-whitespace-nowrap">Your Entries</span>
-                            {isMobileView && (
+                            {(isMobileView || (entry_id !== null && entry_id !== "new")) && (
                                 <button
                                 onClick={() => {
                                     navigate(
@@ -140,11 +145,16 @@ function Diary(){
                             )}
                         </div>
                         <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
-                            <input
-                                id="input_gc_name"
-                                type="text"
-                                placeholder="Search an entry"
-                            />
+                            <div id="div_input_container">
+                                <AiOutlineSearch
+                                    style={{ fontSize: "20px", color: "#4A4A4A" }}
+                                />
+                                <input
+                                    id="input_gc_name"
+                                    type="text"
+                                    placeholder="Search an entry"
+                                />
+                            </div>
                         </div>
                     </motion.div>
                     <motion.div 
@@ -156,8 +166,8 @@ function Diary(){
                         flex: isMobileView ? entry_id !== null || entry_id === "new" ? 1 : 0 : 1,
                         maxWidth: isMobileView ? entry_id !== null || entry_id === "new" ? "100%" : "0px" : "none"
                     }}
-                    className="tw-flex tw-flex-col tw-gap-[15px] tw-overflow-x-hidden tw-bg-white tw-rounded-[7px] tw-items-center">
-                        <div className="tw-w-[calc(100%-40px)] tw-flex tw-items-center tw-gap-[2px] tw-p-[18px] tw-pb-[2px] tw-pl-[20px] tw-pr-[20px]">
+                    className="tw-flex tw-flex-col tw-gap-[15px] tw-overflow-x-hidden tw-overflow-y-scroll tw-bg-white tw-rounded-[7px] tw-items-center">
+                        <div className="tw-w-[calc(100%-40px)] tw-flex tw-items-center tw-h-[31px] tw-gap-[2px] tw-p-[18px] tw-pb-[2px] tw-pl-[20px] tw-pr-[20px]">
                             {isMobileView && (
                                 <button
                                     onClick={() => {
@@ -171,6 +181,13 @@ function Diary(){
                                 </button>
                             )}
                             <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">Create New Entry</span>
+                            <div className="tw-flex tw-flex-1 tw-justify-end">
+                                <button
+                                className="tw-cursor-pointer tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]">
+                                    <FaSave size={18} />
+                                    <span className="tw-text-[12px] tw-font-Inter tw-font-semibold">Save</span>
+                                </button>
+                            </div>
                         </div>
                         <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
                             <input
