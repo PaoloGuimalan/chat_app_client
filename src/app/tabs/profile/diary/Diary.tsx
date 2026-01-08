@@ -11,6 +11,7 @@ import { useMemo } from "react";
 import {motion} from 'framer-motion';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+import { FaPen } from "react-icons/fa6";
 
 function Diary(){
     const authentication: AuthenticationInterface = useSelector(
@@ -31,6 +32,25 @@ function Diary(){
     const entry_id = searchParams.get('entry_id');
 
     const navigate = useNavigate();
+
+    const toolbarOptions = [
+        [{ 'header': [1, 2, 3, 4, 5, 6, false] }],
+        [{ 'font': [] }],
+        ['bold', 'italic', 'underline', 'strike'],
+        ['blockquote', 'code-block'],
+        [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+        [{ 'script': 'sub'}, { 'script': 'super' }],
+        [{ 'indent': '-1'}, { 'indent': '+1' }],
+        [{ 'direction': 'rtl' }],
+        [{ 'color': [] }, { 'background': [] }],
+        [{ 'align': [] }],
+        ['clean'],
+        ['link', 'image', 'video']
+    ];
+
+    const modules = {
+        toolbar: toolbarOptions,
+    };
 
     return(
         <div
@@ -104,8 +124,20 @@ function Diary(){
                         maxWidth: isMobileView ? entry_id !== null || entry_id === "new" ? "0px" : "100%" : "350px"
                     }}
                     className="tw-flex tw-flex-col tw-overflow-x-hidden tw-bg-white tw-rounded-[7px] tw-items-center">
-                        <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[18px] tw-pl-[20px] tw-pr-[20px]">
+                        <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[18px] tw-pl-[20px] tw-pr-[20px] tw-items-center tw-justify-between">
                             <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-whitespace-nowrap">Your Entries</span>
+                            {isMobileView && (
+                                <button
+                                onClick={() => {
+                                    navigate(
+                                        `/${authentication.user.userID}/diary?entry_id=new`
+                                    );
+                                }}
+                                className="tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]">
+                                    <FaPen />
+                                    <span className="tw-text-[12px] tw-font-Inter tw-font-semibold">Write an Entry</span>
+                                </button>
+                            )}
                         </div>
                         <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
                             <input
@@ -125,7 +157,19 @@ function Diary(){
                         maxWidth: isMobileView ? entry_id !== null || entry_id === "new" ? "100%" : "0px" : "none"
                     }}
                     className="tw-flex tw-flex-col tw-gap-[15px] tw-overflow-x-hidden tw-bg-white tw-rounded-[7px] tw-items-center">
-                        <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[18px] tw-pb-[2px] tw-pl-[20px] tw-pr-[20px]">
+                        <div className="tw-w-[calc(100%-40px)] tw-flex tw-items-center tw-gap-[2px] tw-p-[18px] tw-pb-[2px] tw-pl-[20px] tw-pr-[20px]">
+                            {isMobileView && (
+                                <button
+                                    onClick={() => {
+                                        navigate(
+                                            `/${authentication.user.userID}/diary`
+                                        );
+                                    }}
+                                    className="tw-items-center tw-justify-center tw-border-none tw-bg-transparent tw-h-[40px] tw-w-[40px]"
+                                >
+                                    <IoArrowBack style={{ fontSize: "20px" }} />
+                                </button>
+                            )}
                             <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">Create New Entry</span>
                         </div>
                         <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
@@ -137,7 +181,7 @@ function Diary(){
                         </div>
                         <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
                             <div className="tw-w-full tw-min-h-[300px] tw-bg-[#eaecef] tw-rounded-[7px] my-editor-wrapper">
-                                <ReactQuill onChange={() => {}} className="tw-w-full tw-rounded-[7px] tw-h-[calc(100%-42px)]" />
+                                <ReactQuill modules={modules} onChange={() => {}} className="tw-w-full tw-rounded-[7px] tw-h-[calc(100%-42px)]" />
                             </div>
                         </div>
                     </motion.div>
