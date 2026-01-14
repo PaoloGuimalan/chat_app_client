@@ -1615,6 +1615,26 @@ const GetDiaryTotalRequest = async (params: any) => {
     });
 };
 
+const GetMoodListRequest = async (params: any) => {
+  const range = params.range;
+  const page = params.page;
+
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/diary/moods/?page=${page}&page_size=${range}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    }
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   AuthCheck,
   LoginRequest,
@@ -1666,4 +1686,5 @@ export {
   PublicServersListRequest,
   LottieJSONRequest,
   GetDiaryTotalRequest,
+  GetMoodListRequest,
 };

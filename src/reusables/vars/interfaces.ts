@@ -347,4 +347,11 @@ export interface IPageModal {
 export interface INewEntry {
   title: string;
   content: string;
+  mood: {
+    id: number;
+    value: number;
+    name: string;
+    emoji: string;
+    label: string;
+  } | null;
 }

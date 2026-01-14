@@ -1,4 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { GetMoodListRequest } from "@/reusables/hooks/requests";
 import {
   AuthenticationInterface,
   INewEntry,
@@ -11,6 +13,7 @@ import { MdImageNotSupported } from "react-icons/md";
 import ReactQuill from "react-quill";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
+import { AsyncPaginate } from "react-select-async-paginate";
 
 function NewEntry() {
   const authentication: AuthenticationInterface = useSelector(
@@ -54,6 +57,7 @@ function NewEntry() {
   const [newEntryData, setnewEntryData] = useState<INewEntry>({
     title: "",
     content: "",
+    mood: null,
   });
 
   const isNewEntryDataComplete = useMemo(() => {
@@ -65,6 +69,68 @@ function NewEntry() {
     }
     return false;
   }, [newEntryData]);
+
+  async function loadOptions(_: any, __: any, additional?: { page: any }) {
+    let options: any[] = [];
+    let hasMore: boolean = false;
+    const page = (additional?.page ?? 1) as number;
+    await GetMoodListRequest({ page: page, range: 10 }).then((value: any) => {
+      options = value.results.map((mp: any) => ({
+        ...mp,
+        label: `${mp.emoji} ${mp.name}`,
+        value: mp.id,
+      }));
+      hasMore = value.next ? true : false;
+    });
+
+    return {
+      options: options,
+      hasMore: hasMore,
+      additional: {
+        page: page + 1,
+      },
+    };
+  }
+
+  const customStyles = {
+    control: (base: any, _: any) => ({
+      ...base,
+      // Main selection box styles
+      borderRadius: "7px",
+      backgroundColor: "#eaecef",
+      cursor: "pointer",
+      border: "none",
+    }),
+
+    // Bonus: Single value inside selection
+    singleValue: (base: any, _: any) => ({
+      ...base,
+      color: "#1f2937",
+      fontWeight: 500,
+      backgroundColor: "#eaecef",
+    }),
+
+    menu: (base: any, _: any) => ({
+      ...base,
+      backgroundColor: "#eaecef",
+    }),
+
+    menuList: (base: any) => ({
+      ...base,
+      padding: 0,
+      maxHeight: "250px",
+      "::-webkit-scrollbar": {
+        width: "0.45rem",
+        height: "0.45rem",
+      },
+      "::-webkit-scrollbar-track": {
+        backgroundColor: "rgba(0, 0, 0, 0.123)",
+      },
+      "::-webkit-scrollbar-thumb": {
+        backgroundColor: "grey",
+      },
+    }),
+  };
 
   return (
     <div className="tw-flex tw-flex-col tw-gap-[15px] tw-h-auto tw-w-full tw-bg-white tw-rounded-[7px] tw-items-center">
@@ -93,9 +159,9 @@ function NewEntry() {
           )}
         </div>
       </div>
-      <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
+      <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
         <input
-          id="input_gc_name"
+          id="input_title_name"
           type="text"
           value={newEntryData.title}
           onChange={(event) => {
@@ -108,7 +174,51 @@ function NewEntry() {
           }}
           placeholder="Title"
         />
+        {!isMobileView && (
+          <AsyncPaginate
+            value={newEntryData.mood}
+            loadOptions={loadOptions}
+            onChange={(value: any) => {
+              setnewEntryData((prev: INewEntry) => {
+                return {
+                  ...prev,
+                  mood: value,
+                };
+              });
+            }}
+            additional={{
+              page: 1,
+            }}
+            isClearable={true}
+            placeholder="Select Mood"
+            styles={customStyles}
+            className="tw-w-[200px] tw-text-[12px] tw-font-Inter tw-text-left t-scroll"
+          />
+        )}
       </div>
+      {isMobileView && (
+        <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
+          <AsyncPaginate
+            value={newEntryData.mood}
+            loadOptions={loadOptions}
+            onChange={(value: any) => {
+              setnewEntryData((prev: INewEntry) => {
+                return {
+                  ...prev,
+                  mood: value,
+                };
+              });
+            }}
+            additional={{
+              page: 1,
+            }}
+            isClearable={true}
+            placeholder="Select Mood"
+            styles={customStyles}
+            className="tw-text-[12px] tw-font-Inter tw-text-left t-scroll tw-flex-1"
+          />
+        </div>
+      )}
       <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
         <div className="tw-w-full tw-min-h-[300px] tw-bg-[#eaecef] tw-rounded-[7px] my-editor-wrapper">
           <ReactQuill
