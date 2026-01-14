@@ -343,3 +343,8 @@ export interface IPageModal {
   name: string;
   component: ReactNode;
 }
+
+export interface INewEntry {
+  title: string;
+  content: string;
+}

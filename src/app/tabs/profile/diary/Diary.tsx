@@ -9,13 +9,10 @@ import { TypeAnimation } from "react-type-animation";
 import DefaultProfile from "../../../../assets/imgs/default.png";
 import { useMemo } from "react";
 import { motion } from "framer-motion";
-import ReactQuill from "react-quill";
 import "react-quill/dist/quill.snow.css";
 import { FaPen } from "react-icons/fa6";
-import { FaSave } from "react-icons/fa";
-import { BiSolidImageAdd } from "react-icons/bi";
-import { MdImageNotSupported } from "react-icons/md";
 import { TbBookOff } from "react-icons/tb";
+import NewEntry from "./NewEntry";
 
 function Diary() {
   const authentication: AuthenticationInterface = useSelector(
@@ -36,29 +33,6 @@ function Diary() {
   const entry_id = searchParams.get("entry_id");
 
   const navigate = useNavigate();
-
-  const toolbarOptions = [
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ font: [] }],
-    ["bold", "italic", "underline", "strike"],
-    ["blockquote", "code-block"],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ script: "sub" }, { script: "super" }],
-    [{ indent: "-1" }, { indent: "+1" }],
-    [{ direction: "rtl" }],
-    [{ color: [] }, { background: [] }],
-    [{ align: [] }],
-    ["clean"],
-    [
-      "link",
-      // 'image',
-      // 'video'
-    ],
-  ];
-
-  const modules = {
-    toolbar: toolbarOptions,
-  };
 
   return (
     <div className="tw-bg-[#d8d8da] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-hidden x-scroll">
@@ -235,62 +209,7 @@ function Diary() {
             }}
             className="tw-flex tw-flex-col tw-gap-[15px] tw-overflow-x-hidden tw-overflow-y-auto t-scroll tw-bg-white tw-rounded-[7px] tw-items-center"
           >
-            <div className="tw-w-[calc(100%-40px)] tw-flex tw-items-center tw-h-[31px] tw-gap-[2px] tw-p-[18px] tw-pb-[2px] tw-pl-[20px] tw-pr-[20px]">
-              {isMobileView && (
-                <button
-                  onClick={() => {
-                    navigate(`/${authentication.user.userID}/diary`);
-                  }}
-                  className="tw-items-center tw-justify-center tw-border-none tw-bg-transparent tw-h-[40px] tw-w-[40px]"
-                >
-                  <IoArrowBack style={{ fontSize: "20px" }} />
-                </button>
-              )}
-              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                Create New Entry
-              </span>
-              <div className="tw-flex tw-flex-1 tw-justify-end">
-                <button className="tw-cursor-pointer tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]">
-                  <FaSave size={18} />
-                  <span className="tw-text-[12px] tw-font-Inter tw-font-semibold">
-                    Save
-                  </span>
-                </button>
-              </div>
-            </div>
-            <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
-              <input id="input_gc_name" type="text" placeholder="Title" />
-            </div>
-            <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
-              <div className="tw-w-full tw-min-h-[300px] tw-bg-[#eaecef] tw-rounded-[7px] my-editor-wrapper">
-                <ReactQuill
-                  modules={modules}
-                  onChange={() => {}}
-                  className="tw-w-full tw-rounded-[7px] tw-h-[calc(100%-42px)]"
-                />
-              </div>
-            </div>
-            <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-flex-col tw-p-[10px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
-              <div className="tw-w-full tw-flex tw-items-center tw-justify-between">
-                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
-                  Attachments
-                </span>
-                <button className="tw-cursor-pointer tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]">
-                  <BiSolidImageAdd size={18} />
-                  <span className="tw-text-[12px] tw-font-Inter tw-font-semibold">
-                    Add Attachments
-                  </span>
-                </button>
-              </div>
-              <div className="tw-bg-[#f7f7f9] tw-w-full tw-flex tw-min-h-[300px] tw-rounded-[7px] tw-items-center tw-justify-center">
-                <div className="tw-flex tw-gap-[10px] tw-flex-col tw-items-center">
-                  <MdImageNotSupported size={70} color="#808080" />
-                  <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[#808080]">
-                    No Attachments Yet
-                  </span>
-                </div>
-              </div>
-            </div>
+            {(entry_id === null || entry_id === "new") && <NewEntry />}
           </motion.div>
         </div>
       </div>
