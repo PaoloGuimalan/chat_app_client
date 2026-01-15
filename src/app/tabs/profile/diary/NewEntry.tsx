@@ -1,6 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { GetMoodListRequest } from "@/reusables/hooks/requests";
+import {
+  GetMoodListRequest,
+  GetTagsListRequest,
+} from "@/reusables/hooks/requests";
 import {
   AuthenticationInterface,
   INewEntry,
@@ -58,6 +61,7 @@ function NewEntry() {
     title: "",
     content: "",
     mood: null,
+    tags: [],
   });
 
   const isNewEntryDataComplete = useMemo(() => {
@@ -82,6 +86,51 @@ function NewEntry() {
       }));
       hasMore = value.next ? true : false;
     });
+
+    return {
+      options: options,
+      hasMore: hasMore,
+      additional: {
+        page: page + 1,
+      },
+    };
+  }
+
+  async function tagsLoadOptions(
+    search: any,
+    __: any,
+    additional?: { page: any }
+  ) {
+    let options: any[] = [];
+    let hasMore: boolean = false;
+    const page = (additional?.page ?? 1) as number;
+    await GetTagsListRequest({ search, page: page, range: 10 }).then(
+      (value: any) => {
+        let pendingOptions: any[] = [];
+
+        if (page === 1 && value.results.is_new) {
+          pendingOptions.push({
+            id: Math.random(),
+            name: search,
+            label: search,
+            value: Math.random(),
+            is_new: true,
+          });
+        }
+
+        pendingOptions = pendingOptions.concat(
+          value.results.list.map((mp: any) => ({
+            ...mp,
+            label: mp.name,
+            value: mp.id,
+            is_new: false,
+          }))
+        );
+
+        options = pendingOptions;
+        hasMore = value.next ? true : false;
+      }
+    );
 
     return {
       options: options,
@@ -132,6 +181,8 @@ function NewEntry() {
     }),
   };
 
+  console.log(newEntryData);
+
   return (
     <div className="tw-flex tw-flex-col tw-gap-[15px] tw-h-auto tw-w-full tw-bg-white tw-rounded-[7px] tw-items-center">
       <div className="tw-w-[calc(100%-40px)] tw-flex tw-items-center tw-h-[31px] tw-gap-[2px] tw-p-[18px] tw-pb-[2px] tw-pl-[20px] tw-pr-[20px]">
@@ -176,6 +227,7 @@ function NewEntry() {
         />
         {!isMobileView && (
           <AsyncPaginate
+            isSearchable={false}
             value={newEntryData.mood}
             loadOptions={loadOptions}
             onChange={(value: any) => {
@@ -196,9 +248,10 @@ function NewEntry() {
           />
         )}
       </div>
-      {isMobileView && (
-        <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
+      <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
+        {isMobileView && (
           <AsyncPaginate
+            isSearchable={false}
             value={newEntryData.mood}
             loadOptions={loadOptions}
             onChange={(value: any) => {
@@ -217,8 +270,29 @@ function NewEntry() {
             styles={customStyles}
             className="tw-text-[12px] tw-font-Inter tw-text-left t-scroll tw-flex-1"
           />
-        </div>
-      )}
+        )}
+        <AsyncPaginate
+          isMulti
+          value={newEntryData.tags}
+          loadOptions={tagsLoadOptions}
+          debounceTimeout={1000}
+          onChange={(value: any) => {
+            setnewEntryData((prev: INewEntry) => {
+              return {
+                ...prev,
+                tags: value,
+              };
+            });
+          }}
+          additional={{
+            page: 1,
+          }}
+          isClearable={true}
+          placeholder="Select Tags"
+          styles={customStyles}
+          className="tw-text-[12px] tw-font-Inter tw-text-left t-scroll tw-flex-1"
+        />
+      </div>
       <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
         <div className="tw-w-full tw-min-h-[300px] tw-bg-[#eaecef] tw-rounded-[7px] my-editor-wrapper">
           <ReactQuill

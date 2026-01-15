@@ -1635,6 +1635,27 @@ const GetMoodListRequest = async (params: any) => {
     });
 };
 
+const GetTagsListRequest = async (params: any) => {
+  const search = params.search;
+  const range = params.range;
+  const page = params.page;
+
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/diary/tags/?search=${search}&page=${page}&page_size=${range}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    }
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   AuthCheck,
   LoginRequest,
@@ -1687,4 +1708,5 @@ export {
   LottieJSONRequest,
   GetDiaryTotalRequest,
   GetMoodListRequest,
+  GetTagsListRequest,
 };

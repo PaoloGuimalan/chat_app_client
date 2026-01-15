@@ -354,4 +354,11 @@ export interface INewEntry {
     emoji: string;
     label: string;
   } | null;
+  tags: {
+    id: number;
+    name: string;
+    label: string;
+    value: number;
+    is_new: boolean;
+  }[];
 }
