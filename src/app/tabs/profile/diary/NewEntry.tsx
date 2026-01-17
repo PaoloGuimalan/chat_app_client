@@ -19,6 +19,7 @@ import { useNavigate } from "react-router-dom";
 import { AsyncPaginate } from "react-select-async-paginate";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
+import CustomTagItem from "./CustomTagItem";
 
 function NewEntry() {
   const authentication: AuthenticationInterface = useSelector(
@@ -289,6 +290,9 @@ function NewEntry() {
                 tags: value,
               };
             });
+          }}
+          components={{
+            Option: CustomTagItem,
           }}
           additional={{
             page: 1,

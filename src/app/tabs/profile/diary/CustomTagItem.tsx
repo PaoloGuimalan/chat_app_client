@@ -1,0 +1,25 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { components } from "react-select";
+
+function CustomTagItem(props: any) {
+  const { data, ...rest } = props;
+
+  return (
+    <components.Option {...rest}>
+      <div className="tw-w-full tw-flex tw-flex-col tw-gap-[5px]">
+        <span
+          className={`tw-text-[12px] !tw-font-Inter ${
+            data.is_new && "tw-font-semibold"
+          }`}
+        >
+          {data.label}
+        </span>
+        {data.is_new && (
+          <span className="tw-text-[12px] !w-font-Inter">+ Add Tag</span>
+        )}
+      </div>
+    </components.Option>
+  );
+}
+
+export default CustomTagItem;
