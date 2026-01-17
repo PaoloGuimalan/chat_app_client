@@ -361,4 +361,6 @@ export interface INewEntry {
     value: number;
     is_new: boolean;
   }[];
+  entry_date: string | null;
+  is_private: boolean;
 }

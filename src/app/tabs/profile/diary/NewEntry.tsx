@@ -17,6 +17,8 @@ import ReactQuill from "react-quill";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { AsyncPaginate } from "react-select-async-paginate";
+import DatePicker from "react-datepicker";
+import "react-datepicker/dist/react-datepicker.css";
 
 function NewEntry() {
   const authentication: AuthenticationInterface = useSelector(
@@ -34,34 +36,40 @@ function NewEntry() {
 
   const navigate = useNavigate();
 
-  const toolbarOptions = [
-    [{ header: [1, 2, 3, 4, 5, 6, false] }],
-    [{ font: [] }],
-    ["bold", "italic", "underline", "strike"],
-    ["blockquote", "code-block"],
-    [{ list: "ordered" }, { list: "bullet" }],
-    [{ script: "sub" }, { script: "super" }],
-    [{ indent: "-1" }, { indent: "+1" }],
-    [{ direction: "rtl" }],
-    [{ color: [] }, { background: [] }],
-    [{ align: [] }],
-    ["clean"],
-    [
-      "link",
-      // 'image',
-      // 'video'
-    ],
-  ];
+  const toolbarOptions = useMemo(() => {
+    return [
+      [{ header: [1, 2, 3, 4, 5, 6, false] }],
+      [{ font: [] }],
+      ["bold", "italic", "underline", "strike"],
+      ["blockquote", "code-block"],
+      [{ list: "ordered" }, { list: "bullet" }],
+      [{ script: "sub" }, { script: "super" }],
+      [{ indent: "-1" }, { indent: "+1" }],
+      [{ direction: "rtl" }],
+      [{ color: [] }, { background: [] }],
+      [{ align: [] }],
+      ["clean"],
+      [
+        "link",
+        // 'image',
+        // 'video'
+      ],
+    ];
+  }, []);
 
-  const modules = {
-    toolbar: toolbarOptions,
-  };
+  const modules = useMemo(() => {
+    return {
+      toolbar: toolbarOptions,
+    };
+  }, [toolbarOptions]);
 
   const [newEntryData, setnewEntryData] = useState<INewEntry>({
     title: "",
     content: "",
     mood: null,
     tags: [],
+    entry_date: null,
+    is_private: true,
   });
 
   const isNewEntryDataComplete = useMemo(() => {
@@ -305,6 +313,66 @@ function NewEntry() {
               });
             }}
             className="tw-w-full tw-rounded-[7px] tw-h-[calc(100%-42px)]"
+          />
+        </div>
+      </div>
+      <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-flex-row tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
+        <div className="tw-flex tw-flex-1">
+          <DatePicker
+            selected={
+              newEntryData.entry_date ? new Date(newEntryData.entry_date) : null
+            }
+            onChange={(date: any) => {
+              const jsDate = new Date(date);
+              const isoString = jsDate.toISOString();
+              setnewEntryData((prev: INewEntry) => {
+                return {
+                  ...prev,
+                  entry_date: isoString,
+                };
+              });
+            }}
+            popperPlacement="bottom"
+            placeholderText="Select Entry Date"
+            dateFormat="MMMM d, yyyy"
+            id="input_entry_date"
+            className="tw-font-Inter"
+          />
+        </div>
+        <div className="tw-flex tw-flex-1">
+          <AsyncPaginate
+            isSearchable={false}
+            value={{
+              value: newEntryData.is_private,
+              label: newEntryData.is_private ? "Private" : "Public",
+            }}
+            loadOptions={() => {
+              return {
+                options: [
+                  {
+                    value: true,
+                    label: "Private",
+                  },
+                  {
+                    value: false,
+                    label: "Public",
+                  },
+                ],
+                hasMore: false,
+              };
+            }}
+            onChange={(value: any) => {
+              setnewEntryData((prev: INewEntry) => {
+                return {
+                  ...prev,
+                  is_private: value.value,
+                };
+              });
+            }}
+            isClearable={false}
+            placeholder="Select Privacy"
+            styles={customStyles}
+            className="tw-text-[12px] tw-font-Inter tw-text-left t-scroll tw-flex-1"
           />
         </div>
       </div>
