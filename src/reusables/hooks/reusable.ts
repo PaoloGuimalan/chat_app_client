@@ -68,7 +68,7 @@ function makeid(length: number) {
 
 function isUserOnline(state: any, userID: string) {
   const filteractiveusers = state.filter(
-    (flt: any) => flt.sessionStatus == true
+    (flt: any) => flt.sessionStatus == true,
   );
   const activeusersmapper = filteractiveusers.map((mp: any) => mp._id);
   if (activeusersmapper.includes(userID)) {
@@ -145,7 +145,7 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
     const twoDigit = (n: number) => (n < 10 ? "0" + n : n);
 
     return `${twoDigit(hours)}:${twoDigit(minutes)}:${twoDigit(
-      seconds
+      seconds,
     )} ${ampm}`;
   }
 
@@ -231,6 +231,58 @@ function monthNameToNumber(monthName: string) {
   return monthNumber;
 }
 
+const formatToDjangoDate = (date: any) => {
+  if (!date) return null;
+
+  // Get user's ACTUAL timezone offset (e.g., +0800 for PST)
+  const offsetMs = date.getTimezoneOffset() * 60000;
+  const offsetHours = Math.floor(Math.abs(offsetMs) / 3600000);
+  const offsetMinutes = Math.floor((Math.abs(offsetMs) % 3600000) / 60000);
+  const sign = offsetMs <= 0 ? "+" : "-";
+  const offsetStr = `${sign}${offsetHours.toString().padStart(2, "0")}${offsetMinutes.toString().padStart(2, "0")}`;
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  const ms = String(date.getMilliseconds()).padStart(3, "0");
+
+  return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms} ${offsetStr}`;
+};
+
+const parseDjangoDate = (djangoStr: any) => {
+  if (!djangoStr) return null;
+
+  try {
+    // Split: "2026-07-30 00:00:00.000 +0800"
+    const [datePart, timePartWithOffset] = djangoStr.split(" ");
+    const [year, month, day] = datePart.split("-").map(Number);
+
+    // Split time: "00:00:00.000" → remove timezone part
+    const timePart = timePartWithOffset.split(" ")[0];
+    const timeComponents = timePart.split(":");
+
+    const hours = parseInt(timeComponents[0]);
+    const minutes = parseInt(timeComponents[1]);
+    const secondsAndMs = timeComponents[2].split(".");
+    const seconds = parseInt(secondsAndMs[0]);
+    const ms = secondsAndMs[1] ? parseInt(secondsAndMs[1]) : 0;
+
+    // Create local Date object
+    const date = new Date(year, month - 1, day, hours, minutes, seconds, ms);
+
+    // Validate
+    if (isNaN(date.getTime())) return null;
+
+    return date;
+  } catch (error) {
+    console.error("Parse error:", error, djangoStr);
+    return null;
+  }
+};
+
 export {
   importData,
   importNonImageData,
@@ -243,4 +295,6 @@ export {
   convertLoginResponse,
   contactsToUserdetails,
   monthNameToNumber,
+  formatToDjangoDate,
+  parseDjangoDate,
 };

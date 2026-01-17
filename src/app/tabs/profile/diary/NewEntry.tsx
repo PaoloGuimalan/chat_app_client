@@ -3,6 +3,7 @@
 import {
   GetMoodListRequest,
   GetTagsListRequest,
+  PostNewEntryRequest,
 } from "@/reusables/hooks/requests";
 import {
   AuthenticationInterface,
@@ -20,6 +21,10 @@ import { AsyncPaginate } from "react-select-async-paginate";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomTagItem from "./CustomTagItem";
+import {
+  formatToDjangoDate,
+  parseDjangoDate,
+} from "@/reusables/hooks/reusable";
 
 function NewEntry() {
   const authentication: AuthenticationInterface = useSelector(
@@ -82,6 +87,24 @@ function NewEntry() {
     }
     return false;
   }, [newEntryData]);
+
+  const SaveNewEntry = () => {
+    const pendingNewEntry = newEntryData;
+
+    if (!pendingNewEntry.entry_date) {
+      const dateWrap = new Date();
+      const isoString = formatToDjangoDate(dateWrap);
+      pendingNewEntry.entry_date = isoString;
+    }
+
+    PostNewEntryRequest(pendingNewEntry)
+      .then((value) => {
+        console.log(value);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   async function loadOptions(_: any, __: any, additional?: { page: any }) {
     let options: any[] = [];
@@ -208,7 +231,10 @@ function NewEntry() {
         </span>
         <div className="tw-flex tw-flex-1 tw-justify-end">
           {isNewEntryDataComplete && (
-            <button className="tw-cursor-pointer tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]">
+            <button
+              onClick={SaveNewEntry}
+              className="tw-cursor-pointer tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]"
+            >
               <FaSave size={18} />
               <span className="tw-text-[12px] tw-font-Inter tw-font-semibold">
                 Save
@@ -324,11 +350,13 @@ function NewEntry() {
         <div className="tw-flex tw-flex-1">
           <DatePicker
             selected={
-              newEntryData.entry_date ? new Date(newEntryData.entry_date) : null
+              newEntryData.entry_date
+                ? parseDjangoDate(newEntryData.entry_date)
+                : null
             }
             onChange={(date: any) => {
-              const jsDate = new Date(date);
-              const isoString = jsDate.toISOString();
+              const dateWrap = new Date(date);
+              const isoString = formatToDjangoDate(dateWrap);
               setnewEntryData((prev: INewEntry) => {
                 return {
                   ...prev,

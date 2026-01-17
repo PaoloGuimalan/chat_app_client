@@ -17,7 +17,7 @@ import { Dispatch } from "react";
 import { convertLoginResponse } from "./reusable";
 import { ConvertedResponse } from "../vars/types";
 import { PaginationProp } from "../vars/props";
-import { IContact } from "../vars/interfaces";
+import { IContact, INewEntry } from "../vars/interfaces";
 import { removeNullsFromObject } from "./validatevariables";
 
 const API = import.meta.env.VITE_CHATTERLOOP_API;
@@ -85,7 +85,7 @@ const LoginRequest = (
   params: any,
   dispatch: Dispatch<any>,
   currentAlertState: any,
-  setisWaitingRequest: any
+  setisWaitingRequest: any,
 ) => {
   const payload = params;
   // const encodedPayload = sign(payload, SECRET);
@@ -164,7 +164,7 @@ const ThirdPartyAuthenticationRequest = (
   params: any,
   dispatch: Dispatch<any>,
   currentAlertState: any,
-  setisWaitingRequest: any
+  setisWaitingRequest: any,
 ) => {
   const payload = params;
   // const encodedPayload = sign(payload, SECRET);
@@ -243,7 +243,7 @@ const RegisterRequest = (
   params: any,
   dispatch: Dispatch<any>,
   currentAlertState: any,
-  setisWaitingRequest: any
+  setisWaitingRequest: any,
 ) => {
   const payload = params;
   // const encodedPayload = sign(payload, SECRET);
@@ -330,7 +330,7 @@ const VerifyCodeRequest = (
   dispatch: Dispatch<any>,
   currentState: any,
   currentAlertState: any,
-  setisWaitingRequest: any
+  setisWaitingRequest: any,
 ) => {
   const payload = params;
   // const encodedPayload = sign(payload, SECRET);
@@ -401,7 +401,7 @@ const SearchRequest = (
   dispatch: Dispatch<any>,
   setisLoading: any,
   currentAlertState: any,
-  setsearchresults: any
+  setsearchresults: any,
 ) => {
   const searchdata = params.searchdata;
 
@@ -411,7 +411,7 @@ const SearchRequest = (
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       setisLoading(false);
@@ -437,7 +437,7 @@ const ContactRequest = (
   params: any,
   dispatch: Dispatch<any>,
   currentAlertState: any,
-  setisDisabledByRequest: any
+  setisDisabledByRequest: any,
 ) => {
   const payload = params;
   // const encodedPayload = sign(payload, SECRET);
@@ -492,7 +492,7 @@ const DeclineContactRequest = (
   params: any,
   dispatch: Dispatch<any>,
   currentAlertState: any,
-  setisDisabledByRequest: any
+  setisDisabledByRequest: any,
 ) => {
   const payload = params;
   // const encodedPayload = sign(payload, SECRET);
@@ -539,7 +539,7 @@ const NotificationInitRequest = (
   page: number,
   range: number,
   dispatch: Dispatch<any>,
-  setisLoading: any
+  setisLoading: any,
 ) => {
   Axios.get(`${API}/u/getNotifications`, {
     headers: {
@@ -574,7 +574,7 @@ const NotificationOverrideRequest = (
   page: number,
   range: number,
   dispatch: Dispatch<any>,
-  setisLoading: any
+  setisLoading: any,
 ) => {
   Axios.get(`${API}/u/getNotifications`, {
     headers: {
@@ -613,7 +613,7 @@ const ReadNotificationsRequest = () => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       if (response.data.status) {
@@ -690,7 +690,7 @@ const AcceptContactRequest = (
   params: any,
   dispatch: Dispatch<any>,
   currentAlertState: any,
-  setisDisabledByRequest: any
+  setisDisabledByRequest: any,
 ) => {
   const payload = params;
   // const encodedPayload = sign(payload, SECRET);
@@ -747,7 +747,7 @@ const ContactsListInitRequest = (
   range: number,
   override: boolean,
   dispatch: Dispatch<any>,
-  setisLoading: any
+  setisLoading: any,
 ) => {
   // `${API}/u/getContacts`
   Axios.get(
@@ -756,7 +756,7 @@ const ContactsListInitRequest = (
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       const paginatedContacts: PaginationProp<IContact> = response.data;
@@ -815,7 +815,7 @@ const SendMessageRequest = (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       if (response.data.status) {
@@ -843,7 +843,7 @@ const SendFilesRequest = (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       if (response.data.status) {
@@ -894,7 +894,7 @@ const SeenMessageRequest = async (params: any) => {
         "x-access-token": localStorage.getItem("authtoken"),
         range: range || 20,
       },
-    }
+    },
   )
     .then((response) => {
       if (response.data.status) {
@@ -914,7 +914,7 @@ const InitConversationRequest = (
   dispatch: Dispatch<any>,
   settotalMessages: any,
   setisLoading: any,
-  scrollBottom: any
+  scrollBottom: any,
 ) => {
   const conversationID = params.conversationID;
   const page = params.page;
@@ -936,10 +936,10 @@ const InitConversationRequest = (
           const combinedList = [...decodedResult.messages.reverse(), ...prev];
           const uniqueById = combinedList.filter(
             (obj, index, self) =>
-              index === self.findIndex((t) => t._id === obj._id)
+              index === self.findIndex((t) => t._id === obj._id),
           );
           const sortedPostsDesc = uniqueById.sort((a, b) =>
-            b._id.localeCompare(a._id)
+            b._id.localeCompare(a._id),
           );
           return sortedPostsDesc;
         });
@@ -977,7 +977,7 @@ const CreateGroupChatRequest = (params: any, setisCreateGCToggle: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       if (response.data.status) {
@@ -1002,7 +1002,7 @@ const CreateServerRequest = (params: any, setisCreateGCToggle: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       if (response.data.status) {
@@ -1027,7 +1027,7 @@ const CallRequest = async (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       if (response.data.status) {
@@ -1077,7 +1077,7 @@ const RejectCallRequest = (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((_) => {
       //action when needed if success
@@ -1100,7 +1100,7 @@ const EndCallRequest = (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((_) => {
       //action when needed if success
@@ -1140,7 +1140,7 @@ const CreatePostRequest = async (payload: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response;
@@ -1161,7 +1161,7 @@ const GetPostRequest = async (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response.data;
@@ -1183,7 +1183,7 @@ const DeleteMessageRequest = async (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response;
@@ -1205,7 +1205,7 @@ const ReactToMessageRequest = async (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response;
@@ -1225,7 +1225,7 @@ const ConversationInfoRequest = async (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       if (response.data.status) {
@@ -1252,7 +1252,7 @@ const IsTypingBroadcastRequest = (payload: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       if (response.data.status) {
@@ -1276,7 +1276,7 @@ const AddNewMemberRequest = async (payload: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response;
@@ -1363,7 +1363,7 @@ const AddNewMemberToServer = async (payload: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response;
@@ -1386,7 +1386,7 @@ const CreateChannelRequest = (payloadprop: any, setisCreateGCToggle: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       if (response.data.status) {
@@ -1401,7 +1401,7 @@ const CreateChannelRequest = (payloadprop: any, setisCreateGCToggle: any) => {
 const GetMembersListInServer = (
   serverID: string,
   dispatch: any,
-  setisLoading: any
+  setisLoading: any,
 ) => {
   Axios.get(`${API}/s/getservermembers/${serverID}`, {
     headers: {
@@ -1435,7 +1435,7 @@ const GetFeedRequest = async (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response.data;
@@ -1468,7 +1468,7 @@ const GetPostPreviewRequest = async (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response.data;
@@ -1509,7 +1509,7 @@ const GetReactionTotalRequest = async (post_id: string) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response.data;
@@ -1523,7 +1523,7 @@ const GetCommentsRequest = async (
   post_id: string,
   parent_id: string | null,
   page: number = 1,
-  range: number = 20
+  range: number = 20,
 ) => {
   const url = parent_id
     ? `${USER_SERVICE_API}/api/newsfeed/comments?post_id=${post_id}&parent_id=${parent_id}&page=${page}&page_size=${range}`
@@ -1545,7 +1545,7 @@ const SaveCommentRequest = async (
   post_id: string,
   parent_id: string | null,
   new_comment: string,
-  new_attachment: string | null
+  new_attachment: string | null,
 ) => {
   const payload = {
     post_id,
@@ -1560,7 +1560,7 @@ const SaveCommentRequest = async (
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response.data;
@@ -1625,7 +1625,7 @@ const GetMoodListRequest = async (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
     .then((response) => {
       return response.data;
@@ -1646,8 +1646,22 @@ const GetTagsListRequest = async (params: any) => {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
-    }
+    },
   )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const PostNewEntryRequest = async (payload: INewEntry) => {
+  return await Axios.post(`${USER_SERVICE_API}/api/diary/entry/`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
     .then((response) => {
       return response.data;
     })
@@ -1709,4 +1723,5 @@ export {
   GetDiaryTotalRequest,
   GetMoodListRequest,
   GetTagsListRequest,
+  PostNewEntryRequest,
 };
