@@ -5,8 +5,8 @@ function CustomTagItem(props: any) {
   const { data, ...rest } = props;
 
   return (
-    <components.Option {...rest}>
-      <div className="tw-w-full tw-flex tw-flex-col tw-gap-[5px]">
+    <components.Option {...rest} className="tw-rounded-[7px]">
+      <div className="tw-w-full tw-flex tw-flex-col tw-gap-[5px] tw-rounded-[7px]">
         <span
           className={`tw-text-[12px] !tw-font-Inter ${
             data.is_new && "tw-font-semibold"

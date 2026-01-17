@@ -23,16 +23,16 @@ import CustomTagItem from "./CustomTagItem";
 
 function NewEntry() {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
 
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
 
   const isMobileView = useMemo(
     () => screensizelistener.W < 800,
-    [screensizelistener]
+    [screensizelistener],
   );
 
   const navigate = useNavigate();
@@ -108,7 +108,7 @@ function NewEntry() {
   async function tagsLoadOptions(
     search: any,
     __: any,
-    additional?: { page: any }
+    additional?: { page: any },
   ) {
     let options: any[] = [];
     let hasMore: boolean = false;
@@ -133,12 +133,12 @@ function NewEntry() {
             label: mp.name,
             value: mp.id,
             is_new: false,
-          }))
+          })),
         );
 
         options = pendingOptions;
         hasMore = value.next ? true : false;
-      }
+      },
     );
 
     return {
@@ -336,7 +336,7 @@ function NewEntry() {
                 };
               });
             }}
-            popperPlacement="bottom"
+            popperPlacement={isMobileView ? "bottom-end" : "bottom"}
             placeholderText="Select Entry Date"
             dateFormat="MMMM d, yyyy"
             id="input_entry_date"
