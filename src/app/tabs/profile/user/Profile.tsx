@@ -12,7 +12,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import DefaultProfile from "../../../../assets/imgs/default.png";
 import { IoArrowBack } from "react-icons/io5";
 import { TfiThought } from "react-icons/tfi";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import {
   AcceptContactRequest,
   ContactRequest,
@@ -50,10 +50,14 @@ import { HiOutlinePencil } from "react-icons/hi";
 
 function Profile() {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
+  );
+  const isMobileView = useMemo(
+    () => screensizelistener.W < 800,
+    [screensizelistener],
   );
   const alerts = useSelector((state: any) => state.alerts);
   const navigate = useNavigate();
@@ -178,7 +182,7 @@ function Profile() {
           alerts,
           (_: boolean) => {
             GetProfileInfoProcess();
-          }
+          },
         );
         break;
       case "remove":
@@ -192,7 +196,7 @@ function Profile() {
           alerts,
           (_: boolean) => {
             GetProfileInfoProcess();
-          }
+          },
         );
         break;
       case "accept":
@@ -205,7 +209,7 @@ function Profile() {
           alerts,
           (_: boolean) => {
             GetProfileInfoProcess();
-          }
+          },
         );
         break;
       case "decline":
@@ -219,7 +223,7 @@ function Profile() {
           alerts,
           (_: boolean) => {
             GetProfileInfoProcess();
-          }
+          },
         );
         break;
       case "cancel":
@@ -233,7 +237,7 @@ function Profile() {
           alerts,
           (_: boolean) => {
             GetProfileInfoProcess();
-          }
+          },
         );
         break;
       default:
@@ -260,12 +264,12 @@ function Profile() {
           const uniqueById = combinedList
             .filter(
               (obj, index, self) =>
-                index === self.findIndex((t) => t.post_id === obj.post_id)
+                index === self.findIndex((t) => t.post_id === obj.post_id),
             )
             .sort(
               (a: any, b: any) =>
                 new Date(b.date_posted).getTime() -
-                new Date(a.date_posted).getTime()
+                new Date(a.date_posted).getTime(),
             );
 
           return {
@@ -301,7 +305,7 @@ function Profile() {
   const navigateToConversation = (
     type: any,
     conversationID: any,
-    userdetails: any
+    userdetails: any,
   ) => {
     if (screensizelistener.W <= 1100) {
       if (type == "single") {
@@ -484,7 +488,7 @@ function Profile() {
                             navigateToConversation(
                               "single",
                               profileInfo.connection.connection_id,
-                              profileInfo
+                              profileInfo,
                             );
                           }}
                           className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
@@ -611,11 +615,11 @@ function Profile() {
                   <span className="tw-text-[14px] tw-font-semibold tw-text-left">
                     {profileInfo.birthdate
                       ? `${ordinal_suffix_of(
-                          parseInt(profileInfo.birthdate.day)
+                          parseInt(profileInfo.birthdate.day),
                         )} of 
                     ${profileInfo.birthdate.month} ${
-                          profileInfo.birthdate.year
-                        }`
+                      profileInfo.birthdate.year
+                    }`
                       : "not provided"}
                   </span>
                 </div>
@@ -649,7 +653,13 @@ function Profile() {
                   />
                   {diaryPreview.latest_entry ? (
                     <span className="tw-text-[14px]">
-                      Latest entry on {diaryPreview.latest_entry}
+                      Latest entry on{" "}
+                      <span className="tw-text-[14px] tw-font-semibold tw-text-left">
+                        {formattedDateToWords(
+                          diaryPreview.latest_entry,
+                          "YYYY-MM-DD",
+                        )}
+                      </span>
                     </span>
                   ) : params.userID === authentication.user.userID ? (
                     <span className="tw-text-[14px]">
@@ -667,25 +677,51 @@ function Profile() {
                       style={{ fontSize: "20px", color: "#666666" }}
                     />
                     <span className="tw-text-[14px]">
-                      {diaryPreview.total_entries} entries made{" "}
+                      {diaryPreview.total_entries}{" "}
+                      {diaryPreview.total_entries > 1 ? "entries" : "entry"}{" "}
+                      made{" "}
                     </span>
                   </div>
                 )}
                 {diaryPreview.top_tags.length > 0 && (
-                  <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
-                    <TfiThought
-                      style={{
-                        fontSize: "20px",
-                        color: "#666666",
-                        marginTop: "-4px",
+                  <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
+                    <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
+                      <TfiThought
+                        style={{
+                          fontSize: "20px",
+                          color: "#666666",
+                          marginTop: "-4px",
+                        }}
+                      />
+                      <span className="tw-text-[14px]">
+                        {params.userID === authentication.user.userID
+                          ? "You've"
+                          : `${profileInfo.fullname.firstName} has`}{" "}
+                        been writing a lot about:
+                      </span>
+                    </div>
+                    <motion.div
+                      initial={{
+                        paddingLeft: isMobileView ? "0px" : "20px",
                       }}
-                    />
-                    <span className="tw-text-[14px]">
-                      {params.userID === authentication.user.userID
-                        ? "You've"
-                        : `${profileInfo.fullname.firstName} has`}{" "}
-                      been writing a lot about:
-                    </span>
+                      animate={{
+                        paddingLeft: isMobileView ? "0px" : "20px",
+                      }}
+                      className="tw-flex tw-flex-wrap tw-gap-[6px]"
+                    >
+                      {diaryPreview.top_tags.map((mp) => {
+                        return (
+                          <div
+                            key={mp.id}
+                            className="tw-p-[6px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                          >
+                            <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                              {mp.name}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </motion.div>
                   </div>
                 )}
               </div>

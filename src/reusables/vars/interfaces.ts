@@ -335,7 +335,7 @@ export interface ICoordinatesAnchor {
 
 export interface IDiaryPreview {
   latest_entry: string | null;
-  top_tags: string[];
+  top_tags: { id: number; name: string }[];
   total_entries: number;
 }
 
@@ -363,4 +363,28 @@ export interface INewEntry {
   }[];
   entry_date: string | null;
   is_private: boolean;
+}
+
+export interface IEntryTag {
+  id: number;
+  name: string;
+}
+
+export interface IEntry {
+  id: string;
+  account: string;
+  title: string;
+  content: string;
+  entry_date: string;
+  mood: {
+    emoji: string;
+    id: number;
+    name: string;
+  } | null;
+  is_private: boolean;
+  tag_objects: IEntryTag[];
+  attachments: any[];
+  entry_map_info: null;
+  created_at: string;
+  updated_at: string;
 }

@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  IEntry,
+  IEntryTag,
+} from "@/reusables/vars/interfaces";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { AiOutlineHome, AiOutlineSearch } from "react-icons/ai";
 import { IoArrowBack } from "react-icons/io5";
@@ -7,25 +11,29 @@ import { useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { TypeAnimation } from "react-type-animation";
 import DefaultProfile from "../../../../assets/imgs/default.png";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import "react-quill/dist/quill.snow.css";
 import { FaPen } from "react-icons/fa6";
 import { TbBookOff } from "react-icons/tb";
 import NewEntry from "./NewEntry";
+import { GetUserEntriesRequest } from "@/reusables/hooks/requests";
+import { PaginationProp } from "@/reusables/vars/props";
+import { entriesliststate } from "@/redux/actions/states";
+import { formattedDateToWords } from "@/reusables/hooks/reusable";
 
 function Diary() {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
 
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
 
   const isMobileView = useMemo(
     () => screensizelistener.W < 800,
-    [screensizelistener]
+    [screensizelistener],
   );
 
   const [searchParams] = useSearchParams();
@@ -33,6 +41,23 @@ function Diary() {
   const entry_id = searchParams.get("entry_id");
 
   const navigate = useNavigate();
+
+  const [entries, setentries] =
+    useState<PaginationProp<IEntry>>(entriesliststate);
+
+  const GetUserEntriesProcess = () => {
+    GetUserEntriesRequest({ page: 1, range: 10 })
+      .then((response) => {
+        setentries(response);
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    GetUserEntriesProcess();
+  }, []);
 
   return (
     <div className="tw-bg-[#d8d8da] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-hidden x-scroll">
@@ -151,7 +176,7 @@ function Diary() {
                 <button
                   onClick={() => {
                     navigate(
-                      `/${authentication.user.userID}/diary?entry_id=new`
+                      `/${authentication.user.userID}/diary?entry_id=new`,
                     );
                   }}
                   className="tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]"
@@ -175,12 +200,61 @@ function Diary() {
                 />
               </div>
             </div>
-            <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-pt-[50px]">
-              <TbBookOff size={70} color="#808080" />
-              <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[#808080]">
-                No Entries Made Yet
-              </span>
-            </div>
+            {entries.count > 0 ? (
+              <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-pt-[20px] tw-w-[calc(100%-40px)]">
+                {entries.results.map((mp: IEntry) => {
+                  return (
+                    <div
+                      key={mp.id}
+                      className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px]"
+                    >
+                      <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
+                        <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left">
+                          {mp.title}
+                        </span>
+                        {mp.mood && (
+                          <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap">
+                            {mp.mood.emoji} {mp.mood.name}
+                          </span>
+                        )}
+                      </div>
+                      {mp.tag_objects.length > 0 && (
+                        <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px]">
+                          {mp.tag_objects.map((mp: IEntryTag) => {
+                            return (
+                              <div
+                                key={mp.id}
+                                className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                              >
+                                <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                                  {mp.name}
+                                </span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                      <span
+                        className="tw-text-[12px] tw-font-Inter tw-text-left tw-overflow-hidden tw-text-ellipsis"
+                        dangerouslySetInnerHTML={{ __html: mp.content }}
+                      ></span>
+                      <div className="tw-w-full tw-flex tw-pt-[10px] tw-pb-[5px]">
+                        <span className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]">
+                          {formattedDateToWords(mp.entry_date, "YYYY-MM-DD")}
+                        </span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-pt-[50px]">
+                <TbBookOff size={70} color="#808080" />
+                <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[#808080]">
+                  No Entries Made Yet
+                </span>
+              </div>
+            )}
           </motion.div>
           <motion.div
             initial={{

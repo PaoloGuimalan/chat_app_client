@@ -1656,6 +1656,26 @@ const GetTagsListRequest = async (params: any) => {
     });
 };
 
+const GetUserEntriesRequest = async (params: any) => {
+  const range = params.range;
+  const page = params.page;
+
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/diary/entries/?page=${page}&page_size=${range}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 const PostNewEntryRequest = async (payload: INewEntry) => {
   return await Axios.post(`${USER_SERVICE_API}/api/diary/entry/`, payload, {
     headers: {
@@ -1724,4 +1744,5 @@ export {
   GetMoodListRequest,
   GetTagsListRequest,
   PostNewEntryRequest,
+  GetUserEntriesRequest,
 };

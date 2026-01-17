@@ -93,11 +93,23 @@ function ordinal_suffix_of(i: number) {
   return i + "th";
 }
 
-function formattedDateToWords(formattedDate: string) {
-  const splittedDate = formattedDate.split("/");
-  const month = splittedDate[0];
-  const day = splittedDate[1];
-  const year = splittedDate[2];
+function formattedDateToWords(formattedDate: string, format?: string) {
+  let splittedDate;
+  let month;
+  let day;
+  let year;
+
+  if (format === "YYYY-MM-DD") {
+    splittedDate = formattedDate.split("-");
+    month = splittedDate[1];
+    day = splittedDate[2];
+    year = splittedDate[0];
+  } else {
+    splittedDate = formattedDate.split("/");
+    month = splittedDate[0];
+    day = splittedDate[1];
+    year = splittedDate[2];
+  }
 
   const mL = [
     "January",
