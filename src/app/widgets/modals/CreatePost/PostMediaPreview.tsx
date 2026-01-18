@@ -42,7 +42,7 @@ function PostMediaPreview({ mp, setrawmedialist, setmedialist }: any) {
           onChange={(e) => {
             mutatePostText(e.target.value);
           }}
-          className="tw-w-[calc(100%-4px)] tw-min-h-[50px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller"
+          className="tw-w-[calc(100%-4px)] tw-min-h-[50px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller tw-font-Inter"
           placeholder="Type your caption"
         />
         <CachedImage src={mp.reference} className="tw-w-full" />
@@ -69,7 +69,7 @@ function PostMediaPreview({ mp, setrawmedialist, setmedialist }: any) {
           onChange={(e) => {
             mutatePostText(e.target.value);
           }}
-          className="tw-w-[calc(100%-4px)] tw-min-h-[50px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller"
+          className="tw-w-[calc(100%-4px)] tw-min-h-[50px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller tw-font-Inter"
           placeholder="Type your caption"
         />
         <video src={mp.reference} controls className="tw-w-full" />

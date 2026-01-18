@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   AuthenticationInterface,
@@ -8,10 +9,10 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { AiOutlineHome, AiOutlineSearch } from "react-icons/ai";
 import { IoArrowBack } from "react-icons/io5";
 import { useSelector } from "react-redux";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { TypeAnimation } from "react-type-animation";
 import DefaultProfile from "../../../../assets/imgs/default.png";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import "react-quill/dist/quill.snow.css";
 import { FaPen } from "react-icons/fa6";
@@ -21,6 +22,8 @@ import { GetUserEntriesRequest } from "@/reusables/hooks/requests";
 import { PaginationProp } from "@/reusables/vars/props";
 import { entriesliststate } from "@/redux/actions/states";
 import { formattedDateToWords } from "@/reusables/hooks/reusable";
+import Skeleton from "react-loading-skeleton";
+import EntryView from "./EntryView";
 
 function Diary() {
   const authentication: AuthenticationInterface = useSelector(
@@ -37,6 +40,7 @@ function Diary() {
   );
 
   const [searchParams] = useSearchParams();
+  const params = useParams();
 
   const entry_id = searchParams.get("entry_id");
 
@@ -44,11 +48,26 @@ function Diary() {
 
   const [entries, setentries] =
     useState<PaginationProp<IEntry>>(entriesliststate);
+  const [isLoaded, setisLoaded] = useState<boolean>(false);
+  const [page, setpage] = useState<number>(1); //setrange
 
-  const GetUserEntriesProcess = () => {
-    GetUserEntriesRequest({ page: 1, range: 10 })
+  const GetUserEntriesProcess = (page: number, range: number) => {
+    GetUserEntriesRequest({ page, range })
       .then((response) => {
-        setentries(response);
+        setpage(page);
+        setisLoaded(true);
+        setentries((prev: PaginationProp<IEntry>) => {
+          const combinedList = [...prev.results, ...response.results];
+          const uniqueById = combinedList.filter(
+            (obj, index, self) =>
+              index === self.findIndex((t) => t.id === obj.id),
+          );
+
+          return {
+            ...response,
+            results: uniqueById,
+          };
+        });
       })
       .catch((err) => {
         console.log(err);
@@ -56,15 +75,46 @@ function Diary() {
   };
 
   useEffect(() => {
-    GetUserEntriesProcess();
+    GetUserEntriesProcess(1, 10);
   }, []);
+
+  const divcontentRef = useRef<HTMLDivElement | null>(null);
+  const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    let currentView = false;
+    if (divcontentRef) {
+      if (divcontentRef.current) {
+        divcontentRef.current.onscroll = () => {
+          // console.log("Hello")
+          if (divlazyloaderRef && divlazyloaderRef.current) {
+            const top = divlazyloaderRef.current.getBoundingClientRect().top;
+            const isVisible = top + 0 >= 0 && top - 0 <= window.innerHeight;
+            // const isVisible = top > 0 ? true : false;
+            // console.log((top + 0) >= 0 && (top - 0) <= window.innerHeight);
+            if (currentView != isVisible) {
+              currentView = isVisible;
+              if (currentView) {
+                // setrange((prev) => prev + 10);
+                setpage((prev) => prev + 1);
+              }
+            }
+          }
+        };
+      }
+    }
+  }, [divcontentRef, divlazyloaderRef]);
+
+  useEffect(() => {
+    GetUserEntriesProcess(page, 10);
+  }, [page]);
 
   return (
     <div className="tw-bg-[#d8d8da] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-hidden x-scroll">
-      <div className="tw-flex tw-items-center tw-gap-[5px] tw-pt-[10px] tw-pl-[20px] tw-pr-[20px] sm:tw-left-[20px] tw-w-[calc(100%-40px)] tw-h-full tw-max-h-[50px]">
+      <div className="tw-flex tw-items-center tw-gap-[5px] tw-pt-[10px] tw-pl-[20px] tw-pr-[20px] sm:tw-left-[20px] tw-w-[calc(100%-40px)] tw-h-full tw-min-h-[50px] tw-max-h-[50px]">
         <button
           onClick={() => {
-            navigate(`/${authentication.user.userID}`);
+            navigate(`/${params.userID}`);
           }}
           className="tw-z-[10] tw-shadow-lg tw-bg-[#f0f2f5] tw-h-full tw-min-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
         >
@@ -166,23 +216,22 @@ function Diary() {
                   : "100%"
                 : "350px",
             }}
-            className="tw-flex tw-flex-col tw-overflow-x-hidden tw-overflow-y-auto t-scroll tw-bg-white tw-rounded-[7px] tw-items-center"
+            className="tw-flex tw-flex-col tw-overflow-x-hidden tw-overflow-y-auto t-scroll tw-bg-white tw-rounded-[7px] tw-items-center tw-pb-[15px]"
+            ref={divcontentRef}
           >
-            <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[18px] tw-h-[30px] tw-pl-[20px] tw-pr-[20px] tw-items-center tw-justify-between">
+            <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[18px] tw-min-h-[30px] tw-pl-[20px] tw-pr-[20px] tw-items-center tw-justify-between">
               <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-whitespace-nowrap">
                 Your Entries
               </span>
               {(isMobileView || (entry_id !== null && entry_id !== "new")) && (
                 <button
                   onClick={() => {
-                    navigate(
-                      `/${authentication.user.userID}/diary?entry_id=new`,
-                    );
+                    navigate(`/${params.userID}/diary?entry_id=new`);
                   }}
                   className="tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]"
                 >
                   <FaPen />
-                  <span className="tw-text-[12px] tw-font-Inter tw-font-semibold">
+                  <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-cursor-pointer">
                     Write an Entry
                   </span>
                 </button>
@@ -200,59 +249,189 @@ function Diary() {
                 />
               </div>
             </div>
-            {entries.count > 0 ? (
-              <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-pt-[20px] tw-w-[calc(100%-40px)]">
-                {entries.results.map((mp: IEntry) => {
+            {isLoaded ? (
+              entries.count > 0 ? (
+                <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-pt-[20px] tw-w-[calc(100%-40px)]">
+                  {entries.results.map((mp: IEntry) => {
+                    return (
+                      <motion.div
+                        whileHover={{
+                          boxShadow: "0px 0px 5px 0px #808080",
+                        }}
+                        key={mp.id}
+                        onClick={() => {
+                          navigate(`/${params.userID}/diary?entry_id=${mp.id}`);
+                        }}
+                        className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px] tw-select-none tw-cursor-pointer"
+                      >
+                        <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
+                          <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left">
+                            {mp.title}
+                          </span>
+                          {mp.mood && (
+                            <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap">
+                              {mp.mood.emoji} {mp.mood.name}
+                            </span>
+                          )}
+                        </div>
+                        {mp.tag_objects.length > 0 && (
+                          <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px]">
+                            {mp.tag_objects.map((mp: IEntryTag) => {
+                              return (
+                                <div
+                                  key={mp.id}
+                                  className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                                >
+                                  <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                                    {mp.name}
+                                  </span>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        )}
+                        <span
+                          className="tw-text-[12px] tw-font-Inter tw-text-left tw-overflow-hidden tw-text-ellipsis"
+                          dangerouslySetInnerHTML={{ __html: mp.content }}
+                        ></span>
+                        <div className="tw-w-full tw-flex tw-pt-[10px] tw-pb-[5px]">
+                          <span className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]">
+                            {formattedDateToWords(mp.entry_date, "YYYY-MM-DD")}
+                          </span>
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-pt-[50px]">
+                  <TbBookOff size={70} color="#808080" />
+                  <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[#808080]">
+                    No Entries Made Yet
+                  </span>
+                </div>
+              )
+            ) : (
+              <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-pt-[10px] tw-w-[calc(100%-40px)]">
+                {Array.from({ length: 3 }).map((_, i: number) => {
                   return (
                     <div
-                      key={mp.id}
+                      key={i}
                       className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px]"
                     >
                       <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
-                        <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left">
-                          {mp.title}
-                        </span>
-                        {mp.mood && (
-                          <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap">
-                            {mp.mood.emoji} {mp.mood.name}
-                          </span>
-                        )}
+                        <Skeleton
+                          containerClassName="tw-w-full tw-max-w-[150px]"
+                          height={"22px"}
+                          className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left tw-w-full"
+                          baseColor="rgb(210, 210, 210)"
+                        />
+                        <Skeleton
+                          width="80px"
+                          height={"22px"}
+                          className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap"
+                          baseColor="rgb(210, 210, 210)"
+                        />
                       </div>
-                      {mp.tag_objects.length > 0 && (
-                        <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px]">
-                          {mp.tag_objects.map((mp: IEntryTag) => {
-                            return (
-                              <div
-                                key={mp.id}
-                                className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                              >
-                                <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
-                                  {mp.name}
-                                </span>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      )}
-                      <span
-                        className="tw-text-[12px] tw-font-Inter tw-text-left tw-overflow-hidden tw-text-ellipsis"
-                        dangerouslySetInnerHTML={{ __html: mp.content }}
-                      ></span>
+                      <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px]">
+                        <Skeleton
+                          width={"60px"}
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                          baseColor="rgb(210, 210, 210)"
+                        />
+                        <Skeleton
+                          width={"60px"}
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                          baseColor="rgb(210, 210, 210)"
+                        />
+                        <Skeleton
+                          width={"60px"}
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                          baseColor="rgb(210, 210, 210)"
+                        />
+                      </div>
+                      <div className="tw-w-[calc(100%-20px)] tw-pt-[8px]">
+                        <Skeleton
+                          height={"12px"}
+                          className="tw-p-[4px] tw-mt-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                          baseColor="rgb(210, 210, 210)"
+                          count={3}
+                        />
+                      </div>
                       <div className="tw-w-full tw-flex tw-pt-[10px] tw-pb-[5px]">
-                        <span className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]">
-                          {formattedDateToWords(mp.entry_date, "YYYY-MM-DD")}
-                        </span>
+                        <Skeleton
+                          height={"12px"}
+                          width={"100px"}
+                          className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]"
+                          baseColor="rgb(210, 210, 210)"
+                        />
                       </div>
                     </div>
                   );
                 })}
               </div>
-            ) : (
-              <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-pt-[50px]">
-                <TbBookOff size={70} color="#808080" />
-                <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[#808080]">
-                  No Entries Made Yet
-                </span>
+            )}
+            {entries.next && (
+              <div
+                ref={divlazyloaderRef}
+                className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-pt-[10px] tw-w-[calc(100%-40px)]"
+              >
+                {Array.from({ length: 3 }).map((_, i: number) => {
+                  return (
+                    <div
+                      key={i}
+                      className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px]"
+                    >
+                      <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
+                        <Skeleton
+                          containerClassName="tw-w-full tw-max-w-[150px]"
+                          height={"22px"}
+                          className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left tw-w-full"
+                          baseColor="rgb(210, 210, 210)"
+                        />
+                        <Skeleton
+                          width="80px"
+                          height={"22px"}
+                          className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap"
+                          baseColor="rgb(210, 210, 210)"
+                        />
+                      </div>
+                      <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px]">
+                        <Skeleton
+                          width={"60px"}
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                          baseColor="rgb(210, 210, 210)"
+                        />
+                        <Skeleton
+                          width={"60px"}
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                          baseColor="rgb(210, 210, 210)"
+                        />
+                        <Skeleton
+                          width={"60px"}
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                          baseColor="rgb(210, 210, 210)"
+                        />
+                      </div>
+                      <div className="tw-w-[calc(100%-20px)] tw-pt-[8px]">
+                        <Skeleton
+                          height={"12px"}
+                          className="tw-p-[4px] tw-mt-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                          baseColor="rgb(210, 210, 210)"
+                          count={3}
+                        />
+                      </div>
+                      <div className="tw-w-full tw-flex tw-pt-[10px] tw-pb-[5px]">
+                        <Skeleton
+                          height={"12px"}
+                          width={"100px"}
+                          className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]"
+                          baseColor="rgb(210, 210, 210)"
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </motion.div>
@@ -283,7 +462,26 @@ function Diary() {
             }}
             className="tw-flex tw-flex-col tw-gap-[15px] tw-overflow-x-hidden tw-overflow-y-auto t-scroll tw-bg-white tw-rounded-[7px] tw-items-center"
           >
-            {(entry_id === null || entry_id === "new") && <NewEntry />}
+            {entry_id === null || entry_id === "new" ? (
+              <NewEntry
+                reload={(new_entry: IEntry) => {
+                  setentries((prev: PaginationProp<IEntry>) => {
+                    const combinedList = [new_entry, ...prev.results];
+                    const uniqueById = combinedList.filter(
+                      (obj, index, self) =>
+                        index === self.findIndex((t) => t.id === obj.id),
+                    );
+
+                    return {
+                      ...prev,
+                      results: uniqueById,
+                    };
+                  });
+                }}
+              />
+            ) : (
+              <EntryView />
+            )}
           </motion.div>
         </div>
       </div>

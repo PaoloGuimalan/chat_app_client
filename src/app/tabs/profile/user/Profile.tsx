@@ -702,10 +702,10 @@ function Profile() {
                     </div>
                     <motion.div
                       initial={{
-                        paddingLeft: isMobileView ? "0px" : "20px",
+                        paddingLeft: isMobileView ? "20px" : "20px",
                       }}
                       animate={{
-                        paddingLeft: isMobileView ? "0px" : "20px",
+                        paddingLeft: isMobileView ? "20px" : "20px",
                       }}
                       className="tw-flex tw-flex-wrap tw-gap-[6px]"
                     >

@@ -5,18 +5,15 @@ import {
   GetTagsListRequest,
   PostNewEntryRequest,
 } from "@/reusables/hooks/requests";
-import {
-  AuthenticationInterface,
-  INewEntry,
-} from "@/reusables/vars/interfaces";
+import { IEntry, INewEntry } from "@/reusables/vars/interfaces";
 import { useMemo, useState } from "react";
 import { BiSolidImageAdd } from "react-icons/bi";
 import { FaSave } from "react-icons/fa";
 import { IoArrowBack } from "react-icons/io5";
 import { MdImageNotSupported } from "react-icons/md";
 import ReactQuill from "react-quill";
-import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate, useParams } from "react-router-dom";
 import { AsyncPaginate } from "react-select-async-paginate";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
@@ -25,12 +22,11 @@ import {
   formatToDjangoDate,
   parseDjangoDate,
 } from "@/reusables/hooks/reusable";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { motion } from "framer-motion";
+import { SET_MUTATE_ALERTS } from "@/redux/types";
 
-function NewEntry() {
-  const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication,
-  );
-
+function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
   );
@@ -39,6 +35,9 @@ function NewEntry() {
     () => screensizelistener.W < 800,
     [screensizelistener],
   );
+
+  const params = useParams();
+  const dispatch = useDispatch();
 
   const navigate = useNavigate();
 
@@ -78,6 +77,8 @@ function NewEntry() {
     is_private: true,
   });
 
+  const [isSaving, setisSaving] = useState<boolean>(false);
+
   const isNewEntryDataComplete = useMemo(() => {
     if (
       newEntryData.title.trim() !== "" &&
@@ -97,11 +98,24 @@ function NewEntry() {
       pendingNewEntry.entry_date = isoString;
     }
 
+    setisSaving(true);
+
     PostNewEntryRequest(pendingNewEntry)
       .then((value) => {
-        console.log(value);
+        reload(value);
+        navigate(`/${params.userID}/diary?entry_id=${value.id}`);
       })
       .catch((err) => {
+        setisSaving(false);
+        dispatch({
+          type: SET_MUTATE_ALERTS,
+          payload: {
+            alerts: {
+              type: "error",
+              content: "There was a problem saving your entry",
+            },
+          },
+        });
         console.log(err);
       });
   };
@@ -214,12 +228,32 @@ function NewEntry() {
   };
 
   return (
-    <div className="tw-flex tw-flex-col tw-gap-[15px] tw-h-auto tw-w-full tw-bg-white tw-rounded-[7px] tw-items-center">
+    <div className="tw-flex tw-flex-col tw-gap-[15px] tw-h-auto tw-w-full tw-bg-white tw-rounded-[7px] tw-items-center tw-relative">
+      {isSaving && (
+        <div
+          className={`tw-absolute tw-h-full tw-w-full tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center tw-z-[100]`}
+        >
+          <div id="div_conversation_content_loader">
+            <motion.div
+              animate={{
+                rotate: -360,
+              }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+              }}
+              id="div_loader_request_conv"
+            >
+              <AiOutlineLoading3Quarters style={{ fontSize: "28px" }} />
+            </motion.div>
+          </div>
+        </div>
+      )}
       <div className="tw-w-[calc(100%-40px)] tw-flex tw-items-center tw-h-[31px] tw-gap-[2px] tw-p-[18px] tw-pb-[2px] tw-pl-[20px] tw-pr-[20px]">
         {isMobileView && (
           <button
             onClick={() => {
-              navigate(`/${authentication.user.userID}/diary`);
+              navigate(`/${params.userID}/diary`);
             }}
             className="tw-items-center tw-justify-center tw-border-none tw-bg-transparent tw-h-[40px] tw-w-[40px]"
           >
@@ -232,6 +266,7 @@ function NewEntry() {
         <div className="tw-flex tw-flex-1 tw-justify-end">
           {isNewEntryDataComplete && (
             <button
+              disabled={isSaving}
               onClick={SaveNewEntry}
               className="tw-cursor-pointer tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]"
             >
@@ -245,6 +280,7 @@ function NewEntry() {
       </div>
       <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
         <input
+          disabled={isSaving}
           id="input_title_name"
           type="text"
           value={newEntryData.title}
@@ -260,6 +296,7 @@ function NewEntry() {
         />
         {!isMobileView && (
           <AsyncPaginate
+            isDisabled={isSaving}
             isSearchable={false}
             value={newEntryData.mood}
             loadOptions={loadOptions}
@@ -284,6 +321,7 @@ function NewEntry() {
       <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-flex-col tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
         {isMobileView && (
           <AsyncPaginate
+            isDisabled={isSaving}
             isSearchable={false}
             value={newEntryData.mood}
             loadOptions={loadOptions}
@@ -305,6 +343,7 @@ function NewEntry() {
           />
         )}
         <AsyncPaginate
+          isDisabled={isSaving}
           isMulti
           value={newEntryData.tags}
           loadOptions={tagsLoadOptions}
@@ -332,6 +371,7 @@ function NewEntry() {
       <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
         <div className="tw-w-full tw-min-h-[300px] tw-bg-[#eaecef] tw-rounded-[7px] my-editor-wrapper">
           <ReactQuill
+            readOnly={isSaving}
             modules={modules}
             value={newEntryData.content}
             onChange={(value: string) => {
@@ -349,6 +389,7 @@ function NewEntry() {
       <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-flex-row tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
         <div className="tw-flex tw-flex-1">
           <DatePicker
+            disabled={isSaving}
             selected={
               newEntryData.entry_date
                 ? parseDjangoDate(newEntryData.entry_date)
@@ -373,6 +414,7 @@ function NewEntry() {
         </div>
         <div className="tw-flex tw-flex-1">
           <AsyncPaginate
+            isDisabled={isSaving}
             isSearchable={false}
             value={{
               value: newEntryData.is_private,

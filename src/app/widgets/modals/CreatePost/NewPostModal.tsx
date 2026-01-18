@@ -30,7 +30,7 @@ export function NewPostModal({
 
   const [isuploadingpost, setisuploadingpost] = useState<boolean>(false);
   const [iswithImage, setiswithImage] = useState<boolean>(
-    toShare ? false : withImage
+    toShare ? false : withImage,
   );
 
   const [mainpostcaption, setmainpostcaption] = useState<string>("");
@@ -116,7 +116,7 @@ export function NewPostModal({
             ]);
           }
         }
-      }
+      },
     );
   };
 
@@ -150,13 +150,13 @@ export function NewPostModal({
           fileType: toShare
             ? "shared_post"
             : medialist.length > 0
-            ? "media"
-            : "text", //text, image, video, file
+              ? "media"
+              : "text", //text, image, video, file
           contentType: toShare
             ? "shared_post"
             : medialist.length > 0
-            ? "media"
-            : "text", //text, image, video
+              ? "media"
+              : "text", //text, image, video
         },
         tagging: {
           isTagged: validatedTaggedList.length > 0 ? true : false,
@@ -223,8 +223,8 @@ export function NewPostModal({
             toShare
               ? "tw-max-h-[600px]"
               : iswithImage
-              ? "tw-max-h-[600px]"
-              : "tw-max-h-[250px]"
+                ? "tw-max-h-[600px]"
+                : "tw-max-h-[250px]"
           }`}
         >
           {isuploadingpost && !toShare && (
@@ -233,8 +233,8 @@ export function NewPostModal({
                 toShare
                   ? "tw-max-h-[600px]"
                   : iswithImage
-                  ? "tw-max-h-[520px]"
-                  : "tw-max-h-[220px]"
+                    ? "tw-max-h-[520px]"
+                    : "tw-max-h-[220px]"
               } tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}
             >
               <div id="div_conversation_content_loader">
@@ -276,7 +276,7 @@ export function NewPostModal({
                   setcreateposttext(e.target.value);
                   setmainpostcaption(e.target.value);
                 }}
-                className="tw-w-full tw-min-h-[80px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller"
+                className="tw-w-full tw-min-h-[80px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller tw-font-Inter"
                 placeholder="Type your caption"
               />
               {iswithImage && (
@@ -301,7 +301,7 @@ export function NewPostModal({
                         onClick={() => {
                           sendNonImageFilesProcess();
                         }}
-                        className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-bg-transparent tw-border-solid tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center"
+                        className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-bg-transparent tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center"
                       >
                         <MdAddToPhotos
                           style={{ fontSize: "20px", color: "#888888" }}
@@ -316,7 +316,7 @@ export function NewPostModal({
                       onClick={() => {
                         sendNonImageFilesProcess();
                       }}
-                      className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-bg-transparent tw-border-solid tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center"
+                      className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-bg-transparent tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center"
                     >
                       <MdAddToPhotos
                         style={{ fontSize: "60px", color: "#888888" }}
