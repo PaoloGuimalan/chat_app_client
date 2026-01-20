@@ -458,43 +458,274 @@ function MapFeed() {
         onTrackUserLocationEnd={() => setFollowLocation(null)}
       /> */}
       {!isMobileView ? (
-        <div className="tw-absolute tw-bottom-6 tw-right-6 tw-z-[1000] tw-flex tw-flex-col tw-gap-[5px]">
-          <button
-            onClick={() =>
-              setFollowLocation((prev: string | null) => {
-                if (!prev) {
-                  return authentication.user.userID;
+        <motion.div
+          initial={{
+            width: "300px",
+            height: "40px",
+          }}
+          animate={{
+            width: toggleLevel > 0 ? "340px" : "300px",
+            height: toggleLevelHeight[toggleLevel],
+          }}
+          className="tw-bg-white tw-absolute tw-bottom-0 tw-z-[10] tw-rounded-xl tw-flex tw-flex-col tw-mb-[15px] tw-ml-[15px]"
+        >
+          <div className="tw-w-full tw-bg-transparent tw-flex tw-gap-[5px] tw-justify-center tw--mt-[20px]">
+            <button
+              onClick={() => {
+                if (toggleLevel === 0) {
+                  settoggleLevel(1);
+                  return;
                 }
 
-                return null;
-              })
-            }
-            className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-4 tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-            style={{ pointerEvents: "auto" }}
-          >
-            <FaLocationCrosshairs
-              style={{
-                color:
-                  followLocation === authentication.user.userID
-                    ? "#00ff88"
-                    : "#ffaa00",
+                settoggleLevel(0);
               }}
-            />
-          </button>
-          <button
-            onClick={() => {
-              settoggleProfileView(!toggleProfileView);
+              className="tw-border-none tw-bg-white tw-p-[15px] tw-rounded-full"
+            >
+              {toggleLevel === 0 ? (
+                <FaAngleUp size={15} />
+              ) : (
+                <FaAngleDown size={15} />
+              )}
+            </button>
+            {toggleLevel === 1 && (
+              <motion.button
+                initial={{
+                  scale: 0,
+                }}
+                animate={{
+                  scale: toggleLevel === 1 ? 1 : 0,
+                }}
+                onClick={() => {
+                  settoggleLevel(2);
+                }}
+                className="tw-border-none tw-bg-white tw-p-[15px] tw-rounded-full"
+              >
+                <FaAnglesUp size={15} />
+              </motion.button>
+            )}
+          </div>
+          <div className="tw-w-full tw-flex tw-flex-col">
+            {toggleLevel > 0 && (
+              <DynamicToggleSwitch
+                list={toggleSwitchOptions}
+                mode={currentMode}
+                setMode={(mode: number) => {
+                  setcurrentMode(mode);
+                }}
+              />
+            )}
+            <motion.div
+              initial={{
+                marginTop: "-10px",
+                backgroundColor: "transparent",
+                width: "calc(100% - 20px)",
+                marginRight: "0px",
+                marginLeft: "0px",
+              }}
+              animate={{
+                marginTop: toggleLevel > 0 ? "35px" : "-10px",
+                backgroundColor: toggleLevel > 0 ? "#eaecef" : "transparent",
+                width:
+                  toggleLevel > 0 ? "calc(100% - 40px)" : "calc(100% - 20px)",
+                marginRight: toggleLevel > 0 ? "10px" : "0px",
+                marginLeft: toggleLevel > 0 ? "10px" : "0px",
+              }}
+              className="tw-p-[10px] tw-mb-[10px] tw-flex tw-justify-center tw-rounded-xl"
+            >
+              {/* {toggleLevel > 0 && (
+                <hr className="tw-w-full tw-border-[#ffffff] tw--mt-[2px]" />
+              )} */}
+              <motion.div
+                initial={{ justifyItems: "left", gap: "5px" }}
+                animate={{
+                  justifyContent: "left",
+                  gap: toggleLevel > 0 ? "7px" : "5px",
+                }}
+                className="tw-w-full tw-bg-transparent tw-flex"
+              >
+                <div className="tw-flex tw-gap-[5px] tw-items-center">
+                  <button
+                    onClick={() =>
+                      setFollowLocation((prev: string | null) => {
+                        if (!prev) {
+                          return authentication.user.userID;
+                        }
+
+                        return null;
+                      })
+                    }
+                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <FaLocationCrosshairs
+                      size={15}
+                      style={{
+                        color:
+                          followLocation === authentication.user.userID
+                            ? "#00ff88"
+                            : "#ffaa00",
+                      }}
+                    />
+                  </button>
+                  <motion.span
+                    initial={{
+                      width: "0px",
+                    }}
+                    animate={{
+                      width: toggleLevel > 0 ? "auto" : "0px",
+                    }}
+                    className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
+                  >
+                    {followLocation === authentication.user.userID
+                      ? "Follow"
+                      : "Unfollow"}{" "}
+                    Location
+                  </motion.span>
+                </div>
+                <div className="tw-flex tw-gap-[5px] tw-items-center">
+                  <button
+                    onClick={() => {
+                      settoggleProfileView(!toggleProfileView);
+                    }}
+                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <BsPersonCircle
+                      size={15}
+                      style={{
+                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
+                      }}
+                    />
+                  </button>
+                  <motion.span
+                    initial={{
+                      width: "0px",
+                    }}
+                    animate={{
+                      width: toggleLevel > 0 ? "auto" : "0px",
+                    }}
+                    className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
+                  >
+                    {toggleProfileView ? "Hide" : "Show"} Profile
+                  </motion.span>
+                </div>
+                {/* Testing Items */}
+                {/* <div className="tw-flex tw-gap-[5px] tw-items-center">
+                  <button
+                    onClick={() => {
+                      settoggleProfileView(!toggleProfileView);
+                    }}
+                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <BsPersonCircle
+                      size={15}
+                      style={{
+                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
+                      }}
+                    />
+                  </button>
+                  <motion.span
+                    initial={{
+                      width: "0px",
+                    }}
+                    animate={{
+                      width: toggleLevel > 0 ? "auto" : "0px",
+                    }}
+                    className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
+                  >
+                    {toggleProfileView ? "Hide" : "Show"} Profile
+                  </motion.span>
+                </div>
+                <div className="tw-flex tw-gap-[5px] tw-items-center">
+                  <button
+                    onClick={() => {
+                      settoggleProfileView(!toggleProfileView);
+                    }}
+                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+                    style={{ pointerEvents: "auto" }}
+                  >
+                    <BsPersonCircle
+                      size={15}
+                      style={{
+                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
+                      }}
+                    />
+                  </button>
+                  <motion.span
+                    initial={{
+                      width: "0px",
+                    }}
+                    animate={{
+                      width: toggleLevel > 0 ? "auto" : "0px",
+                    }}
+                    className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
+                  >
+                    {toggleProfileView ? "Hide" : "Show"} Profile
+                  </motion.span>
+                </div> */}
+                {/* END: Testing Items */}
+                <motion.div className="tw-flex tw-flex-1 tw-h-[35px] tw-items-center tw-justify-end tw-overflow-hidden">
+                  <motion.div className="tw-text-[12px] tw-font-semibold tw-font-Inter tw-overflow-hidden tw-text-right tw-whitespace-nowrap tw-flex tw-justify-end">
+                    {toggleSwitchOptions[currentMode].lottie}
+                  </motion.div>
+                  <motion.div
+                    initial={{
+                      width: "0px",
+                    }}
+                    animate={{
+                      width: toggleLevel > 0 ? "0px" : "auto",
+                    }}
+                    className="tw-text-[12px] tw-font-semibold tw-font-Inter tw-overflow-hidden tw-text-right tw-whitespace-nowrap"
+                  >
+                    {toggleSwitchOptions[currentMode].label} Mode
+                  </motion.div>
+                </motion.div>
+              </motion.div>
+              {/* {toggleLevel > 0 && (
+                <hr className="tw-w-full tw-border-[#ffffff] tw-mb-[0px]" />
+              )} */}
+            </motion.div>
+          </div>
+          <motion.div
+            initial={{
+              flex: toggleLevel > 0 ? 1 : 0,
+              // minHeight: toggleLevel > 0 ? "none" : "0px",
             }}
-            className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-4 tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-            style={{ pointerEvents: "auto" }}
+            animate={{
+              flex: toggleLevel > 0 ? 1 : 0,
+              // minHeight: toggleLevel > 0 ? "none" : "0px",
+            }}
+            className="tw-w-[calc(100%-20px)] tw-max-h-[195px] tw-flex tw-flex-col tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-hidden"
           >
-            <BsPersonCircle
-              style={{
-                color: toggleProfileView ? "#00ff88" : "#ffaa00",
+            <motion.div
+              initial={{
+                height: toggleLevel > 0 ? "100%" : "0px",
               }}
-            />
-          </button>
-        </div>
+              animate={{
+                height: toggleLevel > 0 ? "100%" : "0px",
+              }}
+              className="tw-bg-[#eaecef] tw-w-full tw-rounded-md tw-overflow-hidden tw-flex"
+            >
+              <div className="tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex">
+                {toggleSwitchOptions[currentMode].items.map((mp, i: number) => {
+                  return (
+                    <button
+                      key={i}
+                      className="tw-w-[100px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
+                      onClick={mp.click}
+                    >
+                      {mp.icon}
+                      <span className="tw-text-[12px] tw-font-Inter">
+                        {mp.label}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        </motion.div>
       ) : (
         <motion.div
           initial={{
