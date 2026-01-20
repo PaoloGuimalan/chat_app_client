@@ -1690,6 +1690,20 @@ const PostNewEntryRequest = async (payload: INewEntry) => {
     });
 };
 
+const GetEntryRequest = async (entry_id: string) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/diary/entry/${entry_id}`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   AuthCheck,
   LoginRequest,
@@ -1745,4 +1759,5 @@ export {
   GetTagsListRequest,
   PostNewEntryRequest,
   GetUserEntriesRequest,
+  GetEntryRequest,
 };

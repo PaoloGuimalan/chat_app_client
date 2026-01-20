@@ -1292,6 +1292,11 @@
   background-color: #eaecef;
 }
 
+.react-datepicker,
+.react-datepicker__month-container {
+  width: 100%; /* Makes the entire calendar component take full width */
+}
+
 .react-datepicker-wrapper {
   flex: 1;
 }

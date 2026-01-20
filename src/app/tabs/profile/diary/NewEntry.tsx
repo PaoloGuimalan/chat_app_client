@@ -389,6 +389,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
       <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-flex-row tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
         <div className="tw-flex tw-flex-1">
           <DatePicker
+            autoComplete="off"
             disabled={isSaving}
             selected={
               newEntryData.entry_date
