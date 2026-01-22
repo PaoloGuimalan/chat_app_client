@@ -28,6 +28,7 @@ import {
   importNonImageData,
   isUserOnline,
   makeid,
+  timeSince,
 } from "../../../reusables/hooks/reusable";
 import {
   CLOSE_MINIMIZED_CONVERSATION,
@@ -880,10 +881,16 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                           Active Now
                         </span>
                       ) : (
-                        <span className="span_userdetails_name">
-                          {activeuserSpecific[0].sessiondate.time}{" "}
-                          {activeuserSpecific[0].sessiondate.date}
-                        </span>
+                        activeuserSpecific[0].sessiondate.time ? (
+                          <span className="span_userdetails_name">
+                            {activeuserSpecific[0].sessiondate.time}{" "}
+                            {activeuserSpecific[0].sessiondate.date}
+                          </span>
+                        ) : (
+                          <span className="span_userdetails_name">
+                            {timeSince(activeuserSpecific[0].sessiondate.date)}
+                          </span>
+                        )
                       )
                     ) : (
                       <span className="span_userdetails_name">

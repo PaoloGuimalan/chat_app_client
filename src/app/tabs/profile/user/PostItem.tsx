@@ -27,6 +27,7 @@ import PostEmojis from "@/app/reusables/PostEmojis";
 import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
 import PostComment from "@/app/widgets/items/PostComment";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { timeSince } from "@/reusables/hooks/reusable";
 
 function PostItem({
   isSharePreview,
@@ -53,7 +54,8 @@ function PostItem({
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(mp);
 
-  const dateposted = new Date(postState.date_posted);
+  const timeDetail = timeSince(new Date(postState.date_posted));
+  const dateposted = timeDetail;
   const textRef = useRef<HTMLSpanElement | null>(null);
   const textContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -172,7 +174,7 @@ function PostItem({
                 })}
             </div>
             <span className="tw-text-[12px]">
-              {dateposted.toUTCString().split(" ").splice(0, 4).join(" ")}
+              {dateposted}
             </span>
           </div>
         </div>
@@ -346,11 +348,7 @@ function PostItem({
                               )}
                           </div>
                           <span className="tw-text-[12px]">
-                            {dateposted
-                              .toUTCString()
-                              .split(" ")
-                              .splice(0, 4)
-                              .join(" ")}
+                            {dateposted}
                           </span>
                         </div>
                       </div>

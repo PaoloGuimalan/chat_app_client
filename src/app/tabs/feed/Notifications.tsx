@@ -14,6 +14,7 @@ import { motion } from "framer-motion";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import NotificationItemLoader from "@/app/reusables/loaders/NotificationItemLoader";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { timeSince } from "@/reusables/hooks/reusable";
 
 function Notifications() {
   const [isLoading, setisLoading] = useState(true);
@@ -185,14 +186,22 @@ function Notifications() {
                   <span id="span_ntfs_content_details">
                     {ntfs.content.details}
                   </span>
-                  <div id="div_ntfs_date_time">
-                    <span className="span_ntfs_date_time">
-                      {ntfs.date.date}
-                    </span>
-                    <span className="span_ntfs_date_time">
-                      {ntfs.date.time}
-                    </span>
-                  </div>
+                  {ntfs.date.time ? (
+                    <div id="div_ntfs_date_time">
+                      <span className="span_ntfs_date_time">
+                        {ntfs.date.date}
+                      </span>
+                      <span className="span_ntfs_date_time">
+                        {ntfs.date.time}
+                      </span>
+                    </div>
+                  ) : (
+                    <div id="div_ntfs_date_time">
+                      <span className="span_ntfs_date_time">
+                        {timeSince(ntfs.date.date)}
+                      </span>
+                    </div>
+                  )}
                   {ntfs.type == "contact_request" ? (
                     ntfs.referenceStatus ? null : (
                       <div id="div_navigations_contact_request">

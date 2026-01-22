@@ -264,6 +264,40 @@ const formatToDjangoDate = (date: any) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms} ${offsetStr}`;
 };
 
+function timeSince(dateString: any) {
+    const now: any = new Date();
+    const past: any = new Date(dateString);
+    const seconds = Math.floor((now - past) / 1000);
+
+    if (seconds < 5) {
+        return 'just now';
+    } else if (seconds < 60) {
+        return `${seconds} seconds ago`;
+    }
+
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) {
+        return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
+    }
+
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) {
+        return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+    }
+
+    const days = Math.floor(hours / 24);
+    if (days < 7) {
+        return days === 1 ? '1 day ago' : `${days} days ago`;
+    }
+
+    // For longer times, return formatted date string
+    return past.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
+}
+
 const parseDjangoDate = (djangoStr: any) => {
   if (!djangoStr) return null;
 
@@ -309,4 +343,5 @@ export {
   monthNameToNumber,
   formatToDjangoDate,
   parseDjangoDate,
+  timeSince
 };

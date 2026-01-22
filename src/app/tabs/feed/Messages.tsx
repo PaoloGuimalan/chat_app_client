@@ -18,7 +18,7 @@ import {
 } from "../../../redux/types";
 import CreateGroupChatModal from "../../widgets/modals/CreateGroupChatModal";
 import { conversationsetupstate } from "../../../redux/actions/states";
-import { isUserOnline } from "../../../reusables/hooks/reusable";
+import { isUserOnline, timeSince } from "../../../reusables/hooks/reusable";
 import CreateServerModal from "@/app/widgets/modals/CreateServerModal";
 import { useNavigate } from "react-router-dom";
 import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
@@ -286,10 +286,16 @@ function Messages() {
                                 }`}
                           </span>
                         )}
-                        <span className="span_messages_list_name">
-                          {msgslst.messageDate.date} .{" "}
-                          {msgslst.messageDate.time}
-                        </span>
+                        {msgslst.messageDate.time ? (
+                          <span className="span_messages_list_name">
+                            {msgslst.messageDate.date} .{" "}
+                            {msgslst.messageDate.time}
+                          </span>
+                        ) : (
+                          <span className="span_messages_list_name">
+                            {timeSince(msgslst.messageDate.date)}
+                          </span>
+                        )}
                       </div>
                       {msgslst.unread > 0 && (
                         <div>
@@ -356,9 +362,16 @@ function Messages() {
                             }`}
                       </span>
                     )}
-                    <span className="span_messages_list_name">
-                      {msgslst.messageDate.date} . {msgslst.messageDate.time}
-                    </span>
+                    {msgslst.messageDate.time ? (
+                      <span className="span_messages_list_name">
+                        {msgslst.messageDate.date} .{" "}
+                        {msgslst.messageDate.time}
+                      </span>
+                    ) : (
+                      <span className="span_messages_list_name">
+                        {timeSince(msgslst.messageDate.date)}
+                      </span>
+                    )}
                   </div>
                   {msgslst.unread > 0 && (
                     <div>
@@ -431,9 +444,16 @@ function Messages() {
                             }`}
                       </span>
                     )}
-                    <span className="span_messages_list_name">
-                      {msgslst.messageDate.date} . {msgslst.messageDate.time}
-                    </span>
+                    {msgslst.messageDate.time ? (
+                      <span className="span_messages_list_name">
+                        {msgslst.messageDate.date} .{" "}
+                        {msgslst.messageDate.time}
+                      </span>
+                    ) : (
+                      <span className="span_messages_list_name">
+                        {timeSince(msgslst.messageDate.date)}
+                      </span>
+                    )}
                   </div>
                   {msgslst.unread > 0 && (
                     <div>

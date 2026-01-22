@@ -10,7 +10,7 @@ import { MdOutlineAddReaction } from "react-icons/md";
 import { useEffect, useMemo, useState } from "react";
 import EmojiPickerHandler from "./EmojiPickerHandler";
 import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal";
-import { urlify } from "@/reusables/hooks/reusable";
+import { timeSince, urlify } from "@/reusables/hooks/reusable";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function ContentHandler({
@@ -89,7 +89,7 @@ function ContentHandler({
             />
           )}
           <motion.span
-            title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
+            title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
             initial={{
               backgroundColor:
                 cnvs.sender == authentication.user.userID ? "white" : "white",
@@ -245,7 +245,7 @@ function ContentHandler({
               />
             )}
             <motion.div
-              title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
+              title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
               initial={{
                 backgroundColor:
                   cnvs.sender == authentication.user.userID
@@ -505,7 +505,7 @@ function ContentHandler({
             )}
             <div
               className="div_pending_content_container"
-              title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
+              title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
             >
               <CachedImage
                 src={cnvs.content}
@@ -738,7 +738,7 @@ function ContentHandler({
             )}
             <div
               className="div_pending_content_container"
-              title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
+              title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
             >
               <video
                 src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
@@ -967,7 +967,7 @@ function ContentHandler({
             )}
             <div
               className="tw-w-full"
-              title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
+              title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
             >
               <div className="tw-w-full tw-bg-[#f1f3f4] tw-pb-[5px] tw-rounded-[7px]">
                 <audio
@@ -1215,7 +1215,7 @@ function ContentHandler({
                   );
                 }}
                 className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
-                title={`${cnvs.messageDate.date} ${cnvs.messageDate.time}`}
+                title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
               >
                 <div className="tw-w-full tw-max-w-[40px]">
                   <IoDocumentOutline style={{ fontSize: "40px" }} />

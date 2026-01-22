@@ -27,6 +27,7 @@ import {
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaHashtag } from "react-icons/fa6";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { timeSince } from "@/reusables/hooks/reusable";
 
 function ConversationInfoModal({
   conversationinfo,
@@ -290,7 +291,7 @@ function ConversationInfoModal({
                               <div
                                 key={i}
                                 className="tw-w-full"
-                                title={`${mp.dateUploaded.date} ${mp.dateUploaded.time}`}
+                                title={mp.dateUploaded.time ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}` : timeSince(mp.dateUploaded.date)}
                               >
                                 <audio
                                   src={mp.fileDetails.data
@@ -329,7 +330,7 @@ function ConversationInfoModal({
                                   );
                                 }}
                                 className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
-                                title={`${mp.dateUploaded.date} ${mp.dateUploaded.time}`}
+                                title={mp.dateUploaded.time ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}` : timeSince(mp.dateUploaded.date)}
                               >
                                 <div className="tw-w-full tw-max-w-[40px]">
                                   <IoDocumentOutline
@@ -966,7 +967,7 @@ function ConversationInfoModal({
                               <div
                                 key={i}
                                 className="tw-w-full"
-                                title={`${mp.dateUploaded.date} ${mp.dateUploaded.time}`}
+                                title={mp.dateUploaded.time ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}` : timeSince(mp.dateUploaded.date)}
                               >
                                 <audio
                                   src={mp.fileDetails.data
@@ -1005,7 +1006,7 @@ function ConversationInfoModal({
                                   );
                                 }}
                                 className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
-                                title={`${mp.dateUploaded.date} ${mp.dateUploaded.time}`}
+                                title={mp.dateUploaded.time ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}` : timeSince(mp.dateUploaded.date)}
                               >
                                 <div className="tw-w-full tw-max-w-[40px]">
                                   <IoDocumentOutline
