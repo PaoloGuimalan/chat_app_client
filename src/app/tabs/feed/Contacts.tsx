@@ -21,6 +21,7 @@ import { conversationsetupstate } from "../../../redux/actions/states";
 import {
   contactsToUserdetails,
   isUserOnline,
+  userSessionStatusFromContacts,
 } from "../../../reusables/hooks/reusable";
 import { PaginationProp } from "@/reusables/vars/props";
 import { IContact } from "@/reusables/vars/interfaces";
@@ -253,19 +254,43 @@ function Contacts() {
                           cnts.involved_user.username
                         ) && <div className="div_online_indicator" />}
                       </div>
-                      <div className="div_contact_fullname_container">
-                        <span
-                          className="span_cncts_fullname_label tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
-                          onClick={() => {
-                            navigate(`/${cnts.involved_user.username}`);
-                          }}
-                        >
-                          {cnts.involved_user.first_name}
-                          {cnts.involved_user.middle_name == "N/A"
-                            ? ""
-                            : ` ${cnts.involved_user.middle_name}`}{" "}
-                          {cnts.involved_user.last_name}
-                        </span>
+                      <div className="tw-flex tw-flex-1 tw-h-full tw-overflow-hidden tw-flex-col tw-justify-center">
+                        <div className="div_contact_fullname_container">
+                          <span
+                            className="span_cncts_fullname_label tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
+                            onClick={() => {
+                              navigate(`/${cnts.involved_user.username}`);
+                            }}
+                          >
+                            {cnts.involved_user.first_name}
+                            {cnts.involved_user.middle_name == "N/A"
+                              ? ""
+                              : ` ${cnts.involved_user.middle_name}`}{" "}
+                            {cnts.involved_user.last_name}
+                          </span>
+                        </div>
+                        {isUserOnline(
+                          activeuserslist,
+                          cnts.involved_user.username
+                        ) ? (
+                          <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
+                            <span className="tw-text-[12px] tw-font-Inter">Active Now</span>
+                          </div>
+                        ) : (
+                          userSessionStatusFromContacts(
+                            activeuserslist,
+                            cnts.involved_user.username
+                          ) && (
+                            <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
+                              <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">{
+                                userSessionStatusFromContacts(
+                                  activeuserslist,
+                                  cnts.involved_user.username
+                                )}
+                              </span>
+                            </div>
+                          )
+                        )}
                       </div>
                       <div className="div_cncts_navigations">
                         <motion.button
@@ -345,19 +370,43 @@ function Contacts() {
                           cnts.action_by.username
                         ) && <div className="div_online_indicator" />}
                       </div>
-                      <div className="div_contact_fullname_container">
-                        <span
-                          className="span_cncts_fullname_label tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
-                          onClick={() => {
-                            navigate(`/${cnts.action_by.username}`);
-                          }}
-                        >
-                          {cnts.action_by.first_name}
-                          {cnts.action_by.middle_name == "N/A"
-                            ? ""
-                            : ` ${cnts.action_by.middle_name}`}{" "}
-                          {cnts.action_by.last_name}
-                        </span>
+                      <div className="tw-flex tw-flex-1 tw-h-full tw-overflow-hidden tw-flex-col tw-justify-center">
+                        <div className="div_contact_fullname_container">
+                          <span
+                            className="span_cncts_fullname_label tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
+                            onClick={() => {
+                              navigate(`/${cnts.action_by.username}`);
+                            }}
+                          >
+                            {cnts.action_by.first_name}
+                            {cnts.action_by.middle_name == "N/A"
+                              ? ""
+                              : ` ${cnts.action_by.middle_name}`}{" "}
+                            {cnts.action_by.last_name}
+                          </span>
+                        </div>
+                        {isUserOnline(
+                          activeuserslist,
+                          cnts.action_by.username
+                        ) ? (
+                          <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
+                            <span className="tw-text-[12px] tw-font-Inter">Active Now</span>
+                          </div>
+                        ): (
+                          userSessionStatusFromContacts(
+                            activeuserslist,
+                            cnts.action_by.username
+                          ) && (
+                            <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
+                              <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">{
+                                userSessionStatusFromContacts(
+                                  activeuserslist,
+                                  cnts.action_by.username
+                                )}
+                              </span>
+                            </div>
+                          )
+                        )}
                       </div>
                       <div className="div_cncts_navigations">
                         <motion.button

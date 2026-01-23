@@ -78,6 +78,28 @@ function isUserOnline(state: any, userID: string) {
   }
 }
 
+function userSessionStatusFromContacts(state: any, userID: string) {
+  const filteractiveusers = state.filter(
+    (flt: any) => flt._id === userID,
+  );
+
+  if(filteractiveusers.length > 0){
+    const sessionDate = filteractiveusers[0].sessiondate;
+
+    if(sessionDate){
+      if(sessionDate.time){
+        return `Last seen ${sessionDate.date}`;
+      }
+
+      return timeSince(sessionDate.date);
+    }
+
+    return null;
+  }
+  
+  return null;
+}
+
 function ordinal_suffix_of(i: number) {
   const j = i % 10,
     k = i % 100;
@@ -343,5 +365,6 @@ export {
   monthNameToNumber,
   formatToDjangoDate,
   parseDjangoDate,
-  timeSince
+  timeSince,
+  userSessionStatusFromContacts
 };
