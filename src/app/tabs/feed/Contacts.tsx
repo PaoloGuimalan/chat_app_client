@@ -281,7 +281,7 @@ function Contacts() {
                             activeuserslist,
                             cnts.involved_user.username
                           ) && (
-                            <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
+                            <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px] div_time_since_active_ellipsis">
                               <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">{
                                 userSessionStatusFromContacts(
                                   activeuserslist,
@@ -397,7 +397,7 @@ function Contacts() {
                             activeuserslist,
                             cnts.action_by.username
                           ) && (
-                            <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
+                            <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px] div_time_since_active_ellipsis">
                               <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">{
                                 userSessionStatusFromContacts(
                                   activeuserslist,

@@ -2271,6 +2271,12 @@ input:checked + .slider:before {
   text-overflow: ellipsis;
 }
 
+.div_time_since_active_ellipsis{
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .span_cncts_fullname_label {
   font-size: 14px;
   font-weight: bold;
