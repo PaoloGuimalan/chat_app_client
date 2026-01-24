@@ -199,6 +199,7 @@ function EntryView() {
                         : null
                     }
                     inline
+                    calendarClassName="tw-border-none tw-bg-[#f0f0f0]"
                     className="tw-font-Inter tw-w-full"
                   />
                 )}
