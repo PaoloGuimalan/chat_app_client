@@ -1705,6 +1705,26 @@ const GetEntryRequest = async (entry_id: string) => {
     });
 };
 
+const BroadcastCoordinatesRequest = async (payload: any) => {
+  return await Axios.post(`${API}/u/coordinatesbroadcast`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   AuthCheck,
   LoginRequest,
@@ -1761,4 +1781,5 @@ export {
   PostNewEntryRequest,
   GetUserEntriesRequest,
   GetEntryRequest,
+  BroadcastCoordinatesRequest,
 };

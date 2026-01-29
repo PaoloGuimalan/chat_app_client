@@ -1,5 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import {
   Map,
   Source,
@@ -24,25 +31,29 @@ import { GiCarWheel } from "react-icons/gi";
 import { BsPersonCircle } from "react-icons/bs";
 import DynamicToggleSwitch from "@/app/reusables/togglers/DynamicToggleSwitch";
 import { FaWalking } from "react-icons/fa";
-import { MdCardTravel } from "react-icons/md";
+import { MdCardTravel, MdShareLocation } from "react-icons/md";
 import { SlSpeedometer } from "react-icons/sl";
 import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import WalkingLottie from "../../../assets/lotties/walking-lottie.json";
 import SuitCaseLottie from "../../../assets/lotties/suitcase-lottie.json";
 import SpeedPopup from "./partials/SpeedPopup";
+import { BroadcastCoordinatesRequest } from "@/reusables/hooks/requests";
+import { useSearchParams } from "react-router-dom";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
 
+  const activeuserslist = useSelector((state: any) => state.activeuserslist);
+
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
 
   const isMobileView = useMemo(
     () => screensizelistener.W < 800,
-    [screensizelistener]
+    [screensizelistener],
   );
 
   const [coordinates, setcoordinates] = useState<ICoordinatesAnchor[]>([
@@ -52,12 +63,15 @@ function MapFeed() {
       latitude: 14.5995,
       heading: -17.6,
       speed: 0,
+      mode: null,
     },
   ]);
 
   const [followLocation, setFollowLocation] = useState<string | null>(
-    authentication.user.userID
+    authentication.user.userID,
   );
+
+  const [isLocationSharing, setisLocationSharing] = useState<boolean>(false);
 
   const [toggleProfileView, settoggleProfileView] = useState<boolean>(false);
 
@@ -69,7 +83,7 @@ function MapFeed() {
     if (authentication.user.userID) {
       const currentCoordinates = coordinates.filter(
         (flt: ICoordinatesAnchor) =>
-          flt.referenceID === authentication.user.userID
+          flt.referenceID === authentication.user.userID,
       );
 
       if (currentCoordinates.length > 0) {
@@ -84,10 +98,29 @@ function MapFeed() {
     return null;
   }, [authentication.user.userID, coordinates]);
 
+  const othersLocation = useMemo<ICoordinatesAnchor[]>(() => {
+    if (authentication.user.userID) {
+      const currentCoordinates = coordinates.filter(
+        (flt: ICoordinatesAnchor) =>
+          flt.referenceID !== authentication.user.userID,
+      );
+
+      if (currentCoordinates.length > 0) {
+        const finalCoordinates = currentCoordinates;
+
+        return finalCoordinates;
+      }
+
+      return [];
+    }
+
+    return [];
+  }, [authentication.user.userID, coordinates]);
+
   const toFollowLocation = useMemo<ICoordinatesAnchor | null>(() => {
     if (followLocation) {
       const currentCoordinates = coordinates.filter(
-        (flt: ICoordinatesAnchor) => flt.referenceID === followLocation
+        (flt: ICoordinatesAnchor) => flt.referenceID === followLocation,
       );
 
       if (currentCoordinates.length > 0) {
@@ -114,6 +147,64 @@ function MapFeed() {
     return 14; // highway
   };
 
+  const [currentMode, setcurrentMode] = useState<number>(0);
+
+  const [searchParams] = useSearchParams();
+
+  useEffect(() => {
+    const query = searchParams.get("anchor");
+
+    if (query) {
+      setFollowLocation(query);
+    }
+
+    window.addEventListener("broadcast_coordinates_listener", (e: any) => {
+      if (e.detail) {
+        const receivedCoordinates = e.detail as ICoordinatesAnchor;
+        setcoordinates((prev: ICoordinatesAnchor[]) => {
+          const prevNoUser = prev.filter(
+            (flt: ICoordinatesAnchor) =>
+              flt.referenceID !== receivedCoordinates.referenceID,
+          );
+          return [...prevNoUser, receivedCoordinates];
+        });
+      }
+    });
+  }, [searchParams]);
+
+  useEffect(() => {
+    if (isLocationSharing) {
+      const toShareCoordinates = myLocation;
+      if (toShareCoordinates) {
+        toShareCoordinates.mode = {
+          currentMode,
+          ifSpeedShown: toggleSpeed,
+        };
+
+        const filteredActiveContacts = activeuserslist
+          .filter((flt: any) => flt.sessionStatus)
+          .map((item: any) => item._id);
+
+        const payload = {
+          coordinates: toShareCoordinates,
+          receivers: filteredActiveContacts,
+        };
+
+        if (filteredActiveContacts.length > 0) {
+          BroadcastCoordinatesRequest(payload).catch((err) => {
+            console.log(err);
+          });
+        }
+      }
+    }
+  }, [
+    isLocationSharing,
+    myLocation,
+    currentMode,
+    toggleSpeed,
+    activeuserslist,
+  ]);
+
   useEffect(() => {
     // window.locationiq.key = "pk.f9b59be5e6653ab04296d123446a4564"
     navigator.geolocation.getCurrentPosition(
@@ -121,7 +212,7 @@ function MapFeed() {
         setcoordinates((prev: ICoordinatesAnchor[]) => {
           const prevNoUser = prev.filter(
             (flt: ICoordinatesAnchor) =>
-              flt.referenceID !== authentication.user.userID
+              flt.referenceID !== authentication.user.userID,
           );
           return [
             ...prevNoUser,
@@ -131,6 +222,7 @@ function MapFeed() {
               latitude: position.coords.latitude,
               heading: position.coords.heading,
               speed: position.coords.speed ?? 0,
+              mode: null,
             },
           ];
         });
@@ -139,7 +231,7 @@ function MapFeed() {
       {
         enableHighAccuracy: true,
         maximumAge: 1000,
-      }
+      },
     );
 
     navigator.geolocation.watchPosition(
@@ -147,7 +239,7 @@ function MapFeed() {
         setcoordinates((prev: ICoordinatesAnchor[]) => {
           const prevNoUser = prev.filter(
             (flt: ICoordinatesAnchor) =>
-              flt.referenceID !== authentication.user.userID
+              flt.referenceID !== authentication.user.userID,
           );
           return [
             ...prevNoUser,
@@ -157,6 +249,7 @@ function MapFeed() {
               latitude: position.coords.latitude,
               heading: position.coords.heading,
               speed: position.coords.speed ?? 0,
+              mode: null,
             },
           ];
         });
@@ -165,7 +258,7 @@ function MapFeed() {
       {
         enableHighAccuracy: true,
         maximumAge: 1000,
-      }
+      },
     );
   }, [authentication.user.userID]);
 
@@ -179,17 +272,32 @@ function MapFeed() {
       bearing: toFollowLocation.heading ? toFollowLocation.heading * 1 : -17.6,
       duration: 800,
       padding: {
-        left: toggleSpeed ? 80 : 0,
-        right: toggleProfileView ? 200 : 0, // ✅ Marker LEFT side of screen
+        left:
+          toggleSpeed ||
+          (followLocation !== authentication.user.userID &&
+            followLocation !== null)
+            ? 80
+            : 0,
+        right:
+          toggleProfileView ||
+          (followLocation !== authentication.user.userID &&
+            followLocation !== null)
+            ? 200
+            : 0, // ✅ Marker LEFT side of screen
         // top: 80,
         // bottom: 250,
       },
     });
-  }, [coordinates, toFollowLocation, toggleProfileView, toggleSpeed]);
+  }, [
+    authentication.user.userID,
+    coordinates,
+    followLocation,
+    toFollowLocation,
+    toggleProfileView,
+    toggleSpeed,
+  ]);
 
   const toggleLevelHeight = ["80px", "40%", "calc(100% - 100px)"];
-
-  const [currentMode, setcurrentMode] = useState<number>(0);
 
   const toggleSwitchOptions = [
     {
@@ -217,7 +325,15 @@ function MapFeed() {
           />
         </div>
       ),
-      items: [],
+      items: [
+        {
+          label: "Share Location",
+          icon: <MdShareLocation size={50} />,
+          click: () => {
+            setisLocationSharing((prev) => !prev);
+          },
+        },
+      ],
     },
     {
       icon: <MdCardTravel size={13} style={{ marginBottom: "-2px" }} />,
@@ -243,7 +359,15 @@ function MapFeed() {
           />
         </div>
       ),
-      items: [],
+      items: [
+        {
+          label: "Share Location",
+          icon: <MdShareLocation size={50} />,
+          click: () => {
+            setisLocationSharing((prev) => !prev);
+          },
+        },
+      ],
     },
     {
       icon: <GiCarWheel size={14} style={{ marginBottom: "-2px" }} />,
@@ -266,6 +390,13 @@ function MapFeed() {
       ),
       items: [
         {
+          label: "Share Location",
+          icon: <MdShareLocation size={50} />,
+          click: () => {
+            setisLocationSharing((prev) => !prev);
+          },
+        },
+        {
           label: "Speed",
           icon: <SlSpeedometer size={50} />,
           click: () => {
@@ -275,6 +406,37 @@ function MapFeed() {
       ],
     },
   ];
+
+  const handleClick = useCallback(
+    (event: any) => {
+      const features = mapRef.current.queryRenderedFeatures(event.point, {
+        layers: ["gps-circle"], // Your layer ID
+      });
+
+      if (features.length > 0) {
+        const clickedMp = features[0].properties; // Access mp.referenceID, etc.
+        if (clickedMp) {
+          if (followLocation === clickedMp.referenceID) {
+            setFollowLocation(null);
+            if (!mapRef.current) return;
+
+            mapRef.current.flyTo({
+              duration: 800,
+              padding: {
+                left: 0,
+                right: 0, // ✅ Marker LEFT side of screen
+                // top: 80,
+                // bottom: 250,
+              },
+            });
+          } else {
+            setFollowLocation(clickedMp.referenceID);
+          }
+        }
+      }
+    },
+    [followLocation],
+  );
 
   return (
     <Map
@@ -306,6 +468,7 @@ function MapFeed() {
         overflowY: "hidden",
       }}
       mapStyle="https://api.maptiler.com/maps/basic-v2-dark/style.json?key=AqtwgEiGiqzjVxuM07x4"
+      onClick={handleClick}
     >
       {toggleProfileView && (
         <ProfilePopup coordinates={myLocation!} user={authentication.user} />
@@ -313,7 +476,62 @@ function MapFeed() {
 
       {toggleSpeed && <SpeedPopup coordinates={myLocation!} maxSpeed={200} />}
 
-      <Source
+      {othersLocation.map((mp: ICoordinatesAnchor, i: number) => {
+        return (
+          <Fragment key={i}>
+            {followLocation === mp.referenceID &&
+              mp.mode.currentMode === 2 &&
+              mp.mode.ifSpeedShown && (
+                <SpeedPopup coordinates={mp} maxSpeed={200} />
+              )}
+            {followLocation === mp.referenceID && (
+              <ProfilePopup
+                coordinates={mp}
+                user={{
+                  userID: mp.referenceID,
+                  fullName: {
+                    firstName: "@" + mp.referenceID,
+                    middleName: "",
+                    lastName: "",
+                  },
+                  email: "",
+                  isActivated: true,
+                  isVerified: true,
+                  profile: "",
+                  coverphoto: "none",
+                }}
+              />
+            )}
+            <Source
+              id="gps-marker"
+              type="geojson"
+              data={{
+                type: "Feature",
+                geometry: {
+                  type: "Point",
+                  coordinates: [mp.longitude, mp.latitude],
+                },
+                properties: { referenceID: mp.referenceID },
+              }}
+            >
+              <Layer
+                id="gps-circle"
+                type="circle"
+                paint={{
+                  "circle-radius": 8,
+                  "circle-color":
+                    followLocation === mp.referenceID ? "#2b35af" : "#727adc",
+                  "circle-stroke-color": "white",
+                  "circle-stroke-width": 2,
+                  "circle-opacity": 0.9,
+                }}
+              />
+            </Source>
+          </Fragment>
+        );
+      })}
+
+      {/* <Source
         id="gps-marker"
         type="geojson"
         data={{
@@ -338,7 +556,7 @@ function MapFeed() {
             "circle-opacity": 0.9,
           }}
         />
-      </Source>
+      </Source> */}
 
       <Source
         id="openmaptiles"
@@ -707,7 +925,7 @@ function MapFeed() {
               }}
               className="tw-bg-[#eaecef] tw-w-full tw-rounded-md tw-overflow-hidden tw-flex"
             >
-              <div className="tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex">
+              <div className="tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex tw-gap-[6px]">
                 {toggleSwitchOptions[currentMode].items.map((mp, i: number) => {
                   return (
                     <button

@@ -84,6 +84,21 @@ const SSENotificationsTRequest = (
     }
   });
 
+  sseNtfsSource.addEventListener("coordinates_broadcast", (e: any) => {
+    const parsedresponse = JSON.parse(e.data);
+    if (parsedresponse.auth) {
+      if (parsedresponse.status) {
+        const decodedResult: any = jwt_decode(parsedresponse.result);
+
+        const localListener = new CustomEvent(
+          "broadcast_coordinates_listener",
+          { detail: decodedResult },
+        );
+        window.dispatchEvent(localListener);
+      }
+    }
+  });
+
   sseNtfsSource.addEventListener("notifications_reload", (e: any) => {
     const parsedresponse = JSON.parse(e.data);
     // console.log(parsedresponse)

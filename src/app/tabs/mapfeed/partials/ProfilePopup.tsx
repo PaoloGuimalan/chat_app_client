@@ -1,9 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Popup } from "@vis.gl/react-maplibre";
 import DefaultProfile from "../../../../assets/imgs/default.png";
 import { ProfilePopupProp } from "@/reusables/vars/props";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import { useSelector } from "react-redux";
 
 function ProfilePopup({ coordinates, user }: ProfilePopupProp) {
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
+
   return (
     <Popup
       longitude={coordinates.longitude}
@@ -47,7 +54,8 @@ function ProfilePopup({ coordinates, user }: ProfilePopupProp) {
             {user.fullName.lastName}
           </span>
           <span className="tw-text-[10px] tw--mt-[5px]">
-            @{user.userID} (you)
+            @{user.userID}{" "}
+            {user.userID === authentication.user.userID && "(You)"}
           </span>
         </div>
       </div>
