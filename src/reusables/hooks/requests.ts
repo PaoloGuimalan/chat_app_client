@@ -19,10 +19,11 @@ import { ConvertedResponse } from "../vars/types";
 import { PaginationProp } from "../vars/props";
 import { IContact, INewEntry } from "../vars/interfaces";
 import { removeNullsFromObject } from "./validatevariables";
+import envs from "./env_configs";
 
-const API = import.meta.env.VITE_CHATTERLOOP_API;
-const USER_SERVICE_API = import.meta.env.VITE_CHATTERLOOP_USER_SERVICE_API;
-const SECRET = import.meta.env.VITE_JWT_SECRET;
+const API = envs.CHATTERLOOP_API;
+const USER_SERVICE_API = envs.USER_SERVICE_API;
+const SECRET = envs.SECRET;
 
 const AuthCheck = (dispatch: any) => {
   Axios.get(`${API}/auth/jwtchecker`, {

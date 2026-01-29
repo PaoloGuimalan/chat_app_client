@@ -22,16 +22,17 @@ import {
   InitConversationListRequest,
   NotificationOverrideRequest,
 } from "./requests";
+import envs from "./env_configs";
 
-const API = import.meta.env.VITE_CHATTERLOOP_API;
-const SECRET = import.meta.env.VITE_JWT_SECRET;
+const API = envs.CHATTERLOOP_API;
+const SECRET = envs.SECRET;
 
 let sseNtfsSource: any = null;
 
 const SSENotificationsTRequest = (
   dispatch: Dispatch<any>,
   currentAlertState: any,
-  authentication: any
+  authentication: any,
 ) => {
   const payload = {
     token: localStorage.getItem("authtoken"),
@@ -41,7 +42,7 @@ const SSENotificationsTRequest = (
   const encodedPayload = sign(payload, SECRET);
 
   sseNtfsSource = new EventSource(
-    `${API}/u/sseNotifications/${encodedPayload}`
+    `${API}/u/sseNotifications/${encodedPayload}`,
   );
 
   sseNtfsSource.addEventListener("notifications", (e: any) => {

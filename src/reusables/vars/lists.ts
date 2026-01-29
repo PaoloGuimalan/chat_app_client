@@ -1,23 +1,34 @@
-const monthList = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+/* eslint-disable @typescript-eslint/no-explicit-any */
+const monthList = [
+  "January",
+  "February",
+  "March",
+  "April",
+  "May",
+  "June",
+  "July",
+  "August",
+  "September",
+  "October",
+  "November",
+  "December",
+];
 
-const currentYear = (new Date()).getFullYear();
+const currentYear = new Date().getFullYear();
 const validYear = currentYear - 15;
-const range = (start: any, stop: any, step: any) => Array.from({ length: (stop - start) / step + 1}, (_, i) => start + (i * step));
-const finalYears = range(validYear, validYear - 50, -1)
+const range = (start: any, stop: any, step: any) =>
+  Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step);
+const finalYears = range(validYear, validYear - 50, -1);
 
 const getDaysInMonth = (monthProp: any, year: any) => {
-    const month = monthList.indexOf(monthProp)
-    var date = new Date(year, month, 1);
-    var days = [];
-    while (date.getMonth() === month) {
-      days.push(new Date(date).getDate());
-      date.setDate(date.getDate() + 1);
-    }
-    return days;
-}
+  const month = monthList.indexOf(monthProp);
+  const date = new Date(year, month, 1);
+  const days = [];
+  while (date.getMonth() === month) {
+    days.push(new Date(date).getDate());
+    date.setDate(date.getDate() + 1);
+  }
+  return days;
+};
 
-export {
-    monthList,
-    finalYears as years,
-    getDaysInMonth
-}
+export { monthList, finalYears as years, getDaysInMonth };
