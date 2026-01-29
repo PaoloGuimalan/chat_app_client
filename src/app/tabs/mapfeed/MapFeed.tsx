@@ -531,7 +531,7 @@ function MapFeed() {
         );
       })}
 
-      {/* <Source
+      <Source
         id="gps-marker"
         type="geojson"
         data={{
@@ -556,7 +556,7 @@ function MapFeed() {
             "circle-opacity": 0.9,
           }}
         />
-      </Source> */}
+      </Source>
 
       <Source
         id="openmaptiles"
