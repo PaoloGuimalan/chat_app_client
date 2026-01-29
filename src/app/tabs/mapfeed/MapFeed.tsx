@@ -409,8 +409,11 @@ function MapFeed() {
 
   const handleClick = useCallback(
     (event: any) => {
+      const coordinatesCircle = coordinates
+        .filter((flt) => flt.referenceID !== authentication.user.userID)
+        .map((mp) => `gps-circle-${mp.referenceID}`);
       const features = mapRef.current.queryRenderedFeatures(event.point, {
-        layers: ["gps-circle"], // Your layer ID
+        layers: ["gps-circle", ...coordinatesCircle], // Your layer ID
       });
 
       if (features.length > 0) {
@@ -435,7 +438,7 @@ function MapFeed() {
         }
       }
     },
-    [followLocation],
+    [authentication.user.userID, coordinates, followLocation],
   );
 
   return (
@@ -503,7 +506,7 @@ function MapFeed() {
               />
             )}
             <Source
-              id="gps-marker"
+              id={`gps-marker-${mp.referenceID}`}
               type="geojson"
               data={{
                 type: "Feature",
@@ -515,7 +518,7 @@ function MapFeed() {
               }}
             >
               <Layer
-                id="gps-circle"
+                id={`gps-circle-${mp.referenceID}`}
                 type="circle"
                 paint={{
                   "circle-radius": 8,
