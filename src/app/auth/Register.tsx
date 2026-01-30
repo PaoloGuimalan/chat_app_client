@@ -64,7 +64,7 @@ function Register() {
           },
           dispatch,
           alerts,
-          setisWaitingRequest
+          setisWaitingRequest,
         );
       } else {
         dispatch({
@@ -171,7 +171,7 @@ function Register() {
             <div id="div_inputs_dates">
               <select
                 className="input_dates"
-                placeholder="Month"
+                // placeholder="Month"
                 value={month}
                 onChange={(e) => {
                   setmonth(e.target.value);
@@ -190,7 +190,7 @@ function Register() {
               </select>
               <select
                 className="input_dates"
-                placeholder="Year"
+                // placeholder="Year"
                 value={year}
                 onChange={(e) => {
                   setyear(e.target.value);
@@ -209,7 +209,7 @@ function Register() {
               </select>
               <select
                 className="input_dates"
-                placeholder="Day"
+                // placeholder="Day"
                 value={day}
                 onChange={(e) => {
                   setday(e.target.value);
