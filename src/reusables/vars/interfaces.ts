@@ -332,6 +332,7 @@ export interface ICoordinatesAnchor {
   heading: number | null;
   speed: number | null;
   mode: any | null;
+  type: string;
 }
 
 export interface IDiaryPreview {

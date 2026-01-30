@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   Fragment,
@@ -17,6 +18,7 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import {
   AuthenticationInterface,
   ICoordinatesAnchor,
+  ProfileUserInfoInterface,
 } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
 import ProfilePopup from "./partials/ProfilePopup";
@@ -26,6 +28,7 @@ import {
   FaAnglesUp,
   FaAngleUp,
   FaLocationCrosshairs,
+  FaRegCopy,
 } from "react-icons/fa6";
 import { GiCarWheel } from "react-icons/gi";
 import { BsPersonCircle } from "react-icons/bs";
@@ -37,7 +40,10 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import WalkingLottie from "../../../assets/lotties/walking-lottie.json";
 import SuitCaseLottie from "../../../assets/lotties/suitcase-lottie.json";
 import SpeedPopup from "./partials/SpeedPopup";
-import { BroadcastCoordinatesRequest } from "@/reusables/hooks/requests";
+import {
+  BroadcastCoordinatesRequest,
+  GetProfileInfo,
+} from "@/reusables/hooks/requests";
 import { useSearchParams } from "react-router-dom";
 
 function MapFeed() {
@@ -64,6 +70,7 @@ function MapFeed() {
       heading: -17.6,
       speed: 0,
       mode: null,
+      type: "profile",
     },
   ]);
 
@@ -73,7 +80,7 @@ function MapFeed() {
 
   const [isLocationSharing, setisLocationSharing] = useState<boolean>(false);
 
-  const [toggleProfileView, settoggleProfileView] = useState<boolean>(false);
+  const [toggleProfileView, settoggleProfileView] = useState<boolean>(true);
 
   const [toggleLevel, settoggleLevel] = useState<number>(0);
 
@@ -102,7 +109,8 @@ function MapFeed() {
     if (authentication.user.userID) {
       const currentCoordinates = coordinates.filter(
         (flt: ICoordinatesAnchor) =>
-          flt.referenceID !== authentication.user.userID,
+          flt.referenceID !== authentication.user.userID &&
+          flt.type === "profile",
       );
 
       if (currentCoordinates.length > 0) {
@@ -223,6 +231,7 @@ function MapFeed() {
               heading: position.coords.heading,
               speed: position.coords.speed ?? 0,
               mode: null,
+              type: "profile",
             },
           ];
         });
@@ -250,6 +259,7 @@ function MapFeed() {
               heading: position.coords.heading,
               speed: position.coords.speed ?? 0,
               mode: null,
+              type: "profile",
             },
           ];
         });
@@ -299,6 +309,23 @@ function MapFeed() {
 
   const toggleLevelHeight = ["80px", "40%", "calc(100% - 100px)"];
 
+  const generalToggleOptions = [
+    {
+      label: (
+        <span className="tw-text-[12px] tw-font-Inter">Share Location</span>
+      ),
+      icon: (
+        <MdShareLocation
+          size={50}
+          style={{ color: isLocationSharing ? "#00ff88" : "#ffffff" }}
+        />
+      ),
+      click: () => {
+        setisLocationSharing((prev) => !prev);
+      },
+    },
+  ];
+
   const toggleSwitchOptions = [
     {
       icon: <FaWalking size={12} />,
@@ -325,15 +352,7 @@ function MapFeed() {
           />
         </div>
       ),
-      items: [
-        {
-          label: "Share Location",
-          icon: <MdShareLocation size={50} />,
-          click: () => {
-            setisLocationSharing((prev) => !prev);
-          },
-        },
-      ],
+      items: [...generalToggleOptions],
     },
     {
       icon: <MdCardTravel size={13} style={{ marginBottom: "-2px" }} />,
@@ -359,15 +378,7 @@ function MapFeed() {
           />
         </div>
       ),
-      items: [
-        {
-          label: "Share Location",
-          icon: <MdShareLocation size={50} />,
-          click: () => {
-            setisLocationSharing((prev) => !prev);
-          },
-        },
-      ],
+      items: [...generalToggleOptions],
     },
     {
       icon: <GiCarWheel size={14} style={{ marginBottom: "-2px" }} />,
@@ -389,16 +400,15 @@ function MapFeed() {
         </div>
       ),
       items: [
+        ...generalToggleOptions,
         {
-          label: "Share Location",
-          icon: <MdShareLocation size={50} />,
-          click: () => {
-            setisLocationSharing((prev) => !prev);
-          },
-        },
-        {
-          label: "Speed",
-          icon: <SlSpeedometer size={50} />,
+          label: <span className="tw-text-[12px] tw-font-Inter">Speed</span>,
+          icon: (
+            <SlSpeedometer
+              size={50}
+              style={{ color: toggleSpeed ? "#00ff88" : "#ffffff" }}
+            />
+          ),
           click: () => {
             settoggleSpeed((prev) => !prev);
           },
@@ -441,6 +451,35 @@ function MapFeed() {
     [authentication.user.userID, coordinates, followLocation],
   );
 
+  const [UsersInMap, setUsersInMap] = useState<ProfileUserInfoInterface[]>([]);
+
+  const GetProfileInfoProcess = (userID: string) => {
+    GetProfileInfo({
+      userID: userID,
+    })
+      .then((response) => {
+        const existingUserInfo = UsersInMap.filter(
+          (flt) => flt.userID === response.data.data.userID,
+        ).length;
+        if (existingUserInfo === 0) {
+          setUsersInMap((prev) => [...prev, response.data.data]);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    const toGetUsersInMap = othersLocation.map((mp) => mp.referenceID);
+
+    toGetUsersInMap.forEach((userID) => {
+      if (UsersInMap.findIndex((usr) => usr.userID === userID) === -1) {
+        GetProfileInfoProcess(userID);
+      }
+    });
+  }, [UsersInMap, othersLocation]);
+
   return (
     <Map
       ref={mapRef}
@@ -461,9 +500,6 @@ function MapFeed() {
       doubleClickZoom={!followLocation}
       touchPitch={!followLocation}
       touchZoomRotate={!followLocation}
-      // bearing={toFollowLocation?.heading ?? -17.6}
-      // longitude={coordinates.longitude}
-      // latitude={coordinates.latitude}
       style={{
         width: "100%",
         height: "100%",
@@ -477,61 +513,56 @@ function MapFeed() {
         <ProfilePopup coordinates={myLocation!} user={authentication.user} />
       )}
 
-      {toggleSpeed && <SpeedPopup coordinates={myLocation!} maxSpeed={200} />}
+      {toggleSpeed && currentMode === 2 && (
+        <SpeedPopup coordinates={myLocation!} maxSpeed={200} />
+      )}
 
       {othersLocation.map((mp: ICoordinatesAnchor, i: number) => {
-        return (
-          <Fragment key={i}>
-            {followLocation === mp.referenceID &&
-              mp.mode.currentMode === 2 &&
-              mp.mode.ifSpeedShown && (
-                <SpeedPopup coordinates={mp} maxSpeed={200} />
-              )}
-            {followLocation === mp.referenceID && (
-              <ProfilePopup
-                coordinates={mp}
-                user={{
-                  userID: mp.referenceID,
-                  fullName: {
-                    firstName: "@" + mp.referenceID,
-                    middleName: "",
-                    lastName: "",
-                  },
-                  email: "",
-                  isActivated: true,
-                  isVerified: true,
-                  profile: "",
-                  coverphoto: "none",
-                }}
-              />
-            )}
-            <Source
-              id={`gps-marker-${mp.referenceID}`}
-              type="geojson"
-              data={{
-                type: "Feature",
-                geometry: {
-                  type: "Point",
-                  coordinates: [mp.longitude, mp.latitude],
-                },
-                properties: { referenceID: mp.referenceID },
-              }}
-            >
-              <Layer
-                id={`gps-circle-${mp.referenceID}`}
-                type="circle"
-                paint={{
-                  "circle-radius": 8,
-                  "circle-color":
-                    followLocation === mp.referenceID ? "#2b35af" : "#727adc",
-                  "circle-stroke-color": "white",
-                  "circle-stroke-width": 2,
-                  "circle-opacity": 0.9,
-                }}
-              />
-            </Source>
-          </Fragment>
+        const userInfo = UsersInMap.find(
+          (usr) => usr.userID === mp.referenceID,
         );
+        if (userInfo) {
+          return (
+            <Fragment key={i}>
+              {followLocation === mp.referenceID &&
+                mp.mode.currentMode === 2 &&
+                mp.mode.ifSpeedShown && (
+                  <SpeedPopup coordinates={mp} maxSpeed={200} />
+                )}
+              {followLocation === mp.referenceID && (
+                <ProfilePopup
+                  coordinates={mp}
+                  user={{ ...userInfo, fullName: userInfo.fullname }}
+                />
+              )}
+              <Source
+                id={`gps-marker-${mp.referenceID}`}
+                type="geojson"
+                data={{
+                  type: "Feature",
+                  geometry: {
+                    type: "Point",
+                    coordinates: [mp.longitude, mp.latitude],
+                  },
+                  properties: { referenceID: mp.referenceID },
+                }}
+              >
+                <Layer
+                  id={`gps-circle-${mp.referenceID}`}
+                  type="circle"
+                  paint={{
+                    "circle-radius": 8,
+                    "circle-color":
+                      followLocation === mp.referenceID ? "#2b35af" : "#727adc",
+                    "circle-stroke-color": "white",
+                    "circle-stroke-width": 2,
+                    "circle-opacity": 0.9,
+                  }}
+                />
+              </Source>
+            </Fragment>
+          );
+        }
       })}
 
       <Source
@@ -620,64 +651,6 @@ function MapFeed() {
           "text-halo-width": 2,
         }}
       />
-
-      {/* <Layer
-        id="local-labels-top"
-        source="openmaptiles"
-        source-layer="housenumber"
-        type="symbol"
-        minzoom={16}
-        layout={{
-          "text-field": ["get", "housenumber"],
-          "text-size": 12,
-        }}
-        paint={{
-          "text-color": "white",
-          "text-halo-color": "#000",
-          "text-halo-width": 1,
-        }}
-      /> */}
-
-      {/* <Layer
-        id="poi-labels"
-        source="openmaptiles"
-        source-layer="poi_label"
-        type="symbol"
-        minzoom={16}
-        layout={{
-          "text-field": ["get", "name"],
-          "text-size": 12,
-          "text-anchor": "top",
-        }}
-        paint={{
-          "text-color": "white",
-          "text-halo-color": "black",
-          "text-halo-width": 1,
-        }}
-      />
-
-      <Layer
-        id="road-labels"
-        source="openmaptiles"
-        source-layer="transportation_name"
-        type="symbol"
-        layout={{
-          "text-field": ["get", "name"],
-          "text-size": ["interpolate", ["linear"], ["zoom"], 15, 10, 18, 14],
-        }}
-        paint={{
-          "text-color": "white",
-        }}
-      /> */}
-
-      {/* <GeolocateControl 
-        position="bottom-right"
-        // trackUserLocation={followLocation}
-        showAccuracyCircle={true}
-        showUserHeading={true}
-        onTrackUserLocationStart={() => setFollowLocation(authentication.user.userID)}
-        onTrackUserLocationEnd={() => setFollowLocation(null)}
-      /> */}
       {!isMobileView ? (
         <motion.div
           initial={{
@@ -753,9 +726,6 @@ function MapFeed() {
               }}
               className="tw-p-[10px] tw-mb-[10px] tw-flex tw-justify-center tw-rounded-xl"
             >
-              {/* {toggleLevel > 0 && (
-                <hr className="tw-w-full tw-border-[#ffffff] tw--mt-[2px]" />
-              )} */}
               <motion.div
                 initial={{ justifyItems: "left", gap: "5px" }}
                 animate={{
@@ -781,10 +751,7 @@ function MapFeed() {
                     <FaLocationCrosshairs
                       size={15}
                       style={{
-                        color:
-                          followLocation === authentication.user.userID
-                            ? "#00ff88"
-                            : "#ffaa00",
+                        color: followLocation ? "#00ff88" : "#ffaa00",
                       }}
                     />
                   </button>
@@ -797,10 +764,7 @@ function MapFeed() {
                     }}
                     className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
                   >
-                    {followLocation === authentication.user.userID
-                      ? "Follow"
-                      : "Unfollow"}{" "}
-                    Location
+                    {!followLocation ? "Follow" : "Unfollow"}
                   </motion.span>
                 </div>
                 <div className="tw-flex tw-gap-[5px] tw-items-center">
@@ -830,62 +794,6 @@ function MapFeed() {
                     {toggleProfileView ? "Hide" : "Show"} Profile
                   </motion.span>
                 </div>
-                {/* Testing Items */}
-                {/* <div className="tw-flex tw-gap-[5px] tw-items-center">
-                  <button
-                    onClick={() => {
-                      settoggleProfileView(!toggleProfileView);
-                    }}
-                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-                    style={{ pointerEvents: "auto" }}
-                  >
-                    <BsPersonCircle
-                      size={15}
-                      style={{
-                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
-                      }}
-                    />
-                  </button>
-                  <motion.span
-                    initial={{
-                      width: "0px",
-                    }}
-                    animate={{
-                      width: toggleLevel > 0 ? "auto" : "0px",
-                    }}
-                    className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
-                  >
-                    {toggleProfileView ? "Hide" : "Show"} Profile
-                  </motion.span>
-                </div>
-                <div className="tw-flex tw-gap-[5px] tw-items-center">
-                  <button
-                    onClick={() => {
-                      settoggleProfileView(!toggleProfileView);
-                    }}
-                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-                    style={{ pointerEvents: "auto" }}
-                  >
-                    <BsPersonCircle
-                      size={15}
-                      style={{
-                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
-                      }}
-                    />
-                  </button>
-                  <motion.span
-                    initial={{
-                      width: "0px",
-                    }}
-                    animate={{
-                      width: toggleLevel > 0 ? "auto" : "0px",
-                    }}
-                    className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
-                  >
-                    {toggleProfileView ? "Hide" : "Show"} Profile
-                  </motion.span>
-                </div> */}
-                {/* END: Testing Items */}
                 <motion.div className="tw-flex tw-flex-1 tw-h-[35px] tw-items-center tw-justify-end tw-overflow-hidden">
                   <motion.div className="tw-text-[12px] tw-font-semibold tw-font-Inter tw-overflow-hidden tw-text-right tw-whitespace-nowrap tw-flex tw-justify-end">
                     {toggleSwitchOptions[currentMode].lottie}
@@ -903,47 +811,75 @@ function MapFeed() {
                   </motion.div>
                 </motion.div>
               </motion.div>
-              {/* {toggleLevel > 0 && (
-                <hr className="tw-w-full tw-border-[#ffffff] tw-mb-[0px]" />
-              )} */}
             </motion.div>
           </div>
           <motion.div
             initial={{
-              flex: toggleLevel > 0 ? 1 : 0,
-              // minHeight: toggleLevel > 0 ? "none" : "0px",
+              paddingBottom: toggleLevel > 0 ? "10px" : "0px",
+              overflowY: toggleLevel > 0 ? "auto" : "hidden",
             }}
             animate={{
-              flex: toggleLevel > 0 ? 1 : 0,
-              // minHeight: toggleLevel > 0 ? "none" : "0px",
+              paddingBottom: toggleLevel > 0 ? "10px" : "0px",
+              overflowY: toggleLevel > 0 ? "auto" : "hidden",
             }}
-            className="tw-w-[calc(100%-20px)] tw-max-h-[195px] tw-flex tw-flex-col tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-hidden"
+            className="tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-h-full tw-overflow-y-auto t-scroll"
           >
+            <div className="tw-w-full tw-flex tw-flex-col tw-items-center">
+              <motion.div
+                initial={{
+                  height: "0px",
+                }}
+                animate={{
+                  height: isLocationSharing ? "auto" : "0px",
+                }}
+                className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-md tw-flex"
+              >
+                <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-items-center tw-gap-[5px]">
+                  <span className="tw-whitespace-nowrap tw-text-ellipsis tw-truncate tw-text-[12px] tw-font-Inter tw-flex-1">
+                    {window.location.href}?anchor={authentication.user.userID}
+                  </span>
+                  <button
+                    className="tw-h-[25px] tw-w-[40px] tw-cursor-pointer tw-border-none tw-bg-transparent"
+                    onClick={() =>
+                      navigator.clipboard.writeText(
+                        window.location.href +
+                          "?anchor=" +
+                          authentication.user.userID,
+                      )
+                    }
+                  >
+                    <FaRegCopy size={17} />
+                  </button>
+                </div>
+              </motion.div>
+            </div>
             <motion.div
               initial={{
-                height: toggleLevel > 0 ? "100%" : "0px",
+                marginTop: "-10px",
               }}
               animate={{
-                height: toggleLevel > 0 ? "100%" : "0px",
+                marginTop: isLocationSharing ? "0px" : "-10px",
               }}
-              className="tw-bg-[#eaecef] tw-w-full tw-rounded-md tw-overflow-hidden tw-flex"
+              className="tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-pl-[10px] tw-pr-[10px]"
             >
-              <div className="tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex tw-gap-[6px]">
-                {toggleSwitchOptions[currentMode].items.map((mp, i: number) => {
-                  return (
-                    <button
-                      key={i}
-                      className="tw-w-[100px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
-                      onClick={mp.click}
-                    >
-                      {mp.icon}
-                      <span className="tw-text-[12px] tw-font-Inter">
-                        {mp.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+              <motion.div className="tw-bg-[#eaecef] tw-w-full tw-h-auto tw-min-h-[194px] tw-rounded-md tw-flex">
+                <div className="tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex tw-gap-[6px]">
+                  {toggleSwitchOptions[currentMode].items.map(
+                    (mp, i: number) => {
+                      return (
+                        <button
+                          key={i}
+                          className="tw-w-[100px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
+                          onClick={mp.click}
+                        >
+                          {mp.icon}
+                          {mp.label}
+                        </button>
+                      );
+                    },
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         </motion.div>
@@ -1022,9 +958,6 @@ function MapFeed() {
               }}
               className="tw-p-[10px] tw-mb-[10px] tw-flex tw-justify-center tw-rounded-xl"
             >
-              {/* {toggleLevel > 0 && (
-                <hr className="tw-w-full tw-border-[#ffffff] tw--mt-[2px]" />
-              )} */}
               <motion.div
                 initial={{ justifyItems: "left", gap: "5px" }}
                 animate={{
@@ -1050,10 +983,7 @@ function MapFeed() {
                     <FaLocationCrosshairs
                       size={15}
                       style={{
-                        color:
-                          followLocation === authentication.user.userID
-                            ? "#00ff88"
-                            : "#ffaa00",
+                        color: followLocation ? "#00ff88" : "#ffaa00",
                       }}
                     />
                   </button>
@@ -1066,10 +996,7 @@ function MapFeed() {
                     }}
                     className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
                   >
-                    {followLocation === authentication.user.userID
-                      ? "Follow"
-                      : "Unfollow"}{" "}
-                    Location
+                    {!followLocation ? "Follow" : "Unfollow"}
                   </motion.span>
                 </div>
                 <div className="tw-flex tw-gap-[5px] tw-items-center">
@@ -1099,62 +1026,6 @@ function MapFeed() {
                     {toggleProfileView ? "Hide" : "Show"} Profile
                   </motion.span>
                 </div>
-                {/* Testing Items */}
-                {/* <div className="tw-flex tw-gap-[5px] tw-items-center">
-                  <button
-                    onClick={() => {
-                      settoggleProfileView(!toggleProfileView);
-                    }}
-                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-                    style={{ pointerEvents: "auto" }}
-                  >
-                    <BsPersonCircle
-                      size={15}
-                      style={{
-                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
-                      }}
-                    />
-                  </button>
-                  <motion.span
-                    initial={{
-                      width: "0px",
-                    }}
-                    animate={{
-                      width: toggleLevel > 0 ? "auto" : "0px",
-                    }}
-                    className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
-                  >
-                    {toggleProfileView ? "Hide" : "Show"} Profile
-                  </motion.span>
-                </div>
-                <div className="tw-flex tw-gap-[5px] tw-items-center">
-                  <button
-                    onClick={() => {
-                      settoggleProfileView(!toggleProfileView);
-                    }}
-                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-                    style={{ pointerEvents: "auto" }}
-                  >
-                    <BsPersonCircle
-                      size={15}
-                      style={{
-                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
-                      }}
-                    />
-                  </button>
-                  <motion.span
-                    initial={{
-                      width: "0px",
-                    }}
-                    animate={{
-                      width: toggleLevel > 0 ? "auto" : "0px",
-                    }}
-                    className="tw-text-[12px] tw-font-Inter tw-overflow-x-hidden tw-whitespace-nowrap"
-                  >
-                    {toggleProfileView ? "Hide" : "Show"} Profile
-                  </motion.span>
-                </div> */}
-                {/* END: Testing Items */}
                 <motion.div className="tw-flex tw-flex-1 tw-h-[35px] tw-items-center tw-justify-end tw-overflow-hidden">
                   <motion.div className="tw-text-[12px] tw-font-semibold tw-font-Inter tw-overflow-hidden tw-text-right tw-whitespace-nowrap tw-flex tw-justify-end">
                     {toggleSwitchOptions[currentMode].lottie}
@@ -1172,47 +1043,75 @@ function MapFeed() {
                   </motion.div>
                 </motion.div>
               </motion.div>
-              {/* {toggleLevel > 0 && (
-                <hr className="tw-w-full tw-border-[#ffffff] tw-mb-[0px]" />
-              )} */}
             </motion.div>
           </div>
           <motion.div
             initial={{
-              flex: toggleLevel > 0 ? 1 : 0,
-              // minHeight: toggleLevel > 0 ? "none" : "0px",
+              paddingBottom: toggleLevel > 0 ? "10px" : "0px",
+              overflowY: toggleLevel > 0 ? "auto" : "hidden",
             }}
             animate={{
-              flex: toggleLevel > 0 ? 1 : 0,
-              // minHeight: toggleLevel > 0 ? "none" : "0px",
+              paddingBottom: toggleLevel > 0 ? "10px" : "0px",
+              overflowY: toggleLevel > 0 ? "auto" : "hidden",
             }}
-            className="tw-w-[calc(100%-20px)] tw-max-h-[195px] tw-flex tw-flex-col tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-hidden"
+            className="tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-h-full tw-overflow-y-auto t-scroll"
           >
+            <div className="tw-w-full tw-flex tw-flex-col tw-items-center">
+              <motion.div
+                initial={{
+                  height: "0px",
+                }}
+                animate={{
+                  height: isLocationSharing ? "auto" : "0px",
+                }}
+                className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-md tw-flex"
+              >
+                <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-items-center tw-gap-[5px]">
+                  <span className="tw-whitespace-nowrap tw-text-ellipsis tw-truncate tw-text-[12px] tw-font-Inter tw-flex-1">
+                    {window.location.href}?anchor={authentication.user.userID}
+                  </span>
+                  <button
+                    className="tw-h-[25px] tw-w-[40px] tw-cursor-pointer tw-border-none tw-bg-transparent"
+                    onClick={() =>
+                      navigator.clipboard.writeText(
+                        window.location.href +
+                          "?anchor=" +
+                          authentication.user.userID,
+                      )
+                    }
+                  >
+                    <FaRegCopy size={17} />
+                  </button>
+                </div>
+              </motion.div>
+            </div>
             <motion.div
               initial={{
-                height: toggleLevel > 0 ? "100%" : "0px",
+                marginTop: "-10px",
               }}
               animate={{
-                height: toggleLevel > 0 ? "100%" : "0px",
+                marginTop: isLocationSharing ? "0px" : "-10px",
               }}
-              className="tw-bg-[#eaecef] tw-w-full tw-rounded-md tw-overflow-hidden tw-flex"
+              className="tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-pl-[10px] tw-pr-[10px]"
             >
-              <div className="tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex">
-                {toggleSwitchOptions[currentMode].items.map((mp, i: number) => {
-                  return (
-                    <button
-                      key={i}
-                      className="tw-w-[100px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
-                      onClick={mp.click}
-                    >
-                      {mp.icon}
-                      <span className="tw-text-[12px] tw-font-Inter">
-                        {mp.label}
-                      </span>
-                    </button>
-                  );
-                })}
-              </div>
+              <motion.div className="tw-bg-[#eaecef] tw-w-full tw-h-auto tw-min-h-[194px] tw-rounded-md tw-flex">
+                <div className="tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex tw-gap-[6px]">
+                  {toggleSwitchOptions[currentMode].items.map(
+                    (mp, i: number) => {
+                      return (
+                        <button
+                          key={i}
+                          className="tw-w-[100px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
+                          onClick={mp.click}
+                        >
+                          {mp.icon}
+                          {mp.label}
+                        </button>
+                      );
+                    },
+                  )}
+                </div>
+              </motion.div>
             </motion.div>
           </motion.div>
         </motion.div>
