@@ -112,7 +112,7 @@ function Login() {
         },
         dispatch,
         alerts,
-        setisWaitingRequest
+        setisWaitingRequest,
       );
     } else {
       setisWaitingRequest(false);
@@ -138,7 +138,7 @@ function Login() {
       },
       dispatch,
       alerts,
-      setisWaitingRequest
+      setisWaitingRequest,
     );
   };
 

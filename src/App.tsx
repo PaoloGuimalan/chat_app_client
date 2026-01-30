@@ -8,7 +8,7 @@ import Splash from "./app/main/Splash";
 import Home from "./app/main/Home";
 import Register from "./app/auth/Register";
 import Verification from "./app/auth/Verification";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { AuthCheck } from "./reusables/hooks/requests";
 import Alert from "./app/widgets/Alert";
 import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER } from "./redux/types";
@@ -16,7 +16,7 @@ import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER } from "./redux/types";
 function App() {
   const authentication = useSelector((state: any) => state.authentication);
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
   const alerts = useSelector((state: any) => state.alerts);
   const dispatch = useDispatch();
@@ -71,6 +71,21 @@ function App() {
     }
   }, [alerts, scrollDivAlerts]);
 
+  const [nextPathState, setnextPathState] = useState<string | null>(null);
+
+  useEffect(() => {
+    const nextPath = window.location.href.replace(window.location.origin, "");
+
+    if (
+      !nextPath.trim().includes("/login") &&
+      !nextPath.trim().includes("/register") &&
+      !nextPath.trim().includes("/verification") &&
+      nextPath.trim() !== "/"
+    ) {
+      setnextPathState(nextPath);
+    }
+  }, []);
+
   return (
     <div className="App">
       <div id="div_alerts_container" ref={scrollDivAlerts}>
@@ -85,12 +100,14 @@ function App() {
             authentication.auth != null ? (
               authentication.auth ? (
                 authentication.user.isVerified ? (
-                  <Home />
+                  <Home setNextPath={setnextPathState} />
                 ) : (
                   <Navigate to="/verification" />
                 )
               ) : (
-                <Navigate to="/login" />
+                <Navigate
+                  to={`/login${nextPathState ? `?next=${nextPathState}` : ""}`}
+                />
               )
             ) : (
               <Splash />
@@ -103,7 +120,7 @@ function App() {
             authentication.auth != null ? (
               authentication.auth ? (
                 authentication.user.isVerified ? (
-                  <Navigate to="/" />
+                  <Navigate to={nextPathState ? nextPathState : "/"} />
                 ) : (
                   <Navigate to="/verification" />
                 )

@@ -66,29 +66,33 @@ import Settings from "../tabs/settings/Settings";
 import Modal from "../reusables/Modal";
 import ProfileContainer from "../tabs/profile/ProfileContainer";
 
-function Home() {
+function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   const location = useLocation();
 
   const togglerightwidget = useSelector(
-    (state: any) => state.togglerightwidget
+    (state: any) => state.togglerightwidget,
   );
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
   const messageslist = useSelector((state: any) => state.messageslist);
   const minimizedconversation = useSelector(
-    (state: any) => state.minimizedconversation
+    (state: any) => state.minimizedconversation,
   );
 
   const isMobileView = useMemo(
     () => screensizelistener.W < 800,
-    [screensizelistener]
+    [screensizelistener],
   );
 
   const currentPathname = location.pathname;
+
+  useEffect(() => {
+    setNextPath(null);
+  }, []);
 
   const isMapFeedMobileView = useMemo(() => {
     const isMapView = currentPathname.includes("mapfeed");
@@ -97,7 +101,7 @@ function Home() {
   }, [isMobileView, currentPathname]);
 
   const notificationslist = useSelector(
-    (state: any) => state.notificationslist
+    (state: any) => state.notificationslist,
   );
   const alerts = useSelector((state: any) => state.alerts);
   const istypinglist = useSelector((state: any) => state.istypinglist);
