@@ -1725,6 +1725,28 @@ const BroadcastCoordinatesRequest = async (payload: any) => {
     });
 };
 
+const SnapCoordinatesOpenRoute = async (payload: any) => {
+  return await Axios.post(
+    `${envs.OPEN_ROUTE_API}/v2/snap/driving-car`,
+    payload,
+    {
+      headers: {
+        Accept:
+          "application/json, application/geo+json, application/gpx+xml, img/png; charset=utf-8",
+        Authorization: envs.OPEN_ROUTE_API_KEY,
+        "Content-Type": "application/json; charset=utf-8",
+      },
+    },
+  )
+    .then((response) => {
+      return response;
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   AuthCheck,
   LoginRequest,
@@ -1782,4 +1804,5 @@ export {
   GetUserEntriesRequest,
   GetEntryRequest,
   BroadcastCoordinatesRequest,
+  SnapCoordinatesOpenRoute,
 };
