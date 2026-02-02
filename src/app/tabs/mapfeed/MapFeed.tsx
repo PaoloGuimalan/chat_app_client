@@ -243,7 +243,7 @@ function MapFeed() {
       },
     );
 
-    navigator.geolocation.watchPosition(
+    const watchID = navigator.geolocation.watchPosition(
       (position: GeolocationPosition) => {
         setcoordinates((prev: ICoordinatesAnchor[]) => {
           const prevNoUser = prev.filter(
@@ -270,6 +270,10 @@ function MapFeed() {
         maximumAge: 1000,
       },
     );
+
+    return () => {
+      navigator.geolocation.clearWatch(watchID);
+    };
   }, [authentication.user.userID]);
 
   useEffect(() => {
