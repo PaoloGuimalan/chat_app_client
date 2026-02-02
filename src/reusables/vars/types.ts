@@ -43,3 +43,7 @@ export type ConvertedResponse = {
   iat: number;
   exp: number;
 };
+
+export type LonLat = [number, number];
+export type RoadCacheKey = string; // "17_123_456"
+export type RoadCacheValue = GeoJSON.FeatureCollection<GeoJSON.LineString>;

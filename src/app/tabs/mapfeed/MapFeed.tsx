@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -45,6 +46,11 @@ import {
   GetProfileInfo,
 } from "@/reusables/hooks/requests";
 import { useSearchParams } from "react-router-dom";
+import {
+  getCachedRoads,
+  persistCachedRoads,
+} from "@/reusables/hooks/localforagehelper";
+import { getTilesForBounds, snapToRoadLocal } from "@/reusables/hooks/reusable";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -73,6 +79,25 @@ function MapFeed() {
       type: "profile",
     },
   ]);
+
+  const [rawCoordinates, setrawCoordinates] = useState<ICoordinatesAnchor>({
+    referenceID: authentication.user.userID,
+    longitude: 120.9842,
+    latitude: 14.5995,
+    heading: -17.6,
+    speed: 0,
+    mode: null,
+    type: "profile",
+  });
+
+  const [roadGeometries, setRoadGeometries] = useState<
+    GeoJSON.FeatureCollection<GeoJSON.LineString>
+  >({
+    type: "FeatureCollection",
+    features: [],
+  });
+
+  const [_, setloadedCacheKeys] = useState<string[]>([]);
 
   const [followLocation, setFollowLocation] = useState<string | null>(
     authentication.user.userID,
@@ -155,6 +180,128 @@ function MapFeed() {
     return 14; // highway
   };
 
+  const getCanonicalZoom = (speedKmh: number | null): number => {
+    // Use your exact speed logic
+    const speedZoom = speedToZoom(speedKmh) ?? 10;
+
+    // Canonical levels prevent jitter duplication:
+    if (speedZoom >= 17) return 17; // z17-18 → z17 detail (standing/walking)
+    if (speedZoom >= 16) return 16; // z16 → z16 detail (bike/slow car)
+    return 15; // z14-15 → z15 detail (driving/highway)
+  };
+
+  const extractRoadsFromMap = useCallback((map: maplibregl.Map) => {
+    const bounds = map.getBounds();
+    const topLeft = map.project(bounds.getNorthWest());
+    const bottomRight = map.project(bounds.getSouthEast());
+
+    // GRAB ALL LINESTRINGS - roads are always LineStrings!
+    const allFeatures = map.queryRenderedFeatures([topLeft, bottomRight]);
+
+    const roadFeatures = allFeatures.filter(
+      (f) => f.geometry?.type === "LineString",
+    );
+
+    return {
+      type: "FeatureCollection" as const,
+      features: roadFeatures.map((f) => ({
+        type: "Feature" as const,
+        geometry: f.geometry as GeoJSON.LineString,
+        properties: f.properties || {},
+      })),
+    };
+  }, []);
+
+  const getCacheKey = (z: number, x: number, y: number) =>
+    `road_${z}_${Math.round(x)}_${Math.round(y)}`;
+
+  const loadViewCache = useCallback(
+    async (bounds: maplibregl.LngLatBounds, zoom: number) => {
+      const tiles = getTilesForBounds(bounds, zoom);
+      const loaded: GeoJSON.FeatureCollection<GeoJSON.LineString> = {
+        type: "FeatureCollection",
+        features: [],
+      };
+
+      for (const [z, x, y] of tiles) {
+        const key = getCacheKey(z, x, y);
+        const cached = await getCachedRoads("roads", key);
+        if (cached) {
+          setloadedCacheKeys((prev) => {
+            if (prev.includes(key)) {
+              return prev; // Skip!
+            }
+
+            loaded.features.push(...(cached as any).features);
+            return [...prev, key];
+          });
+        }
+      }
+
+      if (loaded.features.length > 0) {
+        setRoadGeometries(loaded);
+      }
+    },
+    [],
+  );
+
+  const cacheRoads = useCallback(
+    async (z: number, x: number, y: number, roads: any) => {
+      const key = getCacheKey(z, x, y);
+      const cached = await getCachedRoads("roads", key);
+      if (cached) return; // Dedupe!
+
+      await persistCachedRoads("roads", key, roads);
+    },
+    [],
+  );
+
+  const shouldSkipExtraction = async (
+    bounds: maplibregl.LngLatBounds,
+    zoom: number,
+  ): Promise<boolean> => {
+    const tiles = getTilesForBounds(bounds, zoom);
+
+    // If ANY central tile is cached → skip extraction
+    for (const [z, x, y] of tiles.slice(0, 3)) {
+      // Check center tiles first
+      const key = getCacheKey(z, x, y);
+      const cached = await getCachedRoads("roads", key);
+      if (cached && (cached as any).features?.length > 5) {
+        return true; // Skip!
+      }
+    }
+    return false;
+  };
+
+  const updateRoadsSmart = useCallback(async () => {
+    if (!mapRef.current) return;
+
+    const map = mapRef.current.getMap();
+    const bounds = map.getBounds();
+    const canonicalZoom = getCanonicalZoom(toFollowLocation?.speed ?? null);
+
+    const hasCache = await shouldSkipExtraction(bounds, canonicalZoom);
+
+    await loadViewCache(bounds, canonicalZoom);
+
+    if (hasCache) {
+      return; // SKIP EXTRACTION ENTIRELY!
+    }
+
+    const freshRoads = extractRoadsFromMap(map);
+
+    setRoadGeometries((prev) => ({
+      type: "FeatureCollection" as const,
+      features: [...prev.features, ...freshRoads.features].slice(0, 2000), // Limit
+    }));
+
+    const tiles = getTilesForBounds(bounds, canonicalZoom);
+    for (const [z, x, y] of tiles.slice(0, 4)) {
+      await cacheRoads(z, x, y, freshRoads);
+    }
+  }, [extractRoadsFromMap]);
+
   const [currentMode, setcurrentMode] = useState<number>(0);
 
   const [searchParams] = useSearchParams();
@@ -215,26 +362,60 @@ function MapFeed() {
 
   useEffect(() => {
     // window.locationiq.key = "pk.f9b59be5e6653ab04296d123446a4564"
+
     navigator.geolocation.getCurrentPosition(
       (position: GeolocationPosition) => {
-        setcoordinates((prev: ICoordinatesAnchor[]) => {
-          const prevNoUser = prev.filter(
-            (flt: ICoordinatesAnchor) =>
-              flt.referenceID !== authentication.user.userID,
-          );
-          return [
-            ...prevNoUser,
-            {
-              referenceID: authentication.user.userID,
-              longitude: position.coords.longitude,
-              latitude: position.coords.latitude,
-              heading: position.coords.heading,
-              speed: position.coords.speed ?? 0,
-              mode: null,
-              type: "profile",
-            },
-          ];
+        setrawCoordinates({
+          referenceID: authentication.user.userID,
+          longitude: position.coords.longitude,
+          latitude: position.coords.latitude,
+          heading: position.coords.heading,
+          speed: position.coords.speed ?? 0,
+          mode: null,
+          type: "profile",
         });
+
+        // setcoordinates((prev: ICoordinatesAnchor[]) => {
+        //   const prevNoUser = prev.filter(
+        //     (flt: ICoordinatesAnchor) =>
+        //       flt.referenceID !== authentication.user.userID,
+        //   );
+
+        //   if (currentMode === 2) {
+        //     if (roadGeometries.features.length > 0) {
+        //       const snapped = snapToRoadLocal(
+        //         [position.coords.longitude, position.coords.latitude],
+        //         roadGeometries,
+        //       );
+
+        //       return [
+        //         ...prevNoUser,
+        //         {
+        //           referenceID: authentication.user.userID,
+        //           longitude: snapped[0],
+        //           latitude: snapped[1],
+        //           heading: position.coords.heading,
+        //           speed: position.coords.speed ?? 0,
+        //           mode: null,
+        //           type: "profile",
+        //         },
+        //       ];
+        //     }
+        //   }
+
+        //   return [
+        //     ...prevNoUser,
+        //     {
+        //       referenceID: authentication.user.userID,
+        //       longitude: position.coords.longitude,
+        //       latitude: position.coords.latitude,
+        //       heading: position.coords.heading,
+        //       speed: position.coords.speed ?? 0,
+        //       mode: null,
+        //       type: "profile",
+        //     },
+        //   ];
+        // });
       },
       null,
       {
@@ -243,26 +424,59 @@ function MapFeed() {
       },
     );
 
-    navigator.geolocation.watchPosition(
+    const watch_id = navigator.geolocation.watchPosition(
       (position: GeolocationPosition) => {
-        setcoordinates((prev: ICoordinatesAnchor[]) => {
-          const prevNoUser = prev.filter(
-            (flt: ICoordinatesAnchor) =>
-              flt.referenceID !== authentication.user.userID,
-          );
-          return [
-            ...prevNoUser,
-            {
-              referenceID: authentication.user.userID,
-              longitude: position.coords.longitude,
-              latitude: position.coords.latitude,
-              heading: position.coords.heading,
-              speed: position.coords.speed ?? 0,
-              mode: null,
-              type: "profile",
-            },
-          ];
+        setrawCoordinates({
+          referenceID: authentication.user.userID,
+          longitude: position.coords.longitude,
+          latitude: position.coords.latitude,
+          heading: position.coords.heading,
+          speed: position.coords.speed ?? 0,
+          mode: null,
+          type: "profile",
         });
+
+        // setcoordinates((prev: ICoordinatesAnchor[]) => {
+        //   const prevNoUser = prev.filter(
+        //     (flt: ICoordinatesAnchor) =>
+        //       flt.referenceID !== authentication.user.userID,
+        //   );
+
+        //   if (currentMode === 2) {
+        //     if (roadGeometries.features.length > 0) {
+        //       const snapped = snapToRoadLocal(
+        //         [position.coords.longitude, position.coords.latitude],
+        //         roadGeometries,
+        //       );
+
+        //       return [
+        //         ...prevNoUser,
+        //         {
+        //           referenceID: authentication.user.userID,
+        //           longitude: snapped[0],
+        //           latitude: snapped[1],
+        //           heading: position.coords.heading,
+        //           speed: position.coords.speed ?? 0,
+        //           mode: null,
+        //           type: "profile",
+        //         },
+        //       ];
+        //     }
+        //   }
+
+        //   return [
+        //     ...prevNoUser,
+        //     {
+        //       referenceID: authentication.user.userID,
+        //       longitude: position.coords.longitude,
+        //       latitude: position.coords.latitude,
+        //       heading: position.coords.heading,
+        //       speed: position.coords.speed ?? 0,
+        //       mode: null,
+        //       type: "profile",
+        //     },
+        //   ];
+        // });
       },
       null,
       {
@@ -270,7 +484,55 @@ function MapFeed() {
         maximumAge: 1000,
       },
     );
+
+    return () => {
+      navigator.geolocation.clearWatch(watch_id);
+    };
   }, [authentication.user.userID]);
+
+  useEffect(() => {
+    setcoordinates((prev: ICoordinatesAnchor[]) => {
+      const prevNoUser = prev.filter(
+        (flt: ICoordinatesAnchor) =>
+          flt.referenceID !== authentication.user.userID,
+      );
+
+      if (currentMode === 2) {
+        if (roadGeometries.features.length > 0) {
+          const snapped = snapToRoadLocal(
+            [rawCoordinates.longitude, rawCoordinates.latitude],
+            roadGeometries,
+          );
+
+          return [
+            ...prevNoUser,
+            {
+              referenceID: authentication.user.userID,
+              longitude: snapped[0],
+              latitude: snapped[1],
+              heading: rawCoordinates.heading,
+              speed: rawCoordinates.speed ?? 0,
+              mode: null,
+              type: "profile",
+            },
+          ];
+        }
+      }
+
+      return [
+        ...prevNoUser,
+        {
+          referenceID: authentication.user.userID,
+          longitude: rawCoordinates.longitude,
+          latitude: rawCoordinates.latitude,
+          heading: rawCoordinates.heading,
+          speed: rawCoordinates.speed ?? 0,
+          mode: null,
+          type: "profile",
+        },
+      ];
+    });
+  }, [authentication.user.userID, rawCoordinates, roadGeometries, currentMode]);
 
   useEffect(() => {
     if (!mapRef.current || !toFollowLocation) return;
@@ -508,6 +770,9 @@ function MapFeed() {
       }}
       mapStyle="https://api.maptiler.com/maps/basic-v2-dark/style.json?key=AqtwgEiGiqzjVxuM07x4"
       onClick={handleClick}
+      onMoveEnd={updateRoadsSmart}
+      onZoomEnd={updateRoadsSmart}
+      onLoad={updateRoadsSmart}
     >
       {toggleProfileView && (
         <ProfilePopup coordinates={myLocation!} user={authentication.user} />

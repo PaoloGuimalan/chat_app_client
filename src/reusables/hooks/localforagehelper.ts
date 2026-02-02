@@ -52,4 +52,34 @@ async function persistAndReturnImage(stname: string, url: string) {
   return url;
 }
 
-export { getLottieData, persistLottieData, persistAndReturnImage };
+async function getCachedRoads(stname: string, url: string) {
+  const localforage = localforagemain.createInstance({
+    name: "chatterloop",
+  });
+  localforage.setDriver(localforage.INDEXEDDB);
+  localforage.config({ storeName: stname });
+  return await localforage.getItem(url).then((value: any) => {
+    return value;
+  });
+}
+
+async function persistCachedRoads(stname: string, url: string, lottie: any) {
+  const localforage = localforagemain.createInstance({
+    name: "chatterloop",
+  });
+  localforage.setDriver(localforage.INDEXEDDB);
+  localforage.config({ storeName: stname });
+  return await localforage.setItem(url, lottie).then(async () => {
+    return await localforage.getItem(url).then((value: any) => {
+      return value;
+    });
+  });
+}
+
+export {
+  getLottieData,
+  persistLottieData,
+  persistAndReturnImage,
+  getCachedRoads,
+  persistCachedRoads,
+};
