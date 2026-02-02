@@ -79,13 +79,15 @@ function isUserOnline(state: any, userID: string) {
 }
 
 function userSessionStatusFromContacts(state: any, userID: string) {
-  const filteractiveusers = state.filter((flt: any) => flt._id === userID);
+  const filteractiveusers = state.filter(
+    (flt: any) => flt._id === userID,
+  );
 
-  if (filteractiveusers.length > 0) {
+  if(filteractiveusers.length > 0){
     const sessionDate = filteractiveusers[0].sessiondate;
 
-    if (sessionDate) {
-      if (sessionDate.time) {
+    if(sessionDate){
+      if(sessionDate.time){
         return `Last seen ${sessionDate.date}`;
       }
 
@@ -94,7 +96,7 @@ function userSessionStatusFromContacts(state: any, userID: string) {
 
     return null;
   }
-
+  
   return null;
 }
 
@@ -285,37 +287,37 @@ const formatToDjangoDate = (date: any) => {
 };
 
 function timeSince(dateString: any) {
-  const now: any = new Date();
-  const past: any = new Date(dateString);
-  const seconds = Math.floor((now - past) / 1000);
+    const now: any = new Date();
+    const past: any = new Date(dateString);
+    const seconds = Math.floor((now - past) / 1000);
 
-  if (seconds < 5) {
-    return "just now";
-  } else if (seconds < 60) {
-    return `${seconds} seconds ago`;
-  }
+    if (seconds < 5) {
+        return 'just now';
+    } else if (seconds < 60) {
+        return `${seconds} seconds ago`;
+    }
 
-  const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) {
-    return minutes === 1 ? "1 minute ago" : `${minutes} minutes ago`;
-  }
+    const minutes = Math.floor(seconds / 60);
+    if (minutes < 60) {
+        return minutes === 1 ? '1 minute ago' : `${minutes} minutes ago`;
+    }
 
-  const hours = Math.floor(minutes / 60);
-  if (hours < 24) {
-    return hours === 1 ? "1 hour ago" : `${hours} hours ago`;
-  }
+    const hours = Math.floor(minutes / 60);
+    if (hours < 24) {
+        return hours === 1 ? '1 hour ago' : `${hours} hours ago`;
+    }
 
-  const days = Math.floor(hours / 24);
-  if (days < 7) {
-    return days === 1 ? "1 day ago" : `${days} days ago`;
-  }
+    const days = Math.floor(hours / 24);
+    if (days < 7) {
+        return days === 1 ? '1 day ago' : `${days} days ago`;
+    }
 
-  // For longer times, return formatted date string
-  return past.toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "short",
-    day: "numeric",
-  });
+    // For longer times, return formatted date string
+    return past.toLocaleDateString(undefined, {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    });
 }
 
 const parseDjangoDate = (djangoStr: any) => {
@@ -349,73 +351,6 @@ const parseDjangoDate = (djangoStr: any) => {
   }
 };
 
-const getTilesForBounds = (
-  bounds: maplibregl.LngLatBounds,
-  zoom: number,
-): Array<[number, number, number]> => {
-  const tiles: Array<[number, number, number]> = [];
-  const z = Math.round(zoom);
-  const n = 2 ** z;
-
-  const nw = bounds.getNorthWest();
-  const x0 = Math.floor(((nw.lng + 180) / 360) * n);
-  const latRadNW = (nw.lat * Math.PI) / 180;
-  const y0 = Math.floor(
-    (1 - Math.log(Math.tan(latRadNW) + 1 / Math.cos(latRadNW)) / Math.PI) * n,
-  );
-
-  const se = bounds.getSouthEast();
-  const x1 = Math.floor(((se.lng + 180) / 360) * n);
-  const latRadSE = (se.lat * Math.PI) / 180;
-  const y1 = Math.floor(
-    (1 - Math.log(Math.tan(latRadSE) + 1 / Math.cos(latRadSE)) / Math.PI) * n,
-  );
-
-  for (let x = x0; x <= x1; x++) {
-    for (let y = y0; y <= y1; y++) {
-      tiles.push([z, x % n, y % n]);
-    }
-  }
-  return tiles.slice(0, 9);
-};
-
-const snapToRoadLocal = (
-  p: [number, number],
-  roads: GeoJSON.FeatureCollection<GeoJSON.LineString>,
-): [number, number] => {
-  let best: [number, number] = p;
-  let bestD2 = Infinity;
-
-  for (const f of roads.features) {
-    const coords = f.geometry.coordinates as [number, number][];
-    for (let i = 0; i < coords.length - 1; i++) {
-      const a = coords[i];
-      const b = coords[i + 1];
-
-      const vx = b[0] - a[0];
-      const vy = b[1] - a[1];
-      const wx = p[0] - a[0];
-      const wy = p[1] - a[1];
-
-      const c1 = vx * wx + vy * wy;
-      if (c1 <= 0) continue;
-
-      const c2 = vx * vx + vy * vy;
-      if (c2 <= c1) continue;
-
-      const t = c1 / c2;
-      const q: [number, number] = [a[0] + t * vx, a[1] + t * vy];
-      const d2 = (p[0] - q[0]) ** 2 + (p[1] - q[1]) ** 2;
-
-      if (d2 < bestD2 && d2 < 0.0001) {
-        bestD2 = d2;
-        best = q;
-      }
-    }
-  }
-  return best;
-};
-
 export {
   importData,
   importNonImageData,
@@ -431,7 +366,5 @@ export {
   formatToDjangoDate,
   parseDjangoDate,
   timeSince,
-  userSessionStatusFromContacts,
-  getTilesForBounds,
-  snapToRoadLocal,
+  userSessionStatusFromContacts
 };
