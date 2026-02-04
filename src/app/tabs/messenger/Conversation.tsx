@@ -56,14 +56,14 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const authentication = useSelector((state: any) => state.authentication);
   const mediatrackholder = useSelector((state: any) => state.mediatrackholder);
   const pendingcallalerts = useSelector(
-    (state: any) => state.pendingcallalerts
+    (state: any) => state.pendingcallalerts,
   );
   const pendingmessageslist = useSelector(
-    (state: any) => state.pendingmessageslist
+    (state: any) => state.pendingmessageslist,
   );
   const messageslist = useSelector((state: any) => state.messageslist);
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
   const callslist = useSelector((state: any) => state.callslist);
@@ -73,7 +73,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
 
   const messagelistListener = useMemo(() => {
     const initialconvometadata = messageslist.filter(
-      (flt: any) => flt.conversationID === conversationsetup.conversationid
+      (flt: any) => flt.conversationID === conversationsetup.conversationid,
     );
 
     if (initialconvometadata.length > 0) {
@@ -88,18 +88,18 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const activeuserSpecific =
     conversationsetup.type == "single" &&
     activeuserslist.filter(
-      (flt: any) => flt._id == conversationsetup.userdetails.userID
+      (flt: any) => flt._id == conversationsetup.userdetails.userID,
     );
   const filteredistypinglist = useMemo(
     () =>
       istypinglist.filter(
-        (flt: any) => flt.conversationID === conversationsetup.conversationid
+        (flt: any) => flt.conversationID === conversationsetup.conversationid,
       ),
-    [conversationsetup, istypinglist]
+    [conversationsetup, istypinglist],
   );
   const conversationType = useMemo(
     () => conversationsetup.type,
-    [conversationsetup]
+    [conversationsetup],
   );
 
   const [messageValue, setmessageValue] = useState<string>("");
@@ -327,7 +327,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           content: mp.base,
           type: mp.type,
           name: mp.name,
-        })
+        }),
       );
 
       // console.log(pendingArrImages)
@@ -418,7 +418,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       setconversationList,
       settotalMessages,
       setisLoading,
-      scrollBottom
+      scrollBottom,
     );
   }, [page, conversationsetup, range]);
 
@@ -435,7 +435,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       setconversationList,
       settotalMessages,
       setisLoading,
-      scrollBottom
+      scrollBottom,
     );
   };
 
@@ -468,7 +468,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             type: "image",
           },
         ]);
-      }
+      },
     );
   };
 
@@ -482,7 +482,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const removeSelectedPreviewNonImg = (prevID: any) => {
     const mutatedPrevArr = nonImgList.filter((flt) => flt.id != prevID);
     const mutatedPrevRaw = nonImageRawFilesList.filter(
-      (flt) => flt.id != prevID
+      (flt) => flt.id != prevID,
     );
     setnonImgList(mutatedPrevArr);
     setnonImageRawFilesList(mutatedPrevRaw);
@@ -520,10 +520,10 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
 
   const triggerCall = (callType: any) => {
     const checkIfOnCall = callslist.filter(
-      (onc: any) => onc.conversationID == conversationsetup.conversationid
+      (onc: any) => onc.conversationID == conversationsetup.conversationid,
     );
     const checkIfOnPending = pendingcallalerts.filter(
-      (fltcall: any) => fltcall.callID == conversationsetup.conversationid
+      (fltcall: any) => fltcall.callID == conversationsetup.conversationid,
     );
 
     if (checkIfOnCall.length == 0 && checkIfOnPending.length == 0) {
@@ -575,7 +575,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     userID: authentication.user.userID,
                   },
                   recepients: conversationinfo?.users.map(
-                    (mp: any) => mp.userID
+                    (mp: any) => mp.userID,
                   ),
                 },
               ],
@@ -650,7 +650,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             ]);
           }
         }
-      }
+      },
     );
   };
 
@@ -670,22 +670,22 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           pathnamelistener.includes("messages") || conversationType === "server"
             ? "flex"
             : screensizelistener.W <= 900
-            ? "none"
-            : "flex",
+              ? "none"
+              : "flex",
         maxWidth:
           pathnamelistener.includes("messages") || conversationType === "server"
             ? "100%"
             : screensizelistener.W <= 900
-            ? "350px"
-            : "350px",
+              ? "350px"
+              : "350px",
         paddingTop:
           pathnamelistener.includes("messages") || conversationType === "server"
             ? conversationType === "server"
               ? "0px"
               : "10px"
             : screensizelistener.W <= 900
-            ? "20px"
-            : "20px",
+              ? "20px"
+              : "20px",
       }}
       id="div_conversation"
     >
@@ -696,29 +696,29 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
-              ? "20px"
-              : "20px",
+                ? "20px"
+                : "20px",
           paddingBottom:
             pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
-              ? "10px"
-              : "10px",
+                ? "10px"
+                : "10px",
           width:
             pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
-              ? "calc(100% - 20px)"
-              : "calc(100% - 20px)",
+                ? "calc(100% - 20px)"
+                : "calc(100% - 20px)",
           height:
             pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
-              ? "calc(100% - 10px)"
-              : "calc(100% - 10px)",
+                ? "calc(100% - 10px)"
+                : "calc(100% - 10px)",
         }}
         animate={{
           paddingRight:
@@ -726,29 +726,29 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
-              ? "20px"
-              : "20px",
+                ? "20px"
+                : "20px",
           paddingBottom:
             pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
-              ? "10px"
-              : "10px",
+                ? "10px"
+                : "10px",
           width:
             pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
-              ? "calc(100% - 20px)"
-              : "calc(100% - 20px)",
+                ? "calc(100% - 20px)"
+                : "calc(100% - 20px)",
           height:
             pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
-              ? "calc(100% - 10px)"
-              : "calc(100% - 10px)",
+                ? "calc(100% - 10px)"
+                : "calc(100% - 10px)",
         }}
         id="div_conversation_container"
       >
@@ -760,8 +760,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             borderRadius: pathnamelistener.includes("messages")
               ? "0px"
               : screensizelistener.W <= 900
-              ? "10px"
-              : "10px",
+                ? "10px"
+                : "10px",
             border:
               conversationType === "server"
                 ? "none"
@@ -774,8 +774,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             borderRadius: pathnamelistener.includes("messages")
               ? "0px"
               : screensizelistener.W <= 900
-              ? "10px"
-              : "10px",
+                ? "10px"
+                : "10px",
           }}
           id="div_conversation_content_handler"
           className={`tw-border-[0px] ${
@@ -811,7 +811,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         urllocation.pathname
                           .split("/")
                           .slice(0, urllocation.pathname.split("/").length - 1)
-                          .join("/")
+                          .join("/"),
                       );
                     }}
                     id="div_img_cncts_container"
@@ -831,7 +831,16 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                             ? DefaultProfile
                             : conversationsetup.userdetails.profile
                         }
-                        className="img_search_profiles_ntfs"
+                        className={
+                          conversationsetup.userdetails.profile == "none"
+                            ? "img_search_profiles_ntfs"
+                            : ""
+                        }
+                        id={
+                          conversationsetup.userdetails.profile == "none"
+                            ? ""
+                            : "img_actual_profile"
+                        }
                       />
                     ) : (
                       <CachedImage
@@ -842,7 +851,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   </div>
                   {isUserOnline(
                     activeuserslist,
-                    conversationsetup.userdetails.userID
+                    conversationsetup.userdetails.userID,
                   ) && <div className="div_online_indicator" />}
                 </div>
               )}
@@ -873,24 +882,22 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 )}
                 {conversationsetup.type == "single" ? (
                   activeusersmapper.includes(
-                    conversationsetup.userdetails.userID
+                    conversationsetup.userdetails.userID,
                   ) ? (
                     activeuserSpecific[0].sessiondate ? (
                       activeuserSpecific[0].sessionStatus ? (
                         <span className="span_userdetails_name">
                           Active Now
                         </span>
+                      ) : activeuserSpecific[0].sessiondate.time ? (
+                        <span className="span_userdetails_name">
+                          {activeuserSpecific[0].sessiondate.time}{" "}
+                          {activeuserSpecific[0].sessiondate.date}
+                        </span>
                       ) : (
-                        activeuserSpecific[0].sessiondate.time ? (
-                          <span className="span_userdetails_name">
-                            {activeuserSpecific[0].sessiondate.time}{" "}
-                            {activeuserSpecific[0].sessiondate.date}
-                          </span>
-                        ) : (
-                          <span className="span_userdetails_name">
-                            {timeSince(activeuserSpecific[0].sessiondate.date)}
-                          </span>
-                        )
+                        <span className="span_userdetails_name">
+                          {timeSince(activeuserSpecific[0].sessiondate.date)}
+                        </span>
                       )
                     ) : (
                       <span className="span_userdetails_name">
@@ -922,7 +929,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   disabled={
                     pendingcallalerts.filter(
                       (fltcall: any) =>
-                        fltcall.callID == conversationsetup.conversationid
+                        fltcall.callID == conversationsetup.conversationid,
                     ).length > 0
                       ? true
                       : false
@@ -946,7 +953,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   disabled={
                     pendingcallalerts.filter(
                       (fltcall: any) =>
-                        fltcall.callID == conversationsetup.conversationid
+                        fltcall.callID == conversationsetup.conversationid,
                     ).length > 0
                       ? true
                       : false
@@ -1000,7 +1007,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     disabled={conversationinfo ? false : true}
                     onClick={() => {
                       settoggleConversationInfoModal(
-                        !toggleConversationInfoModal
+                        !toggleConversationInfoModal,
                       );
                       settoggleMenu(false);
                     }}
@@ -1113,7 +1120,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     !flt.status &&
                     !conversationList
                       .map((mp) => mp.pendingID)
-                      .includes(flt.pendingID)
+                      .includes(flt.pendingID),
                 )
                 .map((cnvs: any, i: number) => {
                   if (cnvs.type == "text") {
@@ -1360,14 +1367,14 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               borderRadius: "10px",
               backgroundColor: isReplying.isReply
                 ? conversationList.filter(
-                    (flt: any) => flt.messageID == isReplying.replyingTo
+                    (flt: any) => flt.messageID == isReplying.replyingTo,
                   )[0].sender === authentication.user.userID
                   ? theme.primary
                   : "#dedede"
                 : "white",
               color: isReplying.isReply
                 ? conversationList.filter(
-                    (flt: any) => flt.messageID == isReplying.replyingTo
+                    (flt: any) => flt.messageID == isReplying.replyingTo,
                   )[0].sender === authentication.user.userID
                   ? "white"
                   : "black"
@@ -1381,29 +1388,30 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 <span className="tw-text-[12px] tw-font-semibold tw-font-inter ellipsis-1-line">
                   {isReplying.isReply &&
                     (conversationList.filter(
-                      (flt: any) => flt.messageID == isReplying.replyingTo
+                      (flt: any) => flt.messageID == isReplying.replyingTo,
                     )[0].sender === authentication.user.userID
                       ? "Replying to your message"
                       : `Replying to @${
                           conversationList.filter(
-                            (flt: any) => flt.messageID == isReplying.replyingTo
+                            (flt: any) =>
+                              flt.messageID == isReplying.replyingTo,
                           )[0].sender
                         }`)}
                 </span>
                 <span className="tw-text-[12px] tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
                   {isReplying.isReply &&
                     (conversationList.filter(
-                      (flt: any) => flt.messageID == isReplying.replyingTo
+                      (flt: any) => flt.messageID == isReplying.replyingTo,
                     )[0].messageType === "text"
                       ? conversationList.filter(
-                          (flt: any) => flt.messageID == isReplying.replyingTo
+                          (flt: any) => flt.messageID == isReplying.replyingTo,
                         )[0].content
                       : `${
                           messageTypeChecker[
                             conversationList
                               .filter(
                                 (flt: any) =>
-                                  flt.messageID == isReplying.replyingTo
+                                  flt.messageID == isReplying.replyingTo,
                               )[0]
                               .messageType.split("/")[0]
                           ] || "a file"
@@ -1583,7 +1591,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     IsTypingBroadcastRequest({
                       conversationID: conversationsetup.conversationid,
                       receivers: conversationinfo?.users.map(
-                        (mp: any) => mp.userID
+                        (mp: any) => mp.userID,
                       ),
                     });
                   }

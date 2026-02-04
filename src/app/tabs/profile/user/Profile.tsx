@@ -727,9 +727,18 @@ function Profile() {
               id="div_feed_header_post_input_profile"
               className="tw-border-[0px]"
             >
-              <div id="div_img_feed_header_container">
-                <CachedImage src={DefaultProfile} id="img_feed_header" />
-              </div>
+              {profileInfo.profile !== "none" ? (
+                <div id="img_default_profile_container">
+                  <CachedImage
+                    src={profileInfo.profile}
+                    id="img_actual_profile"
+                  />
+                </div>
+              ) : (
+                <div id="div_img_feed_header_container">
+                  <CachedImage src={DefaultProfile} id="img_feed_header" />
+                </div>
+              )}
               <div id="div_input_feed_flex">
                 {toggleNewPostModal.toggle && (
                   <NewPostModal

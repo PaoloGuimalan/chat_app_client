@@ -20,14 +20,25 @@ function ProfilePicContainer({
 
   return (
     <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center tw-relative">
-      <div
-        onClick={() => {
-          settoggleSelection(!toggleSelection);
-        }}
-        className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]"
-      >
-        <CachedImage src={DefaultProfile} id="img_default_profile" />
-      </div>
+      {profileInfo && profileInfo.profile === "none" ? (
+        <div
+          onClick={() => {
+            settoggleSelection(!toggleSelection);
+          }}
+          className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]"
+        >
+          <CachedImage src={DefaultProfile} id="img_default_profile" />
+        </div>
+      ) : (
+        <div
+          onClick={() => {
+            settoggleSelection(!toggleSelection);
+          }}
+          className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]"
+        >
+          <CachedImage src={profileInfo?.profile} id="img_actual_profile" />
+        </div>
+      )}
       <motion.div
         initial={{
           height: "0px",

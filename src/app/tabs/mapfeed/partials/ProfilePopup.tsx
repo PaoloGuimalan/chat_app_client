@@ -42,7 +42,14 @@ function ProfilePopup({ coordinates, user }: ProfilePopupProp) {
       <div className="tw-p-[2px] tw-flex tw-w-full tw-gap-[10px]">
         <div className="tw-bg-transparent tw-w-full tw-max-w-[50px] tw-flex tw-justify-center">
           <div className="tw--mt-[25px] tw-cursor-pointer tw-bg-[#d2d2d2] tw-min-w-[50px] tw-max-w-[50px] tw-h-[50px] sm:tw-max-w-[50px] sm:tw-h-[50px] tw-border-solid tw-border-[3px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative">
-            <CachedImage src={DefaultProfile} id="img_default_profile" />
+            {authentication.user.profile !== "none" ? (
+              <CachedImage
+                src={authentication.user.profile}
+                id="img_actual_profile"
+              />
+            ) : (
+              <CachedImage src={DefaultProfile} id="img_default_profile" />
+            )}
           </div>
         </div>
         <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-font-Inter tw--mt-[7px]">

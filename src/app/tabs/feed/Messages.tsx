@@ -33,11 +33,11 @@ function Messages() {
   const authentication = useSelector((state: any) => state.authentication);
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
   const conversationsetup = useSelector(
-    (state: any) => state.conversationsetup
+    (state: any) => state.conversationsetup,
   );
   const messageslist = useSelector((state: any) => state.messageslist);
   const istypinglist = useSelector((state: any) => state.istypinglist);
@@ -89,7 +89,7 @@ function Messages() {
   const navigateToConversation = (
     type: any,
     conversationID: any,
-    userdetails: any
+    userdetails: any,
   ) => {
     if (type == "single") {
       dispatch({
@@ -136,13 +136,13 @@ function Messages() {
         display: pathnamelistener.includes("messages")
           ? "flex"
           : screensizelistener.W <= 900
-          ? "none"
-          : "flex",
+            ? "none"
+            : "flex",
         maxWidth: pathnamelistener.includes("messages")
           ? "600px"
           : screensizelistener.W <= 900
-          ? "350px"
-          : "350px",
+            ? "350px"
+            : "350px",
       }}
       id="div_messages_main"
     >
@@ -231,7 +231,7 @@ function Messages() {
                         navigateToConversation(
                           "single",
                           msgslst.conversationID,
-                          msgsurs
+                          msgsurs,
                         );
                       }}
                       key={i}
@@ -245,7 +245,16 @@ function Messages() {
                                 ? DefaultProfile
                                 : msgsurs.profile
                             }
-                            className="img_search_profiles_ntfs"
+                            className={
+                              msgsurs.profile == "none"
+                                ? "img_search_profiles_ntfs"
+                                : ""
+                            }
+                            id={
+                              msgsurs.profile == "none"
+                                ? ""
+                                : "img_actual_profile"
+                            }
                           />
                         </div>
                         {isUserOnline(activeuserslist, msgsurs.userID) && (
@@ -262,7 +271,7 @@ function Messages() {
                         </span>
                         {istypinglist.filter(
                           (flt: any) =>
-                            flt.conversationID === msgslst.conversationID
+                            flt.conversationID === msgslst.conversationID,
                         ).length > 0 ? (
                           <span className="span_messages_list_name">
                             is typing...
@@ -276,14 +285,14 @@ function Messages() {
                             msgslst.messageType === "notif"
                               ? msgslst.content
                               : !msgslst.messageType.includes("image") &&
-                                !msgslst.messageType.includes("video") &&
-                                !msgslst.messageType.includes("audio")
-                              ? `Sent ${messageTypeChecker["any"]}`
-                              : `Sent ${
-                                  messageTypeChecker[
-                                    msgslst.messageType.split("/")[0]
-                                  ]
-                                }`}
+                                  !msgslst.messageType.includes("video") &&
+                                  !msgslst.messageType.includes("audio")
+                                ? `Sent ${messageTypeChecker["any"]}`
+                                : `Sent ${
+                                    messageTypeChecker[
+                                      msgslst.messageType.split("/")[0]
+                                    ]
+                                  }`}
                           </span>
                         )}
                         {msgslst.messageDate.time ? (
@@ -338,7 +347,7 @@ function Messages() {
                     </span>
                     {istypinglist.filter(
                       (flt: any) =>
-                        flt.conversationID === msgslst.conversationID
+                        flt.conversationID === msgslst.conversationID,
                     ).length > 0 ? (
                       <span className="span_messages_list_name">
                         someone is typing...
@@ -352,20 +361,19 @@ function Messages() {
                         msgslst.messageType === "notif"
                           ? msgslst.content
                           : !msgslst.messageType.includes("image") &&
-                            !msgslst.messageType.includes("video") &&
-                            !msgslst.messageType.includes("audio")
-                          ? `Sent ${messageTypeChecker["any"]}`
-                          : `Sent ${
-                              messageTypeChecker[
-                                msgslst.messageType.split("/")[0]
-                              ]
-                            }`}
+                              !msgslst.messageType.includes("video") &&
+                              !msgslst.messageType.includes("audio")
+                            ? `Sent ${messageTypeChecker["any"]}`
+                            : `Sent ${
+                                messageTypeChecker[
+                                  msgslst.messageType.split("/")[0]
+                                ]
+                              }`}
                       </span>
                     )}
                     {msgslst.messageDate.time ? (
                       <span className="span_messages_list_name">
-                        {msgslst.messageDate.date} .{" "}
-                        {msgslst.messageDate.time}
+                        {msgslst.messageDate.date} . {msgslst.messageDate.time}
                       </span>
                     ) : (
                       <span className="span_messages_list_name">
@@ -390,7 +398,7 @@ function Messages() {
                   }}
                   onClick={() => {
                     navigate(
-                      `/servers/${msgslst.serverdetails?.serverID}/${msgslst.groupdetails.groupID}`
+                      `/servers/${msgslst.serverdetails?.serverID}/${msgslst.groupdetails.groupID}`,
                     );
                   }}
                   key={i}
@@ -420,7 +428,7 @@ function Messages() {
                     </span>
                     {istypinglist.filter(
                       (flt: any) =>
-                        flt.conversationID === msgslst.conversationID
+                        flt.conversationID === msgslst.conversationID,
                     ).length > 0 ? (
                       <span className="span_messages_list_name">
                         someone is typing...
@@ -434,20 +442,19 @@ function Messages() {
                         msgslst.messageType === "notif"
                           ? msgslst.content
                           : !msgslst.messageType.includes("image") &&
-                            !msgslst.messageType.includes("video") &&
-                            !msgslst.messageType.includes("audio")
-                          ? `Sent ${messageTypeChecker["any"]}`
-                          : `Sent ${
-                              messageTypeChecker[
-                                msgslst.messageType.split("/")[0]
-                              ]
-                            }`}
+                              !msgslst.messageType.includes("video") &&
+                              !msgslst.messageType.includes("audio")
+                            ? `Sent ${messageTypeChecker["any"]}`
+                            : `Sent ${
+                                messageTypeChecker[
+                                  msgslst.messageType.split("/")[0]
+                                ]
+                              }`}
                       </span>
                     )}
                     {msgslst.messageDate.time ? (
                       <span className="span_messages_list_name">
-                        {msgslst.messageDate.date} .{" "}
-                        {msgslst.messageDate.time}
+                        {msgslst.messageDate.date} . {msgslst.messageDate.time}
                       </span>
                     ) : (
                       <span className="span_messages_list_name">

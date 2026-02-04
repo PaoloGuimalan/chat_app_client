@@ -9,7 +9,7 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function UserMenu() {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
   const navigate = useNavigate();
 
@@ -27,9 +27,18 @@ function UserMenu() {
             }}
             className="tw-select-none tw-cursor-pointer tw-w-[calc(90%-20px)] tw-bg-white tw-max-w-[550px] tw-min-h-[55px] tw-shadow-sm tw-p-[10px] tw-rounded-[5px] tw-flex tw-flex-row tw-items-center tw-gap-[10px]"
           >
-            <div id="img_default_profile_container">
-              <CachedImage src={DefaultProfile} id="img_default_profile" />
-            </div>
+            {authentication.user.profile !== "none" ? (
+              <div id="img_default_profile_container">
+                <CachedImage
+                  src={authentication.user.profile}
+                  id="img_actual_profile"
+                />
+              </div>
+            ) : (
+              <div id="img_default_profile_container">
+                <CachedImage src={DefaultProfile} id="img_default_profile" />
+              </div>
+            )}
             <span id="span_user_firstname_label">
               {authentication.user.fullName.firstName}
               {authentication.user.fullName.middleName == "N/A"

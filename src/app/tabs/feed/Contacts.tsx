@@ -32,11 +32,11 @@ function Contacts() {
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const authentication = useSelector((state: any) => state.authentication);
   const contacts: PaginationProp<IContact> = useSelector(
-    (state: any) => state.contactslist
+    (state: any) => state.contactslist,
   );
   const contactslist: IContact[] = contacts.results;
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
   const alerts = useSelector((state: any) => state.alerts);
@@ -81,14 +81,14 @@ function Contacts() {
       },
       dispatch,
       alerts,
-      setisDisabledByRequest
+      setisDisabledByRequest,
     );
   };
 
   const navigateToConversation = (
     type: any,
     conversationID: any,
-    userdetails: any
+    userdetails: any,
   ) => {
     if (screensizelistener.W <= 1100) {
       if (type == "single") {
@@ -182,13 +182,13 @@ function Contacts() {
         display: pathnamelistener.includes("contacts")
           ? "flex"
           : screensizelistener.W <= 1100
-          ? "none"
-          : "flex",
+            ? "none"
+            : "flex",
         maxWidth: pathnamelistener.includes("contacts")
           ? "600px"
           : screensizelistener.W <= 900
-          ? "350px"
-          : "350px",
+            ? "350px"
+            : "350px",
       }}
       id="div_contacts"
     >
@@ -246,12 +246,21 @@ function Contacts() {
                                 ? DefaultProfile
                                 : cnts.involved_user.profile
                             }
-                            className="img_search_profiles_ntfs"
+                            className={
+                              cnts.involved_user.profile == "none"
+                                ? "img_search_profiles_ntfs"
+                                : ""
+                            }
+                            id={
+                              cnts.involved_user.profile == "none"
+                                ? ""
+                                : "img_actual_profile"
+                            }
                           />
                         </div>
                         {isUserOnline(
                           activeuserslist,
-                          cnts.involved_user.username
+                          cnts.involved_user.username,
                         ) && <div className="div_online_indicator" />}
                       </div>
                       <div className="tw-flex tw-flex-1 tw-h-full tw-overflow-hidden tw-flex-col tw-justify-center">
@@ -271,21 +280,23 @@ function Contacts() {
                         </div>
                         {isUserOnline(
                           activeuserslist,
-                          cnts.involved_user.username
+                          cnts.involved_user.username,
                         ) ? (
                           <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
-                            <span className="tw-text-[12px] tw-font-Inter">Active Now</span>
+                            <span className="tw-text-[12px] tw-font-Inter">
+                              Active Now
+                            </span>
                           </div>
                         ) : (
                           userSessionStatusFromContacts(
                             activeuserslist,
-                            cnts.involved_user.username
+                            cnts.involved_user.username,
                           ) && (
                             <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px] div_time_since_active_ellipsis">
-                              <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">{
-                                userSessionStatusFromContacts(
+                              <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">
+                                {userSessionStatusFromContacts(
                                   activeuserslist,
-                                  cnts.involved_user.username
+                                  cnts.involved_user.username,
                                 )}
                               </span>
                             </div>
@@ -306,7 +317,7 @@ function Contacts() {
                             navigateToConversation(
                               "single",
                               cnts.connection_id,
-                              contactsToUserdetails(cnts, false)
+                              contactsToUserdetails(cnts, false),
                             );
                           }}
                           className="btn_cncts_navigations"
@@ -362,12 +373,21 @@ function Contacts() {
                                 ? DefaultProfile
                                 : cnts.action_by.profile
                             }
-                            className="img_search_profiles_ntfs"
+                            className={
+                              cnts.action_by.profile == "none"
+                                ? "img_search_profiles_ntfs"
+                                : ""
+                            }
+                            id={
+                              cnts.action_by.profile == "none"
+                                ? ""
+                                : "img_actual_profile"
+                            }
                           />
                         </div>
                         {isUserOnline(
                           activeuserslist,
-                          cnts.action_by.username
+                          cnts.action_by.username,
                         ) && <div className="div_online_indicator" />}
                       </div>
                       <div className="tw-flex tw-flex-1 tw-h-full tw-overflow-hidden tw-flex-col tw-justify-center">
@@ -387,21 +407,23 @@ function Contacts() {
                         </div>
                         {isUserOnline(
                           activeuserslist,
-                          cnts.action_by.username
+                          cnts.action_by.username,
                         ) ? (
                           <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
-                            <span className="tw-text-[12px] tw-font-Inter">Active Now</span>
+                            <span className="tw-text-[12px] tw-font-Inter">
+                              Active Now
+                            </span>
                           </div>
-                        ): (
+                        ) : (
                           userSessionStatusFromContacts(
                             activeuserslist,
-                            cnts.action_by.username
+                            cnts.action_by.username,
                           ) && (
                             <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px] div_time_since_active_ellipsis">
-                              <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">{
-                                userSessionStatusFromContacts(
+                              <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">
+                                {userSessionStatusFromContacts(
                                   activeuserslist,
-                                  cnts.action_by.username
+                                  cnts.action_by.username,
                                 )}
                               </span>
                             </div>
@@ -422,7 +444,7 @@ function Contacts() {
                             navigateToConversation(
                               "single",
                               cnts.connection_id,
-                              contactsToUserdetails(cnts, true)
+                              contactsToUserdetails(cnts, true),
                             );
                           }}
                           className="btn_cncts_navigations"

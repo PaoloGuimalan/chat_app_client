@@ -290,9 +290,18 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
               }}
               id="img_profile_container"
             >
-              <div id="img_default_profile_container">
-                <CachedImage src={DefaultProfile} id="img_default_profile" />
-              </div>
+              {authentication.user.profile !== "none" ? (
+                <div id="img_default_profile_container">
+                  <CachedImage
+                    src={authentication.user.profile}
+                    id="img_actual_profile"
+                  />
+                </div>
+              ) : (
+                <div id="img_default_profile_container">
+                  <CachedImage src={DefaultProfile} id="img_default_profile" />
+                </div>
+              )}
               <span id="span_user_firstname_label">
                 {authentication.user.fullName.firstName}
               </span>

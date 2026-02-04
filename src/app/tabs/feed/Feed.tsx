@@ -20,7 +20,7 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Feed() {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
 
   const [page, setpage] = useState<number>(1); //setrange
@@ -48,7 +48,7 @@ function Feed() {
           const combinedList = [...prev.results, ...response.results];
           const uniqueById = combinedList.filter(
             (obj, index, self) =>
-              index === self.findIndex((t) => t.post_id === obj.post_id)
+              index === self.findIndex((t) => t.post_id === obj.post_id),
           );
 
           return {
@@ -93,9 +93,18 @@ function Feed() {
   return (
     <div id="div_feed" className="thinscroller" ref={divcontentRef}>
       <div id="div_feed_header_post_input" className="tw-border-[0px]">
-        <div id="div_img_feed_header_container">
-          <CachedImage src={DefaultProfile} id="img_feed_header" />
-        </div>
+        {authentication.user.profile !== "none" ? (
+          <div id="img_default_profile_container">
+            <CachedImage
+              src={authentication.user.profile}
+              id="img_actual_profile"
+            />
+          </div>
+        ) : (
+          <div id="img_default_profile_container">
+            <CachedImage src={DefaultProfile} id="img_default_profile" />
+          </div>
+        )}
         <div id="div_input_feed_flex">
           {toggleNewPostModal.toggle && (
             <NewPostModal

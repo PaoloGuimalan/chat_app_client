@@ -15,7 +15,7 @@ import {
   UserWithInfoConversationInterface,
   UsersInConversation,
 } from "@/reusables/vars/interfaces";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { IoCheckmark, IoClose, IoDocumentOutline } from "react-icons/io5";
 import { MdOutlineGroupAdd } from "react-icons/md";
@@ -34,7 +34,7 @@ function ConversationInfoModal({
   onclose,
 }: ConversationInfoModalProp) {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
   const navigate = useNavigate();
 
@@ -49,7 +49,7 @@ function ConversationInfoModal({
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID
+      (flt: any) => flt.userID == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -57,7 +57,7 @@ function ConversationInfoModal({
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID
+      (flt: any) => flt.userID != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
@@ -71,7 +71,7 @@ function ConversationInfoModal({
           GetMembersListInServer(
             conversationinfo.conversationInfo.serverID,
             setcontactslist,
-            setisLoading
+            setisLoading,
           );
         }
       } else {
@@ -98,6 +98,18 @@ function ConversationInfoModal({
         console.log(err);
       });
   };
+
+  const userInfo = useMemo(() => {
+    const info = conversationinfo.usersWithInfo.filter(
+      (flt) => flt.userID !== authentication.user.userID,
+    );
+
+    if (info.length > 0) {
+      return info[0];
+    }
+
+    return null;
+  }, [authentication.user.userID, conversationinfo.usersWithInfo]);
 
   return (
     <Modal
@@ -129,30 +141,43 @@ function ConversationInfoModal({
                   <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
                     <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
                       <CachedImage
-                        src={DefaultProfile}
-                        className="img_search_profiles_ntfs"
+                        src={
+                          userInfo?.profile !== "none"
+                            ? userInfo?.profile
+                            : DefaultProfile
+                        }
+                        className={
+                          userInfo?.profile == "none"
+                            ? "img_search_profiles_ntfs"
+                            : ""
+                        }
+                        id={
+                          userInfo?.profile == "none"
+                            ? ""
+                            : "img_actual_profile"
+                        }
                       />
                     </div>
                   </div>
                   <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                     {
                       conversationinfo.usersWithInfo.filter(
-                        (flt: any) => flt.userID !== authentication.user.userID
+                        (flt: any) => flt.userID !== authentication.user.userID,
                       )[0].fullname.firstName
                     }
                     {conversationinfo.usersWithInfo.filter(
-                      (flt: any) => flt.userID !== authentication.user.userID
+                      (flt: any) => flt.userID !== authentication.user.userID,
                     )[0].fullname.middleName !== "N/A"
                       ? ` ${
                           conversationinfo.usersWithInfo.filter(
                             (flt: any) =>
-                              flt.userID !== authentication.user.userID
+                              flt.userID !== authentication.user.userID,
                           )[0].fullname.middleName
                         } `
                       : " "}
                     {
                       conversationinfo.usersWithInfo.filter(
-                        (flt: any) => flt.userID !== authentication.user.userID
+                        (flt: any) => flt.userID !== authentication.user.userID,
                       )[0].fullname.lastName
                     }
                   </span>
@@ -192,7 +217,16 @@ function ConversationInfoModal({
                                     ? DefaultProfile
                                     : mp.profile
                                 }
-                                className="img_search_profiles_ntfs"
+                                className={
+                                  mp.profile == "none"
+                                    ? "img_search_profiles_ntfs"
+                                    : ""
+                                }
+                                id={
+                                  mp.profile == "none"
+                                    ? ""
+                                    : "img_actual_profile"
+                                }
                               />
                             </div>
                             <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
@@ -206,7 +240,7 @@ function ConversationInfoModal({
                             </div>
                           </div>
                         );
-                      }
+                      },
                     )}
                   </motion.div>
                 </div>
@@ -277,7 +311,7 @@ function ConversationInfoModal({
                             );
                           }
                         }
-                      }
+                      },
                     )}
                   </div>
                 )}
@@ -291,7 +325,11 @@ function ConversationInfoModal({
                               <div
                                 key={i}
                                 className="tw-w-full"
-                                title={mp.dateUploaded.time ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}` : timeSince(mp.dateUploaded.date)}
+                                title={
+                                  mp.dateUploaded.time
+                                    ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
+                                    : timeSince(mp.dateUploaded.date)
+                                }
                               >
                                 <audio
                                   src={mp.fileDetails.data
@@ -304,7 +342,7 @@ function ConversationInfoModal({
                             );
                           }
                         }
-                      }
+                      },
                     )}
                   </div>
                 )}
@@ -326,11 +364,15 @@ function ConversationInfoModal({
                                     mp.fileDetails.data
                                       .split("%%%")[0]
                                       .replace("###", "%23%23%23"),
-                                    "_blank"
+                                    "_blank",
                                   );
                                 }}
                                 className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
-                                title={mp.dateUploaded.time ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}` : timeSince(mp.dateUploaded.date)}
+                                title={
+                                  mp.dateUploaded.time
+                                    ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
+                                    : timeSince(mp.dateUploaded.date)
+                                }
                               >
                                 <div className="tw-w-full tw-max-w-[40px]">
                                   <IoDocumentOutline
@@ -344,7 +386,7 @@ function ConversationInfoModal({
                             );
                           }
                         }
-                      }
+                      },
                     )}
                   </div>
                 )}
@@ -538,7 +580,7 @@ function ConversationInfoModal({
                                   } ${cnts.fullname.lastName}`;
                                   const checkmemberslist =
                                     conversationinfo.users.map(
-                                      (mp: UsersInConversation) => mp.userID
+                                      (mp: UsersInConversation) => mp.userID,
                                     );
                                   if (!checkmemberslist.includes(cnts.userID)) {
                                     if (fullNameFilter.includes(searchFilter)) {
@@ -553,12 +595,12 @@ function ConversationInfoModal({
                                           <input
                                             type="checkbox"
                                             checked={valueToArrayChecker(
-                                              cnts.userID
+                                              cnts.userID,
                                             )}
                                             onChange={() => {
                                               if (
                                                 !valueToArrayChecker(
-                                                  cnts.userID
+                                                  cnts.userID,
                                                 )
                                               ) {
                                                 setmarkedMembers([
@@ -591,7 +633,16 @@ function ConversationInfoModal({
                                                     ? DefaultProfile
                                                     : cnts.profile
                                                 }
-                                                className="img_search_profiles_ntfs"
+                                                className={
+                                                  cnts.profile == "none"
+                                                    ? "img_search_profiles_ntfs"
+                                                    : ""
+                                                }
+                                                id={
+                                                  cnts.profile == "none"
+                                                    ? ""
+                                                    : "img_actual_profile"
+                                                }
                                               />
                                             </div>
                                           </div>
@@ -619,17 +670,17 @@ function ConversationInfoModal({
                                         conversationinfo.usersWithInfo.filter(
                                           (flt: any) =>
                                             flt.userID ===
-                                            cnts.involved_user.username
+                                            cnts.involved_user.username,
                                         ).length === 0
                                       ) {
                                         const checkmemberslist =
                                           conversationinfo.users.map(
                                             (mp: UsersInConversation) =>
-                                              mp.userID
+                                              mp.userID,
                                           );
                                         if (
                                           checkmemberslist.includes(
-                                            cnts.involved_user.username
+                                            cnts.involved_user.username,
                                           )
                                         ) {
                                           return null;
@@ -656,13 +707,13 @@ function ConversationInfoModal({
                                               <input
                                                 type="checkbox"
                                                 checked={valueToArrayChecker(
-                                                  cnts.involved_user.username
+                                                  cnts.involved_user.username,
                                                 )}
                                                 onChange={() => {
                                                   if (
                                                     !valueToArrayChecker(
                                                       cnts.involved_user
-                                                        .username
+                                                        .username,
                                                     )
                                                   ) {
                                                     setmarkedMembers([
@@ -689,7 +740,7 @@ function ConversationInfoModal({
                                                   } else {
                                                     removeFromList(
                                                       cnts.involved_user
-                                                        .username
+                                                        .username,
                                                     );
                                                   }
                                                 }}
@@ -705,7 +756,18 @@ function ConversationInfoModal({
                                                         : cnts.involved_user
                                                             .profile
                                                     }
-                                                    className="img_search_profiles_ntfs"
+                                                    className={
+                                                      cnts.involved_user
+                                                        .profile == "none"
+                                                        ? "img_search_profiles_ntfs"
+                                                        : ""
+                                                    }
+                                                    id={
+                                                      cnts.involved_user
+                                                        .profile == "none"
+                                                        ? ""
+                                                        : "img_actual_profile"
+                                                    }
                                                   />
                                                 </div>
                                               </div>
@@ -731,11 +793,11 @@ function ConversationInfoModal({
                                         const checkmemberslist =
                                           conversationinfo.users.map(
                                             (mp: UsersInConversation) =>
-                                              mp.userID
+                                              mp.userID,
                                           );
                                         if (
                                           checkmemberslist.includes(
-                                            cnts.action_by.username
+                                            cnts.action_by.username,
                                           )
                                         ) {
                                           return null;
@@ -744,7 +806,7 @@ function ConversationInfoModal({
                                           conversationinfo.usersWithInfo.filter(
                                             (flt: any) =>
                                               flt.userID ===
-                                              cnts.action_by.username
+                                              cnts.action_by.username,
                                           ).length === 0
                                         ) {
                                           const fullNameFilter = `${
@@ -756,7 +818,7 @@ function ConversationInfoModal({
                                           } ${cnts.action_by.last_name}`;
                                           if (
                                             fullNameFilter.includes(
-                                              searchFilter
+                                              searchFilter,
                                             )
                                           ) {
                                             return (
@@ -770,12 +832,12 @@ function ConversationInfoModal({
                                                 <input
                                                   type="checkbox"
                                                   checked={valueToArrayChecker(
-                                                    cnts.action_by.username
+                                                    cnts.action_by.username,
                                                   )}
                                                   onChange={() => {
                                                     if (
                                                       !valueToArrayChecker(
-                                                        cnts.action_by.username
+                                                        cnts.action_by.username,
                                                       )
                                                     ) {
                                                       setmarkedMembers([
@@ -801,7 +863,7 @@ function ConversationInfoModal({
                                                       ]);
                                                     } else {
                                                       removeFromList(
-                                                        cnts.action_by.username
+                                                        cnts.action_by.username,
                                                       );
                                                     }
                                                   }}
@@ -817,7 +879,18 @@ function ConversationInfoModal({
                                                           : cnts.action_by
                                                               .profile
                                                       }
-                                                      className="img_search_profiles_ntfs"
+                                                      className={
+                                                        cnts.action_by
+                                                          .profile == "none"
+                                                          ? "img_search_profiles_ntfs"
+                                                          : ""
+                                                      }
+                                                      id={
+                                                        cnts.action_by
+                                                          .profile == "none"
+                                                          ? ""
+                                                          : "img_actual_profile"
+                                                      }
                                                     />
                                                   </div>
                                                 </div>
@@ -845,7 +918,7 @@ function ConversationInfoModal({
                                     return null;
                                   }
                                 }
-                              }
+                              },
                             )}
                           </div>
                         </motion.div>
@@ -868,7 +941,16 @@ function ConversationInfoModal({
                                     ? DefaultProfile
                                     : mp.profile
                                 }
-                                className="img_search_profiles_ntfs"
+                                className={
+                                  mp.profile == "none"
+                                    ? "img_search_profiles_ntfs"
+                                    : ""
+                                }
+                                id={
+                                  mp.profile == "none"
+                                    ? ""
+                                    : "img_actual_profile"
+                                }
                               />
                             </div>
                             <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
@@ -882,7 +964,7 @@ function ConversationInfoModal({
                             </div>
                           </div>
                         );
-                      }
+                      },
                     )}
                   </motion.div>
                 </div>
@@ -953,7 +1035,7 @@ function ConversationInfoModal({
                             );
                           }
                         }
-                      }
+                      },
                     )}
                   </div>
                 )}
@@ -967,7 +1049,11 @@ function ConversationInfoModal({
                               <div
                                 key={i}
                                 className="tw-w-full"
-                                title={mp.dateUploaded.time ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}` : timeSince(mp.dateUploaded.date)}
+                                title={
+                                  mp.dateUploaded.time
+                                    ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
+                                    : timeSince(mp.dateUploaded.date)
+                                }
                               >
                                 <audio
                                   src={mp.fileDetails.data
@@ -980,7 +1066,7 @@ function ConversationInfoModal({
                             );
                           }
                         }
-                      }
+                      },
                     )}
                   </div>
                 )}
@@ -1002,11 +1088,15 @@ function ConversationInfoModal({
                                     mp.fileDetails.data
                                       .split("%%%")[0]
                                       .replace("###", "%23%23%23"),
-                                    "_blank"
+                                    "_blank",
                                   );
                                 }}
                                 className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
-                                title={mp.dateUploaded.time ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}` : timeSince(mp.dateUploaded.date)}
+                                title={
+                                  mp.dateUploaded.time
+                                    ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
+                                    : timeSince(mp.dateUploaded.date)
+                                }
                               >
                                 <div className="tw-w-full tw-max-w-[40px]">
                                   <IoDocumentOutline
@@ -1020,7 +1110,7 @@ function ConversationInfoModal({
                             );
                           }
                         }
-                      }
+                      },
                     )}
                   </div>
                 )}
