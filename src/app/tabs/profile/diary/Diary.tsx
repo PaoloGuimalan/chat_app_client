@@ -175,6 +175,7 @@ function Diary() {
             <CachedImage
               src={authentication.user.profile}
               className="tw-w-[45px] tw-h-[45px] tw-rounded-full tw-shadow-lg tw-bg-[#f0f2f5]"
+              id="img_actual_profile"
             />
           )}
         </div>

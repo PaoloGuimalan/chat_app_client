@@ -26,7 +26,7 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
   const navigate = useNavigate();
 
@@ -40,7 +40,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID
+      (flt: any) => flt.userID == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -55,7 +55,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID
+      (flt: any) => flt.userID != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
@@ -245,7 +245,8 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                     authentication.user.userID &&
                                   serverdetails.members.filter(
                                     (flt: ChannelMembersInterface) =>
-                                      flt.userID === cnts.involved_user.username
+                                      flt.userID ===
+                                      cnts.involved_user.username,
                                   ).length === 0
                                 ) {
                                   const fullNameFilter = `${
@@ -267,12 +268,12 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                         <input
                                           type="checkbox"
                                           checked={valueToArrayChecker(
-                                            cnts.involved_user.username
+                                            cnts.involved_user.username,
                                           )}
                                           onChange={() => {
                                             if (
                                               !valueToArrayChecker(
-                                                cnts.involved_user.username
+                                                cnts.involved_user.username,
                                               )
                                             ) {
                                               setmarkedMembers([
@@ -295,7 +296,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                               ]);
                                             } else {
                                               removeFromList(
-                                                cnts.involved_user.username
+                                                cnts.involved_user.username,
                                               );
                                             }
                                           }}
@@ -310,7 +311,18 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                                   ? DefaultProfile
                                                   : cnts.involved_user.profile
                                               }
-                                              className="img_search_profiles_ntfs"
+                                              className={
+                                                cnts.involved_user.profile ==
+                                                "none"
+                                                  ? "img_search_profiles_ntfs"
+                                                  : ""
+                                              }
+                                              id={
+                                                cnts.involved_user.profile ==
+                                                "none"
+                                                  ? ""
+                                                  : "img_actual_profile"
+                                              }
                                             />
                                           </div>
                                         </div>
@@ -333,7 +345,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                   if (
                                     serverdetails.members.filter(
                                       (flt: ChannelMembersInterface) =>
-                                        flt.userID === cnts.action_by.username
+                                        flt.userID === cnts.action_by.username,
                                     ).length === 0
                                   ) {
                                     const fullNameFilter = `${
@@ -355,12 +367,12 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                           <input
                                             type="checkbox"
                                             checked={valueToArrayChecker(
-                                              cnts.action_by.username
+                                              cnts.action_by.username,
                                             )}
                                             onChange={() => {
                                               if (
                                                 !valueToArrayChecker(
-                                                  cnts.action_by.username
+                                                  cnts.action_by.username,
                                                 )
                                               ) {
                                                 setmarkedMembers([
@@ -382,7 +394,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                                 ]);
                                               } else {
                                                 removeFromList(
-                                                  cnts.action_by.username
+                                                  cnts.action_by.username,
                                                 );
                                               }
                                             }}
@@ -397,7 +409,18 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                                     ? DefaultProfile
                                                     : cnts.action_by.profile
                                                 }
-                                                className="img_search_profiles_ntfs"
+                                                className={
+                                                  cnts.action_by.profile ==
+                                                  "none"
+                                                    ? "img_search_profiles_ntfs"
+                                                    : ""
+                                                }
+                                                id={
+                                                  cnts.action_by.profile ==
+                                                  "none"
+                                                    ? ""
+                                                    : "img_actual_profile"
+                                                }
                                               />
                                             </div>
                                           </div>
@@ -446,7 +469,14 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                   ? DefaultProfile
                                   : mp.profile
                               }
-                              className="img_search_profiles_ntfs"
+                              className={
+                                mp.profile == "none"
+                                  ? "img_search_profiles_ntfs"
+                                  : ""
+                              }
+                              id={
+                                mp.profile == "none" ? "" : "img_actual_profile"
+                              }
                             />
                           </div>
                           <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
@@ -460,7 +490,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                           </div>
                         </div>
                       );
-                    }
+                    },
                   )}
                 </motion.div>
               </div>

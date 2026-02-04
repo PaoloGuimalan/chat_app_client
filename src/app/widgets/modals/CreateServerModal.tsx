@@ -29,7 +29,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
   const [isSaving, setisSaving] = useState<boolean>(false);
 
   const [gcName, setgcName] = useState(
-    `${authentication.user.fullName.firstName}'s Server`
+    `${authentication.user.fullName.firstName}'s Server`,
   );
   const [gcprivacy, setgcprivacy] = useState(true);
   const [searchFilter, setsearchFilter] = useState("");
@@ -37,7 +37,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID
+      (flt: any) => flt.userID == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -45,7 +45,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID
+      (flt: any) => flt.userID != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
@@ -61,7 +61,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
         privacy: gcprivacy,
         otherUsers: markedMembersFinal,
       },
-      setisCreateServerToggle
+      setisCreateServerToggle,
     );
     // setisCreateServerToggle(false);
     // dispatch({
@@ -235,12 +235,12 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                     <input
                                       type="checkbox"
                                       checked={valueToArrayChecker(
-                                        cnts.involved_user.username
+                                        cnts.involved_user.username,
                                       )}
                                       onChange={() => {
                                         if (
                                           !valueToArrayChecker(
-                                            cnts.involved_user.username
+                                            cnts.involved_user.username,
                                           )
                                         ) {
                                           setmarkedMembers([
@@ -262,7 +262,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                           ]);
                                         } else {
                                           removeFromList(
-                                            cnts.involved_user.username
+                                            cnts.involved_user.username,
                                           );
                                         }
                                       }}
@@ -276,7 +276,16 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                               ? DefaultProfile
                                               : cnts.involved_user.profile
                                           }
-                                          className="img_search_profiles_ntfs"
+                                          className={
+                                            cnts.involved_user.profile == "none"
+                                              ? "img_search_profiles_ntfs"
+                                              : ""
+                                          }
+                                          id={
+                                            cnts.involved_user.profile == "none"
+                                              ? ""
+                                              : "img_actual_profile"
+                                          }
                                         />
                                       </div>
                                     </div>
@@ -314,12 +323,12 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                     <input
                                       type="checkbox"
                                       checked={valueToArrayChecker(
-                                        cnts.action_by.username
+                                        cnts.action_by.username,
                                       )}
                                       onChange={() => {
                                         if (
                                           !valueToArrayChecker(
-                                            cnts.action_by.username
+                                            cnts.action_by.username,
                                           )
                                         ) {
                                           setmarkedMembers([
@@ -338,7 +347,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                           ]);
                                         } else {
                                           removeFromList(
-                                            cnts.action_by.username
+                                            cnts.action_by.username,
                                           );
                                         }
                                       }}
@@ -352,7 +361,16 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                               ? DefaultProfile
                                               : cnts.action_by.profile
                                           }
-                                          className="img_search_profiles_ntfs"
+                                          className={
+                                            cnts.action_by.profile == "none"
+                                              ? "img_search_profiles_ntfs"
+                                              : ""
+                                          }
+                                          id={
+                                            cnts.action_by.profile == "none"
+                                              ? ""
+                                              : "img_actual_profile"
+                                          }
                                         />
                                       </div>
                                     </div>

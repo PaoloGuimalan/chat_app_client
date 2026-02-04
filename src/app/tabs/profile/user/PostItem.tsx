@@ -132,18 +132,20 @@ function PostItem({
         className=" tw-bg-white tw-border-solid tw-border-[#d2d2d2] tw-rounded-[7px] tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]"
       >
         <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
-          {postState.user.profile !== "none" ? (
-            <div id="img_default_profile_container">
-              <CachedImage
-                src={postState.user.profile}
-                id="img_actual_profile"
-              />
-            </div>
-          ) : (
-            <div id="div_img_feed_post_container">
-              <CachedImage src={DefaultProfile} id="img_feed_header" />
-            </div>
-          )}
+          <div className="tw-w-[35px] tw-h-[35px] tw-mr-[10px]">
+            {postState.user.profile !== "none" ? (
+              <div id="img_default_profile_container">
+                <CachedImage
+                  src={postState.user.profile}
+                  id="img_actual_profile"
+                />
+              </div>
+            ) : (
+              <div id="div_img_feed_post_container">
+                <CachedImage src={DefaultProfile} id="img_feed_header" />
+              </div>
+            )}
+          </div>
           <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
             <div className="tw-text-left">
               <span

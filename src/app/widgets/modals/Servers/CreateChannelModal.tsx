@@ -17,7 +17,7 @@ function CreateChannelModal({
   servermemberslist,
 }: any) {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
   //   const contactslist = useSelector((state: any) => state.contactslist)
 
@@ -26,7 +26,7 @@ function CreateChannelModal({
   const [isSaving, setisSaving] = useState<boolean>(false);
 
   const [gcName, setgcName] = useState(
-    `${authentication.user.fullName.firstName}'s Channel`
+    `${authentication.user.fullName.firstName}'s Channel`,
   );
   const [gcprivacy, setgcprivacy] = useState(true);
   const [searchFilter, setsearchFilter] = useState("");
@@ -34,7 +34,7 @@ function CreateChannelModal({
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID
+      (flt: any) => flt.userID == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -42,7 +42,7 @@ function CreateChannelModal({
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID
+      (flt: any) => flt.userID != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
@@ -58,7 +58,7 @@ function CreateChannelModal({
         privacy: gcprivacy,
         otherUsers: markedMembersFinal,
       },
-      setisCreateChannelToggle
+      setisCreateChannelToggle,
     );
   };
 
@@ -251,7 +251,16 @@ function CreateChannelModal({
                                             ? DefaultProfile
                                             : cnts.profile
                                         }
-                                        className="img_search_profiles_ntfs"
+                                        className={
+                                          cnts.profile == "none"
+                                            ? "img_search_profiles_ntfs"
+                                            : ""
+                                        }
+                                        id={
+                                          cnts.profile == "none"
+                                            ? ""
+                                            : "img_actual_profile"
+                                        }
                                       />
                                     </div>
                                   </div>

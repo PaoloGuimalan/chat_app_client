@@ -29,7 +29,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
   const [isSaving, setisSaving] = useState<boolean>(false);
 
   const [gcName, setgcName] = useState(
-    `${authentication.user.fullName.firstName}'s Group Chat`
+    `${authentication.user.fullName.firstName}'s Group Chat`,
   );
   const [gcprivacy, setgcprivacy] = useState(true);
   const [searchFilter, setsearchFilter] = useState("");
@@ -37,7 +37,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID
+      (flt: any) => flt.userID == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -45,7 +45,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID
+      (flt: any) => flt.userID != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
@@ -61,7 +61,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
         privacy: gcprivacy,
         otherUsers: markedMembersFinal,
       },
-      setisCreateGCToggle
+      setisCreateGCToggle,
     );
     // setisCreateGCToggle(false);
     // dispatch({
@@ -232,12 +232,12 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                     <input
                                       type="checkbox"
                                       checked={valueToArrayChecker(
-                                        cnts.involved_user.username
+                                        cnts.involved_user.username,
                                       )}
                                       onChange={() => {
                                         if (
                                           !valueToArrayChecker(
-                                            cnts.involved_user.username
+                                            cnts.involved_user.username,
                                           )
                                         ) {
                                           setmarkedMembers([
@@ -259,7 +259,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                           ]);
                                         } else {
                                           removeFromList(
-                                            cnts.involved_user.username
+                                            cnts.involved_user.username,
                                           );
                                         }
                                       }}
@@ -273,7 +273,16 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                               ? DefaultProfile
                                               : cnts.involved_user.profile
                                           }
-                                          className="img_search_profiles_ntfs"
+                                          className={
+                                            cnts.involved_user.profile == "none"
+                                              ? "img_search_profiles_ntfs"
+                                              : ""
+                                          }
+                                          id={
+                                            cnts.involved_user.profile == "none"
+                                              ? ""
+                                              : "img_actual_profile"
+                                          }
                                         />
                                       </div>
                                     </div>
@@ -311,12 +320,12 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                     <input
                                       type="checkbox"
                                       checked={valueToArrayChecker(
-                                        cnts.action_by.username
+                                        cnts.action_by.username,
                                       )}
                                       onChange={() => {
                                         if (
                                           !valueToArrayChecker(
-                                            cnts.action_by.username
+                                            cnts.action_by.username,
                                           )
                                         ) {
                                           setmarkedMembers([
@@ -335,7 +344,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                           ]);
                                         } else {
                                           removeFromList(
-                                            cnts.action_by.username
+                                            cnts.action_by.username,
                                           );
                                         }
                                       }}
@@ -349,7 +358,16 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                               ? DefaultProfile
                                               : cnts.action_by.profile
                                           }
-                                          className="img_search_profiles_ntfs"
+                                          className={
+                                            cnts.action_by.profile == "none"
+                                              ? "img_search_profiles_ntfs"
+                                              : ""
+                                          }
+                                          id={
+                                            cnts.action_by.profile == "none"
+                                              ? ""
+                                              : "img_actual_profile"
+                                          }
                                         />
                                       </div>
                                     </div>
