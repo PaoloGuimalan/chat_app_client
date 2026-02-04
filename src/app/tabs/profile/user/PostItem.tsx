@@ -37,14 +37,14 @@ function PostItem({
   mp: IPost;
 }) {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
   const emojilist: Emoji[] = useSelector((state: any) => state.emojilist);
   const navigate = useNavigate();
 
   const [togglePostCarousel, settogglePostCarousel] = useState<boolean>(false);
   const [minimizedCaption, setminimizedCaption] = useState<boolean | null>(
-    null
+    null,
   );
   const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
     toggle: false,
@@ -64,7 +64,7 @@ function PostItem({
   const toggleActivityCounts = useMemo(() => {
     const reactionsCount = postState.preview.reduce(
       (sum, item) => sum + item.count,
-      0
+      0,
     );
     const activityCount =
       postState.score.comments_count + postState.score.shares_count;
@@ -74,12 +74,12 @@ function PostItem({
 
   const total_reactions = useMemo(
     () => postState.preview.reduce((sum, item) => sum + item.count, 0),
-    [postState]
+    [postState],
   );
 
   const commentsCount = useMemo(
     () => postState.score.comments_count,
-    [postState]
+    [postState],
   );
   const shareCount = useMemo(() => postState.score.shares_count, [postState]);
 
@@ -150,6 +150,13 @@ function PostItem({
                 {postState.user.last_name}
               </span>
               &nbsp;
+              {postState.content_type === "profile" && (
+                <span className="tw-text-[14px]">changed profile picture</span>
+              )}
+              {postState.content_type === "cover_photo" && (
+                <span className="tw-text-[14px]">changed cover photo</span>
+              )}
+              &nbsp;
               {postState.tagging.length > 0 && (
                 <span className="tw-text-[14px]">is with</span>
               )}
@@ -173,9 +180,7 @@ function PostItem({
                   );
                 })}
             </div>
-            <span className="tw-text-[12px]">
-              {dateposted}
-            </span>
+            <span className="tw-text-[12px]">{dateposted}</span>
           </div>
         </div>
         <div
@@ -224,8 +229,8 @@ function PostItem({
                             : "none"
                           : "1400px"
                         : window.innerWidth >= 842
-                        ? "600px"
-                        : "none",
+                          ? "600px"
+                          : "none",
                   }}
                   className={`tw-bg-white custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full tw-flex tw-flex-row tw-flex-wrap ${
                     postState.is_shared || postState.references.length === 0
@@ -344,12 +349,10 @@ function PostItem({
                                       {mptg.user.last_name}
                                     </span>
                                   );
-                                }
+                                },
                               )}
                           </div>
-                          <span className="tw-text-[12px]">
-                            {dateposted}
-                          </span>
+                          <span className="tw-text-[12px]">{dateposted}</span>
                         </div>
                       </div>
                       <button
@@ -430,7 +433,7 @@ function PostItem({
                                     <span key={i} className="-tw-mr-[10px]">
                                       {
                                         emojilist.filter(
-                                          (flt) => flt.emoji_id === mp.emoji
+                                          (flt) => flt.emoji_id === mp.emoji,
                                         )[0].emoji_content
                                       }
                                     </span>
@@ -502,7 +505,7 @@ function PostItem({
                                 {emojilist.length > 0 &&
                                   (emojilist.filter(
                                     (flt: Emoji) =>
-                                      flt.emoji_id === postState.user_reaction
+                                      flt.emoji_id === postState.user_reaction,
                                   )[0].emoji_content ??
                                     "...")}
                               </div>
@@ -689,7 +692,7 @@ function PostItem({
                         <span key={i} className="-tw-mr-[10px]">
                           {
                             emojilist.filter(
-                              (flt) => flt.emoji_id === mp.emoji
+                              (flt) => flt.emoji_id === mp.emoji,
                             )[0].emoji_content
                           }
                         </span>
@@ -751,7 +754,8 @@ function PostItem({
                   <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
                     {emojilist.length > 0 &&
                       (emojilist.filter(
-                        (flt: Emoji) => flt.emoji_id === postState.user_reaction
+                        (flt: Emoji) =>
+                          flt.emoji_id === postState.user_reaction,
                       )[0].emoji_content ??
                         "...")}
                   </div>

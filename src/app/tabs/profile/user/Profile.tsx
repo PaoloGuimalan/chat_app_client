@@ -47,6 +47,8 @@ import {
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { BiCalendarEdit } from "react-icons/bi";
 import { HiOutlinePencil } from "react-icons/hi";
+import ProfilePicContainer from "./ProfilePicContainer";
+import ProfileCoverContainer from "./ProfileCoverContainer";
 
 function Profile() {
   const authentication: AuthenticationInterface = useSelector(
@@ -392,22 +394,15 @@ function Profile() {
           <IoArrowBack style={{ fontSize: "20px" }} />
         </button>
         <div className="tw-bg-white tw-w-full tw-h-[60%] tw-min-h-[500px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
-          {profileInfo.coverphoto !== "none" ? (
-            <div className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[10px] tw-h-[200px]">
-              <CachedImage
-                src={profileInfo.coverphoto}
-                className="tw-bg-black tw-max-h-full tw-max-w-full tw-w-full tw-h-full tw-object-cover tw-rounded-b-[10px]"
-              />
-            </div>
-          ) : (
-            <div className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[10px]" />
-          )}
+          <ProfileCoverContainer
+            profileInfo={profileInfo}
+            getpostprocess={GetPostProcess}
+          />
           <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
-            <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center">
-              <div className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]">
-                <CachedImage src={DefaultProfile} id="img_default_profile" />
-              </div>
-            </div>
+            <ProfilePicContainer
+              profileInfo={profileInfo}
+              getpostprocess={GetPostProcess}
+            />
             <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
               <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[20px] tw-sm:p-[0px]">
                 <span className="tw-text-[25px] tw-font-bold">
