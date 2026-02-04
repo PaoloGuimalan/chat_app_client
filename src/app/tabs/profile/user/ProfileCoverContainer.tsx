@@ -38,7 +38,7 @@ function ProfileCoverContainer({
             className="tw-absolute tw-bottom-0 tw-right-0 tw-bg-white tw-overflow-y-hidden tw-rounded-[7px] tw-shadow-md"
           >
             <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
-              {profileInfo?.profile !== "none" && (
+              {profileInfo?.coverphoto !== "none" && (
                 <motion.button
                   initial={{
                     backgroundColor: "transparent",
@@ -93,7 +93,7 @@ function ProfileCoverContainer({
             className="tw-absolute tw-bottom-0 tw-right-0 tw-bg-white tw-overflow-y-hidden tw-rounded-[7px] tw-shadow-md"
           >
             <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
-              {profileInfo?.profile !== "none" && (
+              {profileInfo?.coverphoto !== "none" && (
                 <motion.button
                   initial={{
                     backgroundColor: "transparent",
