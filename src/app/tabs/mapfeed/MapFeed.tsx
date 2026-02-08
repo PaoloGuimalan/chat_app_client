@@ -96,6 +96,25 @@ function MapFeed() {
 
   const [toggleSpeed, settoggleSpeed] = useState<boolean>(false);
 
+  const [isDarkMode, setisDarkMode] = useState<boolean>(false);
+
+  useEffect(() => {
+    const checkLocalTime = () => {
+      const hour = new Date().getHours();
+
+      // PH typical pattern: Dark 6PM-6AM, Light 6AM-6PM
+      const isNight = hour >= 18 || hour < 6;
+
+      setisDarkMode(isNight);
+    };
+
+    // Check immediately + every hour
+    checkLocalTime();
+    const interval = setInterval(checkLocalTime, 60 * 60 * 1000); // Hourly check
+
+    return () => clearInterval(interval);
+  }, []);
+
   const myLocation = useMemo<ICoordinatesAnchor | null>(() => {
     if (authentication.user.userID) {
       const currentCoordinates = coordinates.filter(
@@ -618,7 +637,11 @@ function MapFeed() {
         position: "absolute",
         overflowY: "hidden",
       }}
-      mapStyle="https://api.maptiler.com/maps/basic-v2-dark/style.json?key=AqtwgEiGiqzjVxuM07x4"
+      mapStyle={
+        isDarkMode
+          ? "https://api.maptiler.com/maps/basic-v2-dark/style.json?key=AqtwgEiGiqzjVxuM07x4"
+          : "https://api.maptiler.com/maps/basic-v2/style.json?key=AqtwgEiGiqzjVxuM07x4"
+      }
       onClick={handleClick}
     >
       {toggleProfileView && (
@@ -716,17 +739,29 @@ function MapFeed() {
         type="fill-extrusion"
         minzoom={15}
         paint={{
-          "fill-extrusion-color": [
-            "interpolate",
-            ["linear"],
-            ["get", "render_height"],
-            0,
-            "gray",
-            200,
-            "#4d4d4d",
-            400,
-            "lightblue",
-          ],
+          "fill-extrusion-color": isDarkMode
+            ? [
+                "interpolate",
+                ["linear"],
+                ["get", "render_height"],
+                0,
+                "gray",
+                200,
+                "#4d4d4d",
+                400,
+                "lightblue",
+              ]
+            : [
+                "interpolate",
+                ["linear"],
+                ["get", "render_height"],
+                0,
+                "#f8f4f0",
+                100,
+                "#e0d7c8",
+                300,
+                "#b8a896",
+              ],
           "fill-extrusion-height": [
             "interpolate",
             ["linear"],
@@ -736,7 +771,6 @@ function MapFeed() {
             16,
             ["get", "render_height"],
           ],
-          // Fixed: Removed invalid zoom expression from case
           "fill-extrusion-base": ["get", "render_min_height"],
         }}
       />
