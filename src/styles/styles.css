@@ -2357,12 +2357,13 @@ input:checked + .slider:before {
 
 .div_feed_post_container {
   background-color: white;
-  border: solid 1px rgb(210, 210, 210);
+  border: solid 0px rgb(210, 210, 210);
   border-radius: 10px;
   display: flex;
   flex-direction: column;
   padding: 20px;
   width: calc(100% - 42px);
+  min-height: 150px;
 }
 
 .div_post_content {
@@ -2397,7 +2398,7 @@ input:checked + .slider:before {
   flex-direction: column;
   height: 100%;
   align-items: flex-start;
-  /* justify-content: center; */
+  justify-content: center;
   padding-left: 20px;
   padding-right: 20px;
   gap: 0px;

@@ -4,7 +4,7 @@
 import "../../../styles/styles.css";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import { FcAddImage } from "react-icons/fc";
-// import ChatterLoopImg from "../../../assets/imgs/chatterloop.png";
+import ChatterLoopImg from "../../../assets/imgs/chatterloop.png";
 import { useEffect, useRef, useState } from "react";
 import { GetFeedRequest } from "@/reusables/hooks/requests";
 import PostItem from "../profile/user/PostItem";
@@ -34,6 +34,7 @@ function Feed() {
     withImage: false,
   });
   const [createposttext, setcreateposttext] = useState<string>("");
+  const [postsIsLoaded, setpostsIsLoaded] = useState<boolean>(false);
 
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
@@ -45,6 +46,7 @@ function Feed() {
       range: range,
     })
       .then((response) => {
+        setpostsIsLoaded(true);
         setpaginatedPosts((prev) => {
           const combinedList = [...prev.results, ...response.results];
           const uniqueById = combinedList.filter(
@@ -147,33 +149,41 @@ function Feed() {
       </div>
       <div id="div_feed_contents_container">
         {/* map posts here */}
-        {/* {posts.length === 0 && (
-          <div className="div_feed_post_container"> */}{" "}
-        {/** div container fpr all posts */}
-        {/* <div className="div_post_content">
+        {paginatedPosts.results.length === 0 && postsIsLoaded && (
+          <div className="div_feed_post_container">
+            {" "}
+            {/** div container fpr all posts */}
+            <div className="div_post_content">
               <div id="div_img_welcome_container">
                 <img src={ChatterLoopImg} id="img_welcome_post_pic" />
               </div>
               <div id="div_welcome_post_labels_container">
-                <span id="span_welcome_post_label_cl">
-                  Welcome to Chatterloop
-                </span>
-                <span id="span_welcome_post_label_h2">
-                  Link . Share . Explore
-                </span>
+                <span className="tw-text-[#3b3b3b] tw-font-semibold tw-text-[20px] tw-font-Inter">
+                  You're all caught up!
+                </span>{" "}
+                <div className="tw-flex tw-flex-col">
+                  {/* <span id="span_welcome_post_label_cl">
+                    Welcome to Chatterloop
+                  </span> */}
+                  <span id="span_welcome_post_label_h2">
+                    Link . Share . Explore
+                  </span>
+                </div>
                 <span id="span_welcome_post_par_cl">
                   A new way of connection. A visual connection, more visible and
                   interactable way of social media.
                 </span>
               </div>
             </div>
-          </div> */}
-        {/* )} */}
+          </div>
+        )}
         {/* map posts here */}
         {posts.length === 0
-          ? Array.from({ length: 10 }, (_, i: number) => {
-              return <PostItemLoader key={i} />;
-            })
+          ? !postsIsLoaded
+            ? Array.from({ length: 10 }, (_, i: number) => {
+                return <PostItemLoader key={i} />;
+              })
+            : null
           : posts.map((mp: IPost, i: number) => {
               return <PostItem key={i} isSharePreview={false} mp={mp} />;
             })}
