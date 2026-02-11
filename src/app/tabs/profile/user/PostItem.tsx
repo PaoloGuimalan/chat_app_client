@@ -131,24 +131,26 @@ function PostItem({
   });
 
   useEffect(() => {
-    if (isInView) {
-      const viewedDate = new Date().toISOString();
-      sessionStartTimeRef.current = Date.now();
-      persistViewPosts(postState.post_id, {
-        user_id: authentication.user.userID,
-        duration: 0.5,
-        created_at: viewedDate,
-      });
-    } else if (!isInView && sessionStartTimeRef.current) {
-      const viewedDate = new Date(sessionStartTimeRef.current).toISOString();
-      const endTime = Date.now();
-      const duration = (endTime - sessionStartTimeRef.current) / 1000;
-      sessionStartTimeRef.current = null;
-      persistViewPosts(postState.post_id, {
-        user_id: authentication.user.userID,
-        duration: duration,
-        created_at: viewedDate,
-      });
+    if (authentication.user.userID !== postState.user.username) {
+      if (isInView) {
+        const viewedDate = new Date().toISOString();
+        sessionStartTimeRef.current = Date.now();
+        persistViewPosts(postState.post_id, {
+          user_id: authentication.user.userID,
+          duration: 0.5,
+          created_at: viewedDate,
+        });
+      } else if (!isInView && sessionStartTimeRef.current) {
+        const viewedDate = new Date(sessionStartTimeRef.current).toISOString();
+        const endTime = Date.now();
+        const duration = (endTime - sessionStartTimeRef.current) / 1000;
+        sessionStartTimeRef.current = null;
+        persistViewPosts(postState.post_id, {
+          user_id: authentication.user.userID,
+          duration: duration,
+          created_at: viewedDate,
+        });
+      }
     }
   }, [authentication.user.userID, isInView, postState]);
 
