@@ -40,6 +40,7 @@ function Feed() {
 
   const GetFeedProcess = () => {
     GetFeedRequest({
+      current_user_id: authentication.user.userID,
       page: page,
       range: range,
     })

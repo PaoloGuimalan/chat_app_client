@@ -20,6 +20,7 @@ import { PaginationProp } from "../vars/props";
 import { IContact, INewEntry } from "../vars/interfaces";
 import { removeNullsFromObject } from "./validatevariables";
 import envs from "./env_configs";
+import { clearViewPosts, getAllViewCache } from "./localforagehelper";
 
 const API = envs.CHATTERLOOP_API;
 const USER_SERVICE_API = envs.USER_SERVICE_API;
@@ -1152,12 +1153,18 @@ const CreatePostRequest = async (payload: any) => {
 };
 
 const GetPostRequest = async (params: any) => {
+  const current_user_id = params.current_user_id;
   const userID = params.userID;
   const page = params.page;
   const range = params.range;
 
-  return await Axios.get(
+  const viewCache = await getAllViewCache(current_user_id);
+
+  return await Axios.post(
     `${USER_SERVICE_API}/api/newsfeed/profile/${userID}/?page=${page}&page_size=${range}`,
+    {
+      viewcache: viewCache,
+    },
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
@@ -1165,6 +1172,7 @@ const GetPostRequest = async (params: any) => {
     },
   )
     .then((response) => {
+      clearViewPosts();
       return response.data;
     })
     .catch((err) => {
@@ -1427,11 +1435,17 @@ const GetMembersListInServer = (
 };
 
 const GetFeedRequest = async (params: any) => {
+  const current_user_id = params.current_user_id;
   const range = params.range;
   const page = params.page;
 
-  return await Axios.get(
+  const viewCache = await getAllViewCache(current_user_id);
+
+  return await Axios.post(
     `${USER_SERVICE_API}/api/newsfeed/default/?page=${page}&page_size=${range}`,
+    {
+      viewcache: viewCache,
+    },
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
@@ -1439,6 +1453,7 @@ const GetFeedRequest = async (params: any) => {
     },
   )
     .then((response) => {
+      clearViewPosts();
       return response.data;
     })
     .catch((err) => {

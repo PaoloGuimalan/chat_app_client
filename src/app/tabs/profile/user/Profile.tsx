@@ -256,6 +256,7 @@ function Profile() {
 
   const GetPostProcess = () => {
     GetPostRequest({
+      current_user_id: authentication.user.userID,
       userID: params.userID,
       page: page,
       range: range,
