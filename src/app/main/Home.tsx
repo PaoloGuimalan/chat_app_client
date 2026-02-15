@@ -259,6 +259,17 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     });
   };
 
+  const onClickHome = () => {
+    if (location.pathname === "/") {
+      const localListener = new CustomEvent("broadcast_reload_feed", {
+        detail: true,
+      });
+      window.dispatchEvent(localListener);
+    } else {
+      navigate("/");
+    }
+  };
+
   return (
     <div id="div_home">
       <CallCollection />
@@ -269,9 +280,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
               whileHover={{
                 backgroundColor: "#e6e6e6",
               }}
-              onClick={() => {
-                navigate("/");
-              }}
+              onClick={onClickHome}
               className="btn_navigations"
             >
               <AiOutlineHome style={{ fontSize: "25px", color: "#4A4A4A" }} />
@@ -354,9 +363,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
               whileHover={{
                 backgroundColor: "#e6e6e6",
               }}
-              onClick={() => {
-                navigate("/");
-              }}
+              onClick={onClickHome}
               className="btn_navigations"
             >
               <AiOutlineHome style={{ fontSize: "25px", color: "#4A4A4A" }} />

@@ -93,6 +93,31 @@ function Feed() {
     GetFeedProcess();
   }, [page]);
 
+  useEffect(() => {
+    if (setpaginatedPosts && setpage && divcontentRef) {
+      window.addEventListener("broadcast_reload_feed", (e: any) => {
+        if (e.detail) {
+          divcontentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+          setTimeout(() => {
+            setpostsIsLoaded(false);
+            setpaginatedPosts(postsliststate);
+            setpage((prev) => {
+              if (prev === 1) {
+                GetFeedProcess();
+                return 1;
+              }
+              return 1;
+            });
+          }, 500);
+        }
+      });
+    }
+
+    return () => {
+      window.removeEventListener("broadcast_reload_feed", () => {});
+    };
+  }, [setpaginatedPosts, setpage, divcontentRef]);
+
   return (
     <div id="div_feed" className="thinscroller" ref={divcontentRef}>
       <div id="div_feed_header_post_input" className="tw-border-[0px]">
