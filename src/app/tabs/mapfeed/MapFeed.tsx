@@ -46,6 +46,7 @@ import {
   SnapCoordinatesOpenRoute,
 } from "@/reusables/hooks/requests";
 import { useSearchParams } from "react-router-dom";
+import { HiOutlineSquare3Stack3D } from "react-icons/hi2";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -97,6 +98,8 @@ function MapFeed() {
   const [toggleSpeed, settoggleSpeed] = useState<boolean>(false);
 
   const [isDarkMode, setisDarkMode] = useState<boolean>(false);
+
+  const [toggle3Drenders, settoggle3Drenders] = useState<boolean>(false);
 
   useEffect(() => {
     const checkLocalTime = () => {
@@ -255,25 +258,6 @@ function MapFeed() {
           mode: null,
           type: "profile",
         });
-
-        // setcoordinates((prev: ICoordinatesAnchor[]) => {
-        //   const prevNoUser = prev.filter(
-        //     (flt: ICoordinatesAnchor) =>
-        //       flt.referenceID !== authentication.user.userID,
-        //   );
-        //   return [
-        //     ...prevNoUser,
-        //     {
-        //       referenceID: authentication.user.userID,
-        //       longitude: position.coords.longitude,
-        //       latitude: position.coords.latitude,
-        //       heading: position.coords.heading,
-        //       speed: position.coords.speed ?? 0,
-        //       mode: null,
-        //       type: "profile",
-        //     },
-        //   ];
-        // });
       },
       null,
       {
@@ -293,25 +277,6 @@ function MapFeed() {
           mode: null,
           type: "profile",
         });
-
-        // setcoordinates((prev: ICoordinatesAnchor[]) => {
-        //   const prevNoUser = prev.filter(
-        //     (flt: ICoordinatesAnchor) =>
-        //       flt.referenceID !== authentication.user.userID,
-        //   );
-        //   return [
-        //     ...prevNoUser,
-        //     {
-        //       referenceID: authentication.user.userID,
-        //       longitude: position.coords.longitude,
-        //       latitude: position.coords.latitude,
-        //       heading: position.coords.heading,
-        //       speed: position.coords.speed ?? 0,
-        //       mode: null,
-        //       type: "profile",
-        //     },
-        //   ];
-        // });
       },
       null,
       {
@@ -441,6 +406,18 @@ function MapFeed() {
   const toggleLevelHeight = ["80px", "40%", "calc(100% - 100px)"];
 
   const generalToggleOptions = [
+    {
+      label: <span className="tw-text-[12px] tw-font-Inter">3D Visuals</span>,
+      icon: (
+        <HiOutlineSquare3Stack3D
+          size={50}
+          style={{ color: toggle3Drenders ? "#00ff88" : "#ffffff" }}
+        />
+      ),
+      click: () => {
+        settoggle3Drenders((prev) => !prev);
+      },
+    },
     {
       label: (
         <span className="tw-text-[12px] tw-font-Inter">Share Location</span>
@@ -727,53 +704,57 @@ function MapFeed() {
         />
       </Source>
 
-      <Source
-        id="openmaptiles"
-        type="vector"
-        url="https://api.maptiler.com/tiles/v3/tiles.json?key=AqtwgEiGiqzjVxuM07x4"
-      />
-      <Layer
-        id="3d-buildings"
-        source="openmaptiles"
-        source-layer="building"
-        type="fill-extrusion"
-        minzoom={15}
-        paint={{
-          "fill-extrusion-color": isDarkMode
-            ? [
+      {toggle3Drenders && (
+        <>
+          <Source
+            id="openmaptiles"
+            type="vector"
+            url="https://api.maptiler.com/tiles/v3/tiles.json?key=AqtwgEiGiqzjVxuM07x4"
+          />
+          <Layer
+            id="3d-buildings"
+            source="openmaptiles"
+            source-layer="building"
+            type="fill-extrusion"
+            minzoom={15}
+            paint={{
+              "fill-extrusion-color": isDarkMode
+                ? [
+                    "interpolate",
+                    ["linear"],
+                    ["get", "render_height"],
+                    0,
+                    "gray",
+                    200,
+                    "#4d4d4d",
+                    400,
+                    "lightblue",
+                  ]
+                : [
+                    "interpolate",
+                    ["linear"],
+                    ["get", "render_height"],
+                    0,
+                    "#f8f4f0",
+                    100,
+                    "#e0d7c8",
+                    300,
+                    "#b8a896",
+                  ],
+              "fill-extrusion-height": [
                 "interpolate",
                 ["linear"],
-                ["get", "render_height"],
+                ["zoom"],
+                15,
                 0,
-                "gray",
-                200,
-                "#4d4d4d",
-                400,
-                "lightblue",
-              ]
-            : [
-                "interpolate",
-                ["linear"],
+                16,
                 ["get", "render_height"],
-                0,
-                "#f8f4f0",
-                100,
-                "#e0d7c8",
-                300,
-                "#b8a896",
               ],
-          "fill-extrusion-height": [
-            "interpolate",
-            ["linear"],
-            ["zoom"],
-            15,
-            0,
-            16,
-            ["get", "render_height"],
-          ],
-          "fill-extrusion-base": ["get", "render_min_height"],
-        }}
-      />
+              "fill-extrusion-base": ["get", "render_min_height"],
+            }}
+          />
+        </>
+      )}
 
       <Layer
         id="place-labels-top"
@@ -1009,13 +990,15 @@ function MapFeed() {
               className="tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-pl-[10px] tw-pr-[10px]"
             >
               <motion.div className="tw-bg-[#eaecef] tw-w-full tw-h-auto tw-min-h-[194px] tw-rounded-md tw-flex">
-                <div className="tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex tw-gap-[6px]">
+                <div
+                  className={`tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex tw-gap-[6px] tw-flex-wrap ${toggleSwitchOptions[currentMode].items.length > 2 ? "tw-justify-center" : "tw-justify-start"}`}
+                >
                   {toggleSwitchOptions[currentMode].items.map(
                     (mp, i: number) => {
                       return (
                         <button
                           key={i}
-                          className="tw-w-[100px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
+                          className="tw-w-[92px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
                           onClick={mp.click}
                         >
                           {mp.icon}
@@ -1241,13 +1224,15 @@ function MapFeed() {
               className="tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-pl-[10px] tw-pr-[10px]"
             >
               <motion.div className="tw-bg-[#eaecef] tw-w-full tw-h-auto tw-min-h-[194px] tw-rounded-md tw-flex">
-                <div className="tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex tw-gap-[6px]">
+                <div
+                  className={`tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex tw-gap-[6px] tw-flex-wrap ${toggleSwitchOptions[currentMode].items.length > 2 ? "tw-justify-center" : "tw-justify-start"}`}
+                >
                   {toggleSwitchOptions[currentMode].items.map(
                     (mp, i: number) => {
                       return (
                         <button
                           key={i}
-                          className="tw-w-[100px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
+                          className="tw-w-[92px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
                           onClick={mp.click}
                         >
                           {mp.icon}
