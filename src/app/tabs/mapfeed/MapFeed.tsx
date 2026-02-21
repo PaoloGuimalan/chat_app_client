@@ -43,7 +43,7 @@ import SpeedPopup from "./partials/SpeedPopup";
 import {
   BroadcastCoordinatesRequest,
   GetProfileInfo,
-  SnapCoordinatesOpenRoute,
+  // SnapCoordinatesOpenRoute,
 } from "@/reusables/hooks/requests";
 import { useSearchParams } from "react-router-dom";
 import { HiOutlineSquare3Stack3D } from "react-icons/hi2";
@@ -291,81 +291,81 @@ function MapFeed() {
   }, [authentication.user.userID]);
 
   useEffect(() => {
-    if (currentMode === 2) {
-      SnapCoordinatesOpenRoute({
-        locations: [[rawCoordinates.longitude, rawCoordinates.latitude]],
-        radius: 350,
-      })
-        .then((response) => {
-          if (response.status === 200) {
-            if (response.data.locations.length > 0) {
-              const [longitude, latitude] = response.data.locations[0].location;
+    // if (currentMode === 2) {
+    //   SnapCoordinatesOpenRoute({
+    //     locations: [[rawCoordinates.longitude, rawCoordinates.latitude]],
+    //     radius: 350,
+    //   })
+    //     .then((response) => {
+    //       if (response.status === 200) {
+    //         if (response.data.locations.length > 0) {
+    //           const [longitude, latitude] = response.data.locations[0].location;
 
-              setcoordinates((prev: ICoordinatesAnchor[]) => {
-                const prevNoUser = prev.filter(
-                  (flt: ICoordinatesAnchor) =>
-                    flt.referenceID !== authentication.user.userID,
-                );
-                return [
-                  ...prevNoUser,
-                  {
-                    referenceID: authentication.user.userID,
-                    longitude: longitude,
-                    latitude: latitude,
-                    heading: rawCoordinates.heading,
-                    speed: rawCoordinates.speed ?? 0,
-                    mode: null,
-                    type: "profile",
-                  },
-                ];
-              });
+    //           setcoordinates((prev: ICoordinatesAnchor[]) => {
+    //             const prevNoUser = prev.filter(
+    //               (flt: ICoordinatesAnchor) =>
+    //                 flt.referenceID !== authentication.user.userID,
+    //             );
+    //             return [
+    //               ...prevNoUser,
+    //               {
+    //                 referenceID: authentication.user.userID,
+    //                 longitude: longitude,
+    //                 latitude: latitude,
+    //                 heading: rawCoordinates.heading,
+    //                 speed: rawCoordinates.speed ?? 0,
+    //                 mode: null,
+    //                 type: "profile",
+    //               },
+    //             ];
+    //           });
 
-              return;
-            }
-          }
+    //           return;
+    //         }
+    //       }
 
-          setcoordinates((prev: ICoordinatesAnchor[]) => {
-            const prevNoUser = prev.filter(
-              (flt: ICoordinatesAnchor) =>
-                flt.referenceID !== authentication.user.userID,
-            );
-            return [
-              ...prevNoUser,
-              {
-                referenceID: authentication.user.userID,
-                longitude: rawCoordinates.longitude,
-                latitude: rawCoordinates.latitude,
-                heading: rawCoordinates.heading,
-                speed: rawCoordinates.speed ?? 0,
-                mode: null,
-                type: "profile",
-              },
-            ];
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    } else {
-      setcoordinates((prev: ICoordinatesAnchor[]) => {
-        const prevNoUser = prev.filter(
-          (flt: ICoordinatesAnchor) =>
-            flt.referenceID !== authentication.user.userID,
-        );
-        return [
-          ...prevNoUser,
-          {
-            referenceID: authentication.user.userID,
-            longitude: rawCoordinates.longitude,
-            latitude: rawCoordinates.latitude,
-            heading: rawCoordinates.heading,
-            speed: rawCoordinates.speed ?? 0,
-            mode: null,
-            type: "profile",
-          },
-        ];
-      });
-    }
+    //       setcoordinates((prev: ICoordinatesAnchor[]) => {
+    //         const prevNoUser = prev.filter(
+    //           (flt: ICoordinatesAnchor) =>
+    //             flt.referenceID !== authentication.user.userID,
+    //         );
+    //         return [
+    //           ...prevNoUser,
+    //           {
+    //             referenceID: authentication.user.userID,
+    //             longitude: rawCoordinates.longitude,
+    //             latitude: rawCoordinates.latitude,
+    //             heading: rawCoordinates.heading,
+    //             speed: rawCoordinates.speed ?? 0,
+    //             mode: null,
+    //             type: "profile",
+    //           },
+    //         ];
+    //       });
+    //     })
+    //     .catch((err) => {
+    //       console.log(err);
+    //     });
+    // } else {
+    setcoordinates((prev: ICoordinatesAnchor[]) => {
+      const prevNoUser = prev.filter(
+        (flt: ICoordinatesAnchor) =>
+          flt.referenceID !== authentication.user.userID,
+      );
+      return [
+        ...prevNoUser,
+        {
+          referenceID: authentication.user.userID,
+          longitude: rawCoordinates.longitude,
+          latitude: rawCoordinates.latitude,
+          heading: rawCoordinates.heading,
+          speed: rawCoordinates.speed ?? 0,
+          mode: null,
+          type: "profile",
+        },
+      ];
+    });
+    // }
   }, [rawCoordinates, currentMode]);
 
   useEffect(() => {
