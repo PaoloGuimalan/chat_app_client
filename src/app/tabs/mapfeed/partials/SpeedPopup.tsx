@@ -48,8 +48,8 @@ function SpeedPopup({ coordinates, maxSpeed }: SpeedPopupProp) {
             strokeColor="#ffaa00"
           />
         </motion.div>
-        <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-absolute tw-ml-[25px]">
-          {((coordinates.speed ?? 0) * 3.6).toFixed(2)} km/h
+        <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-absolute tw-ml-[30px]">
+          {((coordinates.speed ?? 0) * 3.6).toFixed(0)} km/h
         </span>
       </div>
     </Popup>

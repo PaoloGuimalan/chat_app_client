@@ -22,7 +22,7 @@ import {
 } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
 import ProfilePopup from "./partials/ProfilePopup";
-import { motion } from "framer-motion";
+import { distance2D, motion, Point } from "framer-motion";
 import {
   FaAngleDown,
   FaAnglesUp,
@@ -290,7 +290,156 @@ function MapFeed() {
     };
   }, [authentication.user.userID]);
 
+  const getRoadsAround = () => {
+    if (!mapRef.current) return [];
+
+    const delta = 0.0009;
+    const bounds = {
+      minLng: rawCoordinates.longitude - delta,
+      minLat: rawCoordinates.latitude - delta,
+      maxLng: rawCoordinates.longitude + delta,
+      maxLat: rawCoordinates.latitude + delta,
+    };
+
+    // Convert to screen pixels
+    const map = mapRef.current;
+    const sw = map.project([bounds.minLng, bounds.minLat]);
+    const ne = map.project([bounds.maxLng, bounds.maxLat]);
+
+    const bbox = [
+      [sw.x, sw.y],
+      [ne.x, ne.y],
+    ];
+
+    const features = map.queryRenderedFeatures(bbox);
+    // console.log("Raw features:", features); // Check this!
+
+    const roadLineStrings = features
+      .filter(
+        (f: any) =>
+          f.layer.type === "line" ||
+          (f.properties?.class &&
+            [
+              "primary",
+              "secondary",
+              "tertiary",
+              "residential",
+              "service",
+              "track",
+              "unclassified",
+              "living_street",
+              "pedestrian",
+              "path",
+              "living_street",
+              "minor",
+              "transit",
+            ].includes(f.properties.class)) ||
+          f.layer.id?.includes("road") ||
+          f.layer.id?.includes("highway"),
+      )
+      .slice(0, 30) // Limit processing
+      .map((f: any) => ({
+        type: "Feature",
+        properties: f.properties,
+        geometry: {
+          type: "LineString",
+          coordinates: f.geometry.coordinates[0] || f.geometry.coordinates,
+        },
+      }));
+
+    // console.log("LineStrings:", roadLineStrings);
+    return roadLineStrings;
+  };
+
+  const projectToLineSegment = (
+    point: Point | number[],
+    a: number[],
+    b: number[],
+  ): Point => {
+    const px = "x" in point ? point.x : point[0];
+    const py = "y" in point ? point.y : point[1];
+    const ax = a[0],
+      ay = a[1];
+    const bx = b[0],
+      by = b[1];
+    const dx = bx - ax;
+    const dy = by - ay;
+    const lenSq = dx * dx + dy * dy;
+    let t = ((px - ax) * dx + (py - ay) * dy) / lenSq;
+    t = Math.max(0, Math.min(1, t));
+    return { x: ax + t * dx, y: ay + t * dy };
+  };
+
   useEffect(() => {
+    if (currentMode === 2) {
+      const roads = getRoadsAround();
+
+      if (roads.length > 0) {
+        const gpsPoint = {
+          x: rawCoordinates.longitude,
+          y: rawCoordinates.latitude,
+        };
+
+        let snappedLng = rawCoordinates.longitude;
+        let snappedLat = rawCoordinates.latitude;
+        let minDistance = Infinity;
+
+        roads.forEach((road: any) => {
+          road.geometry.coordinates.forEach((coord: any, i: any) => {
+            if (i < road.geometry.coordinates.length - 1) {
+              const nextCoord = road.geometry.coordinates[i + 1];
+              const closest = projectToLineSegment(gpsPoint, coord, nextCoord);
+              const dist = distance2D(gpsPoint, closest);
+              if (dist < minDistance && dist < 0.00018) {
+                // ~20m
+                minDistance = dist;
+                snappedLng = closest.x;
+                snappedLat = closest.y;
+              }
+            }
+          });
+        });
+
+        setcoordinates((prev: ICoordinatesAnchor[]) => {
+          const prevNoUser = prev.filter(
+            (flt: ICoordinatesAnchor) =>
+              flt.referenceID !== authentication.user.userID,
+          );
+          return [
+            ...prevNoUser,
+            {
+              referenceID: authentication.user.userID,
+              longitude: snappedLng,
+              latitude: snappedLat,
+              heading: rawCoordinates.heading,
+              speed: rawCoordinates.speed ?? 0,
+              mode: null,
+              type: "profile",
+            },
+          ];
+        });
+        return;
+      }
+    } else {
+      setcoordinates((prev: ICoordinatesAnchor[]) => {
+        const prevNoUser = prev.filter(
+          (flt: ICoordinatesAnchor) =>
+            flt.referenceID !== authentication.user.userID,
+        );
+        return [
+          ...prevNoUser,
+          {
+            referenceID: authentication.user.userID,
+            longitude: rawCoordinates.longitude,
+            latitude: rawCoordinates.latitude,
+            heading: rawCoordinates.heading,
+            speed: rawCoordinates.speed ?? 0,
+            mode: null,
+            type: "profile",
+          },
+        ];
+      });
+    }
     // if (currentMode === 2) {
     //   SnapCoordinatesOpenRoute({
     //     locations: [[rawCoordinates.longitude, rawCoordinates.latitude]],
@@ -347,24 +496,24 @@ function MapFeed() {
     //       console.log(err);
     //     });
     // } else {
-    setcoordinates((prev: ICoordinatesAnchor[]) => {
-      const prevNoUser = prev.filter(
-        (flt: ICoordinatesAnchor) =>
-          flt.referenceID !== authentication.user.userID,
-      );
-      return [
-        ...prevNoUser,
-        {
-          referenceID: authentication.user.userID,
-          longitude: rawCoordinates.longitude,
-          latitude: rawCoordinates.latitude,
-          heading: rawCoordinates.heading,
-          speed: rawCoordinates.speed ?? 0,
-          mode: null,
-          type: "profile",
-        },
-      ];
-    });
+    // setcoordinates((prev: ICoordinatesAnchor[]) => {
+    //   const prevNoUser = prev.filter(
+    //     (flt: ICoordinatesAnchor) =>
+    //       flt.referenceID !== authentication.user.userID,
+    //   );
+    //   return [
+    //     ...prevNoUser,
+    //     {
+    //       referenceID: authentication.user.userID,
+    //       longitude: rawCoordinates.longitude,
+    //       latitude: rawCoordinates.latitude,
+    //       heading: rawCoordinates.heading,
+    //       speed: rawCoordinates.speed ?? 0,
+    //       mode: null,
+    //       type: "profile",
+    //     },
+    //   ];
+    // });
     // }
   }, [rawCoordinates, currentMode]);
 
