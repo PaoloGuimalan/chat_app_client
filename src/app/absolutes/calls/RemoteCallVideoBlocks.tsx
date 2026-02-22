@@ -12,7 +12,7 @@ function RemoteCallVideoBlocks({ remoteStream }: any) {
           videoRef.current.srcObject = remoteStream;
           videoRef.current.addEventListener("loadedmetadata", () => {
             if (videoRef.current) {
-              videoRef.current.muted = true;
+              videoRef.current.muted = false;
               videoRef.current.play();
             }
           });
