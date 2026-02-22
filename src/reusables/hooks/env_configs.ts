@@ -5,6 +5,9 @@ const envs = {
   SECRET: import.meta.env.VITE_JWT_SECRET,
   OPEN_ROUTE_API: import.meta.env.VITE_OPEN_ROUTE_API,
   OPEN_ROUTE_API_KEY: import.meta.env.VITE_OPEN_ROUTE_API_KEY,
+  TURN_SERVER_URL: import.meta.env.VITE_TURN_SERVER_URL,
+  TURN_SERVER_USERNAME: import.meta.env.VITE_TURN_SERVER_USERNAME,
+  TURN_SERVER_CREDENTIAL: import.meta.env.VITE_TURN_SERVER_CREDENTIAL,
 };
 
 export default envs;
