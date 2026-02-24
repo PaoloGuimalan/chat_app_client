@@ -4,8 +4,14 @@ import {
   GetMoodListRequest,
   GetTagsListRequest,
   PostNewEntryRequest,
+  UploadMediaRequest,
 } from "@/reusables/hooks/requests";
-import { IEntry, INewEntry } from "@/reusables/vars/interfaces";
+import {
+  IEntry,
+  IEntryAttachment,
+  INewEntry,
+  IPendingEntryAttachment,
+} from "@/reusables/vars/interfaces";
 import { useMemo, useState } from "react";
 import { BiSolidImageAdd } from "react-icons/bi";
 import { FaSave } from "react-icons/fa";
@@ -20,11 +26,13 @@ import "react-datepicker/dist/react-datepicker.css";
 import CustomTagItem from "./CustomTagItem";
 import {
   formatToDjangoDate,
+  importNonImageData,
   parseDjangoDate,
 } from "@/reusables/hooks/reusable";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
+import PendingAttachmentItem from "./PendingAttachmentItem";
 
 function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
   const screensizelistener = useSelector(
@@ -35,6 +43,8 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
     () => screensizelistener.W < 800,
     [screensizelistener],
   );
+
+  const [medialist, setmedialist] = useState<IPendingEntryAttachment[]>([]);
 
   const params = useParams();
   const dispatch = useDispatch();
@@ -73,6 +83,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
     content: "",
     mood: null,
     tags: [],
+    attachments: [],
     entry_date: null,
     is_private: true,
   });
@@ -96,6 +107,53 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
       const dateWrap = new Date();
       const isoString = formatToDjangoDate(dateWrap);
       pendingNewEntry.entry_date = isoString;
+    }
+
+    if (medialist.length > 0) {
+      setisSaving(true);
+
+      UploadMediaRequest(medialist)
+        .then((response) => {
+          if (response.data.status) {
+            const uploadedAttachments: IEntryAttachment[] =
+              response.data.result.map((mp: any) => {
+                return {
+                  file_id: mp.fileID,
+                  file_type: mp.fileType,
+                  url: mp.fileDetails.data,
+                };
+              });
+
+            pendingNewEntry.attachments = uploadedAttachments;
+            setmedialist([]);
+          }
+        })
+        .catch((err) => {
+          setisSaving(false);
+          console.log(err);
+        })
+        .finally(() => {
+          PostNewEntryRequest(pendingNewEntry)
+            .then((value) => {
+              reload(value);
+              navigate(`/${params.userID}/diary?entry_id=${value.id}`);
+            })
+            .catch((err) => {
+              setisSaving(false);
+              dispatch({
+                type: SET_MUTATE_ALERTS,
+                payload: {
+                  alerts: {
+                    type: "error",
+                    content: "There was a problem saving your entry",
+                  },
+                },
+              });
+              console.log(err);
+            });
+        });
+
+      return;
     }
 
     setisSaving(true);
@@ -225,6 +283,81 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
         backgroundColor: "grey",
       },
     }),
+  };
+
+  const sendNonImageFilesProcess = () => {
+    importNonImageData(
+      (arr: any) => {
+        if (arr) {
+          if (arr.type.includes("image")) {
+            setmedialist((prev: any) => [
+              ...prev,
+              {
+                id: prev.length + 1,
+                name: arr.name,
+                reference: arr.data,
+                caption: "",
+                referenceMediaType: "image",
+              },
+            ]);
+          } else if (arr.type.includes("video")) {
+            setmedialist((prev: any) => [
+              ...prev,
+              {
+                id: prev.length + 1,
+                name: arr.name,
+                reference: arr.data,
+                caption: "",
+                referenceMediaType: "video",
+              },
+            ]);
+          } else {
+            setmedialist((prev: any) => [
+              ...prev,
+              {
+                id: prev.length + 1,
+                name: arr.name,
+                reference: arr.data,
+                caption: "",
+                referenceMediaType: arr.type,
+              },
+            ]);
+          }
+        } else {
+          dispatch({
+            type: SET_MUTATE_ALERTS,
+            payload: {
+              alerts: {
+                type: "warning",
+                content: "Cannot upload files greater than 25mb",
+              },
+            },
+          });
+        }
+      },
+      (rawFiles: any) => {
+        if (rawFiles) {
+          if (rawFiles.type.includes("image")) {
+            // setrawmedialist({
+            //   id: 1,
+            //   name: null,
+            //   reference: rawFiles.data,
+            //   caption: "",
+            //   referenceMediaType: "image",
+            // });
+          } else if (rawFiles.type.includes("video")) {
+            // console.log(rawFiles)
+            // setrawmedialist({
+            //   id: 1,
+            //   name: rawFiles.name,
+            //   reference: rawFiles.data,
+            //   caption: "",
+            //   referenceMediaType: "video",
+            // });
+          }
+        }
+      },
+    );
   };
 
   return (
@@ -457,7 +590,8 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
             Attachments
           </span>
           <button
-            disabled
+            disabled={isSaving}
+            onClick={sendNonImageFilesProcess}
             className="tw-cursor-pointer tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]"
           >
             <BiSolidImageAdd size={18} />
@@ -467,12 +601,30 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
           </button>
         </div>
         <div className="tw-bg-[#f7f7f9] tw-w-full tw-flex tw-min-h-[300px] tw-rounded-[7px] tw-items-center tw-justify-center">
-          <div className="tw-flex tw-gap-[10px] tw-flex-col tw-items-center">
-            <MdImageNotSupported size={70} color="#808080" />
-            <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[#808080]">
-              No Attachments Yet
-            </span>
-          </div>
+          {medialist.length === 0 ? (
+            <div className="tw-flex tw-gap-[10px] tw-flex-col tw-items-center">
+              <MdImageNotSupported size={70} color="#808080" />
+              <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[#808080]">
+                No Attachments Yet
+              </span>
+            </div>
+          ) : (
+            <div className="tw-flex tw-gap-[10px] tw-flex-row tw-flex-wrap tw-items-center tw-justify-center">
+              {medialist.map((attachment: IPendingEntryAttachment) => {
+                return (
+                  <PendingAttachmentItem
+                    key={attachment.id}
+                    attachment={attachment}
+                    onRemove={(id: number) => {
+                      setmedialist((prev) =>
+                        prev.filter((att) => att.id !== id),
+                      );
+                    }}
+                  />
+                );
+              })}
+            </div>
+          )}
         </div>
       </div>
     </div>

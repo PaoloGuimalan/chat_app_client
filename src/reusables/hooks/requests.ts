@@ -1152,6 +1152,26 @@ const CreatePostRequest = async (payload: any) => {
     });
 };
 
+const UploadMediaRequest = async (payload: any) => {
+  const rawpayload = payload;
+
+  return await Axios.post(
+    `${API}/posts/upload`,
+    { references: rawpayload },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 const GetPostRequest = async (params: any) => {
   const current_user_id = params.current_user_id;
   const userID = params.userID;
@@ -1820,4 +1840,5 @@ export {
   GetEntryRequest,
   BroadcastCoordinatesRequest,
   SnapCoordinatesOpenRoute,
+  UploadMediaRequest,
 };

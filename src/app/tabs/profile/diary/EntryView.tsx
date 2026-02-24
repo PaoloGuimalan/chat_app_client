@@ -6,6 +6,7 @@ import {
   AuthenticationInterface,
   IEntry,
   IEntryTag,
+  IEntryViewAttachment,
 } from "@/reusables/vars/interfaces";
 import { Fragment, useEffect, useMemo, useState } from "react";
 import DatePicker from "react-datepicker";
@@ -15,6 +16,7 @@ import { useSelector } from "react-redux";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { formattedDateToWords } from "@/reusables/hooks/reusable";
+import UploadedAttachment from "./UploadedAttachment";
 
 function EntryView() {
   const authentication: AuthenticationInterface = useSelector(
@@ -206,6 +208,29 @@ function EntryView() {
               </motion.div>
             </motion.div>
           </div>
+          {currentEntry.attachments.length > 0 && (
+            <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-flex-col tw-p-[10px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
+              <div className="tw-w-full tw-flex tw-items-center tw-justify-between">
+                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                  Attachments
+                </span>
+              </div>
+              <div className="tw-bg-[#f0f0f0] tw-w-full tw-flex tw-min-h-[300px] tw-rounded-[7px] tw-items-center tw-justify-center">
+                <div className="tw-flex tw-gap-[10px] tw-flex-row tw-flex-wrap tw-items-center tw-justify-center">
+                  {currentEntry.attachments.map(
+                    (attachment: IEntryViewAttachment) => {
+                      return (
+                        <UploadedAttachment
+                          key={attachment.id}
+                          attachment={attachment}
+                        />
+                      );
+                    },
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </Fragment>
       )}
     </div>

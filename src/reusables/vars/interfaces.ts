@@ -346,6 +346,20 @@ export interface IPageModal {
   component: ReactNode;
 }
 
+export interface IPendingEntryAttachment {
+  id: number;
+  name: string | null;
+  reference: any;
+  caption: string;
+  referenceMediaType: string;
+}
+
+export interface IEntryAttachment {
+  file_id: string;
+  file_type: string;
+  url: string;
+}
+
 export interface INewEntry {
   title: string;
   content: string;
@@ -363,6 +377,7 @@ export interface INewEntry {
     value: number;
     is_new: boolean;
   }[];
+  attachments: IEntryAttachment[];
   entry_date: string | null;
   is_private: boolean;
 }
@@ -370,6 +385,13 @@ export interface INewEntry {
 export interface IEntryTag {
   id: number;
   name: string;
+}
+
+export interface IEntryViewAttachment {
+  id: string;
+  created_at: string;
+  file_type: string;
+  url: string;
 }
 
 export interface IEntry {
@@ -385,7 +407,7 @@ export interface IEntry {
   } | null;
   is_private: boolean;
   tag_objects: IEntryTag[];
-  attachments: any[];
+  attachments: IEntryViewAttachment[];
   entry_map_info: null;
   created_at: string;
   updated_at: string;
