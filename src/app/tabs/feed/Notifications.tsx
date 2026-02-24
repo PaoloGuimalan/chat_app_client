@@ -23,10 +23,10 @@ function Notifications() {
   const [isDisabledByRequest, setisDisabledByRequest] = useState(false);
 
   const notificationslist = useSelector(
-    (state: any) => state.notificationslist
+    (state: any) => state.notificationslist,
   );
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
   const alerts = useSelector((state: any) => state.alerts);
@@ -45,7 +45,7 @@ function Notifications() {
   const declineRequestProcess = (
     connection_id: any,
     to_user_id: string,
-    action: string
+    action: string,
   ) => {
     setisDisabledByRequest(true);
     DeclineContactRequest(
@@ -56,7 +56,7 @@ function Notifications() {
       },
       dispatch,
       alerts,
-      setisDisabledByRequest
+      setisDisabledByRequest,
     );
   };
 
@@ -69,7 +69,7 @@ function Notifications() {
       },
       dispatch,
       alerts,
-      setisDisabledByRequest
+      setisDisabledByRequest,
     );
   };
 
@@ -106,13 +106,13 @@ function Notifications() {
         display: pathnamelistener.includes("notifications")
           ? "flex"
           : screensizelistener.W <= 900
-          ? "none"
-          : "flex",
+            ? "none"
+            : "flex",
         maxWidth: pathnamelistener.includes("notifications")
           ? "600px"
           : screensizelistener.W <= 900
-          ? "350px"
-          : "350px",
+            ? "350px"
+            : "350px",
       }}
       id="div_notifications_main"
     >
@@ -175,6 +175,11 @@ function Notifications() {
                           ? DefaultProfile
                           : ntfs.fromUser.profile
                       }
+                      id={
+                        ntfs.fromUser.profile == "none"
+                          ? ""
+                          : "img_actual_profile_ntfs"
+                      }
                       className="img_search_profiles_ntfs"
                     />
                   </div>
@@ -211,7 +216,7 @@ function Notifications() {
                           onClick={() => {
                             acceptRequestProcess(
                               ntfs.referenceID,
-                              ntfs.fromUserID
+                              ntfs.fromUserID,
                             );
                           }}
                         >
@@ -224,7 +229,7 @@ function Notifications() {
                             declineRequestProcess(
                               ntfs.referenceID,
                               ntfs.fromUserID,
-                              "decline"
+                              "decline",
                             );
                           }}
                         >

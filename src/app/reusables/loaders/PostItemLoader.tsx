@@ -9,6 +9,12 @@ function PostItemLoader() {
             circle
             height="40px"
             width="40px"
+            style={{
+              maxHeight: "40px",
+              maxWidth: "40px",
+              minHeight: "40px",
+              minWidth: "40px",
+            }}
             className="img_search_profiles_ntfs"
             baseColor="rgb(210, 210, 210)"
           />

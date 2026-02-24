@@ -36,7 +36,10 @@ function ProfilePicContainer({
           }}
           className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]"
         >
-          <CachedImage src={profileInfo?.profile} id="img_actual_profile" />
+          <CachedImage
+            src={profileInfo?.profile}
+            id="img_actual_profile_main"
+          />
         </div>
       )}
       <motion.div
