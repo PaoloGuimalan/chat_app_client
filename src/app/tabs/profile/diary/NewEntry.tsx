@@ -294,7 +294,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
               ...prev,
               {
                 id: prev.length + 1,
-                name: arr.name,
+                name: null,
                 reference: arr.data,
                 caption: "",
                 referenceMediaType: "image",
@@ -305,7 +305,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
               ...prev,
               {
                 id: prev.length + 1,
-                name: arr.name,
+                name: null,
                 reference: arr.data,
                 caption: "",
                 referenceMediaType: "video",
@@ -316,7 +316,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
               ...prev,
               {
                 id: prev.length + 1,
-                name: arr.name,
+                name: null,
                 reference: arr.data,
                 caption: "",
                 referenceMediaType: arr.type,
