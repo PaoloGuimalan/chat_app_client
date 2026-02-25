@@ -120,6 +120,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
                 return {
                   file_id: mp.fileID,
                   file_type: mp.fileType,
+                  file_name: mp.fileName,
                   url: mp.fileDetails.data,
                 };
               });
@@ -294,7 +295,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: arr.name,
                 reference: arr.data,
                 caption: "",
                 referenceMediaType: "image",
@@ -305,7 +306,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: arr.name,
                 reference: arr.data,
                 caption: "",
                 referenceMediaType: "video",
@@ -316,7 +317,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: arr.name,
                 reference: arr.data,
                 caption: "",
                 referenceMediaType: arr.type,

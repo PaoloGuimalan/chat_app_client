@@ -192,7 +192,7 @@ function UploadedAttachment({
           </div>
           <div className="tw-flex tw-flex-col tw-items-center tw-gap-1">
             <span className="tw-text-xs tw-text-gray-600 tw-truncate tw-max-w-[110px] tw-text-center">
-              {attachment.url || "Audio file"}
+              {attachment.file_name || "Audio file"}
             </span>
             <span className="tw-text-xs tw-text-gray-500 tw-text-center">
               {duration}
@@ -218,7 +218,7 @@ function UploadedAttachment({
       <div className={`${cardClass} tw-gap-3`}>
         {getFileIcon(attachment.file_type)}
         <span className="tw-text-xs tw-text-gray-700 tw-text-center tw-px-2 tw-truncate tw-max-w-[130px]">
-          {attachment.url || "Preview not available"}
+          {attachment.file_name || "..."}
         </span>
       </div>
     );

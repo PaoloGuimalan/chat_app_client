@@ -336,6 +336,7 @@ export interface ICoordinatesAnchor {
 }
 
 export interface IDiaryPreview {
+  isLoaded: boolean;
   latest_entry: string | null;
   top_tags: { id: number; name: string }[];
   total_entries: number;
@@ -357,6 +358,7 @@ export interface IPendingEntryAttachment {
 export interface IEntryAttachment {
   file_id: string;
   file_type: string;
+  file_name: string | null;
   url: string;
 }
 
@@ -391,6 +393,7 @@ export interface IEntryViewAttachment {
   id: string;
   created_at: string;
   file_type: string;
+  file_name: string | null;
   url: string;
 }
 

@@ -49,6 +49,7 @@ import { BiCalendarEdit } from "react-icons/bi";
 import { HiOutlinePencil } from "react-icons/hi";
 import ProfilePicContainer from "./ProfilePicContainer";
 import ProfileCoverContainer from "./ProfileCoverContainer";
+import Skeleton from "react-loading-skeleton";
 
 function Profile() {
   const authentication: AuthenticationInterface = useSelector(
@@ -83,6 +84,7 @@ function Profile() {
   });
 
   const [diaryPreview, setDiaryPreview] = useState<IDiaryPreview>({
+    isLoaded: false,
     latest_entry: null,
     top_tags: [],
     total_entries: 0,
@@ -151,7 +153,7 @@ function Profile() {
       userID: params.userID,
     })
       .then((response) => {
-        setDiaryPreview(response);
+        setDiaryPreview({ isLoaded: true, ...response });
       })
       .catch((err) => {
         console.log(err);
@@ -647,24 +649,34 @@ function Profile() {
                       marginTop: "-4px",
                     }}
                   />
-                  {diaryPreview.latest_entry ? (
-                    <span className="tw-text-[14px]">
-                      Latest entry on{" "}
-                      <span className="tw-text-[14px] tw-font-semibold tw-text-left">
-                        {formattedDateToWords(
-                          diaryPreview.latest_entry,
-                          "YYYY-MM-DD",
-                        )}
+                  {diaryPreview.isLoaded ? (
+                    diaryPreview.latest_entry ? (
+                      <span className="tw-text-[14px]">
+                        Latest entry on{" "}
+                        <span className="tw-text-[14px] tw-font-semibold tw-text-left">
+                          {formattedDateToWords(
+                            diaryPreview.latest_entry,
+                            "YYYY-MM-DD",
+                          )}
+                        </span>
                       </span>
-                    </span>
-                  ) : params.userID === authentication.user.userID ? (
-                    <span className="tw-text-[14px]">
-                      Write your first entry
-                    </span>
+                    ) : params.userID === authentication.user.userID ? (
+                      <span className="tw-text-[14px]">
+                        Write your first entry
+                      </span>
+                    ) : (
+                      <span className="tw-text-[14px]">
+                        {profileInfo.fullname.firstName} has no entries
+                      </span>
+                    )
                   ) : (
-                    <span className="tw-text-[14px]">
-                      {profileInfo.fullname.firstName} has no entries
-                    </span>
+                    <Skeleton
+                      className="tw-max-w-full tw-h-[18px]"
+                      containerClassName="tw-w-[180px] -tw-mt-[5px]"
+                      height="15px"
+                      baseColor="rgb(210, 210, 210)"
+                      count={1}
+                    />
                   )}
                 </div>
                 {params.userID === authentication.user.userID && (
@@ -672,11 +684,21 @@ function Profile() {
                     <HiOutlinePencil
                       style={{ fontSize: "20px", color: "#666666" }}
                     />
-                    <span className="tw-text-[14px]">
-                      {diaryPreview.total_entries}{" "}
-                      {diaryPreview.total_entries > 1 ? "entries" : "entry"}{" "}
-                      made{" "}
-                    </span>
+                    {diaryPreview.isLoaded ? (
+                      <span className="tw-text-[14px]">
+                        {diaryPreview.total_entries}{" "}
+                        {diaryPreview.total_entries > 1 ? "entries" : "entry"}{" "}
+                        made{" "}
+                      </span>
+                    ) : (
+                      <Skeleton
+                        className="tw-max-w-full tw-h-[18px]"
+                        containerClassName="tw-w-[200px] -tw-mt-[5px]"
+                        height="15px"
+                        baseColor="rgb(210, 210, 210)"
+                        count={1}
+                      />
+                    )}
                   </div>
                 )}
                 {diaryPreview.top_tags.length > 0 && (
@@ -689,12 +711,22 @@ function Profile() {
                           marginTop: "-4px",
                         }}
                       />
-                      <span className="tw-text-[14px]">
-                        {params.userID === authentication.user.userID
-                          ? "You've"
-                          : `${profileInfo.fullname.firstName} has`}{" "}
-                        been writing a lot about:
-                      </span>
+                      {diaryPreview.isLoaded ? (
+                        <span className="tw-text-[14px]">
+                          {params.userID === authentication.user.userID
+                            ? "You've"
+                            : `${profileInfo.fullname.firstName} has`}{" "}
+                          been writing a lot about:
+                        </span>
+                      ) : (
+                        <Skeleton
+                          className="tw-max-w-full tw-h-[18px]"
+                          containerClassName="tw-w-[220px] -tw-mt-[5px]"
+                          height="15px"
+                          baseColor="rgb(210, 210, 210)"
+                          count={1}
+                        />
+                      )}
                     </div>
                     <motion.div
                       initial={{
