@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { IEntryViewAttachment } from "@/reusables/vars/interfaces";
 import {
   FaImage,
@@ -12,6 +13,8 @@ import {
   FaPause,
 } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { AiOutlineClose } from "react-icons/ai";
 
 function UploadedAttachment({
   attachment,
@@ -24,6 +27,21 @@ function UploadedAttachment({
   const audioRef = useRef<HTMLAudioElement>(null);
   const imgRef = useRef<HTMLImageElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+
+  const [fullImageScreen, setfullImageScreen] = useState<any>({
+    preview: "",
+    toggle: false,
+  });
+
+  const downloadFile = (url: string, filename: string) => {
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename;
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
 
   const getFileIcon = (mediaType: string) => {
     if (mediaType.startsWith("image"))
@@ -141,14 +159,49 @@ function UploadedAttachment({
       const size = getMediaSize();
       return (
         <div
-          className="tw-relative tw-rounded-[5px] tw-border tw-border-gray-200 tw-bg-gray-50 hover:tw-bg-gray-100 tw-transition-colors"
+          className="tw-rounded-[5px] tw-border tw-border-gray-200 tw-bg-gray-50 hover:tw-bg-gray-100 tw-transition-colors"
           style={{ width: `${size.width}px`, height: `${size.height}px` }}
         >
           <img
             ref={imgRef}
             src={attachment.url}
+            onClick={() => {
+              setfullImageScreen({
+                preview: attachment.url,
+                toggle: true,
+              });
+            }}
             className="tw-w-full tw-h-full tw-object-cover tw-rounded-[5px]"
           />
+          {fullImageScreen.toggle && (
+            <div id="div_fullscreen_image_preview">
+              <button
+                id="btn_close_fip"
+                onClick={() => {
+                  setfullImageScreen({
+                    preview: "",
+                    toggle: false,
+                  });
+                }}
+              >
+                <AiOutlineClose
+                  style={{
+                    fontSize: "17px",
+                  }}
+                />
+              </button>
+              <div
+                id="div_fip_onblur"
+                onClick={() => {
+                  setfullImageScreen({
+                    preview: "",
+                    toggle: false,
+                  });
+                }}
+              />
+              <CachedImage src={fullImageScreen.preview} id="img_fip" />
+            </div>
+          )}
         </div>
       );
     }
@@ -215,7 +268,12 @@ function UploadedAttachment({
     }
 
     return (
-      <div className={`${cardClass} tw-gap-3`}>
+      <div
+        className={`${cardClass} tw-gap-3`}
+        onClick={() => {
+          downloadFile(attachment.url, attachment.file_name!);
+        }}
+      >
         {getFileIcon(attachment.file_type)}
         <span className="tw-text-xs tw-text-gray-700 tw-text-center tw-px-2 tw-truncate tw-max-w-[130px]">
           {attachment.file_name || "..."}
@@ -225,7 +283,7 @@ function UploadedAttachment({
   };
 
   return (
-    <div className="tw-flex tw-flex-col tw-gap-2 tw-items-center tw-p-2">
+    <div className="tw-flex tw-flex-col tw-gap-2 tw-items-center tw-p-2 tw-cursor-pointer tw-select-none">
       {renderMediaPreview()}
     </div>
   );
