@@ -20,6 +20,7 @@ import {
   SET_CONTACTS_LIST,
   SET_CONTACTS_LIST_OVERRIDE,
   SET_CONVERSATION_SETUP,
+  SET_COORDINATES,
   SET_EMOJIS_LIST,
   SET_FILTERED_ALERTS,
   SET_IS_TYPING_LIST,
@@ -36,10 +37,12 @@ import {
   SET_PENDING_CALL_ALERTS,
   SET_PENDING_MESSAGES_LIST,
   SET_POSTS_FEED_LIST,
+  SET_RAW_COORDINATES,
   SET_REJECTED_CALL_LIST,
   SET_REMOVE_IS_TYPING_LIST,
   SET_SCREEN_SIZE_LISTENER,
   SET_TOGGLE_RIGHT_WIDGET,
+  SET_USER_SETTINGS,
   UPDATE_ACTIVE_USERS_LIST,
 } from "../types";
 import {
@@ -47,8 +50,15 @@ import {
   contactsliststate,
   conversationsetupstate,
   screensizelistenerstate,
+  usersettingsstate,
 } from "./states";
-import { Emoji, IContact, IPageModal } from "@/reusables/vars/interfaces";
+import {
+  Emoji,
+  IContact,
+  ICoordinatesAnchor,
+  IPageModal,
+  IUserSettings,
+} from "@/reusables/vars/interfaces";
 
 export const setauthentication = (state = authenticationstate, action: any) => {
   switch (action.type) {
@@ -73,7 +83,7 @@ export const setalerts = (state = [], action: any) => {
       ];
     case SET_FILTERED_ALERTS:
       var filterstate = state.filter(
-        (flt: any) => flt.id != action.payload.alertID
+        (flt: any) => flt.id != action.payload.alertID,
       );
       return filterstate;
     case SET_CLEAR_ALERTS:
@@ -85,7 +95,7 @@ export const setalerts = (state = [], action: any) => {
 
 export const setcontactslist = (
   state: PaginationProp<IContact> = contactsliststate,
-  action: any
+  action: any,
 ) => {
   switch (action.type) {
     case SET_CONTACTS_LIST:
@@ -95,7 +105,8 @@ export const setcontactslist = (
       ];
       const uniqueById = combinedList.filter(
         (obj, index, self) =>
-          index === self.findIndex((t) => t.connection_id === obj.connection_id)
+          index ===
+          self.findIndex((t) => t.connection_id === obj.connection_id),
       );
       return { ...action.payload.contactslist, results: uniqueById };
     //   return action.payload.contactslist;
@@ -108,7 +119,7 @@ export const setcontactslist = (
 
 export const setnotificationslist = (
   state = { list: [], totalunread: 0 },
-  action: any
+  action: any,
 ) => {
   switch (action.type) {
     case SET_NOTIFICATIONS_LIST:
@@ -117,7 +128,7 @@ export const setnotificationslist = (
       const uniqueById = combinedList.filter(
         (obj, index, self) =>
           index ===
-          self.findIndex((t) => t.notificationID === obj.notificationID)
+          self.findIndex((t) => t.notificationID === obj.notificationID),
       );
       return { ...action.payload.notficationslist, list: uniqueById };
     case SET_NOTIFICATIONS_LIST_OVERRIDE:
@@ -132,7 +143,8 @@ export const setmessageslist = (state = [], action: any) => {
     case SET_MESSAGES_LIST:
       const combinedList = [...state, ...action.payload.messageslist];
       const uniqueById = combinedList.filter(
-        (obj, index, self) => index === self.findIndex((t) => t._id === obj._id)
+        (obj, index, self) =>
+          index === self.findIndex((t) => t._id === obj._id),
       );
       return uniqueById;
     case SET_MESSAGES_LIST_OVERRIDE:
@@ -144,7 +156,7 @@ export const setmessageslist = (state = [], action: any) => {
 
 export const setconversationsetup = (
   state = conversationsetupstate,
-  action: any
+  action: any,
 ) => {
   switch (action.type) {
     case SET_CONVERSATION_SETUP:
@@ -166,7 +178,7 @@ export const settogglerightwidget = (state = "messages", action: any) => {
 
 export const setscreensizelistener = (
   state = screensizelistenerstate,
-  action: any
+  action: any,
 ) => {
   switch (action.type) {
     case SET_SCREEN_SIZE_LISTENER:
@@ -219,7 +231,7 @@ export const setcallslist = (state = [], action: any) => {
       }
     case END_CALL_LIST:
       const newCallsList = state.filter(
-        (onc: any) => onc.conversationID != action.payload.callID
+        (onc: any) => onc.conversationID != action.payload.callID,
       );
       return newCallsList;
     default:
@@ -234,7 +246,7 @@ export const setpendingcallalerts = (state = [], action: any) => {
       return newState;
     case REMOVE_PENDING_CALL_ALERTS:
       var newFilterState = state.filter(
-        (flt: any) => flt.callID != action.payload.callID
+        (flt: any) => flt.callID != action.payload.callID,
       );
       return newFilterState;
     case CLEAR_PENDING_CALL_ALERTS:
@@ -306,14 +318,14 @@ export const setistypinglist = (state: any[] = [], action: any) => {
       const filtrationstatus = state.filter(
         (flt: any) =>
           flt.userID !== action.payload.istyping.userID &&
-          flt.conversationID !== action.payload.istyping.conversationID
+          flt.conversationID !== action.payload.istyping.conversationID,
       );
       return [...filtrationstatus, action.payload.istyping];
     case SET_REMOVE_IS_TYPING_LIST:
       const filtrationstatusremove = state.filter(
         (flt: any) =>
           flt.userID !== action.payload.istyping.userID &&
-          flt.conversationID !== action.payload.istyping.conversationID
+          flt.conversationID !== action.payload.istyping.conversationID,
       );
       return filtrationstatusremove;
     default:
@@ -341,7 +353,7 @@ export const setminimizedconversation = (state: any = [], action: any) => {
     case SET_MINIMIZED_CONVERSATION:
       const conversation = action.payload.conversation;
       const finalset = state.filter(
-        (flt: any) => flt.conversationid !== conversation.conversationid
+        (flt: any) => flt.conversationid !== conversation.conversationid,
       );
 
       return [...finalset, conversation];
@@ -350,7 +362,7 @@ export const setminimizedconversation = (state: any = [], action: any) => {
     case CLOSE_MINIMIZED_CONVERSATION:
       const conversationID = action.payload.conversationID;
       const setToRemove = state.filter(
-        (flt: any) => flt.conversationid !== conversationID
+        (flt: any) => flt.conversationid !== conversationID,
       );
 
       return setToRemove;
@@ -363,6 +375,47 @@ export const setpagemodal = (state: IPageModal | null = null, action: any) => {
   switch (action.type) {
     case SET_PAGE_MODAL:
       return action.payload.pagemodal;
+    default:
+      return state;
+  }
+};
+
+export const setusersettings = (
+  state: IUserSettings = usersettingsstate,
+  action: any,
+) => {
+  switch (action.type) {
+    case SET_USER_SETTINGS:
+      return action.payload.usersettings;
+    default:
+      return state;
+  }
+};
+
+export const setcoordinates = (
+  state: ICoordinatesAnchor[] = [],
+  action: any,
+) => {
+  switch (action.type) {
+    case SET_COORDINATES:
+      const currentCoordinates: ICoordinatesAnchor = action.payload.coordinates;
+      const prevNoUser = state.filter(
+        (flt: ICoordinatesAnchor) =>
+          flt.referenceID !== currentCoordinates.referenceID,
+      );
+      return [...prevNoUser, currentCoordinates];
+    default:
+      return state;
+  }
+};
+
+export const setrawcoordinates = (
+  state: ICoordinatesAnchor[] = [],
+  action: any,
+) => {
+  switch (action.type) {
+    case SET_RAW_COORDINATES:
+      return action.payload.rawcoordinates;
     default:
       return state;
   }

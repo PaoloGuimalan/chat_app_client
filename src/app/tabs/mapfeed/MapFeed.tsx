@@ -18,9 +18,10 @@ import "maplibre-gl/dist/maplibre-gl.css";
 import {
   AuthenticationInterface,
   ICoordinatesAnchor,
+  IUserSettings,
   ProfileUserInfoInterface,
 } from "@/reusables/vars/interfaces";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import ProfilePopup from "./partials/ProfilePopup";
 import { distance2D, motion, Point } from "framer-motion";
 import {
@@ -41,19 +42,25 @@ import WalkingLottie from "../../../assets/lotties/walking-lottie.json";
 import SuitCaseLottie from "../../../assets/lotties/suitcase-lottie.json";
 import SpeedPopup from "./partials/SpeedPopup";
 import {
-  BroadcastCoordinatesRequest,
+  // BroadcastCoordinatesRequest,
   GetProfileInfo,
   // SnapCoordinatesOpenRoute,
 } from "@/reusables/hooks/requests";
 import { useSearchParams } from "react-router-dom";
 import { HiOutlineSquare3Stack3D } from "react-icons/hi2";
+import { SET_COORDINATES, SET_USER_SETTINGS } from "@/redux/types";
+import { persistSettings } from "@/reusables/hooks/localforagehelper";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
 
-  const activeuserslist = useSelector((state: any) => state.activeuserslist);
+  const usersettings: IUserSettings = useSelector(
+    (state: any) => state.usersettings,
+  );
+
+  // const activeuserslist = useSelector((state: any) => state.activeuserslist);
 
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
@@ -64,38 +71,90 @@ function MapFeed() {
     [screensizelistener],
   );
 
-  const [coordinates, setcoordinates] = useState<ICoordinatesAnchor[]>([
-    {
-      referenceID: authentication.user.userID,
-      longitude: 120.9842,
-      latitude: 14.5995,
-      heading: -17.6,
-      speed: 0,
-      mode: null,
-      type: "profile",
-    },
-  ]);
-  const [rawCoordinates, setrawCoordinates] = useState<ICoordinatesAnchor>({
-    referenceID: authentication.user.userID,
-    longitude: 120.9842,
-    latitude: 14.5995,
-    heading: -17.6,
-    speed: 0,
-    mode: null,
-    type: "profile",
-  });
+  const dispatch = useDispatch();
+
+  // const [coordinates, setcoordinates] = useState<ICoordinatesAnchor[]>([
+  //   {
+  //     referenceID: authentication.user.userID,
+  //     longitude: 120.9842,
+  //     latitude: 14.5995,
+  //     heading: -17.6,
+  //     speed: 0,
+  //     mode: null,
+  //     type: "profile",
+  //   },
+  // ]);
+
+  const coordinates: ICoordinatesAnchor[] = useSelector(
+    (state: any) => state.coordinates,
+  );
+
+  // const [rawCoordinates, setrawCoordinates] = useState<ICoordinatesAnchor>({
+  //   referenceID: authentication.user.userID,
+  //   longitude: 120.9842,
+  //   latitude: 14.5995,
+  //   heading: -17.6,
+  //   speed: 0,
+  //   mode: null,
+  //   type: "profile",
+  // });
+
+  const rawCoordinates: ICoordinatesAnchor = useSelector(
+    (state: any) => state.rawcoordinates,
+  );
 
   const [followLocation, setFollowLocation] = useState<string | null>(
     authentication.user.userID,
   );
 
-  const [isLocationSharing, setisLocationSharing] = useState<boolean>(false);
+  // const [isLocationSharing, setisLocationSharing] = useState<boolean>(false);
+  const isLocationSharing = useMemo(() => {
+    return usersettings.map_feed_access.share_location;
+  }, [usersettings]);
+
+  const setisLocationSharing = (value: boolean) => {
+    const newSettings = {
+      ...usersettings,
+      map_feed_access: {
+        ...usersettings.map_feed_access,
+        share_location: value,
+      },
+    };
+
+    persistSettings(authentication.user.userID, newSettings);
+
+    dispatch({
+      type: SET_USER_SETTINGS,
+      payload: { usersettings: newSettings },
+    });
+  };
 
   const [toggleProfileView, settoggleProfileView] = useState<boolean>(true);
 
   const [toggleLevel, settoggleLevel] = useState<number>(0);
 
-  const [toggleSpeed, settoggleSpeed] = useState<boolean>(false);
+  // const [toggleSpeed, settoggleSpeed] = useState<boolean>(false);
+  const toggleSpeed = useMemo(
+    () => usersettings.map_feed_access.toggleSpeed,
+    [usersettings],
+  );
+
+  const settoggleSpeed = (value: boolean) => {
+    const newSettings = {
+      ...usersettings,
+      map_feed_access: {
+        ...usersettings.map_feed_access,
+        toggleSpeed: value,
+      },
+    };
+
+    persistSettings(authentication.user.userID, newSettings);
+
+    dispatch({
+      type: SET_USER_SETTINGS,
+      payload: { usersettings: newSettings },
+    });
+  };
 
   const [isDarkMode, setisDarkMode] = useState<boolean>(false);
 
@@ -118,7 +177,7 @@ function MapFeed() {
     return () => clearInterval(interval);
   }, []);
 
-  const myLocation = useMemo<ICoordinatesAnchor | null>(() => {
+  const myLocation = useMemo<ICoordinatesAnchor>(() => {
     if (authentication.user.userID) {
       const currentCoordinates = coordinates.filter(
         (flt: ICoordinatesAnchor) =>
@@ -131,10 +190,26 @@ function MapFeed() {
         return finalCoordinates;
       }
 
-      return null;
+      return {
+        referenceID: authentication.user.userID,
+        longitude: 120.9842,
+        latitude: 14.5995,
+        heading: -17.6,
+        speed: 0,
+        mode: null,
+        type: "profile",
+      };
     }
 
-    return null;
+    return {
+      referenceID: authentication.user.userID,
+      longitude: 120.9842,
+      latitude: 14.5995,
+      heading: -17.6,
+      speed: 0,
+      mode: null,
+      type: "profile",
+    };
   }, [authentication.user.userID, coordinates]);
 
   const othersLocation = useMemo<ICoordinatesAnchor[]>(() => {
@@ -187,7 +262,27 @@ function MapFeed() {
     return 14; // highway
   };
 
-  const [currentMode, setcurrentMode] = useState<number>(0);
+  // const [currentMode, setcurrentMode] = useState<number>(0);
+  const currentMode = useMemo(
+    () => usersettings.map_feed_access.current_mode,
+    [usersettings],
+  );
+  const setcurrentMode = (value: number) => {
+    const newSettings = {
+      ...usersettings,
+      map_feed_access: {
+        ...usersettings.map_feed_access,
+        current_mode: value,
+      },
+    };
+
+    persistSettings(authentication.user.userID, newSettings);
+
+    dispatch({
+      type: SET_USER_SETTINGS,
+      payload: { usersettings: newSettings },
+    });
+  };
 
   const [searchParams] = useSearchParams();
 
@@ -197,98 +292,60 @@ function MapFeed() {
     if (query) {
       setFollowLocation(query);
     }
-
-    window.addEventListener("broadcast_coordinates_listener", (e: any) => {
-      if (e.detail) {
-        const receivedCoordinates = e.detail as ICoordinatesAnchor;
-        setcoordinates((prev: ICoordinatesAnchor[]) => {
-          const prevNoUser = prev.filter(
-            (flt: ICoordinatesAnchor) =>
-              flt.referenceID !== receivedCoordinates.referenceID,
-          );
-          return [...prevNoUser, receivedCoordinates];
-        });
-      }
-    });
   }, [searchParams]);
 
-  useEffect(() => {
-    if (isLocationSharing) {
-      const toShareCoordinates = myLocation;
-      if (toShareCoordinates) {
-        toShareCoordinates.mode = {
-          currentMode,
-          ifSpeedShown: toggleSpeed,
-        };
+  // useEffect(() => {
+  //   if (isLocationSharing) {
+  //     const toShareCoordinates = myLocation;
+  //     if (toShareCoordinates) {
+  //       toShareCoordinates.mode = {
+  //         currentMode,
+  //         ifSpeedShown: toggleSpeed,
+  //       };
 
-        const filteredActiveContacts = activeuserslist
-          .filter((flt: any) => flt.sessionStatus)
-          .map((item: any) => item._id);
+  //       const filteredActiveContacts = activeuserslist
+  //         .filter((flt: any) => flt.sessionStatus)
+  //         .map((item: any) => item._id);
 
-        const payload = {
-          coordinates: toShareCoordinates,
-          receivers: filteredActiveContacts,
-        };
+  //       const payload = {
+  //         coordinates: toShareCoordinates,
+  //         receivers: filteredActiveContacts,
+  //       };
 
-        if (filteredActiveContacts.length > 0) {
-          BroadcastCoordinatesRequest(payload).catch((err) => {
-            console.log(err);
-          });
-        }
-      }
+  //       if (filteredActiveContacts.length > 0) {
+  //         BroadcastCoordinatesRequest(payload).catch((err) => {
+  //           console.log(err);
+  //         });
+  //       }
+  //     }
+  //   }
+  // }, [
+  //   isLocationSharing,
+  //   myLocation,
+  //   currentMode,
+  //   toggleSpeed,
+  //   activeuserslist,
+  // ]);
+
+  const setSettingsAndPersist = (newSettings: IUserSettings) => {
+    if (authentication.user.userID) {
+      dispatch({
+        type: SET_USER_SETTINGS,
+        payload: { usersettings: newSettings },
+      });
+      persistSettings(authentication.user.userID, newSettings);
     }
-  }, [
-    isLocationSharing,
-    myLocation,
-    currentMode,
-    toggleSpeed,
-    activeuserslist,
-  ]);
+  };
 
   useEffect(() => {
-    // window.locationiq.key = "pk.f9b59be5e6653ab04296d123446a4564"
-    navigator.geolocation.getCurrentPosition(
-      (position: GeolocationPosition) => {
-        setrawCoordinates({
-          referenceID: authentication.user.userID,
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
-          heading: position.coords.heading,
-          speed: position.coords.speed ?? 0,
-          mode: null,
-          type: "profile",
-        });
+    setSettingsAndPersist({
+      ...usersettings,
+      map_feed_access: {
+        ...usersettings.map_feed_access,
+        enable_location: true,
       },
-      null,
-      {
-        enableHighAccuracy: true,
-        maximumAge: 1000,
-      },
-    );
-
-    const watchID = navigator.geolocation.watchPosition(
-      (position: GeolocationPosition) => {
-        setrawCoordinates({
-          referenceID: authentication.user.userID,
-          longitude: position.coords.longitude,
-          latitude: position.coords.latitude,
-          heading: position.coords.heading,
-          speed: position.coords.speed ?? 0,
-          mode: null,
-          type: "profile",
-        });
-      },
-      null,
-      {
-        enableHighAccuracy: true,
-        maximumAge: 1000,
-      },
-    );
-
-    return () => {
-      navigator.geolocation.clearWatch(watchID);
-    };
-  }, [authentication.user.userID]);
+    });
+  }, []);
 
   const getRoadsAround = () => {
     if (!mapRef.current) return [];
@@ -400,14 +457,10 @@ function MapFeed() {
           });
         });
 
-        setcoordinates((prev: ICoordinatesAnchor[]) => {
-          const prevNoUser = prev.filter(
-            (flt: ICoordinatesAnchor) =>
-              flt.referenceID !== authentication.user.userID,
-          );
-          return [
-            ...prevNoUser,
-            {
+        dispatch({
+          type: SET_COORDINATES,
+          payload: {
+            coordinates: {
               referenceID: authentication.user.userID,
               longitude: snappedLng,
               latitude: snappedLat,
@@ -416,19 +469,15 @@ function MapFeed() {
               mode: null,
               type: "profile",
             },
-          ];
+          },
         });
         return;
       }
     } else {
-      setcoordinates((prev: ICoordinatesAnchor[]) => {
-        const prevNoUser = prev.filter(
-          (flt: ICoordinatesAnchor) =>
-            flt.referenceID !== authentication.user.userID,
-        );
-        return [
-          ...prevNoUser,
-          {
+      dispatch({
+        type: SET_COORDINATES,
+        payload: {
+          coordinates: {
             referenceID: authentication.user.userID,
             longitude: rawCoordinates.longitude,
             latitude: rawCoordinates.latitude,
@@ -437,84 +486,9 @@ function MapFeed() {
             mode: null,
             type: "profile",
           },
-        ];
+        },
       });
     }
-    // if (currentMode === 2) {
-    //   SnapCoordinatesOpenRoute({
-    //     locations: [[rawCoordinates.longitude, rawCoordinates.latitude]],
-    //     radius: 350,
-    //   })
-    //     .then((response) => {
-    //       if (response.status === 200) {
-    //         if (response.data.locations.length > 0) {
-    //           const [longitude, latitude] = response.data.locations[0].location;
-
-    //           setcoordinates((prev: ICoordinatesAnchor[]) => {
-    //             const prevNoUser = prev.filter(
-    //               (flt: ICoordinatesAnchor) =>
-    //                 flt.referenceID !== authentication.user.userID,
-    //             );
-    //             return [
-    //               ...prevNoUser,
-    //               {
-    //                 referenceID: authentication.user.userID,
-    //                 longitude: longitude,
-    //                 latitude: latitude,
-    //                 heading: rawCoordinates.heading,
-    //                 speed: rawCoordinates.speed ?? 0,
-    //                 mode: null,
-    //                 type: "profile",
-    //               },
-    //             ];
-    //           });
-
-    //           return;
-    //         }
-    //       }
-
-    //       setcoordinates((prev: ICoordinatesAnchor[]) => {
-    //         const prevNoUser = prev.filter(
-    //           (flt: ICoordinatesAnchor) =>
-    //             flt.referenceID !== authentication.user.userID,
-    //         );
-    //         return [
-    //           ...prevNoUser,
-    //           {
-    //             referenceID: authentication.user.userID,
-    //             longitude: rawCoordinates.longitude,
-    //             latitude: rawCoordinates.latitude,
-    //             heading: rawCoordinates.heading,
-    //             speed: rawCoordinates.speed ?? 0,
-    //             mode: null,
-    //             type: "profile",
-    //           },
-    //         ];
-    //       });
-    //     })
-    //     .catch((err) => {
-    //       console.log(err);
-    //     });
-    // } else {
-    // setcoordinates((prev: ICoordinatesAnchor[]) => {
-    //   const prevNoUser = prev.filter(
-    //     (flt: ICoordinatesAnchor) =>
-    //       flt.referenceID !== authentication.user.userID,
-    //   );
-    //   return [
-    //     ...prevNoUser,
-    //     {
-    //       referenceID: authentication.user.userID,
-    //       longitude: rawCoordinates.longitude,
-    //       latitude: rawCoordinates.latitude,
-    //       heading: rawCoordinates.heading,
-    //       speed: rawCoordinates.speed ?? 0,
-    //       mode: null,
-    //       type: "profile",
-    //     },
-    //   ];
-    // });
-    // }
   }, [rawCoordinates, currentMode]);
 
   useEffect(() => {
@@ -578,7 +552,7 @@ function MapFeed() {
         />
       ),
       click: () => {
-        setisLocationSharing((prev) => !prev);
+        setisLocationSharing(!usersettings.map_feed_access.share_location);
       },
     },
   ];
@@ -667,7 +641,7 @@ function MapFeed() {
             />
           ),
           click: () => {
-            settoggleSpeed((prev) => !prev);
+            settoggleSpeed(!toggleSpeed);
           },
         },
       ],

@@ -73,3 +73,13 @@ export const entriesliststate: PaginationProp<IEntry> = {
   previous: null,
   results: [],
 };
+
+export const usersettingsstate = {
+  personal_info: null,
+  map_feed_access: {
+    enable_location: false,
+    share_location: false,
+    current_mode: 0,
+    toggleSpeed: false,
+  },
+};

@@ -8,7 +8,7 @@ let socket: any | null;
 
 const socketInit = async () => {
   if (!socket) {
-    socket = connect(API);
+    socket = connect(`${API}/call`);
     return true;
   } else {
     return true;
@@ -94,7 +94,7 @@ const socketSendIceCandidate = async (data: any) => {
 
 const endSocket = () => {
   if (socket) {
-    socket.close();
+    socket.disconnect();
     socket = null;
   }
 };

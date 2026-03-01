@@ -3,6 +3,7 @@ import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import {
   SET_ALERTS,
+  SET_COORDINATES,
   // SET_CONTACTS_LIST_OVERRIDE,
   SET_IS_TYPING_LIST,
   SET_MESSAGES_LIST_OVERRIDE,
@@ -90,11 +91,12 @@ const SSENotificationsTRequest = (
       if (parsedresponse.status) {
         const decodedResult: any = jwt_decode(parsedresponse.result);
 
-        const localListener = new CustomEvent(
-          "broadcast_coordinates_listener",
-          { detail: decodedResult },
-        );
-        window.dispatchEvent(localListener);
+        dispatch({
+          type: SET_COORDINATES,
+          payload: {
+            coordinates: decodedResult,
+          },
+        });
       }
     }
   });

@@ -7,6 +7,7 @@ import {
   setcallslist,
   setcontactslist,
   setconversationsetup,
+  setcoordinates,
   setemojilist,
   setistypinglist,
   setmediamyvideoholder,
@@ -19,9 +20,11 @@ import {
   setpendingcallalerts,
   setpendingmessageslist,
   setpostsfeedlist,
+  setrawcoordinates,
   setrejectedcalllist,
   setscreensizelistener,
   settogglerightwidget,
+  setusersettings,
 } from "../actions";
 
 const combiner = combineReducers({
@@ -47,6 +50,9 @@ const combiner = combineReducers({
   emojilist: setemojilist,
   minimizedconversation: setminimizedconversation,
   pagemodal: setpagemodal,
+  usersettings: setusersettings,
+  coordinates: setcoordinates,
+  rawcoordinates: setrawcoordinates,
 });
 
 const store = createStore(combiner);

@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import "../../styles/styles.css";
 import DefaultProfile from "../../assets/imgs/default.png";
 import { useDispatch, useSelector } from "react-redux";
@@ -17,6 +17,7 @@ import { FiMap } from "react-icons/fi";
 import { RiContactsBook2Line } from "react-icons/ri";
 import {
   ActiveContactsRequest,
+  // BroadcastCoordinatesRequest,
   GetFeedEmojisRequest,
   InitConversationListRequest,
   LogoutRequest,
@@ -36,17 +37,21 @@ import {
   SET_CLEAR_ALERTS,
   SET_CONTACTS_LIST_OVERRIDE,
   SET_CONVERSATION_SETUP,
+  SET_COORDINATES,
   SET_EMOJIS_LIST,
   SET_MESSAGES_LIST,
   SET_MESSAGES_LIST_OVERRIDE,
   SET_MINIMIZED_CONVERSATION_OVERRIDE,
   SET_NOTIFICATIONS_LIST_OVERRIDE,
+  SET_RAW_COORDINATES,
   SET_REMOVE_IS_TYPING_LIST,
   SET_TOGGLE_RIGHT_WIDGET,
+  SET_USER_SETTINGS,
 } from "../../redux/types";
 import {
   contactsliststate,
   conversationsetupstate,
+  usersettingsstate,
 } from "../../redux/actions/states";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import DesktopHome from "./DesktopHome";
@@ -56,7 +61,9 @@ import MapFeed from "../tabs/mapfeed/MapFeed";
 import { useLocation } from "react-router-dom";
 import {
   AuthenticationInterface,
+  ICoordinatesAnchor,
   IPageModal,
+  IUserSettings,
 } from "@/reusables/vars/interfaces";
 import Servers from "../tabs/servers/Servers";
 import UserMenu from "../tabs/profile/user/UserMenu";
@@ -65,6 +72,16 @@ import CachedImage from "../reusables/cachers/CachedImage";
 import Settings from "../tabs/settings/Settings";
 import Modal from "../reusables/Modal";
 import ProfileContainer from "../tabs/profile/ProfileContainer";
+import {
+  getSettings,
+  persistSettings,
+} from "@/reusables/hooks/localforagehelper";
+import { isUserSettingsComplete } from "@/reusables/hooks/reusable";
+import {
+  endMapSocket,
+  socketMapConnect,
+  socketSendCoordinatesBroadcast,
+} from "@/reusables/hooks/mapsocket";
 
 function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   const location = useLocation();
@@ -81,6 +98,12 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   const messageslist = useSelector((state: any) => state.messageslist);
   const minimizedconversation = useSelector(
     (state: any) => state.minimizedconversation,
+  );
+
+  const activeuserslist = useSelector((state: any) => state.activeuserslist);
+
+  const usersettings: IUserSettings = useSelector(
+    (state: any) => state.usersettings,
   );
 
   const isMobileView = useMemo(
@@ -197,6 +220,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     return () => {
       clearStates();
       endSocket();
+      endMapSocket();
     };
   }, []);
 
@@ -269,6 +293,187 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
       navigate("/");
     }
   };
+
+  useEffect(() => {
+    if (authentication.user.userID) {
+      getSettings(authentication.user.userID).then((res) => {
+        if (res) {
+          if (isUserSettingsComplete(res)) {
+            dispatch({
+              type: SET_USER_SETTINGS,
+              payload: { usersettings: res },
+            });
+          } else {
+            persistSettings(authentication.user.userID, usersettingsstate);
+          }
+        } else {
+          persistSettings(authentication.user.userID, usersettingsstate);
+        }
+      });
+    }
+  }, [authentication.user.userID]);
+
+  const shareLocationProcess = useCallback(
+    (myLocation: ICoordinatesAnchor) => {
+      if (usersettings.map_feed_access.share_location) {
+        const toShareCoordinates = myLocation;
+        if (toShareCoordinates) {
+          toShareCoordinates.mode = {
+            currentMode: usersettings.map_feed_access.current_mode,
+            ifSpeedShown: usersettings.map_feed_access.toggleSpeed,
+          };
+
+          const filteredActiveContacts = activeuserslist
+            .filter((flt: any) => flt.sessionStatus)
+            .map((item: any) => item._id);
+
+          const payload = {
+            coordinates: toShareCoordinates,
+            receivers: filteredActiveContacts,
+          };
+
+          if (filteredActiveContacts.length > 0) {
+            // BroadcastCoordinatesRequest(payload).catch((err) => {
+            //   console.log(err);
+            // });
+            socketSendCoordinatesBroadcast({
+              ...payload,
+              userID: authentication.user.userID,
+            });
+          }
+        }
+      }
+    },
+    [usersettings.map_feed_access, activeuserslist, authentication.user.userID],
+  );
+
+  useEffect(() => {
+    let watchID: any;
+    if (
+      authentication.user.userID &&
+      usersettings.map_feed_access.enable_location
+    ) {
+      navigator.geolocation.getCurrentPosition(
+        (position: GeolocationPosition) => {
+          const rawInitialCoordinates = {
+            referenceID: authentication.user.userID,
+            longitude: position.coords.longitude,
+            latitude: position.coords.latitude,
+            heading: position.coords.heading,
+            speed: position.coords.speed ?? 0,
+            mode: null,
+            type: "profile",
+          };
+
+          shareLocationProcess(rawInitialCoordinates);
+
+          // dispatch({
+          //   type: SET_COORDINATES,
+          //   payload: {
+          //     coordinates: rawInitialCoordinates,
+          //   },
+          // });
+
+          dispatch({
+            type: SET_RAW_COORDINATES,
+            payload: {
+              rawcoordinates: rawInitialCoordinates,
+            },
+          });
+        },
+        null,
+        {
+          enableHighAccuracy: true,
+          maximumAge: 1000,
+        },
+      );
+
+      watchID = navigator.geolocation.watchPosition(
+        (position: GeolocationPosition) => {
+          const rawWatchCoordinates = {
+            referenceID: authentication.user.userID,
+            longitude: position.coords.longitude,
+            latitude: position.coords.latitude,
+            heading: position.coords.heading,
+            speed: position.coords.speed ?? 0,
+            mode: null,
+            type: "profile",
+          };
+
+          shareLocationProcess(rawWatchCoordinates);
+
+          // dispatch({
+          //   type: SET_COORDINATES,
+          //   payload: {
+          //     coordinates: rawWatchCoordinates,
+          //   },
+          // });
+
+          dispatch({
+            type: SET_RAW_COORDINATES,
+            payload: {
+              rawcoordinates: rawWatchCoordinates,
+            },
+          });
+        },
+        null,
+        {
+          enableHighAccuracy: true,
+          maximumAge: 1000,
+        },
+      );
+    }
+
+    return () => {
+      navigator.geolocation.clearWatch(watchID);
+    };
+  }, [
+    authentication.user.userID,
+    usersettings.map_feed_access,
+    activeuserslist,
+  ]);
+
+  useEffect(() => {
+    if (
+      usersettings.map_feed_access.enable_location &&
+      usersettings.map_feed_access.share_location
+    ) {
+      socketMapConnect()
+        .then(() => {
+          console.log("Connected Map Socket");
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+
+    return () => {
+      endMapSocket();
+    };
+  }, [
+    authentication.user.userID,
+    usersettings.map_feed_access.enable_location,
+    usersettings.map_feed_access.share_location,
+  ]);
+
+  useEffect(() => {
+    if (authentication.user.userID) {
+      dispatch({
+        type: SET_COORDINATES,
+        payload: {
+          coordinates: {
+            referenceID: authentication.user.userID,
+            longitude: 120.9842,
+            latitude: 14.5995,
+            heading: -17.6,
+            speed: 0,
+            mode: null,
+            type: "profile",
+          },
+        },
+      });
+    }
+  }, [authentication.user.userID]);
 
   return (
     <div id="div_home">

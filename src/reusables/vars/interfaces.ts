@@ -415,3 +415,13 @@ export interface IEntry {
   created_at: string;
   updated_at: string;
 }
+
+export interface IUserSettings {
+  personal_info: null;
+  map_feed_access: {
+    enable_location: boolean;
+    share_location: boolean;
+    current_mode: number;
+    toggleSpeed: boolean;
+  };
+}

@@ -1716,6 +1716,20 @@ input:checked + .slider:before {
   transform: translateX(18px);
 }
 
+#input_switch_map_settings:checked + .slider {
+  background-color: lime;
+}
+
+#input_switch_map_settings:focus + .slider {
+  box-shadow: 0 0 1px lime;
+}
+
+#input_switch_map_settings:checked + .slider:before {
+  -webkit-transform: translateX(18px);
+  -ms-transform: translateX(18px);
+  transform: translateX(18px);
+}
+
 .slider.round {
   border-radius: 34px;
 }

@@ -135,6 +135,30 @@ async function getAllViewCache(current_user_id: string) {
   }
 }
 
+async function persistSettings(key: string, data: any) {
+  const localforage = localforagemain.createInstance({
+    name: "chatterloop",
+  });
+  localforage.setDriver(localforage.INDEXEDDB);
+  localforage.config({ storeName: "settings" });
+  return await localforage.setItem(key, data).then(async () => {
+    return await localforage.getItem(key).then((value: any) => {
+      return value;
+    });
+  });
+}
+
+async function getSettings(key: string) {
+  const localforage = localforagemain.createInstance({
+    name: "chatterloop",
+  });
+  localforage.setDriver(localforage.INDEXEDDB);
+  localforage.config({ storeName: "settings" });
+  return await localforage.getItem(key).then((value: any) => {
+    return value;
+  });
+}
+
 export {
   getLottieData,
   persistLottieData,
@@ -142,4 +166,6 @@ export {
   persistViewPosts,
   clearViewPosts,
   getAllViewCache,
+  persistSettings,
+  getSettings,
 };
