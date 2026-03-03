@@ -10,7 +10,7 @@ import {
   BsCameraVideoOffFill,
 } from "react-icons/bs";
 import { HiPhoneMissedCall } from "react-icons/hi";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { END_CALL_LIST } from "@/redux/types";
 import UserVideoBlock from "./UserVideoBlock";
@@ -37,6 +37,10 @@ function CallWindow({ data, lineNum }: any) {
         console.log(err);
       });
   }, []);
+
+  const roomID = useMemo(() => data.conversationID, [data]);
+
+  console.log(roomID);
 
   return (
     <motion.div
