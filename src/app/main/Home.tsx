@@ -55,7 +55,7 @@ import {
 } from "../../redux/actions/states";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
 import DesktopHome from "./DesktopHome";
-import CallCollection from "../absolutes/calls/CallCollection";
+// import CallCollection from "../absolutes/calls/CallCollection";
 import { endSocket } from "../../reusables/hooks/sockets";
 import MapFeed from "../tabs/mapfeed/MapFeed";
 import { useLocation } from "react-router-dom";
@@ -82,6 +82,7 @@ import {
   socketMapConnect,
   socketSendCoordinatesBroadcast,
 } from "@/reusables/hooks/mapsocket";
+import CallContainer from "../absolutes/calls_v2/CallContainer";
 
 function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   const location = useLocation();
@@ -477,7 +478,8 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
 
   return (
     <div id="div_home">
-      <CallCollection />
+      {/* <CallCollection /> */}
+      <CallContainer />
       <div id="div_home_navigations" className="tw-z-[1] tw-border-[0px]">
         <div id="div_profile_search_container">
           {isMapFeedMobileView ? (

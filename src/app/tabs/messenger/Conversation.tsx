@@ -13,7 +13,7 @@ import { MdAudiotrack } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai"; //AiFillInfoCircle
 import { checkIfValid } from "../../../reusables/hooks/validatevariables";
 import {
-  CallRequest,
+  // CallRequest,
   ConversationInfoRequest,
   InitConversationRequest,
   IsTypingBroadcastRequest,
@@ -31,11 +31,12 @@ import {
   timeSince,
 } from "../../../reusables/hooks/reusable";
 import {
+  CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
   CLOSE_MINIMIZED_CONVERSATION,
-  MEDIA_MY_VIDEO_HOLDER,
-  MEDIA_TRACK_HOLDER,
-  REMOVE_REJECTED_CALL_LIST,
-  SET_CALLS_LIST,
+  // MEDIA_MY_VIDEO_HOLDER,
+  // MEDIA_TRACK_HOLDER,
+  // REMOVE_REJECTED_CALL_LIST,
+  // SET_CALLS_LIST,
   SET_CONVERSATION_SETUP,
   SET_MINIMIZED_CONVERSATION,
   SET_MUTATE_ALERTS,
@@ -54,7 +55,7 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const authentication = useSelector((state: any) => state.authentication);
-  const mediatrackholder = useSelector((state: any) => state.mediatrackholder);
+  // const mediatrackholder = useSelector((state: any) => state.mediatrackholder);
   const pendingcallalerts = useSelector(
     (state: any) => state.pendingcallalerts,
   );
@@ -66,7 +67,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     (state: any) => state.screensizelistener,
   );
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
-  const callslist = useSelector((state: any) => state.callslist);
+  // const callslist = useSelector((state: any) => state.callslist);
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const istypinglist = useSelector((state: any) => state.istypinglist);
   const activeusersmapper = activeuserslist.map((mp: any) => mp._id);
@@ -488,105 +489,105 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     setnonImageRawFilesList(mutatedPrevRaw);
   };
 
-  const initMediaDevices = (callType: any) => {
-    if (mediatrackholder.length > 0) {
-      triggerCall(callType);
-    } else {
-      navigator.mediaDevices
-        .getUserMedia({
-          video: true,
-          audio: true,
-        })
-        .then((value) => {
-          dispatch({
-            type: MEDIA_MY_VIDEO_HOLDER,
-            payload: {
-              mediamyvideoholder: value,
-            },
-          });
-          dispatch({
-            type: MEDIA_TRACK_HOLDER,
-            payload: {
-              mediatrackholder: value.getTracks(),
-            },
-          });
-          triggerCall(callType);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  };
+  // const initMediaDevices = (callType: any) => {
+  //   if (mediatrackholder.length > 0) {
+  //     triggerCall(callType);
+  //   } else {
+  //     navigator.mediaDevices
+  //       .getUserMedia({
+  //         video: true,
+  //         audio: true,
+  //       })
+  //       .then((value) => {
+  //         dispatch({
+  //           type: MEDIA_MY_VIDEO_HOLDER,
+  //           payload: {
+  //             mediamyvideoholder: value,
+  //           },
+  //         });
+  //         dispatch({
+  //           type: MEDIA_TRACK_HOLDER,
+  //           payload: {
+  //             mediatrackholder: value.getTracks(),
+  //           },
+  //         });
+  //         triggerCall(callType);
+  //       })
+  //       .catch((err) => {
+  //         console.log(err);
+  //       });
+  //   }
+  // };
 
-  const triggerCall = (callType: any) => {
-    const checkIfOnCall = callslist.filter(
-      (onc: any) => onc.conversationID == conversationsetup.conversationid,
-    );
-    const checkIfOnPending = pendingcallalerts.filter(
-      (fltcall: any) => fltcall.callID == conversationsetup.conversationid,
-    );
+  // const triggerCall = (callType: any) => {
+  //   const checkIfOnCall = callslist.filter(
+  //     (onc: any) => onc.conversationID == conversationsetup.conversationid,
+  //   );
+  //   const checkIfOnPending = pendingcallalerts.filter(
+  //     (fltcall: any) => fltcall.callID == conversationsetup.conversationid,
+  //   );
 
-    if (checkIfOnCall.length == 0 && checkIfOnPending.length == 0) {
-      CallRequest({
-        callType: callType,
-        callDisplayName:
-          conversationsetup.type == "single"
-            ? `${authentication.user.fullName.firstName}`
-            : `${conversationsetup.groupdetails.groupName} (Group)`,
-        conversationType: conversationsetup.type,
-        conversationID: conversationsetup.conversationid,
-        caller: {
-          name: authentication.user.fullName.firstName,
-          userID: authentication.user.userID,
-        },
-        recepients:
-          conversationsetup.type == "single"
-            ? [conversationsetup.userdetails.userID]
-            : conversationinfo?.users
-                .map((mp: any) => mp.userID)
-                .filter((flt: any) => flt != authentication.user.userID),
-        displayImage:
-          conversationsetup.type == "single"
-            ? conversationsetup.userdetails.profile
-            : "none",
-      })
-        .then(() => {
-          dispatch({
-            type: REMOVE_REJECTED_CALL_LIST,
-            payload: {
-              callID: conversationsetup.conversationid,
-            },
-          });
-          dispatch({
-            type: SET_CALLS_LIST,
-            payload: {
-              callslist: [
-                ...callslist,
-                {
-                  callType: callType,
-                  callDisplayName:
-                    conversationsetup.type == "single"
-                      ? `${conversationsetup.userdetails.fullname.firstName}`
-                      : `${conversationsetup.groupdetails.groupName} (Group)`,
-                  conversationType: conversationsetup.type,
-                  conversationID: conversationsetup.conversationid,
-                  caller: {
-                    name: authentication.user.fullName.firstName,
-                    userID: authentication.user.userID,
-                  },
-                  recepients: conversationinfo?.users.map(
-                    (mp: any) => mp.userID,
-                  ),
-                },
-              ],
-            },
-          });
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  };
+  //   if (checkIfOnCall.length == 0 && checkIfOnPending.length == 0) {
+  //     CallRequest({
+  //       callType: callType,
+  //       callDisplayName:
+  //         conversationsetup.type == "single"
+  //           ? `${authentication.user.fullName.firstName}`
+  //           : `${conversationsetup.groupdetails.groupName} (Group)`,
+  //       conversationType: conversationsetup.type,
+  //       conversationID: conversationsetup.conversationid,
+  //       caller: {
+  //         name: authentication.user.fullName.firstName,
+  //         userID: authentication.user.userID,
+  //       },
+  //       recepients:
+  //         conversationsetup.type == "single"
+  //           ? [conversationsetup.userdetails.userID]
+  //           : conversationinfo?.users
+  //               .map((mp: any) => mp.userID)
+  //               .filter((flt: any) => flt != authentication.user.userID),
+  //       displayImage:
+  //         conversationsetup.type == "single"
+  //           ? conversationsetup.userdetails.profile
+  //           : "none",
+  //     })
+  //       .then(() => {
+  //         dispatch({
+  //           type: REMOVE_REJECTED_CALL_LIST,
+  //           payload: {
+  //             callID: conversationsetup.conversationid,
+  //           },
+  //         });
+  //         dispatch({
+  //           type: SET_CALLS_LIST,
+  //           payload: {
+  //             callslist: [
+  //               ...callslist,
+  //               {
+  //                 callType: callType,
+  //                 callDisplayName:
+  //                   conversationsetup.type == "single"
+  //                     ? `${conversationsetup.userdetails.fullname.firstName}`
+  //                     : `${conversationsetup.groupdetails.groupName} (Group)`,
+  //                 conversationType: conversationsetup.type,
+  //                 conversationID: conversationsetup.conversationid,
+  //                 caller: {
+  //                   name: authentication.user.fullName.firstName,
+  //                   userID: authentication.user.userID,
+  //                 },
+  //                 recepients: conversationinfo?.users.map(
+  //                   (mp: any) => mp.userID,
+  //                 ),
+  //               },
+  //             ],
+  //           },
+  //         });
+  //       })
+  //       .catch((err) => {
+  //         console.log(err);
+  //       });
+  //   }
+  // };
 
   const sendNonImageFilesProcess = () => {
     importNonImageData(
@@ -662,6 +663,21 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   };
 
   //   console.log(conversationsetup)
+
+  const initializeCall = (type: string) => {
+    console.log(type);
+    console.log(conversationsetup);
+    dispatch({
+      type: CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
+      payload: {
+        callmetadata: {
+          ...conversationsetup,
+          conversationID: conversationsetup.conversationid,
+          type,
+        },
+      },
+    });
+  };
 
   return (
     <motion.div
@@ -938,7 +954,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     backgroundColor: "#e6e6e6",
                   }}
                   onClick={() => {
-                    initMediaDevices("audio");
+                    // initMediaDevices("audio");
+                    initializeCall("audio");
                   }}
                   className="btn_conversation_header_navigation"
                 >
@@ -962,7 +979,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     backgroundColor: "#e6e6e6",
                   }}
                   onClick={() => {
-                    initMediaDevices("video");
+                    // initMediaDevices("video");
+                    initializeCall("video");
                   }}
                   className="btn_conversation_header_navigation"
                 >
