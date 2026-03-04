@@ -59,10 +59,12 @@ function CallWindow({ data, lineNum }: any) {
     [],
   );
   const [consumers, setConsumers] = useState<Map<string, any>>(new Map());
+  const [joinedParticipants, setJoinedParticipants] = useState<string[]>([]);
   const [pendingProducerIds, setPendingProducerIds] = useState<string[]>([]);
   const hasLeftRef = useRef(false);
   const hasJoinedRef = useRef(false);
   const isConsumingRef = useRef(false);
+  const producerOwnerRef = useRef<Map<string, string>>(new Map());
   const leaveCallProcessRef = useRef<any>(null);
   const clientIdRef = useRef<string>(
     typeof crypto !== "undefined" && "randomUUID" in crypto
@@ -106,6 +108,8 @@ function CallWindow({ data, lineNum }: any) {
     setConsumers(new Map());
     setPendingProducerIds([]);
     setPendingConsumeResponses([]);
+    setJoinedParticipants([]);
+    producerOwnerRef.current.clear();
   }, [mediaStream, sendTransport, recvTransport, consumers]);
 
   const leaveCallProcess = useCallback(
@@ -183,10 +187,16 @@ function CallWindow({ data, lineNum }: any) {
   const joinRoomProcess = async (
     routerRtpCapabilities: any,
     instance: string | null,
+    participants: string[] = [],
   ) => {
     const newDevice = new Device();
     await newDevice.load({ routerRtpCapabilities });
     setDevice(newDevice);
+    setJoinedParticipants(
+      Array.from(new Set(participants)).filter(
+        (participant) => participant !== authentication.user.userID,
+      ),
+    );
 
     createTransportProcess(instance);
   };
@@ -389,7 +399,13 @@ function CallWindow({ data, lineNum }: any) {
   );
 
   const consumeResponseHandler = useCallback(
-    async (id: any, producerId: any, kind: any, rtpParameters: any) => {
+    async (
+      id: any,
+      producerId: any,
+      kind: any,
+      rtpParameters: any,
+      ownerUserID: string | null,
+    ) => {
       if (!recvTransport) {
         return;
       }
@@ -407,7 +423,7 @@ function CallWindow({ data, lineNum }: any) {
           return prev;
         }
         const next = new Map(prev);
-        next.set(producerId, { id, kind, consumer });
+        next.set(producerId, { id, kind, consumer, ownerUserID });
         return next;
       });
     },
@@ -431,6 +447,7 @@ function CallWindow({ data, lineNum }: any) {
       nextConsume.producerId,
       nextConsume.kind,
       nextConsume.rtpParameters,
+      nextConsume.ownerUserID || null,
     )
       .catch((err) => {
         console.log("Consume response handler failed:", err);
@@ -505,7 +522,11 @@ function CallWindow({ data, lineNum }: any) {
 
       switch (event.detail.event) {
         case "join-room-response":
-          joinRoomProcess(data.routerRtpCapabilities, data.instance);
+          joinRoomProcess(
+            data.routerRtpCapabilities,
+            data.instance,
+            data.participants || [],
+          );
           break;
         case "create-transport-response":
           if (data.direction === "send") {
@@ -518,10 +539,23 @@ function CallWindow({ data, lineNum }: any) {
           console.log(data);
           break;
         case "participant-joined":
-          console.log(data);
+          if (
+            data.conversationID === conversationID &&
+            data.username &&
+            data.username !== authentication.user.userID
+          ) {
+            setJoinedParticipants((prev) =>
+              prev.includes(data.username) ? prev : [...prev, data.username],
+            );
+          }
           break;
         case "participant-left":
           if (data.conversationID === conversationID) {
+            if (data.username) {
+              setJoinedParticipants((prev) =>
+                prev.filter((participant) => participant !== data.username),
+              );
+            }
             const producerIds = data.producerIds || [];
             setConsumers((prev) => {
               const next = new Map(prev);
@@ -549,18 +583,29 @@ function CallWindow({ data, lineNum }: any) {
             break;
           }
           if (data.conversationID === conversationID) {
+            if (data.producerId && data.username) {
+              producerOwnerRef.current.set(data.producerId, data.username);
+              setJoinedParticipants((prev) =>
+                prev.includes(data.username) ? prev : [...prev, data.username],
+              );
+            }
             consumeProducers(data.conversationID, data.producerId);
           }
           break;
         case "consume-response":
           if (data.conversationID === conversationID) {
             const { id, producerId, kind, rtpParameters } = data;
+            const ownerUserID =
+              producerOwnerRef.current.get(producerId) || null;
             setPendingConsumeResponses((prev) => {
               const isExisting = prev.some((mp) => mp.id === id);
               if (isExisting) {
                 return prev;
               }
-              return [...prev, { id, producerId, kind, rtpParameters }];
+              return [
+                ...prev,
+                { id, producerId, kind, rtpParameters, ownerUserID },
+              ];
             });
           }
           break;
@@ -618,6 +663,21 @@ function CallWindow({ data, lineNum }: any) {
     };
   }, []);
 
+  const videoConsumers = Array.from(consumers.values()).filter(
+    ({ kind }) => kind === "video",
+  );
+  const audioConsumers = Array.from(consumers.values()).filter(
+    ({ kind }) => kind === "audio",
+  );
+  const videoOwnerIds = new Set(
+    videoConsumers
+      .map(({ ownerUserID }) => ownerUserID)
+      .filter((ownerUserID) => Boolean(ownerUserID)),
+  );
+  const waitingParticipants = joinedParticipants.filter(
+    (participant) => !videoOwnerIds.has(participant),
+  );
+
   return (
     <motion.div
       initial={{
@@ -647,18 +707,21 @@ function CallWindow({ data, lineNum }: any) {
       </div>
       <div className="div_video_blocks_holder">
         {mediaStream && <UserVideoBlock mediaStream={mediaStream} />}
-        {Array.from(consumers.values())
-          .filter(({ kind }) => kind === "video")
-          .map(({ id, consumer }) => (
-            <RemoteVideo key={id} consumer={consumer} />
-          ))}
+        {waitingParticipants.map((participant) => (
+          <div key={`placeholder-${participant}`} className="div_video_blocks">
+            <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
+              @{participant}
+            </div>
+          </div>
+        ))}
+        {videoConsumers.map(({ id, consumer }) => (
+          <RemoteVideo key={id} consumer={consumer} />
+        ))}
       </div>
       <div style={{ display: "none" }}>
-        {Array.from(consumers.values())
-          .filter(({ kind }) => kind === "audio")
-          .map(({ id, consumer }) => (
-            <RemoteVideo key={id} consumer={consumer} />
-          ))}
+        {audioConsumers.map(({ id, consumer }) => (
+          <RemoteVideo key={id} consumer={consumer} />
+        ))}
       </div>
       <div id="div_call_controls">
         <button
