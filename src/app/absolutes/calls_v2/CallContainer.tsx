@@ -9,7 +9,13 @@ function CallContainer() {
   return (
     <div id="div_callcollection">
       {callslist.map((cls: any, i: number) => {
-        return <CallWindow key={cls.conversationID} data={cls} lineNum={i} />;
+        return (
+          <CallWindow
+            key={cls.conversationID || cls.conversationid}
+            data={cls}
+            lineNum={i}
+          />
+        );
       })}
     </div>
   );

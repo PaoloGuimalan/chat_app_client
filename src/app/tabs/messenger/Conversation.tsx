@@ -13,7 +13,7 @@ import { MdAudiotrack } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai"; //AiFillInfoCircle
 import { checkIfValid } from "../../../reusables/hooks/validatevariables";
 import {
-  // CallRequest,
+  CallRequest,
   ConversationInfoRequest,
   InitConversationRequest,
   IsTypingBroadcastRequest,
@@ -59,6 +59,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const pendingcallalerts = useSelector(
     (state: any) => state.pendingcallalerts,
   );
+  const callslist = useSelector((state: any) => state.callslist);
   const pendingmessageslist = useSelector(
     (state: any) => state.pendingmessageslist,
   );
@@ -127,6 +128,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const [conversationinfo, setconversationinfo] =
     useState<ConversationInfoInterface | null>(null);
   const [toggleMenu, settoggleMenu] = useState<boolean>(false);
+  const callRequestInFlightRef = useRef<Set<string>>(new Set());
 
   const isConversationDisabled = useMemo(() => {
     if (conversationinfo?.users) {
@@ -665,14 +667,59 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   //   console.log(conversationsetup)
 
   const initializeCall = (type: string) => {
-    console.log(type);
-    console.log(conversationsetup);
+    const conversationID = conversationsetup.conversationid;
+    const callKey = `${conversationID}-${type}`;
+    const hasPendingAlert =
+      pendingcallalerts.filter(
+        (fltcall: any) => fltcall.callID == conversationID,
+      ).length > 0;
+    const hasOpenCallWindow =
+      callslist.filter((onc: any) => onc.conversationID == conversationID)
+        .length > 0;
+
+    if (
+      !hasPendingAlert &&
+      !hasOpenCallWindow &&
+      !callRequestInFlightRef.current.has(callKey)
+    ) {
+      callRequestInFlightRef.current.add(callKey);
+      CallRequest({
+        callType: type,
+        callDisplayName:
+          conversationsetup.type == "single"
+            ? `${authentication.user.fullName.firstName}`
+            : `${conversationsetup.groupdetails.groupName} (Group)`,
+        conversationType: conversationsetup.type,
+        conversationID,
+        caller: {
+          name: authentication.user.fullName.firstName,
+          userID: authentication.user.userID,
+        },
+        recepients:
+          conversationsetup.type == "single"
+            ? [conversationsetup.userdetails.userID]
+            : conversationinfo?.users
+                ?.map((mp: any) => mp.userID)
+                .filter((flt: any) => flt != authentication.user.userID) ||
+              conversationsetup.groupdetails?.receivers?.filter(
+                (flt: any) => flt != authentication.user.userID,
+              ) ||
+              [],
+        displayImage:
+          conversationsetup.type == "single"
+            ? conversationsetup.userdetails.profile
+            : "none",
+      }).finally(() => {
+        callRequestInFlightRef.current.delete(callKey);
+      });
+    }
+
     dispatch({
       type: CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
       payload: {
         callmetadata: {
           ...conversationsetup,
-          conversationID: conversationsetup.conversationid,
+          conversationID,
           type,
           isGroup: conversationsetup.type !== "single",
           instance: null,

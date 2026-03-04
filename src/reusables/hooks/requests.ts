@@ -1890,12 +1890,36 @@ const ConsumeRequest = async (payload: any) => {
     });
 };
 
+const LeaveRoomRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/leave-room`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
   TransportConnectRequest,
   TransportProduceRequest,
   ConsumeRequest,
+  LeaveRoomRequest,
   AuthCheck,
   LoginRequest,
   ThirdPartyAuthenticationRequest,

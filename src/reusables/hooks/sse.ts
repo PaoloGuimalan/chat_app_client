@@ -407,6 +407,17 @@ const SSENotificationsTRequest = (
     );
   });
 
+  sseNtfsSource.addEventListener("participant-left", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "participant-left",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
   sseNtfsSource.addEventListener("consume-response", (e: any) => {
     document.dispatchEvent(
       new CustomEvent("room-events-relay", {

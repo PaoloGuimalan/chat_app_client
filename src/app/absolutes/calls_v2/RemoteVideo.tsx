@@ -1,90 +1,48 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef } from "react";
 
-const RemoteVideo = ({
-  consumer,
-  //   producerId,
-}: {
-  consumer: any;
-  //   producerId: string;
-}) => {
+const RemoteVideo = ({ consumer }: { consumer: any }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const isAudioConsumer = consumer?.kind === "audio";
 
   useEffect(() => {
-    const checkRTP = async () => {
-      try {
-        const stats = await consumer.getStats();
+    if (!consumer) return;
 
-        // Convert to array if needed
-        const statsArray = Array.isArray(stats) ? stats : Object.values(stats);
-
-        // Find RTP stats
-        const rtpStats =
-          statsArray.find((stat) => stat.type === "inbound-rtp") ||
-          statsArray[0]; // Fallback
-
-        console.table({
-          packetsReceived: rtpStats?.packetsReceived || 0,
-          packetsLost: rtpStats?.packetsLost || 0,
-          bytesReceived: rtpStats?.bytesReceived || 0,
-          jitter: rtpStats?.jitter || 0,
-        });
-      } catch (e) {
-        console.log("Stats error:", e);
-      }
-    };
-
-    checkRTP();
-    const interval = setInterval(checkRTP, 2000);
-    return () => clearInterval(interval);
-  }, [consumer]);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !consumer) return;
+    const mediaElement = isAudioConsumer ? audioRef.current : videoRef.current;
+    if (!mediaElement) return;
 
     consumer.resume();
 
-    // Video element setup
-    video.autoplay = true;
-    video.muted = false; // ← Video NOT muted
-    video.playsInline = true;
-    video.controls = false; // Debug
+    mediaElement.autoplay = true;
+    mediaElement.muted = false;
+    // mediaElement.playsInline = true;
 
     const handleTrack = (track: MediaStreamTrack) => {
-      console.log("🎥 Track:", track.kind, "enabled:", track.enabled);
-
-      // Track already perfect (live + enabled)
       const stream = new MediaStream([track]);
-      video.srcObject = stream;
-
-      setTimeout(() => {
-        const video = videoRef.current;
-        console.log("📏 VIDEO SIZE:", {
-          videoWidth: video?.videoWidth,
-          videoHeight: video?.videoHeight,
-          readyState: video?.readyState,
-        });
-      }, 1000);
-
-      // Force play
-      video.play().catch((e) => console.log("Autoplay failed:", e));
+      mediaElement.srcObject = stream;
+      mediaElement
+        .play()
+        .catch((e) => console.log("Autoplay failed:", track.kind, e));
     };
 
     consumer.on("track", handleTrack);
 
-    // Check existing track
     if (consumer.track) {
       handleTrack(consumer.track);
     }
 
     return () => {
       consumer.off("track", handleTrack);
-      if (video.srcObject) {
-        video.srcObject = null;
+      if (mediaElement.srcObject) {
+        mediaElement.srcObject = null;
       }
     };
-  }, [consumer]);
+  }, [consumer, isAudioConsumer]);
+
+  if (isAudioConsumer) {
+    return <audio ref={audioRef} />;
+  }
 
   return (
     <div className="div_video_blocks">
@@ -94,3 +52,4 @@ const RemoteVideo = ({
 };
 
 export default RemoteVideo;
+

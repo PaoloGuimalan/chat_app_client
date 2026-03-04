@@ -211,6 +211,22 @@ function Alert({ al }: any) {
   };
 
   const initializeCall = (conversationsetup: any) => {
+    setonStop(true);
+    audioMessage.pause();
+    callinstancetune.stop();
+    if (audioMessage) callaudiomonocontrol().stop();
+    settimerUnToggle(false);
+    setTimeout(() => {
+      setdisplayUntoggle(false);
+      audioMessage = null;
+    }, 500);
+    dispatch({
+      type: REMOVE_PENDING_CALL_ALERTS,
+      payload: {
+        callID: al.callmetadata.conversationID,
+      },
+    });
+
     dispatch({
       type: CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
       payload: {
@@ -240,7 +256,7 @@ function Alert({ al }: any) {
           <button
             onClick={() => {
               // initMediaDevices(al.callmetadata);
-              initializeCall(al.conversationsetup);
+              initializeCall(al.callmetadata);
             }}
             id="btn_close_alert"
           >
