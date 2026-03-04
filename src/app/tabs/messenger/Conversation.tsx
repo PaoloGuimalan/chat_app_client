@@ -674,6 +674,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           ...conversationsetup,
           conversationID: conversationsetup.conversationid,
           type,
+          isGroup: conversationsetup.type !== "single",
+          instance: null,
         },
       },
     });

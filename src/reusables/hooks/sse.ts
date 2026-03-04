@@ -340,6 +340,107 @@ const SSENotificationsTRequest = (
       }
     }
   });
+
+  sseNtfsSource.addEventListener("join-room-response", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "join-room-response",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("create-transport-response", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "create-transport-response",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("transport-connect-response", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "transport-connect-response",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("produce-response", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay-produce", {
+        detail: {
+          event: "produce-response",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("new_producer", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "new_producer",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("participant-joined", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "participant-joined",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("consume-response", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "consume-response",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("consume-transport-error", (e: any) => {
+    console.log("consume-transport-error", e.data);
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "consume-transport-error",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("consume-error", (e: any) => {
+    console.log("consume-error", e.data);
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "consume-error",
+          data: e.data,
+        },
+      }),
+    );
+  });
 };
 
 const CloseSSENotifications = () => {

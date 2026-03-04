@@ -1782,7 +1782,120 @@ const SnapCoordinatesOpenRoute = async (payload: any) => {
     });
 };
 
+const JoinRoomRequest = async (payload: any) => {
+  return await Axios.post(`${envs.CHATTERLOOP_API}/webrtc/join-room`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const CreateTransportRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/create-transport`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const TransportConnectRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/transport-connect`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const TransportProduceRequest = async (payload: any) => {
+  return await Axios.post(`${envs.CHATTERLOOP_API}/webrtc/produce`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const ConsumeRequest = async (payload: any) => {
+  return await Axios.post(`${envs.CHATTERLOOP_API}/webrtc/consume`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
+  JoinRoomRequest,
+  CreateTransportRequest,
+  TransportConnectRequest,
+  TransportProduceRequest,
+  ConsumeRequest,
   AuthCheck,
   LoginRequest,
   ThirdPartyAuthenticationRequest,
