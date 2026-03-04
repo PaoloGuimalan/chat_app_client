@@ -96,8 +96,6 @@ function CallWindow({ data, lineNum }: any) {
     }
   }, [data, authentication, isGroupCall]);
 
-  console.log(conversationID, members, data.userdetails?.userID, data);
-
   const dispatch = useDispatch();
 
   const cleanupLocalCallResources = useCallback(() => {
@@ -166,7 +164,6 @@ function CallWindow({ data, lineNum }: any) {
 
   const createTransportProcess = useCallback(
     async (instance: string | null) => {
-      console.log(instance);
       CreateTransportRequest({
         conversationID,
         instance,
@@ -194,8 +191,6 @@ function CallWindow({ data, lineNum }: any) {
     createTransportProcess(instance);
   };
 
-  console.log(device, connectTransportState);
-
   useEffect(() => {
     if (
       device &&
@@ -210,13 +205,11 @@ function CallWindow({ data, lineNum }: any) {
       const transport = device.createSendTransport(
         connectTransportState.params,
       );
-      console.log("Local producers:", transport._producers?.size || 0);
       setSendTransport(transport);
 
       transport.on(
         "connect",
         async ({ dtlsParameters }: any, callback: any, errback: any) => {
-          console.log("🔌 CONNECT FIRED!");
           try {
             TransportConnectRequest({
               conversationID,
@@ -235,7 +228,6 @@ function CallWindow({ data, lineNum }: any) {
       transport.on(
         "produce",
         async ({ kind, rtpParameters }: any, callback: any, errback: any) => {
-          console.log("🎬 PRODUCE FIRED!");
           const targetTrack =
             kind === "audio"
               ? mediaStream.getAudioTracks()[0]
@@ -269,7 +261,6 @@ function CallWindow({ data, lineNum }: any) {
             temporaryListener,
           );
           try {
-            console.log("📡 Calling TransportConnectRequest...");
             await TransportProduceRequest({
               conversationID,
               transportId: connectTransportState.params.id,
@@ -291,20 +282,10 @@ function CallWindow({ data, lineNum }: any) {
         },
       );
 
-      transport.on("connectionstatechange", (state: any) => {
-        console.log("🔗 STATE:", state);
-      });
-      transport.on("dtlsstatechange", (state: any) => {
-        console.log("🔐 DTLS:", state);
-      });
-
       const startStreaming = async () => {
         try {
-          console.log("🚀 Kicking off the connection...");
           const videoTrack = mediaStream.getVideoTracks()[0];
           const audioTrack = mediaStream.getAudioTracks()[0];
-          console.log("🎙️ Local audio tracks:", mediaStream.getAudioTracks().length);
-          console.log("📷 Local video tracks:", mediaStream.getVideoTracks().length);
 
           if (videoTrack) {
             const videoProducer = await transport.produce({
@@ -364,10 +345,10 @@ function CallWindow({ data, lineNum }: any) {
         },
       );
 
-      transport.on("connectionstatechange", (state: any) => {
-        console.log("🔗 RECV STATE CHANGED:", state);
-        // Should see: "new" → "connecting" → "connected"
-      });
+      // transport.on("connectionstatechange", (state: any) => {
+      //   console.log("🔗 RECV STATE CHANGED:", state);
+      //   // Should see: "new" → "connecting" → "connected"
+      // });
 
       // transport.consume({
       //   id: recvTransportMetadata.id,
@@ -389,7 +370,6 @@ function CallWindow({ data, lineNum }: any) {
         connectRecvTransportState.instance || connectTransportState.instance;
 
       if (!recvTransportId || !instance || !device) {
-        console.log("Consume deferred: missing recv transport/device/instance");
         setPendingProducerIds((prev) =>
           prev.includes(producerId) ? prev : [...prev, producerId],
         );
@@ -408,35 +388,31 @@ function CallWindow({ data, lineNum }: any) {
     [connectRecvTransportState, connectTransportState, device],
   );
 
-  const consumeResponseHandler = useCallback(async (
-    id: any,
-    producerId: any,
-    kind: any,
-    rtpParameters: any,
-  ) => {
-    if (!recvTransport) {
-      return;
-    }
-
-    const consumer = await recvTransport.consume({
-      id,
-      producerId,
-      kind,
-      rtpParameters,
-    });
-
-    setConsumers((prev) => {
-      if (prev.has(producerId)) {
-        consumer?.close?.();
-        return prev;
+  const consumeResponseHandler = useCallback(
+    async (id: any, producerId: any, kind: any, rtpParameters: any) => {
+      if (!recvTransport) {
+        return;
       }
-      const next = new Map(prev);
-      next.set(producerId, { id, kind, consumer });
-      return next;
-    });
 
-    console.log("🎥 CONSUMER ADDED TO STATE:", producerId);
-  }, [recvTransport]);
+      const consumer = await recvTransport.consume({
+        id,
+        producerId,
+        kind,
+        rtpParameters,
+      });
+
+      setConsumers((prev) => {
+        if (prev.has(producerId)) {
+          consumer?.close?.();
+          return prev;
+        }
+        const next = new Map(prev);
+        next.set(producerId, { id, kind, consumer });
+        return next;
+      });
+    },
+    [recvTransport],
+  );
 
   useEffect(() => {
     if (
@@ -495,8 +471,6 @@ function CallWindow({ data, lineNum }: any) {
     consumeProducers,
   ]);
 
-  console.log(consumers);
-
   useEffect(() => {
     navigator.mediaDevices
       .getUserMedia({
@@ -537,7 +511,6 @@ function CallWindow({ data, lineNum }: any) {
           if (data.direction === "send") {
             connectTransport(data.response, data.instance);
           } else {
-            console.log("RECVVVVVVVVVVVVV");
             connectRecvTransport(data.response, data.instance);
           }
           break;
@@ -572,7 +545,6 @@ function CallWindow({ data, lineNum }: any) {
           }
           break;
         case "new_producer":
-          console.log(data, conversationID);
           if (data.clientId === clientIdRef.current) {
             break;
           }
@@ -581,7 +553,6 @@ function CallWindow({ data, lineNum }: any) {
           }
           break;
         case "consume-response":
-          console.log(data, conversationID);
           if (data.conversationID === conversationID) {
             const { id, producerId, kind, rtpParameters } = data;
             setPendingConsumeResponses((prev) => {
@@ -607,7 +578,13 @@ function CallWindow({ data, lineNum }: any) {
     return () => {
       document.removeEventListener("room-events-relay", mainListener);
     };
-  }, [consumeProducers, leaveCallProcess, conversationID, isGroupCall, authentication]);
+  }, [
+    consumeProducers,
+    leaveCallProcess,
+    conversationID,
+    isGroupCall,
+    authentication,
+  ]);
 
   useEffect(() => {
     if (data && !hasJoinedRef.current) {
@@ -673,7 +650,7 @@ function CallWindow({ data, lineNum }: any) {
         {Array.from(consumers.values())
           .filter(({ kind }) => kind === "video")
           .map(({ id, consumer }) => (
-          <RemoteVideo key={id} consumer={consumer} />
+            <RemoteVideo key={id} consumer={consumer} />
           ))}
       </div>
       <div style={{ display: "none" }}>
