@@ -59,7 +59,9 @@ function CallWindow({ data, lineNum }: any) {
     [],
   );
   const [consumers, setConsumers] = useState<Map<string, any>>(new Map());
-  const [joinedParticipants, setJoinedParticipants] = useState<string[]>([]);
+  const [joinedParticipants, setJoinedParticipants] = useState<
+    { clientId: string; username: string }[]
+  >([]);
   const [pendingProducerIds, setPendingProducerIds] = useState<string[]>([]);
   const hasLeftRef = useRef(false);
   const hasJoinedRef = useRef(false);
@@ -187,20 +189,22 @@ function CallWindow({ data, lineNum }: any) {
   const joinRoomProcess = async (
     routerRtpCapabilities: any,
     instance: string | null,
-    participants: string[] = [],
+    participants: { clientId: string; username: string }[] = [],
   ) => {
-    const incomingParticipants = Array.from(new Set(participants)).filter(
-      (participant) => participant !== authentication.user.userID,
+    const incomingParticipants = participants.filter(
+      (participant) =>
+        participant.clientId !== clientIdRef.current &&
+        participant.username !== authentication.user.userID,
     );
-    const singleFallbackParticipants =
-      !isGroupCall && incomingParticipants.length === 0 ? members : [];
 
     // Set placeholders immediately, before transport/device setup and consume flow.
-    setJoinedParticipants((prev) =>
-      Array.from(
-        new Set([...prev, ...incomingParticipants, ...singleFallbackParticipants]),
-      ),
-    );
+    setJoinedParticipants((prev) => {
+      const next = new Map(prev.map((participant) => [participant.clientId, participant]));
+      incomingParticipants.forEach((participant) => {
+        next.set(participant.clientId, participant);
+      });
+      return Array.from(next.values());
+    });
 
     const newDevice = new Device();
     await newDevice.load({ routerRtpCapabilities });
@@ -412,7 +416,7 @@ function CallWindow({ data, lineNum }: any) {
       producerId: any,
       kind: any,
       rtpParameters: any,
-      ownerUserID: string | null,
+      ownerClientId: string | null,
     ) => {
       if (!recvTransport) {
         return;
@@ -431,7 +435,7 @@ function CallWindow({ data, lineNum }: any) {
           return prev;
         }
         const next = new Map(prev);
-        next.set(producerId, { id, kind, consumer, ownerUserID });
+        next.set(producerId, { id, kind, consumer, ownerClientId });
         return next;
       });
     },
@@ -455,7 +459,7 @@ function CallWindow({ data, lineNum }: any) {
       nextConsume.producerId,
       nextConsume.kind,
       nextConsume.rtpParameters,
-      nextConsume.ownerUserID || null,
+      nextConsume.ownerClientId || null,
     )
       .catch((err) => {
         console.log("Consume response handler failed:", err);
@@ -549,19 +553,28 @@ function CallWindow({ data, lineNum }: any) {
         case "participant-joined":
           if (
             data.conversationID === conversationID &&
+            data.clientId &&
             data.username &&
+            data.clientId !== clientIdRef.current &&
             data.username !== authentication.user.userID
           ) {
-            setJoinedParticipants((prev) =>
-              prev.includes(data.username) ? prev : [...prev, data.username],
-            );
+            setJoinedParticipants((prev) => {
+              if (prev.some((participant) => participant.clientId === data.clientId)) {
+                return prev;
+              }
+              return [...prev, { clientId: data.clientId, username: data.username }];
+            });
           }
           break;
         case "participant-left":
           if (data.conversationID === conversationID) {
-            if (data.username) {
+            if (data.clientId) {
               setJoinedParticipants((prev) =>
-                prev.filter((participant) => participant !== data.username),
+                prev.filter((participant) => participant.clientId !== data.clientId),
+              );
+            } else if (data.username) {
+              setJoinedParticipants((prev) =>
+                prev.filter((participant) => participant.username !== data.username),
               );
             }
             const producerIds = data.producerIds || [];
@@ -591,11 +604,23 @@ function CallWindow({ data, lineNum }: any) {
             break;
           }
           if (data.conversationID === conversationID) {
-            if (data.producerId && data.username) {
-              producerOwnerRef.current.set(data.producerId, data.username);
-              setJoinedParticipants((prev) =>
-                prev.includes(data.username) ? prev : [...prev, data.username],
-              );
+            if (data.producerId && data.clientId) {
+              producerOwnerRef.current.set(data.producerId, data.clientId);
+            }
+            if (
+              data.clientId &&
+              data.username &&
+              data.clientId !== clientIdRef.current
+            ) {
+              setJoinedParticipants((prev) => {
+                if (prev.some((participant) => participant.clientId === data.clientId)) {
+                  return prev;
+                }
+                return [
+                  ...prev,
+                  { clientId: data.clientId, username: data.username },
+                ];
+              });
             }
             consumeProducers(data.conversationID, data.producerId);
           }
@@ -603,7 +628,7 @@ function CallWindow({ data, lineNum }: any) {
         case "consume-response":
           if (data.conversationID === conversationID) {
             const { id, producerId, kind, rtpParameters } = data;
-            const ownerUserID =
+            const ownerClientId =
               producerOwnerRef.current.get(producerId) || null;
             setPendingConsumeResponses((prev) => {
               const isExisting = prev.some((mp) => mp.id === id);
@@ -612,7 +637,7 @@ function CallWindow({ data, lineNum }: any) {
               }
               return [
                 ...prev,
-                { id, producerId, kind, rtpParameters, ownerUserID },
+                { id, producerId, kind, rtpParameters, ownerClientId },
               ];
             });
           }
@@ -679,11 +704,11 @@ function CallWindow({ data, lineNum }: any) {
   );
   const videoOwnerIds = new Set(
     videoConsumers
-      .map(({ ownerUserID }) => ownerUserID)
-      .filter((ownerUserID) => Boolean(ownerUserID)),
+      .map(({ ownerClientId }) => ownerClientId)
+      .filter((ownerClientId) => Boolean(ownerClientId)),
   );
   const waitingParticipants = joinedParticipants.filter(
-    (participant) => !videoOwnerIds.has(participant),
+    (participant) => !videoOwnerIds.has(participant.clientId),
   );
 
   return (
@@ -724,9 +749,12 @@ function CallWindow({ data, lineNum }: any) {
           </div>
         )}
         {waitingParticipants.map((participant) => (
-          <div key={`placeholder-${participant}`} className="div_video_blocks">
+          <div
+            key={`placeholder-${participant.clientId}`}
+            className="div_video_blocks"
+          >
             <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
-              @{participant}
+              @{participant.username}
             </div>
           </div>
         ))}
