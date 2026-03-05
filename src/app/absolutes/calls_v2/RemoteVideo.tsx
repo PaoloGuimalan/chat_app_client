@@ -1,13 +1,24 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef } from "react";
 
-const RemoteVideo = ({ consumer }: { consumer: any }) => {
+const RemoteVideo = ({
+  consumer,
+  cameraOff = false,
+  muted = false,
+  label = "Participant",
+}: {
+  consumer: any;
+  cameraOff?: boolean;
+  muted?: boolean;
+  label?: string;
+}) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const isAudioConsumer = consumer?.kind === "audio";
 
   useEffect(() => {
     if (!consumer) return;
+    if (cameraOff && !isAudioConsumer) return;
 
     const mediaElement = isAudioConsumer ? audioRef.current : videoRef.current;
     if (!mediaElement) return;
@@ -38,10 +49,22 @@ const RemoteVideo = ({ consumer }: { consumer: any }) => {
         mediaElement.srcObject = null;
       }
     };
-  }, [consumer, isAudioConsumer]);
+  }, [consumer, isAudioConsumer, cameraOff]);
 
   if (isAudioConsumer) {
     return <audio ref={audioRef} />;
+  }
+
+  if (cameraOff) {
+    return (
+      <div className="div_video_blocks">
+        <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
+          {label}
+          {" • camera off"}
+          {muted ? " • muted" : ""}
+        </div>
+      </div>
+    );
   }
 
   return (

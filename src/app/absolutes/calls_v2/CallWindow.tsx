@@ -21,6 +21,7 @@ import {
   CreateTransportRequest,
   JoinRoomRequest,
   LeaveRoomRequest,
+  ParticipantStatusRequest,
   TransportConnectRequest,
   TransportProduceRequest,
 } from "@/reusables/hooks/requests";
@@ -63,6 +64,9 @@ function CallWindow({ data, lineNum }: any) {
     { clientId: string; username: string }[]
   >([]);
   const [pendingProducerIds, setPendingProducerIds] = useState<string[]>([]);
+  const [participantStatuses, setParticipantStatuses] = useState<
+    Map<string, { muted: boolean; cameraOff: boolean }>
+  >(new Map());
   const hasLeftRef = useRef(false);
   const hasJoinedRef = useRef(false);
   const isConsumingRef = useRef(false);
@@ -73,6 +77,9 @@ function CallWindow({ data, lineNum }: any) {
       ? crypto.randomUUID()
       : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
   );
+
+  const audioProducerRef = useRef<any>(null);
+  const videoProducerRef = useRef<any>(null);
 
   const conversationID = useMemo(
     () => data.conversationID || data.conversationid,
@@ -111,7 +118,12 @@ function CallWindow({ data, lineNum }: any) {
     setPendingProducerIds([]);
     setPendingConsumeResponses([]);
     setJoinedParticipants([]);
+    setParticipantStatuses(new Map());
     producerOwnerRef.current.clear();
+    audioProducerRef.current?.close?.();
+    videoProducerRef.current?.close?.();
+    audioProducerRef.current = null;
+    videoProducerRef.current = null;
   }, [mediaStream, sendTransport, recvTransport, consumers]);
 
   const leaveCallProcess = useCallback(
@@ -189,7 +201,12 @@ function CallWindow({ data, lineNum }: any) {
   const joinRoomProcess = async (
     routerRtpCapabilities: any,
     instance: string | null,
-    participants: { clientId: string; username: string }[] = [],
+    participants: {
+      clientId: string;
+      username: string;
+      muted?: boolean;
+      cameraOff?: boolean;
+    }[] = [],
   ) => {
     const incomingParticipants = participants.filter(
       (participant) => participant.clientId !== clientIdRef.current,
@@ -204,6 +221,16 @@ function CallWindow({ data, lineNum }: any) {
         next.set(participant.clientId, participant);
       });
       return Array.from(next.values());
+    });
+    setParticipantStatuses((prev) => {
+      const next = new Map(prev);
+      incomingParticipants.forEach((participant) => {
+        next.set(participant.clientId, {
+          muted: participant.muted ?? false,
+          cameraOff: participant.cameraOff ?? false,
+        });
+      });
+      return next;
     });
 
     const newDevice = new Device();
@@ -310,19 +337,28 @@ function CallWindow({ data, lineNum }: any) {
           const audioTrack = mediaStream.getAudioTracks()[0];
 
           if (videoTrack) {
-            const videoProducer = await transport.produce({
+            videoProducerRef.current = await transport.produce({
               track: videoTrack,
               kind: videoTrack.kind,
             });
-            console.log("✅ Video producer created!", videoProducer.id);
+            if ((data.type || data.callType) !== "video") {
+              videoProducerRef.current.pause();
+            }
+            console.log(
+              "✅ Video producer created!",
+              videoProducerRef.current.id,
+            );
           }
 
           if (audioTrack) {
-            const audioProducer = await transport.produce({
+            audioProducerRef.current = await transport.produce({
               track: audioTrack,
               kind: audioTrack.kind,
             });
-            console.log("✅ Audio producer created!", audioProducer.id);
+            console.log(
+              "✅ Audio producer created!",
+              audioProducerRef.current.id,
+            );
           }
         } catch (e) {
           console.error("Produce failed", e);
@@ -515,6 +551,34 @@ function CallWindow({ data, lineNum }: any) {
   }, []);
 
   useEffect(() => {
+    const instance =
+      connectTransportState.instance ||
+      connectRecvTransportState.instance ||
+      data.instance;
+
+    if (!instance || hasLeftRef.current) {
+      return;
+    }
+
+    ParticipantStatusRequest({
+      conversationID,
+      instance,
+      clientId: clientIdRef.current,
+      muted: !enableMic,
+      cameraOff: !enableCamera,
+    }).catch((err) => {
+      console.log("Participant status request failed:", err);
+    });
+  }, [
+    enableMic,
+    enableCamera,
+    connectTransportState.instance,
+    connectRecvTransportState.instance,
+    data.instance,
+    conversationID,
+  ]);
+
+  useEffect(() => {
     const mainListener = async (event: any) => {
       const data = JSON.parse(event.detail.data);
       const isScopedEvent =
@@ -570,23 +634,58 @@ function CallWindow({ data, lineNum }: any) {
                 { clientId: data.clientId, username: data.username },
               ];
             });
+            setParticipantStatuses((prev) => {
+              const next = new Map(prev);
+              next.set(data.clientId, {
+                muted: Boolean(data.muted),
+                cameraOff: Boolean(data.cameraOff),
+              });
+              return next;
+            });
           }
           break;
         case "participant-left":
           if (data.conversationID === conversationID) {
-            if (data.clientId) {
-              setJoinedParticipants((prev) =>
-                prev.filter(
-                  (participant) => participant.clientId !== data.clientId,
-                ),
-              );
-            } else if (data.username) {
-              setJoinedParticipants((prev) =>
-                prev.filter(
-                  (participant) => participant.username !== data.username,
-                ),
-              );
+            const leftClientId = data.clientId || null;
+            const leftUsername = data.username || null;
+
+            setJoinedParticipants((prev) => {
+              const next = leftClientId
+                ? prev.filter(
+                    (participant) => participant.clientId !== leftClientId,
+                  )
+                : leftUsername
+                  ? prev.filter(
+                      (participant) => participant.username !== leftUsername,
+                    )
+                  : prev;
+
+              if (
+                !isGroupCall &&
+                next.length === 0 &&
+                ((leftClientId && leftClientId !== clientIdRef.current) ||
+                  (!leftClientId &&
+                    leftUsername &&
+                    leftUsername !== authentication.user.userID))
+              ) {
+                setTimeout(() => {
+                  leaveCallProcess();
+                }, 0);
+              }
+
+              return next;
+            });
+            if (leftClientId) {
+              setParticipantStatuses((prev) => {
+                if (!prev.has(leftClientId)) {
+                  return prev;
+                }
+                const next = new Map(prev);
+                next.delete(leftClientId);
+                return next;
+              });
             }
+
             const producerIds = data.producerIds || [];
             setConsumers((prev) => {
               const next = new Map(prev);
@@ -597,17 +696,22 @@ function CallWindow({ data, lineNum }: any) {
               });
               return next;
             });
-
-            const isSingleCall = !isGroupCall;
-            const leftUserId = data.username;
-            if (
-              isSingleCall &&
-              leftUserId &&
-              joinedParticipants.length === 1 &&
-              leftUserId !== authentication.user.userID
-            ) {
-              leaveCallProcess();
-            }
+          }
+          break;
+        case "participant-status":
+          if (
+            data.conversationID === conversationID &&
+            data.clientId &&
+            data.clientId !== clientIdRef.current
+          ) {
+            setParticipantStatuses((prev) => {
+              const next = new Map(prev);
+              next.set(data.clientId, {
+                muted: Boolean(data.muted),
+                cameraOff: Boolean(data.cameraOff),
+              });
+              return next;
+            });
           }
           break;
         case "new_producer":
@@ -687,6 +791,8 @@ function CallWindow({ data, lineNum }: any) {
         members,
         instance: data.instance,
         clientId: clientIdRef.current,
+        muted: !enableMic,
+        cameraOff: !enableCamera,
       });
     }
   }, [data, members]);
@@ -725,6 +831,9 @@ function CallWindow({ data, lineNum }: any) {
   const waitingParticipants = joinedParticipants.filter(
     (participant) => !videoOwnerIds.has(participant.clientId),
   );
+  const participantByClientId = new Map(
+    joinedParticipants.map((participant) => [participant.clientId, participant]),
+  );
 
   return (
     <motion.div
@@ -755,11 +864,17 @@ function CallWindow({ data, lineNum }: any) {
       </div>
       <div className="div_video_blocks_holder">
         {mediaStream ? (
-          <UserVideoBlock mediaStream={mediaStream} />
+          <UserVideoBlock
+            mediaStream={mediaStream}
+            cameraOff={!enableCamera}
+            muted={!enableMic}
+          />
         ) : (
           <div className="div_video_blocks">
             <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
               You
+              {!enableCamera ? " • camera off" : ""}
+              {!enableMic ? " • muted" : ""}
             </div>
           </div>
         )}
@@ -770,30 +885,80 @@ function CallWindow({ data, lineNum }: any) {
           >
             <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
               @{participant.username}
+              {participantStatuses.get(participant.clientId)?.muted
+                ? " • muted"
+                : ""}
+              {participantStatuses.get(participant.clientId)?.cameraOff
+                ? " • camera off"
+                : ""}
             </div>
           </div>
         ))}
-        {videoConsumers.map(({ id, consumer }) => (
-          <RemoteVideo key={id} consumer={consumer} />
-        ))}
+        {videoConsumers.map(({ id, consumer, ownerClientId }) => {
+          const owner = ownerClientId
+            ? participantByClientId.get(ownerClientId)
+            : null;
+          const status = ownerClientId
+            ? participantStatuses.get(ownerClientId)
+            : null;
+          return (
+            <RemoteVideo
+              key={id}
+              consumer={consumer}
+              cameraOff={Boolean(status?.cameraOff)}
+              muted={Boolean(status?.muted)}
+              label={owner ? `@${owner.username}` : "Participant"}
+            />
+          );
+        })}
       </div>
       <div style={{ display: "none" }}>
-        {audioConsumers.map(({ id, consumer }) => (
-          <RemoteVideo key={id} consumer={consumer} />
-        ))}
+        {audioConsumers.map(({ id, consumer, ownerClientId }) => {
+          const owner = ownerClientId
+            ? participantByClientId.get(ownerClientId)
+            : null;
+          const status = ownerClientId
+            ? participantStatuses.get(ownerClientId)
+            : null;
+          return (
+            <RemoteVideo
+              key={id}
+              consumer={consumer}
+              cameraOff={Boolean(status?.cameraOff)}
+              muted={Boolean(status?.muted)}
+              label={owner ? `@${owner.username}` : "Participant"}
+            />
+          );
+        })}
       </div>
       <div id="div_call_controls">
         <button
-          onClick={() => {
-            setenableMic(!enableMic);
+          onClick={async () => {
+            const nextEnableMic = !enableMic;
+            setenableMic(nextEnableMic);
+            if (audioProducerRef.current) {
+              if (enableMic) {
+                await audioProducerRef.current.pause();
+              } else {
+                await audioProducerRef.current.resume();
+              }
+            }
           }}
           className={`btn_call_controls ${enableMic ? "" : "btn_call_controls_enable"}`}
         >
           {enableMic ? <BsFillMicFill /> : <BsFillMicMuteFill />}
         </button>
         <button
-          onClick={() => {
-            setenableCamera(!enableCamera);
+          onClick={async () => {
+            const nextEnableCamera = !enableCamera;
+            setenableCamera(nextEnableCamera);
+            if (videoProducerRef.current) {
+              if (enableCamera) {
+                await videoProducerRef.current.pause();
+              } else {
+                await videoProducerRef.current.resume();
+              }
+            }
           }}
           className={`btn_call_controls ${enableCamera ? "" : "btn_call_controls_enable"}`}
         >
