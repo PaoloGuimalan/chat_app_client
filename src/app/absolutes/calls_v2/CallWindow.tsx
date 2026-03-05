@@ -192,9 +192,7 @@ function CallWindow({ data, lineNum }: any) {
     participants: { clientId: string; username: string }[] = [],
   ) => {
     const incomingParticipants = participants.filter(
-      (participant) =>
-        participant.clientId !== clientIdRef.current &&
-        participant.username !== authentication.user.userID,
+      (participant) => participant.clientId !== clientIdRef.current,
     );
 
     // Set placeholders immediately, before transport/device setup and consume flow.
@@ -555,8 +553,7 @@ function CallWindow({ data, lineNum }: any) {
             data.conversationID === conversationID &&
             data.clientId &&
             data.username &&
-            data.clientId !== clientIdRef.current &&
-            data.username !== authentication.user.userID
+            data.clientId !== clientIdRef.current
           ) {
             setJoinedParticipants((prev) => {
               if (prev.some((participant) => participant.clientId === data.clientId)) {
