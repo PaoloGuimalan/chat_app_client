@@ -197,7 +197,9 @@ function CallWindow({ data, lineNum }: any) {
 
     // Set placeholders immediately, before transport/device setup and consume flow.
     setJoinedParticipants((prev) => {
-      const next = new Map(prev.map((participant) => [participant.clientId, participant]));
+      const next = new Map(
+        prev.map((participant) => [participant.clientId, participant]),
+      );
       incomingParticipants.forEach((participant) => {
         next.set(participant.clientId, participant);
       });
@@ -556,10 +558,17 @@ function CallWindow({ data, lineNum }: any) {
             data.clientId !== clientIdRef.current
           ) {
             setJoinedParticipants((prev) => {
-              if (prev.some((participant) => participant.clientId === data.clientId)) {
+              if (
+                prev.some(
+                  (participant) => participant.clientId === data.clientId,
+                )
+              ) {
                 return prev;
               }
-              return [...prev, { clientId: data.clientId, username: data.username }];
+              return [
+                ...prev,
+                { clientId: data.clientId, username: data.username },
+              ];
             });
           }
           break;
@@ -567,11 +576,15 @@ function CallWindow({ data, lineNum }: any) {
           if (data.conversationID === conversationID) {
             if (data.clientId) {
               setJoinedParticipants((prev) =>
-                prev.filter((participant) => participant.clientId !== data.clientId),
+                prev.filter(
+                  (participant) => participant.clientId !== data.clientId,
+                ),
               );
             } else if (data.username) {
               setJoinedParticipants((prev) =>
-                prev.filter((participant) => participant.username !== data.username),
+                prev.filter(
+                  (participant) => participant.username !== data.username,
+                ),
               );
             }
             const producerIds = data.producerIds || [];
@@ -590,6 +603,7 @@ function CallWindow({ data, lineNum }: any) {
             if (
               isSingleCall &&
               leftUserId &&
+              joinedParticipants.length === 1 &&
               leftUserId !== authentication.user.userID
             ) {
               leaveCallProcess();
@@ -610,7 +624,11 @@ function CallWindow({ data, lineNum }: any) {
               data.clientId !== clientIdRef.current
             ) {
               setJoinedParticipants((prev) => {
-                if (prev.some((participant) => participant.clientId === data.clientId)) {
+                if (
+                  prev.some(
+                    (participant) => participant.clientId === data.clientId,
+                  )
+                ) {
                   return prev;
                 }
                 return [
