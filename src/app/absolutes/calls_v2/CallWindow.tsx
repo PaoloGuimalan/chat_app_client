@@ -714,7 +714,15 @@ function CallWindow({ data, lineNum }: any) {
         </button>
       </div>
       <div className="div_video_blocks_holder">
-        {mediaStream && <UserVideoBlock mediaStream={mediaStream} />}
+        {mediaStream ? (
+          <UserVideoBlock mediaStream={mediaStream} />
+        ) : (
+          <div className="div_video_blocks">
+            <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
+              You
+            </div>
+          </div>
+        )}
         {waitingParticipants.map((participant) => (
           <div key={`placeholder-${participant}`} className="div_video_blocks">
             <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
