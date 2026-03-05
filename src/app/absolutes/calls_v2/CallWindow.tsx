@@ -189,14 +189,22 @@ function CallWindow({ data, lineNum }: any) {
     instance: string | null,
     participants: string[] = [],
   ) => {
+    const incomingParticipants = Array.from(new Set(participants)).filter(
+      (participant) => participant !== authentication.user.userID,
+    );
+    const singleFallbackParticipants =
+      !isGroupCall && incomingParticipants.length === 0 ? members : [];
+
+    // Set placeholders immediately, before transport/device setup and consume flow.
+    setJoinedParticipants((prev) =>
+      Array.from(
+        new Set([...prev, ...incomingParticipants, ...singleFallbackParticipants]),
+      ),
+    );
+
     const newDevice = new Device();
     await newDevice.load({ routerRtpCapabilities });
     setDevice(newDevice);
-    setJoinedParticipants(
-      Array.from(new Set(participants)).filter(
-        (participant) => participant !== authentication.user.userID,
-      ),
-    );
 
     createTransportProcess(instance);
   };
