@@ -209,7 +209,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
               </div>
             </div>
           </motion.div>
-          <div className="tw-bg-green-500 tw-h-full tw-w-full">
+          <div className="tw-h-full tw-w-full">
             <VoiceWindow
               key={conversationsetup.conversationID}
               data={{

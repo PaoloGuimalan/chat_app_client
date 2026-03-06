@@ -32,6 +32,7 @@
   pointer-events: fill;
   color: white;
   border: solid 1px rgb(210, 210, 210);
+  border-radius: 0px 0px 10px 10px;
 }
 
 #div_top_nav_call_window {

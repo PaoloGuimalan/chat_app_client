@@ -13,7 +13,7 @@ import {
 import { HiPhoneMissedCall } from "react-icons/hi";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { END_CALL_LIST } from "@/redux/types";
+// import { END_CALL_LIST } from "@/redux/types";
 import UserVideoBlock from "./UserVideoBlock";
 import { Device } from "mediasoup-client";
 import {
@@ -29,11 +29,14 @@ import {
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import RemoteVideo from "./RemoteVideo";
 import envs from "@/reusables/hooks/env_configs";
+import { useNavigate } from "react-router-dom";
 
 function VoiceWindow({ data }: any) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+
+  const navigate = useNavigate();
 
   const [mediaStream, setmediaStream] = useState<MediaStream | null>(null);
   const [device, setDevice] = useState<any>(null);
@@ -176,12 +179,13 @@ function VoiceWindow({ data }: any) {
       }
 
       cleanupLocalCallResources();
-      dispatch({
-        type: END_CALL_LIST,
-        payload: {
-          callID: data.conversationid || conversationID,
-        },
-      });
+      //   dispatch({
+      //     type: END_CALL_LIST,
+      //     payload: {
+      //       callID: data.conversationid || conversationID,
+      //     },
+      //   });
+      navigate(`/servers/${data.groupdetails.serverID}`);
     },
     [
       cleanupLocalCallResources,
@@ -883,7 +887,6 @@ function VoiceWindow({ data }: any) {
   return (
     <motion.div
       animate={{
-        borderRadius: "0px",
         borderWidth: "0px",
       }}
       id="div_voice_indv"
