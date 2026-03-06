@@ -15,6 +15,7 @@ function CreateChannelModal({
   serverID,
   setisCreateChannelToggle,
   servermemberslist,
+  refreshChannelsList,
 }: any) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -31,6 +32,7 @@ function CreateChannelModal({
   const [gcprivacy, setgcprivacy] = useState(true);
   const [searchFilter, setsearchFilter] = useState("");
   const [markedMembers, setmarkedMembers] = useState<any[]>([]);
+  const [channelType, setchannelType] = useState<string>("group");
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
@@ -57,9 +59,16 @@ function CreateChannelModal({
         groupName: gcName,
         privacy: gcprivacy,
         otherUsers: markedMembersFinal,
+        type: channelType,
       },
       setisCreateChannelToggle,
-    );
+    ).then(() => {
+      if (channelType === "voice") {
+        setTimeout(() => {
+          refreshChannelsList();
+        }, 2000);
+      }
+    });
   };
 
   useEffect(() => {
@@ -74,14 +83,14 @@ function CreateChannelModal({
       component={
         <motion.div
           animate={{
-            maxHeight: gcprivacy ? "700px" : "240px",
+            maxHeight: gcprivacy ? "700px" : "325px",
           }}
           id="div_modal_container"
         >
           {isSaving && (
             <motion.div
               style={{
-                maxHeight: gcprivacy ? "700px" : "240px",
+                maxHeight: gcprivacy ? "700px" : "325px",
               }}
               className={`tw-z-[2] tw-absolute tw-h-[calc(98%-90px)] tw-w-[calc(98%-20px)] tw-max-w-[calc(400px-20px)] tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}
             >
@@ -138,6 +147,27 @@ function CreateChannelModal({
                   <span id="span_toggle_switch_label">
                     Channel is {gcprivacy ? "Private" : "Public"}
                   </span>
+                </div>
+              </div>
+              <div id="div_modal_input_columns">
+                <span id="span_input_label">Type</span>
+                <div id="div_toggle_switch_container">
+                  <select
+                    id="input_searchfilter"
+                    className="input_dates tw-w-full tw-font-Inter"
+                    value={channelType}
+                    onChange={(e) => {
+                      setchannelType(e.target.value);
+                    }}
+                  >
+                    <option value="group" defaultValue={"group"}>
+                      Text Channel
+                    </option>
+                    <option value="voice">Voice Channel</option>
+                  </select>
+                  {/* <span id="span_toggle_switch_label">
+                    Channel is {channelType}
+                  </span> */}
                 </div>
               </div>
               <div id="div_modal_input_columns_add_people">

@@ -19,6 +19,21 @@ export interface AuthenticationInterface {
   };
 }
 
+export interface IUserInterface {
+  _id: string;
+  userID: string;
+  fullName: {
+    firstName: string;
+    middleName: string;
+    lastName: string;
+  };
+  email?: string;
+  isActivated?: boolean | null;
+  isVerified?: boolean | null;
+  profile: string;
+  coverphoto?: string;
+}
+
 export interface ProfileUserInfoInterface {
   userID: string;
   fullname: {
@@ -144,6 +159,7 @@ export interface ChannelsListInterface {
   };
   createdBy: string;
   type: string;
+  channelType: string;
   privacy: boolean;
   messages: MessagesUnreadInterface[];
 }

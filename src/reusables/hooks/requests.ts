@@ -1402,11 +1402,14 @@ const AddNewMemberToServer = async (payload: any) => {
     });
 };
 
-const CreateChannelRequest = (payloadprop: any, setisCreateGCToggle: any) => {
+const CreateChannelRequest = async (
+  payloadprop: any,
+  setisCreateGCToggle: any,
+) => {
   const payload = payloadprop;
   const encodedPayload = sign(payload, SECRET);
 
-  Axios.post(
+  await Axios.post(
     `${API}/u/createchannel`,
     {
       token: encodedPayload,
@@ -1420,10 +1423,12 @@ const CreateChannelRequest = (payloadprop: any, setisCreateGCToggle: any) => {
     .then((response) => {
       if (response.data.status) {
         setisCreateGCToggle(false);
+        return true;
       }
     })
     .catch((err) => {
       console.log(err);
+      return false;
     });
 };
 

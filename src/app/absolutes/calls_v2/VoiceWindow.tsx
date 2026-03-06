@@ -30,7 +30,7 @@ import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import RemoteVideo from "./RemoteVideo";
 import envs from "@/reusables/hooks/env_configs";
 
-function CallWindow({ data, lineNum }: any) {
+function VoiceWindow({ data }: any) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -882,19 +882,11 @@ function CallWindow({ data, lineNum }: any) {
 
   return (
     <motion.div
-      initial={{
-        top: `${20 * lineNum == 0 ? 5 : 20 * lineNum}px`,
-        left: `${20 * lineNum == 0 ? 5 : 20 * lineNum}px`,
-      }}
       animate={{
-        maxWidth: "100%",
-        minHeight: "100%",
-        top: "0px",
-        left: "0px",
         borderRadius: "0px",
         borderWidth: "0px",
       }}
-      id="div_call_indv"
+      id="div_voice_indv"
     >
       <div id="div_top_nav_call_window">
         <span id="span_call_displayname">{data.callDisplayName}</span>
@@ -907,7 +899,7 @@ function CallWindow({ data, lineNum }: any) {
           <RxEnterFullScreen style={{ fontSize: "20px", color: "white" }} />
         </button>
       </div>
-      <div className="div_video_blocks_holder">
+      <div className="div_voice_blocks_holder">
         {mediaStream ? (
           <UserVideoBlock
             mediaStream={mediaStream}
@@ -976,7 +968,7 @@ function CallWindow({ data, lineNum }: any) {
           );
         })}
       </div>
-      <div id="div_call_controls">
+      <div id="div_voice_controls">
         <button
           onClick={async () => {
             const nextEnableMic = !enableMic;
@@ -1022,4 +1014,4 @@ function CallWindow({ data, lineNum }: any) {
   );
 }
 
-export default CallWindow;
+export default VoiceWindow;

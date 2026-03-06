@@ -27,11 +27,12 @@ import { IoMdAdd } from "react-icons/io";
 import CreateChannelModal from "@/app/widgets/modals/Servers/CreateChannelModal";
 import { BiSolidInfoCircle } from "react-icons/bi";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { AiFillSound, AiOutlineSound } from "react-icons/ai";
 
 function Channels({ serverlist }: any) {
   const messageslist = useSelector((state: any) => state.messageslist);
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
   const dispatch = useDispatch();
   const params = useParams();
@@ -46,7 +47,7 @@ function Channels({ serverlist }: any) {
           ? serverlist.filter((flt: any) => flt.serverID === serverID)[0]
           : null
         : null,
-    [serverlist, serverID]
+    [serverlist, serverID],
   );
 
   const [serverdetails, setserverdetails] =
@@ -247,6 +248,7 @@ function Channels({ serverlist }: any) {
                   serverID={serverdetails?.serverID}
                   setisCreateChannelToggle={settoggleserveraddchannelmodal}
                   servermemberslist={serverdetails?.usersWithInfo}
+                  refreshChannelsList={InitServerChannelsProcess}
                 />
               )}
               {serverdetails?.channels &&
@@ -254,7 +256,7 @@ function Channels({ serverlist }: any) {
                   <button
                     onClick={() => {
                       settoggleserveraddchannelmodal(
-                        !toggleserveraddchannelmodal
+                        !toggleserveraddchannelmodal,
                       );
                     }}
                     className="tw-w-[30px] tw-h-[30px] tw-p-0 tw-flex tw-items-center tw-justify-center tw-border-none tw-rounded-[7px] hover:tw-bg-[#ffc965] hover:tw-text-white tw-cursor-pointer"
@@ -299,7 +301,13 @@ function Channels({ serverlist }: any) {
                         }}
                         className="tw-select-none tw-cursor-pointer tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[calc(100%-10px)] tw-rounded-[4px]"
                       >
-                        {mp.privacy ? (
+                        {mp.channelType === "voice" ? (
+                          mp.privacy ? (
+                            <AiFillSound />
+                          ) : (
+                            <AiOutlineSound />
+                          )
+                        ) : mp.privacy ? (
                           <FaLock style={{ fontSize: "13px" }} />
                         ) : (
                           <FaHashtag />
