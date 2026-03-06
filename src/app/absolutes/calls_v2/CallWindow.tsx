@@ -720,9 +720,20 @@ function CallWindow({ data, lineNum }: any) {
         case "callreject": {
           const rejectedConversationID =
             data?.rejectdata?.conversationID || data?.conversationID;
+          const rejectedBy = data?.rejectdata?.rejectedBy || data?.rejectedBy;
+          const endedBy = data?.rejectdata?.endedBy || data?.endedBy;
+          const hasRemoteParticipant =
+            joinedParticipants.length > 0 || consumers.size > 0;
 
           if (!isGroupCall && rejectedConversationID === conversationID) {
-            leaveCallProcess();
+            if (endedBy) {
+              leaveCallProcess();
+              break;
+            }
+
+            if (rejectedBy && !hasRemoteParticipant) {
+              leaveCallProcess();
+            }
           }
           break;
         }
@@ -809,6 +820,8 @@ function CallWindow({ data, lineNum }: any) {
     conversationID,
     isGroupCall,
     authentication,
+    joinedParticipants,
+    consumers,
   ]);
 
   useEffect(() => {
