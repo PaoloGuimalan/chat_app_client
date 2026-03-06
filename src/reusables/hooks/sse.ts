@@ -191,6 +191,15 @@ const SSENotificationsTRequest = (
             callID: conversationID,
           },
         });
+
+        document.dispatchEvent(
+          new CustomEvent("room-events-relay", {
+            detail: {
+              event: "callreject",
+              data: JSON.stringify(decodedResult.rejectdata),
+            },
+          }),
+        );
       }
     }
   });

@@ -698,6 +698,15 @@ function CallWindow({ data, lineNum }: any) {
             });
           }
           break;
+        case "callreject": {
+          const rejectedConversationID =
+            data?.rejectdata?.conversationID || data?.conversationID;
+
+          if (!isGroupCall && rejectedConversationID === conversationID) {
+            leaveCallProcess();
+          }
+          break;
+        }
         case "participant-status":
           if (
             data.conversationID === conversationID &&
@@ -832,7 +841,10 @@ function CallWindow({ data, lineNum }: any) {
     (participant) => !videoOwnerIds.has(participant.clientId),
   );
   const participantByClientId = new Map(
-    joinedParticipants.map((participant) => [participant.clientId, participant]),
+    joinedParticipants.map((participant) => [
+      participant.clientId,
+      participant,
+    ]),
   );
 
   return (
