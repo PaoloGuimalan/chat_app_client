@@ -668,6 +668,20 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
 
   const initializeCall = (type: string) => {
     const conversationID = conversationsetup.conversationid;
+    const callRecipients =
+      conversationsetup.type == "single"
+        ? [conversationsetup.userdetails.userID]
+        : conversationinfo?.users
+            ?.map((mp: any) => mp.userID)
+            .filter((flt: any) => flt != authentication.user.userID) ||
+          conversationsetup.groupdetails?.receivers?.filter(
+            (flt: any) => flt != authentication.user.userID,
+          ) ||
+          [];
+    const caller = {
+      name: authentication.user.fullName.firstName,
+      userID: authentication.user.userID,
+    };
     const callKey = `${conversationID}-${type}`;
     const hasPendingAlert =
       pendingcallalerts.filter(
@@ -691,20 +705,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             : `${conversationsetup.groupdetails.groupName} (Group)`,
         conversationType: conversationsetup.type,
         conversationID,
-        caller: {
-          name: authentication.user.fullName.firstName,
-          userID: authentication.user.userID,
-        },
-        recepients:
-          conversationsetup.type == "single"
-            ? [conversationsetup.userdetails.userID]
-            : conversationinfo?.users
-                ?.map((mp: any) => mp.userID)
-                .filter((flt: any) => flt != authentication.user.userID) ||
-              conversationsetup.groupdetails?.receivers?.filter(
-                (flt: any) => flt != authentication.user.userID,
-              ) ||
-              [],
+        caller,
+        recepients: callRecipients,
         displayImage:
           conversationsetup.type == "single"
             ? conversationsetup.userdetails.profile
@@ -722,6 +724,10 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           conversationID,
           type,
           isGroup: conversationsetup.type !== "single",
+          conversationType: conversationsetup.type,
+          callType: type,
+          caller,
+          recepients: callRecipients,
           instance: null,
         },
       },

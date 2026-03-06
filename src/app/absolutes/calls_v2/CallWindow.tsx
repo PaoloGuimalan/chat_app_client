@@ -19,6 +19,7 @@ import { Device } from "mediasoup-client";
 import {
   ConsumeRequest,
   CreateTransportRequest,
+  EndCallRequest,
   JoinRoomRequest,
   LeaveRoomRequest,
   ParticipantStatusRequest,
@@ -139,6 +140,21 @@ function CallWindow({ data, lineNum }: any) {
         data.instance;
       const payload = { conversationID, instance };
       const payloadWithClient = { ...payload, clientId: clientIdRef.current };
+      const localUserID = authentication.user.userID;
+      const callerUserID = data?.caller?.userID || null;
+      const isCaller = callerUserID === localUserID;
+      const endCallRecepients =
+        Array.isArray(data?.recepients) && data.recepients.length > 0
+          ? data.recepients
+          : members;
+
+      if (!keepalive && isCaller && endCallRecepients.length > 0) {
+        EndCallRequest({
+          conversationID,
+          conversationType: data.conversationType || (isGroupCall ? "group" : "single"),
+          recepients: endCallRecepients,
+        });
+      }
 
       if (keepalive) {
         fetch(`${envs.CHATTERLOOP_API}/webrtc/leave-room`, {
@@ -173,6 +189,9 @@ function CallWindow({ data, lineNum }: any) {
       data,
       conversationID,
       dispatch,
+      authentication.user.userID,
+      isGroupCall,
+      members,
     ],
   );
 
