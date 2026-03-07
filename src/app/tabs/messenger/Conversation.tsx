@@ -1404,7 +1404,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       </span>
                     </div>
                     <div className="tw-w-full tw-flex tw-flex-col tw-h-[40px] tw-justify-center">
-                      <span className="tw-text-[14px] tw-font-Inter">
+                      <span className="tw-text-[12px] tw-font-Inter">
                         {getChannelPreviewParticipants(
                           conversationsetup.conversationid,
                         ).length === 1
@@ -1413,10 +1413,11 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                                 conversationsetup.conversationid,
                               )[0].userID
                             }`
-                          : getChannelPreviewParticipants(
-                              conversationsetup.conversationid,
-                            ).length}
-                        {" participants "}
+                          : `${
+                              getChannelPreviewParticipants(
+                                conversationsetup.conversationid,
+                              ).length
+                            } participants`}{" "}
                         joined the call
                       </span>
                     </div>
