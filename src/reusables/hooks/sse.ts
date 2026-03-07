@@ -2,6 +2,7 @@
 import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import {
+  REMOVE_PREVIEW_PARTICIPANT,
   SET_ALERTS,
   SET_COORDINATES,
   // SET_CONTACTS_LIST_OVERRIDE,
@@ -442,6 +443,21 @@ const SSENotificationsTRequest = (
         },
       }),
     );
+  });
+
+  sseNtfsSource.addEventListener("update_participants", (e: any) => {
+    const data = JSON.parse(e.data);
+
+    if (data.result.action === "left") {
+      dispatch({
+        type: REMOVE_PREVIEW_PARTICIPANT,
+        payload: {
+          previewparticipant: {
+            clientID: data.result.clientId,
+          },
+        },
+      });
+    }
   });
 
   sseNtfsSource.addEventListener("participant-status", (e: any) => {

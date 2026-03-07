@@ -15,6 +15,7 @@ import { InitServerChannelsRequest } from "@/reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ChannelsListInterface,
+  IPreviewParicipants,
   ServerChannelsListInterface,
 } from "@/reusables/vars/interfaces";
 import { FaHashtag, FaLocationArrow, FaLock } from "react-icons/fa6";
@@ -31,12 +32,18 @@ import CreateChannelModal from "@/app/widgets/modals/Servers/CreateChannelModal"
 import { BiSolidInfoCircle } from "react-icons/bi";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { AiFillSound, AiOutlineSound } from "react-icons/ai";
+import { MdSettingsVoice } from "react-icons/md";
 
 function Channels({ serverlist }: any) {
   const messageslist = useSelector((state: any) => state.messageslist);
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
   );
+
+  const previewparticipants: IPreviewParicipants[] = useSelector(
+    (state: any) => state.previewparticipants,
+  );
+
   const dispatch = useDispatch();
   const params = useParams();
   const urllocation = useLocation();
@@ -82,6 +89,12 @@ function Channels({ serverlist }: any) {
       .catch((err) => {
         console.log(err);
       });
+  };
+
+  const getChannelPreviewParticipants = (channelID: string) => {
+    return previewparticipants.filter(
+      (flt: IPreviewParicipants) => flt.channelID === channelID,
+    );
   };
 
   useEffect(() => {
@@ -333,6 +346,9 @@ function Channels({ serverlist }: any) {
                         >
                           {mp.groupName}
                         </span>
+                        {mp.channelType === "voice" &&
+                          getChannelPreviewParticipants(mp.groupID).length >
+                            0 && <MdSettingsVoice />}
                         {urllocation.pathname.includes(mp.groupID) && (
                           <FaLocationArrow />
                         )}

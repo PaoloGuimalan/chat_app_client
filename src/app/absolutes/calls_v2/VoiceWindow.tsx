@@ -143,14 +143,21 @@ function VoiceWindow({ data }: any) {
         connectRecvTransportState.instance ||
         data.instance;
       const payload = { conversationID, instance };
-      const payloadWithClient = { ...payload, clientId: clientIdRef.current };
-      const localUserID = authentication.user.userID;
-      const callerUserID = data?.caller?.userID || null;
-      const isCaller = callerUserID === localUserID;
+
       const endCallRecepients =
         Array.isArray(data?.recepients) && data.recepients.length > 0
           ? data.recepients
           : members;
+
+      const payloadWithClient = {
+        ...payload,
+        clientId: clientIdRef.current,
+        recipients: endCallRecepients,
+      };
+
+      const localUserID = authentication.user.userID;
+      const callerUserID = data?.caller?.userID || null;
+      const isCaller = callerUserID === localUserID;
 
       if (!keepalive && isCaller && endCallRecepients.length > 0) {
         EndCallRequest({
@@ -207,6 +214,14 @@ function VoiceWindow({ data }: any) {
 
   const createTransportProcess = useCallback(
     async (instance: string | null) => {
+      await VoiceRequest({
+        userID: authentication.user.userID,
+        profile: authentication.user.profile,
+        clientID: clientIdRef.current,
+        channelID: conversationID,
+        recipients: members,
+        instance,
+      });
       CreateTransportRequest({
         conversationID,
         instance,
@@ -236,15 +251,6 @@ function VoiceWindow({ data }: any) {
     const incomingParticipants = participants.filter(
       (participant) => participant.clientId !== clientIdRef.current,
     );
-
-    await VoiceRequest({
-      userID: authentication.user.userID,
-      profile: authentication.user.profile,
-      clientID: clientIdRef.current,
-      channelID: conversationID,
-      recipients: members,
-      instance,
-    });
 
     // Set placeholders immediately, before transport/device setup and consume flow.
     setJoinedParticipants((prev) => {

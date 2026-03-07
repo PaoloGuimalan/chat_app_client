@@ -10,6 +10,7 @@ import {
   MEDIA_MY_VIDEO_HOLDER,
   MEDIA_TRACK_HOLDER,
   REMOVE_PENDING_CALL_ALERTS,
+  REMOVE_PREVIEW_PARTICIPANT,
   REMOVE_REJECTED_CALL_LIST,
   SET_ACTIVE_USERS_LIST,
   SET_ALERTS,
@@ -451,6 +452,14 @@ export const setpreviewparticipant = (
       );
 
       return [...filteredState, ...incomingParticipants];
+    case REMOVE_PREVIEW_PARTICIPANT:
+      const left_participant: IPreviewParicipants =
+        action.payload.previewparticipant;
+      const final_left_state = state.filter(
+        (flt) => flt.clientID !== left_participant.clientID,
+      );
+      console.log(final_left_state);
+      return final_left_state;
     default:
       return state;
   }
