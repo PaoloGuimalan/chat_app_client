@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import "../../../styles/styles.css";
 import { AiOutlineMessage, AiOutlineLoading3Quarters } from "react-icons/ai";
 import { TbServer2 } from "react-icons/tb";
-import { BiGroup } from "react-icons/bi";
+import { BiGroup, BiSolidPhoneCall } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
 import Conversation from "../messenger/Conversation";
 import { InitConversationListRequest } from "../../../reusables/hooks/requests";
@@ -15,6 +15,7 @@ import ServerIcon from "../../../assets/imgs/servericon.png";
 import {
   SET_CONVERSATION_SETUP,
   SET_MESSAGES_LIST,
+  SET_PREVIEW_PARTICIPANTS_BULK,
 } from "../../../redux/types";
 import CreateGroupChatModal from "../../widgets/modals/CreateGroupChatModal";
 import { conversationsetupstate } from "../../../redux/actions/states";
@@ -23,12 +24,23 @@ import CreateServerModal from "@/app/widgets/modals/CreateServerModal";
 import { useNavigate } from "react-router-dom";
 import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { IPreviewParicipants } from "@/reusables/vars/interfaces";
 
 function Messages() {
   const [isLoading, setisLoading] = useState<boolean>(true);
   const [isCreateGCToggle, setisCreateGCToggle] = useState<boolean>(false);
   const [isCreateServerToggle, setisCreateServerToggle] =
     useState<boolean>(false);
+
+  const previewparticipants: IPreviewParicipants[] = useSelector(
+    (state: any) => state.previewparticipants,
+  );
+
+  const getChannelPreviewParticipants = (channelID: string) => {
+    return previewparticipants.filter(
+      (flt: IPreviewParicipants) => flt.channelID === channelID,
+    );
+  };
 
   const authentication = useSelector((state: any) => state.authentication);
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
@@ -76,6 +88,12 @@ function Messages() {
 
   useEffect(() => {
     InitConversationListRequest(page, range).then((response) => {
+      dispatch({
+        type: SET_PREVIEW_PARTICIPANTS_BULK,
+        payload: {
+          participants: response.map((mp: any) => mp.voice_participants).flat(),
+        },
+      });
       dispatch({
         type: SET_MESSAGES_LIST,
         payload: {
@@ -306,11 +324,21 @@ function Messages() {
                           </span>
                         )}
                       </div>
-                      {msgslst.unread > 0 && (
-                        <div>
-                          <span className="span_messages_list_counts">
-                            {msgslst.unread}
-                          </span>
+                      {(msgslst.unread > 0 ||
+                        getChannelPreviewParticipants(msgslst.conversationID)
+                          .length > 0) && (
+                        <div className="tw-flex tw-flex-col tw-justify-between">
+                          {msgslst.unread > 0 && (
+                            <span className="span_messages_list_counts">
+                              {msgslst.unread}
+                            </span>
+                          )}
+                          {getChannelPreviewParticipants(msgslst.conversationID)
+                            .length > 0 && (
+                            <div>
+                              <BiSolidPhoneCall color="lime" />
+                            </div>
+                          )}
                         </div>
                       )}
                     </motion.div>
@@ -381,11 +409,21 @@ function Messages() {
                       </span>
                     )}
                   </div>
-                  {msgslst.unread > 0 && (
-                    <div>
-                      <span className="span_messages_list_counts">
-                        {msgslst.unread}
-                      </span>
+                  {(msgslst.unread > 0 ||
+                    getChannelPreviewParticipants(msgslst.conversationID)
+                      .length > 0) && (
+                    <div className="tw-flex tw-flex-col tw-justify-between">
+                      {msgslst.unread > 0 && (
+                        <span className="span_messages_list_counts">
+                          {msgslst.unread}
+                        </span>
+                      )}
+                      {getChannelPreviewParticipants(msgslst.conversationID)
+                        .length > 0 && (
+                        <div>
+                          <BiSolidPhoneCall color="lime" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </motion.div>

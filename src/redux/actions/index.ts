@@ -458,7 +458,6 @@ export const setpreviewparticipant = (
       const final_left_state = state.filter(
         (flt) => flt.clientID !== left_participant.clientID,
       );
-      console.log(final_left_state);
       return final_left_state;
     default:
       return state;

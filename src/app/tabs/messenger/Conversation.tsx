@@ -45,7 +45,10 @@ import {
 import { useLocation, useNavigate } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
 import ConversationInfoModal from "@/app/widgets/modals/Conversation/ConversationInfoModal";
-import { ConversationInfoInterface } from "@/reusables/vars/interfaces";
+import {
+  ConversationInfoInterface,
+  IPreviewParicipants,
+} from "@/reusables/vars/interfaces";
 import IsTypingLoader from "./partials/IsTypingLoader";
 import { FaHashtag, FaLock } from "react-icons/fa6";
 import { HiDotsVertical } from "react-icons/hi";
@@ -72,6 +75,16 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const istypinglist = useSelector((state: any) => state.istypinglist);
   const activeusersmapper = activeuserslist.map((mp: any) => mp._id);
+
+  const previewparticipants: IPreviewParicipants[] = useSelector(
+    (state: any) => state.previewparticipants,
+  );
+
+  const getChannelPreviewParticipants = (channelID: string) => {
+    return previewparticipants.filter(
+      (flt: IPreviewParicipants) => flt.channelID === channelID,
+    );
+  };
 
   const messagelistListener = useMemo(() => {
     const initialconvometadata = messageslist.filter(
@@ -678,6 +691,30 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             (flt: any) => flt != authentication.user.userID,
           ) ||
           [];
+
+    if (getChannelPreviewParticipants(conversationID).length > 0) {
+      dispatch({
+        type: CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
+        payload: {
+          callmetadata: {
+            ...conversationsetup,
+            conversationID,
+            type,
+            isGroup: conversationsetup.type !== "single",
+            conversationType: conversationsetup.type,
+            callType: type,
+            caller: {
+              name: getChannelPreviewParticipants(conversationID)[0].userID,
+              userID: getChannelPreviewParticipants(conversationID)[0].userID,
+            },
+            recepients: callRecipients,
+            instance: getChannelPreviewParticipants(conversationID)[0].instance,
+          },
+        },
+      });
+      return;
+    }
+
     const caller = {
       name: authentication.user.fullName.firstName,
       userID: authentication.user.userID,
@@ -1357,6 +1394,46 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     );
                   }
                 })}
+              {getChannelPreviewParticipants(conversationsetup.conversationid)
+                .length > 0 && (
+                <div className="div_messages_result tw-w-[calc(100%-20px)] tw-flex tw-justify-center tw-p-[10px]">
+                  <div className="tw-bg-[#f0f2f5] tw-w-[calc(100%-20px)] tw-max-w-[calc(400px-20px)] tw-p-[10px] tw-rounded-md">
+                    <div className="tw-w-full tw-flex tw-flex-col">
+                      <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                        Ongoing Call
+                      </span>
+                    </div>
+                    <div className="tw-w-full tw-flex tw-flex-col tw-h-[40px] tw-justify-center">
+                      <span className="tw-text-[14px] tw-font-Inter">
+                        {getChannelPreviewParticipants(
+                          conversationsetup.conversationid,
+                        ).length === 1
+                          ? `@${
+                              getChannelPreviewParticipants(
+                                conversationsetup.conversationid,
+                              )[0].userID
+                            }`
+                          : getChannelPreviewParticipants(
+                              conversationsetup.conversationid,
+                            ).length}
+                        {" participants "}
+                        joined the call
+                      </span>
+                    </div>
+                    <div className="tw-w-full tw-flex tw-flex-col">
+                      <button
+                        style={{ backgroundColor: "#dedede" }}
+                        onClick={() => {
+                          initializeCall("audio");
+                        }}
+                        className="tw-p-[6px] tw-w-full tw-rounded-md tw-border-none tw-text-[14px] tw-text-white tw-font-semibold tw-cursor-pointer"
+                      >
+                        Join Call
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
               {conversationList.map((cnvs, i) => {
                 return (
                   <ContentHandler
