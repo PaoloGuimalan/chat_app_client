@@ -19,7 +19,10 @@ import {
 } from "@/reusables/vars/interfaces";
 import { FaHashtag, FaLocationArrow, FaLock } from "react-icons/fa6";
 import { motion } from "framer-motion";
-import { SET_CONVERSATION_SETUP } from "@/redux/types";
+import {
+  SET_CONVERSATION_SETUP,
+  SET_PREVIEW_PARTICIPANTS_BULK,
+} from "@/redux/types";
 import { conversationsetupstate } from "@/redux/actions/states";
 // import { FcInfo } from "react-icons/fc";
 import ServerInfoModal from "@/app/widgets/modals/Servers/ServerInfoModal";
@@ -63,7 +66,14 @@ function Channels({ serverlist }: any) {
       serverID: serverID,
     })
       .then((response: any) => {
-        // console.log(response.data[0]);
+        dispatch({
+          type: SET_PREVIEW_PARTICIPANTS_BULK,
+          payload: {
+            participants: response.data[0].channels
+              .map((mp: any) => mp.voice_participants)
+              .flat(),
+          },
+        });
         setserverdetails(response.data[0]);
         setTimeout(() => {
           setisLoaded(true);

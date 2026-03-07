@@ -10,6 +10,7 @@ import {
   // SET_NOTIFICATIONS_LIST,
   // SET_NOTIFICATIONS_LIST_OVERRIDE,
   SET_PENDING_CALL_ALERTS,
+  SET_PREVIEW_PARTICIPANTS,
   SET_REJECTED_CALL_LIST,
   UPDATE_ACTIVE_USERS_LIST,
 } from "../../redux/types";
@@ -344,6 +345,22 @@ const SSENotificationsTRequest = (
           type: UPDATE_ACTIVE_USERS_LIST,
           payload: {
             updatedUser: decodedResult.user,
+          },
+        });
+      }
+    }
+  });
+
+  sseNtfsSource.addEventListener("voice-joined", (e: any) => {
+    const parsedresponse = JSON.parse(e.data);
+    if (parsedresponse.auth) {
+      if (parsedresponse.status) {
+        const decodedResult: any = jwt_decode(parsedresponse.result);
+
+        dispatch({
+          type: SET_PREVIEW_PARTICIPANTS,
+          payload: {
+            previewparticipant: decodedResult.voice_participant,
           },
         });
       }

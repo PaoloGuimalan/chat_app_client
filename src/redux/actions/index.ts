@@ -37,6 +37,8 @@ import {
   SET_PENDING_CALL_ALERTS,
   SET_PENDING_MESSAGES_LIST,
   SET_POSTS_FEED_LIST,
+  SET_PREVIEW_PARTICIPANTS,
+  SET_PREVIEW_PARTICIPANTS_BULK,
   SET_RAW_COORDINATES,
   SET_REJECTED_CALL_LIST,
   SET_REMOVE_IS_TYPING_LIST,
@@ -57,6 +59,7 @@ import {
   IContact,
   ICoordinatesAnchor,
   IPageModal,
+  IPreviewParicipants,
   IUserSettings,
 } from "@/reusables/vars/interfaces";
 
@@ -416,6 +419,38 @@ export const setrawcoordinates = (
   switch (action.type) {
     case SET_RAW_COORDINATES:
       return action.payload.rawcoordinates;
+    default:
+      return state;
+  }
+};
+
+export const setpreviewparticipant = (
+  state: IPreviewParicipants[] = [],
+  action: any,
+) => {
+  switch (action.type) {
+    case SET_PREVIEW_PARTICIPANTS:
+      const new_participant: IPreviewParicipants =
+        action.payload.previewparticipant;
+      const final_state = state.filter(
+        (flt) =>
+          flt.channelID !== new_participant.channelID &&
+          flt.clientID !== new_participant.clientID,
+      );
+      return [...final_state, new_participant];
+    case SET_PREVIEW_PARTICIPANTS_BULK:
+      const incomingParticipants: IPreviewParicipants[] =
+        action.payload.participants;
+
+      const incomingClientIDs = new Set(
+        incomingParticipants.map((p) => p.clientID),
+      );
+
+      const filteredState = state.filter(
+        (existing) => !incomingClientIDs.has(existing.clientID),
+      );
+
+      return [...filteredState, ...incomingParticipants];
     default:
       return state;
   }

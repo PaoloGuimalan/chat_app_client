@@ -1045,6 +1045,28 @@ const CallRequest = async (params: any) => {
     });
 };
 
+const VoiceRequest = async (params: any) => {
+  const payload = params;
+
+  return await Axios.post(`${API}/u/notify-voice-join`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 const ActiveContactsRequest = (dispatch: Dispatch<any>) => {
   Axios.get(`${API}/u/activecontacts`, {
     headers: {
@@ -2007,4 +2029,5 @@ export {
   BroadcastCoordinatesRequest,
   SnapCoordinatesOpenRoute,
   UploadMediaRequest,
+  VoiceRequest,
 };

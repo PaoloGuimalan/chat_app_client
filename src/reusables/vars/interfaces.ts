@@ -441,3 +441,11 @@ export interface IUserSettings {
     toggleSpeed: boolean;
   };
 }
+
+export interface IPreviewParicipants {
+  userID: string;
+  profile: string | null;
+  clientID: string;
+  channelID: string;
+  instance: string | null;
+}

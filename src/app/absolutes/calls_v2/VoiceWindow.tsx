@@ -25,6 +25,7 @@ import {
   ParticipantStatusRequest,
   TransportConnectRequest,
   TransportProduceRequest,
+  VoiceRequest,
 } from "@/reusables/hooks/requests";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import RemoteVideo from "./RemoteVideo";
@@ -235,6 +236,15 @@ function VoiceWindow({ data }: any) {
     const incomingParticipants = participants.filter(
       (participant) => participant.clientId !== clientIdRef.current,
     );
+
+    await VoiceRequest({
+      userID: authentication.user.userID,
+      profile: authentication.user.profile,
+      clientID: clientIdRef.current,
+      channelID: conversationID,
+      recipients: members,
+      instance,
+    });
 
     // Set placeholders immediately, before transport/device setup and consume flow.
     setJoinedParticipants((prev) => {

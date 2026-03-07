@@ -2,6 +2,7 @@
 import VoiceWindow from "@/app/absolutes/calls_v2/VoiceWindow";
 import {
   AuthenticationInterface,
+  IPreviewParicipants,
   IUserInterface,
 } from "@/reusables/vars/interfaces";
 import { motion } from "framer-motion";
@@ -14,6 +15,10 @@ import { useLocation, useNavigate } from "react-router-dom";
 function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
+  );
+
+  const previewparticipants: IPreviewParicipants[] = useSelector(
+    (state: any) => state.previewparticipants,
   );
 
   const screensizelistener = useSelector(
@@ -34,6 +39,15 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
     () => users.map((mp: IUserInterface) => mp.userID),
     [users],
   );
+
+  const conversationID =
+    conversationsetup.conversationid || conversationsetup.conversationID;
+
+  const currentParticipants = previewparticipants
+    .filter((flt: IPreviewParicipants) => flt.channelID === conversationID)
+    .map((mp: IPreviewParicipants) => mp.instance);
+  const instance =
+    currentParticipants.length > 0 ? currentParticipants[0] : null;
 
   return (
     <motion.div
@@ -211,11 +225,11 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           </motion.div>
           <div className="tw-h-full tw-w-full">
             <VoiceWindow
-              key={conversationsetup.conversationID}
+              key={conversationID}
               data={{
                 ...conversationsetup,
                 type: "audio",
-                conversationID: conversationsetup.conversationID,
+                conversationID: conversationID,
                 isGroup: true,
                 conversationType: "group",
                 callType: "audio",
@@ -224,7 +238,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                   userID: authentication.user.userID,
                 },
                 recepients,
-                instance: null,
+                instance: instance,
               }}
             />
           </div>
