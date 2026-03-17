@@ -80,6 +80,7 @@ function VoiceWindow({ data }: any) {
   const hasJoinedRef = useRef(false);
   const isConsumingRef = useRef(false);
   const producerOwnerRef = useRef<Map<string, string>>(new Map());
+  const producerSourceRef = useRef<Map<string, string>>(new Map());
   const leaveCallProcessRef = useRef<any>(null);
   const pendingProduceTracksRef = useRef<
     { kind: string; track: MediaStreamTrack; source?: string }[]
@@ -134,6 +135,7 @@ function VoiceWindow({ data }: any) {
     setJoinedParticipants([]);
     setParticipantStatuses(new Map());
     producerOwnerRef.current.clear();
+    producerSourceRef.current.clear();
     audioProducerRef.current?.close?.();
     videoProducerRef.current?.close?.();
     screenProducerRef.current?.close?.();
@@ -908,6 +910,7 @@ function VoiceWindow({ data }: any) {
                 const found = next.get(producerId);
                 found?.consumer?.close?.();
                 next.delete(producerId);
+                producerSourceRef.current.delete(producerId);
               });
               return next;
             });
@@ -962,6 +965,7 @@ function VoiceWindow({ data }: any) {
               return next;
             });
             producerOwnerRef.current.delete(data.producerId);
+            producerSourceRef.current.delete(data.producerId);
           }
           break;
         case "new_producer":
@@ -971,6 +975,9 @@ function VoiceWindow({ data }: any) {
           if (data.conversationID === conversationID) {
             if (data.producerId && data.clientId) {
               producerOwnerRef.current.set(data.producerId, data.clientId);
+              if (data.source) {
+                producerSourceRef.current.set(data.producerId, data.source);
+              }
             }
             if (
               data.clientId &&
@@ -999,6 +1006,8 @@ function VoiceWindow({ data }: any) {
             const { id, producerId, kind, rtpParameters, source } = data;
             const ownerClientId =
               producerOwnerRef.current.get(producerId) || null;
+            const resolvedSource =
+              source || producerSourceRef.current.get(producerId) || null;
             setPendingConsumeResponses((prev) => {
               const isExisting = prev.some((mp) => mp.id === id);
               if (isExisting) {
@@ -1006,7 +1015,14 @@ function VoiceWindow({ data }: any) {
               }
               return [
                 ...prev,
-                { id, producerId, kind, rtpParameters, ownerClientId, source },
+                {
+                  id,
+                  producerId,
+                  kind,
+                  rtpParameters,
+                  ownerClientId,
+                  source: resolvedSource,
+                },
               ];
             });
           }
