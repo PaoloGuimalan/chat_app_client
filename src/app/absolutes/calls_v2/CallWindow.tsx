@@ -579,6 +579,23 @@ function CallWindow({ data, lineNum }: any) {
         rtpParameters,
       });
 
+      const removeConsumer = () => {
+        setConsumers((prev) => {
+          if (!prev.has(producerId)) {
+            return prev;
+          }
+          const next = new Map(prev);
+          const entry = next.get(producerId);
+          entry?.consumer?.close?.();
+          next.delete(producerId);
+          return next;
+        });
+      };
+
+      consumer.on("producerclose", removeConsumer);
+      consumer.on("transportclose", removeConsumer);
+      consumer.on("trackended", removeConsumer);
+
       setConsumers((prev) => {
         if (prev.has(producerId)) {
           consumer?.close?.();
