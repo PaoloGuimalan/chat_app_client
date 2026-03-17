@@ -46,6 +46,15 @@ function CallWindow({ data, lineNum }: any) {
     (data.type || data.callType) === "video",
   );
 
+  const screensizelistener = useSelector(
+    (state: any) => state.screensizelistener,
+  );
+
+  const isMobileView = useMemo(
+    () => screensizelistener.W < 800,
+    [screensizelistener],
+  );
+
   const [connectTransportState, setconnectTransportState] = useState<any>({
     params: null,
     instance: null,
@@ -91,6 +100,7 @@ function CallWindow({ data, lineNum }: any) {
   const audioProducerRef = useRef<any>(null);
   const videoProducerRef = useRef<any>(null);
   const screenProducerRef = useRef<any>(null);
+  const screenAudioProducerRef = useRef<any>(null);
 
   const conversationID = useMemo(
     () => data.conversationID || data.conversationid,
@@ -136,9 +146,11 @@ function CallWindow({ data, lineNum }: any) {
     audioProducerRef.current?.close?.();
     videoProducerRef.current?.close?.();
     screenProducerRef.current?.close?.();
+    screenAudioProducerRef.current?.close?.();
     audioProducerRef.current = null;
     videoProducerRef.current = null;
     screenProducerRef.current = null;
+    screenAudioProducerRef.current = null;
     pendingProduceTracksRef.current = [];
     setScreenStream(null);
     setIsScreenSharing(false);
@@ -417,10 +429,7 @@ function CallWindow({ data, lineNum }: any) {
             if ((data.type || data.callType) !== "video") {
               videoProducerRef.current.pause();
             }
-            console.log(
-              "Video producer created!",
-              videoProducerRef.current.id,
-            );
+            console.log("Video producer created!", videoProducerRef.current.id);
           }
 
           if (audioTrack) {
@@ -434,10 +443,7 @@ function CallWindow({ data, lineNum }: any) {
               kind: audioTrack.kind,
               appData: { source: "microphone" },
             });
-            console.log(
-              "Audio producer created!",
-              audioProducerRef.current.id,
-            );
+            console.log("Audio producer created!", audioProducerRef.current.id);
           }
         } catch (e) {
           console.error("Produce failed", e);
@@ -454,31 +460,53 @@ function CallWindow({ data, lineNum }: any) {
     }
 
     const screenTrack = screenStream.getVideoTracks()[0];
-    if (!screenTrack) {
+    const screenAudioTrack = screenStream.getAudioTracks()[0];
+    if (!screenTrack && !screenAudioTrack) {
       return;
     }
 
-      const produceScreen = async () => {
-        try {
+    const produceScreen = async () => {
+      try {
+        if (screenTrack) {
           pendingProduceTracksRef.current.push({
             kind: screenTrack.kind,
             track: screenTrack,
             source: "screen",
           });
-        screenProducerRef.current = await sendTransport.produce({
-          track: screenTrack,
-          kind: screenTrack.kind,
-          appData: { source: "screen" },
-        });
+          screenProducerRef.current = await sendTransport.produce({
+            track: screenTrack,
+            kind: screenTrack.kind,
+            appData: { source: "screen" },
+          });
+        }
 
-        screenTrack.onended = () => {
+        if (screenAudioTrack) {
+          pendingProduceTracksRef.current.push({
+            kind: screenAudioTrack.kind,
+            track: screenAudioTrack,
+            source: "screen-audio",
+          });
+          screenAudioProducerRef.current = await sendTransport.produce({
+            track: screenAudioTrack,
+            kind: screenAudioTrack.kind,
+            appData: { source: "screen-audio" },
+          });
+        }
+
+        const handleScreenEnded = () => {
           setIsScreenSharing(false);
           notifyProducerClosed(screenProducerRef.current?.id);
+          notifyProducerClosed(screenAudioProducerRef.current?.id);
           screenProducerRef.current?.close?.();
           screenProducerRef.current = null;
+          screenAudioProducerRef.current?.close?.();
+          screenAudioProducerRef.current = null;
           screenStream.getTracks().forEach((track) => track.stop());
           setScreenStream(null);
         };
+        if (screenTrack) {
+          screenTrack.onended = handleScreenEnded;
+        }
       } catch (err) {
         console.log("Screen share produce failed:", err);
         setIsScreenSharing(false);
@@ -744,7 +772,7 @@ function CallWindow({ data, lineNum }: any) {
     try {
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
-        audio: false,
+        audio: true,
       });
       setScreenStream(displayStream);
       setIsScreenSharing(true);
@@ -756,8 +784,11 @@ function CallWindow({ data, lineNum }: any) {
 
   const stopScreenShare = () => {
     notifyProducerClosed(screenProducerRef.current?.id);
+    notifyProducerClosed(screenAudioProducerRef.current?.id);
     screenProducerRef.current?.close?.();
     screenProducerRef.current = null;
+    screenAudioProducerRef.current?.close?.();
+    screenAudioProducerRef.current = null;
     screenStream?.getTracks().forEach((track) => track.stop());
     setScreenStream(null);
     setIsScreenSharing(false);
@@ -1146,7 +1177,11 @@ function CallWindow({ data, lineNum }: any) {
           </div>
         )}
         {screenStream && (
-          <div className="div_video_blocks">
+          <div
+            className={
+              isMobileView ? "div_video_blocks" : "div_video_screen_blocks"
+            }
+          >
             <div className="video_call_display tw-rounded-[5px] tw-overflow-hidden tw-bg-[#1f1f1f]">
               <video
                 className="video_call_display"
@@ -1276,6 +1311,3 @@ function CallWindow({ data, lineNum }: any) {
 }
 
 export default CallWindow;
-
-
-
