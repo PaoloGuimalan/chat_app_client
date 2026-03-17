@@ -1917,6 +1917,29 @@ const ConsumeRequest = async (payload: any) => {
     });
 };
 
+const CloseProducerRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/close-producer`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 const LeaveRoomRequest = async (payload: any) => {
   return await Axios.post(
     `${envs.CHATTERLOOP_API}/webrtc/leave-room`,
@@ -1969,6 +1992,7 @@ export {
   TransportConnectRequest,
   TransportProduceRequest,
   ConsumeRequest,
+  CloseProducerRequest,
   LeaveRoomRequest,
   ParticipantStatusRequest,
   AuthCheck,

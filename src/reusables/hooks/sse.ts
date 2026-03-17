@@ -471,6 +471,17 @@ const SSENotificationsTRequest = (
     );
   });
 
+  sseNtfsSource.addEventListener("producer-closed", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "producer-closed",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
   sseNtfsSource.addEventListener("consume-response", (e: any) => {
     document.dispatchEvent(
       new CustomEvent("room-events-relay", {

@@ -24,6 +24,7 @@ import {
   JoinRoomRequest,
   LeaveRoomRequest,
   ParticipantStatusRequest,
+  CloseProducerRequest,
   TransportConnectRequest,
   TransportProduceRequest,
   VoiceRequest,
@@ -382,6 +383,7 @@ function CallWindow({ data, lineNum }: any) {
               members,
               track: targetTrack,
               clientId: clientIdRef.current,
+              appData,
             });
           } catch (error) {
             console.error("❌ SERVER CONNECT FAILED:", error);
@@ -454,13 +456,13 @@ function CallWindow({ data, lineNum }: any) {
       return;
     }
 
-    const produceScreen = async () => {
-      try {
-        pendingProduceTracksRef.current.push({
-          kind: screenTrack.kind,
-          track: screenTrack,
-          source: "screen",
-        });
+      const produceScreen = async () => {
+        try {
+          pendingProduceTracksRef.current.push({
+            kind: screenTrack.kind,
+            track: screenTrack,
+            source: "screen",
+          });
         screenProducerRef.current = await sendTransport.produce({
           track: screenTrack,
           kind: screenTrack.kind,
@@ -469,6 +471,7 @@ function CallWindow({ data, lineNum }: any) {
 
         screenTrack.onended = () => {
           setIsScreenSharing(false);
+          notifyProducerClosed(screenProducerRef.current?.id);
           screenProducerRef.current?.close?.();
           screenProducerRef.current = null;
           screenStream.getTracks().forEach((track) => track.stop());
@@ -567,6 +570,7 @@ function CallWindow({ data, lineNum }: any) {
       kind: any,
       rtpParameters: any,
       ownerClientId: string | null,
+      source: string | null,
     ) => {
       if (!recvTransport) {
         return;
@@ -602,7 +606,7 @@ function CallWindow({ data, lineNum }: any) {
           return prev;
         }
         const next = new Map(prev);
-        next.set(producerId, { id, kind, consumer, ownerClientId });
+        next.set(producerId, { id, kind, consumer, ownerClientId, source });
         return next;
       });
     },
@@ -627,6 +631,7 @@ function CallWindow({ data, lineNum }: any) {
       nextConsume.kind,
       nextConsume.rtpParameters,
       nextConsume.ownerClientId || null,
+      nextConsume.source || null,
     )
       .catch((err) => {
         console.log("Consume response handler failed:", err);
@@ -681,6 +686,33 @@ function CallWindow({ data, lineNum }: any) {
       });
   }, []);
 
+  const notifyProducerClosed = useCallback(
+    (producerId?: string) => {
+      if (!producerId) {
+        return;
+      }
+      const instance =
+        connectTransportState.instance ||
+        connectRecvTransportState.instance ||
+        data.instance;
+      CloseProducerRequest({
+        conversationID,
+        producerId,
+        instance,
+        clientId: clientIdRef.current,
+      }).catch((err) => {
+        console.log("Close producer request failed:", err);
+      });
+    },
+    [
+      CloseProducerRequest,
+      conversationID,
+      connectTransportState.instance,
+      connectRecvTransportState.instance,
+      data.instance,
+    ],
+  );
+
   const startScreenShare = async () => {
     try {
       const displayStream = await navigator.mediaDevices.getDisplayMedia({
@@ -696,6 +728,7 @@ function CallWindow({ data, lineNum }: any) {
   };
 
   const stopScreenShare = () => {
+    notifyProducerClosed(screenProducerRef.current?.id);
     screenProducerRef.current?.close?.();
     screenProducerRef.current = null;
     screenStream?.getTracks().forEach((track) => track.stop());
@@ -887,6 +920,21 @@ function CallWindow({ data, lineNum }: any) {
             });
           }
           break;
+        case "producer-closed":
+          if (data.conversationID === conversationID && data.producerId) {
+            setConsumers((prev) => {
+              if (!prev.has(data.producerId)) {
+                return prev;
+              }
+              const next = new Map(prev);
+              const entry = next.get(data.producerId);
+              entry?.consumer?.close?.();
+              next.delete(data.producerId);
+              return next;
+            });
+            producerOwnerRef.current.delete(data.producerId);
+          }
+          break;
         case "new_producer":
           if (data.clientId === clientIdRef.current) {
             break;
@@ -919,7 +967,7 @@ function CallWindow({ data, lineNum }: any) {
           break;
         case "consume-response":
           if (data.conversationID === conversationID) {
-            const { id, producerId, kind, rtpParameters } = data;
+            const { id, producerId, kind, rtpParameters, source } = data;
             const ownerClientId =
               producerOwnerRef.current.get(producerId) || null;
             setPendingConsumeResponses((prev) => {
@@ -929,7 +977,7 @@ function CallWindow({ data, lineNum }: any) {
               }
               return [
                 ...prev,
-                { id, producerId, kind, rtpParameters, ownerClientId },
+                { id, producerId, kind, rtpParameters, ownerClientId, source },
               ];
             });
           }
@@ -1089,7 +1137,7 @@ function CallWindow({ data, lineNum }: any) {
             </div>
           </div>
         ))}
-        {videoConsumers.map(({ id, consumer, ownerClientId }) => {
+        {videoConsumers.map(({ id, consumer, ownerClientId, source }) => {
           const owner = ownerClientId
             ? participantByClientId.get(ownerClientId)
             : null;
@@ -1103,12 +1151,13 @@ function CallWindow({ data, lineNum }: any) {
               cameraOff={Boolean(status?.cameraOff)}
               muted={Boolean(status?.muted)}
               label={owner ? `@${owner.username}` : "Participant"}
+              source={source || undefined}
             />
           );
         })}
       </div>
       <div style={{ display: "none" }}>
-        {audioConsumers.map(({ id, consumer, ownerClientId }) => {
+        {audioConsumers.map(({ id, consumer, ownerClientId, source }) => {
           const owner = ownerClientId
             ? participantByClientId.get(ownerClientId)
             : null;
@@ -1122,6 +1171,7 @@ function CallWindow({ data, lineNum }: any) {
               cameraOff={Boolean(status?.cameraOff)}
               muted={Boolean(status?.muted)}
               label={owner ? `@${owner.username}` : "Participant"}
+              source={source || undefined}
             />
           );
         })}

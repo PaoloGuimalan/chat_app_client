@@ -6,19 +6,23 @@ const RemoteVideo = ({
   cameraOff = false,
   muted = false,
   label = "Participant",
+  source,
 }: {
   consumer: any;
   cameraOff?: boolean;
   muted?: boolean;
   label?: string;
+  source?: string;
 }) => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const audioRef = useRef<HTMLAudioElement>(null);
   const isAudioConsumer = consumer?.kind === "audio";
 
+  const shouldHideVideo = cameraOff && !isAudioConsumer && source !== "screen";
+
   useEffect(() => {
     if (!consumer) return;
-    if (cameraOff && !isAudioConsumer) return;
+    if (shouldHideVideo) return;
 
     const mediaElement = isAudioConsumer ? audioRef.current : videoRef.current;
     if (!mediaElement) return;
@@ -49,13 +53,13 @@ const RemoteVideo = ({
         mediaElement.srcObject = null;
       }
     };
-  }, [consumer, isAudioConsumer, cameraOff]);
+  }, [consumer, isAudioConsumer, shouldHideVideo]);
 
   if (isAudioConsumer) {
     return <audio ref={audioRef} />;
   }
 
-  if (cameraOff) {
+  if (shouldHideVideo) {
     return (
       <div className="div_video_blocks">
         <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
