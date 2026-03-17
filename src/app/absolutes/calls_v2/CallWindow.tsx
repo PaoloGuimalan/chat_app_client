@@ -675,17 +675,42 @@ function CallWindow({ data, lineNum }: any) {
   ]);
 
   useEffect(() => {
-    navigator.mediaDevices
-      .getUserMedia({
-        video: true,
-        audio: true,
-      })
-      .then((value) => {
-        setmediaStream(value);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
+    const initLocalMedia = async () => {
+      let audioStream: MediaStream | null = null;
+      let videoStream: MediaStream | null = null;
+
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: false,
+        });
+      } catch (err) {
+        console.log("Audio device not available:", err);
+      }
+
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      } catch (err) {
+        console.log("Video device not available:", err);
+      }
+
+      const tracks = [
+        ...(audioStream?.getAudioTracks() || []),
+        ...(videoStream?.getVideoTracks() || []),
+      ];
+
+      if (tracks.length === 0) {
+        return;
+      }
+
+      const combined = new MediaStream(tracks);
+      setmediaStream(combined);
+    };
+
+    initLocalMedia();
   }, []);
 
   const notifyProducerClosed = useCallback(
