@@ -10,6 +10,7 @@ import {
   BsCameraVideoFill,
   BsCameraVideoOffFill,
 } from "react-icons/bs";
+import { MdScreenShare, MdStopScreenShare } from "react-icons/md";
 import { HiPhoneMissedCall } from "react-icons/hi";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -72,11 +73,16 @@ function VoiceWindow({ data }: any) {
   const [participantStatuses, setParticipantStatuses] = useState<
     Map<string, { muted: boolean; cameraOff: boolean }>
   >(new Map());
+  const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
+  const [isScreenSharing, setIsScreenSharing] = useState<boolean>(false);
   const hasLeftRef = useRef(false);
   const hasJoinedRef = useRef(false);
   const isConsumingRef = useRef(false);
   const producerOwnerRef = useRef<Map<string, string>>(new Map());
   const leaveCallProcessRef = useRef<any>(null);
+  const pendingProduceTracksRef = useRef<
+    { kind: string; track: MediaStreamTrack; source?: string }[]
+  >([]);
   const clientIdRef = useRef<string>(
     typeof crypto !== "undefined" && "randomUUID" in crypto
       ? crypto.randomUUID()
@@ -85,6 +91,7 @@ function VoiceWindow({ data }: any) {
 
   const audioProducerRef = useRef<any>(null);
   const videoProducerRef = useRef<any>(null);
+  const screenProducerRef = useRef<any>(null);
 
   const conversationID = useMemo(
     () => data.conversationID || data.conversationid,
@@ -116,6 +123,7 @@ function VoiceWindow({ data }: any) {
 
   const cleanupLocalCallResources = useCallback(() => {
     mediaStream?.getTracks().forEach((track) => track.stop());
+    screenStream?.getTracks().forEach((track) => track.stop());
     sendTransport?.close?.();
     recvTransport?.close?.();
     consumers.forEach(({ consumer }) => consumer?.close?.());
@@ -127,9 +135,14 @@ function VoiceWindow({ data }: any) {
     producerOwnerRef.current.clear();
     audioProducerRef.current?.close?.();
     videoProducerRef.current?.close?.();
+    screenProducerRef.current?.close?.();
     audioProducerRef.current = null;
     videoProducerRef.current = null;
-  }, [mediaStream, sendTransport, recvTransport, consumers]);
+    screenProducerRef.current = null;
+    pendingProduceTracksRef.current = [];
+    setScreenStream(null);
+    setIsScreenSharing(false);
+  }, [mediaStream, screenStream, sendTransport, recvTransport, consumers]);
 
   const leaveCallProcess = useCallback(
     ({ keepalive = false }: { keepalive?: boolean } = {}) => {
@@ -316,11 +329,25 @@ function VoiceWindow({ data }: any) {
 
       transport.on(
         "produce",
-        async ({ kind, rtpParameters }: any, callback: any, errback: any) => {
+        async (
+          { kind, rtpParameters, appData }: any,
+          callback: any,
+          errback: any,
+        ) => {
+          const pendingIndex = pendingProduceTracksRef.current.findIndex(
+            (entry) =>
+              entry.kind === kind &&
+              (!appData?.source || entry.source === appData?.source),
+          );
+          const pendingEntry =
+            pendingIndex >= 0
+              ? pendingProduceTracksRef.current.splice(pendingIndex, 1)[0]
+              : null;
           const targetTrack =
-            kind === "audio"
+            pendingEntry?.track ||
+            (kind === "audio"
               ? mediaStream.getAudioTracks()[0]
-              : mediaStream.getVideoTracks()[0];
+              : mediaStream.getVideoTracks()[0]);
 
           if (!targetTrack) {
             errback(new Error(`Missing ${kind} track`));
@@ -377,26 +404,38 @@ function VoiceWindow({ data }: any) {
           const audioTrack = mediaStream.getAudioTracks()[0];
 
           if (videoTrack) {
+            pendingProduceTracksRef.current.push({
+              kind: videoTrack.kind,
+              track: videoTrack,
+              source: "camera",
+            });
             videoProducerRef.current = await transport.produce({
               track: videoTrack,
               kind: videoTrack.kind,
+              appData: { source: "camera" },
             });
             if ((data.type || data.callType) !== "video") {
               videoProducerRef.current.pause();
             }
             console.log(
-              "✅ Video producer created!",
+              "Video producer created!",
               videoProducerRef.current.id,
             );
           }
 
           if (audioTrack) {
+            pendingProduceTracksRef.current.push({
+              kind: audioTrack.kind,
+              track: audioTrack,
+              source: "microphone",
+            });
             audioProducerRef.current = await transport.produce({
               track: audioTrack,
               kind: audioTrack.kind,
+              appData: { source: "microphone" },
             });
             console.log(
-              "✅ Audio producer created!",
+              "Audio producer created!",
               audioProducerRef.current.id,
             );
           }
@@ -408,6 +447,45 @@ function VoiceWindow({ data }: any) {
       startStreaming();
     }
   }, [device, connectTransportState, mediaStream, members]);
+
+  useEffect(() => {
+    if (!sendTransport || !screenStream || screenProducerRef.current) {
+      return;
+    }
+
+    const screenTrack = screenStream.getVideoTracks()[0];
+    if (!screenTrack) {
+      return;
+    }
+
+    const produceScreen = async () => {
+      try {
+        pendingProduceTracksRef.current.push({
+          kind: screenTrack.kind,
+          track: screenTrack,
+          source: "screen",
+        });
+        screenProducerRef.current = await sendTransport.produce({
+          track: screenTrack,
+          kind: screenTrack.kind,
+          appData: { source: "screen" },
+        });
+
+        screenTrack.onended = () => {
+          setIsScreenSharing(false);
+          screenProducerRef.current?.close?.();
+          screenProducerRef.current = null;
+          screenStream.getTracks().forEach((track) => track.stop());
+          setScreenStream(null);
+        };
+      } catch (err) {
+        console.log("Screen share produce failed:", err);
+        setIsScreenSharing(false);
+      }
+    };
+
+    produceScreen();
+  }, [sendTransport, screenStream]);
 
   const connectTransport = (params: any, instance: string) => {
     setconnectTransportState({ params, instance, triggered: false });
@@ -577,18 +655,65 @@ function VoiceWindow({ data }: any) {
   ]);
 
   useEffect(() => {
-    navigator.mediaDevices
-      .getUserMedia({
+    const initLocalMedia = async () => {
+      let audioStream: MediaStream | null = null;
+      let videoStream: MediaStream | null = null;
+
+      try {
+        audioStream = await navigator.mediaDevices.getUserMedia({
+          audio: true,
+          video: false,
+        });
+      } catch (err) {
+        console.log("Audio device not available:", err);
+      }
+
+      try {
+        videoStream = await navigator.mediaDevices.getUserMedia({
+          video: true,
+          audio: false,
+        });
+      } catch (err) {
+        console.log("Video device not available:", err);
+      }
+
+      const tracks = [
+        ...(audioStream?.getAudioTracks() || []),
+        ...(videoStream?.getVideoTracks() || []),
+      ];
+
+      if (tracks.length === 0) {
+        return;
+      }
+
+      const combined = new MediaStream(tracks);
+      setmediaStream(combined);
+    };
+
+    initLocalMedia();
+  }, []);
+
+  const startScreenShare = async () => {
+    try {
+      const displayStream = await navigator.mediaDevices.getDisplayMedia({
         video: true,
         audio: true,
-      })
-      .then((value) => {
-        setmediaStream(value);
-      })
-      .catch((err) => {
-        console.log(err);
       });
-  }, []);
+      setScreenStream(displayStream);
+      setIsScreenSharing(true);
+    } catch (err) {
+      console.log("Screen share request failed:", err);
+      setIsScreenSharing(false);
+    }
+  };
+
+  const stopScreenShare = () => {
+    screenProducerRef.current?.close?.();
+    screenProducerRef.current = null;
+    screenStream?.getTracks().forEach((track) => track.stop());
+    setScreenStream(null);
+    setIsScreenSharing(false);
+  };
 
   useEffect(() => {
     const instance =
@@ -934,6 +1059,23 @@ function VoiceWindow({ data }: any) {
             </div>
           </div>
         )}
+        {screenStream && (
+          <div className="div_video_blocks">
+            <div className="video_call_display tw-rounded-[5px] tw-overflow-hidden tw-bg-[#1f1f1f]">
+              <video
+                className="video_call_display"
+                autoPlay
+                playsInline
+                muted
+                ref={(node) => {
+                  if (node && screenStream) {
+                    node.srcObject = screenStream;
+                  }
+                }}
+              />
+            </div>
+          </div>
+        )}
         {waitingParticipants.map((participant) => (
           <div
             key={`placeholder-${participant.clientId}`}
@@ -1022,6 +1164,18 @@ function VoiceWindow({ data }: any) {
         </button>
         <button
           onClick={() => {
+            if (isScreenSharing) {
+              stopScreenShare();
+            } else {
+              startScreenShare();
+            }
+          }}
+          className={`btn_call_controls ${isScreenSharing ? "btn_call_controls_enable" : ""}`}
+        >
+          {isScreenSharing ? <MdStopScreenShare /> : <MdScreenShare />}
+        </button>
+        <button
+          onClick={() => {
             leaveCallProcess();
           }}
           className="btn_call_controls btn_call_controls_end"
@@ -1034,3 +1188,4 @@ function VoiceWindow({ data }: any) {
 }
 
 export default VoiceWindow;
+
