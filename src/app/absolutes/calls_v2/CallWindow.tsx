@@ -1160,7 +1160,7 @@ function CallWindow({ data, lineNum }: any) {
           <RxEnterFullScreen style={{ fontSize: "20px", color: "white" }} />
         </button>
       </div>
-      <div className="div_video_blocks_holder">
+      <div className="div_video_blocks_holder t-scroll">
         {mediaStream ? (
           <UserVideoBlock
             mediaStream={mediaStream}

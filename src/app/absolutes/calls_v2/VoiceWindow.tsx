@@ -3,7 +3,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "../../../styles/styles.css";
 import { motion } from "framer-motion";
-import { RxEnterFullScreen } from "react-icons/rx";
+// import { RxEnterFullScreen } from "react-icons/rx";
 import {
   BsFillMicFill,
   BsFillMicMuteFill,
@@ -1146,16 +1146,16 @@ function VoiceWindow({ data }: any) {
     >
       <div id="div_top_nav_call_window">
         <span id="span_call_displayname">{data.callDisplayName}</span>
-        <button
+        {/* <button
           onClick={() => {
             // sendVideoData()
           }}
           className="btn_top_nav_call_window"
         >
           <RxEnterFullScreen style={{ fontSize: "20px", color: "white" }} />
-        </button>
+        </button> */}
       </div>
-      <div className="div_voice_blocks_holder">
+      <div className="div_voice_blocks_holder t-scroll">
         {mediaStream ? (
           <UserVideoBlock
             mediaStream={mediaStream}
