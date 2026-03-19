@@ -300,17 +300,23 @@ function Messages() {
                               ? "you: "
                               : ""}
                             {msgslst.messageType === "text" ||
-                            msgslst.messageType === "notif"
-                              ? msgslst.content
-                              : !msgslst.messageType.includes("image") &&
-                                  !msgslst.messageType.includes("video") &&
-                                  !msgslst.messageType.includes("audio")
-                                ? `Sent ${messageTypeChecker["any"]}`
-                                : `Sent ${
-                                    messageTypeChecker[
-                                      msgslst.messageType.split("/")[0]
-                                    ]
-                                  }`}
+                            msgslst.messageType === "notif" ? (
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: msgslst.content,
+                                }}
+                              />
+                            ) : !msgslst.messageType.includes("image") &&
+                              !msgslst.messageType.includes("video") &&
+                              !msgslst.messageType.includes("audio") ? (
+                              `Sent ${messageTypeChecker["any"]}`
+                            ) : (
+                              `Sent ${
+                                messageTypeChecker[
+                                  msgslst.messageType.split("/")[0]
+                                ]
+                              }`
+                            )}
                           </span>
                         )}
                         {msgslst.messageDate.time ? (
@@ -386,17 +392,23 @@ function Messages() {
                           ? "you: "
                           : ""}
                         {msgslst.messageType === "text" ||
-                        msgslst.messageType === "notif"
-                          ? msgslst.content
-                          : !msgslst.messageType.includes("image") &&
-                              !msgslst.messageType.includes("video") &&
-                              !msgslst.messageType.includes("audio")
-                            ? `Sent ${messageTypeChecker["any"]}`
-                            : `Sent ${
-                                messageTypeChecker[
-                                  msgslst.messageType.split("/")[0]
-                                ]
-                              }`}
+                        msgslst.messageType === "notif" ? (
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: msgslst.content,
+                            }}
+                          />
+                        ) : !msgslst.messageType.includes("image") &&
+                          !msgslst.messageType.includes("video") &&
+                          !msgslst.messageType.includes("audio") ? (
+                          `Sent ${messageTypeChecker["any"]}`
+                        ) : (
+                          `Sent ${
+                            messageTypeChecker[
+                              msgslst.messageType.split("/")[0]
+                            ]
+                          }`
+                        )}
                       </span>
                     )}
                     {msgslst.messageDate.time ? (
@@ -477,17 +489,23 @@ function Messages() {
                           ? "you: "
                           : ""}
                         {msgslst.messageType === "text" ||
-                        msgslst.messageType === "notif"
-                          ? msgslst.content
-                          : !msgslst.messageType.includes("image") &&
-                              !msgslst.messageType.includes("video") &&
-                              !msgslst.messageType.includes("audio")
-                            ? `Sent ${messageTypeChecker["any"]}`
-                            : `Sent ${
-                                messageTypeChecker[
-                                  msgslst.messageType.split("/")[0]
-                                ]
-                              }`}
+                        msgslst.messageType === "notif" ? (
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: msgslst.content,
+                            }}
+                          />
+                        ) : !msgslst.messageType.includes("image") &&
+                          !msgslst.messageType.includes("video") &&
+                          !msgslst.messageType.includes("audio") ? (
+                          `Sent ${messageTypeChecker["any"]}`
+                        ) : (
+                          `Sent ${
+                            messageTypeChecker[
+                              msgslst.messageType.split("/")[0]
+                            ]
+                          }`
+                        )}
                       </span>
                     )}
                     {msgslst.messageDate.time ? (

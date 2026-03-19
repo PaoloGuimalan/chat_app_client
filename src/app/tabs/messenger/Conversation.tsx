@@ -28,6 +28,7 @@ import {
   importNonImageData,
   isUserOnline,
   makeid,
+  sanitizeForStorage,
   timeSince,
 } from "../../../reusables/hooks/reusable";
 import {
@@ -166,7 +167,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
 
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
-  const inputMessageRef = useRef<HTMLInputElement | null>(null);
+  // const inputMessageRef = useRef<HTMLInputElement | null>(null);
+  const inputMessageRef = useRef<HTMLTextAreaElement | null>(null);
 
   useEffect(() => {
     if (isalreadytyping) {
@@ -1265,7 +1267,12 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                             }}
                             className="span_messages_result c1"
                           >
-                            {cnvs.content}
+                            <span
+                              className="tw-whitespace-pre-line"
+                              dangerouslySetInnerHTML={{
+                                __html: sanitizeForStorage(cnvs.content),
+                              }}
+                            />
                           </motion.span>
                           <span className="span_sending_label">Sending...</span>
                         </motion.div>
@@ -1553,20 +1560,28 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   {isReplying.isReply &&
                     (conversationList.filter(
                       (flt: any) => flt.messageID == isReplying.replyingTo,
-                    )[0].messageType === "text"
-                      ? conversationList.filter(
-                          (flt: any) => flt.messageID == isReplying.replyingTo,
-                        )[0].content
-                      : `${
-                          messageTypeChecker[
-                            conversationList
-                              .filter(
-                                (flt: any) =>
-                                  flt.messageID == isReplying.replyingTo,
-                              )[0]
-                              .messageType.split("/")[0]
-                          ] || "a file"
-                        }`)}
+                    )[0].messageType === "text" ? (
+                      <span
+                        className="tw-whitespace-pre-line"
+                        dangerouslySetInnerHTML={{
+                          __html: conversationList.filter(
+                            (flt: any) =>
+                              flt.messageID == isReplying.replyingTo,
+                          )[0].content,
+                        }}
+                      />
+                    ) : (
+                      `${
+                        messageTypeChecker[
+                          conversationList
+                            .filter(
+                              (flt: any) =>
+                                flt.messageID == isReplying.replyingTo,
+                            )[0]
+                            .messageType.split("/")[0]
+                        ] || "a file"
+                      }`
+                    ))}
                 </span>
               </div>
               <button
@@ -1723,16 +1738,18 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               </motion.button>
             </div>
             <div id="div_input_text_content">
-              <input
-                type="text"
+              <textarea
+                // type="text"
                 ref={inputMessageRef}
                 autoComplete="off"
                 id="input_text_content_send"
                 onKeyDown={(e) => {
-                  if (e.code == "Enter") {
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
                     sendMessageProcess();
                   }
                 }}
+                className="tw-font-Inter tw-resize-none tw-h-auto tw-whitespace-pre-line"
                 disabled={isConversationDisabled}
                 placeholder="Write a message...."
                 value={messageValue}
@@ -1748,7 +1765,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   }
                   setmessageValue(e.target.value);
                 }}
-              />
+              ></textarea>
             </div>
             <div id="div_confirm_send">
               <motion.button

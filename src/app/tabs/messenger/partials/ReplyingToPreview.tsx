@@ -78,7 +78,12 @@ function ReplyingToPreview({ cnvs, fromOther, yourReply, theme }: any) {
                 }}
                 className="span_messages_result c1"
               >
-                {cnvs.content}
+                <span
+                  className="tw-whitespace-pre-line"
+                  dangerouslySetInnerHTML={{
+                    __html: cnvs.content,
+                  }}
+                />
               </motion.span>
             </motion.div>
           </motion.div>

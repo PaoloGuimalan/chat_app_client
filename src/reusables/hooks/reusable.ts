@@ -369,6 +369,16 @@ function isUserSettingsComplete(
   return validateAgainstDefault(settings, usersettingsstate);
 }
 
+function sanitizeForStorage(content: string) {
+  if (!content) return "";
+  return content
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 export {
   importData,
   importNonImageData,
@@ -386,4 +396,5 @@ export {
   timeSince,
   userSessionStatusFromContacts,
   isUserSettingsComplete,
+  sanitizeForStorage,
 };

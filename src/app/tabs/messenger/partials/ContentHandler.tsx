@@ -26,7 +26,7 @@ function ContentHandler({
 
   const [toggleEmojiPicker, settoggleEmojiPicker] = useState<boolean>(false);
   const [reactions, setreactions] = useState<any[]>(
-    cnvs.reactions ? cnvs.reactions : []
+    cnvs.reactions ? cnvs.reactions : [],
   );
 
   const [toggleReactions, settoggleReactions] = useState<boolean>(false);
@@ -37,7 +37,7 @@ function ContentHandler({
         ...t1,
         ...cnvs.reactionsWithInfo.find((t2: any) => t2.userID === t1.userID),
       })),
-    [reactions, cnvs.reactions]
+    [reactions, cnvs.reactions],
   );
 
   useEffect(() => {
@@ -89,7 +89,11 @@ function ContentHandler({
             />
           )}
           <motion.span
-            title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
+            title={
+              cnvs.messageDate.time
+                ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
+                : timeSince(cnvs.messageDate.date)
+            }
             initial={{
               backgroundColor:
                 cnvs.sender == authentication.user.userID ? "white" : "white",
@@ -123,7 +127,7 @@ function ContentHandler({
             ? i === 0 &&
               cnvs.seeners.filter(
                 (mp: any) =>
-                  mp != cnvs.sender && mp != authentication.user.userID
+                  mp != cnvs.sender && mp != authentication.user.userID,
               ).length > 0 && ( //conversationList.length - 1 == i
                 <motion.div
                   initial={{
@@ -144,7 +148,7 @@ function ContentHandler({
                   {cnvs.seeners
                     .filter(
                       (mp: any) =>
-                        mp != cnvs.sender && mp != authentication.user.userID
+                        mp != cnvs.sender && mp != authentication.user.userID,
                     )
                     .map((mp: any, i: number) => {
                       if (
@@ -163,7 +167,7 @@ function ContentHandler({
             : i === 0 &&
               cnvs.seeners.filter(
                 (mp: any) =>
-                  mp != cnvs.sender && mp != authentication.user.userID
+                  mp != cnvs.sender && mp != authentication.user.userID,
               ).length > 0 && (
                 <motion.div
                   initial={{
@@ -245,7 +249,11 @@ function ContentHandler({
               />
             )}
             <motion.div
-              title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
+              title={
+                cnvs.messageDate.time
+                  ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
+                  : timeSince(cnvs.messageDate.date)
+              }
               initial={{
                 backgroundColor:
                   cnvs.sender == authentication.user.userID
@@ -279,6 +287,7 @@ function ContentHandler({
               className="span_messages_result c1 tw-mb-[7px]"
             >
               <span
+                className="tw-whitespace-pre-line"
                 dangerouslySetInnerHTML={{ __html: urlify(cnvs.content) }}
               />
               <div
@@ -334,7 +343,7 @@ function ContentHandler({
                         </span>
                       )}
                     {reactions.filter(
-                      (flt: any) => flt.userID === authentication.user.userID
+                      (flt: any) => flt.userID === authentication.user.userID,
                     ).length === 0 && (
                       <button
                         onClick={() => {
@@ -375,7 +384,7 @@ function ContentHandler({
               ? i === 0 &&
                 cnvs.seeners.filter(
                   (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID
+                    mp != cnvs.sender && mp != authentication.user.userID,
                 ).length > 0 && (
                   <motion.div
                     initial={{
@@ -396,7 +405,7 @@ function ContentHandler({
                     {cnvs.seeners
                       .filter(
                         (mp: any) =>
-                          mp != cnvs.sender && mp != authentication.user.userID
+                          mp != cnvs.sender && mp != authentication.user.userID,
                       )
                       .map((mp: any, i: number) => {
                         if (
@@ -415,7 +424,7 @@ function ContentHandler({
               : i === 0 &&
                 cnvs.seeners.filter(
                   (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID
+                    mp != cnvs.sender && mp != authentication.user.userID,
                 ).length > 0 && (
                   <motion.div
                     initial={{
@@ -505,7 +514,11 @@ function ContentHandler({
             )}
             <div
               className="div_pending_content_container"
-              title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
+              title={
+                cnvs.messageDate.time
+                  ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
+                  : timeSince(cnvs.messageDate.date)
+              }
             >
               <CachedImage
                 src={cnvs.content}
@@ -573,7 +586,7 @@ function ContentHandler({
                         </span>
                       )}
                     {reactions.filter(
-                      (flt: any) => flt.userID === authentication.user.userID
+                      (flt: any) => flt.userID === authentication.user.userID,
                     ).length === 0 && (
                       <button
                         onClick={() => {
@@ -614,7 +627,7 @@ function ContentHandler({
               ? i === 0 &&
                 cnvs.seeners.filter(
                   (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID
+                    mp != cnvs.sender && mp != authentication.user.userID,
                 ).length > 0 && (
                   <motion.div
                     initial={{
@@ -648,7 +661,7 @@ function ContentHandler({
               : i === 0 &&
                 cnvs.seeners.filter(
                   (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID
+                    mp != cnvs.sender && mp != authentication.user.userID,
                 ).length > 0 && (
                   <motion.div
                     initial={{
@@ -738,7 +751,11 @@ function ContentHandler({
             )}
             <div
               className="div_pending_content_container"
-              title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
+              title={
+                cnvs.messageDate.time
+                  ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
+                  : timeSince(cnvs.messageDate.date)
+              }
             >
               <video
                 src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
@@ -802,7 +819,7 @@ function ContentHandler({
                         </span>
                       )}
                     {reactions.filter(
-                      (flt: any) => flt.userID === authentication.user.userID
+                      (flt: any) => flt.userID === authentication.user.userID,
                     ).length === 0 && (
                       <button
                         onClick={() => {
@@ -843,7 +860,7 @@ function ContentHandler({
               ? i === 0 &&
                 cnvs.seeners.filter(
                   (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID
+                    mp != cnvs.sender && mp != authentication.user.userID,
                 ).length > 0 && (
                   <motion.div
                     initial={{
@@ -877,7 +894,7 @@ function ContentHandler({
               : i === 0 &&
                 cnvs.seeners.filter(
                   (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID
+                    mp != cnvs.sender && mp != authentication.user.userID,
                 ).length > 0 && (
                   <motion.div
                     initial={{
@@ -967,7 +984,11 @@ function ContentHandler({
             )}
             <div
               className="tw-w-full"
-              title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
+              title={
+                cnvs.messageDate.time
+                  ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
+                  : timeSince(cnvs.messageDate.date)
+              }
             >
               <div className="tw-w-full tw-bg-[#f1f3f4] tw-pb-[5px] tw-rounded-[7px]">
                 <audio
@@ -1032,7 +1053,7 @@ function ContentHandler({
                         </span>
                       )}
                     {reactions.filter(
-                      (flt: any) => flt.userID === authentication.user.userID
+                      (flt: any) => flt.userID === authentication.user.userID,
                     ).length === 0 && (
                       <button
                         onClick={() => {
@@ -1073,7 +1094,7 @@ function ContentHandler({
               ? i === 0 &&
                 cnvs.seeners.filter(
                   (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID
+                    mp != cnvs.sender && mp != authentication.user.userID,
                 ).length > 0 && (
                   <motion.div
                     initial={{
@@ -1107,7 +1128,7 @@ function ContentHandler({
               : i === 0 &&
                 cnvs.seeners.filter(
                   (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID
+                    mp != cnvs.sender && mp != authentication.user.userID,
                 ).length > 0 && (
                   <motion.div
                     initial={{
@@ -1211,11 +1232,15 @@ function ContentHandler({
                 onClick={() => {
                   window.open(
                     cnvs.content.split("%%%")[0].replace("###", "%23%23%23"),
-                    "_blank"
+                    "_blank",
                   );
                 }}
                 className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
-                title={cnvs.messageDate.time ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}` : timeSince(cnvs.messageDate.date)}
+                title={
+                  cnvs.messageDate.time
+                    ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
+                    : timeSince(cnvs.messageDate.date)
+                }
               >
                 <div className="tw-w-full tw-max-w-[40px]">
                   <IoDocumentOutline style={{ fontSize: "40px" }} />
@@ -1277,7 +1302,7 @@ function ContentHandler({
                         </span>
                       )}
                     {reactions.filter(
-                      (flt: any) => flt.userID === authentication.user.userID
+                      (flt: any) => flt.userID === authentication.user.userID,
                     ).length === 0 && (
                       <button
                         onClick={() => {
@@ -1318,7 +1343,7 @@ function ContentHandler({
               ? i === 0 &&
                 cnvs.seeners.filter(
                   (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID
+                    mp != cnvs.sender && mp != authentication.user.userID,
                 ).length > 0 && (
                   <motion.div
                     initial={{
@@ -1352,7 +1377,7 @@ function ContentHandler({
               : i === 0 &&
                 cnvs.seeners.filter(
                   (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID
+                    mp != cnvs.sender && mp != authentication.user.userID,
                 ).length > 0 && (
                   <motion.div
                     initial={{
