@@ -1,11 +1,16 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import DefaultProfile from "../../../../assets/imgs/default.png";
-import { ProfileUserInfoInterface } from "@/reusables/vars/interfaces";
-import { useState } from "react";
+import {
+  AuthenticationInterface,
+  ProfileUserInfoInterface,
+} from "@/reusables/vars/interfaces";
+import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { BsFilePerson } from "react-icons/bs";
 import { BiSolidImageAdd } from "react-icons/bi";
 import UploadProfileMedia from "@/app/widgets/modals/CreatePost/UploadProfileMedia";
+import { useSelector } from "react-redux";
 
 function ProfilePicContainer({
   profileInfo,
@@ -14,9 +19,17 @@ function ProfilePicContainer({
   profileInfo: ProfileUserInfoInterface | null;
   getpostprocess: () => void;
 }) {
-  const [toggleSelection, settoggleSelection] = useState<boolean>(false);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
 
+  const [toggleSelection, settoggleSelection] = useState<boolean>(false);
   const [toggleUploadModal, settoggleUploadModal] = useState<boolean>(false);
+
+  const isUserProfile = useMemo(
+    () => authentication.user.userID === profileInfo?.userID,
+    [authentication.user.userID, profileInfo?.userID],
+  );
 
   return (
     <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center tw-relative">
@@ -42,17 +55,32 @@ function ProfilePicContainer({
           />
         </div>
       )}
-      <motion.div
-        initial={{
-          height: "0px",
-        }}
-        animate={{
-          height: toggleSelection ? "auto" : "0px",
-        }}
-        className="tw-absolute tw-bottom-0 tw-bg-white tw-overflow-y-hidden tw-rounded-[7px] tw-shadow-md"
-      >
-        <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
-          {profileInfo?.profile !== "none" && (
+      {isUserProfile && (
+        <motion.div
+          initial={{
+            height: "0px",
+          }}
+          animate={{
+            height: toggleSelection ? "auto" : "0px",
+          }}
+          className="tw-absolute tw-bottom-0 tw-bg-white tw-overflow-y-hidden tw-rounded-[7px] tw-shadow-md"
+        >
+          <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
+            {profileInfo?.profile !== "none" && (
+              <motion.button
+                initial={{
+                  backgroundColor: "transparent",
+                }}
+                whileHover={{
+                  backgroundColor: "#d2d2d2",
+                  color: "white",
+                }}
+                className="tw-border-none tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-rounded-[4px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
+              >
+                <BsFilePerson color="#666666" size={22} />
+                <span className="tw-font-Inter tw-text-[12px]">View Photo</span>
+              </motion.button>
+            )}
             <motion.button
               initial={{
                 backgroundColor: "transparent",
@@ -61,32 +89,19 @@ function ProfilePicContainer({
                 backgroundColor: "#d2d2d2",
                 color: "white",
               }}
+              onClick={() => {
+                settoggleUploadModal(true);
+              }}
               className="tw-border-none tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-rounded-[4px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
             >
-              <BsFilePerson color="#666666" size={22} />
-              <span className="tw-font-Inter tw-text-[12px]">View Photo</span>
+              <BiSolidImageAdd color="#666666" size={25} />
+              <span className="tw-font-Inter tw-text-[12px]">
+                Upload New Photo
+              </span>
             </motion.button>
-          )}
-          <motion.button
-            initial={{
-              backgroundColor: "transparent",
-            }}
-            whileHover={{
-              backgroundColor: "#d2d2d2",
-              color: "white",
-            }}
-            onClick={() => {
-              settoggleUploadModal(true);
-            }}
-            className="tw-border-none tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-rounded-[4px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
-          >
-            <BiSolidImageAdd color="#666666" size={25} />
-            <span className="tw-font-Inter tw-text-[12px]">
-              Upload New Photo
-            </span>
-          </motion.button>
-        </div>
-      </motion.div>
+          </div>
+        </motion.div>
+      )}
       {toggleUploadModal && (
         <UploadProfileMedia
           type="profile"
