@@ -46,7 +46,7 @@ function MyPages() {
       <div className="tw-rounded-[10px] tw-shadow-lg tw-bg-white tw-flex tw-flex-col tw-items-center tw-justify-start tw-w-full tw-h-full tw-overflow-y-scroll x-scroll">
         <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center">
           <div
-            className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[20px] ${isMobileView ? "tw-max-w-[calc(100%-40px)] tw-p-[20px] tw-pt-[15px]" : "tw-max-w-[calc(100%-80px)] tw-p-[40px] tw-pt-[35px]"}`}
+            className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[20px] ${isMobileView ? "tw-max-w-[calc(100%-30px)] tw-p-[20px] tw-pt-[15px] tw-pr-[10px]" : "tw-max-w-[calc(100%-80px)] tw-p-[40px] tw-pt-[35px]"}`}
           >
             <div
               className={`tw-w-full tw-flex tw-justify-between tw-h-[34px] ${isMobileView && "tw-items-center"}`}
