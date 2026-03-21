@@ -1,6 +1,8 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
+import { RiPagesLine } from "react-icons/ri";
 import { useSelector } from "react-redux";
 
 function Default() {
@@ -12,6 +14,8 @@ function Default() {
     () => screensizelistener.W < 800,
     [screensizelistener],
   );
+
+  const [pages, _setpages] = useState<any[]>([]);
 
   return (
     <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-center tw-pt-[15px] tw-pb-[10px] tw-pr-[7px]">
@@ -73,9 +77,24 @@ function Default() {
             >
               Pages you may know
             </span>
-            <div className="tw-w-full tw-flex tw-justify-evenly tw-gap-[10px] tw-flex-wrap tw-pb-[20px]">
-              <span>Coming Soon</span>
-            </div>
+            {pages.length === 0 && (
+              <div className="tw-w-full tw-flex tw-flex-col tw-justify-center tw-items-center tw-gap-[10px] tw-pb-[20px] tw-pt-[80px]">
+                <RiPagesLine
+                  style={{
+                    fontSize: isMobileView ? "80px" : "80px",
+                    color: "#7f7f85",
+                  }}
+                />
+                <div className="tw-flex tw-flex-col tw-gap-[5px]">
+                  <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[#7f7f85]">
+                    No Pages yet
+                  </span>
+                  <span className="tw-text-[14px] tw-font-Inter tw-text-[#7f7f85]">
+                    Create your page and start building a community.
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
