@@ -54,7 +54,7 @@ function AppMenu() {
       appname: "Pages",
       icon: <RiPagesFill style={{ fontSize: "37px", color: "#4997f2" }} />,
       description: "Browse pages you may be interested in.",
-      navigation: null,
+      navigation: "/pages",
       click: null,
     },
     {

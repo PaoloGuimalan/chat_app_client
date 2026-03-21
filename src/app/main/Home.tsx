@@ -83,6 +83,7 @@ import {
   socketSendCoordinatesBroadcast,
 } from "@/reusables/hooks/mapsocket";
 import CallContainer from "../absolutes/calls_v2/CallContainer";
+import Pages from "../tabs/pages/Pages";
 
 function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   const location = useLocation();
@@ -729,6 +730,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
         <Route path="/contacts" element={<Contacts />} />
         <Route path="/mapfeed" element={<MapFeed />} />
         <Route path="/servers/*" element={<Servers />} />
+        <Route path="/pages/*" element={<Pages />} />
       </Routes>
     </div>
   );

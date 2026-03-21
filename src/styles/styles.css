@@ -3572,6 +3572,13 @@ input:checked + .slider:before {
   background-position: center;
 }
 
+#div_pages_list {
+  background-image: url("../assets/svgs/pages-list-bg.svg");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+}
+
 #div_server_conversation_list {
   background-image: url("../assets/svgs/server-conversation-bg.svg");
   background-repeat: no-repeat;
