@@ -2597,6 +2597,22 @@ input:checked + .slider:before {
   min-height: 30px;
 }
 
+#btn_cancel_create_page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 7px;
+  padding-left: 10px;
+  padding-right: 10px;
+  gap: 5px;
+  border: solid 0px red;
+  border-radius: 7px;
+  background-color: red;
+  color: white;
+  cursor: pointer;
+  min-height: 30px;
+}
+
 #btn_create_server {
   display: flex;
   justify-content: center;

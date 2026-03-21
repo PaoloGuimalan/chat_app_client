@@ -20,8 +20,12 @@ function FollowedPages() {
     <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-center tw-pt-[15px] tw-pb-[10px] tw-pr-[7px]">
       <div className="tw-rounded-[10px] tw-shadow-lg tw-bg-white tw-flex tw-flex-col tw-items-center tw-justify-start tw-w-full tw-h-full tw-overflow-y-scroll x-scroll">
         <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center">
-          <div className="tw-w-full tw-flex tw-flex-col tw-max-w-[calc(100%-80px)] tw-items-start tw-gap-[20px] tw-p-[40px] tw-pt-[35px]">
-            <div className="tw-w-full tw-flex tw-justify-between tw-min-h-[34px]">
+          <div
+            className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[20px] ${isMobileView ? "tw-max-w-[calc(100%-40px)] tw-p-[20px] tw-pt-[15px]" : "tw-max-w-[calc(100%-80px)] tw-p-[40px] tw-pt-[35px]"}`}
+          >
+            <div
+              className={`tw-w-full tw-flex tw-justify-between tw-h-[34px] ${isMobileView && "tw-items-center"}`}
+            >
               <span
                 className={`${
                   isMobileView ? "tw-text-[14px]" : "tw-text-[16px]"

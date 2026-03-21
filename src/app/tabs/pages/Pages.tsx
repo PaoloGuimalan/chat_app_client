@@ -130,7 +130,7 @@ function Pages() {
       </motion.div>
       <Routes>
         <Route path="/" element={<Default />} />
-        <Route path="/my-pages" element={<MyPages />} />
+        <Route path="/my-pages/*" element={<MyPages />} />
         <Route path="/followed" element={<FollowedPages />} />
       </Routes>
     </div>
