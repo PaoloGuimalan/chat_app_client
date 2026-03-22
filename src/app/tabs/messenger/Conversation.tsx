@@ -342,7 +342,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         (mp: any, i: number) => ({
           conversationID: conversationsetup.conversationid,
           pendingID: `${pendingID}_${i}`,
-          content: mp.base,
+          reference: mp.base,
           type: mp.type,
           name: mp.name,
         }),
