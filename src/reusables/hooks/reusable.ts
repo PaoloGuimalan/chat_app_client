@@ -11,7 +11,7 @@ function importData(resolve: any, rawresolve: any) {
   input.onchange = () => {
     const files = Array.from(input.files);
     files.map((flmp: any) => {
-      getBase64(flmp, "default", "image", resolve);
+      getBase64(flmp, flmp.name, "image", resolve);
       rawresolve(flmp);
     });
   };

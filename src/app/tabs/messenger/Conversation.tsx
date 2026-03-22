@@ -361,7 +361,13 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       // var mappedRawFiles = rawFilesList.map((mp) => mp.base)
 
       if (conversationsetup.type == "single") {
-        addMultiplePendingMessage(pendingArrImages);
+        addMultiplePendingMessage([
+          ...pendingArrImages.map((mp) => ({
+            ...mp,
+            content: mp.reference,
+            reference: null,
+          })),
+        ]);
         SendFilesRequest({
           conversationID: conversationsetup.conversationid,
           receivers: conversationinfo?.users.map((mp: any) => mp.userID),
@@ -371,7 +377,13 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           conversationType: conversationType,
         });
       } else {
-        addMultiplePendingMessage(pendingArrImages);
+        addMultiplePendingMessage([
+          ...pendingArrImages.map((mp) => ({
+            ...mp,
+            content: mp.reference,
+            reference: null,
+          })),
+        ]);
         SendFilesRequest({
           conversationID: conversationsetup.conversationid,
           receivers: conversationinfo?.users.map((mp: any) => mp.userID),
@@ -471,7 +483,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           ...prev,
           {
             id: prev.length + 1,
-            name: null,
+            name: arr.name,
             base: arr.data,
             type: "image",
           },
@@ -482,7 +494,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           ...prev,
           {
             id: prev.length + 1,
-            name: null,
+            name: rawFiles.name,
             base: rawFiles.data,
             type: "image",
           },

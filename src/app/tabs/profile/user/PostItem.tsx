@@ -683,7 +683,7 @@ function PostItem({
                     }
                   }
                 })}
-                {postState.references.length > 3 && (
+                {postState.references.length > 4 && (
                   <div
                     onClick={() => {
                       settogglePostCarousel(true);

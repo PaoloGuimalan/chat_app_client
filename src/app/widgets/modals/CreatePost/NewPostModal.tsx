@@ -49,7 +49,7 @@ export function NewPostModal({
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: arr.name,
                 reference: arr.data,
                 caption: "",
                 referenceMediaType: "image",
@@ -60,7 +60,7 @@ export function NewPostModal({
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: arr.name,
                 reference: arr.data,
                 caption: "",
                 referenceMediaType: "video",
@@ -96,7 +96,7 @@ export function NewPostModal({
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: rawFiles.name,
                 reference: rawFiles.data,
                 caption: "",
                 referenceMediaType: "image",

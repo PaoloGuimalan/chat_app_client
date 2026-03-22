@@ -1230,10 +1230,14 @@ function ContentHandler({
             <div className="tw-w-full tw-flex tw-flex-col">
               <div
                 onClick={() => {
-                  window.open(
-                    cnvs.content.split("%%%")[0].replace("###", "%23%23%23"),
-                    "_blank",
-                  );
+                  if (cnvs.content.includes("storage.googleapis.com")) {
+                    window.open(
+                      cnvs.content.split("%%%")[0].replace("###", "%23%23%23"),
+                      "_blank",
+                    );
+                  } else {
+                    window.open(cnvs.content, "_blank");
+                  }
                 }}
                 className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
                 title={
@@ -1246,7 +1250,11 @@ function ContentHandler({
                   <IoDocumentOutline style={{ fontSize: "40px" }} />
                 </div>
                 <span className="tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold">
-                  {cnvs.content.split("%%%")[1]}
+                  {cnvs.content.includes("storage.googleapis.com")
+                    ? cnvs.content.split("%%%")[1]
+                    : cnvs.content.split("/")[
+                        cnvs.content.split("/").length - 1
+                      ]}
                 </span>
               </div>
               <div
