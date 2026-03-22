@@ -343,6 +343,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           conversationID: conversationsetup.conversationid,
           pendingID: `${pendingID}_${i}`,
           reference: mp.base,
+          referenceMediaType: mp.type,
           type: mp.type,
           name: mp.name,
         }),
