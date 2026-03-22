@@ -62,6 +62,8 @@ function Messages() {
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);
 
+  const [isNext, setisNext] = useState<boolean>(true);
+
   useEffect(() => {
     let currentView = false;
     if (divcontentRef) {
@@ -88,16 +90,19 @@ function Messages() {
 
   useEffect(() => {
     InitConversationListRequest(page, range).then((response) => {
+      setisNext(response.next);
       dispatch({
         type: SET_PREVIEW_PARTICIPANTS_BULK,
         payload: {
-          participants: response.map((mp: any) => mp.voice_participants).flat(),
+          participants: response.conversationslist
+            .map((mp: any) => mp.voice_participants)
+            .flat(),
         },
       });
       dispatch({
         type: SET_MESSAGES_LIST,
         payload: {
-          messageslist: response,
+          messageslist: response.conversationslist,
         },
       });
       setisLoading(false);
@@ -529,20 +534,22 @@ function Messages() {
               );
             }
           })}
-          <div ref={divlazyloaderRef} id="div_isLoading_notifications">
-            <motion.div
-              animate={{
-                rotate: -360,
-              }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-              }}
-              id="div_loader_request"
-            >
-              <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-            </motion.div>
-          </div>
+          {isNext && (
+            <div ref={divlazyloaderRef} id="div_isLoading_notifications">
+              <motion.div
+                animate={{
+                  rotate: -360,
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                }}
+                id="div_loader_request"
+              >
+                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+              </motion.div>
+            </div>
+          )}
         </div>
       )}
     </motion.div>

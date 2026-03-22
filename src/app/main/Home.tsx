@@ -232,7 +232,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
       dispatch({
         type: SET_MESSAGES_LIST,
         payload: {
-          messageslist: response,
+          messageslist: response.conversationslist,
         },
       });
       // setisLoading(false);

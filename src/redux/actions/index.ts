@@ -122,7 +122,7 @@ export const setcontactslist = (
 };
 
 export const setnotificationslist = (
-  state = { list: [], totalunread: 0 },
+  state = { list: [], totalunread: 0, total: 0, next: true },
   action: any,
 ) => {
   switch (action.type) {

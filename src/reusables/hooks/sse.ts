@@ -242,7 +242,7 @@ const SSENotificationsTRequest = (
           dispatch({
             type: SET_MESSAGES_LIST_OVERRIDE,
             payload: {
-              messageslist: response,
+              messageslist: response.conversationslist,
             },
           });
         });

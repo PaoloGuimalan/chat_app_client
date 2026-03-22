@@ -560,6 +560,8 @@ const NotificationInitRequest = (
             notficationslist: {
               list: decodedResult.notifications,
               totalunread: decodedResult.totalunread,
+              total: decodedResult.total,
+              next: decodedResult.next,
             },
           },
         });
@@ -595,6 +597,8 @@ const NotificationOverrideRequest = (
             notficationslist: {
               list: decodedResult.notifications,
               totalunread: decodedResult.totalunread,
+              total: decodedResult.total,
+              next: decodedResult.next,
             },
           },
         });
@@ -873,7 +877,7 @@ const InitConversationListRequest = async (page: number, range: number) => {
         const decodedResult: any = jwt_decode(response.data.result);
 
         // console.log(decodedResult.conversationslist)
-        return decodedResult.conversationslist;
+        return decodedResult;
       }
     })
     .catch((err) => {
