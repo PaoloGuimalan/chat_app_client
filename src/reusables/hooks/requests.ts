@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Axios from "axios";
+import axios from "axios";
 import {
   SET_ACTIVE_USERS_LIST,
   SET_ALERTS,
@@ -14,7 +14,7 @@ import { authenticationstate } from "../../redux/actions/states";
 import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import { Dispatch } from "react";
-import { convertLoginResponse } from "./reusable";
+import { convertLoginResponse, generateXNonce } from "./reusable";
 import { ConvertedResponse } from "../vars/types";
 import { PaginationProp } from "../vars/props";
 import { IContact, INewEntry } from "../vars/interfaces";
@@ -25,6 +25,25 @@ import { clearViewPosts, getAllViewCache } from "./localforagehelper";
 const API = envs.CHATTERLOOP_API;
 const USER_SERVICE_API = envs.USER_SERVICE_API;
 const SECRET = envs.SECRET;
+
+const Axios = axios.create();
+
+Axios.interceptors.request.use(async (config) => {
+  try {
+    const user = localStorage.getItem("authtoken");
+    const decoded: { username: string; userID: string } | null = user
+      ? jwt_decode(user)
+      : null;
+
+    const userID = decoded ? decoded.userID : "guest";
+
+    const nonce = await generateXNonce(userID);
+    config.headers["X-Nonce"] = nonce;
+    return config;
+  } catch (error) {
+    return Promise.reject(error);
+  }
+});
 
 const AuthCheck = (dispatch: any) => {
   Axios.get(`${API}/auth/jwtchecker`, {

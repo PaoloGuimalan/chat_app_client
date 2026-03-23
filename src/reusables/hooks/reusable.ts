@@ -1,6 +1,7 @@
 import { usersettingsstate } from "@/redux/actions/states";
 import { IContact, IUserSettings } from "../vars/interfaces";
 import { ConvertedResponse, OriginalResponse } from "../vars/types";
+import envs from "./env_configs";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function importData(resolve: any, rawresolve: any) {
@@ -379,6 +380,44 @@ function sanitizeForStorage(content: string) {
     .replace(/'/g, "&#039;");
 }
 
+async function generateXNonce(userId: string) {
+  const secret = envs.SECRET;
+  const encoder = new TextEncoder();
+
+  const hashedSecret = await window.crypto.subtle.digest(
+    "SHA-256",
+    encoder.encode(secret),
+  );
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  const random = Math.random().toString(36).substring(2, 10);
+  const plainText = `${userId}.${timestamp}.${random}`;
+
+  const key = await window.crypto.subtle.importKey(
+    "raw",
+    hashedSecret,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"],
+  );
+
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const encryptedBuffer = await window.crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv },
+    key,
+    encoder.encode(plainText),
+  );
+
+  const ivHex = Array.from(iv)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  const cipherTextHex = Array.from(new Uint8Array(encryptedBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return `${ivHex}.${cipherTextHex}`;
+}
+
 export {
   importData,
   importNonImageData,
@@ -397,4 +436,5 @@ export {
   userSessionStatusFromContacts,
   isUserSettingsComplete,
   sanitizeForStorage,
+  generateXNonce,
 };
