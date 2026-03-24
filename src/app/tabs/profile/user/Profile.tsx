@@ -22,7 +22,7 @@ import {
   GetProfileInfo,
 } from "@/reusables/hooks/requests";
 // import jwtDecode from "jwt-decode";
-import { FaBook, FaLinkSlash } from "react-icons/fa6";
+import { FaBook } from "react-icons/fa6";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaTransgender, FaFileAlt } from "react-icons/fa";
 import { IoMale, IoFemale, IoTime } from "react-icons/io5";
@@ -50,6 +50,7 @@ import { HiOutlinePencil } from "react-icons/hi";
 import ProfilePicContainer from "./ProfilePicContainer";
 import ProfileCoverContainer from "./ProfileCoverContainer";
 import Skeleton from "react-loading-skeleton";
+import BrokenLink from "@/app/reusables/catchers/BrokenLink";
 
 function Profile() {
   const authentication: AuthenticationInterface = useSelector(
@@ -893,27 +894,10 @@ function Profile() {
       </div>
     )
   ) : (
-    <div className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px]">
-      <button
-        onClick={() => {
-          navigate("/");
-        }}
-        className="tw-z-[100] tw-shadow-lg tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
-      >
-        <IoArrowBack style={{ fontSize: "20px" }} />
-      </button>
-      <div className="tw-w-full tw-h-full tw-flex tw-flex-col tw-gap-[15px] tw-items-center tw-justify-center">
-        <FaLinkSlash style={{ fontSize: "100px", color: "#333333" }} />
-        <div className="tw-flex tw-flex-col tw-gap-[5px] tw-text-[#333333]">
-          <span className="tw-font-semibold tw-text-[16px]">
-            Link is broken.
-          </span>
-          <span className="tw-font-normal tw-text-[14px]">
-            Please check and try again.
-          </span>
-        </div>
-      </div>
-    </div>
+    <BrokenLink
+      label="Link is broken."
+      secondaryLabel="Please check and try again."
+    />
   );
 }
 
