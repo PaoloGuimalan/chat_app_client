@@ -67,6 +67,7 @@ function Channels({ serverlist }: any) {
   const [toggleserveraddchannelmodal, settoggleserveraddchannelmodal] =
     useState<boolean>(false);
   const [isLoaded, setisLoaded] = useState<boolean>(false);
+  const [haveAccess, sethaveAccess] = useState<boolean>(false);
 
   const InitServerChannelsProcess = () => {
     InitServerChannelsRequest({
@@ -84,9 +85,11 @@ function Channels({ serverlist }: any) {
         setserverdetails(response.data[0]);
         setTimeout(() => {
           setisLoaded(true);
+          sethaveAccess(true);
         }, 1000);
       })
       .catch((err) => {
+        sethaveAccess(false);
         console.log(err);
       });
   };
@@ -99,6 +102,7 @@ function Channels({ serverlist }: any) {
 
   useEffect(() => {
     setisLoaded(false);
+    sethaveAccess(false);
     setserverdetails(null);
   }, [serverID]);
 
@@ -292,7 +296,8 @@ function Channels({ serverlist }: any) {
             </div>
             <div className="tw-bg-transparent tw-gap-[3px] tw-w-[calc(100%-20px)] tw-pb-[5px] tw-pl-[10px] tw-pr-[10px] tw-flex tw-flex-1 tw-flex-col tw-items-start">
               {isLoaded
-                ? serverdetails?.channels.map((mp: ChannelsListInterface) => {
+                ? haveAccess &&
+                  serverdetails?.channels.map((mp: ChannelsListInterface) => {
                     return (
                       <motion.div
                         key={mp.groupID}
@@ -404,8 +409,26 @@ function Channels({ serverlist }: any) {
         className="tw-flex tw-flex-1 tw-h-full tw-overflow-x-hidden tw-rounded-tr-[10px] tw-rounded-br-[10px]"
       >
         <Routes>
-          <Route path="/" element={<NoChannel server={serverDetails} />} />
-          <Route path="/:conversationID" element={<ServerConversation />} />
+          <Route
+            path="/"
+            element={
+              isLoaded && haveAccess ? (
+                <NoChannel server={serverDetails} />
+              ) : (
+                <div className="tw-bg-white tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]" />
+              )
+            }
+          />
+          <Route
+            path="/:conversationID"
+            element={
+              isLoaded && haveAccess ? (
+                <ServerConversation />
+              ) : (
+                <div className="tw-bg-white tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]" />
+              )
+            }
+          />
         </Routes>
       </motion.div>
     </motion.div>
