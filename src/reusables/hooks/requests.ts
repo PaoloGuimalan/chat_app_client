@@ -2009,6 +2009,42 @@ const ParticipantStatusRequest = async (payload: any) => {
     });
 };
 
+const CreatePageRequest = async (payload: {
+  pageName: string;
+  pageDescription: string;
+  email: string;
+  slug: string;
+  otherUsers: any[];
+  profile: File;
+  cover_photo: File;
+}) => {
+  const formData = new FormData();
+  formData.append("pageName", payload.pageName);
+  formData.append("pageDescription", payload.pageDescription);
+  formData.append("email", payload.email);
+  formData.append("slug", payload.slug);
+  formData.append("otherUsers", JSON.stringify(payload.otherUsers));
+  formData.append("profile", payload.profile);
+  formData.append("cover_photo", payload.cover_photo);
+
+  return await Axios.post(`${envs.CHATTERLOOP_API}/u/createpage`, formData, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2077,4 +2113,5 @@ export {
   SnapCoordinatesOpenRoute,
   UploadMediaRequest,
   VoiceRequest,
+  CreatePageRequest,
 };

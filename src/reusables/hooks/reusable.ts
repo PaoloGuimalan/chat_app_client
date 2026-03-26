@@ -418,6 +418,27 @@ async function generateXNonce(userId: string) {
   return `${ivHex}.${cipherTextHex}`;
 }
 
+function hasNullValues(obj: any): any {
+  if (obj === null || obj === undefined) return true;
+
+  if (typeof obj === "string") {
+    return obj.trim() === "";
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.length === 0 || obj.some(hasNullValues);
+  }
+
+  if (typeof obj !== "object") return false;
+
+  // Check object properties
+  for (const value of Object.values(obj)) {
+    if (hasNullValues(value)) return true;
+  }
+
+  return false;
+}
+
 export {
   importData,
   importNonImageData,
@@ -437,4 +458,5 @@ export {
   isUserSettingsComplete,
   sanitizeForStorage,
   generateXNonce,
+  hasNullValues,
 };
