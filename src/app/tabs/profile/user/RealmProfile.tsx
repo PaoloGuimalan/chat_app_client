@@ -15,6 +15,7 @@ import PostItem from "./PostItem";
 import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 import { FaFileAlt } from "react-icons/fa";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 
 function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
   const navigate = useNavigate();
@@ -78,8 +79,11 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
           />
           <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
             <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[20px] tw-sm:p-[0px]">
-              <span className="tw-text-[25px] tw-font-bold">
-                {realmInfo.name}
+              <span className="tw-text-[25px] tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
+                <span>{realmInfo.name}</span>
+                {realmInfo.is_verified && (
+                  <RiVerifiedBadgeFill size={18} color="#1c7def" />
+                )}
               </span>
               <span className="tw-text-[14px] tw-break-all tw-mb-[20px]">
                 {realmInfo.email}
@@ -88,8 +92,37 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
                 @{realmInfo.slug}
               </span>
             </div>
-            <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px]">
-              ...
+            <div className="tw-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[4px] tw-justify-center">
+              {realmInfo.is_admin && (
+                <button
+                  onClick={() => {}}
+                  className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-border-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
+                >
+                  Manage
+                </button>
+              )}
+              <button
+                onClick={() => {}}
+                className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+              >
+                {/* {isConnectionButtonsLoading ? (
+                  <motion.div
+                    animate={{
+                      rotate: -360,
+                    }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                    }}
+                    id="div_loader_request_nano_light"
+                  >
+                    <AiOutlineLoading3Quarters style={{ fontSize: "15px" }} />
+                  </motion.div>
+                ) : ( */}
+                {/* "Add Contact" */}
+                Follow
+                {/* )} */}
+              </button>
             </div>
           </div>
         </div>

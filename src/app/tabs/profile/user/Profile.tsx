@@ -49,6 +49,7 @@ import { HiOutlinePencil } from "react-icons/hi";
 import ProfilePicContainer from "./ProfilePicContainer";
 import ProfileCoverContainer from "./ProfileCoverContainer";
 import Skeleton from "react-loading-skeleton";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 
 function Profile({
   profileInfo,
@@ -135,6 +136,7 @@ function Profile({
   };
 
   useEffect(() => {
+    setpage(1);
     GetDiaryTotalProcess();
 
     return () => {
@@ -381,12 +383,17 @@ function Profile({
           />
           <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
             <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[20px] tw-sm:p-[0px]">
-              <span className="tw-text-[25px] tw-font-bold">
-                {profileInfo.fullname.firstName}
-                {profileInfo.fullname.middleName == "N/A"
-                  ? ""
-                  : ` ${profileInfo.fullname.middleName}`}{" "}
-                {profileInfo.fullname.lastName}
+              <span className="tw-text-[25px] tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
+                <span>
+                  {profileInfo.fullname.firstName}
+                  {profileInfo.fullname.middleName == "N/A"
+                    ? ""
+                    : ` ${profileInfo.fullname.middleName}`}{" "}
+                  {profileInfo.fullname.lastName}
+                </span>
+                {profileInfo.isBadged && (
+                  <RiVerifiedBadgeFill size={18} color="#1c7def" />
+                )}
               </span>
               <span className="tw-text-[14px] tw-break-all tw-mb-[20px]">
                 {profileInfo.email}

@@ -27,6 +27,7 @@ import { PaginationProp } from "@/reusables/vars/props";
 import { IContact } from "@/reusables/vars/interfaces";
 import ContactItemLoader from "@/app/reusables/loaders/ContactItemLoader";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 
 function Contacts() {
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
@@ -271,11 +272,21 @@ function Contacts() {
                               navigate(`/${cnts.involved_user.username}`);
                             }}
                           >
-                            {cnts.involved_user.first_name}
-                            {cnts.involved_user.middle_name == "N/A"
-                              ? ""
-                              : ` ${cnts.involved_user.middle_name}`}{" "}
-                            {cnts.involved_user.last_name}
+                            <div className="tw-flex tw-items-center tw-gap-[4px]">
+                              <span>
+                                {cnts.involved_user.first_name}
+                                {cnts.involved_user.middle_name == "N/A"
+                                  ? ""
+                                  : ` ${cnts.involved_user.middle_name}`}{" "}
+                                {cnts.involved_user.last_name}
+                              </span>
+                              {cnts.involved_user.is_badged && (
+                                <RiVerifiedBadgeFill
+                                  size={16}
+                                  color="#1c7def"
+                                />
+                              )}
+                            </div>
                           </span>
                         </div>
                         {isUserOnline(
@@ -398,11 +409,21 @@ function Contacts() {
                               navigate(`/${cnts.action_by.username}`);
                             }}
                           >
-                            {cnts.action_by.first_name}
-                            {cnts.action_by.middle_name == "N/A"
-                              ? ""
-                              : ` ${cnts.action_by.middle_name}`}{" "}
-                            {cnts.action_by.last_name}
+                            <div className="tw-flex tw-items-center tw-gap-[4px]">
+                              <span>
+                                {cnts.action_by.first_name}
+                                {cnts.action_by.middle_name == "N/A"
+                                  ? ""
+                                  : ` ${cnts.action_by.middle_name}`}{" "}
+                                {cnts.action_by.last_name}
+                              </span>
+                              {cnts.action_by.is_badged && (
+                                <RiVerifiedBadgeFill
+                                  size={16}
+                                  color="#1c7def"
+                                />
+                              )}
+                            </div>
                           </span>
                         </div>
                         {isUserOnline(

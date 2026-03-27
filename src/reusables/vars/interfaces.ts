@@ -62,6 +62,7 @@ export interface ProfileUserInfoInterface {
   };
   isActivated: boolean;
   isVerified: boolean;
+  isBadged: boolean;
 }
 
 export interface IRealmProfileInfo {
@@ -79,6 +80,9 @@ export interface IRealmProfileInfo {
   realm_id: string;
   slug: string | null;
   type: string;
+  is_admin: boolean;
+  is_member: boolean;
+  followers_count: number;
 }
 
 export interface ProfilePostState {
@@ -300,6 +304,7 @@ export interface IUserContactPreview {
   last_name: string;
   profile: string;
   gender: string;
+  is_badged: boolean;
 }
 
 export interface IContact {

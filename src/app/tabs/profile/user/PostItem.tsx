@@ -29,6 +29,7 @@ import PostComment from "@/app/widgets/items/PostComment";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { timeSince } from "@/reusables/hooks/reusable";
 import { persistViewPosts } from "@/reusables/hooks/localforagehelper";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 
 function PostItem({
   isSharePreview,
@@ -179,18 +180,25 @@ function PostItem({
               )}
             </div>
             <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
-              <div className="tw-text-left">
+              <div className="tw-text-left tw-flex">
                 <span
                   className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                   onClick={() => {
                     navigate(`/${postState.user.username}`);
                   }}
                 >
-                  {postState.user.first_name}
-                  {postState.user.middle_name == "N/A"
-                    ? ""
-                    : ` ${postState.user.middle_name}`}{" "}
-                  {postState.user.last_name}
+                  <div className="tw-flex tw-items-center tw-gap-[4px]">
+                    <span>
+                      {postState.user.first_name}
+                      {postState.user.middle_name == "N/A"
+                        ? ""
+                        : ` ${postState.user.middle_name}`}{" "}
+                      {postState.user.last_name}
+                    </span>
+                    {postState.user.is_badged && (
+                      <RiVerifiedBadgeFill size={16} color="#1c7def" />
+                    )}
+                  </div>
                 </span>
                 &nbsp;
                 {postState.content_type === "profile" && (
@@ -216,11 +224,18 @@ function PostItem({
                         }}
                         key={i}
                       >
-                        {mptg.user.first_name}
-                        {mptg.user.middle_name == "N/A"
-                          ? ""
-                          : ` ${mptg.user.middle_name}`}{" "}
-                        {mptg.user.last_name}
+                        <div className="tw-flex tw-items-center tw-gap-[4px]">
+                          <span>
+                            {mptg.user.first_name}
+                            {mptg.user.middle_name == "N/A"
+                              ? ""
+                              : ` ${mptg.user.middle_name}`}{" "}
+                            {mptg.user.last_name}
+                          </span>
+                          {mptg.user.is_badged && (
+                            <RiVerifiedBadgeFill size={16} color="#1c7def" />
+                          )}
+                        </div>
                       </span>
                     );
                   })}
@@ -369,18 +384,28 @@ function PostItem({
                             </div>
                           )}
                           <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
-                            <div className="tw-text-left">
+                            <div className="tw-text-left tw-flex tw-flex-wrap">
                               <span
                                 className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                                 onClick={() => {
                                   navigate(`/${postState.user.username}`);
                                 }}
                               >
-                                {postState.user.first_name}
-                                {postState.user.middle_name == "N/A"
-                                  ? ""
-                                  : ` ${postState.user.middle_name}`}{" "}
-                                {postState.user.last_name}
+                                <div className="tw-flex tw-items-center tw-gap-[4px]">
+                                  <span>
+                                    {postState.user.first_name}
+                                    {postState.user.middle_name == "N/A"
+                                      ? ""
+                                      : ` ${postState.user.middle_name}`}{" "}
+                                    {postState.user.last_name}
+                                  </span>
+                                  {postState.user.is_badged && (
+                                    <RiVerifiedBadgeFill
+                                      size={16}
+                                      color="#1c7def"
+                                    />
+                                  )}
+                                </div>
                               </span>
                               &nbsp;
                               {postState.tagging.length > 0 && (
@@ -398,11 +423,21 @@ function PostItem({
                                         }}
                                         key={i}
                                       >
-                                        {mptg.user.first_name}
-                                        {mptg.user.middle_name == "N/A"
-                                          ? ""
-                                          : ` ${mptg.user.middle_name}`}{" "}
-                                        {mptg.user.last_name}
+                                        <div className="tw-flex tw-items-center tw-gap-[4px]">
+                                          <span>
+                                            {mptg.user.first_name}
+                                            {mptg.user.middle_name == "N/A"
+                                              ? ""
+                                              : ` ${mptg.user.middle_name}`}{" "}
+                                            {mptg.user.last_name}
+                                          </span>
+                                          {mptg.user.is_badged && (
+                                            <RiVerifiedBadgeFill
+                                              size={16}
+                                              color="#1c7def"
+                                            />
+                                          )}
+                                        </div>
                                       </span>
                                     );
                                   },

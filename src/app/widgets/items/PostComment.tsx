@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { FaFileAlt } from "react-icons/fa";
 import PostCommentLoader from "@/app/reusables/loaders/PostCommentLoader";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 
 function PostComment({ post_id, parent_id }: PostCommentProp) {
   const [comments, setComments] =
@@ -44,7 +45,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
           results: getUniqueItemsOfObjects(
             [...prev.results, ...response.results],
             "comment_id",
-            "created_at"
+            "created_at",
           ),
         }));
         setIsLoaded(true);
@@ -65,7 +66,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
           results: getUniqueItemsOfObjects(
             [...prev.results, ...response.results],
             "comment_id",
-            "created_at"
+            "created_at",
           ),
         }));
       })
@@ -196,11 +197,18 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                             navigate(`/${mp.user.username}`);
                           }}
                         >
-                          {mp.user.first_name}
-                          {mp.user.middle_name == "N/A"
-                            ? ""
-                            : ` ${mp.user.middle_name}`}{" "}
-                          {mp.user.last_name}
+                          <div className="tw-flex tw-items-center tw-gap-[4px]">
+                            <span>
+                              {mp.user.first_name}
+                              {mp.user.middle_name == "N/A"
+                                ? ""
+                                : ` ${mp.user.middle_name}`}{" "}
+                              {mp.user.last_name}
+                            </span>
+                            {mp.user.is_badged && (
+                              <RiVerifiedBadgeFill size={16} color="#1c7def" />
+                            )}
+                          </div>
                         </span>
                         <span className="tw-text-[14px]">{mp.text}</span>
                       </div>
