@@ -19,7 +19,6 @@ import {
   DeclineContactRequest,
   GetDiaryTotalRequest,
   GetPostRequest,
-  GetProfileInfo,
 } from "@/reusables/hooks/requests";
 // import jwtDecode from "jwt-decode";
 import { FaBook } from "react-icons/fa6";
@@ -50,9 +49,14 @@ import { HiOutlinePencil } from "react-icons/hi";
 import ProfilePicContainer from "./ProfilePicContainer";
 import ProfileCoverContainer from "./ProfileCoverContainer";
 import Skeleton from "react-loading-skeleton";
-import BrokenLink from "@/app/reusables/catchers/BrokenLink";
 
-function Profile() {
+function Profile({
+  profileInfo,
+  GetProfileInfoProcess,
+}: {
+  profileInfo: ProfileUserInfoInterface;
+  GetProfileInfoProcess: () => void;
+}) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -68,12 +72,9 @@ function Profile() {
   const params = useParams();
   const dispatch = useDispatch();
 
-  const [profileInfo, setprofileInfo] =
-    useState<ProfileUserInfoInterface | null>(null);
   const [paginatedPosts, setpaginatedPosts] =
     useState<PaginationProp<IPost>>(postsliststate);
   const posts: IPost[] = paginatedPosts.results;
-  const [isloaded, setisloaded] = useState<boolean>(true);
   const [ispostsloaded, setispostsloaded] = useState<boolean>(false);
   const [isConnectionButtonsLoading, setisConnectionButtonsLoading] =
     useState<boolean>(false);
@@ -119,35 +120,7 @@ function Profile() {
         };
       }
     }
-  }, [divcontentRef, divlazyloaderRef, isloaded, profileInfo]);
-
-  const GetProfileInfoProcess = () => {
-    GetProfileInfo({
-      userID: params.userID,
-    })
-      .then((response) => {
-        // if (response.data.status) {
-        // const result: any = jwtDecode(response.data);
-        setpaginatedPosts(postsliststate); //temporary
-        setisConnectionButtonsLoading(false);
-        if (response.data) {
-          setisloaded(true);
-          setprofileInfo(response.data.data);
-        } else {
-          setisloaded(false);
-          setprofileInfo(null);
-        }
-        // } else {
-        //   setprofileInfo(null);
-        //   setisloaded(false);
-        // }
-      })
-      .catch((err) => {
-        setprofileInfo(null);
-        setisloaded(false);
-        console.log(err);
-      });
-  };
+  }, [divcontentRef, divlazyloaderRef, profileInfo]);
 
   const GetDiaryTotalProcess = () => {
     GetDiaryTotalRequest({
@@ -162,11 +135,9 @@ function Profile() {
   };
 
   useEffect(() => {
-    GetProfileInfoProcess();
     GetDiaryTotalProcess();
 
     return () => {
-      setprofileInfo(null);
       setpaginatedPosts(postsliststate);
     };
   }, [params.userID]);
@@ -383,55 +354,125 @@ function Profile() {
     }
   };
 
-  return isloaded ? (
-    profileInfo ? (
-      <div
-        ref={divcontentRef}
-        className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll"
+  return profileInfo ? (
+    <div
+      ref={divcontentRef}
+      className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll"
+    >
+      <button
+        onClick={() => {
+          navigate("/");
+        }}
+        className="tw-z-[10] tw-shadow-lg tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
       >
-        <button
-          onClick={() => {
-            navigate("/");
-          }}
-          className="tw-z-[10] tw-shadow-lg tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
-        >
-          <IoArrowBack style={{ fontSize: "20px" }} />
-        </button>
-        <div className="tw-bg-white tw-w-full tw-h-[60%] tw-min-h-[500px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
-          <ProfileCoverContainer
-            profileInfo={profileInfo}
+        <IoArrowBack style={{ fontSize: "20px" }} />
+      </button>
+      <div className="tw-bg-white tw-w-full tw-h-[60%] tw-min-h-[500px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
+        <ProfileCoverContainer
+          userID={profileInfo.userID}
+          coverphoto={profileInfo.coverphoto}
+          getpostprocess={GetPostProcess}
+        />
+        <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
+          <ProfilePicContainer
+            userID={profileInfo.userID}
+            profile={profileInfo.profile}
             getpostprocess={GetPostProcess}
           />
-          <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
-            <ProfilePicContainer
-              profileInfo={profileInfo}
-              getpostprocess={GetPostProcess}
-            />
-            <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
-              <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[20px] tw-sm:p-[0px]">
-                <span className="tw-text-[25px] tw-font-bold">
-                  {profileInfo.fullname.firstName}
-                  {profileInfo.fullname.middleName == "N/A"
-                    ? ""
-                    : ` ${profileInfo.fullname.middleName}`}{" "}
-                  {profileInfo.fullname.lastName}
-                </span>
-                <span className="tw-text-[14px] tw-break-all tw-mb-[20px]">
-                  {profileInfo.email}
-                </span>
-                <span className="tw-text-[14px] tw-break-all">
-                  @{profileInfo.userID}
-                </span>
-              </div>
-              {authentication.user.userID !== params.userID &&
-                profileInfo.connection.is_connection_present !== null && (
-                  <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px]">
-                    {/* for add friend button */}
-                    {!profileInfo.connection.is_connection_present ? (
+          <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
+            <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[20px] tw-sm:p-[0px]">
+              <span className="tw-text-[25px] tw-font-bold">
+                {profileInfo.fullname.firstName}
+                {profileInfo.fullname.middleName == "N/A"
+                  ? ""
+                  : ` ${profileInfo.fullname.middleName}`}{" "}
+                {profileInfo.fullname.lastName}
+              </span>
+              <span className="tw-text-[14px] tw-break-all tw-mb-[20px]">
+                {profileInfo.email}
+              </span>
+              <span className="tw-text-[14px] tw-break-all">
+                @{profileInfo.userID}
+              </span>
+            </div>
+            {authentication.user.userID !== params.userID &&
+              profileInfo.connection.is_connection_present !== null && (
+                <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px]">
+                  {/* for add friend button */}
+                  {!profileInfo.connection.is_connection_present ? (
+                    <button
+                      disabled={isConnectionButtonsLoading}
+                      onClick={() => {
+                        initiateConnectionProcess("add");
+                      }}
+                      className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                    >
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        "Add Contact"
+                      )}
+                    </button>
+                  ) : profileInfo.connection.is_connection_handshaked ? (
+                    <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
                       <button
                         disabled={isConnectionButtonsLoading}
                         onClick={() => {
-                          initiateConnectionProcess("add");
+                          initiateConnectionProcess("remove");
+                        }}
+                        className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#a7a7a7] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                      >
+                        {isConnectionButtonsLoading ? (
+                          <motion.div
+                            animate={{
+                              rotate: -360,
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                            }}
+                            id="div_loader_request_nano_light"
+                          >
+                            <AiOutlineLoading3Quarters
+                              style={{ fontSize: "15px" }}
+                            />
+                          </motion.div>
+                        ) : (
+                          "Connected"
+                        )}
+                      </button>
+                      <button
+                        onClick={() => {
+                          navigateToConversation(
+                            "single",
+                            profileInfo.connection.connection_id,
+                            profileInfo,
+                          );
+                        }}
+                        className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                      >
+                        Message
+                      </button>
+                    </div>
+                  ) : profileInfo.connection.is_user_connection_initiator ? (
+                    <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                      <button
+                        disabled={isConnectionButtonsLoading}
+                        onClick={() => {
+                          initiateConnectionProcess("accept");
                         }}
                         className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
                       >
@@ -451,112 +492,15 @@ function Profile() {
                             />
                           </motion.div>
                         ) : (
-                          "Add Contact"
+                          "Accept"
                         )}
                       </button>
-                    ) : profileInfo.connection.is_connection_handshaked ? (
-                      <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
-                        <button
-                          disabled={isConnectionButtonsLoading}
-                          onClick={() => {
-                            initiateConnectionProcess("remove");
-                          }}
-                          className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#a7a7a7] tw-text-white tw-rounded-[6px] tw-text-[12px]"
-                        >
-                          {isConnectionButtonsLoading ? (
-                            <motion.div
-                              animate={{
-                                rotate: -360,
-                              }}
-                              transition={{
-                                duration: 1,
-                                repeat: Infinity,
-                              }}
-                              id="div_loader_request_nano_light"
-                            >
-                              <AiOutlineLoading3Quarters
-                                style={{ fontSize: "15px" }}
-                              />
-                            </motion.div>
-                          ) : (
-                            "Connected"
-                          )}
-                        </button>
-                        <button
-                          onClick={() => {
-                            navigateToConversation(
-                              "single",
-                              profileInfo.connection.connection_id,
-                              profileInfo,
-                            );
-                          }}
-                          className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
-                        >
-                          Message
-                        </button>
-                      </div>
-                    ) : profileInfo.connection.is_user_connection_initiator ? (
-                      <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
-                        <button
-                          disabled={isConnectionButtonsLoading}
-                          onClick={() => {
-                            initiateConnectionProcess("accept");
-                          }}
-                          className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
-                        >
-                          {isConnectionButtonsLoading ? (
-                            <motion.div
-                              animate={{
-                                rotate: -360,
-                              }}
-                              transition={{
-                                duration: 1,
-                                repeat: Infinity,
-                              }}
-                              id="div_loader_request_nano_light"
-                            >
-                              <AiOutlineLoading3Quarters
-                                style={{ fontSize: "15px" }}
-                              />
-                            </motion.div>
-                          ) : (
-                            "Accept"
-                          )}
-                        </button>
-                        <button
-                          disabled={isConnectionButtonsLoading}
-                          onClick={() => {
-                            initiateConnectionProcess("decline");
-                          }}
-                          className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#666666] tw-text-white tw-rounded-[6px] tw-text-[12px]"
-                        >
-                          {isConnectionButtonsLoading ? (
-                            <motion.div
-                              animate={{
-                                rotate: -360,
-                              }}
-                              transition={{
-                                duration: 1,
-                                repeat: Infinity,
-                              }}
-                              id="div_loader_request_nano_light"
-                            >
-                              <AiOutlineLoading3Quarters
-                                style={{ fontSize: "15px" }}
-                              />
-                            </motion.div>
-                          ) : (
-                            "Decline"
-                          )}
-                        </button>
-                      </div>
-                    ) : (
                       <button
                         disabled={isConnectionButtonsLoading}
                         onClick={() => {
-                          initiateConnectionProcess("cancel");
+                          initiateConnectionProcess("decline");
                         }}
-                        className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-red-500 tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#666666] tw-text-white tw-rounded-[6px] tw-text-[12px]"
                       >
                         {isConnectionButtonsLoading ? (
                           <motion.div
@@ -574,330 +518,350 @@ function Profile() {
                             />
                           </motion.div>
                         ) : (
-                          "Cancel Request"
+                          "Decline"
                         )}
                       </button>
-                    )}
-                  </div>
-                )}
-            </div>
+                    </div>
+                  ) : (
+                    <button
+                      disabled={isConnectionButtonsLoading}
+                      onClick={() => {
+                        initiateConnectionProcess("cancel");
+                      }}
+                      className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-red-500 tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                    >
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        "Cancel Request"
+                      )}
+                    </button>
+                  )}
+                </div>
+              )}
           </div>
         </div>
-        <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
-          <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
-            <div className="tw-w-full tw-h-fit tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
-              <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
-                {profileInfo.gender && (
-                  <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
-                    {genderIcons[profileInfo.gender]}
-                    <span className="tw-text-[14px] tw-font-semibold">
-                      {profileInfo.gender}
-                    </span>
-                  </div>
-                )}
+      </div>
+      <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
+        <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
+          <div className="tw-w-full tw-h-fit tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+            <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
+              {profileInfo.gender && (
                 <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
-                  <IoTime style={{ fontSize: "20px", color: "#666666" }} />
-                  <span className="tw-text-[14px]">Joined </span>
-                  <span className="tw-text-[14px] tw-font-semibold tw-text-left">
-                    {formattedDateToWords(profileInfo.dateCreated.date)}
+                  {genderIcons[profileInfo.gender]}
+                  <span className="tw-text-[14px] tw-font-semibold">
+                    {profileInfo.gender}
                   </span>
                 </div>
-                <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
-                  <MdCake
-                    style={{
-                      fontSize: "20px",
-                      color: "#666666",
-                      marginTop: "-4px",
-                    }}
-                  />
-                  <span className="tw-text-[14px]">Born in </span>
-                  <span className="tw-text-[14px] tw-font-semibold tw-text-left">
-                    {profileInfo.birthdate
-                      ? `${ordinal_suffix_of(
-                          parseInt(profileInfo.birthdate.day),
-                        )} of 
+              )}
+              <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
+                <IoTime style={{ fontSize: "20px", color: "#666666" }} />
+                <span className="tw-text-[14px]">Joined </span>
+                <span className="tw-text-[14px] tw-font-semibold tw-text-left">
+                  {formattedDateToWords(profileInfo.dateCreated.date)}
+                </span>
+              </div>
+              <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
+                <MdCake
+                  style={{
+                    fontSize: "20px",
+                    color: "#666666",
+                    marginTop: "-4px",
+                  }}
+                />
+                <span className="tw-text-[14px]">Born in </span>
+                <span className="tw-text-[14px] tw-font-semibold tw-text-left">
+                  {profileInfo.birthdate
+                    ? `${ordinal_suffix_of(
+                        parseInt(profileInfo.birthdate.day),
+                      )} of 
                     ${profileInfo.birthdate.month} ${
                       profileInfo.birthdate.year
                     }`
-                      : "not provided"}
-                  </span>
-                </div>
+                    : "not provided"}
+                </span>
               </div>
             </div>
-            <div className="tw-h-fit tw-w-full tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
-              <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
-                <div className="tw-w-full tw-flex">
-                  <div className="tw-flex tw-flex-row tw-flex-1 tw-gap-[5px] tw-items-center">
-                    <FaBook style={{ fontSize: "17px", color: "#666666" }} />
-                    <span className="tw-text-[14px] tw-font-semibold">
-                      Diary
-                    </span>
-                  </div>
-                  {params.userID === authentication.user.userID && (
-                    <Link
-                      to={`/${params.userID}/diary`}
-                      className="tw-text-[12px] tw-text-[#333333]"
-                    >
-                      View
-                    </Link>
-                  )}
+          </div>
+          <div className="tw-h-fit tw-w-full tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+            <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
+              <div className="tw-w-full tw-flex">
+                <div className="tw-flex tw-flex-row tw-flex-1 tw-gap-[5px] tw-items-center">
+                  <FaBook style={{ fontSize: "17px", color: "#666666" }} />
+                  <span className="tw-text-[14px] tw-font-semibold">Diary</span>
                 </div>
-                <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
-                  <BiCalendarEdit
-                    style={{
-                      fontSize: "20px",
-                      color: "#666666",
-                      marginTop: "-4px",
-                    }}
+                {params.userID === authentication.user.userID && (
+                  <Link
+                    to={`/${params.userID}/diary`}
+                    className="tw-text-[12px] tw-text-[#333333]"
+                  >
+                    View
+                  </Link>
+                )}
+              </div>
+              <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
+                <BiCalendarEdit
+                  style={{
+                    fontSize: "20px",
+                    color: "#666666",
+                    marginTop: "-4px",
+                  }}
+                />
+                {diaryPreview.isLoaded ? (
+                  diaryPreview.latest_entry ? (
+                    <span className="tw-text-[14px]">
+                      Latest entry on{" "}
+                      <span className="tw-text-[14px] tw-font-semibold tw-text-left">
+                        {formattedDateToWords(
+                          diaryPreview.latest_entry,
+                          "YYYY-MM-DD",
+                        )}
+                      </span>
+                    </span>
+                  ) : params.userID === authentication.user.userID ? (
+                    <span className="tw-text-[14px]">
+                      Write your first entry
+                    </span>
+                  ) : (
+                    <span className="tw-text-[14px]">
+                      {profileInfo.fullname.firstName} has no entries
+                    </span>
+                  )
+                ) : (
+                  <Skeleton
+                    className="tw-max-w-full tw-h-[18px]"
+                    containerClassName="tw-w-[180px] -tw-mt-[5px]"
+                    height="15px"
+                    baseColor="rgb(210, 210, 210)"
+                    count={1}
+                  />
+                )}
+              </div>
+              {params.userID === authentication.user.userID && (
+                <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
+                  <HiOutlinePencil
+                    style={{ fontSize: "20px", color: "#666666" }}
                   />
                   {diaryPreview.isLoaded ? (
-                    diaryPreview.latest_entry ? (
-                      <span className="tw-text-[14px]">
-                        Latest entry on{" "}
-                        <span className="tw-text-[14px] tw-font-semibold tw-text-left">
-                          {formattedDateToWords(
-                            diaryPreview.latest_entry,
-                            "YYYY-MM-DD",
-                          )}
-                        </span>
-                      </span>
-                    ) : params.userID === authentication.user.userID ? (
-                      <span className="tw-text-[14px]">
-                        Write your first entry
-                      </span>
-                    ) : (
-                      <span className="tw-text-[14px]">
-                        {profileInfo.fullname.firstName} has no entries
-                      </span>
-                    )
+                    <span className="tw-text-[14px]">
+                      {diaryPreview.total_entries}{" "}
+                      {diaryPreview.total_entries > 1 ? "entries" : "entry"}{" "}
+                      made{" "}
+                    </span>
                   ) : (
                     <Skeleton
                       className="tw-max-w-full tw-h-[18px]"
-                      containerClassName="tw-w-[180px] -tw-mt-[5px]"
+                      containerClassName="tw-w-[200px] -tw-mt-[5px]"
                       height="15px"
                       baseColor="rgb(210, 210, 210)"
                       count={1}
                     />
                   )}
                 </div>
-                {params.userID === authentication.user.userID && (
-                  <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
-                    <HiOutlinePencil
-                      style={{ fontSize: "20px", color: "#666666" }}
+              )}
+              {diaryPreview.top_tags.length > 0 && (
+                <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
+                  <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
+                    <TfiThought
+                      style={{
+                        fontSize: "20px",
+                        color: "#666666",
+                        marginTop: "-4px",
+                      }}
                     />
                     {diaryPreview.isLoaded ? (
                       <span className="tw-text-[14px]">
-                        {diaryPreview.total_entries}{" "}
-                        {diaryPreview.total_entries > 1 ? "entries" : "entry"}{" "}
-                        made{" "}
+                        {params.userID === authentication.user.userID
+                          ? "You've"
+                          : `${profileInfo.fullname.firstName} has`}{" "}
+                        been writing a lot about:
                       </span>
                     ) : (
                       <Skeleton
                         className="tw-max-w-full tw-h-[18px]"
-                        containerClassName="tw-w-[200px] -tw-mt-[5px]"
+                        containerClassName="tw-w-[220px] -tw-mt-[5px]"
                         height="15px"
                         baseColor="rgb(210, 210, 210)"
                         count={1}
                       />
                     )}
                   </div>
-                )}
-                {diaryPreview.top_tags.length > 0 && (
-                  <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
-                    <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
-                      <TfiThought
-                        style={{
-                          fontSize: "20px",
-                          color: "#666666",
-                          marginTop: "-4px",
-                        }}
-                      />
-                      {diaryPreview.isLoaded ? (
-                        <span className="tw-text-[14px]">
-                          {params.userID === authentication.user.userID
-                            ? "You've"
-                            : `${profileInfo.fullname.firstName} has`}{" "}
-                          been writing a lot about:
-                        </span>
-                      ) : (
-                        <Skeleton
-                          className="tw-max-w-full tw-h-[18px]"
-                          containerClassName="tw-w-[220px] -tw-mt-[5px]"
-                          height="15px"
-                          baseColor="rgb(210, 210, 210)"
-                          count={1}
-                        />
-                      )}
-                    </div>
-                    <motion.div
-                      initial={{
-                        paddingLeft: isMobileView ? "20px" : "20px",
-                      }}
-                      animate={{
-                        paddingLeft: isMobileView ? "20px" : "20px",
-                      }}
-                      className="tw-flex tw-flex-wrap tw-gap-[6px]"
-                    >
-                      {diaryPreview.top_tags.map((mp) => {
-                        return (
-                          <div
-                            key={mp.id}
-                            className="tw-p-[6px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                          >
-                            <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
-                              {mp.name}
-                            </span>
-                          </div>
-                        );
-                      })}
-                    </motion.div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
-          <div className="tw-w-full tw-pb-[20px] tw-flex tw-flex-col tw-items-center">
-            <div
-              id="div_feed_header_post_input_profile"
-              className="tw-border-[0px]"
-            >
-              {profileInfo.profile !== "none" ? (
-                <div id="img_default_profile_container">
-                  <CachedImage
-                    src={profileInfo.profile}
-                    id="img_actual_profile"
-                  />
-                </div>
-              ) : (
-                <div id="div_img_feed_header_container">
-                  <CachedImage src={DefaultProfile} id="img_feed_header" />
+                  <motion.div
+                    initial={{
+                      paddingLeft: isMobileView ? "20px" : "20px",
+                    }}
+                    animate={{
+                      paddingLeft: isMobileView ? "20px" : "20px",
+                    }}
+                    className="tw-flex tw-flex-wrap tw-gap-[6px]"
+                  >
+                    {diaryPreview.top_tags.map((mp) => {
+                      return (
+                        <div
+                          key={mp.id}
+                          className="tw-p-[6px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                        >
+                          <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                            {mp.name}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </motion.div>
                 </div>
               )}
-              <div id="div_input_feed_flex">
-                {toggleNewPostModal.toggle && (
-                  <NewPostModal
-                    toShare={false}
-                    sharePreviewData={null}
-                    withImage={toggleNewPostModal.withImage}
-                    profileInfo={profileInfo}
-                    setcreateposttext={setcreateposttext}
-                    getpostprocess={GetPostProcess}
-                    onclose={settoggleNewPostModal}
-                  />
-                )}
-                <input
-                  type="text"
-                  autoComplete="off"
-                  value={createposttext}
-                  onFocus={() => {
-                    settoggleNewPostModal({ toggle: true, withImage: false });
-                  }}
-                  onChange={(e) => {
-                    setcreateposttext(e.target.value);
-                  }}
-                  onKeyDown={(e) => {
-                    if (createposttext.trim() !== "") {
-                      if (e.key == "Enter") {
-                        // CreatePostProcess()
-                      }
-                    }
-                  }}
-                  className="tw-font-Inter"
-                  placeholder={
-                    profileInfo.userID === authentication.user.userID
-                      ? "Share your thoughts..."
-                      : `Write on ${profileInfo.fullname.firstName}'s wall...`
-                  }
-                  id="input_feed_box"
-                />
-              </div>
-              <div id="div_btn_image_container">
-                <button
-                  onClick={() => {
-                    settoggleNewPostModal({ toggle: true, withImage: true });
-                  }}
-                  id="btn_image_feed"
-                >
-                  <FcAddImage style={{ fontSize: "35px" }} />
-                </button>
-              </div>
             </div>
-            {paginatedPosts.count > 0 ? (
-              <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
-                {posts.map((mp: any, i: number) => {
-                  return <PostItem key={i} isSharePreview={false} mp={mp} />;
-                })}
-                {paginatedPosts.next && (
-                  <div
-                    ref={divlazyloaderRef}
-                    id="divlazyloader"
-                    className="tw-bg-transparent tw-w-full tw-flex tw-items-center tw-justify-center tw-mt-[5px] tw-mb-[5px]"
-                  >
-                    <motion.div
-                      animate={{
-                        rotate: -360,
-                      }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                      }}
-                      id="div_loader_request_conv"
-                    >
-                      <AiOutlineLoading3Quarters style={{ fontSize: "20px" }} />
-                    </motion.div>
-                  </div>
-                )}
-              </div>
-            ) : ispostsloaded ? (
-              <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
-                <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
-                <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
-                  <span className="tw-font-semibold tw-text-[14px]">
-                    No Posts yet
-                  </span>
-                </div>
-              </div>
-            ) : (
-              <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
-                {Array.from({ length: 8 }, (_, i: number) => {
-                  return <PostItemLoader key={i} />;
-                })}
-              </div>
-            )}
           </div>
         </div>
-      </div>
-    ) : (
-      <div className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px]">
-        <button
-          onClick={() => {
-            navigate("/");
-          }}
-          className="tw-z-[100] tw-shadow-lg tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
-        >
-          <IoArrowBack style={{ fontSize: "20px" }} />
-        </button>
-        <div className="tw-w-full tw-h-full tw-flex tw-flex-col tw-gap-[15px] tw-items-center tw-justify-center">
-          <motion.div
-            animate={{
-              rotate: -360,
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-            }}
-            id="div_loader_request"
+        <div className="tw-w-full tw-pb-[20px] tw-flex tw-flex-col tw-items-center">
+          <div
+            id="div_feed_header_post_input_profile"
+            className="tw-border-[0px]"
           >
-            <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-          </motion.div>
+            {profileInfo.profile !== "none" ? (
+              <div id="img_default_profile_container">
+                <CachedImage
+                  src={profileInfo.profile}
+                  id="img_actual_profile"
+                />
+              </div>
+            ) : (
+              <div id="div_img_feed_header_container">
+                <CachedImage src={DefaultProfile} id="img_feed_header" />
+              </div>
+            )}
+            <div id="div_input_feed_flex">
+              {toggleNewPostModal.toggle && (
+                <NewPostModal
+                  toShare={false}
+                  sharePreviewData={null}
+                  withImage={toggleNewPostModal.withImage}
+                  profileInfo={profileInfo}
+                  setcreateposttext={setcreateposttext}
+                  getpostprocess={GetPostProcess}
+                  onclose={settoggleNewPostModal}
+                />
+              )}
+              <input
+                type="text"
+                autoComplete="off"
+                value={createposttext}
+                onFocus={() => {
+                  settoggleNewPostModal({ toggle: true, withImage: false });
+                }}
+                onChange={(e) => {
+                  setcreateposttext(e.target.value);
+                }}
+                onKeyDown={(e) => {
+                  if (createposttext.trim() !== "") {
+                    if (e.key == "Enter") {
+                      // CreatePostProcess()
+                    }
+                  }
+                }}
+                className="tw-font-Inter"
+                placeholder={
+                  profileInfo.userID === authentication.user.userID
+                    ? "Share your thoughts..."
+                    : `Write on ${profileInfo.fullname.firstName}'s wall...`
+                }
+                id="input_feed_box"
+              />
+            </div>
+            <div id="div_btn_image_container">
+              <button
+                onClick={() => {
+                  settoggleNewPostModal({ toggle: true, withImage: true });
+                }}
+                id="btn_image_feed"
+              >
+                <FcAddImage style={{ fontSize: "35px" }} />
+              </button>
+            </div>
+          </div>
+          {paginatedPosts.count > 0 ? (
+            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
+              {posts.map((mp: any, i: number) => {
+                return <PostItem key={i} isSharePreview={false} mp={mp} />;
+              })}
+              {paginatedPosts.next && (
+                <div
+                  ref={divlazyloaderRef}
+                  id="divlazyloader"
+                  className="tw-bg-transparent tw-w-full tw-flex tw-items-center tw-justify-center tw-mt-[5px] tw-mb-[5px]"
+                >
+                  <motion.div
+                    animate={{
+                      rotate: -360,
+                    }}
+                    transition={{
+                      duration: 1,
+                      repeat: Infinity,
+                    }}
+                    id="div_loader_request_conv"
+                  >
+                    <AiOutlineLoading3Quarters style={{ fontSize: "20px" }} />
+                  </motion.div>
+                </div>
+              )}
+            </div>
+          ) : ispostsloaded ? (
+            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
+              <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
+              <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
+                <span className="tw-font-semibold tw-text-[14px]">
+                  No Posts yet
+                </span>
+              </div>
+            </div>
+          ) : (
+            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
+              {Array.from({ length: 8 }, (_, i: number) => {
+                return <PostItemLoader key={i} />;
+              })}
+            </div>
+          )}
         </div>
       </div>
-    )
+    </div>
   ) : (
-    <BrokenLink
-      label="Link is broken."
-      secondaryLabel="Please check and try again."
-    />
+    <div className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px]">
+      <button
+        onClick={() => {
+          navigate("/");
+        }}
+        className="tw-z-[100] tw-shadow-lg tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
+      >
+        <IoArrowBack style={{ fontSize: "20px" }} />
+      </button>
+      <div className="tw-w-full tw-h-full tw-flex tw-flex-col tw-gap-[15px] tw-items-center tw-justify-center">
+        <motion.div
+          animate={{
+            rotate: -360,
+          }}
+          transition={{
+            duration: 1,
+            repeat: Infinity,
+          }}
+          id="div_loader_request"
+        >
+          <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+        </motion.div>
+      </div>
+    </div>
   );
 }
 

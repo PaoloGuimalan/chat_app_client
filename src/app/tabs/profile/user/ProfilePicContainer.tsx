@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import DefaultProfile from "../../../../assets/imgs/default.png";
-import {
-  AuthenticationInterface,
-  ProfileUserInfoInterface,
-} from "@/reusables/vars/interfaces";
+import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
 import { BsFilePerson } from "react-icons/bs";
@@ -13,10 +10,12 @@ import UploadProfileMedia from "@/app/widgets/modals/CreatePost/UploadProfileMed
 import { useSelector } from "react-redux";
 
 function ProfilePicContainer({
-  profileInfo,
+  userID,
+  profile,
   getpostprocess,
 }: {
-  profileInfo: ProfileUserInfoInterface | null;
+  userID: string;
+  profile: string | null;
   getpostprocess: () => void;
 }) {
   const authentication: AuthenticationInterface = useSelector(
@@ -27,20 +26,20 @@ function ProfilePicContainer({
   const [toggleUploadModal, settoggleUploadModal] = useState<boolean>(false);
 
   const isUserProfile = useMemo(
-    () => authentication.user.userID === profileInfo?.userID,
-    [authentication.user.userID, profileInfo?.userID],
+    () => authentication.user.userID === userID,
+    [authentication.user.userID, userID],
   );
 
   return (
     <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center tw-relative">
-      {profileInfo && profileInfo.profile === "none" ? (
+      {profile && profile !== "none" ? (
         <div
           onClick={() => {
             settoggleSelection(!toggleSelection);
           }}
           className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]"
         >
-          <CachedImage src={DefaultProfile} id="img_default_profile" />
+          <CachedImage src={profile} id="img_actual_profile_main" />
         </div>
       ) : (
         <div
@@ -49,10 +48,7 @@ function ProfilePicContainer({
           }}
           className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]"
         >
-          <CachedImage
-            src={profileInfo?.profile}
-            id="img_actual_profile_main"
-          />
+          <CachedImage src={DefaultProfile} id="img_default_profile" />
         </div>
       )}
       {isUserProfile && (
@@ -66,7 +62,7 @@ function ProfilePicContainer({
           className="tw-absolute tw-bottom-0 tw-bg-white tw-overflow-y-hidden tw-rounded-[7px] tw-shadow-md"
         >
           <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
-            {profileInfo?.profile !== "none" && (
+            {profile !== "none" && (
               <motion.button
                 initial={{
                   backgroundColor: "transparent",

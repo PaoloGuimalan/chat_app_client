@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
-import {
-  AuthenticationInterface,
-  ProfileUserInfoInterface,
-} from "@/reusables/vars/interfaces";
+import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { Fragment, useMemo, useState } from "react";
 import { BiSolidImageAdd } from "react-icons/bi";
 import { motion } from "framer-motion";
@@ -12,10 +9,12 @@ import UploadProfileMedia from "@/app/widgets/modals/CreatePost/UploadProfileMed
 import { useSelector } from "react-redux";
 
 function ProfileCoverContainer({
-  profileInfo,
+  userID,
+  coverphoto,
   getpostprocess,
 }: {
-  profileInfo: ProfileUserInfoInterface | null;
+  userID: string;
+  coverphoto: string | null;
   getpostprocess: () => void;
 }) {
   const authentication: AuthenticationInterface = useSelector(
@@ -26,16 +25,16 @@ function ProfileCoverContainer({
   const [toggleUploadModal, settoggleUploadModal] = useState<boolean>(false);
 
   const isUserProfile = useMemo(
-    () => authentication.user.userID === profileInfo?.userID,
-    [authentication.user.userID, profileInfo?.userID],
+    () => authentication.user.userID === userID,
+    [authentication.user.userID, userID],
   );
 
   return (
     <Fragment>
-      {profileInfo && profileInfo.coverphoto !== "none" ? (
+      {coverphoto && coverphoto !== "none" ? (
         <div className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[10px] tw-h-[200px] tw-relative">
           <CachedImage
-            src={profileInfo.coverphoto}
+            src={coverphoto}
             onClick={() => {
               settoggleSelection(!toggleSelection);
             }}
@@ -52,7 +51,7 @@ function ProfileCoverContainer({
               className="tw-absolute tw-bottom-0 tw-right-0 tw-bg-white tw-overflow-y-hidden tw-rounded-[7px] tw-shadow-md"
             >
               <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
-                {profileInfo?.coverphoto !== "none" && (
+                {coverphoto !== "none" && (
                   <motion.button
                     initial={{
                       backgroundColor: "transparent",
@@ -109,7 +108,7 @@ function ProfileCoverContainer({
               className="tw-absolute tw-bottom-0 tw-right-0 tw-bg-white tw-overflow-y-hidden tw-rounded-[7px] tw-shadow-md"
             >
               <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
-                {profileInfo?.coverphoto !== "none" && (
+                {coverphoto !== "none" && (
                   <motion.button
                     initial={{
                       backgroundColor: "transparent",

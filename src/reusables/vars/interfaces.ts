@@ -64,6 +64,23 @@ export interface ProfileUserInfoInterface {
   isVerified: boolean;
 }
 
+export interface IRealmProfileInfo {
+  cover_photo: string | null;
+  created_by: string;
+  description: string | null;
+  email: string | null;
+  id: string;
+  is_active: boolean;
+  is_private: boolean;
+  is_verified: boolean;
+  name: string;
+  parent: string | null;
+  profile: string | null;
+  realm_id: string;
+  slug: string | null;
+  type: string;
+}
+
 export interface ProfilePostState {
   posts: any[];
   totalposts: number;
@@ -258,6 +275,7 @@ export interface IPost {
   user_reaction: string | null;
   // activity_counts: IActivityCounts[];
   score: IPostScore;
+  author_realm: any | null;
 }
 
 //POST DATA INTERFACE END
