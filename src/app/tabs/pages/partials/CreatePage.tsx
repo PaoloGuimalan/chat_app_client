@@ -15,6 +15,7 @@ import { IoClose } from "react-icons/io5";
 import { useLocation, useNavigate } from "react-router-dom";
 import { IoIosArrowForward } from "react-icons/io";
 import { hasNullValues } from "@/reusables/hooks/reusable";
+import OverlayLoader from "@/app/reusables/loaders/OverlayLoader";
 
 function CreatePage() {
   const authentication: AuthenticationInterface = useSelector(
@@ -116,6 +117,7 @@ function CreatePage() {
   const location = useLocation();
 
   const SavePageProcess = () => {
+    setisSaving(true);
     if (payloadValid) {
       CreatePageRequest(
         finalData as {
@@ -130,7 +132,7 @@ function CreatePage() {
       )
         .then((response) => {
           navigate("/pages/my-pages");
-          setisSaving(true);
+          setisSaving(false);
           console.log(response);
         })
         .catch((err) => {
@@ -160,7 +162,14 @@ function CreatePage() {
       }}
       className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-center tw-pt-[15px] tw-pb-[10px] tw-pr-[7px]"
     >
-      <div className="tw-rounded-[10px] tw-shadow-lg tw-bg-white tw-flex tw-flex-col tw-items-center tw-justify-start tw-w-full tw-h-full tw-overflow-y-scroll x-scroll">
+      <div
+        className={`tw-rounded-[10px] tw-shadow-lg tw-bg-white tw-flex tw-flex-col tw-items-center tw-justify-start tw-w-full tw-h-full x-scroll tw-relative ${isSaving ? "tw-overflow-y-hidden" : "tw-overflow-y-scroll"}`}
+      >
+        {isSaving && (
+          <OverlayLoader
+            className={`tw-z-[2] tw-absolute tw-w-full tw-h-full tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}
+          />
+        )}
         <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center">
           <div
             className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[20px] ${isMobileView ? "tw-max-w-[calc(100%-30px)] tw-p-[20px] tw-pt-[15px] tw-pr-[10px]" : "tw-max-w-[calc(100%-80px)] tw-p-[40px] tw-pt-[35px]"}`}

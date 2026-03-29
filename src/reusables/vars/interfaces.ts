@@ -279,7 +279,15 @@ export interface IPost {
   user_reaction: string | null;
   // activity_counts: IActivityCounts[];
   score: IPostScore;
-  author_realm: any | null;
+  author_realm: {
+    id: string;
+    realm_id: string;
+    name: string;
+    profile: string;
+    type: string;
+    is_verified: true;
+    slug: string;
+  } | null;
 }
 
 //POST DATA INTERFACE END

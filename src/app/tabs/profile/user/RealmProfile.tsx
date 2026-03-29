@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { IPost, IRealmProfileInfo } from "@/reusables/vars/interfaces";
-// import DefaultProfile from "../../../../assets/imgs/default.png";
+import {
+  AuthenticationInterface,
+  IPost,
+  IRealmProfileInfo,
+} from "@/reusables/vars/interfaces";
+import DefaultProfile from "../../../../assets/imgs/default.png";
 import { IoArrowBack } from "react-icons/io5";
 import { useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useRef, useState } from "react";
 import ProfileCoverContainer from "./ProfileCoverContainer";
 import ProfilePicContainer from "./ProfilePicContainer";
 import { motion } from "framer-motion";
@@ -16,8 +20,16 @@ import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 import { FaFileAlt } from "react-icons/fa";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { FcAddImage } from "react-icons/fc";
+import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
+import { useSelector } from "react-redux";
 
 function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
+
   const navigate = useNavigate();
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
@@ -27,6 +39,11 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
     useState<PaginationProp<IPost>>(postsliststate);
   const posts: IPost[] = paginatedPosts.results;
   const [ispostsloaded, _setispostsloaded] = useState<boolean>(true); // must be false when actual
+  const [createposttext, setcreateposttext] = useState<string>("");
+  const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
+    toggle: false,
+    withImage: false,
+  });
 
   useEffect(() => {
     let currentView = false;
@@ -136,57 +153,72 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
           </div>
         </div>
         <div className="tw-w-full tw-pb-[20px] tw-flex tw-flex-col tw-items-center">
-          {/* <div
-            id="div_feed_header_post_input_profile"
-            className="tw-border-[0px]"
-          >
-            {realmInfo.profile && realmInfo.profile !== "none" ? (
-              <div id="img_default_profile_container">
-                <CachedImage src={realmInfo.profile} id="img_actual_profile" />
-              </div>
-            ) : (
-              <div id="div_img_feed_header_container">
-                <CachedImage src={DefaultProfile} id="img_feed_header" />
-              </div>
-            )}
-            <div id="div_input_feed_flex">
-              <input
-                type="text"
-                autoComplete="off"
-                value={createposttext}
-                onFocus={() => {
-                  settoggleNewPostModal({ toggle: true, withImage: false });
-                }}
-                onChange={(e) => {
-                  setcreateposttext(e.target.value);
-                }}
-                onKeyDown={(e) => {
-                  if (createposttext.trim() !== "") {
-                    if (e.key == "Enter") {
-                      // CreatePostProcess()
-                    }
-                  }
-                }}
-                className="tw-font-Inter"
-                placeholder={
-                  profileInfo.userID === authentication.user.userID
-                    ? "Share your thoughts..."
-                    : `Write on ${profileInfo.fullname.firstName}'s wall...`
-                }
-                id="input_feed_box"
-              />
-            </div>
-            <div id="div_btn_image_container">
-              <button
-                onClick={() => {
-                  settoggleNewPostModal({ toggle: true, withImage: true });
-                }}
-                id="btn_image_feed"
+          {toggleNewPostModal.toggle && realmInfo.is_admin && (
+            <NewPostModal
+              toShare={false}
+              sharePreviewData={null}
+              withImage={toggleNewPostModal.withImage}
+              profileInfo={authentication.user}
+              realmInfo={realmInfo}
+              setcreateposttext={setcreateposttext}
+              getpostprocess={() => {}}
+              onclose={settoggleNewPostModal}
+            />
+          )}
+          {realmInfo.is_admin && (
+            <Fragment>
+              <div
+                id="div_feed_header_post_input_profile"
+                className="tw-border-[0px]"
               >
-                <FcAddImage style={{ fontSize: "35px" }} />
-              </button>
-            </div>
-          </div> */}
+                {realmInfo.profile && realmInfo.profile !== "none" ? (
+                  <div id="img_default_profile_container">
+                    <CachedImage
+                      src={realmInfo.profile}
+                      id="img_actual_profile"
+                    />
+                  </div>
+                ) : (
+                  <div id="div_img_feed_header_container">
+                    <CachedImage src={DefaultProfile} id="img_feed_header" />
+                  </div>
+                )}
+                <div id="div_input_feed_flex">
+                  <input
+                    type="text"
+                    autoComplete="off"
+                    value={createposttext}
+                    onFocus={() => {
+                      settoggleNewPostModal({ toggle: true, withImage: false });
+                    }}
+                    onChange={(e) => {
+                      setcreateposttext(e.target.value);
+                    }}
+                    onKeyDown={(e) => {
+                      if (createposttext.trim() !== "") {
+                        if (e.key == "Enter") {
+                          // CreatePostProcess()
+                        }
+                      }
+                    }}
+                    className="tw-font-Inter"
+                    placeholder="Publish a post"
+                    id="input_feed_box"
+                  />
+                </div>
+                <div id="div_btn_image_container">
+                  <button
+                    onClick={() => {
+                      // settoggleNewPostModal({ toggle: true, withImage: true });
+                    }}
+                    id="btn_image_feed"
+                  >
+                    <FcAddImage style={{ fontSize: "35px" }} />
+                  </button>
+                </div>
+              </div>
+            </Fragment>
+          )}
           {paginatedPosts.count > 0 ? (
             <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
               {posts.map((mp: any, i: number) => {

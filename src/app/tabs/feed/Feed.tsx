@@ -142,6 +142,7 @@ function Feed() {
               profileInfo={{
                 userID: authentication.user.userID,
               }}
+              realmInfo={null}
               setcreateposttext={setcreateposttext}
               getpostprocess={() => {}}
               onclose={settoggleNewPostModal}

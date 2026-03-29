@@ -166,7 +166,20 @@ function PostItem({
         >
           <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
             <div className="tw-w-[35px] tw-h-[35px] tw-mr-[10px]">
-              {postState.user.profile !== "none" ? (
+              {postState.author_realm ? (
+                postState.author_realm.profile !== "none" ? (
+                  <div id="img_default_profile_container">
+                    <CachedImage
+                      src={postState.author_realm.profile}
+                      id="img_actual_profile"
+                    />
+                  </div>
+                ) : (
+                  <div id="div_img_feed_post_container">
+                    <CachedImage src={DefaultProfile} id="img_feed_header" />
+                  </div>
+                )
+              ) : postState.user.profile !== "none" ? (
                 <div id="img_default_profile_container">
                   <CachedImage
                     src={postState.user.profile}
@@ -184,21 +197,35 @@ function PostItem({
                 <span
                   className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                   onClick={() => {
+                    if (postState.author_realm) {
+                      navigate(`/${postState.author_realm.slug}`);
+                      return;
+                    }
+
                     navigate(`/${postState.user.username}`);
                   }}
                 >
-                  <div className="tw-flex tw-items-center tw-gap-[4px]">
-                    <span>
-                      {postState.user.first_name}
-                      {postState.user.middle_name == "N/A"
-                        ? ""
-                        : ` ${postState.user.middle_name}`}{" "}
-                      {postState.user.last_name}
-                    </span>
-                    {postState.user.is_badged && (
-                      <RiVerifiedBadgeFill size={16} color="#1c7def" />
-                    )}
-                  </div>
+                  {postState.author_realm ? (
+                    <div className="tw-flex tw-items-center tw-gap-[4px]">
+                      <span>{postState.author_realm.name}</span>
+                      {postState.author_realm.is_verified && (
+                        <RiVerifiedBadgeFill size={16} color="#1c7def" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="tw-flex tw-items-center tw-gap-[4px]">
+                      <span>
+                        {postState.user.first_name}
+                        {postState.user.middle_name == "N/A"
+                          ? ""
+                          : ` ${postState.user.middle_name}`}{" "}
+                        {postState.user.last_name}
+                      </span>
+                      {postState.user.is_badged && (
+                        <RiVerifiedBadgeFill size={16} color="#1c7def" />
+                      )}
+                    </div>
+                  )}
                 </span>
                 &nbsp;
                 {postState.content_type === "profile" && (
@@ -368,7 +395,23 @@ function PostItem({
                     >
                       <div className="tw-w-[calc(100%-50px)] tw-p-[25px] tw-flex tw-justify-between">
                         <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
-                          {postState.user.profile !== "none" ? (
+                          {postState.author_realm ? (
+                            postState.author_realm.profile !== "none" ? (
+                              <div id="img_default_profile_container">
+                                <CachedImage
+                                  src={postState.author_realm.profile}
+                                  id="img_actual_profile"
+                                />
+                              </div>
+                            ) : (
+                              <div id="div_img_feed_post_container">
+                                <CachedImage
+                                  src={DefaultProfile}
+                                  id="img_feed_header"
+                                />
+                              </div>
+                            )
+                          ) : postState.user.profile !== "none" ? (
                             <div id="img_default_profile_container">
                               <CachedImage
                                 src={postState.user.profile}
@@ -388,24 +431,41 @@ function PostItem({
                               <span
                                 className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                                 onClick={() => {
+                                  if (postState.author_realm) {
+                                    navigate(`/${postState.author_realm.slug}`);
+                                    return;
+                                  }
+
                                   navigate(`/${postState.user.username}`);
                                 }}
                               >
-                                <div className="tw-flex tw-items-center tw-gap-[4px]">
-                                  <span>
-                                    {postState.user.first_name}
-                                    {postState.user.middle_name == "N/A"
-                                      ? ""
-                                      : ` ${postState.user.middle_name}`}{" "}
-                                    {postState.user.last_name}
-                                  </span>
-                                  {postState.user.is_badged && (
-                                    <RiVerifiedBadgeFill
-                                      size={16}
-                                      color="#1c7def"
-                                    />
-                                  )}
-                                </div>
+                                {postState.author_realm ? (
+                                  <div className="tw-flex tw-items-center tw-gap-[4px]">
+                                    <span>{postState.author_realm.name}</span>
+                                    {postState.author_realm.is_verified && (
+                                      <RiVerifiedBadgeFill
+                                        size={16}
+                                        color="#1c7def"
+                                      />
+                                    )}
+                                  </div>
+                                ) : (
+                                  <div className="tw-flex tw-items-center tw-gap-[4px]">
+                                    <span>
+                                      {postState.user.first_name}
+                                      {postState.user.middle_name == "N/A"
+                                        ? ""
+                                        : ` ${postState.user.middle_name}`}{" "}
+                                      {postState.user.last_name}
+                                    </span>
+                                    {postState.user.is_badged && (
+                                      <RiVerifiedBadgeFill
+                                        size={16}
+                                        color="#1c7def"
+                                      />
+                                    )}
+                                  </div>
+                                )}
                               </span>
                               &nbsp;
                               {postState.tagging.length > 0 && (
@@ -758,6 +818,7 @@ function PostItem({
                 sharePreviewData={postState}
                 withImage={toggleNewPostModal.withImage}
                 profileInfo={authentication.user}
+                realmInfo={null}
                 setcreateposttext={() => {}}
                 getpostprocess={() => {}}
                 onclose={settoggleNewPostModal}

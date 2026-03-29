@@ -757,6 +757,7 @@ function Profile({
                   sharePreviewData={null}
                   withImage={toggleNewPostModal.withImage}
                   profileInfo={profileInfo}
+                  realmInfo={null}
                   setcreateposttext={setcreateposttext}
                   getpostprocess={GetPostProcess}
                   onclose={settoggleNewPostModal}
