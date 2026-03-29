@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 // import CachedImage from "@/app/reusables/cachers/CachedImage";
@@ -8,7 +9,7 @@ import {
 } from "@/reusables/vars/interfaces";
 import DefaultProfile from "../../../../assets/imgs/default.png";
 import { IoArrowBack } from "react-icons/io5";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Fragment, useEffect, useRef, useState } from "react";
 import ProfileCoverContainer from "./ProfileCoverContainer";
 import ProfilePicContainer from "./ProfilePicContainer";
@@ -24,6 +25,7 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { FcAddImage } from "react-icons/fc";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { useSelector } from "react-redux";
+import { GetPostRequest } from "@/reusables/hooks/requests";
 
 function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
   const authentication: AuthenticationInterface = useSelector(
@@ -35,15 +37,20 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);
 
-  const [paginatedPosts, _setpaginatedPosts] =
+  const [paginatedPosts, setpaginatedPosts] =
     useState<PaginationProp<IPost>>(postsliststate);
   const posts: IPost[] = paginatedPosts.results;
-  const [ispostsloaded, _setispostsloaded] = useState<boolean>(true); // must be false when actual
+  const [ispostsloaded, setispostsloaded] = useState<boolean>(false); // must be false when actual
   const [createposttext, setcreateposttext] = useState<string>("");
   const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
     toggle: false,
     withImage: false,
   });
+
+  const [page, setpage] = useState<number>(1);
+  const [range] = useState<number>(20);
+
+  const params = useParams();
 
   useEffect(() => {
     let currentView = false;
@@ -60,7 +67,7 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
               currentView = isVisible;
               if (currentView) {
                 // setrange((prev) => prev + 20);
-                //   setpage((prev) => prev + 1);
+                setpage((prev) => prev + 1);
               }
             }
           }
@@ -68,6 +75,43 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
       }
     }
   }, [divcontentRef, divlazyloaderRef, realmInfo]);
+
+  const GetPostProcess = () => {
+    GetPostRequest({
+      current_user_id: authentication.user.userID,
+      userID: params.userID,
+      page: page,
+      range: range,
+    })
+      .then((response) => {
+        setpaginatedPosts((prev) => {
+          const combinedList = [...prev.results, ...response.results];
+          const uniqueById = combinedList
+            .filter(
+              (obj, index, self) =>
+                index === self.findIndex((t) => t.post_id === obj.post_id),
+            )
+            .sort(
+              (a: any, b: any) =>
+                new Date(b.date_posted).getTime() -
+                new Date(a.date_posted).getTime(),
+            );
+
+          return {
+            ...response,
+            results: uniqueById,
+          };
+        });
+        setispostsloaded(true);
+      })
+      .catch((err: any) => {
+        console.log(err);
+      });
+  };
+
+  useEffect(() => {
+    GetPostProcess();
+  }, [params.userID, page, realmInfo]);
 
   return (
     <div
@@ -161,7 +205,7 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
               profileInfo={authentication.user}
               realmInfo={realmInfo}
               setcreateposttext={setcreateposttext}
-              getpostprocess={() => {}}
+              getpostprocess={GetPostProcess}
               onclose={settoggleNewPostModal}
             />
           )}
