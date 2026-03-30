@@ -2045,6 +2045,49 @@ const CreatePageRequest = async (payload: {
     });
 };
 
+const FollowRealmRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.USER_SERVICE_API}/api/realm/follow`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const UnfollowRealmRequest = async (payload: any) => {
+  return await Axios.delete(`${envs.USER_SERVICE_API}/api/realm/follow`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: payload,
+  })
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2114,4 +2157,6 @@ export {
   UploadMediaRequest,
   VoiceRequest,
   CreatePageRequest,
+  FollowRealmRequest,
+  UnfollowRealmRequest,
 };

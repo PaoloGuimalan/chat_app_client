@@ -22,7 +22,7 @@ function ProfileContainer() {
 
   const params = useParams();
 
-  const GetProfileInfoProcess = () => {
+  const GetProfileInfoProcess = (callback: () => void = () => {}) => {
     GetProfileInfo({
       userID: params.userID,
     })
@@ -33,6 +33,7 @@ function ProfileContainer() {
           setisError(false);
           settype(response.data.data.type);
           setisloaded(true);
+          callback();
 
           if (response.data.data.type === "user") {
             setprofileInfo(response.data.data);
@@ -86,7 +87,10 @@ function ProfileContainer() {
                   />
                 )
               ) : realmInfo && type === "page" ? (
-                <RealmProfile realmInfo={realmInfo} />
+                <RealmProfile
+                  realmInfo={realmInfo}
+                  GetProfileInfoProcess={GetProfileInfoProcess}
+                />
               ) : (
                 <BrokenLink
                   label="Link is broken."

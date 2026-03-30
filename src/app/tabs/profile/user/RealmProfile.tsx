@@ -25,9 +25,19 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { FcAddImage } from "react-icons/fc";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { useSelector } from "react-redux";
-import { GetPostRequest } from "@/reusables/hooks/requests";
+import {
+  FollowRealmRequest,
+  GetPostRequest,
+  UnfollowRealmRequest,
+} from "@/reusables/hooks/requests";
 
-function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
+function RealmProfile({
+  realmInfo,
+  GetProfileInfoProcess,
+}: {
+  realmInfo: IRealmProfileInfo;
+  GetProfileInfoProcess: (callback: () => void) => void;
+}) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -46,6 +56,9 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
     toggle: false,
     withImage: false,
   });
+
+  const [isConnectionButtonsLoading, setisConnectionButtonsLoading] =
+    useState<boolean>(false);
 
   const [page, setpage] = useState<number>(1);
   const [range] = useState<number>(20);
@@ -109,6 +122,36 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
       });
   };
 
+  const FollowRealmProcess = () => {
+    setisConnectionButtonsLoading(true);
+    FollowRealmRequest({ realm_id: realmInfo.id })
+      .then((response) => {
+        GetProfileInfoProcess(() => {
+          setisConnectionButtonsLoading(false);
+        });
+        console.log(response);
+      })
+      .catch((err) => {
+        setisConnectionButtonsLoading(false);
+        console.log(err);
+      });
+  };
+
+  const UnfollowRealmProcess = () => {
+    setisConnectionButtonsLoading(true);
+    UnfollowRealmRequest({ realm_id: realmInfo.id })
+      .then((response) => {
+        GetProfileInfoProcess(() => {
+          setisConnectionButtonsLoading(false);
+        });
+        console.log(response);
+      })
+      .catch((err) => {
+        setisConnectionButtonsLoading(false);
+        console.log(err);
+      });
+  };
+
   useEffect(() => {
     GetPostProcess();
   }, [params.userID, page, realmInfo]);
@@ -162,28 +205,53 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
                   Manage
                 </button>
               )}
-              <button
-                onClick={() => {}}
-                className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
-              >
-                {/* {isConnectionButtonsLoading ? (
-                  <motion.div
-                    animate={{
-                      rotate: -360,
-                    }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                    }}
-                    id="div_loader_request_nano_light"
-                  >
-                    <AiOutlineLoading3Quarters style={{ fontSize: "15px" }} />
-                  </motion.div>
-                ) : ( */}
-                {/* "Add Contact" */}
-                Follow
-                {/* )} */}
-              </button>
+              {realmInfo.is_follower ? (
+                <button
+                  onClick={UnfollowRealmProcess}
+                  className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[#1c7def] tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
+                >
+                  {isConnectionButtonsLoading ? (
+                    <motion.div
+                      animate={{
+                        rotate: -360,
+                      }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                      }}
+                      id="div_loader_request_nano_light"
+                    >
+                      <AiOutlineLoading3Quarters
+                        style={{ fontSize: "15px", color: "#1c7def" }}
+                      />
+                    </motion.div>
+                  ) : (
+                    <div className="tw-min-w-[80px]">Unfollow</div>
+                  )}
+                </button>
+              ) : (
+                <button
+                  onClick={FollowRealmProcess}
+                  className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                >
+                  {isConnectionButtonsLoading ? (
+                    <motion.div
+                      animate={{
+                        rotate: -360,
+                      }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                      }}
+                      id="div_loader_request_nano_light"
+                    >
+                      <AiOutlineLoading3Quarters style={{ fontSize: "15px" }} />
+                    </motion.div>
+                  ) : (
+                    <div className="tw-min-w-[80px]">Follow</div>
+                  )}
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -301,7 +369,7 @@ function RealmProfile({ realmInfo }: { realmInfo: IRealmProfileInfo }) {
               </div>
             </div>
           ) : (
-            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
+            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[10px]">
               {Array.from({ length: 8 }, (_, i: number) => {
                 return <PostItemLoader key={i} />;
               })}

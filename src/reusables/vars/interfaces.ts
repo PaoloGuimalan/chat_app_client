@@ -83,6 +83,7 @@ export interface IRealmProfileInfo {
   is_admin: boolean;
   is_member: boolean;
   followers_count: number;
+  is_follower: boolean;
 }
 
 export interface ProfilePostState {
