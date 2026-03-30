@@ -801,7 +801,7 @@ function Profile({
             </div>
           </div>
           {paginatedPosts.count > 0 ? (
-            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[20px]">
+            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[10px]">
               {posts.map((mp: any, i: number) => {
                 return <PostItem key={i} isSharePreview={false} mp={mp} />;
               })}
