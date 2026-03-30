@@ -323,7 +323,7 @@ function RealmProfile({
                 <div id="div_btn_image_container">
                   <button
                     onClick={() => {
-                      // settoggleNewPostModal({ toggle: true, withImage: true });
+                      settoggleNewPostModal({ toggle: true, withImage: true });
                     }}
                     id="btn_image_feed"
                   >
