@@ -208,6 +208,7 @@ function RealmProfile({
               {realmInfo.is_follower ? (
                 <button
                   onClick={UnfollowRealmProcess}
+                  disabled={isConnectionButtonsLoading}
                   className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[#1c7def] tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
                 >
                   {isConnectionButtonsLoading ? (
@@ -232,6 +233,7 @@ function RealmProfile({
               ) : (
                 <button
                   onClick={FollowRealmProcess}
+                  disabled={isConnectionButtonsLoading}
                   className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
                 >
                   {isConnectionButtonsLoading ? (
