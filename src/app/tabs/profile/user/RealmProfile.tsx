@@ -371,7 +371,9 @@ function RealmProfile({
               </div>
             </div>
           ) : (
-            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[10px]">
+            <div
+              className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px]  ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
+            >
               {Array.from({ length: 8 }, (_, i: number) => {
                 return <PostItemLoader key={i} />;
               })}
