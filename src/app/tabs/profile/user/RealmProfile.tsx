@@ -199,7 +199,9 @@ function RealmProfile({
             <div className="tw-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[4px] tw-justify-center">
               {realmInfo.is_admin && (
                 <button
-                  onClick={() => {}}
+                  onClick={() => {
+                    navigate(`/pages/my-pages/${realmInfo.slug}`);
+                  }}
                   className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-border-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
                 >
                   Manage

@@ -2088,6 +2088,66 @@ const UnfollowRealmRequest = async (payload: any) => {
     });
 };
 
+const GetFollowRealmRequest = async (
+  page: number,
+  range: number,
+  type: string,
+  search?: string,
+) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/follow`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params: {
+      page,
+      page_size: range,
+      type,
+      search,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const GetMyRealmsRequest = async (
+  page: number,
+  range: number,
+  type: string,
+  search?: string,
+) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/my-list`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params: {
+      page,
+      page_size: range,
+      type,
+      search,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2159,4 +2219,6 @@ export {
   CreatePageRequest,
   FollowRealmRequest,
   UnfollowRealmRequest,
+  GetFollowRealmRequest,
+  GetMyRealmsRequest,
 };

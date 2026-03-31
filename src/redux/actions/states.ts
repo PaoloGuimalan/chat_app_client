@@ -74,6 +74,13 @@ export const entriesliststate: PaginationProp<IEntry> = {
   results: [],
 };
 
+export const genericpaginationstate: PaginationProp<any> = {
+  count: 0,
+  next: null,
+  previous: null,
+  results: [],
+};
+
 export const usersettingsstate = {
   personal_info: null,
   map_feed_access: {
