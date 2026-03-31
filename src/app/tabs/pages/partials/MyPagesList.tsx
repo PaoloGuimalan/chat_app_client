@@ -113,10 +113,10 @@ function MyPagesList() {
                   />
                   <div className="tw-flex tw-flex-col tw-gap-[5px]">
                     <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[#7f7f85]">
-                      No Followed Pages yet
+                      No pages created yet
                     </span>
                     <span className="tw-text-[14px] tw-font-Inter tw-text-[#7f7f85]">
-                      Explore contents and pages to get started.
+                      Create your own page and start connecting through realms.
                     </span>
                   </div>
                 </div>
