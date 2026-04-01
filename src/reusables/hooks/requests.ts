@@ -2148,6 +2148,36 @@ const GetMyRealmsRequest = async (
     });
 };
 
+const GetTopRealmsRequest = async (
+  page: number,
+  range: number,
+  type: string,
+  search?: string | null,
+) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/top`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params: {
+      page,
+      page_size: range,
+      type,
+      search,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2221,4 +2251,5 @@ export {
   UnfollowRealmRequest,
   GetFollowRealmRequest,
   GetMyRealmsRequest,
+  GetTopRealmsRequest,
 };

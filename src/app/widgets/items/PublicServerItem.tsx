@@ -5,20 +5,27 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { AddNewMemberToServer } from "@/reusables/hooks/requests";
 import { useSelector } from "react-redux";
-import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  IRealmProfileInfo,
+} from "@/reusables/vars/interfaces";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
+import { useNavigate } from "react-router-dom";
 
-function PublicServerItem({ mp }: any) {
+function PublicServerItem({ mp }: { mp: IRealmProfileInfo }) {
   const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication
+    (state: any) => state.authentication,
   );
   const [isJoining, setisJoining] = useState<boolean>(false);
-  const [isJoined, setisJoined] = useState<boolean>(mp.is_joined ?? false);
+  const [isJoined, setisJoined] = useState<boolean>(mp.is_member ?? false);
+
+  const navigate = useNavigate();
 
   const joinServerProcess = () => {
     setisJoining(true);
     const initialpayload = {
-      serverID: mp.serverID,
+      serverID: mp.id,
       memberstoadd: [
         {
           userID: authentication.user.userID,
@@ -60,15 +67,27 @@ function PublicServerItem({ mp }: any) {
             <CachedImage src={ServerIcon} id="img_default_profile" />
           </div>
           <div className="tw-w-[calc(100%-10px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[5px] tw-flex-1">
-            <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-              {mp.serverName}
+            <span
+              className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+              onClick={() => {
+                if (isJoined) {
+                  navigate(`/servers/${mp.id}`);
+                }
+              }}
+            >
+              <div className="tw-flex tw-items-center tw-gap-[4px]">
+                <span>{mp.name}</span>
+                {mp.is_verified && (
+                  <RiVerifiedBadgeFill size={16} color="#1c7def" />
+                )}
+              </div>
             </span>
             <span className="tw-text-[12px] tw-font-Inter tw-text-left line_clamp tw-text-[#3f3f3f]">
               {mp.description}
             </span>
             <div className="tw-w-full tw-flex tw-flex-row tw-flex-1 tw-justify-between tw-items-end tw-pb-[15px]">
               <span className="tw-text-[12px] tw-text-[#3f3f3f] tw-mb-[5px]">
-                {mp.member_count} member/s
+                {mp.members} member/s
               </span>
               {isJoined ? (
                 <button

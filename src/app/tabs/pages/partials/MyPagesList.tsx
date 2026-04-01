@@ -35,7 +35,17 @@ function MyPagesList() {
   const GetFollowedPagesProcess = (callback?: () => void) => {
     GetMyRealmsRequest(currentPage, 10, "page")
       .then((response) => {
-        setpages(response);
+        setpages((prev) => {
+          const prevIds = new Set(prev.results.map((item) => item.id));
+          const newItems = response.results.filter(
+            (item: IRealmProfileInfo) => !prevIds.has(item.id),
+          );
+
+          return {
+            ...response,
+            results: [...prev.results, ...newItems],
+          };
+        });
         setisLoaded(true);
         setisPaginating(false);
         if (callback) {
@@ -122,10 +132,10 @@ function MyPagesList() {
                 </div>
               ) : (
                 <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
-                  {pages.results.map((mp: any, i: number) => {
+                  {pages.results.map((mp: IRealmProfileInfo) => {
                     return (
                       <GenericRealmItem
-                        key={i}
+                        key={mp.id}
                         mp={mp}
                         refresh={GetFollowedPagesProcess}
                       />
