@@ -5,7 +5,7 @@ import DefaultProfile from "../../../../assets/imgs/default.png";
 import { BiLike } from "react-icons/bi";
 import { LiaComment } from "react-icons/lia";
 import { PiShareFat } from "react-icons/pi";
-import { BsPinMap } from "react-icons/bs";
+import { BsFileEarmarkExcel, BsPinMap } from "react-icons/bs";
 import {
   AuthenticationInterface,
   Emoji,
@@ -31,6 +31,7 @@ import { timeSince } from "@/reusables/hooks/reusable";
 import { persistViewPosts } from "@/reusables/hooks/localforagehelper";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import PostOptions from "./PostOptions";
+import OverlayLoader from "@/app/reusables/loaders/OverlayLoader";
 
 function PostItem({
   isSharePreview,
@@ -56,6 +57,7 @@ function PostItem({
   const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(mp);
+  const [isProcessing, setisProcessing] = useState<boolean>(false);
 
   const timeDetail = timeSince(new Date(postState.date_posted));
   const dateposted = timeDetail;
@@ -156,8 +158,22 @@ function PostItem({
     }
   }, [authentication.user.userID, isInView, postState]);
 
+  if (postState.deleted_at || postState.is_archived) {
+    return (
+      <div className="tw-bg-[#ebebeb] tw-flex tw-flex-col tw-gap-[15px] tw-w-full tw-h-auto tw-min-h-[200px] tw-items-center tw-justify-center tw-border-solid tw-border-[1px] tw-border-[#d2d2d2] tw-rounded-[7px]">
+        <BsFileEarmarkExcel style={{ fontSize: "55px", color: "#666666" }} />
+        <div className="tw-flex tw-w-full tw-max-w-[200px] tw-items-center tw-justify-center tw-text-[#666666] tw-text-[13px] ">
+          <span>This post is unavailable</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div ref={ref} className="tw-w-full">
+    <div ref={ref} className="tw-w-full tw-relative">
+      {isProcessing && (
+        <OverlayLoader className="tw-bg-white tw-absolute tw-w-full tw-h-full tw-opacity-[0.8] tw-z-[5] tw-flex tw-items-center tw-justify-center tw-rounded-md" />
+      )}
       {minimizedCaption !== null && (
         <div
           style={{
@@ -270,7 +286,32 @@ function PostItem({
               </div>
               <span className="tw-text-[12px]">{dateposted}</span>
             </div>
-            <PostOptions post={postState} />
+            <PostOptions
+              post={postState}
+              onProcess={() => {
+                setisProcessing(true);
+              }}
+              onFinish={(type: string) => {
+                switch (type) {
+                  case "deleted":
+                    setpostState((prev) => ({
+                      ...prev,
+                      deleted_at: true,
+                      deleted_by: true,
+                    }));
+                    break;
+                  case "archived":
+                    setpostState((prev) => ({ ...prev, is_archived: true }));
+                    break;
+                  default:
+                    setisProcessing(false);
+                    break;
+                }
+              }}
+              onError={() => {
+                setisProcessing(false);
+              }}
+            />
           </div>
           <div
             className={`tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
@@ -508,7 +549,35 @@ function PostItem({
                             <span className="tw-text-[12px]">{dateposted}</span>
                           </div>
                         </div>
-                        <PostOptions post={postState} />
+                        <PostOptions
+                          post={postState}
+                          onProcess={() => {
+                            setisProcessing(true);
+                          }}
+                          onFinish={(type: string) => {
+                            switch (type) {
+                              case "deleted":
+                                setpostState((prev) => ({
+                                  ...prev,
+                                  deleted_at: true,
+                                  deleted_by: true,
+                                }));
+                                break;
+                              case "archived":
+                                setpostState((prev) => ({
+                                  ...prev,
+                                  is_archived: true,
+                                }));
+                                break;
+                              default:
+                                setisProcessing(false);
+                                break;
+                            }
+                          }}
+                          onError={() => {
+                            setisProcessing(false);
+                          }}
+                        />
                         <button
                           onClick={() => {
                             settogglePostCarousel(false);

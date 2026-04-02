@@ -1,4 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import {
+  DeletePostRequest,
+  UpdatePostRequest,
+} from "@/reusables/hooks/requests";
 import { AuthenticationInterface, IPost } from "@/reusables/vars/interfaces";
 import { useEffect, useRef, useState } from "react";
 import { BsThreeDots } from "react-icons/bs";
@@ -7,7 +11,17 @@ import { IoBookmark } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import { useSelector } from "react-redux";
 
-function PostOptions({ post }: { post: IPost }) {
+function PostOptions({
+  post,
+  onProcess,
+  onFinish,
+  onError,
+}: {
+  post: IPost;
+  onProcess: () => void;
+  onFinish: (type: string) => void;
+  onError: () => void;
+}) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -32,6 +46,32 @@ function PostOptions({ post }: { post: IPost }) {
     };
   }, []);
 
+  const DeletePostProcess = () => {
+    onProcess();
+    setisOptionsToggled(false);
+    DeletePostRequest([post.post_id])
+      .then(() => {
+        onFinish("deleted");
+      })
+      .catch((err) => {
+        onError();
+        console.log(err);
+      });
+  };
+
+  const ArchivePostProcess = () => {
+    onProcess();
+    setisOptionsToggled(false);
+    UpdatePostRequest(post.post_id, { is_archived: true })
+      .then(() => {
+        onFinish("archived");
+      })
+      .catch((err) => {
+        onError();
+        console.log(err);
+      });
+  };
+
   return (
     <div ref={wrapperRef} className="tw-relative">
       {isOptionsToggled && (
@@ -49,16 +89,18 @@ function PostOptions({ post }: { post: IPost }) {
             />
             <span>Save</span>
           </button>
-          <button
-            disabled
-            className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
-          >
-            <FaArchive size={12} style={{ marginRight: "4px" }} />
-            <span>Archive</span>
-          </button>
           {post.user.username === authentication.user.userID && (
             <button
-              disabled
+              onClick={ArchivePostProcess}
+              className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+            >
+              <FaArchive size={12} style={{ marginRight: "4px" }} />
+              <span>Archive</span>
+            </button>
+          )}
+          {post.user.username === authentication.user.userID && (
+            <button
+              onClick={DeletePostProcess}
               className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
             >
               <MdDelete size={18} style={{ marginLeft: "-3px" }} />

@@ -2178,6 +2178,46 @@ const GetTopRealmsRequest = async (
     });
 };
 
+const DeletePostRequest = async (post_ids: string[]) => {
+  return await Axios.delete(`${USER_SERVICE_API}/api/newsfeed/default`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: {
+      post_ids,
+    },
+  })
+    .then((response) => {
+      clearViewPosts();
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const UpdatePostRequest = async (post_id: string, fields: any) => {
+  return await Axios.put(
+    `${USER_SERVICE_API}/api/newsfeed/default`,
+    {
+      post_id,
+      fields,
+    },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      clearViewPosts();
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2252,4 +2292,6 @@ export {
   GetFollowRealmRequest,
   GetMyRealmsRequest,
   GetTopRealmsRequest,
+  DeletePostRequest,
+  UpdatePostRequest,
 };

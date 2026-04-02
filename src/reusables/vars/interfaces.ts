@@ -274,6 +274,9 @@ export interface IPost {
   privacy_status: string;
   is_sponsored: boolean;
   is_live: boolean;
+  is_archived: boolean;
+  deleted_at: string | boolean | null;
+  deleted_by: string | boolean | null;
   on_feed: string;
   date_posted: string; // ISO string, or Date if preferred
   from_system: boolean;
