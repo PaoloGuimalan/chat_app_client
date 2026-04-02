@@ -30,6 +30,7 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { timeSince } from "@/reusables/hooks/reusable";
 import { persistViewPosts } from "@/reusables/hooks/localforagehelper";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
+import PostOptions from "./PostOptions";
 
 function PostItem({
   isSharePreview,
@@ -192,7 +193,7 @@ function PostItem({
                 </div>
               )}
             </div>
-            <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
+            <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px]">
               <div className="tw-text-left tw-flex">
                 <span
                   className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
@@ -269,6 +270,7 @@ function PostItem({
               </div>
               <span className="tw-text-[12px]">{dateposted}</span>
             </div>
+            <PostOptions post={postState} />
           </div>
           <div
             className={`tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
@@ -506,6 +508,7 @@ function PostItem({
                             <span className="tw-text-[12px]">{dateposted}</span>
                           </div>
                         </div>
+                        <PostOptions post={postState} />
                         <button
                           onClick={() => {
                             settogglePostCarousel(false);
@@ -721,7 +724,7 @@ function PostItem({
               />
             )}
             {postState.references.length > 0 && !postState.is_shared && (
-              <div className="tw-bg-white tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px]">
+              <div className="tw-bg-white tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px] tw-min-h-[400px]">
                 {" "}
                 {/**tw-bg-black*/}
                 {postState.references.map((mpu: IReference, i: number) => {
