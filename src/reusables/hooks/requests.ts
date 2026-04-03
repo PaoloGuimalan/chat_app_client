@@ -207,6 +207,7 @@ const ThirdPartyAuthenticationRequest = (
               auth: true,
               user: {
                 userID: userData.userID,
+                username: userData.username,
                 fullName: {
                   firstName: userData.fullname.firstName,
                   middleName: userData.fullname.middleName,
