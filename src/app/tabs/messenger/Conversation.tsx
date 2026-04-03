@@ -104,7 +104,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const activeuserSpecific =
     conversationsetup.type == "single" &&
     activeuserslist.filter(
-      (flt: any) => flt._id == conversationsetup.userdetails.userID,
+      (flt: any) => flt._id == conversationsetup.userdetails._id,
     );
   const filteredistypinglist = useMemo(
     () =>
@@ -614,9 +614,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     const conversationID = conversationsetup.conversationid;
     const callRecipients =
       conversationsetup.type == "single"
-        ? [conversationsetup.userdetails.userID]
+        ? [conversationsetup.userdetails._id]
         : conversationinfo?.users
-            ?.map((mp: any) => mp.userID)
+            ?.map((mp: any) => mp._id)
             .filter((flt: any) => flt != authentication.user.userID) ||
           conversationsetup.groupdetails?.receivers?.filter(
             (flt: any) => flt != authentication.user.userID,
@@ -890,7 +890,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   </div>
                   {isUserOnline(
                     activeuserslist,
-                    conversationsetup.userdetails.userID,
+                    conversationsetup.userdetails._id,
                   ) && <div className="div_online_indicator" />}
                 </div>
               )}
@@ -921,7 +921,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 )}
                 {conversationsetup.type == "single" ? (
                   activeusersmapper.includes(
-                    conversationsetup.userdetails.userID,
+                    conversationsetup.userdetails._id,
                   ) ? (
                     activeuserSpecific[0].sessiondate ? (
                       activeuserSpecific[0].sessionStatus ? (
@@ -1341,14 +1341,16 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     </div>
                     <div className="tw-w-full tw-flex tw-flex-col tw-h-[40px] tw-justify-center">
                       <span className="tw-text-[12px] tw-font-Inter">
+                        {/* @$
+                        {
+                          getChannelPreviewParticipants(
+                            conversationsetup.conversationid,
+                          )[0].userID
+                        } */}
                         {getChannelPreviewParticipants(
                           conversationsetup.conversationid,
                         ).length === 1
-                          ? `@${
-                              getChannelPreviewParticipants(
-                                conversationsetup.conversationid,
-                              )[0].userID
-                            }`
+                          ? `Your friend` //
                           : `${
                               getChannelPreviewParticipants(
                                 conversationsetup.conversationid,

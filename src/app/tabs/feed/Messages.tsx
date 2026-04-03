@@ -244,7 +244,7 @@ function Messages() {
           {messageslist.map((msgslst: any, i: number) => {
             if (msgslst.conversationType == "single") {
               return msgslst.users.map((msgsurs: any, i: number) => {
-                if (msgsurs.userID != authentication.user.userID) {
+                if (msgsurs._id != authentication.user.userID) {
                   return (
                     <motion.div
                       whileHover={{
@@ -280,7 +280,7 @@ function Messages() {
                             }
                           />
                         </div>
-                        {isUserOnline(activeuserslist, msgsurs.userID) && (
+                        {isUserOnline(activeuserslist, msgsurs._id) && (
                           <div className="div_online_indicator" />
                         )}
                       </div>
