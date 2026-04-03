@@ -169,7 +169,14 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                             ? DefaultProfile
                             : mp.user.profile
                         }
-                        className="img_search_profiles_ntfs"
+                        className={
+                          mp.user.profile == "none"
+                            ? "img_search_profiles_ntfs"
+                            : ""
+                        }
+                        id={
+                          mp.user.profile == "none" ? "" : "img_actual_profile"
+                        }
                       />
                     </div>
                   </div>

@@ -149,12 +149,7 @@ function ConversationInfoModal({
                         className={
                           userInfo?.profile == "none"
                             ? "img_search_profiles_ntfs"
-                            : ""
-                        }
-                        id={
-                          userInfo?.profile == "none"
-                            ? ""
-                            : "img_actual_profile"
+                            : "tw-w-full tw-h-full tw-rounded-full"
                         }
                       />
                     </div>

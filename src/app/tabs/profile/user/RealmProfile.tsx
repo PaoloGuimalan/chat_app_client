@@ -30,6 +30,7 @@ import {
   GetPostRequest,
   UnfollowRealmRequest,
 } from "@/reusables/hooks/requests";
+import { MdPerson } from "react-icons/md";
 
 function RealmProfile({
   realmInfo,
@@ -262,9 +263,31 @@ function RealmProfile({
       </div>
       <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
         <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
-          <div className="tw-w-full tw-h-fit tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
-            <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
+          <div className="tw-w-full tw-h-fit tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex tw-flex-col">
+            <div
+              className={`tw-w-[calc(100%-40px)] tw-p-[20px] tw-flex tw-flex-col ${realmInfo.description && realmInfo.description.length >= 600 ? "tw-items-start" : "tw-items-center"} tw-gap-[15px]`}
+            >
               <span className="tw-text-[14px]">{realmInfo.description}</span>
+            </div>
+            <hr className="tw-w-[calc(100%-40px)] tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[0px] tw-z-[0]" />
+            <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
+              <span className="tw-text-[14px] tw-flex tw-items-center">
+                <MdPerson
+                  size={22}
+                  color="#666666"
+                  style={{ marginRight: "5px" }}
+                />
+                {realmInfo.followers_count > 0 ? (
+                  <Fragment>
+                    Followed by&nbsp;
+                    <span className="tw-font-semibold">
+                      {realmInfo.followers_count} people
+                    </span>
+                  </Fragment>
+                ) : (
+                  "No followers yet"
+                )}
+              </span>
             </div>
           </div>
         </div>

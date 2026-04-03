@@ -176,7 +176,10 @@ function SearchMiniDrawer({
                 <div id="div_img_search_profiles_container">
                   <CachedImage
                     src={srch.profile == "none" ? DefaultProfile : srch.profile}
-                    className="img_search_profiles"
+                    className={
+                      srch.profile == "none" ? "img_search_profiles_ntfs" : ""
+                    }
+                    id={srch.profile == "none" ? "" : "img_actual_profile"}
                   />
                 </div>
                 <div
