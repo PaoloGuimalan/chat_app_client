@@ -376,13 +376,13 @@ function Profile({
       </button>
       <div className="tw-bg-white tw-w-full tw-h-[60%] tw-min-h-[500px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
         <ProfileCoverContainer
-          userID={profileInfo.userID}
+          userID={profileInfo.id}
           coverphoto={profileInfo.coverphoto}
           getpostprocess={GetPostProcess}
         />
         <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
           <ProfilePicContainer
-            userID={profileInfo.userID}
+            userID={profileInfo.id}
             profile={profileInfo.profile}
             getpostprocess={GetPostProcess}
           />

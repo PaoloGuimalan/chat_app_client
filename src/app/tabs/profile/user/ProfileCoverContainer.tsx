@@ -32,7 +32,12 @@ function ProfileCoverContainer({
   return (
     <Fragment>
       {coverphoto && coverphoto !== "none" ? (
-        <div className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[10px] tw-h-[200px] tw-relative">
+        <div
+          onClick={() => {
+            settoggleSelection(!toggleSelection);
+          }}
+          className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[10px] tw-h-[200px] tw-relative"
+        >
           <CachedImage
             src={coverphoto}
             onClick={() => {
