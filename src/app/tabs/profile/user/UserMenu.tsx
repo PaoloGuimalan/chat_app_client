@@ -23,7 +23,7 @@ function UserMenu() {
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center">
           <div
             onClick={() => {
-              navigate(`/${authentication.user.userID}`);
+              navigate(`/${authentication.user.username}`);
             }}
             className="tw-select-none tw-cursor-pointer tw-w-[calc(90%-20px)] tw-bg-white tw-max-w-[550px] tw-min-h-[55px] tw-shadow-sm tw-p-[10px] tw-rounded-[5px] tw-flex tw-flex-row tw-items-center tw-gap-[10px]"
           >
