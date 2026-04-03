@@ -57,6 +57,7 @@ export interface ProfilePopupProp {
   };
   user: {
     userID: string;
+    username: string;
     fullName: {
       firstName: string;
       middleName: string;

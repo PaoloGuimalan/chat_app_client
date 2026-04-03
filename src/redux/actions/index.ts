@@ -63,6 +63,7 @@ import {
   IPreviewParicipants,
   IUserSettings,
 } from "@/reusables/vars/interfaces";
+import jwtDecode from "jwt-decode";
 
 export const setauthentication = (state = authenticationstate, action: any) => {
   switch (action.type) {
@@ -409,19 +410,47 @@ export const setcoordinates = (
       );
       return [...prevNoUser, currentCoordinates];
     default:
-      return state;
+      const authtoken: any = localStorage.getItem("authtoken");
+      const userID: any = authtoken ? jwtDecode<any>(authtoken).userID : null;
+      const username: any = authtoken
+        ? jwtDecode<any>(authtoken).username
+        : null;
+      return state.length > 0
+        ? state
+        : [
+            {
+              referenceID: userID,
+              label: username,
+              longitude: 120.9842,
+              latitude: 14.5995,
+              heading: -17.6,
+              speed: 0,
+              mode: null,
+              type: "profile",
+            },
+          ];
   }
 };
 
-export const setrawcoordinates = (
-  state: ICoordinatesAnchor[] = [],
-  action: any,
-) => {
+export const setrawcoordinates = (state: ICoordinatesAnchor, action: any) => {
   switch (action.type) {
     case SET_RAW_COORDINATES:
       return action.payload.rawcoordinates;
     default:
-      return state;
+      const authtoken: any = localStorage.getItem("authtoken");
+      const userID: any = authtoken ? jwtDecode<any>(authtoken).userID : null;
+      const username: any = authtoken;
+      const finalState = state ?? {
+        referenceID: userID,
+        label: username,
+        longitude: 120.9842,
+        latitude: 14.5995,
+        heading: -17.6,
+        speed: 0,
+        mode: null,
+        type: "profile",
+      };
+      return finalState;
   }
 };
 

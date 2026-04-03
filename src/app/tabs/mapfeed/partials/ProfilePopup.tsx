@@ -69,7 +69,7 @@ function ProfilePopup({ coordinates, user }: ProfilePopupProp) {
             {user.fullName.lastName}
           </span>
           <span className="tw-text-[10px] tw--mt-[5px]">
-            @{user.userID}{" "}
+            @{user.username}{" "}
             {user.userID === authentication.user.userID && "(You)"}
           </span>
         </div>

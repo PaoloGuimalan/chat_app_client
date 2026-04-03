@@ -39,6 +39,7 @@ export interface IUserInterface {
 export interface ProfileUserInfoInterface {
   id: string;
   userID: string;
+  username: string;
   fullname: {
     firstName: string;
     middleName: string;
@@ -383,6 +384,7 @@ export interface IPostComment {
 
 export interface ICoordinatesAnchor {
   referenceID: string;
+  label: string;
   longitude: number;
   latitude: number;
   heading: number | null;

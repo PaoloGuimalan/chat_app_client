@@ -341,24 +341,23 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             socketSendCoordinatesBroadcast({
               ...payload,
               userID: authentication.user.userID,
+              label: authentication.user.username,
             });
           }
         }
       }
     },
-    [usersettings.map_feed_access, activeuserslist, authentication.user.userID],
+    [usersettings.map_feed_access, activeuserslist, authentication.user],
   );
 
   useEffect(() => {
     let watchID: any;
-    if (
-      authentication.user.userID &&
-      usersettings.map_feed_access.enable_location
-    ) {
+    if (authentication.user && usersettings.map_feed_access.enable_location) {
       navigator.geolocation.getCurrentPosition(
         (position: GeolocationPosition) => {
           const rawInitialCoordinates = {
             referenceID: authentication.user.userID,
+            label: authentication.user.username,
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
             heading: position.coords.heading,
@@ -394,6 +393,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
         (position: GeolocationPosition) => {
           const rawWatchCoordinates = {
             referenceID: authentication.user.userID,
+            label: authentication.user.username,
             longitude: position.coords.longitude,
             latitude: position.coords.latitude,
             heading: position.coords.heading,
@@ -429,11 +429,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     return () => {
       navigator.geolocation.clearWatch(watchID);
     };
-  }, [
-    authentication.user.userID,
-    usersettings.map_feed_access,
-    activeuserslist,
-  ]);
+  }, [authentication.user, usersettings.map_feed_access, activeuserslist]);
 
   useEffect(() => {
     if (
@@ -459,12 +455,29 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   ]);
 
   useEffect(() => {
-    if (authentication.user.userID) {
+    if (authentication.user) {
       dispatch({
         type: SET_COORDINATES,
         payload: {
           coordinates: {
             referenceID: authentication.user.userID,
+            label: authentication.user.username,
+            longitude: 120.9842,
+            latitude: 14.5995,
+            heading: -17.6,
+            speed: 0,
+            mode: null,
+            type: "profile",
+          },
+        },
+      });
+
+      dispatch({
+        type: SET_RAW_COORDINATES,
+        payload: {
+          rawcoordinates: {
+            referenceID: authentication.user.userID,
+            label: authentication.user.username,
             longitude: 120.9842,
             latitude: 14.5995,
             heading: -17.6,
@@ -475,7 +488,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
         },
       });
     }
-  }, [authentication.user.userID]);
+  }, [authentication.user]);
 
   return (
     <div id="div_home">
