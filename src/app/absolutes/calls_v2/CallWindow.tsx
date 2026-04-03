@@ -910,7 +910,7 @@ function CallWindow({ data, lineNum }: any) {
                 ((leftClientId && leftClientId !== clientIdRef.current) ||
                   (!leftClientId &&
                     leftUsername &&
-                    leftUsername !== authentication.user.userID))
+                    leftUsername !== authentication.user.username))
               ) {
                 setTimeout(() => {
                   leaveCallProcess();
@@ -1086,6 +1086,7 @@ function CallWindow({ data, lineNum }: any) {
         members,
         instance: data.instance,
         clientId: clientIdRef.current,
+        username: authentication.user.username,
         muted: !enableMic,
         cameraOff: !enableCamera,
       });

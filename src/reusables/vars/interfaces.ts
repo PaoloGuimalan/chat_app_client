@@ -484,6 +484,7 @@ export interface IUserSettings {
 
 export interface IPreviewParicipants {
   userID: string;
+  username: string;
   profile: string | null;
   clientID: string;
   channelID: string;

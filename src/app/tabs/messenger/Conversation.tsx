@@ -1341,16 +1341,14 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     </div>
                     <div className="tw-w-full tw-flex tw-flex-col tw-h-[40px] tw-justify-center">
                       <span className="tw-text-[12px] tw-font-Inter">
-                        {/* @$
-                        {
-                          getChannelPreviewParticipants(
-                            conversationsetup.conversationid,
-                          )[0].userID
-                        } */}
                         {getChannelPreviewParticipants(
                           conversationsetup.conversationid,
                         ).length === 1
-                          ? `Your friend` //
+                          ? `@${
+                              getChannelPreviewParticipants(
+                                conversationsetup.conversationid,
+                              )[0].username
+                            }`
                           : `${
                               getChannelPreviewParticipants(
                                 conversationsetup.conversationid,
