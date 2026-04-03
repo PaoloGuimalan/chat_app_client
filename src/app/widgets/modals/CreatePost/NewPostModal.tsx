@@ -125,9 +125,9 @@ export function NewPostModal({
     if (toShare || mainpostcaption.trim() !== "" || medialist.length > 0) {
       setisuploadingpost(true);
       const validatedTaggedList =
-        authentication.user.userID == profileInfo?.userID
+        authentication.user.userID == profileInfo?.id
           ? []
-          : [profileInfo?.userID, ...taggedList];
+          : [profileInfo?.userID, ...taggedList]; //this taggedlist needs to be in username format, not id
 
       // console.log(validatedTaggedList);
 

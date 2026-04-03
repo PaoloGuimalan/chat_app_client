@@ -36,7 +36,7 @@ function CreatePage() {
       pageDescription,
       email,
       slug,
-      otherUsers: markedMembers.map((mp) => mp.userID),
+      otherUsers: markedMembers.map((mp) => mp.id),
       profile: selectedProfile,
       cover_photo: selectedCover,
     }),
@@ -85,7 +85,7 @@ function CreatePage() {
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID,
+      (flt: any) => flt.id == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -93,7 +93,7 @@ function CreatePage() {
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID,
+      (flt: any) => flt.id != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
@@ -302,15 +302,18 @@ function CreatePage() {
                           }}
                           disabled={isSaving}
                         />
-                        <input
-                          type="text"
-                          placeholder="@page_username"
-                          className="tw-text-[14px] tw-text-center sm:tw-text-left tw-font-Inter tw-rounded-md tw-border-none tw-w-full tw-p-[4px]"
-                          onChange={(e) => {
-                            setslug(e.target.value);
-                          }}
-                          disabled={isSaving}
-                        />
+                        <div className="tw-flex tw-items-center tw-gap-[2px]">
+                          <span className="tw-text-[14px]">@</span>
+                          <input
+                            type="text"
+                            placeholder="page_username"
+                            className="tw-text-[14px] tw-text-center sm:tw-text-left tw-font-Inter tw-rounded-md tw-border-none tw-w-full tw-p-[4px]"
+                            onChange={(e) => {
+                              setslug(e.target.value);
+                            }}
+                            disabled={isSaving}
+                          />
+                        </div>
                       </div>
                     </div>
                   </div>
@@ -381,7 +384,7 @@ function CreatePage() {
                                   <button
                                     className="btn_remove_selected"
                                     onClick={() => {
-                                      removeFromList(mrkm.userID);
+                                      removeFromList(mrkm.id);
                                     }}
                                     disabled={isSaving}
                                   >
@@ -430,7 +433,7 @@ function CreatePage() {
                                         cnts.involved_user
                                       ) {
                                         if (
-                                          cnts.action_by.username ==
+                                          cnts.action_by.id ==
                                           authentication.user.userID
                                         ) {
                                           const fullNameFilter = `${
@@ -463,19 +466,20 @@ function CreatePage() {
                                                 <input
                                                   type="checkbox"
                                                   checked={valueToArrayChecker(
-                                                    cnts.involved_user.username,
+                                                    cnts.involved_user.id,
                                                   )}
                                                   disabled={isSaving}
                                                   onChange={() => {
                                                     if (
                                                       !valueToArrayChecker(
-                                                        cnts.involved_user
-                                                          .username,
+                                                        cnts.involved_user.id,
                                                       )
                                                     ) {
                                                       setmarkedMembers([
                                                         ...markedMembers,
                                                         {
+                                                          id: cnts.involved_user
+                                                            .id,
                                                           userID:
                                                             cnts.involved_user
                                                               .username,
@@ -496,8 +500,7 @@ function CreatePage() {
                                                       ]);
                                                     } else {
                                                       removeFromList(
-                                                        cnts.involved_user
-                                                          .username,
+                                                        cnts.involved_user.id,
                                                       );
                                                     }
                                                   }}
@@ -579,18 +582,19 @@ function CreatePage() {
                                                 <input
                                                   type="checkbox"
                                                   checked={valueToArrayChecker(
-                                                    cnts.action_by.username,
+                                                    cnts.action_by.id,
                                                   )}
                                                   disabled={isSaving}
                                                   onChange={() => {
                                                     if (
                                                       !valueToArrayChecker(
-                                                        cnts.action_by.username,
+                                                        cnts.action_by.id,
                                                       )
                                                     ) {
                                                       setmarkedMembers([
                                                         ...markedMembers,
                                                         {
+                                                          id: cnts.action_by.id,
                                                           userID:
                                                             cnts.action_by
                                                               .username,
@@ -608,7 +612,7 @@ function CreatePage() {
                                                       ]);
                                                     } else {
                                                       removeFromList(
-                                                        cnts.action_by.username,
+                                                        cnts.action_by.id,
                                                       );
                                                     }
                                                   }}

@@ -61,7 +61,8 @@ const AuthCheck = (dispatch: any) => {
             authentication: {
               auth: true,
               user: {
-                userID: userData.userID,
+                userID: userData._id,
+                username: userData.userID,
                 fullName: {
                   firstName: userData.fullname.firstName,
                   middleName: userData.fullname.middleName,
@@ -125,7 +126,8 @@ const LoginRequest = (
             authentication: {
               auth: true,
               user: {
-                userID: userData.userID,
+                userID: userData.id,
+                username: userData.username,
                 fullName: {
                   firstName: userData.fullname.firstName,
                   middleName: userData.fullname.middleName,

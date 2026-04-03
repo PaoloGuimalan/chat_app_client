@@ -24,14 +24,16 @@ import {
   userSessionStatusFromContacts,
 } from "../../../reusables/hooks/reusable";
 import { PaginationProp } from "@/reusables/vars/props";
-import { IContact } from "@/reusables/vars/interfaces";
+import { AuthenticationInterface, IContact } from "@/reusables/vars/interfaces";
 import ContactItemLoader from "@/app/reusables/loaders/ContactItemLoader";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 
 function Contacts() {
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
-  const authentication = useSelector((state: any) => state.authentication);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
   const contacts: PaginationProp<IContact> = useSelector(
     (state: any) => state.contactslist,
   );
@@ -198,20 +200,6 @@ function Contacts() {
         <span className="span_contacts_label">Contacts</span>
       </div>
       {isLoading ? (
-        // <div id="div_isLoading_notifications">
-        //   <motion.div
-        //     animate={{
-        //       rotate: -360,
-        //     }}
-        //     transition={{
-        //       duration: 1,
-        //       repeat: Infinity,
-        //     }}
-        //     id="div_loader_request"
-        //   >
-        //     <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-        //   </motion.div>
-        // </div>
         <div id="div_contacts_list_container" className="scroller">
           {Array.from({ length: 20 }, (_, i: number) => {
             return <ContactItemLoader key={i} />;
@@ -230,7 +218,7 @@ function Contacts() {
           {contactslist.map((cnts: IContact, i: number) => {
             if (cnts.type == "single") {
               if (cnts.involved_user && cnts.action_by) {
-                if (cnts.action_by.username == authentication.user.userID) {
+                if (cnts.action_by.id == authentication.user.userID) {
                   return (
                     <motion.div
                       whileHover={{
@@ -261,7 +249,7 @@ function Contacts() {
                         </div>
                         {isUserOnline(
                           activeuserslist,
-                          cnts.involved_user.username,
+                          cnts.involved_user.id,
                         ) && <div className="div_online_indicator" />}
                       </div>
                       <div className="tw-flex tw-flex-1 tw-h-full tw-overflow-hidden tw-flex-col tw-justify-center">
@@ -291,7 +279,7 @@ function Contacts() {
                         </div>
                         {isUserOnline(
                           activeuserslist,
-                          cnts.involved_user.username,
+                          cnts.involved_user.id,
                         ) ? (
                           <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
                             <span className="tw-text-[12px] tw-font-Inter">
@@ -301,13 +289,13 @@ function Contacts() {
                         ) : (
                           userSessionStatusFromContacts(
                             activeuserslist,
-                            cnts.involved_user.username,
+                            cnts.involved_user.id,
                           ) && (
                             <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px] div_time_since_active_ellipsis">
                               <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">
                                 {userSessionStatusFromContacts(
                                   activeuserslist,
-                                  cnts.involved_user.username,
+                                  cnts.involved_user.id,
                                 )}
                               </span>
                             </div>
@@ -396,10 +384,9 @@ function Contacts() {
                             }
                           />
                         </div>
-                        {isUserOnline(
-                          activeuserslist,
-                          cnts.action_by.username,
-                        ) && <div className="div_online_indicator" />}
+                        {isUserOnline(activeuserslist, cnts.action_by.id) && (
+                          <div className="div_online_indicator" />
+                        )}
                       </div>
                       <div className="tw-flex tw-flex-1 tw-h-full tw-overflow-hidden tw-flex-col tw-justify-center">
                         <div className="div_contact_fullname_container">
@@ -426,10 +413,7 @@ function Contacts() {
                             </div>
                           </span>
                         </div>
-                        {isUserOnline(
-                          activeuserslist,
-                          cnts.action_by.username,
-                        ) ? (
+                        {isUserOnline(activeuserslist, cnts.action_by.id) ? (
                           <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
                             <span className="tw-text-[12px] tw-font-Inter">
                               Active Now
@@ -438,13 +422,13 @@ function Contacts() {
                         ) : (
                           userSessionStatusFromContacts(
                             activeuserslist,
-                            cnts.action_by.username,
+                            cnts.action_by.id,
                           ) && (
                             <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px] div_time_since_active_ellipsis">
                               <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">
                                 {userSessionStatusFromContacts(
                                   activeuserslist,
-                                  cnts.action_by.username,
+                                  cnts.action_by.id,
                                 )}
                               </span>
                             </div>

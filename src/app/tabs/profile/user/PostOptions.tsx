@@ -89,7 +89,7 @@ function PostOptions({
             />
             <span>Save</span>
           </button>
-          {post.user.username === authentication.user.userID && (
+          {post.user.id === authentication.user.userID && (
             <button
               onClick={ArchivePostProcess}
               className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
@@ -98,7 +98,7 @@ function PostOptions({
               <span>Archive</span>
             </button>
           )}
-          {post.user.username === authentication.user.userID && (
+          {post.user.id === authentication.user.userID && (
             <button
               onClick={DeletePostProcess}
               className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"

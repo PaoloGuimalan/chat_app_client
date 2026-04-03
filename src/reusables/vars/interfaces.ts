@@ -5,7 +5,9 @@ import PeerService from "../hooks/peer";
 export interface AuthenticationInterface {
   auth: boolean | null;
   user: {
+    id: string;
     userID: string;
+    username: string;
     fullName: {
       firstName: string;
       middleName: string;
@@ -35,6 +37,7 @@ export interface IUserInterface {
 }
 
 export interface ProfileUserInfoInterface {
+  id: string;
   userID: string;
   fullname: {
     firstName: string;
@@ -188,6 +191,7 @@ export interface ChannelsListInterface {
 }
 
 export interface ServerUsersWithInfo {
+  _id: string;
   userID: string;
   fullname: {
     firstName: string;

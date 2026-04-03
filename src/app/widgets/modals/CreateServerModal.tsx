@@ -37,7 +37,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID,
+      (flt: any) => flt.id == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -45,14 +45,14 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID,
+      (flt: any) => flt.id != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
   };
 
   const processCreateGroupChat = () => {
-    const markedMembersFinal = markedMembers.map((mrkd: any) => mrkd.userID);
+    const markedMembersFinal = markedMembers.map((mrkd: any) => mrkd.id);
     // console.log(markedMembersFinal);
     setisSaving(true);
     CreateServerRequest(
@@ -174,7 +174,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                         <button
                           className="btn_remove_selected"
                           onClick={() => {
-                            removeFromList(mrkm.userID);
+                            removeFromList(mrkm.id);
                           }}
                         >
                           <IoClose
@@ -213,8 +213,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                         if (cnts.type == "single") {
                           if (cnts.action_by && cnts.involved_user) {
                             if (
-                              cnts.action_by.username ==
-                              authentication.user.userID
+                              cnts.action_by.id == authentication.user.userID
                             ) {
                               const fullNameFilter = `${
                                 cnts.involved_user.first_name
@@ -235,17 +234,18 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                     <input
                                       type="checkbox"
                                       checked={valueToArrayChecker(
-                                        cnts.involved_user.username,
+                                        cnts.involved_user.id,
                                       )}
                                       onChange={() => {
                                         if (
                                           !valueToArrayChecker(
-                                            cnts.involved_user.username,
+                                            cnts.involved_user.id,
                                           )
                                         ) {
                                           setmarkedMembers([
                                             ...markedMembers,
                                             {
+                                              id: cnts.involved_user.id,
                                               userID:
                                                 cnts.involved_user.username,
                                               fullName: `${
@@ -261,9 +261,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                             },
                                           ]);
                                         } else {
-                                          removeFromList(
-                                            cnts.involved_user.username,
-                                          );
+                                          removeFromList(cnts.involved_user.id);
                                         }
                                       }}
                                       className="checkbox_selector_people_server"
@@ -323,17 +321,18 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                     <input
                                       type="checkbox"
                                       checked={valueToArrayChecker(
-                                        cnts.action_by.username,
+                                        cnts.action_by.id,
                                       )}
                                       onChange={() => {
                                         if (
                                           !valueToArrayChecker(
-                                            cnts.action_by.username,
+                                            cnts.action_by.id,
                                           )
                                         ) {
                                           setmarkedMembers([
                                             ...markedMembers,
                                             {
+                                              id: cnts.action_by.id,
                                               userID: cnts.action_by.username,
                                               fullName: `${
                                                 cnts.action_by.first_name
@@ -346,9 +345,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
                                             },
                                           ]);
                                         } else {
-                                          removeFromList(
-                                            cnts.action_by.username,
-                                          );
+                                          removeFromList(cnts.action_by.id);
                                         }
                                       }}
                                       className="checkbox_selector_people_server"

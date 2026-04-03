@@ -154,7 +154,7 @@ function Profile({
       case "add":
         ContactRequest(
           {
-            addUsername: profileInfo?.userID,
+            addUsername: profileInfo?.id,
           },
           dispatch,
           alerts,
@@ -168,7 +168,7 @@ function Profile({
         DeclineContactRequest(
           {
             connection_id: profileInfo?.connection.connection_id,
-            to_user_id: profileInfo?.userID,
+            to_user_id: profileInfo?.id,
             action: "remove",
           },
           dispatch,
@@ -183,7 +183,7 @@ function Profile({
         AcceptContactRequest(
           {
             connection_id: profileInfo?.connection.connection_id,
-            to_user_id: profileInfo?.userID,
+            to_user_id: profileInfo?.id,
           },
           dispatch,
           alerts,
@@ -197,7 +197,7 @@ function Profile({
         DeclineContactRequest(
           {
             connection_id: profileInfo?.connection.connection_id,
-            to_user_id: profileInfo?.userID,
+            to_user_id: profileInfo?.id,
             action: "decline",
           },
           dispatch,
@@ -212,7 +212,7 @@ function Profile({
         DeclineContactRequest(
           {
             connection_id: profileInfo?.connection.connection_id,
-            to_user_id: profileInfo?.userID,
+            to_user_id: profileInfo?.id,
             action: "remove",
           },
           dispatch,
@@ -407,7 +407,7 @@ function Profile({
                 @{profileInfo.userID}
               </span>
             </div>
-            {authentication.user.userID !== params.userID &&
+            {authentication.user.username !== params.userID &&
               profileInfo.connection.is_connection_present !== null && (
                 <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px]">
                   {/* for add friend button */}
@@ -615,7 +615,7 @@ function Profile({
                   <FaBook style={{ fontSize: "17px", color: "#666666" }} />
                   <span className="tw-text-[14px] tw-font-semibold">Diary</span>
                 </div>
-                {params.userID === authentication.user.userID && (
+                {params.userID === authentication.user.username && (
                   <Link
                     to={`/${params.userID}/diary`}
                     className="tw-text-[12px] tw-text-[#333333]"
@@ -643,7 +643,7 @@ function Profile({
                         )}
                       </span>
                     </span>
-                  ) : params.userID === authentication.user.userID ? (
+                  ) : params.userID === authentication.user.username ? (
                     <span className="tw-text-[14px]">
                       Write your first entry
                     </span>
@@ -662,7 +662,7 @@ function Profile({
                   />
                 )}
               </div>
-              {params.userID === authentication.user.userID && (
+              {params.userID === authentication.user.username && (
                 <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
                   <HiOutlinePencil
                     style={{ fontSize: "20px", color: "#666666" }}
@@ -696,7 +696,7 @@ function Profile({
                     />
                     {diaryPreview.isLoaded ? (
                       <span className="tw-text-[14px]">
-                        {params.userID === authentication.user.userID
+                        {params.userID === authentication.user.username
                           ? "You've"
                           : `${profileInfo.fullname.firstName} has`}{" "}
                         been writing a lot about:
@@ -787,7 +787,7 @@ function Profile({
                 }}
                 className="tw-font-Inter"
                 placeholder={
-                  profileInfo.userID === authentication.user.userID
+                  profileInfo.userID === authentication.user.username
                     ? "Share your thoughts..."
                     : `Write on ${profileInfo.fullname.firstName}'s wall...`
                 }

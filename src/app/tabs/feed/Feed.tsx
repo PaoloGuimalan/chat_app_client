@@ -140,7 +140,7 @@ function Feed() {
               sharePreviewData={null}
               withImage={toggleNewPostModal.withImage}
               profileInfo={{
-                userID: authentication.user.userID,
+                id: authentication.user.userID,
               }}
               realmInfo={null}
               setcreateposttext={setcreateposttext}

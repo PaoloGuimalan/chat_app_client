@@ -17,6 +17,7 @@ function ContentHandler({
   i,
   cnvs,
   conversationsetup,
+  members,
   setisReplying,
   setfullImageScreen,
   scrollBottom,
@@ -43,6 +44,16 @@ function ContentHandler({
   useEffect(() => {
     setreactions(cnvs.reactions ? cnvs.reactions : []);
   }, [cnvs.reactions]);
+
+  const getMemberInfo = (userID: string) => {
+    const member = members.filter((flt) => flt._id === userID);
+
+    if (member.length > 0) {
+      return member[0].fullname.firstName;
+    }
+
+    return "Someone";
+  };
 
   if (cnvs.isDeleted) {
     return (
@@ -71,7 +82,7 @@ function ContentHandler({
               replied to{" "}
               {cnvs.replyedmessage[0].sender === authentication.user.userID
                 ? "your message"
-                : `@${cnvs.replyedmessage[0].sender}`}
+                : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
             </span>
           )}
           {conversationsetup.type == "group" &&
@@ -157,7 +168,7 @@ function ContentHandler({
                       ) {
                         return (
                           <span className="span_seenby" key={i}>
-                            {mp}
+                            {getMemberInfo(mp)}
                           </span>
                         );
                       }
@@ -228,14 +239,14 @@ function ContentHandler({
                 replied to{" "}
                 {cnvs.replyedmessage[0].sender === authentication.user.userID
                   ? "your message"
-                  : `@${cnvs.replyedmessage[0].sender}`}
+                  : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
             )}
             {(conversationsetup.type == "group" ||
               conversationsetup.type == "server") &&
               authentication.user.userID != cnvs.sender && (
                 <span className="span_sender_label tw-font-Inter">
-                  {cnvs.sender}
+                  {getMemberInfo(cnvs.sender)}
                 </span>
               )}
             {cnvs.isReply && (
@@ -414,7 +425,7 @@ function ContentHandler({
                         ) {
                           return (
                             <span className="span_seenby" key={i}>
-                              {mp}
+                              {getMemberInfo(mp)}
                             </span>
                           );
                         }
@@ -494,13 +505,15 @@ function ContentHandler({
                 replied to{" "}
                 {cnvs.replyedmessage[0].sender === authentication.user.userID
                   ? "your message"
-                  : `@${cnvs.replyedmessage[0].sender}`}
+                  : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
             )}
             {(conversationsetup.type == "group" ||
               conversationsetup.type == "server") &&
               authentication.user.userID != cnvs.sender && (
-                <span className="span_sender_label">{cnvs.sender}</span>
+                <span className="span_sender_label">
+                  {getMemberInfo(cnvs.sender)}
+                </span>
               )}
             {cnvs.isReply && (
               <ReplyingToPreview
@@ -651,7 +664,7 @@ function ContentHandler({
                         if (mp != authentication.user.userID) {
                           return (
                             <span className="span_seenby" key={i}>
-                              {mp}
+                              {getMemberInfo(mp)}
                             </span>
                           );
                         }
@@ -731,13 +744,15 @@ function ContentHandler({
                 replied to{" "}
                 {cnvs.replyedmessage[0].sender === authentication.user.userID
                   ? "your message"
-                  : `@${cnvs.replyedmessage[0].sender}`}
+                  : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
             )}
             {(conversationsetup.type == "group" ||
               conversationsetup.type == "server") &&
               authentication.user.userID != cnvs.sender && (
-                <span className="span_sender_label">{cnvs.sender}</span>
+                <span className="span_sender_label">
+                  {getMemberInfo(cnvs.sender)}
+                </span>
               )}
             {cnvs.isReply && (
               <ReplyingToPreview
@@ -884,7 +899,7 @@ function ContentHandler({
                         if (mp != authentication.user.userID) {
                           return (
                             <span className="span_seenby" key={i}>
-                              {mp}
+                              {getMemberInfo(mp)}
                             </span>
                           );
                         }
@@ -964,7 +979,7 @@ function ContentHandler({
                 replied to{" "}
                 {cnvs.replyedmessage[0].sender === authentication.user.userID
                   ? "your message"
-                  : `@${cnvs.replyedmessage[0].sender}`}
+                  : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
             )}
             {(conversationsetup.type == "group" ||
@@ -1118,7 +1133,7 @@ function ContentHandler({
                         if (mp != authentication.user.userID) {
                           return (
                             <span className="span_seenby" key={i}>
-                              {mp}
+                              {getMemberInfo(mp)}
                             </span>
                           );
                         }
@@ -1209,13 +1224,15 @@ function ContentHandler({
                 replied to{" "}
                 {cnvs.replyedmessage[0].sender === authentication.user.userID
                   ? "your message"
-                  : `@${cnvs.replyedmessage[0].sender}`}
+                  : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
             )}
             {(conversationsetup.type == "group" ||
               conversationsetup.type == "server") &&
               authentication.user.userID != cnvs.sender && (
-                <span className="span_sender_label">{cnvs.sender}</span>
+                <span className="span_sender_label">
+                  {getMemberInfo(cnvs.sender)}
+                </span>
               )}
             {cnvs.isReply && (
               <ReplyingToPreview
@@ -1375,7 +1392,7 @@ function ContentHandler({
                         if (mp != authentication.user.userID) {
                           return (
                             <span className="span_seenby" key={i}>
-                              {mp}
+                              {getMemberInfo(mp)}
                             </span>
                           );
                         }

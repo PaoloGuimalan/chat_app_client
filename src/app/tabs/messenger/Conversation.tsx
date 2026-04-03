@@ -144,6 +144,22 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const [toggleMenu, settoggleMenu] = useState<boolean>(false);
   const callRequestInFlightRef = useRef<Set<string>>(new Set());
 
+  const getMemberInfo = (userID: string) => {
+    if (!conversationinfo) {
+      return "Someone";
+    }
+
+    const member = conversationinfo.usersWithInfo.filter(
+      (flt) => flt._id === userID,
+    );
+
+    if (member.length > 0) {
+      return member[0].fullname.firstName;
+    }
+
+    return "Someone";
+  };
+
   const isConversationDisabled = useMemo(() => {
     if (conversationinfo?.users) {
       if (conversationinfo.users.length > 0) {
@@ -310,7 +326,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         SendMessageRequest({
           conversationID: conversationsetup.conversationid,
           pendingID: pendingID,
-          receivers: conversationinfo?.users.map((mp: any) => mp.userID),
+          receivers: conversationinfo?.users.map((mp: any) => mp._id),
           content: messageValue,
           isReply: isReplying.isReply,
           replyingTo: isReplying.replyingTo,
@@ -327,7 +343,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         SendMessageRequest({
           conversationID: conversationsetup.conversationid,
           pendingID: pendingID,
-          receivers: conversationinfo?.users.map((mp: any) => mp.userID),
+          receivers: conversationinfo?.users.map((mp: any) => mp._id),
           content: messageValue,
           isReply: isReplying.isReply,
           replyingTo: isReplying.replyingTo,
@@ -370,7 +386,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         ]);
         SendFilesRequest({
           conversationID: conversationsetup.conversationid,
-          receivers: conversationinfo?.users.map((mp: any) => mp.userID),
+          receivers: conversationinfo?.users.map((mp: any) => mp._id),
           files: pendingArrImages,
           isReply: isReplying.isReply,
           replyingTo: isReplying.replyingTo,
@@ -386,7 +402,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         ]);
         SendFilesRequest({
           conversationID: conversationsetup.conversationid,
-          receivers: conversationinfo?.users.map((mp: any) => mp.userID),
+          receivers: conversationinfo?.users.map((mp: any) => mp._id),
           files: pendingArrImages,
           isReply: isReplying.isReply,
           replyingTo: isReplying.replyingTo,
@@ -432,7 +448,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         SeenMessageRequest({
           conversationID: conversationsetup.conversationid,
           range: range,
-          receivers: conversationinfo?.users.map((mp: any) => mp.userID),
+          receivers: conversationinfo?.users.map((mp: any) => mp._id),
         });
       }
     }
@@ -444,7 +460,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         conversationID: conversationsetup.conversationid,
         range: range,
         page: page,
-        receivers: conversationinfo?.users.map((mp: any) => mp.userID),
+        receivers: conversationinfo?.users.map((mp: any) => mp._id),
       },
       setconversationList,
       settotalMessages,
@@ -461,7 +477,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         conversationID: conversationsetup.conversationid,
         range: range * page,
         page: 1,
-        receivers: conversationinfo?.users.map((mp: any) => mp.userID),
+        receivers: conversationinfo?.users.map((mp: any) => mp._id),
       },
       setconversationList,
       settotalMessages,
@@ -518,106 +534,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     setnonImgList(mutatedPrevArr);
     setnonImageRawFilesList(mutatedPrevRaw);
   };
-
-  // const initMediaDevices = (callType: any) => {
-  //   if (mediatrackholder.length > 0) {
-  //     triggerCall(callType);
-  //   } else {
-  //     navigator.mediaDevices
-  //       .getUserMedia({
-  //         video: true,
-  //         audio: true,
-  //       })
-  //       .then((value) => {
-  //         dispatch({
-  //           type: MEDIA_MY_VIDEO_HOLDER,
-  //           payload: {
-  //             mediamyvideoholder: value,
-  //           },
-  //         });
-  //         dispatch({
-  //           type: MEDIA_TRACK_HOLDER,
-  //           payload: {
-  //             mediatrackholder: value.getTracks(),
-  //           },
-  //         });
-  //         triggerCall(callType);
-  //       })
-  //       .catch((err) => {
-  //         console.log(err);
-  //       });
-  //   }
-  // };
-
-  // const triggerCall = (callType: any) => {
-  //   const checkIfOnCall = callslist.filter(
-  //     (onc: any) => onc.conversationID == conversationsetup.conversationid,
-  //   );
-  //   const checkIfOnPending = pendingcallalerts.filter(
-  //     (fltcall: any) => fltcall.callID == conversationsetup.conversationid,
-  //   );
-
-  //   if (checkIfOnCall.length == 0 && checkIfOnPending.length == 0) {
-  //     CallRequest({
-  //       callType: callType,
-  //       callDisplayName:
-  //         conversationsetup.type == "single"
-  //           ? `${authentication.user.fullName.firstName}`
-  //           : `${conversationsetup.groupdetails.groupName} (Group)`,
-  //       conversationType: conversationsetup.type,
-  //       conversationID: conversationsetup.conversationid,
-  //       caller: {
-  //         name: authentication.user.fullName.firstName,
-  //         userID: authentication.user.userID,
-  //       },
-  //       recepients:
-  //         conversationsetup.type == "single"
-  //           ? [conversationsetup.userdetails.userID]
-  //           : conversationinfo?.users
-  //               .map((mp: any) => mp.userID)
-  //               .filter((flt: any) => flt != authentication.user.userID),
-  //       displayImage:
-  //         conversationsetup.type == "single"
-  //           ? conversationsetup.userdetails.profile
-  //           : "none",
-  //     })
-  //       .then(() => {
-  //         dispatch({
-  //           type: REMOVE_REJECTED_CALL_LIST,
-  //           payload: {
-  //             callID: conversationsetup.conversationid,
-  //           },
-  //         });
-  //         dispatch({
-  //           type: SET_CALLS_LIST,
-  //           payload: {
-  //             callslist: [
-  //               ...callslist,
-  //               {
-  //                 callType: callType,
-  //                 callDisplayName:
-  //                   conversationsetup.type == "single"
-  //                     ? `${conversationsetup.userdetails.fullname.firstName}`
-  //                     : `${conversationsetup.groupdetails.groupName} (Group)`,
-  //                 conversationType: conversationsetup.type,
-  //                 conversationID: conversationsetup.conversationid,
-  //                 caller: {
-  //                   name: authentication.user.fullName.firstName,
-  //                   userID: authentication.user.userID,
-  //                 },
-  //                 recepients: conversationinfo?.users.map(
-  //                   (mp: any) => mp.userID,
-  //                 ),
-  //               },
-  //             ],
-  //           },
-  //         });
-  //       })
-  //       .catch((err) => {
-  //         console.log(err);
-  //       });
-  //   }
-  // };
 
   const sendNonImageFilesProcess = () => {
     importNonImageData(
@@ -1462,6 +1378,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     i={i}
                     cnvs={cnvs}
                     conversationsetup={conversationsetup}
+                    members={conversationinfo?.usersWithInfo ?? []}
                     setisReplying={setisReplyingTrigger}
                     setfullImageScreen={setfullImageScreen}
                     scrollBottom={scrollBottom}
@@ -1562,12 +1479,12 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       (flt: any) => flt.messageID == isReplying.replyingTo,
                     )[0].sender === authentication.user.userID
                       ? "Replying to your message"
-                      : `Replying to @${
+                      : `Replying to ${getMemberInfo(
                           conversationList.filter(
                             (flt: any) =>
                               flt.messageID == isReplying.replyingTo,
-                          )[0].sender
-                        }`)}
+                          )[0].sender,
+                        )}`)}
                 </span>
                 <span className="tw-text-[12px] tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
                   {isReplying.isReply &&
@@ -1772,7 +1689,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     IsTypingBroadcastRequest({
                       conversationID: conversationsetup.conversationid,
                       receivers: conversationinfo?.users.map(
-                        (mp: any) => mp.userID,
+                        (mp: any) => mp._id,
                       ),
                     });
                   }

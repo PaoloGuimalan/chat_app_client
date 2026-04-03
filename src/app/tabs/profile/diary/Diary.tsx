@@ -45,7 +45,7 @@ function Diary() {
 
   const entry_id = searchParams.get("entry_id");
   const profile_user_id = params.userID;
-  const isOwnDiary = profile_user_id === authentication.user.userID;
+  const isOwnDiary = profile_user_id === authentication.user.username;
 
   const navigate = useNavigate();
 

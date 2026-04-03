@@ -3,6 +3,7 @@ import {
   ConversationInfoInterface,
   ICoordinatesAnchor,
   ServerChannelsListInterface,
+  UserWithInfoConversationInterface,
 } from "./interfaces";
 
 export interface MessageOptionsProp {
@@ -16,6 +17,7 @@ export interface ContentHandlerProp {
   i: number;
   cnvs: any;
   conversationsetup: any;
+  members: UserWithInfoConversationInterface[];
   setisReplying: (data: any) => void;
   setfullImageScreen: (data: any) => void;
   scrollBottom: () => void;

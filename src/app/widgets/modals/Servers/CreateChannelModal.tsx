@@ -36,7 +36,7 @@ function CreateChannelModal({
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID,
+      (flt: any) => flt.id == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -44,14 +44,14 @@ function CreateChannelModal({
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID,
+      (flt: any) => flt.id != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
   };
 
   const processCreateGroupChat = () => {
-    const markedMembersFinal = markedMembers.map((mrkd: any) => mrkd.userID);
+    const markedMembersFinal = markedMembers.map((mrkd: any) => mrkd.id);
     setisSaving(true);
     CreateChannelRequest(
       {
@@ -240,7 +240,7 @@ function CreateChannelModal({
                       >
                         <div className="tw-w-full tw-flex tw-flex-col tw-h-auto">
                           {contactslist.map((cnts: any, i: number) => {
-                            if (cnts.userID !== authentication.user.userID) {
+                            if (cnts._id !== authentication.user.userID) {
                               return (
                                 <motion.div
                                   whileHover={{
@@ -251,12 +251,13 @@ function CreateChannelModal({
                                 >
                                   <input
                                     type="checkbox"
-                                    checked={valueToArrayChecker(cnts.userID)}
+                                    checked={valueToArrayChecker(cnts._id)}
                                     onChange={() => {
-                                      if (!valueToArrayChecker(cnts.userID)) {
+                                      if (!valueToArrayChecker(cnts._id)) {
                                         setmarkedMembers([
                                           ...markedMembers,
                                           {
+                                            id: cnts._id,
                                             userID: cnts.userID,
                                             fullName: `${
                                               cnts.fullname.firstName
@@ -268,7 +269,7 @@ function CreateChannelModal({
                                           },
                                         ]);
                                       } else {
-                                        removeFromList(cnts.userID);
+                                        removeFromList(cnts._id);
                                       }
                                     }}
                                     className="checkbox_selector_people_server"

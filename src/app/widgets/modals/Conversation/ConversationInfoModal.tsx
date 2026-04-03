@@ -49,7 +49,7 @@ function ConversationInfoModal({
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID,
+      (flt: any) => flt.id == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -57,7 +57,7 @@ function ConversationInfoModal({
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID,
+      (flt: any) => flt.id != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
@@ -84,7 +84,7 @@ function ConversationInfoModal({
     const initialpayload = {
       conversationID: conversationinfo.conversationInfo?.groupID,
       memberstoadd: markedMembers,
-      receivers: [...markedMembers.map((mp) => mp.userID)],
+      receivers: [...markedMembers.map((mp) => mp.id)],
     };
     AddNewMemberRequest(initialpayload)
       .then((response) => {
@@ -101,7 +101,7 @@ function ConversationInfoModal({
 
   const userInfo = useMemo(() => {
     const info = conversationinfo.usersWithInfo.filter(
-      (flt) => flt.userID !== authentication.user.userID,
+      (flt) => flt._id !== authentication.user.userID,
     );
 
     if (info.length > 0) {
@@ -452,7 +452,7 @@ function ConversationInfoModal({
                               <button
                                 className="btn_remove_selected"
                                 onClick={() => {
-                                  removeFromList(mrkm.userID);
+                                  removeFromList(mrkm.id);
                                 }}
                               >
                                 <IoClose
@@ -580,9 +580,9 @@ function ConversationInfoModal({
                                   } ${cnts.fullname.lastName}`;
                                   const checkmemberslist =
                                     conversationinfo.users.map(
-                                      (mp: UsersInConversation) => mp.userID,
+                                      (mp: UsersInConversation) => mp._id,
                                     );
-                                  if (!checkmemberslist.includes(cnts.userID)) {
+                                  if (!checkmemberslist.includes(cnts._id)) {
                                     if (fullNameFilter.includes(searchFilter)) {
                                       return (
                                         <motion.div
@@ -595,17 +595,16 @@ function ConversationInfoModal({
                                           <input
                                             type="checkbox"
                                             checked={valueToArrayChecker(
-                                              cnts.userID,
+                                              cnts._id,
                                             )}
                                             onChange={() => {
                                               if (
-                                                !valueToArrayChecker(
-                                                  cnts.userID,
-                                                )
+                                                !valueToArrayChecker(cnts._id)
                                               ) {
                                                 setmarkedMembers([
                                                   ...markedMembers,
                                                   {
+                                                    id: cnts._id,
                                                     userID: cnts.userID,
                                                     fullName: `${
                                                       cnts.fullname.firstName
@@ -620,7 +619,7 @@ function ConversationInfoModal({
                                                   },
                                                 ]);
                                               } else {
-                                                removeFromList(cnts.userID);
+                                                removeFromList(cnts._id);
                                               }
                                             }}
                                             className="checkbox_selector_people"
@@ -665,22 +664,20 @@ function ConversationInfoModal({
                                   if (cnts.type == "single") {
                                     if (cnts.action_by && cnts.involved_user) {
                                       if (
-                                        cnts.action_by.username ===
+                                        cnts.action_by.id ===
                                           authentication.user.userID &&
                                         conversationinfo.usersWithInfo.filter(
                                           (flt: any) =>
-                                            flt.userID ===
-                                            cnts.involved_user.username,
+                                            flt._id === cnts.involved_user.id,
                                         ).length === 0
                                       ) {
                                         const checkmemberslist =
                                           conversationinfo.users.map(
-                                            (mp: UsersInConversation) =>
-                                              mp.userID,
+                                            (mp: UsersInConversation) => mp._id,
                                           );
                                         if (
                                           checkmemberslist.includes(
-                                            cnts.involved_user.username,
+                                            cnts.involved_user.id,
                                           )
                                         ) {
                                           return null;
@@ -707,18 +704,19 @@ function ConversationInfoModal({
                                               <input
                                                 type="checkbox"
                                                 checked={valueToArrayChecker(
-                                                  cnts.involved_user.username,
+                                                  cnts.involved_user.id,
                                                 )}
                                                 onChange={() => {
                                                   if (
                                                     !valueToArrayChecker(
-                                                      cnts.involved_user
-                                                        .username,
+                                                      cnts.involved_user.id,
                                                     )
                                                   ) {
                                                     setmarkedMembers([
                                                       ...markedMembers,
                                                       {
+                                                        id: cnts.involved_user
+                                                          .id,
                                                         userID:
                                                           cnts.involved_user
                                                             .username,
@@ -739,8 +737,7 @@ function ConversationInfoModal({
                                                     ]);
                                                   } else {
                                                     removeFromList(
-                                                      cnts.involved_user
-                                                        .username,
+                                                      cnts.involved_user.id,
                                                     );
                                                   }
                                                 }}
@@ -792,12 +789,11 @@ function ConversationInfoModal({
                                       } else {
                                         const checkmemberslist =
                                           conversationinfo.users.map(
-                                            (mp: UsersInConversation) =>
-                                              mp.userID,
+                                            (mp: UsersInConversation) => mp._id,
                                           );
                                         if (
                                           checkmemberslist.includes(
-                                            cnts.action_by.username,
+                                            cnts.action_by.id,
                                           )
                                         ) {
                                           return null;
@@ -805,8 +801,7 @@ function ConversationInfoModal({
                                         if (
                                           conversationinfo.usersWithInfo.filter(
                                             (flt: any) =>
-                                              flt.userID ===
-                                              cnts.action_by.username,
+                                              flt._id === cnts.action_by.id,
                                           ).length === 0
                                         ) {
                                           const fullNameFilter = `${
@@ -832,17 +827,18 @@ function ConversationInfoModal({
                                                 <input
                                                   type="checkbox"
                                                   checked={valueToArrayChecker(
-                                                    cnts.action_by.username,
+                                                    cnts.action_by.id,
                                                   )}
                                                   onChange={() => {
                                                     if (
                                                       !valueToArrayChecker(
-                                                        cnts.action_by.username,
+                                                        cnts.action_by.id,
                                                       )
                                                     ) {
                                                       setmarkedMembers([
                                                         ...markedMembers,
                                                         {
+                                                          id: cnts.action_by.id,
                                                           userID:
                                                             cnts.action_by
                                                               .username,
@@ -863,7 +859,7 @@ function ConversationInfoModal({
                                                       ]);
                                                     } else {
                                                       removeFromList(
-                                                        cnts.action_by.username,
+                                                        cnts.action_by.id,
                                                       );
                                                     }
                                                   }}

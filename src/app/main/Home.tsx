@@ -502,7 +502,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
                 if (screensizelistener.W <= 1100) {
                   navigate("/user");
                 } else {
-                  navigate(`/${authentication.user.userID}`);
+                  navigate(`/${authentication.user.username}`);
                 }
               }}
               id="img_profile_container"

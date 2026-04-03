@@ -32,6 +32,7 @@ export type ConvertedResponse = {
   };
   id: string;
   userID: string;
+  username: string;
   profile: string;
   gender: string | null;
   email: string;

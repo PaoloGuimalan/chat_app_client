@@ -16,7 +16,7 @@ import {
 } from "@/reusables/hooks/requests";
 import {
   AuthenticationInterface,
-  ChannelMembersInterface,
+  // ChannelMembersInterface,
   IContact,
   ServerUsersWithInfo,
 } from "@/reusables/vars/interfaces";
@@ -40,7 +40,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID,
+      (flt: any) => flt.id == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -55,7 +55,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID,
+      (flt: any) => flt.id != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
@@ -65,7 +65,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
     const initialpayload = {
       serverID: serverdetails.serverID,
       memberstoadd: markedMembers,
-      receivers: [...markedMembers.map((mp) => mp.userID)],
+      receivers: [...markedMembers.map((mp) => mp.id)],
     };
     AddNewMemberToServer(initialpayload)
       .then((response) => {
@@ -148,7 +148,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                             <button
                               className="btn_remove_selected"
                               onClick={() => {
-                                removeFromList(mrkm.userID);
+                                removeFromList(mrkm.id);
                               }}
                             >
                               <IoClose
@@ -241,12 +241,11 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                             if (cnts.type == "single") {
                               if (cnts.action_by && cnts.involved_user) {
                                 if (
-                                  cnts.action_by.username ===
+                                  cnts.action_by.id ===
                                     authentication.user.userID &&
-                                  serverdetails.members.filter(
-                                    (flt: ChannelMembersInterface) =>
-                                      flt.userID ===
-                                      cnts.involved_user.username,
+                                  serverdetails.usersWithInfo.filter(
+                                    (flt: ServerUsersWithInfo) =>
+                                      flt._id === cnts.involved_user.id,
                                   ).length === 0
                                 ) {
                                   const fullNameFilter = `${
@@ -268,17 +267,18 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                         <input
                                           type="checkbox"
                                           checked={valueToArrayChecker(
-                                            cnts.involved_user.username,
+                                            cnts.involved_user.id,
                                           )}
                                           onChange={() => {
                                             if (
                                               !valueToArrayChecker(
-                                                cnts.involved_user.username,
+                                                cnts.involved_user.id,
                                               )
                                             ) {
                                               setmarkedMembers([
                                                 ...markedMembers,
                                                 {
+                                                  id: cnts.involved_user.id,
                                                   userID:
                                                     cnts.involved_user.username,
                                                   fullName: `${
@@ -296,7 +296,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                               ]);
                                             } else {
                                               removeFromList(
-                                                cnts.involved_user.username,
+                                                cnts.involved_user.id,
                                               );
                                             }
                                           }}
@@ -343,9 +343,9 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                   }
                                 } else {
                                   if (
-                                    serverdetails.members.filter(
-                                      (flt: ChannelMembersInterface) =>
-                                        flt.userID === cnts.action_by.username,
+                                    serverdetails.usersWithInfo.filter(
+                                      (flt: ServerUsersWithInfo) =>
+                                        flt._id === cnts.action_by.id,
                                     ).length === 0
                                   ) {
                                     const fullNameFilter = `${
@@ -367,17 +367,18 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                           <input
                                             type="checkbox"
                                             checked={valueToArrayChecker(
-                                              cnts.action_by.username,
+                                              cnts.action_by.id,
                                             )}
                                             onChange={() => {
                                               if (
                                                 !valueToArrayChecker(
-                                                  cnts.action_by.username,
+                                                  cnts.action_by.id,
                                                 )
                                               ) {
                                                 setmarkedMembers([
                                                   ...markedMembers,
                                                   {
+                                                    id: cnts.action_by.id,
                                                     userID:
                                                       cnts.action_by.username,
                                                     fullName: `${
@@ -394,7 +395,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                                 ]);
                                               } else {
                                                 removeFromList(
-                                                  cnts.action_by.username,
+                                                  cnts.action_by.id,
                                                 );
                                               }
                                             }}

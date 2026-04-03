@@ -45,7 +45,7 @@ function SearchMiniDrawer({
             dispatch,
             setisLoading,
             alerts,
-            setsearchresults
+            setsearchresults,
           );
         } else {
           setisLoading(false);
@@ -66,7 +66,7 @@ function SearchMiniDrawer({
 
   const acceptContactRequestProcess = (
     connection_id: string,
-    to_user_id: string
+    to_user_id: string,
   ) => {
     setisDisabledByRequest(true);
     AcceptContactRequest(
@@ -76,7 +76,7 @@ function SearchMiniDrawer({
       },
       dispatch,
       alerts,
-      setisDisabledByRequest
+      setisDisabledByRequest,
     );
   };
 
@@ -98,14 +98,14 @@ function SearchMiniDrawer({
       },
       dispatch,
       alerts,
-      setisDisabledByRequest
+      setisDisabledByRequest,
     );
   };
 
   const declineRequestProcess = (
     connection_id: any,
     to_user_id: string,
-    action: string
+    action: string,
   ) => {
     setisDisabledByRequest(true);
     // console.log(addUserID);
@@ -126,7 +126,7 @@ function SearchMiniDrawer({
       },
       dispatch,
       alerts,
-      setisDisabledByRequest
+      setisDisabledByRequest,
     );
   };
 
@@ -207,8 +207,8 @@ function SearchMiniDrawer({
                           onClick={() => {
                             declineRequestProcess(
                               srch.connection_id,
-                              srch.username,
-                              "remove"
+                              srch.id,
+                              "remove",
                             );
                             // console.log(srch.userID)
                           }}
@@ -230,7 +230,7 @@ function SearchMiniDrawer({
                             if (srch.connection_id) {
                               acceptContactRequestProcess(
                                 srch.connection_id,
-                                srch.username
+                                srch.id,
                               );
                             }
                             // console.log(srch.userID)
@@ -249,8 +249,8 @@ function SearchMiniDrawer({
                           onClick={() => {
                             declineRequestProcess(
                               srch.connection_id,
-                              srch.username,
-                              "decline"
+                              srch.id,
+                              "decline",
                             );
                             // console.log(srch.userID)
                           }}
@@ -269,7 +269,7 @@ function SearchMiniDrawer({
                         color: "white",
                       }}
                       onClick={() => {
-                        contactRequestProcess(srch.username);
+                        contactRequestProcess(srch.id);
                         // console.log(srch.userID)
                       }}
                       disabled={isDisabledByRequest}
