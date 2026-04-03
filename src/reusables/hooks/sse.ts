@@ -247,7 +247,16 @@ const SSENotificationsTRequest = (
           });
         });
 
-        if (authentication.user.userID != parsedresponse.message) {
+        document.dispatchEvent(
+          new CustomEvent(parsedresponse.message.conversationID, {
+            detail: {
+              event: "reload",
+              data: e.data,
+            },
+          }),
+        );
+
+        if (authentication.user.userID != parsedresponse.message.userID) {
           if (parsedresponse.onseen) {
             //play ringtone
             setTimeout(() => {
@@ -260,75 +269,6 @@ const SSENotificationsTRequest = (
               const audioMessage = new Audio(message_ringtone);
               audioMessage.play();
             }, 1500);
-
-            // const conversationType =
-            //   decodedResult.conversationslist[0].conversationType == "group"
-            //     ? ` from ${decodedResult.conversationslist[0].groupdetails.groupName}`
-            //     : "";
-
-            // const NativeNotificationAlert = {
-            //   userID: decodedResult.conversationslist[0].sender,
-            //   from:
-            //     decodedResult.conversationslist[0].users[0].userID ==
-            //     decodedResult.conversationslist[0].sender
-            //       ? `${
-            //           decodedResult.conversationslist[0].users[0].fullname
-            //             .firstName
-            //         } ${
-            //           decodedResult.conversationslist[0].users[0].fullname
-            //             .middleName == "N/A"
-            //             ? ""
-            //             : `${decodedResult.conversationslist[0].users[0].fullname.middleName} `
-            //         }${
-            //           decodedResult.conversationslist[0].users[0].fullname
-            //             .lastName
-            //         }${conversationType}`
-            //       : `${
-            //           decodedResult.conversationslist[0].users[1].fullname
-            //             .firstName
-            //         } ${
-            //           decodedResult.conversationslist[0].users[1].fullname
-            //             .middleName == "N/A"
-            //             ? ""
-            //             : `${decodedResult.conversationslist[0].users[1].fullname.middleName} `
-            //         }${
-            //           decodedResult.conversationslist[0].users[1].fullname
-            //             .lastName
-            //         }${conversationType}`,
-            //   content: decodedResult.conversationslist[0].content,
-            // };
-
-            // try {
-            //   if (!document.hasFocus()) {
-            //     if (Notification.permission === "granted") {
-            //       new Notification(`${NativeNotificationAlert.from}`, {
-            //         body: NativeNotificationAlert.content,
-            //         icon: chatterloop_icon,
-            //       });
-            //     }
-            //   }
-            // } catch (ex) {
-            //   dispatch({
-            //     type: SET_ALERTS,
-            //     payload: {
-            //       alerts: {
-            //         id: currentAlertState.length,
-            //         type: "info",
-            //         content:
-            //           "Notification permission is only available for Windows and Android",
-            //       },
-            //     },
-            //   });
-            // }
-
-            // if(Notification.permission === "granted"){
-            //     navigator.serviceWorker.ready.then((reg) => {
-            //         reg.showNotification(`${NativeNotificationAlert.from}`, {
-            //             body: NativeNotificationAlert.content,
-            //             icon: chatterloop_icon
-            //         })
-            //     })
-            // }
           }
         }
       }

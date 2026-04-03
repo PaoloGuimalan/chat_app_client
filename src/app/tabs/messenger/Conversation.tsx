@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -87,19 +88,19 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     );
   };
 
-  const messagelistListener = useMemo(() => {
-    const initialconvometadata = messageslist.filter(
-      (flt: any) => flt.conversationID === conversationsetup.conversationid,
-    );
+  // const messagelistListener = useMemo(() => {
+  //   const initialconvometadata = messageslist.filter(
+  //     (flt: any) => flt.conversationID === conversationsetup.conversationid,
+  //   );
 
-    if (initialconvometadata.length > 0) {
-      const convometadata = initialconvometadata[0];
+  //   if (initialconvometadata.length > 0) {
+  //     const convometadata = initialconvometadata[0];
 
-      return convometadata.unread;
-    }
+  //     return convometadata.unread;
+  //   }
 
-    return 0;
-  }, [messageslist]);
+  //   return 0;
+  // }, [messageslist]);
 
   const activeuserSpecific =
     conversationsetup.type == "single" &&
@@ -486,11 +487,33 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     );
   };
 
+  // useEffect(() => {
+  //   if (messagelistListener > 0) {
+  //     GetConversation();
+  //   }
+  // }, [messageslist, messagelistListener]);
+
   useEffect(() => {
-    if (messagelistListener > 0) {
-      GetConversation();
-    }
-  }, [messageslist, messagelistListener]);
+    if (!conversationsetup.conversationid) return;
+
+    const eventName = conversationsetup.conversationid;
+    const handler = (event: CustomEvent) => {
+      // const __data = JSON.parse(event.detail.data);
+      switch (event.detail.event) {
+        case "reload":
+          GetConversation();
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener(eventName, handler as EventListener);
+
+    return () => {
+      document.removeEventListener(eventName, handler as EventListener);
+    };
+  }, [conversationsetup.conversationid]);
 
   const sendImageProcess = () => {
     importData(
