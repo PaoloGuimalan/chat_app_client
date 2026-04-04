@@ -247,14 +247,25 @@ const SSENotificationsTRequest = (
           });
         });
 
-        document.dispatchEvent(
-          new CustomEvent(parsedresponse.message.conversationID, {
-            detail: {
-              event: "reload",
-              data: e.data,
-            },
-          }),
-        );
+        if (parsedresponse.message.deletedMessageID) {
+          document.dispatchEvent(
+            new CustomEvent(parsedresponse.message.conversationID, {
+              detail: {
+                event: "reload_deleted_message",
+                data: parsedresponse,
+              },
+            }),
+          );
+        } else {
+          document.dispatchEvent(
+            new CustomEvent(parsedresponse.message.conversationID, {
+              detail: {
+                event: "reload",
+                data: parsedresponse,
+              },
+            }),
+          );
+        }
 
         if (authentication.user.userID != parsedresponse.message.userID) {
           if (parsedresponse.onseen) {

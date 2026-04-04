@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../../../styles/styles.css";
 import { motion } from "framer-motion";
 import DefaultProfile from "../../../assets/imgs/default.png";
@@ -470,7 +470,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     );
   }, [page, conversationsetup, range]);
 
-  const GetConversation = () => {
+  const GetConversation = useCallback(() => {
     setincrementer((prev) => prev + 1);
     // console.log("reload");
     InitConversationRequest(
@@ -485,7 +485,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       setisLoading,
       scrollBottom,
     );
-  };
+  }, [page, range]);
 
   // useEffect(() => {
   //   if (messagelistListener > 0) {
@@ -498,10 +498,43 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
 
     const eventName = conversationsetup.conversationid;
     const handler = (event: CustomEvent) => {
-      // const __data = JSON.parse(event.detail.data);
+      const data = event.detail.data;
       switch (event.detail.event) {
         case "reload":
           GetConversation();
+          break;
+        case "reload_deleted_message":
+          setconversationList((prev) => {
+            const deletedMessage = prev.filter(
+              (flt) => flt.messageID === data.message.deletedMessageID,
+            );
+
+            const messagesWithoutDeleted = prev.filter(
+              (flt) => flt.messageID !== data.message.deletedMessageID,
+            );
+
+            if (deletedMessage.length > 0) {
+              const newDeletedMessageVersion = {
+                ...deletedMessage[0],
+                isDeleted: true,
+              };
+
+              const combinedList = [
+                ...messagesWithoutDeleted,
+                newDeletedMessageVersion,
+              ];
+              const uniqueById = combinedList.filter(
+                (obj, index, self) =>
+                  index === self.findIndex((t) => t._id === obj._id),
+              );
+              const sortedPostsDesc = uniqueById.sort((a, b) =>
+                b._id.localeCompare(a._id),
+              );
+              return sortedPostsDesc;
+            }
+
+            return prev;
+          });
           break;
         default:
           break;

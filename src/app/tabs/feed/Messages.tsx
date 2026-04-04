@@ -299,6 +299,13 @@ function Messages() {
                           <span className="span_messages_list_name">
                             is typing...
                           </span>
+                        ) : msgslst.isDeleted ? (
+                          <span className="span_messages_list_name">
+                            {msgslst.sender == authentication.user.userID
+                              ? "you: "
+                              : ""}
+                            [Deleted message]
+                          </span>
                         ) : (
                           <span className="span_messages_list_name">
                             {msgslst.sender == authentication.user.userID
@@ -308,7 +315,9 @@ function Messages() {
                             msgslst.messageType === "notif" ? (
                               <span
                                 dangerouslySetInnerHTML={{
-                                  __html: msgslst.content,
+                                  __html: msgslst.isDeleted
+                                    ? "[Deleted]"
+                                    : msgslst.content,
                                 }}
                               />
                             ) : !msgslst.messageType.includes("image") &&
@@ -391,6 +400,13 @@ function Messages() {
                       <span className="span_messages_list_name">
                         someone is typing...
                       </span>
+                    ) : msgslst.isDeleted ? (
+                      <span className="span_messages_list_name">
+                        {msgslst.sender == authentication.user.userID
+                          ? "you: "
+                          : ""}
+                        [Deleted message]
+                      </span>
                     ) : (
                       <span className="span_messages_list_name">
                         {msgslst.sender == authentication.user.userID
@@ -400,7 +416,9 @@ function Messages() {
                         msgslst.messageType === "notif" ? (
                           <span
                             dangerouslySetInnerHTML={{
-                              __html: msgslst.content,
+                              __html: msgslst.isDeleted
+                                ? "[Deleted]"
+                                : msgslst.content,
                             }}
                           />
                         ) : !msgslst.messageType.includes("image") &&
@@ -488,6 +506,13 @@ function Messages() {
                       <span className="span_messages_list_name">
                         someone is typing...
                       </span>
+                    ) : msgslst.isDeleted ? (
+                      <span className="span_messages_list_name">
+                        {msgslst.sender == authentication.user.userID
+                          ? "you: "
+                          : ""}
+                        [Deleted message]
+                      </span>
                     ) : (
                       <span className="span_messages_list_name">
                         {msgslst.sender == authentication.user.userID
@@ -497,7 +522,9 @@ function Messages() {
                         msgslst.messageType === "notif" ? (
                           <span
                             dangerouslySetInnerHTML={{
-                              __html: msgslst.content,
+                              __html: msgslst.isDeleted
+                                ? "[Deleted]"
+                                : msgslst.content,
                             }}
                           />
                         ) : !msgslst.messageType.includes("image") &&
