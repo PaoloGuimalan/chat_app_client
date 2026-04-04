@@ -1494,10 +1494,13 @@ const GetMembersListInServer = (
       if (response.data.status) {
         const decodedResult: any = jwt_decode(response.data.result);
 
-        dispatch(decodedResult.members);
+        dispatch(
+          decodedResult.members.map((mp: any) => ({
+            ...mp,
+            userID: mp.username,
+          })),
+        );
         setisLoading(false);
-
-        // console.log(decodedResult.members)
       } else {
         /* empty */
       }
