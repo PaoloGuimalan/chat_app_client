@@ -235,6 +235,7 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
 function contactsToUserdetails(contact: IContact, isUserOne: boolean) {
   if (isUserOne) {
     return {
+      _id: contact.action_by.id,
       userID: contact.action_by.username,
       fullname: {
         firstName: contact.action_by.first_name,
@@ -247,6 +248,7 @@ function contactsToUserdetails(contact: IContact, isUserOne: boolean) {
   }
 
   return {
+    _id: contact.involved_user.id,
     userID: contact.involved_user.username,
     fullname: {
       firstName: contact.involved_user.first_name,
