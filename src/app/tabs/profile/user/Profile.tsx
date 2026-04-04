@@ -471,7 +471,7 @@ function Profile({
                           navigateToConversation(
                             "single",
                             profileInfo.connection.connection_id,
-                            profileInfo,
+                            { ...profileInfo, _id: profileInfo.id },
                           );
                         }}
                         className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
