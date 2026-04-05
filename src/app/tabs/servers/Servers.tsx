@@ -13,7 +13,7 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Servers() {
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
   const urllocation = useLocation();
   const navigate = useNavigate();
@@ -98,7 +98,7 @@ function Servers() {
                     key={mp.serverID}
                     animate={{
                       backgroundColor: urllocation.pathname.includes(
-                        mp.serverID
+                        mp.serverID,
                       )
                         ? "#e6e6e6"
                         : "transparent",
@@ -155,7 +155,7 @@ function Servers() {
         <Route path="/" element={<Default />} />
         <Route
           path="/:serverID/*"
-          element={<Channels serverlist={serverlist} />}
+          element={<Channels />} // serverlist={serverlist}
         />
       </Routes>
     </div>

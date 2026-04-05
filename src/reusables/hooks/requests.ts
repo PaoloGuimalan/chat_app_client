@@ -284,7 +284,8 @@ const RegisterRequest = (
             authentication: {
               auth: true,
               user: {
-                userID: response.data.username,
+                userID: response.data.userID,
+                username: response.data.username,
                 fullName: {
                   firstName: payload.firstName,
                   middleName: payload.middleName,
@@ -1160,7 +1161,7 @@ const EndCallRequest = (params: any) => {
     });
 };
 
-const GetProfileInfo = async (params: any) => {
+const GetProfileInfo = async (params: any, query?: any) => {
   const userID = params.userID;
 
   // `${API}/p/userinfo/${userID}`
@@ -1168,6 +1169,7 @@ const GetProfileInfo = async (params: any) => {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
     },
+    params: query,
   })
     .then((response: any) => {
       return response;

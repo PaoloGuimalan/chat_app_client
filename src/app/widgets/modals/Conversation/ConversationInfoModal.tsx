@@ -459,8 +459,35 @@ function ConversationInfoModal({
                         })}
                       </motion.div>
                     )}
-                    {conversationinfo.conversationInfo?.type === "server" ? (
-                      conversationinfo.conversationInfo?.privacy && (
+                    {conversationinfo.is_admin &&
+                      (conversationinfo.conversationInfo?.type === "server" ? (
+                        conversationinfo.conversationInfo?.privacy && (
+                          <div
+                            onClick={() => {
+                              GetContactsListProcess(!expandcontacts);
+                            }}
+                            className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
+                          >
+                            <div
+                              id="div_img_search_profiles_container_cncts"
+                              className="tw-bg-transparent tw-border-transparent"
+                            >
+                              {expandcontacts ? (
+                                <IoClose style={{ fontSize: "20px" }} />
+                              ) : (
+                                <MdOutlineGroupAdd
+                                  style={{ fontSize: "20px" }}
+                                />
+                              )}
+                            </div>
+                            <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
+                              <span className="tw-flex tw-flex-1 tw-text-[13px]">
+                                {expandcontacts ? "Close list" : "Add a user"}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      ) : (
                         <div
                           onClick={() => {
                             GetContactsListProcess(!expandcontacts);
@@ -483,31 +510,7 @@ function ConversationInfoModal({
                             </span>
                           </div>
                         </div>
-                      )
-                    ) : (
-                      <div
-                        onClick={() => {
-                          GetContactsListProcess(!expandcontacts);
-                        }}
-                        className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
-                      >
-                        <div
-                          id="div_img_search_profiles_container_cncts"
-                          className="tw-bg-transparent tw-border-transparent"
-                        >
-                          {expandcontacts ? (
-                            <IoClose style={{ fontSize: "20px" }} />
-                          ) : (
-                            <MdOutlineGroupAdd style={{ fontSize: "20px" }} />
-                          )}
-                        </div>
-                        <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                          <span className="tw-flex tw-flex-1 tw-text-[13px]">
-                            {expandcontacts ? "Close list" : "Add a user"}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                      ))}
                     {markedMembers.length > 0 && expandcontacts && (
                       <div
                         onClick={() => {

@@ -84,6 +84,7 @@ import {
 } from "@/reusables/hooks/mapsocket";
 import CallContainer from "../absolutes/calls_v2/CallContainer";
 import Pages from "../tabs/pages/Pages";
+import RealmContainer from "../tabs/realms/RealmContainer";
 
 function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   const location = useLocation();
@@ -731,6 +732,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           element={<DesktopHome togglerightwidget={togglerightwidget} />}
         />
         <Route path="/:userID/*" element={<ProfileContainer />} />
+        <Route path="/realms/*" element={<RealmContainer />} />
         <Route path="/settings" element={<Settings isModal={false} />} />
         <Route
           path="/user"

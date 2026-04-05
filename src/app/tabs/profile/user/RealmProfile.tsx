@@ -201,7 +201,7 @@ function RealmProfile({
               {realmInfo.is_admin && (
                 <button
                   onClick={() => {
-                    navigate(`/pages/my-pages/${realmInfo.slug}`);
+                    navigate(`/realms/${realmInfo.realm_id}`);
                   }}
                   className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-border-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
                 >

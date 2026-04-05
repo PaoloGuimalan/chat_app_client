@@ -55,7 +55,7 @@ import IsTypingLoader from "./partials/IsTypingLoader";
 import { FaHashtag, FaLock } from "react-icons/fa6";
 import { HiDotsVertical } from "react-icons/hi";
 import { conversationsetupstate } from "@/redux/actions/states";
-import { IoMdClose } from "react-icons/io";
+import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Conversation({ conversationsetup, theme, isMinimized }: any) {
@@ -1091,7 +1091,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   animate={{
                     scale: toggleMenu ? 1 : 0,
                   }}
-                  className="tw-flex-col tw-absolute tw--bottom-[80px] tw-min-w-[80px] tw-right-0 tw-rounded-md tw-bg-white tw-p-[5px] tw-shadow-md"
+                  className="tw-flex-col tw-absolute tw-top-[30px] tw-min-w-[80px] tw-right-0 tw-rounded-md tw-bg-white tw-p-[5px] tw-shadow-md"
                 >
                   <motion.button
                     initial={{
@@ -1114,6 +1114,29 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     />
                     <span className="tw-text-[12px] tw-font-Inter">Info</span>
                   </motion.button>
+                  {conversationinfo?.type !== "single" &&
+                    conversationinfo?.is_admin && (
+                      <motion.button
+                        initial={{
+                          backgroundColor: "white",
+                        }}
+                        whileHover={{
+                          backgroundColor: "#e6e6e6",
+                        }}
+                        className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                        disabled={conversationinfo ? false : true}
+                        onClick={() => {
+                          navigate(`/realms/${conversationinfo?.contactID}`);
+                        }}
+                      >
+                        <IoMdSettings
+                          style={{ fontSize: "20px", color: theme.primary }}
+                        />
+                        <span className="tw-text-[12px] tw-font-Inter">
+                          Manage
+                        </span>
+                      </motion.button>
+                    )}
                   {!isMinimized &&
                     !(screensizelistener.W <= 900) &&
                     conversationType !== "server" && (

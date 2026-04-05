@@ -111,6 +111,16 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                 <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                   {serverdetails.serverName}
                 </span>
+                {serverdetails.is_admin && (
+                  <button
+                    onClick={() => {
+                      navigate(`/realms/${serverdetails.serverID}`);
+                    }}
+                    className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#e69500] tw-text-white tw-border-[#e69500] tw-rounded-[6px] tw-text-[12px]"
+                  >
+                    Manage
+                  </button>
+                )}
               </div>
               <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start">
                 <button
@@ -160,28 +170,30 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                       })}
                     </motion.div>
                   )}
-                  <div
-                    onClick={() => {
-                      GetContactsListProcess(!expandcontacts);
-                    }}
-                    className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
-                  >
+                  {serverdetails.is_admin && (
                     <div
-                      id="div_img_search_profiles_container_cncts"
-                      className="tw-bg-transparent tw-border-transparent"
+                      onClick={() => {
+                        GetContactsListProcess(!expandcontacts);
+                      }}
+                      className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
                     >
-                      {expandcontacts ? (
-                        <IoClose style={{ fontSize: "20px" }} />
-                      ) : (
-                        <MdOutlineGroupAdd style={{ fontSize: "20px" }} />
-                      )}
+                      <div
+                        id="div_img_search_profiles_container_cncts"
+                        className="tw-bg-transparent tw-border-transparent"
+                      >
+                        {expandcontacts ? (
+                          <IoClose style={{ fontSize: "20px" }} />
+                        ) : (
+                          <MdOutlineGroupAdd style={{ fontSize: "20px" }} />
+                        )}
+                      </div>
+                      <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
+                        <span className="tw-flex tw-flex-1 tw-text-[13px]">
+                          {expandcontacts ? "Close list" : "Add a user"}
+                        </span>
+                      </div>
                     </div>
-                    <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                      <span className="tw-flex tw-flex-1 tw-text-[13px]">
-                        {expandcontacts ? "Close list" : "Add a user"}
-                      </span>
-                    </div>
-                  </div>
+                  )}
                   {markedMembers.length > 0 && expandcontacts && (
                     <div
                       onClick={() => {

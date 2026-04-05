@@ -34,7 +34,8 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { AiFillSound, AiOutlineSound } from "react-icons/ai";
 import { MdSettingsVoice } from "react-icons/md";
 
-function Channels({ serverlist }: any) {
+function Channels() {
+  // serverlist
   const messageslist = useSelector((state: any) => state.messageslist);
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
@@ -50,15 +51,15 @@ function Channels({ serverlist }: any) {
   const navigate = useNavigate();
 
   const serverID = useMemo(() => params.serverID, [params]);
-  const serverDetails = useMemo(
-    () =>
-      serverlist
-        ? serverlist.length > 0
-          ? serverlist.filter((flt: any) => flt.serverID === serverID)[0]
-          : null
-        : null,
-    [serverlist, serverID],
-  );
+  // const serverDetails = useMemo(
+  //   () =>
+  //     serverlist
+  //       ? serverlist.length > 0
+  //         ? serverlist.filter((flt: any) => flt.serverID === serverID)[0]
+  //         : null
+  //       : null,
+  //   [serverlist, serverID],
+  // );
 
   const [serverdetails, setserverdetails] =
     useState<ServerChannelsListInterface | null>(null);
@@ -413,7 +414,7 @@ function Channels({ serverlist }: any) {
             path="/"
             element={
               isLoaded && haveAccess ? (
-                <NoChannel server={serverDetails} />
+                <NoChannel server={serverdetails} />
               ) : (
                 <div className="tw-bg-white tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]" />
               )

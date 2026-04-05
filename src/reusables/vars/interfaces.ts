@@ -150,6 +150,7 @@ export interface ConversationInfoInterface {
   contactID: string;
   actionBy: string;
   actionDate: { date: string; time: string };
+  is_admin: boolean;
   status: boolean;
   type: string;
   users: UsersInConversation[];
@@ -214,6 +215,7 @@ export interface ServerChannelsListInterface {
   members: ChannelMembersInterface[];
   createdBy: string;
   privacy: boolean;
+  is_admin: boolean;
   channels: ChannelsListInterface[];
   usersWithInfo: ServerUsersWithInfo[];
 }

@@ -3,8 +3,11 @@ import { motion } from "framer-motion";
 import ServerIcon from "../../../../assets/imgs/servericon.png";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { useNavigate } from "react-router-dom";
 
 function NoChannel({ server }: any) {
+  const navigate = useNavigate();
+
   return !server ? (
     <div className="tw-bg-[#f1f1f2] tw-h-full tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-center">
       <div className="tw-rounded-[10px] tw-bg-white tw-flex tw-items-center tw-justify-center tw-w-full tw-h-full">
@@ -52,7 +55,18 @@ function NoChannel({ server }: any) {
                   {server.members.length} people are in this server
                 </span>
               </div>
-              <div>{/* for add friend button */}</div>
+              <div className="tw-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[4px] tw-justify-center">
+                {server.is_admin && (
+                  <button
+                    onClick={() => {
+                      navigate(`/realms/${server.serverID}`);
+                    }}
+                    className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#e69500] tw-text-white tw-border-[#e69500] tw-rounded-[6px] tw-text-[12px]"
+                  >
+                    Manage
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>

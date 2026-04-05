@@ -101,7 +101,7 @@ function GenericRealmItem({
                   {mp.type === "page" && mp.is_admin && (
                     <button
                       onClick={() => {
-                        navigate(`/pages/my-pages/${mp.slug}`);
+                        navigate(`/realms/${mp.realm_id}`);
                       }}
                       className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-border-white tw-rounded-[6px] tw-text-[12px]"
                     >
