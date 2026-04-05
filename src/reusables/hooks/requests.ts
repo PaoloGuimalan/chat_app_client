@@ -927,7 +927,7 @@ const SeenMessageRequest = async (params: any) => {
   )
     .then((response) => {
       if (response.data.status) {
-        return 1;
+        return response.data;
       } else {
         return 0;
       }

@@ -1,17 +1,18 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { motion } from "framer-motion";
+import { motion, useInView } from "framer-motion";
 import { useSelector } from "react-redux";
 import ReplyingToPreview from "./ReplyingToPreview";
 import MessageOptions from "../MessageOptions";
 import { IoDocumentOutline } from "react-icons/io5";
 import { ContentHandlerProp } from "@/reusables/vars/props";
 import { MdOutlineAddReaction } from "react-icons/md";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import EmojiPickerHandler from "./EmojiPickerHandler";
 import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal";
 import { timeSince, urlify } from "@/reusables/hooks/reusable";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 
 function ContentHandler({
   i,
@@ -21,9 +22,12 @@ function ContentHandler({
   setisReplying,
   setfullImageScreen,
   scrollBottom,
+  setunreadmessages,
   theme,
 }: ContentHandlerProp) {
-  const authentication = useSelector((state: any) => state.authentication);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
 
   const [toggleEmojiPicker, settoggleEmojiPicker] = useState<boolean>(false);
   const [reactions, setreactions] = useState<any[]>(
@@ -55,9 +59,30 @@ function ContentHandler({
     return "Someone";
   };
 
+  const ref = useRef<HTMLDivElement>(null);
+  const isInView = useInView(ref, {
+    amount: 0.6,
+  });
+
+  useEffect(() => {
+    if (isInView) {
+      if (authentication.user.userID) {
+        if (!cnvs.seeners.includes(authentication.user.userID)) {
+          setunreadmessages((prev) => {
+            const prevWithoutMessageID = prev.filter(
+              (flt) => flt !== cnvs.messageID,
+            );
+
+            return [cnvs.messageID, ...prevWithoutMessageID];
+          });
+        }
+      }
+    }
+  }, [isInView, authentication.user.userID]);
+
   if (cnvs.isDeleted) {
     return (
-      <motion.div className="div_messages_result tw-items-center">
+      <motion.div ref={ref} className="div_messages_result tw-items-center">
         <motion.div
           initial={{
             marginLeft:
@@ -204,7 +229,7 @@ function ContentHandler({
   } else {
     if (cnvs.messageType == "text") {
       return (
-        <motion.div className="div_messages_result tw-items-center">
+        <motion.div ref={ref} className="div_messages_result tw-items-center">
           {cnvs.sender === authentication.user.userID && (
             <MessageOptions
               conversationID={cnvs.conversationID}
@@ -470,7 +495,10 @@ function ContentHandler({
       );
     } else if (cnvs.messageType == "image") {
       return (
-        <motion.div className="div_pending_images div_messages_result">
+        <motion.div
+          ref={ref}
+          className="div_pending_images div_messages_result"
+        >
           {cnvs.sender === authentication.user.userID && (
             <MessageOptions
               conversationID={cnvs.conversationID}
@@ -709,7 +737,10 @@ function ContentHandler({
       );
     } else if (cnvs.messageType.includes("video")) {
       return (
-        <motion.div className="div_pending_images div_messages_result">
+        <motion.div
+          ref={ref}
+          className="div_pending_images div_messages_result"
+        >
           {cnvs.sender === authentication.user.userID && (
             <MessageOptions
               conversationID={cnvs.conversationID}
@@ -944,7 +975,10 @@ function ContentHandler({
       );
     } else if (cnvs.messageType.includes("audio")) {
       return (
-        <motion.div className="div_pending_audios div_messages_result">
+        <motion.div
+          ref={ref}
+          className="div_pending_audios div_messages_result"
+        >
           {cnvs.sender === authentication.user.userID && (
             <MessageOptions
               conversationID={cnvs.conversationID}
@@ -1180,6 +1214,7 @@ function ContentHandler({
       return (
         <div
           key={i}
+          ref={ref}
           className="tw-w-full tw-pt-[5px] tw-pb-[10px] div_messages_result tw-justify-center"
         >
           <span className="tw-text-[12px] tw-font-inter tw-text-[#888] tw-w-full tw-text-center">
@@ -1189,7 +1224,10 @@ function ContentHandler({
       );
     } else {
       return (
-        <motion.div className="div_pending_images div_messages_result">
+        <motion.div
+          ref={ref}
+          className="div_pending_images div_messages_result"
+        >
           {cnvs.sender === authentication.user.userID && (
             <MessageOptions
               conversationID={cnvs.conversationID}

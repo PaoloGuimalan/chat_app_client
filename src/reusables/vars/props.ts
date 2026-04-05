@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Dispatch, SetStateAction } from "react";
 import {
   ConversationInfoInterface,
   ICoordinatesAnchor,
@@ -21,6 +22,7 @@ export interface ContentHandlerProp {
   setisReplying: (data: any) => void;
   setfullImageScreen: (data: any) => void;
   scrollBottom: () => void;
+  setunreadmessages: Dispatch<SetStateAction<string[]>>;
   theme: any;
 }
 

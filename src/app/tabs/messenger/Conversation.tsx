@@ -443,17 +443,34 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   //     GetConversation();
   //   }, [messageslist]); //conversationsetup
 
+  const [unreadmessages, setunreadmessages] = useState<string[]>([]);
+
   useEffect(() => {
-    if (conversationinfo?.users) {
-      if (conversationinfo.users.length > 0) {
-        SeenMessageRequest({
-          conversationID: conversationsetup.conversationid,
-          range: range,
-          receivers: conversationinfo?.users.map((mp: any) => mp._id),
-        });
-      }
+    if (!conversationinfo?.users?.length || unreadmessages.length === 0) {
+      return;
     }
-  }, [range, conversationsetup, conversationinfo, incrementer]);
+
+    const timerId = setTimeout(() => {
+      SeenMessageRequest({
+        conversationID: conversationsetup.conversationid,
+        range: range,
+        receivers: conversationinfo?.users.map((mp) => mp._id),
+        messageIDs: unreadmessages,
+      })
+        .then((response) => {
+          setunreadmessages((prev) =>
+            prev.filter((flt) => !response.seen.includes(flt)),
+          );
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }, 500);
+
+    return () => {
+      clearTimeout(timerId);
+    };
+  }, [range, conversationsetup, conversationinfo, incrementer, unreadmessages]);
 
   useEffect(() => {
     InitConversationRequest(
@@ -1461,6 +1478,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     setisReplying={setisReplyingTrigger}
                     setfullImageScreen={setfullImageScreen}
                     scrollBottom={scrollBottom}
+                    setunreadmessages={setunreadmessages}
                     theme={theme}
                   />
                 );
