@@ -61,7 +61,7 @@ function ContentHandler({
 
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, {
-    amount: 0.6,
+    amount: "some", // 0.6 , 0.1
   });
 
   useEffect(() => {
@@ -112,7 +112,9 @@ function ContentHandler({
           )}
           {conversationsetup.type == "group" &&
             authentication.user.userID != cnvs.sender && (
-              <span className="span_sender_label">{cnvs.sender}</span>
+              <span className="span_sender_label">
+                {getMemberInfo(cnvs.sender)}
+              </span>
             )}
           {cnvs.isReply && (
             <ReplyingToPreview
