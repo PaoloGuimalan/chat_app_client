@@ -617,7 +617,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: arr.name,
                 base: arr.data,
                 type: "image",
               },
@@ -652,7 +652,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: rawFiles.name,
                 base: rawFiles.data,
                 type: "image",
               },
