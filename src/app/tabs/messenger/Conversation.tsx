@@ -1483,7 +1483,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   />
                 );
               })}
-              {conversationList.length > 0 && totalMessages > range && (
+              {conversationList.length > 0 && totalMessages > page * range && (
                 <div
                   ref={divlazyloaderRef}
                   id="divlazyloader"
