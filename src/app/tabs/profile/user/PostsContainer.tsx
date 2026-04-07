@@ -178,10 +178,10 @@ function PostsContainer({
       </div>
       {paginatedPosts.count > 0 ? (
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[10px]">
-          {posts.map((mp: any, i: number) => {
+          {posts.map((mp: IPost) => {
             return (
               <PostItem
-                key={i}
+                key={mp.post_id}
                 isSharePreview={false}
                 mp={mp}
                 show_archived={false}

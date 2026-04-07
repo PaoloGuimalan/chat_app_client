@@ -127,7 +127,9 @@ export function NewPostModal({
       const validatedTaggedList =
         authentication.user.userID == profileInfo?.id
           ? []
-          : [profileInfo?.userID, ...taggedList]; //this taggedlist needs to be in username format, not id
+          : realmInfo
+            ? [...taggedList]
+            : [profileInfo?.userID, ...taggedList]; //this taggedlist needs to be in username format, not id
 
       // console.log(validatedTaggedList);
 

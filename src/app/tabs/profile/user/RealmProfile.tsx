@@ -362,8 +362,10 @@ function RealmProfile({
             <div
               className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
             >
-              {posts.map((mp: any, i: number) => {
-                return <PostItem key={i} isSharePreview={false} mp={mp} />;
+              {posts.map((mp: IPost) => {
+                return (
+                  <PostItem key={mp.post_id} isSharePreview={false} mp={mp} />
+                );
               })}
               {paginatedPosts.next && (
                 <div
