@@ -2226,6 +2226,43 @@ const UpdatePostRequest = async (post_id: string, fields: any) => {
     });
 };
 
+const SavePostRequest = async (post_id: string) => {
+  return await Axios.post(
+    `${USER_SERVICE_API}/api/newsfeed/saves`,
+    {
+      post_id,
+    },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const UnsavePostRequest = async (post_id: string) => {
+  return await Axios.delete(`${USER_SERVICE_API}/api/newsfeed/saves`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: {
+      post_id,
+    },
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2302,4 +2339,6 @@ export {
   GetTopRealmsRequest,
   DeletePostRequest,
   UpdatePostRequest,
+  SavePostRequest,
+  UnsavePostRequest,
 };

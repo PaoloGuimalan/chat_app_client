@@ -36,9 +36,11 @@ import OverlayLoader from "@/app/reusables/loaders/OverlayLoader";
 function PostItem({
   isSharePreview,
   mp,
+  show_archived,
 }: {
   isSharePreview: boolean;
   mp: IPost;
+  show_archived?: boolean;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -158,7 +160,7 @@ function PostItem({
     }
   }, [authentication.user.userID, isInView, postState]);
 
-  if (postState.deleted_at || postState.is_archived) {
+  if (postState.deleted_at || (!show_archived && postState.is_archived)) {
     return (
       <div className="tw-bg-[#ebebeb] tw-flex tw-flex-col tw-gap-[15px] tw-w-full tw-h-auto tw-min-h-[200px] tw-items-center tw-justify-center tw-border-solid tw-border-[1px] tw-border-[#d2d2d2] tw-rounded-[7px]">
         <BsFileEarmarkExcel style={{ fontSize: "55px", color: "#666666" }} />

@@ -4,12 +4,10 @@
 import {
   AuthenticationInterface,
   IDiaryPreview,
-  IPost,
   ProfileUserInfoInterface,
 } from "@/reusables/vars/interfaces";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import DefaultProfile from "../../../../assets/imgs/default.png";
 import { IoArrowBack } from "react-icons/io5";
 import { TfiThought } from "react-icons/tfi";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -18,38 +16,30 @@ import {
   ContactRequest,
   DeclineContactRequest,
   GetDiaryTotalRequest,
-  GetPostRequest,
 } from "@/reusables/hooks/requests";
 // import jwtDecode from "jwt-decode";
 import { FaBook } from "react-icons/fa6";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { FaTransgender, FaFileAlt } from "react-icons/fa";
+import { FaTransgender } from "react-icons/fa";
 import { IoMale, IoFemale, IoTime } from "react-icons/io5";
-// import { IoMdCheckmark } from "react-icons/io";
-import { FcAddImage } from "react-icons/fc";
 import { MdCake } from "react-icons/md";
 import { motion } from "framer-motion";
 import {
   formattedDateToWords,
   ordinal_suffix_of,
 } from "@/reusables/hooks/reusable";
-import PostItem from "./PostItem";
-import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
-import { postsliststate } from "@/redux/actions/states";
-import { PaginationProp } from "@/reusables/vars/props";
-import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 import {
   SET_CONVERSATION_SETUP,
   SET_MINIMIZED_CONVERSATION,
   SET_TOGGLE_RIGHT_WIDGET,
 } from "@/redux/types";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { BiCalendarEdit } from "react-icons/bi";
 import { HiOutlinePencil } from "react-icons/hi";
 import ProfilePicContainer from "./ProfilePicContainer";
 import ProfileCoverContainer from "./ProfileCoverContainer";
 import Skeleton from "react-loading-skeleton";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
+import PostsContainer from "./PostsContainer";
 
 function Profile({
   profileInfo,
@@ -73,18 +63,9 @@ function Profile({
   const params = useParams();
   const dispatch = useDispatch();
 
-  const [paginatedPosts, setpaginatedPosts] =
-    useState<PaginationProp<IPost>>(postsliststate);
-  const posts: IPost[] = paginatedPosts.results;
-  const [ispostsloaded, setispostsloaded] = useState<boolean>(false);
   const [isConnectionButtonsLoading, setisConnectionButtonsLoading] =
     useState<boolean>(false);
-  const [createposttext, setcreateposttext] = useState<string>("");
-
-  const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
-    toggle: false,
-    withImage: false,
-  });
+  const [feedmode, setfeedmode] = useState<string>("posts");
 
   const [diaryPreview, setDiaryPreview] = useState<IDiaryPreview>({
     isLoaded: false,
@@ -92,9 +73,6 @@ function Profile({
     top_tags: [],
     total_entries: 0,
   });
-
-  const [page, setpage] = useState<number>(1);
-  const [range] = useState<number>(20);
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);
@@ -114,7 +92,7 @@ function Profile({
               currentView = isVisible;
               if (currentView) {
                 // setrange((prev) => prev + 20);
-                setpage((prev) => prev + 1);
+                // setpage((prev) => prev + 1);
               }
             }
           }
@@ -136,12 +114,7 @@ function Profile({
   };
 
   useEffect(() => {
-    setpage(1);
     GetDiaryTotalProcess();
-
-    return () => {
-      setpaginatedPosts(postsliststate);
-    };
   }, [params.userID]);
 
   //   useEffect(() => {
@@ -234,47 +207,6 @@ function Profile({
     Female: <IoFemale style={{ fontSize: "17px", color: "#666666" }} />,
     Others: <FaTransgender style={{ fontSize: "17px", color: "#666666" }} />,
   };
-
-  const GetPostProcess = () => {
-    GetPostRequest({
-      current_user_id: authentication.user.userID,
-      userID: params.userID,
-      page: page,
-      range: range,
-    })
-      .then((response) => {
-        setpaginatedPosts((prev) => {
-          const combinedList = [...prev.results, ...response.results];
-          const uniqueById = combinedList
-            .filter(
-              (obj, index, self) =>
-                index === self.findIndex((t) => t.post_id === obj.post_id),
-            )
-            .sort(
-              (a: any, b: any) =>
-                new Date(b.date_posted).getTime() -
-                new Date(a.date_posted).getTime(),
-            );
-
-          return {
-            ...response,
-            results: uniqueById,
-          };
-        });
-        setispostsloaded(true);
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
-  useEffect(() => {
-    setispostsloaded(false);
-  }, [profileInfo, params.userID]);
-
-  useEffect(() => {
-    GetPostProcess();
-  }, [params.userID, page, profileInfo]);
 
   const settogglerightwidget = (toggle: any) => {
     navigate("/");
@@ -378,13 +310,13 @@ function Profile({
         <ProfileCoverContainer
           userID={profileInfo.id}
           coverphoto={profileInfo.coverphoto}
-          getpostprocess={GetPostProcess}
+          getpostprocess={() => {}} // GetPostProcess
         />
         <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
           <ProfilePicContainer
             userID={profileInfo.id}
             profile={profileInfo.profile}
-            getpostprocess={GetPostProcess}
+            getpostprocess={() => {}} // GetPostProcess
           />
           <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
             <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[20px] tw-sm:p-[0px]">
@@ -739,114 +671,77 @@ function Profile({
           </div>
         </div>
         <div className="tw-w-full tw-pb-[20px] tw-flex tw-flex-col tw-items-center">
-          <div
-            id="div_feed_header_post_input_profile"
-            className="tw-border-[0px]"
-          >
-            {profileInfo.profile !== "none" ? (
-              <div id="img_default_profile_container">
-                <CachedImage
-                  src={profileInfo.profile}
-                  id="img_actual_profile"
-                />
-              </div>
-            ) : (
-              <div id="div_img_feed_header_container">
-                <CachedImage src={DefaultProfile} id="img_feed_header" />
-              </div>
-            )}
-            <div id="div_input_feed_flex">
-              {toggleNewPostModal.toggle && (
-                <NewPostModal
-                  toShare={false}
-                  sharePreviewData={null}
-                  withImage={toggleNewPostModal.withImage}
-                  profileInfo={profileInfo}
-                  realmInfo={null}
-                  setcreateposttext={setcreateposttext}
-                  getpostprocess={GetPostProcess}
-                  onclose={settoggleNewPostModal}
-                />
-              )}
-              <input
-                type="text"
-                autoComplete="off"
-                value={createposttext}
-                onFocus={() => {
-                  settoggleNewPostModal({ toggle: true, withImage: false });
+          {params.userID === authentication.user.username && (
+            <div className="tw-w-full tw-h-fit tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex tw-mb-[10px]">
+              <motion.div
+                initial={{
+                  justifyContent: isMobileView ? "center" : "start",
                 }}
-                onChange={(e) => {
-                  setcreateposttext(e.target.value);
+                animate={{
+                  justifyContent: isMobileView ? "center" : "start",
                 }}
-                onKeyDown={(e) => {
-                  if (createposttext.trim() !== "") {
-                    if (e.key == "Enter") {
-                      // CreatePostProcess()
-                    }
-                  }
-                }}
-                className="tw-font-Inter"
-                placeholder={
-                  profileInfo.userID === authentication.user.username
-                    ? "Share your thoughts..."
-                    : `Write on ${profileInfo.fullname.firstName}'s wall...`
-                }
-                id="input_feed_box"
-              />
-            </div>
-            <div id="div_btn_image_container">
-              <button
-                onClick={() => {
-                  settoggleNewPostModal({ toggle: true, withImage: true });
-                }}
-                id="btn_image_feed"
+                className="tw-w-full tw-p-[12px] tw-flex tw-flex-row tw-flex-wrap tw-items-center tw-gap-[6px]"
               >
-                <FcAddImage style={{ fontSize: "35px" }} />
-              </button>
-            </div>
-          </div>
-          {paginatedPosts.count > 0 ? (
-            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[10px]">
-              {posts.map((mp: any, i: number) => {
-                return <PostItem key={i} isSharePreview={false} mp={mp} />;
-              })}
-              {paginatedPosts.next && (
-                <div
-                  ref={divlazyloaderRef}
-                  id="divlazyloader"
-                  className="tw-bg-transparent tw-w-full tw-flex tw-items-center tw-justify-center tw-mt-[5px] tw-mb-[5px]"
+                <motion.button
+                  initial={{
+                    backgroundColor:
+                      feedmode === "posts" ? "#c4c4c4" : "transparent",
+                    color: feedmode === "posts" ? "white" : "#666666",
+                  }}
+                  animate={{
+                    backgroundColor:
+                      feedmode === "posts" ? "#c4c4c4" : "transparent",
+                    color: feedmode === "posts" ? "white" : "#666666",
+                  }}
+                  onClick={() => {
+                    setfeedmode("posts");
+                  }}
+                  className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
                 >
-                  <motion.div
-                    animate={{
-                      rotate: -360,
-                    }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                    }}
-                    id="div_loader_request_conv"
-                  >
-                    <AiOutlineLoading3Quarters style={{ fontSize: "20px" }} />
-                  </motion.div>
-                </div>
-              )}
-            </div>
-          ) : ispostsloaded ? (
-            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
-              <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
-              <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
-                <span className="tw-font-semibold tw-text-[14px]">
-                  No Posts yet
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[10px]">
-              {Array.from({ length: 8 }, (_, i: number) => {
-                return <PostItemLoader key={i} />;
-              })}
+                  <span className="tw-text-[12px] tw-font-semibold">Posts</span>
+                </motion.button>
+                <motion.button
+                  initial={{
+                    backgroundColor:
+                      feedmode === "saves" ? "#c4c4c4" : "transparent",
+                    color: feedmode === "saves" ? "white" : "#666666",
+                  }}
+                  animate={{
+                    backgroundColor:
+                      feedmode === "saves" ? "#c4c4c4" : "transparent",
+                    color: feedmode === "saves" ? "white" : "#666666",
+                  }}
+                  onClick={() => {
+                    setfeedmode("saves");
+                  }}
+                  className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+                >
+                  <span className="tw-text-[12px] tw-font-semibold">Saves</span>
+                </motion.button>
+                <motion.button
+                  initial={{
+                    backgroundColor:
+                      feedmode === "archives" ? "#c4c4c4" : "transparent",
+                    color: feedmode === "archives" ? "white" : "#666666",
+                  }}
+                  animate={{
+                    backgroundColor:
+                      feedmode === "archives" ? "#c4c4c4" : "transparent",
+                    color: feedmode === "archives" ? "white" : "#666666",
+                  }}
+                  onClick={() => {
+                    setfeedmode("archives");
+                  }}
+                  className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+                >
+                  <span className="tw-text-[12px] tw-font-semibold">
+                    Archives
+                  </span>
+                </motion.button>
+              </motion.div>
             </div>
           )}
+          {feedmode === "posts" && <PostsContainer profileInfo={profileInfo} />}
         </div>
       </div>
     </div>

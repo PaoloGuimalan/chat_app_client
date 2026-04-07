@@ -274,6 +274,7 @@ export interface IPost {
   map_info: IMapInfo;
   user: IUserContactPreview;
   is_shared: boolean;
+  is_saved: boolean;
   file_type: string;
   caption: string;
   content_type: string;
