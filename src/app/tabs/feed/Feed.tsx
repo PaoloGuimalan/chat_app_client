@@ -141,6 +141,7 @@ function Feed() {
               withImage={toggleNewPostModal.withImage}
               profileInfo={{
                 id: authentication.user.userID,
+                username: authentication.user.username,
               }}
               realmInfo={null}
               setcreateposttext={setcreateposttext}

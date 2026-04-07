@@ -129,7 +129,7 @@ export function NewPostModal({
           ? []
           : realmInfo
             ? [...taggedList]
-            : [profileInfo?.userID, ...taggedList]; //this taggedlist needs to be in username format, not id
+            : [profileInfo?.username, ...taggedList]; //this taggedlist needs to be in username format, not id
 
       // console.log(validatedTaggedList);
 

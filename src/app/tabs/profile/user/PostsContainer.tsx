@@ -132,7 +132,10 @@ function PostsContainer({
               toShare={false}
               sharePreviewData={null}
               withImage={toggleNewPostModal.withImage}
-              profileInfo={profileInfo}
+              profileInfo={{
+                id: profileInfo.id,
+                username: profileInfo.userID,
+              }}
               realmInfo={null}
               setcreateposttext={setcreateposttext}
               getpostprocess={GetPostProcess}

@@ -308,7 +308,7 @@ function Profile({
       >
         <IoArrowBack style={{ fontSize: "20px" }} />
       </button>
-      <div className="tw-bg-white tw-w-full tw-h-[60%] tw-min-h-[500px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
+      <div className="tw-bg-white tw-w-full tw-h-[40%] tw-min-h-[500px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
         <ProfileCoverContainer
           userID={profileInfo.id}
           coverphoto={profileInfo.coverphoto}

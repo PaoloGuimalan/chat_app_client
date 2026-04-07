@@ -1,21 +1,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import CachedImage from "@/app/reusables/cachers/CachedImage";
 import {
-  AuthenticationInterface,
   ISavedPost,
   ProfileUserInfoInterface,
 } from "@/reusables/vars/interfaces";
 import { Fragment, useEffect, useRef, useState } from "react";
-import DefaultProfile from "../../../../assets/imgs/default.png";
-import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
-import { FcAddImage } from "react-icons/fc";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 import { FaFileAlt } from "react-icons/fa";
 import { motion, useInView } from "framer-motion";
 import { GetSavedPostsRequest } from "@/reusables/hooks/requests";
-import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { genericpaginationstate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
@@ -26,20 +20,10 @@ function SavesContainer({
 }: {
   profileInfo: ProfileUserInfoInterface;
 }) {
-  const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication,
-  );
-
   const params = useParams();
 
-  const [createposttext, setcreateposttext] = useState<string>("");
   const [page, setpage] = useState<number>(1);
   const [range] = useState<number>(20);
-
-  const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
-    toggle: false,
-    withImage: false,
-  });
 
   const [ispostsloaded, setispostsloaded] = useState<boolean>(false);
   const [isLoadingMore, setIsLoadingMore] = useState<boolean>(false);
@@ -115,68 +99,8 @@ function SavesContainer({
 
   return (
     <Fragment>
-      <div id="div_feed_header_post_input_profile" className="tw-border-[0px]">
-        {profileInfo.profile !== "none" ? (
-          <div id="img_default_profile_container">
-            <CachedImage src={profileInfo.profile} id="img_actual_profile" />
-          </div>
-        ) : (
-          <div id="div_img_feed_header_container">
-            <CachedImage src={DefaultProfile} id="img_feed_header" />
-          </div>
-        )}
-        <div id="div_input_feed_flex">
-          {toggleNewPostModal.toggle && (
-            <NewPostModal
-              toShare={false}
-              sharePreviewData={null}
-              withImage={toggleNewPostModal.withImage}
-              profileInfo={profileInfo}
-              realmInfo={null}
-              setcreateposttext={setcreateposttext}
-              getpostprocess={GetPostProcess}
-              onclose={settoggleNewPostModal}
-            />
-          )}
-          <input
-            type="text"
-            autoComplete="off"
-            value={createposttext}
-            onFocus={() => {
-              settoggleNewPostModal({ toggle: true, withImage: false });
-            }}
-            onChange={(e) => {
-              setcreateposttext(e.target.value);
-            }}
-            onKeyDown={(e) => {
-              if (createposttext.trim() !== "") {
-                if (e.key == "Enter") {
-                  // CreatePostProcess()
-                }
-              }
-            }}
-            className="tw-font-Inter"
-            placeholder={
-              profileInfo.userID === authentication.user.username
-                ? "Share your thoughts..."
-                : `Write on ${profileInfo.fullname.firstName}'s wall...`
-            }
-            id="input_feed_box"
-          />
-        </div>
-        <div id="div_btn_image_container">
-          <button
-            onClick={() => {
-              settoggleNewPostModal({ toggle: true, withImage: true });
-            }}
-            id="btn_image_feed"
-          >
-            <FcAddImage style={{ fontSize: "35px" }} />
-          </button>
-        </div>
-      </div>
       {paginatedPosts.count > 0 ? (
-        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[10px]">
+        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {posts.map((mp: ISavedPost) => {
             return <SavedPostItem key={mp.id} savedPost={mp} />;
           })}
@@ -191,7 +115,7 @@ function SavesContainer({
           </div>
         </div>
       ) : (
-        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[10px]">
+        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {Array.from({ length: 8 }, (_, i: number) => {
             return <PostItemLoader key={i} />;
           })}

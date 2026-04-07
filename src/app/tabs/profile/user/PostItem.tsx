@@ -912,7 +912,10 @@ function PostItem({
                 toShare={true}
                 sharePreviewData={postState}
                 withImage={toggleNewPostModal.withImage}
-                profileInfo={authentication.user}
+                profileInfo={{
+                  id: authentication.user.userID,
+                  username: authentication.user.username,
+                }}
                 realmInfo={null}
                 setcreateposttext={() => {}}
                 getpostprocess={() => {}}

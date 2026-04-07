@@ -297,7 +297,10 @@ function RealmProfile({
               toShare={false}
               sharePreviewData={null}
               withImage={toggleNewPostModal.withImage}
-              profileInfo={authentication.user}
+              profileInfo={{
+                id: authentication.user.userID,
+                username: authentication.user.username,
+              }}
               realmInfo={realmInfo}
               setcreateposttext={setcreateposttext}
               getpostprocess={GetPostProcess}
