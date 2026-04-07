@@ -7,7 +7,6 @@ import {
 } from "@/reusables/vars/interfaces";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 import { FaFileAlt } from "react-icons/fa";
 import { motion, useInView } from "framer-motion";
 import { GetPostRequest } from "@/reusables/hooks/requests";
@@ -16,6 +15,7 @@ import { useParams } from "react-router-dom";
 import { genericpaginationstate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
 import PostItem from "./PostItem";
+import ArchivePostItemLoader from "@/app/reusables/loaders/ArchivePostItemLoader";
 
 function ArchivesContainer({
   profileInfo,
@@ -135,7 +135,7 @@ function ArchivesContainer({
       ) : (
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {Array.from({ length: 8 }, (_, i: number) => {
-            return <PostItemLoader key={i} />;
+            return <ArchivePostItemLoader key={i} />;
           })}
         </div>
       )}
