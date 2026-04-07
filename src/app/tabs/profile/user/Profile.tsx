@@ -40,6 +40,8 @@ import ProfileCoverContainer from "./ProfileCoverContainer";
 import Skeleton from "react-loading-skeleton";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import PostsContainer from "./PostsContainer";
+import SavesContainer from "./SavesContainer";
+import ArchivesContainer from "./ArchivesContainer";
 
 function Profile({
   profileInfo,
@@ -742,6 +744,10 @@ function Profile({
             </div>
           )}
           {feedmode === "posts" && <PostsContainer profileInfo={profileInfo} />}
+          {feedmode === "saves" && <SavesContainer profileInfo={profileInfo} />}
+          {feedmode === "archives" && (
+            <ArchivesContainer profileInfo={profileInfo} />
+          )}
         </div>
       </div>
     </div>

@@ -1222,7 +1222,7 @@ const UploadMediaRequest = async (payload: any) => {
     });
 };
 
-const GetPostRequest = async (params: any) => {
+const GetPostRequest = async (params: any, archive?: boolean) => {
   const current_user_id = params.current_user_id;
   const userID = params.userID;
   const page = params.page;
@@ -1238,6 +1238,9 @@ const GetPostRequest = async (params: any) => {
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
+      },
+      params: {
+        archive: archive,
       },
     },
   )
@@ -2263,6 +2266,26 @@ const UnsavePostRequest = async (post_id: string) => {
     });
 };
 
+const GetSavedPostsRequest = async (params: any) => {
+  const page = params.page;
+  const range = params.range;
+
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/newsfeed/saves?page=${page}&page_size=${range}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2341,4 +2364,5 @@ export {
   UpdatePostRequest,
   SavePostRequest,
   UnsavePostRequest,
+  GetSavedPostsRequest,
 };

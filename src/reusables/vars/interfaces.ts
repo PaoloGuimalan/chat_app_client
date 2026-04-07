@@ -266,6 +266,16 @@ export interface IPostScore {
   post: string;
 }
 
+export interface IAuthorRealm {
+  id: string;
+  realm_id: string;
+  name: string;
+  profile: string;
+  type: string;
+  is_verified: true;
+  slug: string;
+}
+
 export interface IPost {
   post_id: string;
   tagging: ITagging[];
@@ -292,15 +302,7 @@ export interface IPost {
   user_reaction: string | null;
   // activity_counts: IActivityCounts[];
   score: IPostScore;
-  author_realm: {
-    id: string;
-    realm_id: string;
-    name: string;
-    profile: string;
-    type: string;
-    is_verified: true;
-    slug: string;
-  } | null;
+  author_realm: IAuthorRealm | null;
 }
 
 //POST DATA INTERFACE END
@@ -494,4 +496,29 @@ export interface IPreviewParicipants {
   clientID: string;
   channelID: string;
   instance: string | null;
+}
+
+export interface ISavedPost {
+  id: string;
+  post: {
+    post_id: string;
+    is_shared: boolean;
+    file_type: string;
+    caption: string;
+    content_type: string;
+    is_tagged: boolean;
+    privacy_status: string;
+    is_sponsored: boolean;
+    is_live: boolean;
+    is_archived: boolean;
+    on_feed: string;
+    date_posted: string;
+    from_system: boolean;
+    deleted_at: string | null;
+    user: IUserContactPreview;
+    author_realm: IAuthorRealm | null;
+    deleted_by: string | null;
+  };
+  saved_at: string;
+  user: string;
 }

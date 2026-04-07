@@ -32,6 +32,7 @@ import { persistViewPosts } from "@/reusables/hooks/localforagehelper";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import PostOptions from "./PostOptions";
 import OverlayLoader from "@/app/reusables/loaders/OverlayLoader";
+import OverlayMessage from "@/app/reusables/catchers/OverlayMessage";
 
 function PostItem({
   isSharePreview,
@@ -60,6 +61,7 @@ function PostItem({
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(mp);
   const [isProcessing, setisProcessing] = useState<boolean>(false);
+  const [isRestored, setisRestored] = useState<boolean>(false);
 
   const timeDetail = timeSince(new Date(postState.date_posted));
   const dateposted = timeDetail;
@@ -175,6 +177,12 @@ function PostItem({
     <div ref={ref} className="tw-w-full tw-relative">
       {isProcessing && (
         <OverlayLoader className="tw-bg-white tw-absolute tw-w-full tw-h-full tw-opacity-[0.8] tw-z-[5] tw-flex tw-items-center tw-justify-center tw-rounded-md" />
+      )}
+      {isRestored && (
+        <OverlayMessage
+          message="Post Restored"
+          className="tw-bg-white tw-absolute tw-w-full tw-h-full tw-opacity-[0.8] tw-z-[5] tw-flex tw-items-center tw-justify-center tw-rounded-md"
+        />
       )}
       {minimizedCaption !== null && (
         <div
@@ -304,6 +312,11 @@ function PostItem({
                     break;
                   case "archived":
                     setpostState((prev) => ({ ...prev, is_archived: true }));
+                    break;
+                  case "unarchived":
+                    setpostState((prev) => ({ ...prev, is_archived: false }));
+                    setisProcessing(false);
+                    setisRestored(true);
                     break;
                   default:
                     setisProcessing(false);
@@ -571,6 +584,14 @@ function PostItem({
                                   is_archived: true,
                                 }));
                                 break;
+                              case "unarchived":
+                                setpostState((prev) => ({
+                                  ...prev,
+                                  is_archived: false,
+                                }));
+                                setisProcessing(false);
+                                setisRestored(true);
+                                break;
                               default:
                                 setisProcessing(false);
                                 break;
@@ -805,7 +826,7 @@ function PostItem({
                         return (
                           <div
                             onClick={() => {
-                              if (!isSharePreview) {
+                              if (!isSharePreview && !postState.is_archived) {
                                 settogglePostCarousel(true);
                               }
                             }}
@@ -822,7 +843,7 @@ function PostItem({
                         return (
                           <div
                             onClick={() => {
-                              if (!isSharePreview) {
+                              if (!isSharePreview && !postState.is_archived) {
                                 settogglePostCarousel(true);
                               }
                             }}
@@ -899,7 +920,7 @@ function PostItem({
               />
             )}
           </div>
-          {!isSharePreview && (
+          {!isSharePreview && !postState.is_archived && (
             <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
               <motion.div
                 initial={{

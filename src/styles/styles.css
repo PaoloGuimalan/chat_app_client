@@ -3156,6 +3156,19 @@ input:checked + .slider:before {
   align-items: center;
 }
 
+#div_loader_request_overlay_message {
+  background-color: transparent;
+  height: 40px;
+  border: none;
+  border-radius: 40px;
+  color: #3b3b3b;
+  margin-top: 0px;
+  margin-bottom: 0px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 #div_loader_share_conv {
   background-color: transparent;
   width: 40px;
