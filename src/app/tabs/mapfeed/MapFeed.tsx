@@ -681,7 +681,7 @@ function MapFeed() {
 
   const handleClick = useCallback(
     (event: any) => {
-      release();
+      request();
       const coordinatesCircle = coordinates
         .filter((flt) => flt.referenceID !== authentication.user.userID)
         .map((mp) => `gps-circle-${mp.referenceID}`);
