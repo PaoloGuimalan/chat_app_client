@@ -296,37 +296,39 @@ function PostItem({
               </div>
               <span className="tw-text-[12px]">{dateposted}</span>
             </div>
-            <PostOptions
-              post={postState}
-              onProcess={() => {
-                setisProcessing(true);
-              }}
-              onFinish={(type: string) => {
-                switch (type) {
-                  case "deleted":
-                    setpostState((prev) => ({
-                      ...prev,
-                      deleted_at: true,
-                      deleted_by: true,
-                    }));
-                    break;
-                  case "archived":
-                    setpostState((prev) => ({ ...prev, is_archived: true }));
-                    break;
-                  case "unarchived":
-                    setpostState((prev) => ({ ...prev, is_archived: false }));
-                    setisProcessing(false);
-                    setisRestored(true);
-                    break;
-                  default:
-                    setisProcessing(false);
-                    break;
-                }
-              }}
-              onError={() => {
-                setisProcessing(false);
-              }}
-            />
+            {authentication.auth && (
+              <PostOptions
+                post={postState}
+                onProcess={() => {
+                  setisProcessing(true);
+                }}
+                onFinish={(type: string) => {
+                  switch (type) {
+                    case "deleted":
+                      setpostState((prev) => ({
+                        ...prev,
+                        deleted_at: true,
+                        deleted_by: true,
+                      }));
+                      break;
+                    case "archived":
+                      setpostState((prev) => ({ ...prev, is_archived: true }));
+                      break;
+                    case "unarchived":
+                      setpostState((prev) => ({ ...prev, is_archived: false }));
+                      setisProcessing(false);
+                      setisRestored(true);
+                      break;
+                    default:
+                      setisProcessing(false);
+                      break;
+                  }
+                }}
+                onError={() => {
+                  setisProcessing(false);
+                }}
+              />
+            )}
           </div>
           <div
             className={`tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
@@ -564,43 +566,45 @@ function PostItem({
                             <span className="tw-text-[12px]">{dateposted}</span>
                           </div>
                         </div>
-                        <PostOptions
-                          post={postState}
-                          onProcess={() => {
-                            setisProcessing(true);
-                          }}
-                          onFinish={(type: string) => {
-                            switch (type) {
-                              case "deleted":
-                                setpostState((prev) => ({
-                                  ...prev,
-                                  deleted_at: true,
-                                  deleted_by: true,
-                                }));
-                                break;
-                              case "archived":
-                                setpostState((prev) => ({
-                                  ...prev,
-                                  is_archived: true,
-                                }));
-                                break;
-                              case "unarchived":
-                                setpostState((prev) => ({
-                                  ...prev,
-                                  is_archived: false,
-                                }));
-                                setisProcessing(false);
-                                setisRestored(true);
-                                break;
-                              default:
-                                setisProcessing(false);
-                                break;
-                            }
-                          }}
-                          onError={() => {
-                            setisProcessing(false);
-                          }}
-                        />
+                        {authentication.auth && (
+                          <PostOptions
+                            post={postState}
+                            onProcess={() => {
+                              setisProcessing(true);
+                            }}
+                            onFinish={(type: string) => {
+                              switch (type) {
+                                case "deleted":
+                                  setpostState((prev) => ({
+                                    ...prev,
+                                    deleted_at: true,
+                                    deleted_by: true,
+                                  }));
+                                  break;
+                                case "archived":
+                                  setpostState((prev) => ({
+                                    ...prev,
+                                    is_archived: true,
+                                  }));
+                                  break;
+                                case "unarchived":
+                                  setpostState((prev) => ({
+                                    ...prev,
+                                    is_archived: false,
+                                  }));
+                                  setisProcessing(false);
+                                  setisRestored(true);
+                                  break;
+                                default:
+                                  setisProcessing(false);
+                                  break;
+                              }
+                            }}
+                            onError={() => {
+                              setisProcessing(false);
+                            }}
+                          />
+                        )}
                         <button
                           onClick={() => {
                             settogglePostCarousel(false);
@@ -717,73 +721,77 @@ function PostItem({
                           </motion.div>
                           <hr className="tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px] tw-z-[0]" />
                           <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
-                            <button
-                              onMouseEnter={() => {
-                                settoggleEmojis(true);
-                              }}
-                              onMouseLeave={() => {
-                                settoggleEmojis(false);
-                              }}
-                              disabled={emojiLoading}
-                              className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
-                            >
-                              <motion.div
-                                className="tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-bg-white tw-shadow-lg tw-bottom-[calc(100%+15px)]"
-                                initial={{
-                                  scale: 0,
+                            {authentication.auth && (
+                              <button
+                                onMouseEnter={() => {
+                                  settoggleEmojis(true);
                                 }}
-                                animate={{
-                                  scale: toggleEmojis ? 1 : 0,
+                                onMouseLeave={() => {
+                                  settoggleEmojis(false);
                                 }}
+                                disabled={emojiLoading}
+                                className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
                               >
-                                <PostEmojis
-                                  post_id={postState.post_id}
-                                  reaction={postState.user_reaction}
-                                  onProcessEmojiSelection={
-                                    onProcessEmojiSelection
-                                  }
-                                  onSuccessEmojiSelection={
-                                    onSuccessEmojiSelection
-                                  }
-                                />
-                              </motion.div>
-                              {postState.user_reaction ? (
-                                <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
-                                  {emojilist.length > 0 &&
-                                    (emojilist.filter(
-                                      (flt: Emoji) =>
-                                        flt.emoji_id ===
-                                        postState.user_reaction,
-                                    )[0].emoji_content ??
-                                      "...")}
-                                </div>
-                              ) : (
-                                <BiLike
-                                  style={{
-                                    fontSize: "25px",
-                                    color: "#666666",
+                                <motion.div
+                                  className="tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-bg-white tw-shadow-lg tw-bottom-[calc(100%+15px)]"
+                                  initial={{
+                                    scale: 0,
                                   }}
-                                />
-                              )}
-                            </button>
+                                  animate={{
+                                    scale: toggleEmojis ? 1 : 0,
+                                  }}
+                                >
+                                  <PostEmojis
+                                    post_id={postState.post_id}
+                                    reaction={postState.user_reaction}
+                                    onProcessEmojiSelection={
+                                      onProcessEmojiSelection
+                                    }
+                                    onSuccessEmojiSelection={
+                                      onSuccessEmojiSelection
+                                    }
+                                  />
+                                </motion.div>
+                                {postState.user_reaction ? (
+                                  <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
+                                    {emojilist.length > 0 &&
+                                      (emojilist.filter(
+                                        (flt: Emoji) =>
+                                          flt.emoji_id ===
+                                          postState.user_reaction,
+                                      )[0].emoji_content ??
+                                        "...")}
+                                  </div>
+                                ) : (
+                                  <BiLike
+                                    style={{
+                                      fontSize: "25px",
+                                      color: "#666666",
+                                    }}
+                                  />
+                                )}
+                              </button>
+                            )}
                             <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
                               <LiaComment
                                 style={{ fontSize: "25px", color: "#666666" }}
                               />
                             </button>
-                            <button
-                              onClick={() => {
-                                settoggleNewPostModal({
-                                  toggle: true,
-                                  withImage: false,
-                                });
-                              }}
-                              className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
-                            >
-                              <PiShareFat
-                                style={{ fontSize: "25px", color: "#666666" }}
-                              />
-                            </button>
+                            {authentication.auth && (
+                              <button
+                                onClick={() => {
+                                  settoggleNewPostModal({
+                                    toggle: true,
+                                    withImage: false,
+                                  });
+                                }}
+                                className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                              >
+                                <PiShareFat
+                                  style={{ fontSize: "25px", color: "#666666" }}
+                                />
+                              </button>
+                            )}
                             {postOwnerUserID === authentication.user.userID && (
                               <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
                                 <BsPinMap
@@ -977,45 +985,47 @@ function PostItem({
               </motion.div>
               <hr className="tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px] tw-z-[0]" />
               <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
-                <button
-                  onMouseEnter={() => {
-                    settoggleEmojis(true);
-                  }}
-                  onMouseLeave={() => {
-                    settoggleEmojis(false);
-                  }}
-                  disabled={emojiLoading}
-                  className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
-                >
-                  <motion.div
-                    className="tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-bg-white tw-shadow-lg tw-bottom-[calc(100%+15px)]"
-                    initial={{
-                      scale: 0,
+                {authentication.auth && (
+                  <button
+                    onMouseEnter={() => {
+                      settoggleEmojis(true);
                     }}
-                    animate={{
-                      scale: toggleEmojis ? 1 : 0,
+                    onMouseLeave={() => {
+                      settoggleEmojis(false);
                     }}
+                    disabled={emojiLoading}
+                    className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
                   >
-                    <PostEmojis
-                      post_id={postState.post_id}
-                      reaction={postState.user_reaction}
-                      onProcessEmojiSelection={onProcessEmojiSelection}
-                      onSuccessEmojiSelection={onSuccessEmojiSelection}
-                    />
-                  </motion.div>
-                  {postState.user_reaction ? (
-                    <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
-                      {emojilist.length > 0 &&
-                        (emojilist.filter(
-                          (flt: Emoji) =>
-                            flt.emoji_id === postState.user_reaction,
-                        )[0].emoji_content ??
-                          "...")}
-                    </div>
-                  ) : (
-                    <BiLike style={{ fontSize: "25px", color: "#666666" }} />
-                  )}
-                </button>
+                    <motion.div
+                      className="tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-bg-white tw-shadow-lg tw-bottom-[calc(100%+15px)]"
+                      initial={{
+                        scale: 0,
+                      }}
+                      animate={{
+                        scale: toggleEmojis ? 1 : 0,
+                      }}
+                    >
+                      <PostEmojis
+                        post_id={postState.post_id}
+                        reaction={postState.user_reaction}
+                        onProcessEmojiSelection={onProcessEmojiSelection}
+                        onSuccessEmojiSelection={onSuccessEmojiSelection}
+                      />
+                    </motion.div>
+                    {postState.user_reaction ? (
+                      <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
+                        {emojilist.length > 0 &&
+                          (emojilist.filter(
+                            (flt: Emoji) =>
+                              flt.emoji_id === postState.user_reaction,
+                          )[0].emoji_content ??
+                            "...")}
+                      </div>
+                    ) : (
+                      <BiLike style={{ fontSize: "25px", color: "#666666" }} />
+                    )}
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     settogglePostCarousel(true);
@@ -1024,14 +1034,18 @@ function PostItem({
                 >
                   <LiaComment style={{ fontSize: "25px", color: "#666666" }} />
                 </button>
-                <button
-                  onClick={() => {
-                    settoggleNewPostModal({ toggle: true, withImage: false });
-                  }}
-                  className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
-                >
-                  <PiShareFat style={{ fontSize: "25px", color: "#666666" }} />
-                </button>
+                {authentication.auth && (
+                  <button
+                    onClick={() => {
+                      settoggleNewPostModal({ toggle: true, withImage: false });
+                    }}
+                    className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                  >
+                    <PiShareFat
+                      style={{ fontSize: "25px", color: "#666666" }}
+                    />
+                  </button>
+                )}
                 {postOwnerUserID === authentication.user.userID && (
                   <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
                     <BsPinMap style={{ fontSize: "22px", color: "#666666" }} />

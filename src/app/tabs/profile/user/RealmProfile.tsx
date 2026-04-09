@@ -197,67 +197,86 @@ function RealmProfile({
                 @{realmInfo.slug}
               </span>
             </div>
-            <div className="tw-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[4px] tw-justify-center">
-              {realmInfo.is_admin && (
+            {!authentication.auth && (
+              <div className="tw-flex tw-flex-wrap tw-flex-col sm:tw-flex-row tw-items-center sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[10px]">
+                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                  You are not logged in
+                </span>
                 <button
                   onClick={() => {
-                    navigate(`/realms/${realmInfo.realm_id}`);
+                    navigate("/login");
                   }}
-                  className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-border-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
+                  className="tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
                 >
-                  Manage
+                  Login
                 </button>
-              )}
-              {realmInfo.is_follower ? (
-                <button
-                  onClick={UnfollowRealmProcess}
-                  disabled={isConnectionButtonsLoading}
-                  className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[#1c7def] tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
-                >
-                  {isConnectionButtonsLoading ? (
-                    <motion.div
-                      animate={{
-                        rotate: -360,
-                      }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                      }}
-                      id="div_loader_request_nano_light"
-                    >
-                      <AiOutlineLoading3Quarters
-                        style={{ fontSize: "15px", color: "#1c7def" }}
-                      />
-                    </motion.div>
-                  ) : (
-                    <div className="tw-min-w-[80px]">Unfollow</div>
-                  )}
-                </button>
-              ) : (
-                <button
-                  onClick={FollowRealmProcess}
-                  disabled={isConnectionButtonsLoading}
-                  className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
-                >
-                  {isConnectionButtonsLoading ? (
-                    <motion.div
-                      animate={{
-                        rotate: -360,
-                      }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                      }}
-                      id="div_loader_request_nano_light"
-                    >
-                      <AiOutlineLoading3Quarters style={{ fontSize: "15px" }} />
-                    </motion.div>
-                  ) : (
-                    <div className="tw-min-w-[80px]">Follow</div>
-                  )}
-                </button>
-              )}
-            </div>
+              </div>
+            )}
+            {authentication.auth && (
+              <div className="tw-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[4px] tw-justify-center">
+                {realmInfo.is_admin && (
+                  <button
+                    onClick={() => {
+                      navigate(`/realms/${realmInfo.realm_id}`);
+                    }}
+                    className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-border-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
+                  >
+                    Manage
+                  </button>
+                )}
+                {realmInfo.is_follower ? (
+                  <button
+                    onClick={UnfollowRealmProcess}
+                    disabled={isConnectionButtonsLoading}
+                    className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[#1c7def] tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
+                  >
+                    {isConnectionButtonsLoading ? (
+                      <motion.div
+                        animate={{
+                          rotate: -360,
+                        }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                        }}
+                        id="div_loader_request_nano_light"
+                      >
+                        <AiOutlineLoading3Quarters
+                          style={{ fontSize: "15px", color: "#1c7def" }}
+                        />
+                      </motion.div>
+                    ) : (
+                      <div className="tw-min-w-[80px]">Unfollow</div>
+                    )}
+                  </button>
+                ) : (
+                  <button
+                    onClick={FollowRealmProcess}
+                    disabled={isConnectionButtonsLoading}
+                    className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                  >
+                    {isConnectionButtonsLoading ? (
+                      <motion.div
+                        animate={{
+                          rotate: -360,
+                        }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                        }}
+                        id="div_loader_request_nano_light"
+                      >
+                        <AiOutlineLoading3Quarters
+                          style={{ fontSize: "15px" }}
+                        />
+                      </motion.div>
+                    ) : (
+                      <div className="tw-min-w-[80px]">Follow</div>
+                    )}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>

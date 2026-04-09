@@ -15,11 +15,15 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 import { FaFileAlt } from "react-icons/fa";
 import { motion, useInView } from "framer-motion";
-import { GetPostRequest } from "@/reusables/hooks/requests";
-import { useSelector } from "react-redux";
+import {
+  GetFeedEmojisRequest,
+  GetPostRequest,
+} from "@/reusables/hooks/requests";
+import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { postsliststate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
+import { SET_EMOJIS_LIST } from "@/redux/types";
 
 function PostsContainer({
   profileInfo,
@@ -47,6 +51,23 @@ function PostsContainer({
   const [paginatedPosts, setpaginatedPosts] =
     useState<PaginationProp<IPost>>(postsliststate);
   const posts: IPost[] = paginatedPosts.results;
+
+  const dispatch = useDispatch();
+
+  const GetEmojisProcess = () => {
+    GetFeedEmojisRequest()
+      .then((response) => {
+        dispatch({
+          type: SET_EMOJIS_LIST,
+          payload: {
+            emojis: response,
+          },
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
 
   const GetPostProcess = () => {
     setIsLoadingMore(true);
@@ -93,6 +114,10 @@ function PostsContainer({
   }, [profileInfo, params.userID]);
 
   useEffect(() => {
+    GetEmojisProcess();
+  }, []);
+
+  useEffect(() => {
     GetPostProcess();
   }, [params.userID, page, profileInfo]);
 
@@ -116,71 +141,76 @@ function PostsContainer({
 
   return (
     <Fragment>
-      <div id="div_feed_header_post_input_profile" className="tw-border-[0px]">
-        {profileInfo.profile !== "none" ? (
-          <div id="img_default_profile_container">
-            <CachedImage src={profileInfo.profile} id="img_actual_profile" />
-          </div>
-        ) : (
-          <div id="div_img_feed_header_container">
-            <CachedImage src={DefaultProfile} id="img_feed_header" />
-          </div>
-        )}
-        <div id="div_input_feed_flex">
-          {toggleNewPostModal.toggle && (
-            <NewPostModal
-              toShare={false}
-              sharePreviewData={null}
-              withImage={toggleNewPostModal.withImage}
-              profileInfo={{
-                id: profileInfo.id,
-                username: profileInfo.userID,
-              }}
-              realmInfo={null}
-              setcreateposttext={setcreateposttext}
-              getpostprocess={GetPostProcess}
-              onclose={settoggleNewPostModal}
-            />
+      {authentication.auth && (
+        <div
+          id="div_feed_header_post_input_profile"
+          className="tw-border-[0px] tw-mb-[10px]"
+        >
+          {profileInfo.profile !== "none" ? (
+            <div id="img_default_profile_container">
+              <CachedImage src={profileInfo.profile} id="img_actual_profile" />
+            </div>
+          ) : (
+            <div id="div_img_feed_header_container">
+              <CachedImage src={DefaultProfile} id="img_feed_header" />
+            </div>
           )}
-          <input
-            type="text"
-            autoComplete="off"
-            value={createposttext}
-            onFocus={() => {
-              settoggleNewPostModal({ toggle: true, withImage: false });
-            }}
-            onChange={(e) => {
-              setcreateposttext(e.target.value);
-            }}
-            onKeyDown={(e) => {
-              if (createposttext.trim() !== "") {
-                if (e.key == "Enter") {
-                  // CreatePostProcess()
+          <div id="div_input_feed_flex">
+            {toggleNewPostModal.toggle && (
+              <NewPostModal
+                toShare={false}
+                sharePreviewData={null}
+                withImage={toggleNewPostModal.withImage}
+                profileInfo={{
+                  id: profileInfo.id,
+                  username: profileInfo.userID,
+                }}
+                realmInfo={null}
+                setcreateposttext={setcreateposttext}
+                getpostprocess={GetPostProcess}
+                onclose={settoggleNewPostModal}
+              />
+            )}
+            <input
+              type="text"
+              autoComplete="off"
+              value={createposttext}
+              onFocus={() => {
+                settoggleNewPostModal({ toggle: true, withImage: false });
+              }}
+              onChange={(e) => {
+                setcreateposttext(e.target.value);
+              }}
+              onKeyDown={(e) => {
+                if (createposttext.trim() !== "") {
+                  if (e.key == "Enter") {
+                    // CreatePostProcess()
+                  }
                 }
+              }}
+              className="tw-font-Inter"
+              placeholder={
+                profileInfo.userID === authentication.user.username
+                  ? "Share your thoughts..."
+                  : `Write on ${profileInfo.fullname.firstName}'s wall...`
               }
-            }}
-            className="tw-font-Inter"
-            placeholder={
-              profileInfo.userID === authentication.user.username
-                ? "Share your thoughts..."
-                : `Write on ${profileInfo.fullname.firstName}'s wall...`
-            }
-            id="input_feed_box"
-          />
+              id="input_feed_box"
+            />
+          </div>
+          <div id="div_btn_image_container">
+            <button
+              onClick={() => {
+                settoggleNewPostModal({ toggle: true, withImage: true });
+              }}
+              id="btn_image_feed"
+            >
+              <FcAddImage style={{ fontSize: "35px" }} />
+            </button>
+          </div>
         </div>
-        <div id="div_btn_image_container">
-          <button
-            onClick={() => {
-              settoggleNewPostModal({ toggle: true, withImage: true });
-            }}
-            id="btn_image_feed"
-          >
-            <FcAddImage style={{ fontSize: "35px" }} />
-          </button>
-        </div>
-      </div>
+      )}
       {paginatedPosts.count > 0 ? (
-        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[10px]">
+        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {posts.map((mp: IPost) => {
             return (
               <PostItem
@@ -223,7 +253,7 @@ function PostsContainer({
           </div>
         </div>
       ) : (
-        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[10px]">
+        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {Array.from({ length: 8 }, (_, i: number) => {
             return <PostItemLoader key={i} />;
           })}

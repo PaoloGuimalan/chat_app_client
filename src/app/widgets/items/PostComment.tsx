@@ -1,10 +1,14 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { commentsliststate } from "@/redux/actions/states";
 import {
   GetCommentsRequest,
   SaveCommentRequest,
 } from "@/reusables/hooks/requests";
-import { IPostComment } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  IPostComment,
+} from "@/reusables/vars/interfaces";
 import { PaginationProp, PostCommentProp } from "@/reusables/vars/props";
 import { IoSend } from "react-icons/io5";
 import DefaultProfile from "../../../assets/imgs/default.png";
@@ -17,8 +21,13 @@ import { FaFileAlt } from "react-icons/fa";
 import PostCommentLoader from "@/app/reusables/loaders/PostCommentLoader";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
+import { useSelector } from "react-redux";
 
 function PostComment({ post_id, parent_id }: PostCommentProp) {
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
+
   const [comments, setComments] =
     useState<PaginationProp<IPostComment>>(commentsliststate);
   const [isLoaded, setIsLoaded] = useState<boolean>(false);
@@ -91,7 +100,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
 
   return (
     <div className="tw-p-[25px] tw-pt-[5px] tw-w-[calc(100%-50px)] tw-min-h-[250px] tw-flex tw-flex-1 tw-flex-col">
-      {!parent_id && (
+      {authentication.auth && !parent_id && (
         <div className="tw-min-h-[60px] tw-flex tw-items-center tw-pb-[10px]">
           <div id="div_img_search_profiles_container_cncts">
             <CachedImage src={DefaultProfile} id="img_feed_header" />

@@ -341,7 +341,23 @@ function Profile({
                 @{profileInfo.userID}
               </span>
             </div>
-            {authentication.user.username !== params.userID &&
+            {!authentication.auth && (
+              <div className="tw-flex tw-flex-wrap tw-flex-col sm:tw-flex-row tw-items-center sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[10px]">
+                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                  You are not logged in
+                </span>
+                <button
+                  onClick={() => {
+                    navigate("/login");
+                  }}
+                  className="tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                >
+                  Login
+                </button>
+              </div>
+            )}
+            {authentication.auth &&
+              authentication.user.username !== params.userID &&
               profileInfo.connection.is_connection_present !== null && (
                 <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px]">
                   {/* for add friend button */}

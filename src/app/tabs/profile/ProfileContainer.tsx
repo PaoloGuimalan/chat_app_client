@@ -1,18 +1,31 @@
+/* eslint-disable react-hooks/rules-of-hooks */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { Route, Routes, useParams } from "react-router-dom";
+import {
+  Route,
+  Routes,
+  useLocation,
+  useNavigate,
+  useParams,
+} from "react-router-dom";
 import Profile from "./user/Profile";
 import Diary from "./diary/Diary";
 import { GetProfileInfo } from "@/reusables/hooks/requests";
 import { useEffect, useState } from "react";
 import {
+  AuthenticationInterface,
   IRealmProfileInfo,
   ProfileUserInfoInterface,
 } from "@/reusables/vars/interfaces";
 import PageLoader from "@/app/reusables/loaders/PageLoader";
 import BrokenLink from "@/app/reusables/catchers/BrokenLink";
 import RealmProfile from "./user/RealmProfile";
+import { useSelector } from "react-redux";
 
 function ProfileContainer() {
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
   const [isloaded, setisloaded] = useState<boolean>(false);
   const [isError, setisError] = useState<boolean>(false);
   const [profileInfo, setprofileInfo] =
@@ -21,6 +34,17 @@ function ProfileContainer() {
   const [type, settype] = useState<string | null>(null);
 
   const params = useParams();
+
+  const location = useLocation();
+  const isSharePath = location.pathname.startsWith("/share");
+
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (authentication.auth && isSharePath) {
+      navigate(`/${params.userID}`);
+    }
+  }, [authentication, isSharePath]);
 
   const GetProfileInfoProcess = (callback: () => void = () => {}) => {
     GetProfileInfo({

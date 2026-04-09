@@ -12,6 +12,7 @@ import { useEffect, useRef, useState } from "react";
 import { AuthCheck } from "./reusables/hooks/requests";
 import Alert from "./app/widgets/Alert";
 import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER } from "./redux/types";
+import ProfileContainer from "./app/tabs/profile/ProfileContainer";
 
 function App() {
   const authentication = useSelector((state: any) => state.authentication);
@@ -168,6 +169,7 @@ function App() {
             )
           }
         />
+        <Route path="/share/:userID/*" element={<ProfileContainer />} />
         {/* <Route path='/app/*' element={authentication.auth != null? authentication.auth? authentication.user.isVerified? <Home /> : <Navigate to='/verification' /> : <Navigate to='/login' /> : <Splash />} /> */}
       </Routes>
     </div>

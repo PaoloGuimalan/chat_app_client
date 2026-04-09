@@ -402,55 +402,57 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                       <span className="tw-text-[12px]">{dateposted}</span>
                     </div>
                   </div>
-                  <PostOptions
-                    post={previewPost}
-                    onProcess={() => {}}
-                    onFinish={(type: string) => {
-                      switch (type) {
-                        case "deleted":
-                          setpreviewPost((prev) => {
-                            if (prev) {
-                              return {
-                                ...prev,
-                                deleted_at: true,
-                                deleted_by: true,
-                              };
-                            }
+                  {authentication.auth && (
+                    <PostOptions
+                      post={previewPost}
+                      onProcess={() => {}}
+                      onFinish={(type: string) => {
+                        switch (type) {
+                          case "deleted":
+                            setpreviewPost((prev) => {
+                              if (prev) {
+                                return {
+                                  ...prev,
+                                  deleted_at: true,
+                                  deleted_by: true,
+                                };
+                              }
 
-                            return prev;
-                          });
-                          break;
-                        case "archived":
-                          setpreviewPost((prev) => {
-                            if (prev) {
-                              return {
-                                ...prev,
-                                is_archived: true,
-                              };
-                            }
+                              return prev;
+                            });
+                            break;
+                          case "archived":
+                            setpreviewPost((prev) => {
+                              if (prev) {
+                                return {
+                                  ...prev,
+                                  is_archived: true,
+                                };
+                              }
 
-                            return prev;
-                          });
-                          break;
-                        case "unarchived":
-                          setpreviewPost((prev) => {
-                            if (prev) {
-                              return {
-                                ...prev,
-                                is_archived: false,
-                              };
-                            }
+                              return prev;
+                            });
+                            break;
+                          case "unarchived":
+                            setpreviewPost((prev) => {
+                              if (prev) {
+                                return {
+                                  ...prev,
+                                  is_archived: false,
+                                };
+                              }
 
-                            return prev;
-                          });
-                          setisRestored(true);
-                          break;
-                        default:
-                          break;
-                      }
-                    }}
-                    onError={() => {}}
-                  />
+                              return prev;
+                            });
+                            setisRestored(true);
+                            break;
+                          default:
+                            break;
+                        }
+                      }}
+                      onError={() => {}}
+                    />
+                  )}
                   <button
                     onClick={() => {
                       settogglePostCarousel(false);

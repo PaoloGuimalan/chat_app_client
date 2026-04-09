@@ -439,7 +439,9 @@ export const setrawcoordinates = (state: ICoordinatesAnchor, action: any) => {
     default:
       const authtoken: any = localStorage.getItem("authtoken");
       const userID: any = authtoken ? jwtDecode<any>(authtoken).userID : null;
-      const username: any = authtoken;
+      const username: any = authtoken
+        ? jwtDecode<any>(authtoken).username
+        : null;
       const finalState = state ?? {
         referenceID: userID,
         label: username,
