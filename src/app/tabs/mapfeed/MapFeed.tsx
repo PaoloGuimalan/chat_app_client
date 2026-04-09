@@ -50,6 +50,7 @@ import { useSearchParams } from "react-router-dom";
 import { HiOutlineSquare3Stack3D } from "react-icons/hi2";
 import { SET_COORDINATES, SET_USER_SETTINGS } from "@/redux/types";
 import { persistSettings } from "@/reusables/hooks/localforagehelper";
+import { useWakeLock } from "react-screen-wake-lock";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -660,8 +661,27 @@ function MapFeed() {
     },
   ];
 
+  const { isSupported, released, request, release } = useWakeLock({
+    onRequest: () => {},
+    onError: () => {},
+    onRelease: () => {},
+  });
+
+  useEffect(() => {
+    if (isSupported) {
+      request();
+    }
+
+    return () => {
+      if (!released) {
+        release();
+      }
+    };
+  }, [isSupported, request, release]);
+
   const handleClick = useCallback(
     (event: any) => {
+      release();
       const coordinatesCircle = coordinates
         .filter((flt) => flt.referenceID !== authentication.user.userID)
         .map((mp) => `gps-circle-${mp.referenceID}`);

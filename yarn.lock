@@ -8023,6 +8023,7 @@ eventemitter3@^4.0.0:
   integrity sha512-8guHBZCwKnFhYdHr2ysuRWErTwhoN2X8XELRlrRwpmfeY2jjuUN4taQMsULKUVo1K4DvZl+0pgfyoysHxvmvEw==
 
 "events-alias@npm:events@^3.3.0", events@^3.2.0:
+  name events-alias
   version "3.3.0"
   resolved "https://registry.yarnpkg.com/events/-/events-3.3.0.tgz#31a95ad0a924e2d2c419a813aeb2c4e878ea7400"
   integrity sha512-mQw+2fkQbALzQ7V0MY0IqdnXNOeTtP4r0lN9z7AAawCXgqea7bDii20AYrIBrFd/Hx0M2Ocz6S111CaFkUcb0Q==
@@ -12221,6 +12222,11 @@ react-router@6.30.3:
   integrity sha512-XRnlbKMTmktBkjCLE8/XcZFlnHvr2Ltdr1eJX4idL55/9BbORzyZEaIkBFDhFGCEWBBItsVrDxwx3gnisMitdw==
   dependencies:
     "@remix-run/router" "1.23.2"
+
+react-screen-wake-lock@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/react-screen-wake-lock/-/react-screen-wake-lock-3.1.1.tgz#d5011be60dd9904bdcf3c81f65e2d27192554900"
+  integrity sha512-aZqFSh1uHhdeeNHknvCuw9pZO9hP1Ul7Z1Cc26WJaOH52ZbnLSPS01GEeHarARSmOIdLwJoSMRyfSAW0a946bA==
 
 react-scripts@5.0.1:
   version "5.0.1"

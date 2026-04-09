@@ -60,6 +60,7 @@
     "react-redux": "^8.1.2",
     "react-responsive-carousel": "^3.2.23",
     "react-router-dom": "^6.15.0",
+    "react-screen-wake-lock": "^3.1.1",
     "react-scripts": "5.0.1",
     "react-select": "^5.10.2",
     "react-select-async-paginate": "^0.7.11",
