@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import {
+  Navigate,
   Route,
   Routes,
   useLocation,
@@ -129,7 +130,10 @@ function ProfileContainer() {
           )
         }
       />
-      <Route path="/diary" element={<Diary />} />
+      <Route
+        path="/diary"
+        element={authentication.auth ? <Diary /> : <Navigate to="/login" />}
+      />
     </Routes>
   );
 }
