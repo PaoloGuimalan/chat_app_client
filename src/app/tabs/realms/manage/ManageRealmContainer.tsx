@@ -57,7 +57,7 @@ function ManageRealmContainer() {
   return (
     <Routes>
       <Route
-        path="/"
+        path="/*"
         element={
           isloaded ? (
             isError ? (

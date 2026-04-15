@@ -1391,12 +1391,16 @@ const InitServerListRequest = async () => {
 
 const InitServerConversationRequest = async (params: any) => {
   const conversationID = params.conversationID;
+  const serverID = params.serverID;
 
-  return await Axios.get(`${API}/s/initserversetup/${conversationID}`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.get(
+    `${API}/s/initserversetup/${serverID}/${conversationID}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => {
       if (response.data.status) {
         const decodedResult: any = jwt_decode(response.data.result);

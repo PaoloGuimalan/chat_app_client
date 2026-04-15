@@ -6,7 +6,7 @@ function RealmContainer() {
   return (
     <Routes>
       <Route path="/" element={<Navigate to={"/"} />} />
-      <Route path="/:realm_id" element={<ManageRealmContainer />} />
+      <Route path="/:realm_id/*" element={<ManageRealmContainer />} />
     </Routes>
   );
 }

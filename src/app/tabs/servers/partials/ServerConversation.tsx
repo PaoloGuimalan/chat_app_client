@@ -24,6 +24,7 @@ function ServerConversation() {
   const [isconversationsetuploaded, setisconversationsetuploaded] =
     useState<boolean>(false);
   const conversationID = useMemo(() => params.conversationID, [params]);
+  const serverID = useMemo(() => params.serverID, [params]);
 
   const channelType = useMemo(
     () => conversationsetup.groupdetails.channelType,
@@ -37,6 +38,7 @@ function ServerConversation() {
     setisconversationsetuploaded(false);
     InitServerConversationRequest({
       conversationID: conversationID,
+      serverID,
     })
       .then((response) => {
         setchannelUsers(response[0]?.users || []);
