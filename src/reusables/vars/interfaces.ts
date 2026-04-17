@@ -69,6 +69,23 @@ export interface ProfileUserInfoInterface {
   isBadged: boolean;
 }
 
+export interface IRealmBasicInfo {
+  id: string;
+  realm_id: string;
+  name: string;
+  profile: string;
+  cover_photo: string | null;
+  description: string | null;
+  email: string | null;
+  slug: string | null;
+  type: string;
+  is_active: boolean;
+  is_private: boolean;
+  is_verified: boolean;
+  created_by: string;
+  parent: IRealmBasicInfo | null;
+}
+
 export interface IRealmProfileInfo {
   cover_photo: string | null;
   created_by: string;
@@ -79,7 +96,7 @@ export interface IRealmProfileInfo {
   is_private: boolean;
   is_verified: boolean;
   name: string;
-  parent: string | null;
+  parent: IRealmBasicInfo | null;
   profile: string | null;
   realm_id: string;
   slug: string | null;
