@@ -1,11 +1,15 @@
+import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { UpdateRealmRequest } from "@/reusables/hooks/requests";
 import { getDifferentValues } from "@/reusables/hooks/reusable";
 import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { useMemo, useState } from "react";
+import { useDispatch } from "react-redux";
+import { motion } from "framer-motion";
 
 function Details({ realm }: { realm: IRealmProfileInfo }) {
   const [realmState, setrealmState] = useState<IRealmProfileInfo>(realm);
   const [isSaving, setisSaving] = useState<boolean>(false);
+  const [errorFields, seterrorFields] = useState<string[]>([]);
 
   const currentPreset = useMemo(() => {
     const formPreset: Record<string, string[]> = {
@@ -25,7 +29,10 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
     [realm, realmState],
   );
 
+  const dispatch = useDispatch();
+
   const SaveDetailsProcess = () => {
+    seterrorFields([]);
     setisSaving(true);
     UpdateRealmRequest(realmState.realm_id, stateDifference)
       .then((response) => {
@@ -35,6 +42,23 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
       .catch((err) => {
         setisSaving(false);
         console.log(err);
+
+        if (err.message.includes("Slug already exists")) {
+          seterrorFields((prev) => {
+            const uniqueArray = [...new Set(prev), "slug"];
+
+            return uniqueArray;
+          });
+          dispatch({
+            type: SET_MUTATE_ALERTS,
+            payload: {
+              alerts: {
+                type: "error",
+                content: "Slug provided already exist",
+              },
+            },
+          });
+        }
       });
   };
 
@@ -86,12 +110,30 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
                   <span className="tw-text-[#383838] tw-text-[14px] tw-font-semibold tw-font-Inter">
                     Slug
                   </span>
-                  <input
-                    disabled
+                  <motion.input
+                    initial={{
+                      border: errorFields.includes("slug")
+                        ? "2px solid red"
+                        : "0px",
+                    }}
+                    animate={{
+                      border: errorFields.includes("slug")
+                        ? "2px solid red"
+                        : "0px",
+                    }}
+                    disabled={isSaving}
+                    onChange={(e) => {
+                      setrealmState((prev) => {
+                        return {
+                          ...prev,
+                          slug: e.target.value,
+                        };
+                      });
+                    }}
                     value={realmState.slug ?? ""}
                     type="text"
                     placeholder="Slug"
-                    className="tw-w-[calc(100%-14px)] tw-h-[35px] tw-rounded-md tw-border-[0px] tw-bg-[#ebebeb] tw-px-[7px] tw-font-Inter"
+                    className="tw-w-[calc(100%-14px)] tw-h-[35px] tw-rounded-md tw-bg-[#ebebeb] tw-px-[7px] tw-font-Inter"
                   />
                 </div>
               )}

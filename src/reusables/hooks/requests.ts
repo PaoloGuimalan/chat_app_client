@@ -2346,6 +2346,11 @@ const UpdateRealmRequest = async (realm_id: string, fields: any) => {
     })
     .catch((err) => {
       console.log(err);
+
+      if (err.response.data.includes("duplicate key")) {
+        throw new Error("Slug already exists");
+      }
+
       throw new Error(err);
     });
 };
