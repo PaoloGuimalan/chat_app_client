@@ -2324,6 +2324,32 @@ const UpdateRealmMediaRequest = async (payload: {
     });
 };
 
+const UpdateRealmRequest = async (realm_id: string, fields: any) => {
+  return await Axios.put(
+    `${USER_SERVICE_API}/api/realm/my-list`,
+    {
+      realm_id,
+      fields,
+    },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2404,4 +2430,5 @@ export {
   UnsavePostRequest,
   GetSavedPostsRequest,
   UpdateRealmMediaRequest,
+  UpdateRealmRequest,
 };

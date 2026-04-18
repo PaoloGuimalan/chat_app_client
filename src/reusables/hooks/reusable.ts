@@ -442,6 +442,18 @@ function hasNullValues(obj: any): any {
   return false;
 }
 
+function getDifferentValues(obj1: any, obj2: any) {
+  const differences: any = {};
+
+  for (const [key, value] of Object.entries(obj2)) {
+    if (!(key in obj1) || obj1[key] !== value) {
+      differences[key] = value;
+    }
+  }
+
+  return differences;
+}
+
 export {
   importData,
   importNonImageData,
@@ -462,4 +474,5 @@ export {
   sanitizeForStorage,
   generateXNonce,
   hasNullValues,
+  getDifferentValues,
 };

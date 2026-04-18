@@ -201,7 +201,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
         <div className="tw-flex tw-flex-1 tw-overflow-y-scroll x-scroll">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/details" element={<Details />} />
+            <Route path="/details" element={<Details realm={realmState} />} />
             <Route path="/media" element={<Media realm={realmState} />} />
             <Route path="/members" element={<Members />} />
             <Route
