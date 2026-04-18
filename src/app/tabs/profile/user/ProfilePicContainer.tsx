@@ -11,11 +11,17 @@ import { useSelector } from "react-redux";
 
 function ProfilePicContainer({
   userID,
+  realm_id,
   profile,
+  type,
+  isAllowed,
   getpostprocess,
 }: {
   userID: string;
+  realm_id: string | null;
   profile: string | null;
+  type: string;
+  isAllowed: boolean;
   getpostprocess: () => void;
 }) {
   const authentication: AuthenticationInterface = useSelector(
@@ -25,10 +31,13 @@ function ProfilePicContainer({
   const [toggleSelection, settoggleSelection] = useState<boolean>(false);
   const [toggleUploadModal, settoggleUploadModal] = useState<boolean>(false);
 
-  const isUserProfile = useMemo(
-    () => authentication.user.userID === userID,
-    [authentication.user.userID, userID],
-  );
+  const isUserProfile = useMemo(() => {
+    if (type === "profile") {
+      return authentication.user.userID === userID;
+    }
+
+    return isAllowed;
+  }, [authentication.user.userID, userID, isAllowed, type]);
 
   return (
     <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center tw-relative">
@@ -100,6 +109,7 @@ function ProfilePicContainer({
       )}
       {toggleUploadModal && (
         <UploadProfileMedia
+          realm_id={realm_id}
           type="profile"
           onclose={settoggleUploadModal}
           getpostprocess={getpostprocess}

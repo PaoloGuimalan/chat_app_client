@@ -173,13 +173,19 @@ function RealmProfile({
       <div className="tw-bg-white tw-w-full tw-h-[40%] tw-min-h-[500px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
         <ProfileCoverContainer
           userID={realmInfo.id}
+          realm_id={realmInfo.realm_id}
           coverphoto={realmInfo.cover_photo}
+          type="realm"
+          isAllowed={realmInfo.is_admin}
           getpostprocess={() => {}}
         />
         <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
           <ProfilePicContainer
             userID={realmInfo.id}
+            realm_id={realmInfo.realm_id}
             profile={realmInfo.profile}
+            type="realm"
+            isAllowed={realmInfo.is_admin}
             getpostprocess={() => {}}
           />
           <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
