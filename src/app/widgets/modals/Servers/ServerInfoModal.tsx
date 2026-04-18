@@ -103,8 +103,27 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                 <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
                   <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
                     <CachedImage
-                      src={ServerIcon}
-                      className="img_gc_profiles_ntfs"
+                      src={
+                        serverdetails &&
+                        serverdetails.profile &&
+                        serverdetails.profile !== "N/A"
+                          ? serverdetails.profile
+                          : ServerIcon
+                      }
+                      id={
+                        serverdetails &&
+                        serverdetails.profile &&
+                        serverdetails.profile !== "N/A"
+                          ? "img_actual_profile_main"
+                          : ""
+                      }
+                      className={
+                        serverdetails &&
+                        serverdetails.profile &&
+                        serverdetails.profile !== "N/A"
+                          ? ""
+                          : "img_gc_profiles_ntfs"
+                      }
                     />
                   </div>
                 </div>

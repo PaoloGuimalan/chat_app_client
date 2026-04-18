@@ -35,15 +35,26 @@ function NoChannel({ server }: any) {
           {server.cover_photo ? (
             <CachedImage
               src={server.cover_photo}
-              className="tw-bg-black tw-full tw-flex tw-flex-1 tw-max-w-[1500px]"
+              className="tw-bg-black tw-object-cover tw-w-full tw-h-full tw-max-h-[250px] tw-flex tw-flex-1 tw-max-w-full"
             />
           ) : (
             <div className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-max-w-[1500px] tw-rounded-b-[10px]" />
           )}
           <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1500px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
             <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center">
-              <div className="tw-cursor-pointer tw-bg-[#d2d2d2] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[140px] sm:tw-h-[140px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[20px] tw-relative tw--mt-[80px]">
-                <CachedImage src={ServerIcon} id="img_default_profile" />
+              <div className="tw-shadow-md tw-cursor-pointer tw-bg-white tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[140px] sm:tw-h-[140px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[20px] tw-relative tw--mt-[80px]">
+                <CachedImage
+                  src={
+                    server.profile && server.profile !== "N/A"
+                      ? server.profile
+                      : ServerIcon
+                  }
+                  id={
+                    server.profile && server.profile !== "N/A"
+                      ? "img_actual_profile_main_edged"
+                      : "img_default_profile"
+                  }
+                />
               </div>
             </div>
             <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">

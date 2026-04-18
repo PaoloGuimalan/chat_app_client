@@ -398,11 +398,28 @@ function ConversationInfoModal({
                       <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
                         <CachedImage
                           src={
-                            conversationinfo.type === "server"
-                              ? ServerIcon
-                              : GroupChatIcon
+                            conversationinfo.conversationInfo &&
+                            conversationinfo.conversationInfo?.profile &&
+                            conversationinfo.conversationInfo?.profile !== "N/A"
+                              ? conversationinfo.conversationInfo?.profile
+                              : conversationinfo.type === "server"
+                                ? ServerIcon
+                                : GroupChatIcon
                           }
-                          className="img_gc_profiles_ntfs"
+                          id={
+                            conversationinfo.conversationInfo &&
+                            conversationinfo.conversationInfo?.profile &&
+                            conversationinfo.conversationInfo?.profile !== "N/A"
+                              ? "img_actual_profile_main"
+                              : ""
+                          }
+                          className={
+                            conversationinfo.conversationInfo &&
+                            conversationinfo.conversationInfo?.profile &&
+                            conversationinfo.conversationInfo?.profile !== "N/A"
+                              ? ""
+                              : "img_gc_profiles_ntfs"
+                          }
                         />
                       </div>
                     </div>

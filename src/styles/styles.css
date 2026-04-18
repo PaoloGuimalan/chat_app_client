@@ -1090,6 +1090,17 @@
   object-fit: cover;
 }
 
+#img_actual_profile_main_edged {
+  width: 100%;
+  height: 100%;
+  min-width: 40px;
+  min-height: 40px;
+  /* max-width: 40px;
+  max-height: 40px; */
+  border-radius: 10%;
+  object-fit: cover;
+}
+
 #img_actual_generic_realm_profile_main {
   width: 100%;
   height: 100%;

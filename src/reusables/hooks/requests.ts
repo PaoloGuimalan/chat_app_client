@@ -2290,6 +2290,40 @@ const GetSavedPostsRequest = async (params: any) => {
     });
 };
 
+const UpdateRealmMediaRequest = async (payload: {
+  realm_id: string;
+  realm_type: string;
+  media_type: "profile" | "cover_photo";
+  image: File;
+}) => {
+  const formData = new FormData();
+  formData.append("realm_id", payload.realm_id);
+  formData.append("realm_type", payload.realm_type);
+  formData.append("media_type", payload.media_type);
+  formData.append("image", payload.image);
+
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/realms/upload-media`,
+    formData,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2369,4 +2403,5 @@ export {
   SavePostRequest,
   UnsavePostRequest,
   GetSavedPostsRequest,
+  UpdateRealmMediaRequest,
 };

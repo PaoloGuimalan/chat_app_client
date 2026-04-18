@@ -115,8 +115,21 @@ function Servers() {
                     <div id="div_img_cncts_container">
                       <div id="div_img_search_profiles_container_cncts">
                         <CachedImage
-                          src={ServerIcon}
-                          className="img_server_profiles_ntfs"
+                          src={
+                            mp && mp.profile && mp.profile !== "N/A"
+                              ? mp.profile
+                              : ServerIcon
+                          }
+                          id={
+                            mp && mp.profile && mp.profile !== "N/A"
+                              ? "img_actual_profile_main"
+                              : ""
+                          }
+                          className={
+                            mp && mp.profile && mp.profile !== "N/A"
+                              ? ""
+                              : "img_gc_profiles_ntfs"
+                          }
                         />
                       </div>
                     </div>

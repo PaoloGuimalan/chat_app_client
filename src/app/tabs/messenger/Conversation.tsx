@@ -956,8 +956,27 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       />
                     ) : (
                       <CachedImage
-                        src={GroupChatIcon}
-                        className="img_gc_profiles_ntfs"
+                        src={
+                          conversationsetup.groupdetails &&
+                          conversationsetup.groupdetails?.profile &&
+                          conversationsetup.groupdetails?.profile !== "N/A"
+                            ? conversationsetup.groupdetails?.profile
+                            : GroupChatIcon
+                        }
+                        id={
+                          conversationsetup.groupdetails &&
+                          conversationsetup.groupdetails?.profile &&
+                          conversationsetup.groupdetails?.profile !== "N/A"
+                            ? "img_actual_profile_main"
+                            : ""
+                        }
+                        className={
+                          conversationsetup.groupdetails &&
+                          conversationsetup.groupdetails?.profile &&
+                          conversationsetup.groupdetails?.profile !== "N/A"
+                            ? ""
+                            : "img_gc_profiles_ntfs"
+                        }
                       />
                     )}
                   </div>

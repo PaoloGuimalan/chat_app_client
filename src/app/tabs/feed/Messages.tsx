@@ -383,8 +383,27 @@ function Messages() {
                   <div id="div_img_cncts_container">
                     <div id="div_img_search_profiles_container_cncts">
                       <CachedImage
-                        src={GroupChatIcon}
-                        className="img_gc_profiles_ntfs"
+                        src={
+                          msgslst.groupdetails &&
+                          msgslst.groupdetails?.profile &&
+                          msgslst.groupdetails?.profile !== "N/A"
+                            ? msgslst.groupdetails?.profile
+                            : GroupChatIcon
+                        }
+                        id={
+                          msgslst.groupdetails &&
+                          msgslst.groupdetails?.profile &&
+                          msgslst.groupdetails?.profile !== "N/A"
+                            ? "img_actual_profile_main"
+                            : ""
+                        }
+                        className={
+                          msgslst.groupdetails &&
+                          msgslst.groupdetails?.profile &&
+                          msgslst.groupdetails?.profile !== "N/A"
+                            ? ""
+                            : "img_gc_profiles_ntfs"
+                        }
                       />
                     </div>
                   </div>
@@ -480,8 +499,27 @@ function Messages() {
                   <div id="div_img_cncts_container">
                     <div id="div_img_search_profiles_container_cncts">
                       <CachedImage
-                        src={ServerIcon}
-                        className="img_server_profiles_ntfs"
+                        src={
+                          msgslst.serverdetails &&
+                          msgslst.serverdetails?.profile &&
+                          msgslst.serverdetails?.profile !== "N/A"
+                            ? msgslst.serverdetails?.profile
+                            : ServerIcon
+                        }
+                        id={
+                          msgslst.serverdetails &&
+                          msgslst.serverdetails?.profile &&
+                          msgslst.serverdetails?.profile !== "N/A"
+                            ? "img_actual_profile_main"
+                            : ""
+                        }
+                        className={
+                          msgslst.serverdetails &&
+                          msgslst.serverdetails?.profile &&
+                          msgslst.serverdetails?.profile !== "N/A"
+                            ? ""
+                            : "img_server_profiles_ntfs"
+                        }
                       />
                     </div>
                   </div>
