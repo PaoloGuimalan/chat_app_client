@@ -777,6 +777,8 @@ const ContactsListInitRequest = (
   override: boolean,
   dispatch: Dispatch<any>,
   setisLoading: any,
+  isState: boolean = false,
+  search: string | null = null,
 ) => {
   // `${API}/u/getContacts`
   Axios.get(
@@ -785,25 +787,36 @@ const ContactsListInitRequest = (
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
+      params: {
+        search,
+      },
     },
   )
     .then((response) => {
       const paginatedContacts: PaginationProp<IContact> = response.data;
 
-      if (override) {
-        dispatch({
-          type: SET_CONTACTS_LIST_OVERRIDE,
-          payload: {
-            contactslist: paginatedContacts,
-          },
-        });
+      if (isState) {
+        if (override) {
+          dispatch(paginatedContacts);
+        } else {
+          dispatch(paginatedContacts);
+        }
       } else {
-        dispatch({
-          type: SET_CONTACTS_LIST,
-          payload: {
-            contactslist: paginatedContacts,
-          },
-        });
+        if (override) {
+          dispatch({
+            type: SET_CONTACTS_LIST_OVERRIDE,
+            payload: {
+              contactslist: paginatedContacts,
+            },
+          });
+        } else {
+          dispatch({
+            type: SET_CONTACTS_LIST,
+            payload: {
+              contactslist: paginatedContacts,
+            },
+          });
+        }
       }
 
       setisLoading(false);
@@ -2355,6 +2368,36 @@ const UpdateRealmRequest = async (realm_id: string, fields: any) => {
     });
 };
 
+const GetRealmMembersRequest = async (
+  realm_id: string,
+  page: number,
+  range: number,
+  search?: string | null,
+) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/members`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params: {
+      realm_id,
+      page,
+      page_size: range,
+      search,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2436,4 +2479,5 @@ export {
   GetSavedPostsRequest,
   UpdateRealmMediaRequest,
   UpdateRealmRequest,
+  GetRealmMembersRequest,
 };

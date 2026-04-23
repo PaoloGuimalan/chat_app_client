@@ -137,7 +137,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               >
                 <IoArrowBack style={{ fontSize: "20px", color: "#383838" }} />
               </button>
-              <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start">
+              <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-truncate">
                 <span className="tw-truncate tw-text-[16px] tw-font-semibold tw-font-Inter tw-text-[#383838]">
                   {realmState.name}
                 </span>
@@ -203,7 +203,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
             <Route path="/" element={<Dashboard />} />
             <Route path="/details" element={<Details realm={realmState} />} />
             <Route path="/media" element={<Media realm={realmState} />} />
-            <Route path="/members" element={<Members />} />
+            <Route path="/members" element={<Members realm={realmState} />} />
             <Route
               path="/followers"
               element={

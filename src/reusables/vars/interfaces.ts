@@ -347,6 +347,16 @@ export interface IUserContactPreview {
   is_badged: boolean;
 }
 
+export interface IRealmMember {
+  account: IUserContactPreview;
+  added_by: IUserContactPreview;
+  date_joined: string;
+  member_id: string;
+  nickname: string | null;
+  realm: string;
+  role: string;
+}
+
 export interface IContact {
   id: string;
   action_by: IUserContactPreview;

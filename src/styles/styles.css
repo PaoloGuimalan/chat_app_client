@@ -1495,7 +1495,7 @@
   /* max-height: calc(100% - 520px); */
   display: flex;
   flex: 1;
-  flex-direction: row;
+  flex-direction: column;
   gap: 2px;
   overflow-y: scroll;
 }
@@ -2444,6 +2444,20 @@ input:checked + .slider:before {
   width: 200px;
   /* min-height: 60px; */
   height: auto;
+  padding: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  /* justify-content: center; */
+  border-radius: 10px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.div_realm_members_cards {
+  background-color: transparent;
+  flex: 1;
+  max-height: 60px;
   padding: 5px;
   display: flex;
   flex-direction: row;
