@@ -2398,6 +2398,28 @@ const GetRealmMembersRequest = async (
     });
 };
 
+const UpdateMemberRoleRequest = async (
+  realm_id: string,
+  member_id: any,
+  new_role: any,
+) => {
+  return await Axios.put(
+    `${API}/s/update-member-realm-role`,
+    { realm_id, member_id, new_role },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2480,4 +2502,5 @@ export {
   UpdateRealmMediaRequest,
   UpdateRealmRequest,
   GetRealmMembersRequest,
+  UpdateMemberRoleRequest,
 };

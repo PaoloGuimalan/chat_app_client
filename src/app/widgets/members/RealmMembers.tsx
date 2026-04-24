@@ -10,6 +10,7 @@ import { PaginationProp } from "@/reusables/vars/props";
 import { IRealmMember } from "@/reusables/vars/interfaces";
 import { GetRealmMembersRequest } from "@/reusables/hooks/requests";
 import { capitalizeFirstLetter } from "@/reusables/hooks/reusable";
+import MembersOptions from "./MembersOptions";
 
 function RealmMembers({
   realm_id,
@@ -76,6 +77,18 @@ function RealmMembers({
   useEffect(() => {
     GetRealmMembersProcess();
   }, [page, range, realm_id]);
+
+  useEffect(() => {
+    const reloadListener = async () => {
+      GetRealmMembersProcess(1, "", true);
+    };
+
+    document.addEventListener("reload-realm-members", reloadListener);
+
+    return () => {
+      document.removeEventListener("reload-realm-members", reloadListener);
+    };
+  }, []);
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);
@@ -166,13 +179,13 @@ function RealmMembers({
               ref={divcontentRef}
             >
               <div className="tw-w-full tw-flex tw-flex-col tw-max-h-[350px] tw-min-h-[350px]">
-                {memberslist.map((cnts: IRealmMember, i: number) => {
+                {memberslist.map((cnts: IRealmMember) => {
                   return (
                     <motion.div
                       whileHover={{
                         backgroundColor: "#e6e6e6",
                       }}
-                      key={i}
+                      key={cnts.member_id}
                       className="div_realm_members_cards_col"
                       title={`${cnts.account.first_name}${
                         cnts.account.middle_name == "N/A"
@@ -202,8 +215,8 @@ function RealmMembers({
                         </div>
                       </div>
                       <div className="div_contact_fullname_container">
-                        <div className="tw-h-full tw-flex tw-flex-col tw-justify-center tw-gap-[4px]">
-                          <span className="span_cncts_fullname_label">
+                        <div className="tw-h-full tw-flex tw-flex-col tw-justify-center tw-gap-[4px] tw-flex-1">
+                          <span className="span_cncts_fullname_label tw-text-left">
                             {cnts.account.first_name}
                             {cnts.account.middle_name == "N/A"
                               ? ""
@@ -214,6 +227,7 @@ function RealmMembers({
                             {capitalizeFirstLetter(cnts.role)}
                           </span>
                         </div>
+                        <MembersOptions member={cnts} />
                       </div>
                     </motion.div>
                   );

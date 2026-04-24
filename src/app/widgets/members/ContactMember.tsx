@@ -26,12 +26,17 @@ function ContactMember({
   type,
   label,
   excludeIDs,
+  onAdd,
 }: {
   parentRealmID: string | null;
   isRealm: boolean;
   type: string;
   label: string;
   excludeIDs: string[];
+  onAdd: (
+    markedMembers: { id: string; userID: string; fullName: string }[],
+    callback: () => void,
+  ) => void;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -533,6 +538,28 @@ function ContactMember({
             </motion.div>
           )}
         </div>
+        {markedMembers.length > 0 && (
+          <div className="tw-w-full tw-flex tw-gap-[5px] tw-justify-end">
+            <button
+              className="btns_create_cancel"
+              onClick={() => {
+                onAdd(markedMembers, () => {
+                  setmarkedMembers([]);
+                });
+              }}
+            >
+              Add
+            </button>
+            <button
+              className="btns_create_cancel"
+              onClick={() => {
+                setmarkedMembers([]);
+              }}
+            >
+              Reset
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
