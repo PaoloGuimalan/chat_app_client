@@ -454,6 +454,11 @@ function getDifferentValues(obj1: any, obj2: any) {
   return differences;
 }
 
+function capitalizeFirstLetter(str: string) {
+  if (!str) return str; // Handle empty strings
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
 export {
   importData,
   importNonImageData,
@@ -475,4 +480,5 @@ export {
   generateXNonce,
   hasNullValues,
   getDifferentValues,
+  capitalizeFirstLetter,
 };

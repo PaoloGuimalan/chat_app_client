@@ -65,7 +65,7 @@ function Default() {
     GetTopRealmsProcess();
   }, [currentPage]);
 
-  const timeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const debouncedFetch = useCallback(
     (currentPage: number, searchValue: string) => {

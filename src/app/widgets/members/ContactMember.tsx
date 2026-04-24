@@ -8,7 +8,7 @@ import {
   IRealmMember,
 } from "@/reusables/vars/interfaces";
 import { motion } from "framer-motion";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { IoClose } from "react-icons/io5";
 import { useSelector } from "react-redux";
@@ -25,11 +25,13 @@ function ContactMember({
   isRealm,
   type,
   label,
+  excludeIDs,
 }: {
   parentRealmID: string | null;
   isRealm: boolean;
   type: string;
   label: string;
+  excludeIDs: string[];
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -70,11 +72,41 @@ function ContactMember({
     setmarkedMembers(userIDnotSimilar);
   };
 
-  useEffect(() => {
+  const GetPeopleListProcess = (
+    currentPage: number = page,
+    searchProp: string = "",
+    overridelist: boolean = false,
+  ) => {
     if (isRealm && type === "channel" && parentRealmID) {
-      GetRealmMembersRequest(parentRealmID, page, range)
+      GetRealmMembersRequest(
+        parentRealmID,
+        currentPage,
+        range,
+        searchProp.trim() === "" ? null : searchProp,
+      )
         .then((response) => {
-          setmembers(response);
+          if (overridelist) {
+            setmembers(response);
+          } else {
+            setmembers((prev) => {
+              const combinedList = [...prev.results, ...response.results];
+              const uniqueById = combinedList
+                .filter(
+                  (obj, index, self) =>
+                    index ===
+                    self.findIndex((t) => t.member_id === obj.member_id),
+                )
+                .sort(
+                  (a: any, b: any) =>
+                    new Date(b.date_joined).getTime() -
+                    new Date(a.date_joined).getTime(),
+                );
+              return {
+                ...response,
+                results: uniqueById,
+              };
+            });
+          }
           setisLoading(false);
         })
         .catch((err) => {
@@ -82,14 +114,19 @@ function ContactMember({
         });
     } else {
       ContactsListInitRequest(
-        page,
+        currentPage,
         range,
-        false,
+        overridelist,
         setcontacts,
         setisLoading,
         true,
+        searchProp.trim() === "" ? null : searchProp,
       );
     }
+  };
+
+  useEffect(() => {
+    GetPeopleListProcess();
   }, [page, range]);
 
   const isNext = useMemo(() => {
@@ -127,8 +164,28 @@ function ContactMember({
     }
   }, [divcontentRef, divlazyloaderRef, isLoading]);
 
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const debouncedFetch = useCallback(
+    (currentPage: number, searchValue: string) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        if (searchValue.trim() !== "") {
+          // setisLoaded(false); // optional: show loading at start
+          GetPeopleListProcess(currentPage, searchValue, true);
+        } else {
+          GetPeopleListProcess();
+        }
+      }, 500);
+    },
+    [],
+  );
+
   return (
-    <div className="tw-w-full tw-h-auto tw-flex-1 tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+    <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
       <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
         <span className="tw-text-[14px] tw-font-semibold">{label}</span>
         <div id="div_modal_input_columns_add_people" className="tw-w-full">
@@ -139,6 +196,7 @@ function ContactMember({
               value={searchFilter}
               onChange={(e) => {
                 setsearchFilter(e.target.value);
+                debouncedFetch(1, e.target.value);
               }}
               type="text"
               placeholder="Type a name of a user"
@@ -197,267 +255,263 @@ function ContactMember({
               className="scroller"
             >
               {isRealm && type === "channel" && parentRealmID ? (
-                <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-justify-between sm:tw-justify-around tw-max-h-[350px] tw-min-h-[350px]">
-                  {memberslist.map((cnts: IRealmMember, i: number) => {
-                    return (
-                      <motion.div
-                        whileHover={{
-                          backgroundColor: "#e6e6e6",
-                        }}
-                        key={i}
-                        className="div_realm_members_cards"
-                        title={`${cnts.account.first_name}${
-                          cnts.account.middle_name == "N/A"
-                            ? ""
-                            : ` ${cnts.account.middle_name}`
-                        } ${cnts.account.last_name}`}
-                      >
-                        <input
-                          type="checkbox"
-                          checked={valueToArrayChecker(cnts.account.id)}
-                          disabled={isSaving}
-                          onChange={() => {
-                            if (!valueToArrayChecker(cnts.account.id)) {
-                              setmarkedMembers([
-                                ...markedMembers,
-                                {
-                                  id: cnts.account.id,
-                                  userID: cnts.account.username,
-                                  fullName: `${cnts.account.first_name}${
-                                    cnts.account.middle_name == "N/A"
-                                      ? ""
-                                      : ` ${cnts.account.middle_name}`
-                                  } ${cnts.account.last_name}`,
-                                },
-                              ]);
-                            } else {
-                              removeFromList(cnts.account.id);
-                            }
-                          }}
-                          className="checkbox_selector_people_page"
-                        />
-                        <div id="div_img_cncts_container">
-                          <div id="div_img_search_profiles_container_cncts">
-                            <CachedImage
-                              src={
-                                cnts.account.profile == "none"
-                                  ? DefaultProfile
-                                  : cnts.account.profile
-                              }
-                              className={
-                                cnts.account.profile == "none"
-                                  ? "img_search_profiles_ntfs"
-                                  : ""
-                              }
-                              id={
-                                cnts.account.profile == "none"
+                <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px]">
+                  <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-fit">
+                    {memberslist.map((cnts: IRealmMember, i: number) => {
+                      if (cnts.account.id !== authentication.user.userID) {
+                        if (!excludeIDs.includes(cnts.account.id)) {
+                          return (
+                            <motion.div
+                              whileHover={{
+                                backgroundColor: "#e6e6e6",
+                              }}
+                              key={i}
+                              className="div_realm_members_cards"
+                              title={`${cnts.account.first_name}${
+                                cnts.account.middle_name == "N/A"
                                   ? ""
-                                  : "img_actual_profile"
-                              }
-                            />
-                          </div>
-                        </div>
-                        <div className="div_contact_fullname_container">
-                          <span className="span_cncts_fullname_label">
-                            {cnts.account.first_name}
-                            {cnts.account.middle_name == "N/A"
-                              ? ""
-                              : ` ${cnts.account.middle_name}`}{" "}
-                            {cnts.account.last_name}
-                          </span>
-                        </div>
-                      </motion.div>
-                    );
-                  })}
+                                  : ` ${cnts.account.middle_name}`
+                              } ${cnts.account.last_name}`}
+                            >
+                              <input
+                                type="checkbox"
+                                checked={valueToArrayChecker(cnts.account.id)}
+                                disabled={isSaving}
+                                onChange={() => {
+                                  if (!valueToArrayChecker(cnts.account.id)) {
+                                    setmarkedMembers([
+                                      ...markedMembers,
+                                      {
+                                        id: cnts.account.id,
+                                        userID: cnts.account.username,
+                                        fullName: `${cnts.account.first_name}${
+                                          cnts.account.middle_name == "N/A"
+                                            ? ""
+                                            : ` ${cnts.account.middle_name}`
+                                        } ${cnts.account.last_name}`,
+                                      },
+                                    ]);
+                                  } else {
+                                    removeFromList(cnts.account.id);
+                                  }
+                                }}
+                                className="checkbox_selector_people_page"
+                              />
+                              <div id="div_img_cncts_container">
+                                <div id="div_img_search_profiles_container_cncts">
+                                  <CachedImage
+                                    src={
+                                      cnts.account.profile == "none"
+                                        ? DefaultProfile
+                                        : cnts.account.profile
+                                    }
+                                    className={
+                                      cnts.account.profile == "none"
+                                        ? "img_search_profiles_ntfs"
+                                        : ""
+                                    }
+                                    id={
+                                      cnts.account.profile == "none"
+                                        ? ""
+                                        : "img_actual_profile"
+                                    }
+                                  />
+                                </div>
+                              </div>
+                              <div className="div_contact_fullname_container">
+                                <span className="span_cncts_fullname_label">
+                                  {cnts.account.first_name}
+                                  {cnts.account.middle_name == "N/A"
+                                    ? ""
+                                    : ` ${cnts.account.middle_name}`}{" "}
+                                  {cnts.account.last_name}
+                                </span>
+                              </div>
+                            </motion.div>
+                          );
+                        }
+                      }
+                    })}
+                  </div>
                 </div>
               ) : (
-                <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-justify-between sm:tw-justify-around tw-max-h-[350px] tw-min-h-[350px]">
-                  {contactslist.map((cnts: IContact, i: number) => {
-                    if (cnts.type == "single") {
-                      if (cnts.action_by && cnts.involved_user) {
-                        if (cnts.action_by.id == authentication.user.userID) {
-                          const fullNameFilter = `${
-                            cnts.involved_user.first_name
-                          }${
-                            cnts.involved_user.middle_name == "N/A"
-                              ? ""
-                              : ` ${cnts.involved_user.middle_name}`
-                          } ${cnts.involved_user.last_name}`;
-                          if (fullNameFilter.includes(searchFilter)) {
-                            return (
-                              <motion.div
-                                whileHover={{
-                                  backgroundColor: "#e6e6e6",
-                                }}
-                                key={i}
-                                className="div_page_moderators_cards"
-                                title={`${cnts.involved_user.first_name}${
-                                  cnts.involved_user.middle_name == "N/A"
-                                    ? ""
-                                    : ` ${cnts.involved_user.middle_name}`
-                                } ${cnts.involved_user.last_name}`}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={valueToArrayChecker(
-                                    cnts.involved_user.id,
-                                  )}
-                                  disabled={isSaving}
-                                  onChange={() => {
-                                    if (
-                                      !valueToArrayChecker(
-                                        cnts.involved_user.id,
-                                      )
-                                    ) {
-                                      setmarkedMembers([
-                                        ...markedMembers,
-                                        {
-                                          id: cnts.involved_user.id,
-                                          userID: cnts.involved_user.username,
-                                          fullName: `${
-                                            cnts.involved_user.first_name
-                                          }${
-                                            cnts.involved_user.middle_name ==
-                                            "N/A"
-                                              ? ""
-                                              : ` ${cnts.involved_user.middle_name}`
-                                          } ${cnts.involved_user.last_name}`,
-                                        },
-                                      ]);
-                                    } else {
-                                      removeFromList(cnts.involved_user.id);
-                                    }
+                <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px]">
+                  <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-fit">
+                    {contactslist.map((cnts: IContact, i: number) => {
+                      if (cnts.type == "single") {
+                        if (cnts.action_by && cnts.involved_user) {
+                          if (
+                            !excludeIDs.includes(cnts.action_by.id) ||
+                            !excludeIDs.includes(cnts.involved_user.id)
+                          ) {
+                            if (
+                              cnts.action_by.id == authentication.user.userID
+                            ) {
+                              return (
+                                <motion.div
+                                  whileHover={{
+                                    backgroundColor: "#e6e6e6",
                                   }}
-                                  className="checkbox_selector_people_page"
-                                />
-                                <div id="div_img_cncts_container">
-                                  <div id="div_img_search_profiles_container_cncts">
-                                    <CachedImage
-                                      src={
-                                        cnts.involved_user.profile == "none"
-                                          ? DefaultProfile
-                                          : cnts.involved_user.profile
-                                      }
-                                      className={
-                                        cnts.involved_user.profile == "none"
-                                          ? "img_search_profiles_ntfs"
-                                          : ""
-                                      }
-                                      id={
-                                        cnts.involved_user.profile == "none"
-                                          ? ""
-                                          : "img_actual_profile"
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                                <div className="div_contact_fullname_container">
-                                  <span className="span_cncts_fullname_label">
-                                    {cnts.involved_user.first_name}
-                                    {cnts.involved_user.middle_name == "N/A"
+                                  key={i}
+                                  className="div_realm_members_cards"
+                                  title={`${cnts.involved_user.first_name}${
+                                    cnts.involved_user.middle_name == "N/A"
                                       ? ""
-                                      : ` ${cnts.involved_user.middle_name}`}{" "}
-                                    {cnts.involved_user.last_name}
-                                  </span>
-                                </div>
-                              </motion.div>
-                            );
-                          } else {
-                            return null;
+                                      : ` ${cnts.involved_user.middle_name}`
+                                  } ${cnts.involved_user.last_name}`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={valueToArrayChecker(
+                                      cnts.involved_user.id,
+                                    )}
+                                    disabled={isSaving}
+                                    onChange={() => {
+                                      if (
+                                        !valueToArrayChecker(
+                                          cnts.involved_user.id,
+                                        )
+                                      ) {
+                                        setmarkedMembers([
+                                          ...markedMembers,
+                                          {
+                                            id: cnts.involved_user.id,
+                                            userID: cnts.involved_user.username,
+                                            fullName: `${
+                                              cnts.involved_user.first_name
+                                            }${
+                                              cnts.involved_user.middle_name ==
+                                              "N/A"
+                                                ? ""
+                                                : ` ${cnts.involved_user.middle_name}`
+                                            } ${cnts.involved_user.last_name}`,
+                                          },
+                                        ]);
+                                      } else {
+                                        removeFromList(cnts.involved_user.id);
+                                      }
+                                    }}
+                                    className="checkbox_selector_people_page"
+                                  />
+                                  <div id="div_img_cncts_container">
+                                    <div id="div_img_search_profiles_container_cncts">
+                                      <CachedImage
+                                        src={
+                                          cnts.involved_user.profile == "none"
+                                            ? DefaultProfile
+                                            : cnts.involved_user.profile
+                                        }
+                                        className={
+                                          cnts.involved_user.profile == "none"
+                                            ? "img_search_profiles_ntfs"
+                                            : ""
+                                        }
+                                        id={
+                                          cnts.involved_user.profile == "none"
+                                            ? ""
+                                            : "img_actual_profile"
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="div_contact_fullname_container">
+                                    <span className="span_cncts_fullname_label">
+                                      {cnts.involved_user.first_name}
+                                      {cnts.involved_user.middle_name == "N/A"
+                                        ? ""
+                                        : ` ${cnts.involved_user.middle_name}`}{" "}
+                                      {cnts.involved_user.last_name}
+                                    </span>
+                                  </div>
+                                </motion.div>
+                              );
+                            } else {
+                              return (
+                                <motion.div
+                                  whileHover={{
+                                    backgroundColor: "#e6e6e6",
+                                  }}
+                                  key={i}
+                                  className="div_realm_members_cards"
+                                  title={`${cnts.action_by.first_name}${
+                                    cnts.action_by.middle_name == "N/A"
+                                      ? ""
+                                      : ` ${cnts.action_by.middle_name}`
+                                  } ${cnts.action_by.last_name}`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={valueToArrayChecker(
+                                      cnts.action_by.id,
+                                    )}
+                                    disabled={isSaving}
+                                    onChange={() => {
+                                      if (
+                                        !valueToArrayChecker(cnts.action_by.id)
+                                      ) {
+                                        setmarkedMembers([
+                                          ...markedMembers,
+                                          {
+                                            id: cnts.action_by.id,
+                                            userID: cnts.action_by.username,
+                                            fullName: `${
+                                              cnts.action_by.first_name
+                                            }${
+                                              cnts.action_by.middle_name ==
+                                              "N/A"
+                                                ? ""
+                                                : ` ${cnts.action_by.middle_name}`
+                                            } ${cnts.action_by.last_name}`,
+                                          },
+                                        ]);
+                                      } else {
+                                        removeFromList(cnts.action_by.id);
+                                      }
+                                    }}
+                                    className="checkbox_selector_people_page"
+                                  />
+                                  <div id="div_img_cncts_container">
+                                    <div id="div_img_search_profiles_container_cncts">
+                                      <CachedImage
+                                        src={
+                                          cnts.action_by.profile == "none"
+                                            ? DefaultProfile
+                                            : cnts.action_by.profile
+                                        }
+                                        className={
+                                          cnts.action_by.profile == "none"
+                                            ? "img_search_profiles_ntfs"
+                                            : ""
+                                        }
+                                        id={
+                                          cnts.action_by.profile == "none"
+                                            ? ""
+                                            : "img_actual_profile"
+                                        }
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="div_contact_fullname_container">
+                                    <span className="span_cncts_fullname_label">
+                                      {cnts.action_by.first_name}
+                                      {cnts.action_by.middle_name == "N/A"
+                                        ? ""
+                                        : ` ${cnts.action_by.middle_name}`}{" "}
+                                      {cnts.action_by.last_name}
+                                    </span>
+                                  </div>
+                                </motion.div>
+                              );
+                            }
                           }
                         } else {
-                          const fullNameFilter = `${cnts.action_by.first_name}${
-                            cnts.action_by.middle_name == "N/A"
-                              ? ""
-                              : ` ${cnts.action_by.middle_name}`
-                          } ${cnts.action_by.last_name}`;
-                          if (fullNameFilter.includes(searchFilter)) {
-                            return (
-                              <motion.div
-                                whileHover={{
-                                  backgroundColor: "#e6e6e6",
-                                }}
-                                key={i}
-                                className="div_page_moderators_cards"
-                                title={`${cnts.action_by.first_name}${
-                                  cnts.action_by.middle_name == "N/A"
-                                    ? ""
-                                    : ` ${cnts.action_by.middle_name}`
-                                } ${cnts.action_by.last_name}`}
-                              >
-                                <input
-                                  type="checkbox"
-                                  checked={valueToArrayChecker(
-                                    cnts.action_by.id,
-                                  )}
-                                  disabled={isSaving}
-                                  onChange={() => {
-                                    if (
-                                      !valueToArrayChecker(cnts.action_by.id)
-                                    ) {
-                                      setmarkedMembers([
-                                        ...markedMembers,
-                                        {
-                                          id: cnts.action_by.id,
-                                          userID: cnts.action_by.username,
-                                          fullName: `${
-                                            cnts.action_by.first_name
-                                          }${
-                                            cnts.action_by.middle_name == "N/A"
-                                              ? ""
-                                              : ` ${cnts.action_by.middle_name}`
-                                          } ${cnts.action_by.last_name}`,
-                                        },
-                                      ]);
-                                    } else {
-                                      removeFromList(cnts.action_by.id);
-                                    }
-                                  }}
-                                  className="checkbox_selector_people_page"
-                                />
-                                <div id="div_img_cncts_container">
-                                  <div id="div_img_search_profiles_container_cncts">
-                                    <CachedImage
-                                      src={
-                                        cnts.action_by.profile == "none"
-                                          ? DefaultProfile
-                                          : cnts.action_by.profile
-                                      }
-                                      className={
-                                        cnts.action_by.profile == "none"
-                                          ? "img_search_profiles_ntfs"
-                                          : ""
-                                      }
-                                      id={
-                                        cnts.action_by.profile == "none"
-                                          ? ""
-                                          : "img_actual_profile"
-                                      }
-                                    />
-                                  </div>
-                                </div>
-                                <div className="div_contact_fullname_container">
-                                  <span className="span_cncts_fullname_label">
-                                    {cnts.action_by.first_name}
-                                    {cnts.action_by.middle_name == "N/A"
-                                      ? ""
-                                      : ` ${cnts.action_by.middle_name}`}{" "}
-                                    {cnts.action_by.last_name}
-                                  </span>
-                                </div>
-                              </motion.div>
-                            );
-                          } else {
-                            return null;
-                          }
+                          return null;
                         }
                       } else {
                         return null;
                       }
-                    } else {
-                      return null;
-                    }
-                  })}
+                    })}
+                  </div>
                 </div>
               )}
               {isNext && (

@@ -2456,8 +2456,24 @@ input:checked + .slider:before {
 
 .div_realm_members_cards {
   background-color: transparent;
+  /* flex: 1; */
+  max-height: 60px;
+  width: calc(50% - 20px);
+  padding: 5px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  /* justify-content: center; */
+  border-radius: 10px;
+  user-select: none;
+  cursor: pointer;
+}
+
+.div_realm_members_cards_col {
+  background-color: transparent;
   flex: 1;
   max-height: 60px;
+  /* width: calc(50% - 20px); */
   padding: 5px;
   display: flex;
   flex-direction: row;

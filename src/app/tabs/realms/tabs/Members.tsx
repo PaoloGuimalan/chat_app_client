@@ -1,10 +1,13 @@
 import ContactMember from "@/app/widgets/members/ContactMember";
 import RealmMembers from "@/app/widgets/members/RealmMembers";
 import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
+import { useState } from "react";
 
 function Members({ realm }: { realm: IRealmProfileInfo }) {
   const realmTypeLabel =
     realm.type === "group" && realm.parent ? "channel" : realm.type;
+
+  const [memberIDs, setmemberIDs] = useState<string[]>([]);
 
   return (
     <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-p-[20px] tw-gap-[20px]">
@@ -20,7 +23,12 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
       </div>
       <div className="tw-flex tw-flex-wrap tw-w-full tw-gap-[10px] tw-h-full">
         <div className="tw-w-full sm:tw-max-w-[450px] tw-h-full tw-flex">
-          <RealmMembers realm_id={realm.id} />
+          <RealmMembers
+            realm_id={realm.id}
+            onList={(list: string[]) => {
+              setmemberIDs(list);
+            }}
+          />
         </div>
         <ContactMember
           parentRealmID={realm.parent?.id ?? null}
@@ -28,9 +36,10 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
           type={realm.type === "group" && realm.parent ? "channel" : realm.type}
           label={
             realm.type === "page"
-              ? `Page Admin/Moderators`
+              ? `Add Page Admin/Moderators`
               : `People you may want to add from ${realmTypeLabel === "channel" ? "server" : "contacts"}`
           }
+          excludeIDs={memberIDs}
         />
       </div>
     </div>
