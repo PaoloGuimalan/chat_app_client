@@ -2420,6 +2420,27 @@ const UpdateMemberRoleRequest = async (
     });
 };
 
+const RemoveRealmMemberRequest = async (
+  realm_id: string,
+  account_ids: string[],
+) => {
+  return await Axios.delete(`${API}/realms/remove-user`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: {
+      realm_id,
+      account_ids,
+    },
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2503,4 +2524,5 @@ export {
   UpdateRealmRequest,
   GetRealmMembersRequest,
   UpdateMemberRoleRequest,
+  RemoveRealmMemberRequest,
 };

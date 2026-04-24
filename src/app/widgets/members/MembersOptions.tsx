@@ -1,4 +1,7 @@
-import { UpdateMemberRoleRequest } from "@/reusables/hooks/requests";
+import {
+  RemoveRealmMemberRequest,
+  UpdateMemberRoleRequest,
+} from "@/reusables/hooks/requests";
 import { IRealmMember } from "@/reusables/vars/interfaces";
 import { useEffect, useRef, useState } from "react";
 import { BsThreeDots } from "react-icons/bs";
@@ -29,6 +32,28 @@ function MembersOptions({ member }: { member: IRealmMember }) {
   const UpdateMemberRoleProcess = (role: string) => {
     setisOptionsToggled(false);
     UpdateMemberRoleRequest(member.realm, member.member_id, role)
+      .then((response) => {
+        if (response.status) {
+          setTimeout(() => {
+            document.dispatchEvent(
+              new CustomEvent("reload-realm-members", {
+                detail: {
+                  event: "reload",
+                  data: "",
+                },
+              }),
+            );
+          }, 1000);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
+  const RemoveRealmMemberProcess = () => {
+    setisOptionsToggled(false);
+    RemoveRealmMemberRequest(member.realm, [member.account.id])
       .then((response) => {
         if (response.status) {
           setTimeout(() => {
@@ -83,8 +108,7 @@ function MembersOptions({ member }: { member: IRealmMember }) {
             </button>
           )}
           <button
-            disabled
-            // onClick={SavePostProcess}
+            onClick={RemoveRealmMemberProcess}
             className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
           >
             <IoPersonRemove
