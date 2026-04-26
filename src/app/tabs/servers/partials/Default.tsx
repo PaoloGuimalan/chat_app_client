@@ -178,21 +178,23 @@ function Default() {
                 ) : (
                   <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
                     {pages.results.map((mp: IRealmProfileInfo) => {
-                      return <PublicServerItem key={mp.id} mp={mp} />;
+                      return (
+                        <PublicServerItem key={mp.id} mp={mp} flexed={false} />
+                      );
                     })}
                   </div>
                 )
               ) : (
                 <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
                   {Array.from({ length: 20 }).map((_, i) => {
-                    return <ServerItemLoader key={i} />;
+                    return <ServerItemLoader key={i} flexed={false} />;
                   })}
                 </div>
               )}
               {isLoaded && isPaginating && (
                 <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
                   {Array.from({ length: 10 }).map((_, i) => {
-                    return <ServerItemLoader key={i} />;
+                    return <ServerItemLoader key={i} flexed={false} />;
                   })}
                 </div>
               )}

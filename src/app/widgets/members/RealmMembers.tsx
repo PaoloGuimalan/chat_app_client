@@ -14,9 +14,11 @@ import MembersOptions from "./MembersOptions";
 
 function RealmMembers({
   realm_id,
+  hide,
   onList,
 }: {
   realm_id: string;
+  hide: string[];
   onList: (list: string[]) => void;
 }) {
   const [searchFilter, setsearchFilter] = useState<string>("");
@@ -227,7 +229,7 @@ function RealmMembers({
                             {capitalizeFirstLetter(cnts.role)}
                           </span>
                         </div>
-                        <MembersOptions member={cnts} />
+                        <MembersOptions member={cnts} hide={hide} />
                       </div>
                     </motion.div>
                   );

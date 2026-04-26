@@ -2614,7 +2614,7 @@ input:checked + .slider:before {
   flex: 1;
   flex-direction: column;
   height: 100%;
-  align-items: flex-start;
+  align-items: center;
   justify-content: center;
   padding-left: 20px;
   padding-right: 20px;
@@ -2633,7 +2633,7 @@ input:checked + .slider:before {
   /* font-weight: bold; */
   color: #3b3b3b;
   text-align: left;
-  margin-bottom: 15px;
+  margin-bottom: 30px;
 }
 
 #span_welcome_post_par_cl {
@@ -3786,6 +3786,12 @@ input:checked + .slider:before {
     max-width: calc(100% - 20px);
     border-radius: 0px;
     height: calc(100% - 135px);
+  }
+}
+
+@media screen and (max-width: 650px) {
+  .div_realm_members_cards {
+    width: calc(100% - 20px);
   }
 }
 

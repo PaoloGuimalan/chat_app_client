@@ -11,6 +11,11 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
   const realmTypeLabel =
     realm.type === "group" && realm.parent ? "channel" : realm.type;
 
+  const addableMember = !(
+    (realmTypeLabel === "channel" || realmTypeLabel === "voice") &&
+    !realm.is_private
+  );
+
   const [memberIDs, setmemberIDs] = useState<string[]>([]);
 
   const AddNewMemberProcess = (
@@ -89,26 +94,33 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
         </span>
       </div>
       <div className="tw-flex tw-flex-wrap tw-w-full tw-gap-[10px] tw-h-full">
-        <div className="tw-w-full sm:tw-max-w-[450px] tw-h-full tw-flex">
+        <div
+          className={`tw-w-full ${addableMember && "xl:tw-max-w-[450px]"} tw-h-full tw-flex`}
+        >
           <RealmMembers
             realm_id={realm.id}
+            hide={!addableMember ? ["remove-user-btn"] : []}
             onList={(list: string[]) => {
               setmemberIDs(list);
             }}
           />
         </div>
-        <ContactMember
-          parentRealmID={realm.parent?.id ?? null}
-          isRealm={true}
-          type={realm.type === "group" && realm.parent ? "channel" : realm.type}
-          label={
-            realm.type === "page"
-              ? `Add Page Admin/Moderators`
-              : `People you may want to add from ${realmTypeLabel === "channel" ? "server" : "contacts"}`
-          }
-          excludeIDs={memberIDs}
-          onAdd={AddNewMemberProcess}
-        />
+        {addableMember && (
+          <ContactMember
+            parentRealmID={realm.parent?.id ?? null}
+            isRealm={true}
+            type={
+              realm.type === "group" && realm.parent ? "channel" : realm.type
+            }
+            label={
+              realm.type === "page"
+                ? `Add Page Admin/Moderators`
+                : `People you may want to add from ${realmTypeLabel === "channel" || realmTypeLabel === "voice" ? "server" : "contacts"}`
+            }
+            excludeIDs={memberIDs}
+            onAdd={AddNewMemberProcess}
+          />
+        )}
       </div>
     </div>
   );

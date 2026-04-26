@@ -15,9 +15,11 @@ import { motion } from "framer-motion";
 function GenericRealmItem({
   mp,
   refresh,
+  flexed,
 }: {
   mp: IRealmProfileInfo;
   refresh: (callback: () => void) => void;
+  flexed: boolean;
 }) {
   const navigate = useNavigate();
 
@@ -55,8 +57,12 @@ function GenericRealmItem({
   };
 
   return (
-    <div className="tw-bg-[#e6e6e6] tw-w-full tw-h-[300px] tw-min-h-[300px] tw-max-w-[300px] tw-flex tw-flex-col tw-rounded-[5px]">
-      <div className="tw-bg-[#e6e6e6] tw-w-full tw-h-full tw-min-h-[0px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-start tw-items-center  tw-rounded-[5px]">
+    <div
+      className={`${!flexed ? "tw-bg-[#e6e6e6]" : "tw-bg-white"} tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col tw-rounded-[5px]`}
+    >
+      <div
+        className={`${!flexed ? "tw-bg-[#e6e6e6]" : "tw-bg-white"} tw-w-full tw-h-full tw-min-h-[0px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-start tw-items-center  tw-rounded-[5px]`}
+      >
         {mp.cover_photo ? (
           <img
             src={mp.cover_photo}

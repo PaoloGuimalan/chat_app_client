@@ -8,7 +8,13 @@ import { BsThreeDots } from "react-icons/bs";
 import { FaCircleArrowDown, FaCircleArrowUp } from "react-icons/fa6";
 import { IoPersonRemove } from "react-icons/io5";
 
-function MembersOptions({ member }: { member: IRealmMember }) {
+function MembersOptions({
+  member,
+  hide,
+}: {
+  member: IRealmMember;
+  hide: string[];
+}) {
   const [isOptionsToggled, setisOptionsToggled] = useState<boolean>(false);
 
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -78,7 +84,7 @@ function MembersOptions({ member }: { member: IRealmMember }) {
       {isOptionsToggled && (
         <div
           autoFocus
-          className="tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[100px] tw-fixed tw-mb-[0px] tw-bg-white tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-border-[#d2d2d2] tw-shadow-md"
+          className="tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[100px] tw-fixed tw-mb-[0px] -tw-ml-[170px] tw-bg-white tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-border-[#d2d2d2] tw-shadow-md"
         >
           {member.role === "admin" ? (
             <button
@@ -107,16 +113,18 @@ function MembersOptions({ member }: { member: IRealmMember }) {
               <span>Promote to Admin</span>
             </button>
           )}
-          <button
-            onClick={RemoveRealmMemberProcess}
-            className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
-          >
-            <IoPersonRemove
-              size={15}
-              style={{ marginLeft: "-1px", marginRight: "4px" }}
-            />
-            <span>Remove</span>
-          </button>
+          {!hide.includes("remove-user-btn") && (
+            <button
+              onClick={RemoveRealmMemberProcess}
+              className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+            >
+              <IoPersonRemove
+                size={15}
+                style={{ marginLeft: "-1px", marginRight: "4px" }}
+              />
+              <span>Remove</span>
+            </button>
+          )}
         </div>
       )}
       <button

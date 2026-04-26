@@ -82,7 +82,7 @@ function ContactMember({
     searchProp: string = "",
     overridelist: boolean = false,
   ) => {
-    if (isRealm && type === "channel" && parentRealmID) {
+    if (isRealm && (type === "channel" || type === "voice") && parentRealmID) {
       GetRealmMembersRequest(
         parentRealmID,
         currentPage,
@@ -135,7 +135,7 @@ function ContactMember({
   }, [page, range]);
 
   const isNext = useMemo(() => {
-    if (isRealm && type === "channel" && parentRealmID) {
+    if (isRealm && (type === "channel" || type === "voice") && parentRealmID) {
       return members.next;
     } else {
       return contacts.next;
@@ -259,7 +259,9 @@ function ContactMember({
               ref={divcontentRef}
               className="scroller"
             >
-              {isRealm && type === "channel" && parentRealmID ? (
+              {isRealm &&
+              (type === "channel" || type === "voice") &&
+              parentRealmID ? (
                 <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px]">
                   <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-fit">
                     {memberslist.map((cnts: IRealmMember, i: number) => {
@@ -341,7 +343,7 @@ function ContactMember({
                 </div>
               ) : (
                 <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px]">
-                  <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-fit">
+                  <div className="tw-w-full tw-flex tw-flex-col sm:tw-flex-row tw-flex-wrap tw-h-fit">
                     {contactslist.map((cnts: IContact, i: number) => {
                       if (cnts.type == "single") {
                         if (cnts.action_by && cnts.involved_user) {

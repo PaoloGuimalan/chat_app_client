@@ -13,7 +13,13 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 
-function PublicServerItem({ mp }: { mp: IRealmProfileInfo }) {
+function PublicServerItem({
+  mp,
+  flexed,
+}: {
+  mp: IRealmProfileInfo;
+  flexed: boolean;
+}) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -52,7 +58,9 @@ function PublicServerItem({ mp }: { mp: IRealmProfileInfo }) {
   };
 
   return (
-    <div className="tw-bg-white tw-w-full tw-h-[300px] tw-min-h-[300px] tw-max-w-[300px] tw-flex tw-flex-col tw-rounded-[5px]">
+    <div
+      className={`tw-bg-white tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col tw-rounded-[5px]`}
+    >
       <div className="tw-bg-white tw-w-full tw-h-full tw-min-h-[0px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-start tw-items-center  tw-rounded-[5px]">
         {mp.cover_photo ? (
           <img

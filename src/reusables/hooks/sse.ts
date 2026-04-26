@@ -12,6 +12,7 @@ import {
   // SET_NOTIFICATIONS_LIST_OVERRIDE,
   SET_PENDING_CALL_ALERTS,
   SET_PREVIEW_PARTICIPANTS,
+  SET_PREVIEW_PARTICIPANTS_BULK,
   SET_REJECTED_CALL_LIST,
   UPDATE_ACTIVE_USERS_LIST,
 } from "../../redux/types";
@@ -457,12 +458,41 @@ const SSENotificationsTRequest = (
   });
 
   sseNtfsSource.addEventListener("consume-error", (e: any) => {
-    console.log("consume-error", e.data);
     document.dispatchEvent(
       new CustomEvent("room-events-relay", {
         detail: {
           event: "consume-error",
           data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("removed_user_notif", (e: any) => {
+    const data = JSON.parse(e.data);
+
+    InitConversationListRequest(1, 10).then((response) => {
+      dispatch({
+        type: SET_PREVIEW_PARTICIPANTS_BULK,
+        payload: {
+          participants: response.conversationslist
+            .map((mp: any) => mp.voice_participants)
+            .flat(),
+        },
+      });
+      dispatch({
+        type: SET_MESSAGES_LIST_OVERRIDE,
+        payload: {
+          messageslist: response.conversationslist,
+        },
+      });
+    });
+
+    document.dispatchEvent(
+      new CustomEvent(data.result.realm_id, {
+        detail: {
+          event: "removed_user_notif",
+          data: data,
         },
       }),
     );

@@ -484,8 +484,39 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       settotalMessages,
       setisLoading,
       scrollBottom,
+      () => {
+        const isGroup = conversationsetup.type === "group";
+        const isChannel =
+          conversationsetup.type === "server"
+            ? conversationsetup.groupdetails.serverID
+              ? true
+              : false
+            : false;
+
+        if (isGroup) {
+          dispatch({
+            type: SET_CONVERSATION_SETUP,
+            payload: {
+              conversationsetup: conversationsetupstate,
+            },
+          });
+
+          return;
+        }
+
+        if (isChannel) {
+          navigate(
+            urllocation.pathname
+              .split("/")
+              .slice(0, urllocation.pathname.split("/").length - 1)
+              .join("/"),
+          );
+
+          return;
+        }
+      },
     );
-  }, [page, conversationsetup, range]);
+  }, [page, conversationsetup, range, urllocation]);
 
   const GetConversation = useCallback(() => {
     setincrementer((prev) => prev + 1);
@@ -501,6 +532,36 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       settotalMessages,
       setisLoading,
       scrollBottom,
+      () => {
+        const isGroup = conversationsetup.type === "group";
+        const isChannel =
+          conversationsetup.type === "server"
+            ? conversationsetup.groupdetails.serverID
+              ? true
+              : false
+            : false;
+        if (isGroup) {
+          dispatch({
+            type: SET_CONVERSATION_SETUP,
+            payload: {
+              conversationsetup: conversationsetupstate,
+            },
+          });
+
+          return;
+        }
+
+        if (isChannel) {
+          navigate(
+            urllocation.pathname
+              .split("/")
+              .slice(0, urllocation.pathname.split("/").length - 1)
+              .join("/"),
+          );
+
+          return;
+        }
+      },
     );
   }, [page, range]);
 
@@ -553,6 +614,29 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             return prev;
           });
           break;
+        case "removed_user_notif":
+          if (data.result.type === "group") {
+            dispatch({
+              type: SET_CONVERSATION_SETUP,
+              payload: {
+                conversationsetup: conversationsetupstate,
+              },
+            });
+
+            return;
+          }
+
+          if (data.result.type === "channel") {
+            navigate(
+              urllocation.pathname
+                .split("/")
+                .slice(0, urllocation.pathname.split("/").length - 1)
+                .join("/"),
+            );
+
+            return;
+          }
+          break;
         default:
           break;
       }
@@ -563,7 +647,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     return () => {
       document.removeEventListener(eventName, handler as EventListener);
     };
-  }, [conversationsetup.conversationid]);
+  }, [conversationsetup, urllocation]);
 
   const sendImageProcess = () => {
     importData(

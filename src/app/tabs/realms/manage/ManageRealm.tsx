@@ -1,7 +1,8 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { IoArrowBack } from "react-icons/io5";
 import { useSelector } from "react-redux";
 import { Navigate, Route, Routes, useNavigate } from "react-router-dom";
@@ -26,6 +27,28 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
 
   const [realmState, _setrealmState] = useState<IRealmProfileInfo>(realm);
   const [isMenuToggled, setisMenuToggled] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (!realm.id) return;
+
+    const eventName = realm.id;
+    const handler = (event: CustomEvent) => {
+      // const data = event.detail.data;
+      switch (event.detail.event) {
+        case "removed_user_notif":
+          navigate("/");
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener(eventName, handler as EventListener);
+
+    return () => {
+      document.removeEventListener(eventName, handler as EventListener);
+    };
+  }, [realm]);
 
   return (
     <div className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px]">

@@ -957,6 +957,7 @@ const InitConversationRequest = (
   settotalMessages: any,
   setisLoading: any,
   scrollBottom: any,
+  onError: (() => void) | null = null,
 ) => {
   const conversationID = params.conversationID;
   const page = params.page;
@@ -996,6 +997,9 @@ const InitConversationRequest = (
       }
     })
     .catch((err) => {
+      if (onError) {
+        onError();
+      }
       console.log(err);
     });
 

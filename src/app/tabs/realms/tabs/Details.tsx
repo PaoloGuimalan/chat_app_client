@@ -15,6 +15,7 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
     const formPreset: Record<string, string[]> = {
       group: ["name", "privacy"],
       channel: ["name"], // "privacy" for future, need add every user in server when set to public
+      voice: ["name"], // "privacy" for future, need add every user in server when set to public
       page: ["name", "description", "email", "slug"],
       server: ["name", "description", "privacy"],
     };

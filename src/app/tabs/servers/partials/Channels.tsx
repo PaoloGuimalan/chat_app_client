@@ -91,6 +91,7 @@ function Channels() {
       })
       .catch((err) => {
         sethaveAccess(false);
+        navigate("/servers");
         console.log(err);
       });
   };
@@ -110,6 +111,32 @@ function Channels() {
   useEffect(() => {
     InitServerChannelsProcess();
   }, [serverID, messageslist]);
+
+  useEffect(() => {
+    if (!serverdetails?._id) return;
+
+    const eventName = serverdetails?._id;
+    const handler = (event: CustomEvent) => {
+      const data = event.detail.data;
+      switch (event.detail.event) {
+        case "removed_user_notif":
+          if (data.result.type === "server") {
+            navigate("/servers");
+
+            return;
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener(eventName, handler as EventListener);
+
+    return () => {
+      document.removeEventListener(eventName, handler as EventListener);
+    };
+  }, [serverdetails]);
 
   return (
     <motion.div
