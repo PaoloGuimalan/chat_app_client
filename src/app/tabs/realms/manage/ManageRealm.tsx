@@ -231,7 +231,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               path="/followers"
               element={
                 realmState.type === "page" ? (
-                  <Followers />
+                  <Followers realm={realmState} />
                 ) : (
                   <Navigate to={`/realms/${realm.id}/`} />
                 )

@@ -357,6 +357,13 @@ export interface IRealmMember {
   role: string;
 }
 
+export interface IRealmFollower {
+  follower: IUserContactPreview;
+  realm_id: string;
+  follow_id: string;
+  created_at: string;
+}
+
 export interface IContact {
   id: string;
   action_by: IUserContactPreview;

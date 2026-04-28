@@ -2402,6 +2402,62 @@ const GetRealmMembersRequest = async (
     });
 };
 
+const GetRealmFollowersRequest = async (
+  realm_id: string,
+  page: number,
+  range: number,
+  search?: string | null,
+) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/realm-followers`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params: {
+      realm_id,
+      page,
+      page_size: range,
+      search,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const RemoveRealmFollowersRequest = async (
+  realm_id: string,
+  follow_id: string,
+) => {
+  return await Axios.delete(`${USER_SERVICE_API}/api/realm/realm-followers`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: {
+      realm_id,
+      follow_id,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 const UpdateMemberRoleRequest = async (
   realm_id: string,
   member_id: any,
@@ -2527,6 +2583,8 @@ export {
   UpdateRealmMediaRequest,
   UpdateRealmRequest,
   GetRealmMembersRequest,
+  GetRealmFollowersRequest,
   UpdateMemberRoleRequest,
   RemoveRealmMemberRequest,
+  RemoveRealmFollowersRequest,
 };
