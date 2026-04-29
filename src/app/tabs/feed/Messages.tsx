@@ -340,7 +340,9 @@ function Messages() {
                           </span>
                         ) : (
                           <span className="span_messages_list_name">
-                            {timeSince(msgslst.messageDate.date)}
+                            {msgslst.messageDate.date
+                              ? timeSince(msgslst.messageDate.date)
+                              : timeSince(msgslst.messageDate)}
                           </span>
                         )}
                       </div>
@@ -459,7 +461,9 @@ function Messages() {
                       </span>
                     ) : (
                       <span className="span_messages_list_name">
-                        {timeSince(msgslst.messageDate.date)}
+                        {msgslst.messageDate.date
+                          ? timeSince(msgslst.messageDate.date)
+                          : timeSince(msgslst.messageDate)}
                       </span>
                     )}
                   </div>
@@ -584,7 +588,9 @@ function Messages() {
                       </span>
                     ) : (
                       <span className="span_messages_list_name">
-                        {timeSince(msgslst.messageDate.date)}
+                        {msgslst.messageDate.date
+                          ? timeSince(msgslst.messageDate.date)
+                          : timeSince(msgslst.messageDate)}
                       </span>
                     )}
                   </div>

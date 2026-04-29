@@ -130,7 +130,9 @@ function ContentHandler({
             title={
               cnvs.messageDate.time
                 ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
-                : timeSince(cnvs.messageDate.date)
+                : cnvs.messageDate.date
+                  ? timeSince(cnvs.messageDate.date)
+                  : timeSince(cnvs.messageDate)
             }
             initial={{
               backgroundColor:
@@ -290,7 +292,9 @@ function ContentHandler({
               title={
                 cnvs.messageDate.time
                   ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
-                  : timeSince(cnvs.messageDate.date)
+                  : cnvs.messageDate.date
+                    ? timeSince(cnvs.messageDate.date)
+                    : timeSince(cnvs.messageDate)
               }
               initial={{
                 backgroundColor:
@@ -560,7 +564,9 @@ function ContentHandler({
               title={
                 cnvs.messageDate.time
                   ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
-                  : timeSince(cnvs.messageDate.date)
+                  : cnvs.messageDate.date
+                    ? timeSince(cnvs.messageDate.date)
+                    : timeSince(cnvs.messageDate)
               }
             >
               <CachedImage
@@ -802,7 +808,9 @@ function ContentHandler({
               title={
                 cnvs.messageDate.time
                   ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
-                  : timeSince(cnvs.messageDate.date)
+                  : cnvs.messageDate.date
+                    ? timeSince(cnvs.messageDate.date)
+                    : timeSince(cnvs.messageDate)
               }
             >
               <video
@@ -1038,7 +1046,9 @@ function ContentHandler({
               title={
                 cnvs.messageDate.time
                   ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
-                  : timeSince(cnvs.messageDate.date)
+                  : cnvs.messageDate.date
+                    ? timeSince(cnvs.messageDate.date)
+                    : timeSince(cnvs.messageDate)
               }
             >
               <div className="tw-w-full tw-bg-[#f1f3f4] tw-pb-[5px] tw-rounded-[7px]">
@@ -1300,7 +1310,9 @@ function ContentHandler({
                 title={
                   cnvs.messageDate.time
                     ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
-                    : timeSince(cnvs.messageDate.date)
+                    : cnvs.messageDate.date
+                      ? timeSince(cnvs.messageDate.date)
+                      : timeSince(cnvs.messageDate)
                 }
               >
                 <div className="tw-w-full tw-max-w-[40px]">
