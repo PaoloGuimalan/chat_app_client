@@ -145,7 +145,7 @@ function PostItem({
         sessionStartTimeRef.current = Date.now();
         persistViewPosts(postState.post_id, {
           user_id: authentication.user.userID,
-          post_owner_id: postState.user.id,
+          post_owner_id: postState.author_realm?.id ?? postState.user.id,
           duration: 0.5,
           created_at: viewedDate,
         });
@@ -156,7 +156,7 @@ function PostItem({
         sessionStartTimeRef.current = null;
         persistViewPosts(postState.post_id, {
           user_id: authentication.user.userID,
-          post_owner_id: postState.user.id,
+          post_owner_id: postState.author_realm?.id ?? postState.user.id,
           duration: duration,
           created_at: viewedDate,
         });
