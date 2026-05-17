@@ -10,7 +10,7 @@ import { FcVideoCall, FcAddImage } from "react-icons/fc"; //FcInfo
 import { BiSolidInfoCircle, BiSolidPhoneCall, BiWindows } from "react-icons/bi";
 import { RiAddCircleFill } from "react-icons/ri";
 import { IoArrowBack, IoDocumentOutline, IoSend } from "react-icons/io5";
-import { MdAudiotrack } from "react-icons/md";
+import { MdAudiotrack, MdDelete } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai"; //AiFillInfoCircle
 import { checkIfValid } from "../../../reusables/hooks/validatevariables";
 import {
@@ -21,6 +21,7 @@ import {
   SeenMessageRequest,
   SendFilesRequest,
   SendMessageRequest,
+  UpdateChatHistoryRequest,
 } from "../../../reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -35,6 +36,7 @@ import {
 import {
   CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
   CLOSE_MINIMIZED_CONVERSATION,
+  REMOVE_CONVERSATION,
   // MEDIA_MY_VIDEO_HOLDER,
   // MEDIA_TRACK_HOLDER,
   // REMOVE_REJECTED_CALL_LIST,
@@ -859,6 +861,41 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     });
   };
 
+  const UpdateChatHistoryProcess = () => {
+    settoggleMenu(false);
+    UpdateChatHistoryRequest({
+      conversationID: conversationsetup.conversationid,
+      action: "clear",
+    })
+      .then(() => {
+        if (isMinimized) {
+          dispatch({
+            type: CLOSE_MINIMIZED_CONVERSATION,
+            payload: {
+              conversationID: conversationsetup.conversationid,
+            },
+          });
+        } else {
+          dispatch({
+            type: SET_CONVERSATION_SETUP,
+            payload: {
+              conversationsetup: conversationsetupstate,
+            },
+          });
+        }
+
+        dispatch({
+          type: REMOVE_CONVERSATION,
+          payload: {
+            conversationID: conversationsetup.conversationid,
+          },
+        });
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   return (
     <motion.div
       animate={{
@@ -1211,7 +1248,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   animate={{
                     scale: toggleMenu ? 1 : 0,
                   }}
-                  className="tw-flex-col tw-absolute tw-top-[30px] tw-min-w-[80px] tw-right-0 tw-rounded-md tw-bg-white tw-p-[5px] tw-shadow-md"
+                  className="tw-flex-col tw-absolute tw-top-[30px] tw-min-w-[80px] tw-right-0 tw-rounded-md tw-bg-white tw-p-[5px] tw-shadow-md tw-z-50"
                 >
                   <motion.button
                     initial={{
@@ -1293,6 +1330,24 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         </span>
                       </motion.button>
                     )}
+                  {conversationType !== "server" && (
+                    <motion.button
+                      initial={{
+                        backgroundColor: "white",
+                      }}
+                      whileHover={{
+                        backgroundColor: "#e6e6e6",
+                      }}
+                      className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                      disabled={conversationinfo ? false : true}
+                      onClick={UpdateChatHistoryProcess}
+                    >
+                      <MdDelete style={{ fontSize: "20px", color: "red" }} />
+                      <span className="tw-text-[12px] tw-font-Inter">
+                        Delete
+                      </span>
+                    </motion.button>
+                  )}
                   {isMinimized && (
                     <motion.button
                       initial={{

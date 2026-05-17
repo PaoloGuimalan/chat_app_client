@@ -9,6 +9,7 @@ import {
   END_CALL_LIST,
   MEDIA_MY_VIDEO_HOLDER,
   MEDIA_TRACK_HOLDER,
+  REMOVE_CONVERSATION,
   REMOVE_PENDING_CALL_ALERTS,
   REMOVE_PREVIEW_PARTICIPANT,
   REMOVE_REJECTED_CALL_LIST,
@@ -154,6 +155,12 @@ export const setmessageslist = (state = [], action: any) => {
       return uniqueById;
     case SET_MESSAGES_LIST_OVERRIDE:
       return action.payload.messageslist;
+    case REMOVE_CONVERSATION:
+      const filteredList = state.filter(
+        (flt: any) => flt.conversationID !== action.payload.conversationID,
+      );
+
+      return filteredList;
     default:
       return state;
   }
