@@ -89,4 +89,7 @@ export const usersettingsstate = {
     current_mode: 0,
     toggleSpeed: false,
   },
+  messages: {
+    type: "common",
+  },
 };

@@ -15,6 +15,7 @@ import ServerIcon from "../../../assets/imgs/servericon.png";
 import {
   SET_CONVERSATION_SETUP,
   SET_MESSAGES_LIST,
+  SET_MESSAGES_LIST_OVERRIDE,
   SET_PREVIEW_PARTICIPANTS_BULK,
 } from "../../../redux/types";
 import CreateGroupChatModal from "../../widgets/modals/CreateGroupChatModal";
@@ -24,16 +25,30 @@ import CreateServerModal from "@/app/widgets/modals/CreateServerModal";
 import { useNavigate } from "react-router-dom";
 import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { IPreviewParicipants } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  IPreviewParicipants,
+  IUserSettings,
+} from "@/reusables/vars/interfaces";
+import {
+  getSettings,
+  persistSettings,
+} from "@/reusables/hooks/localforagehelper";
 
 function Messages() {
   const [isLoading, setisLoading] = useState<boolean>(true);
   const [isCreateGCToggle, setisCreateGCToggle] = useState<boolean>(false);
   const [isCreateServerToggle, setisCreateServerToggle] =
     useState<boolean>(false);
+  const [conversationTypeSet, setconversationTypeSet] =
+    useState<string>("common");
 
   const previewparticipants: IPreviewParicipants[] = useSelector(
     (state: any) => state.previewparticipants,
+  );
+
+  const usersettings: IUserSettings = useSelector(
+    (state: any) => state.usersettings,
   );
 
   const getChannelPreviewParticipants = (channelID: string) => {
@@ -42,7 +57,9 @@ function Messages() {
     );
   };
 
-  const authentication = useSelector((state: any) => state.authentication);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
@@ -63,6 +80,27 @@ function Messages() {
   const divcontentRef = useRef<HTMLDivElement | null>(null);
 
   const [isNext, setisNext] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (authentication.user.userID) {
+      getSettings(authentication.user.userID)
+        .then((value) => {
+          if (value) {
+            if (value.messages && value.messages.type) {
+              setconversationTypeSet(value.messages.type);
+              return;
+            }
+
+            setconversationTypeSet("common");
+          } else {
+            setconversationTypeSet("common");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [authentication]);
 
   useEffect(() => {
     let currentView = false;
@@ -148,6 +186,49 @@ function Messages() {
     any: "a file",
   };
 
+  const setConversationListGroups = (type: string) => {
+    if (authentication.user.userID) {
+      persistSettings(authentication.user.userID, {
+        ...usersettings,
+        messages: {
+          ...usersettings.messages,
+          type: type,
+        },
+      })
+        .then(() => {
+          setconversationTypeSet(type);
+          dispatch({
+            type: SET_MESSAGES_LIST_OVERRIDE,
+            payload: {
+              messageslist: [],
+            },
+          });
+          setisLoading(true);
+          InitConversationListRequest(1, range).then((response) => {
+            setisNext(response.next);
+            dispatch({
+              type: SET_PREVIEW_PARTICIPANTS_BULK,
+              payload: {
+                participants: response.conversationslist
+                  .map((mp: any) => mp.voice_participants)
+                  .flat(),
+              },
+            });
+            dispatch({
+              type: SET_MESSAGES_LIST_OVERRIDE,
+              payload: {
+                messageslist: response.conversationslist,
+              },
+            });
+            setisLoading(false);
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  };
+
   return conversationsetup.conversationid ? (
     <Conversation
       conversationsetup={conversationsetup}
@@ -211,21 +292,99 @@ function Messages() {
           </span>
         </motion.button>
       </div>
+      <div id="div_messages_type_options">
+        <motion.button
+          initial={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "all" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          animate={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "all" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          onClick={() => {
+            setConversationListGroups("all");
+          }}
+          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+        >
+          All
+        </motion.button>
+        <motion.button
+          initial={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "common" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          animate={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "common" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          onClick={() => {
+            setConversationListGroups("common");
+          }}
+          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+        >
+          Common
+        </motion.button>
+        <motion.button
+          initial={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "direct" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          animate={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "direct" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          onClick={() => {
+            setConversationListGroups("direct");
+          }}
+          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+        >
+          Direct
+        </motion.button>
+        <motion.button
+          initial={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "groups" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          animate={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "groups" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          onClick={() => {
+            setConversationListGroups("groups");
+          }}
+          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+        >
+          Groups
+        </motion.button>
+        <motion.button
+          initial={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "servers" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          animate={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "servers" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          onClick={() => {
+            setConversationListGroups("servers");
+          }}
+          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+        >
+          Servers
+        </motion.button>
+      </div>
       {isLoading ? (
-        // <div id="div_isLoading_notifications">
-        //   <motion.div
-        //     animate={{
-        //       rotate: -360,
-        //     }}
-        //     transition={{
-        //       duration: 1,
-        //       repeat: Infinity,
-        //     }}
-        //     id="div_loader_request"
-        //   >
-        //     <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-        //   </motion.div>
-        // </div>
         <div id="div_messages_list_container" className="scroller">
           {Array.from({ length: 20 }, (_, i: number) => {
             return <MessageItemLoader key={i} />;

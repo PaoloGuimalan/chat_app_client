@@ -2651,7 +2651,20 @@ input:checked + .slider:before {
   align-items: center;
   padding: 20px;
   padding-top: 10px;
-  padding-bottom: 20px;
+  padding-bottom: 10px;
+  gap: 5px;
+}
+
+#div_messages_type_options {
+  background-color: transparent;
+  width: calc(100% - 40px);
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  padding: 20px;
+  padding-top: 0px;
+  padding-bottom: 15px;
   gap: 5px;
 }
 

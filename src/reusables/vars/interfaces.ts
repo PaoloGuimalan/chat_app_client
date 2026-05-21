@@ -521,6 +521,9 @@ export interface IUserSettings {
     current_mode: number;
     toggleSpeed: boolean;
   };
+  messages: {
+    type: string;
+  };
 }
 
 export interface IPreviewParicipants {

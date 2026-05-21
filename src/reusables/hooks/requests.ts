@@ -20,7 +20,12 @@ import { PaginationProp } from "../vars/props";
 import { IContact, INewEntry } from "../vars/interfaces";
 import { removeNullsFromObject } from "./validatevariables";
 import envs from "./env_configs";
-import { clearViewPosts, getAllViewCache } from "./localforagehelper";
+import {
+  clearViewPosts,
+  getAllViewCache,
+  getSettings,
+} from "./localforagehelper";
+import jwtDecode from "jwt-decode";
 
 const API = envs.CHATTERLOOP_API;
 const USER_SERVICE_API = envs.USER_SERVICE_API;
@@ -901,9 +906,32 @@ const SendFilesRequest = (params: any) => {
 };
 
 const InitConversationListRequest = async (page: number, range: number) => {
+  const authtoken = localStorage.getItem("authtoken");
+  const decodedtoken: any = authtoken ? jwtDecode(authtoken) : null;
+  const userID = decodedtoken ? decodedtoken.userID : null;
+  let type = "common";
+
+  await getSettings(userID)
+    .then((value) => {
+      if (value) {
+        if (value.messages && value.messages.type) {
+          type = value.messages.type;
+          return;
+        }
+
+        type = "common";
+      } else {
+        type = "common";
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
   return await Axios.get(`${API}/u/initConversationList`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
+      type,
       page: page,
       range: range,
     },
