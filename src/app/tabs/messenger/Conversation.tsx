@@ -8,7 +8,11 @@ import DefaultProfile from "../../../assets/imgs/default.png";
 import GroupChatIcon from "../../../assets/imgs/group-chat-icon.jpg";
 import { FcVideoCall, FcAddImage } from "react-icons/fc"; //FcInfo
 import { BiSolidInfoCircle, BiSolidPhoneCall, BiWindows } from "react-icons/bi";
-import { RiAddCircleFill } from "react-icons/ri";
+import {
+  RiAddCircleFill,
+  RiInboxArchiveFill,
+  RiInboxUnarchiveFill,
+} from "react-icons/ri";
 import { IoArrowBack, IoDocumentOutline, IoSend } from "react-icons/io5";
 import { MdAudiotrack, MdDelete } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai"; //AiFillInfoCircle
@@ -89,20 +93,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       (flt: IPreviewParicipants) => flt.channelID === channelID,
     );
   };
-
-  // const messagelistListener = useMemo(() => {
-  //   const initialconvometadata = messageslist.filter(
-  //     (flt: any) => flt.conversationID === conversationsetup.conversationid,
-  //   );
-
-  //   if (initialconvometadata.length > 0) {
-  //     const convometadata = initialconvometadata[0];
-
-  //     return convometadata.unread;
-  //   }
-
-  //   return 0;
-  // }, [messageslist]);
 
   const activeuserSpecific =
     conversationsetup.type == "single" &&
@@ -197,14 +187,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     }
   }, [isalreadytyping]);
 
-  //   useEffect(() => {
-  //     if(!isLoading){
-  //         if(divcontentRef){
-  //             console.log(divcontentRef.current.clientHeight, divcontentRef.current.scrollHeight)
-  //         }
-  //     }
-  //   },[conversationsetup, messageslist, divcontentRef, isLoading])
-
   const ConversationInfoProcess = () => {
     ConversationInfoRequest({
       conversationID: conversationsetup.conversationid,
@@ -213,7 +195,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       .then((response: any) => {
         if (response) {
           setconversationinfo(response.data);
-          // console.log(response.data.users.map((mp:any) => mp.userID))
         }
       })
       .catch((err) => {
@@ -251,8 +232,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     if (!isLoading) {
       if (divcontentRef) {
         if (autoScroll) {
-          // var divheight = divcontentRef.current.scrollHeight
-          // divcontentRef.current.scrollTop = divheight
           if (last) {
             last.scrollIntoView({
               behavior: "instant",
@@ -368,17 +347,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         }),
       );
 
-      // console.log(pendingArrImages)
-
-      // var pendingArrImagesRaw = rawFilesList.map((mp, i) => ({
-      //     conversationID: conversationsetup.conversationid,
-      //     pendingID: `${pendingID}_${i}`,
-      //     content: mp.base,
-      //     type: "image"
-      // }))
-
-      // var mappedRawFiles = rawFilesList.map((mp) => mp.base)
-
       if (conversationsetup.type == "single") {
         addMultiplePendingMessage([
           ...pendingArrImages.map((mp) => ({
@@ -429,7 +397,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     setisLoading(true);
     setconversationList([]);
     setconversationinfo(null);
-    // setrange(20);
     setpage(1);
     dispatch({
       type: SET_PENDING_MESSAGES_LIST,
@@ -438,12 +405,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       },
     });
   }, [conversationsetup]);
-
-  //   useEffect(() => {
-  //     // setrange((prev) => prev + 1);
-  //     // setpage((prev) => prev);
-  //     GetConversation();
-  //   }, [messageslist]); //conversationsetup
 
   const [unreadmessages, setunreadmessages] = useState<string[]>([]);
 
@@ -566,12 +527,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       },
     );
   }, [page, range]);
-
-  // useEffect(() => {
-  //   if (messagelistListener > 0) {
-  //     GetConversation();
-  //   }
-  // }, [messageslist, messagelistListener]);
 
   useEffect(() => {
     if (!conversationsetup.conversationid) return;
@@ -861,11 +816,11 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     });
   };
 
-  const UpdateChatHistoryProcess = () => {
+  const UpdateChatHistoryProcess = (action: string) => {
     settoggleMenu(false);
     UpdateChatHistoryRequest({
       conversationID: conversationsetup.conversationid,
-      action: "clear",
+      action,
     })
       .then(() => {
         if (isMinimized) {
@@ -1330,6 +1285,59 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         </span>
                       </motion.button>
                     )}
+                  {conversationinfo &&
+                  conversationinfo.chatHistory &&
+                  conversationinfo.chatHistory.isArchived
+                    ? conversationType !== "server" && (
+                        <motion.button
+                          initial={{
+                            backgroundColor: "white",
+                          }}
+                          whileHover={{
+                            backgroundColor: "#e6e6e6",
+                          }}
+                          className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                          disabled={conversationinfo ? false : true}
+                          onClick={() => {
+                            UpdateChatHistoryProcess("unarchive");
+                          }}
+                        >
+                          <RiInboxUnarchiveFill
+                            style={{
+                              fontSize: "20px",
+                              color: theme.primary,
+                            }}
+                          />
+                          <span className="tw-text-[12px] tw-font-Inter">
+                            Unarchive
+                          </span>
+                        </motion.button>
+                      )
+                    : conversationType !== "server" && (
+                        <motion.button
+                          initial={{
+                            backgroundColor: "white",
+                          }}
+                          whileHover={{
+                            backgroundColor: "#e6e6e6",
+                          }}
+                          className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                          disabled={conversationinfo ? false : true}
+                          onClick={() => {
+                            UpdateChatHistoryProcess("archive");
+                          }}
+                        >
+                          <RiInboxArchiveFill
+                            style={{
+                              fontSize: "20px",
+                              color: theme.primary,
+                            }}
+                          />
+                          <span className="tw-text-[12px] tw-font-Inter">
+                            Archive
+                          </span>
+                        </motion.button>
+                      )}
                   {conversationType !== "server" && (
                     <motion.button
                       initial={{
@@ -1340,7 +1348,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       }}
                       className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                       disabled={conversationinfo ? false : true}
-                      onClick={UpdateChatHistoryProcess}
+                      onClick={() => {
+                        UpdateChatHistoryProcess("clear");
+                      }}
                     >
                       <MdDelete style={{ fontSize: "20px", color: "red" }} />
                       <span className="tw-text-[12px] tw-font-Inter">

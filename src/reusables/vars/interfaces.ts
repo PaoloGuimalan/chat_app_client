@@ -175,6 +175,14 @@ export interface ConversationInfoInterface {
   conversationInfo?: ConversationDetails;
   usersWithInfo: UserWithInfoConversationInterface[];
   conversationfiles: ConversationFilesInterface[];
+  chatHistory: {
+    _id: string;
+    conversationID: string;
+    userID: string;
+    cleared_at: string | null;
+    isArchived: boolean;
+    isRestricted: boolean;
+  } | null;
 }
 
 export interface RemoteStreams {
