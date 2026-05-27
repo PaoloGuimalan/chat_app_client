@@ -206,6 +206,7 @@ function Messages() {
           setisLoading(true);
           InitConversationListRequest(1, range).then((response) => {
             setisNext(response.next);
+            setpage(2);
             dispatch({
               type: SET_PREVIEW_PARTICIPANTS_BULK,
               payload: {

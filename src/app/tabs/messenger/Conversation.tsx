@@ -20,6 +20,7 @@ import { checkIfValid } from "../../../reusables/hooks/validatevariables";
 import {
   CallRequest,
   ConversationInfoRequest,
+  InitConversationListRequest,
   InitConversationRequest,
   IsTypingBroadcastRequest,
   SeenMessageRequest,
@@ -46,9 +47,11 @@ import {
   // REMOVE_REJECTED_CALL_LIST,
   // SET_CALLS_LIST,
   SET_CONVERSATION_SETUP,
+  SET_MESSAGES_LIST_OVERRIDE,
   SET_MINIMIZED_CONVERSATION,
   SET_MUTATE_ALERTS,
   SET_PENDING_MESSAGES_LIST,
+  SET_PREVIEW_PARTICIPANTS_BULK,
 } from "../../../redux/types";
 import { useLocation, useNavigate } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
@@ -839,12 +842,32 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           });
         }
 
-        dispatch({
-          type: REMOVE_CONVERSATION,
-          payload: {
-            conversationID: conversationsetup.conversationid,
-          },
-        });
+        if (action !== "unarchive") {
+          dispatch({
+            type: REMOVE_CONVERSATION,
+            payload: {
+              conversationID: conversationsetup.conversationid,
+            },
+          });
+        } else {
+          InitConversationListRequest(1, 20).then((response) => {
+            dispatch({
+              type: SET_PREVIEW_PARTICIPANTS_BULK,
+              payload: {
+                participants: response.conversationslist
+                  .map((mp: any) => mp.voice_participants)
+                  .flat(),
+              },
+            });
+            dispatch({
+              type: SET_MESSAGES_LIST_OVERRIDE,
+              payload: {
+                messageslist: response.conversationslist,
+              },
+            });
+            setisLoading(false);
+          });
+        }
       })
       .catch((err) => {
         console.log(err);

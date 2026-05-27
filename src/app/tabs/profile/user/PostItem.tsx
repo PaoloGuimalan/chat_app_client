@@ -67,6 +67,7 @@ function PostItem({
   const dateposted = timeDetail;
   const textRef = useRef<HTMLSpanElement | null>(null);
   const textContainerRef = useRef<HTMLDivElement | null>(null);
+  const timeoutRef = useRef<number | null>(null);
 
   const postOwnerUserID = postState.user.username;
 
@@ -727,9 +728,15 @@ function PostItem({
                               <button
                                 onMouseEnter={() => {
                                   settoggleEmojis(true);
+                                  if (timeoutRef.current) {
+                                    clearTimeout(timeoutRef.current);
+                                    timeoutRef.current = null;
+                                  }
                                 }}
                                 onMouseLeave={() => {
-                                  settoggleEmojis(false);
+                                  timeoutRef.current = setTimeout(() => {
+                                    settoggleEmojis(false);
+                                  }, 700);
                                 }}
                                 disabled={emojiLoading}
                                 className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
@@ -991,9 +998,15 @@ function PostItem({
                   <button
                     onMouseEnter={() => {
                       settoggleEmojis(true);
+                      if (timeoutRef.current) {
+                        clearTimeout(timeoutRef.current);
+                        timeoutRef.current = null;
+                      }
                     }}
                     onMouseLeave={() => {
-                      settoggleEmojis(false);
+                      timeoutRef.current = setTimeout(() => {
+                        settoggleEmojis(false);
+                      }, 700);
                     }}
                     disabled={emojiLoading}
                     className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
