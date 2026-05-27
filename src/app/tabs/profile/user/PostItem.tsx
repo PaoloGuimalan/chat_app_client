@@ -67,7 +67,7 @@ function PostItem({
   const dateposted = timeDetail;
   const textRef = useRef<HTMLSpanElement | null>(null);
   const textContainerRef = useRef<HTMLDivElement | null>(null);
-  const timeoutRef = useRef<number | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const postOwnerUserID = postState.user.username;
 
