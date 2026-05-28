@@ -8,6 +8,8 @@ import { IoArrowBack } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import MapFeedSettings from "./section/MapFeedSettings";
+import { RiInboxArchiveFill } from "react-icons/ri";
+import ArchivedMessages from "./section/ArchivedMessages";
 
 function Settings({ isModal }: { isModal: boolean }) {
   const navigate = useNavigate();
@@ -22,18 +24,18 @@ function Settings({ isModal }: { isModal: boolean }) {
   });
 
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
 
   const isMobileView = useMemo(
     () => screensizelistener.W <= 1100,
-    [screensizelistener]
+    [screensizelistener],
   );
 
   const mappedSettingsList = useMemo(
     () => [
       {
-        category: "Account Settings",
+        category: "Account",
         description:
           "Review, Update, Validate, and Manage your informations on how you want it to appear.",
         items: [
@@ -46,6 +48,27 @@ function Settings({ isModal }: { isModal: boolean }) {
             component: null,
             click: function () {
               //   console.log("TEST");
+            },
+          },
+        ],
+      },
+      {
+        category: "Messages",
+        description:
+          "Access your archived or restricted messages and other messaging settings",
+        items: [
+          {
+            icon: <RiInboxArchiveFill size={45} color="#757b87" />,
+            name: "Archives",
+            description:
+              "Check your archived messages and revisit conversations.",
+            isDisabled: false,
+            component: <ArchivedMessages />,
+            click: function () {
+              setmodalPage({
+                isToggled: true,
+                component: <ArchivedMessages />,
+              });
             },
           },
         ],
@@ -66,13 +89,12 @@ function Settings({ isModal }: { isModal: boolean }) {
                 isToggled: true,
                 component: <MapFeedSettings />,
               });
-              //   console.log("TEST");
             },
           },
         ],
       },
     ],
-    []
+    [],
   );
 
   return (

@@ -905,6 +905,27 @@ const SendFilesRequest = (params: any) => {
     });
 };
 
+const ManualInitConversationListRequest = async (
+  page: number,
+  range: number,
+) => {
+  return await Axios.get(`${API}/m/archives`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+      page: page,
+      range: range,
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 const InitConversationListRequest = async (page: number, range: number) => {
   const authtoken = localStorage.getItem("authtoken");
   const decodedtoken: any = authtoken ? jwtDecode(authtoken) : null;
@@ -2631,4 +2652,5 @@ export {
   RemoveRealmMemberRequest,
   RemoveRealmFollowersRequest,
   UpdateChatHistoryRequest,
+  ManualInitConversationListRequest,
 };
