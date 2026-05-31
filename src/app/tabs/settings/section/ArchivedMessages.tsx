@@ -183,7 +183,7 @@ function ArchivedMessages() {
   }, [page]);
 
   return (
-    <div className="tw-w-full tw-flex tw-gap-[10px] tw-flex-col tw-items-start tw-font-Inter">
+    <div className="tw-w-full tw-h-full tw-flex tw-gap-[10px] tw-flex-col tw-items-start tw-font-Inter">
       <div className="tw-w-full tw-flex tw-items-start">
         <span className="tw-text-[16px] tw-font-Inter tw-font-semibold">
           Archives
@@ -198,8 +198,8 @@ function ArchivedMessages() {
         {archives.isLoaded && (
           <div
             ref={divcontentRef}
-            id="div_messages_list_container"
-            className="scroller tw-bg-[#f0f2f5] tw-pt-[20px] tw-rounded-md"
+            id=""
+            className="scroller tw-w-full" //  tw-bg-[#f0f2f5] tw-pt-[20px] tw-rounded-md
           >
             {archives.list.map((msgslst: any, i: number) => {
               if (msgslst.conversationType == "single") {
