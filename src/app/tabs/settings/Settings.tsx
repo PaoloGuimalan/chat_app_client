@@ -259,11 +259,11 @@ function Settings({ isModal }: { isModal: boolean }) {
           )}
           {modalPage.isToggled && (
             <div
-              className={`tw-flex tw-w-[calc(100%-40px)] ${
+              className={`tw-flex tw-w-[calc(100%-25px)] ${
                 !isMobileView && "tw-max-w-[60%]"
-              } tw-h-[calc(100%-35px)] tw-flex-col tw-bg-white tw-p-[20px] tw-pt-[15px] tw-gap-[15px]`}
+              } tw-h-[calc(100%-35px)] tw-flex-col tw-bg-white tw-p-[20px] tw-pt-[15px] tw-pr-[0px] tw-gap-[15px]`}
             >
-              <div className="tw-w-full tw-flex tw-flex-col tw-flex-1 tw-overflow-y-scroll t-scroll">
+              <div className="tw-w-full tw-flex tw-flex-col tw-flex-1 tw-overflow-y-scroll t-scroll tw-pr-[5px]">
                 {modalPage.component}
               </div>
             </div>
