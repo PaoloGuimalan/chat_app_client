@@ -28,11 +28,13 @@ import {
   TransportConnectRequest,
   TransportProduceRequest,
   VoiceRequest,
+  GetEncodingsRequest,
 } from "@/reusables/hooks/requests";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import RemoteVideo from "./RemoteVideo";
 import envs from "@/reusables/hooks/env_configs";
 import { useNavigate } from "react-router-dom";
+import { useReconnect } from "@/reusables/hooks/useReconnect";
 
 function VoiceWindow({ data }: any) {
   const authentication: AuthenticationInterface = useSelector(
@@ -95,6 +97,8 @@ function VoiceWindow({ data }: any) {
   const videoProducerRef = useRef<any>(null);
   const screenProducerRef = useRef<any>(null);
   const screenAudioProducerRef = useRef<any>(null);
+  const encodingsRef = useRef<{ camera: any[]; screenshare: any[] } | null>(null);
+  const isReconnectingRef = useRef(false);
 
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
@@ -159,6 +163,53 @@ function VoiceWindow({ data }: any) {
     setIsScreenSharing(false);
   }, [mediaStream, screenStream, sendTransport, recvTransport, consumers]);
 
+  const cleanupTransportsOnly = useCallback(() => {
+    sendTransport?.close?.();
+    recvTransport?.close?.();
+    consumers.forEach(({ consumer }) => consumer?.close?.());
+    setConsumers(new Map());
+    setPendingProducerIds([]);
+    setPendingConsumeResponses([]);
+    producerOwnerRef.current.clear();
+    producerSourceRef.current.clear();
+    audioProducerRef.current?.close?.();
+    videoProducerRef.current?.close?.();
+    audioProducerRef.current = null;
+    videoProducerRef.current = null;
+    pendingProduceTracksRef.current = [];
+    setSendTransport(null);
+    setRecvTransport(null);
+    setDevice(null);
+    setconnectTransportState({ params: null, instance: null, triggered: false });
+    setconnectRecvTransportState({ params: null, instance: null, triggered: false });
+  }, [sendTransport, recvTransport, consumers]);
+
+  const rejoinRoom = useCallback(() => {
+    hasJoinedRef.current = false;
+    isReconnectingRef.current = true;
+    JoinRoomRequest({
+      conversationID,
+      members,
+      instance: connectTransportState.instance || connectRecvTransportState.instance || data.instance,
+      clientId: clientIdRef.current,
+      username: authentication.user.username,
+      muted: !enableMic,
+      cameraOff: !enableCamera,
+    }).finally(() => {
+      hasJoinedRef.current = true;
+      isReconnectingRef.current = false;
+    });
+  }, [
+    conversationID,
+    members,
+    connectTransportState.instance,
+    connectRecvTransportState.instance,
+    data.instance,
+    authentication.user.username,
+    enableMic,
+    enableCamera,
+  ]);
+
   const leaveCallProcess = useCallback(
     ({ keepalive = false }: { keepalive?: boolean } = {}) => {
       if (hasLeftRef.current) {
@@ -197,7 +248,7 @@ function VoiceWindow({ data }: any) {
       }
 
       if (keepalive) {
-        fetch(`${envs.CHATTERLOOP_API}/webrtc/leave-room`, {
+        fetch(`${envs.CHATTERLOOP_API}/webrtc/leave-room-keepalive`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
@@ -239,6 +290,17 @@ function VoiceWindow({ data }: any) {
   useEffect(() => {
     leaveCallProcessRef.current = leaveCallProcess;
   }, [leaveCallProcess]);
+
+  useReconnect({
+    conversationID,
+    clientId: clientIdRef.current,
+    instance: connectTransportState.instance || connectRecvTransportState.instance || data.instance,
+    sendTransport,
+    recvTransport,
+    onBeforeRejoin: cleanupTransportsOnly,
+    onRejoin: rejoinRoom,
+    hasLeft: hasLeftRef.current,
+  });
 
   const createTransportProcess = useCallback(
     async (instance: string | null) => {
@@ -428,6 +490,7 @@ function VoiceWindow({ data }: any) {
             videoProducerRef.current = await transport.produce({
               track: videoTrack,
               kind: videoTrack.kind,
+              encodings: encodingsRef.current?.camera,
               appData: { source: "camera" },
             });
             if ((data.type || data.callType) !== "video") {
@@ -480,6 +543,7 @@ function VoiceWindow({ data }: any) {
           screenProducerRef.current = await sendTransport.produce({
             track: screenTrack,
             kind: screenTrack.kind,
+            encodings: encodingsRef.current?.screenshare,
             appData: { source: "screen" },
           });
         }
@@ -553,18 +617,6 @@ function VoiceWindow({ data }: any) {
           callback();
         },
       );
-
-      // transport.on("connectionstatechange", (state: any) => {
-      //   console.log("🔗 RECV STATE CHANGED:", state);
-      //   // Should see: "new" → "connecting" → "connected"
-      // });
-
-      // transport.consume({
-      //   id: recvTransportMetadata.id,
-      //   producerId: recvTransportMetadata.producerId,
-      //   kind: recvTransportMetadata.kind,
-      //   rtpParameters: recvTransportMetadata.rtpParameters,
-      // });
     }
   }, [device, connectRecvTransportState]);
 
@@ -1085,6 +1137,15 @@ function VoiceWindow({ data }: any) {
   useEffect(() => {
     if (data && !hasJoinedRef.current) {
       hasJoinedRef.current = true;
+
+      GetEncodingsRequest()
+        .then((res) => {
+          if (res) encodingsRef.current = res;
+        })
+        .catch(() => {
+          // Non-fatal — produce will fall back to browser defaults
+        });
+
       JoinRoomRequest({
         conversationID,
         members,

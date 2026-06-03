@@ -1981,6 +1981,25 @@ const TransportConnectRequest = async (payload: any) => {
     });
 };
 
+const GetEncodingsRequest = async () => {
+  return await Axios.get(`${envs.CHATTERLOOP_API}/webrtc/encodings`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return null;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 const TransportProduceRequest = async (payload: any) => {
   return await Axios.post(`${envs.CHATTERLOOP_API}/webrtc/produce`, payload, {
     headers: {
@@ -2653,4 +2672,5 @@ export {
   RemoveRealmFollowersRequest,
   UpdateChatHistoryRequest,
   ManualInitConversationListRequest,
+  GetEncodingsRequest,
 };
