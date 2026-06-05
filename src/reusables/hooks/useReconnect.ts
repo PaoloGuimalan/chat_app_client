@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /**
  * useReconnect
  *
@@ -15,8 +16,7 @@
  */
 
 import { useCallback, useEffect, useRef } from "react";
-import Axios from "axios";
-import envs from "./env_configs";
+import { ReconnectStaleCallerSessionRequest } from "./requests";
 
 const DISCONNECT_GRACE_MS = 4_000; // wait before treating "disconnected" as fatal
 const MAX_ATTEMPTS = 3;
@@ -48,7 +48,9 @@ export function useReconnect({
 }: ReconnectOptions) {
   const attemptsRef = useRef(0);
   const reconnectTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const disconnectGraceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const disconnectGraceTimerRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null,
+  );
   const isReconnectingRef = useRef(false);
 
   const clearTimers = useCallback(() => {
@@ -80,13 +82,16 @@ export function useReconnect({
     reconnectTimerRef.current = setTimeout(async () => {
       try {
         // 1. Tell the server to evict the stale session silently
-        await Axios.post(
-          `${envs.CHATTERLOOP_API}/webrtc/reconnect`,
-          { conversationID, clientId, instance },
-          { headers: { "x-access-token": localStorage.getItem("authtoken") || "" } },
+        await ReconnectStaleCallerSessionRequest(
+          conversationID,
+          clientId,
+          instance,
         );
       } catch (err) {
-        console.warn("[Reconnect] Evict request failed, proceeding anyway:", err);
+        console.warn(
+          "[Reconnect] Evict request failed, proceeding anyway:",
+          err,
+        );
       }
 
       // 2. Tear down local transport/producer state
@@ -104,7 +109,9 @@ export function useReconnect({
     (state: string, transportLabel: string) => {
       if (hasLeft) return;
 
-      console.log(`[Reconnect] ${transportLabel} connectionstatechange: ${state}`);
+      console.log(
+        `[Reconnect] ${transportLabel} connectionstatechange: ${state}`,
+      );
 
       if (state === "connected") {
         // Successfully (re)connected — reset attempt counter and clear any timers
@@ -136,7 +143,8 @@ export function useReconnect({
   // Attach connectionstatechange to send transport
   useEffect(() => {
     if (!sendTransport) return;
-    const handler = (state: string) => handleStateChange(state, "sendTransport");
+    const handler = (state: string) =>
+      handleStateChange(state, "sendTransport");
     sendTransport.on("connectionstatechange", handler);
     return () => {
       // mediasoup-client transports don't expose .off() — clear on unmount via hasLeft
@@ -146,7 +154,8 @@ export function useReconnect({
   // Attach connectionstatechange to recv transport
   useEffect(() => {
     if (!recvTransport) return;
-    const handler = (state: string) => handleStateChange(state, "recvTransport");
+    const handler = (state: string) =>
+      handleStateChange(state, "recvTransport");
     recvTransport.on("connectionstatechange", handler);
     return () => {
       // same note as above

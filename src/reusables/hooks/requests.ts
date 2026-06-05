@@ -2584,6 +2584,22 @@ const UpdateChatHistoryRequest = async (payload: any) => {
     });
 };
 
+const ReconnectStaleCallerSessionRequest = async (
+  conversationID: string,
+  clientId: string,
+  instance: string | null,
+) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/reconnect`,
+    { conversationID, clientId, instance },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken") || "",
+      },
+    },
+  );
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2673,4 +2689,5 @@ export {
   UpdateChatHistoryRequest,
   ManualInitConversationListRequest,
   GetEncodingsRequest,
+  ReconnectStaleCallerSessionRequest,
 };
