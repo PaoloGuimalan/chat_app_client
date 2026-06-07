@@ -151,6 +151,7 @@ function Setup() {
             },
           },
         });
+        setisWaitingRequest(false);
         return;
       }
 
@@ -170,6 +171,7 @@ function Setup() {
             },
           },
         });
+        setisWaitingRequest(false);
         return;
       }
       finalPayload["gender"] = gender;
