@@ -174,7 +174,7 @@ function Setup() {
         setisWaitingRequest(false);
         return;
       }
-      finalPayload["gender"] = gender;
+      finalPayload["gender"] = gender.toLowerCase();
     }
 
     CompleteProfileRequest(finalPayload, dispatch, alerts, setisWaitingRequest);
