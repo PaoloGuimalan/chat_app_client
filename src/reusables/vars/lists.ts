@@ -15,7 +15,7 @@ const monthList = [
 ];
 
 const currentYear = new Date().getFullYear();
-const validYear = currentYear - 15;
+const validYear = currentYear - 13; // display only years minimum 13 years old
 const range = (start: any, stop: any, step: any) =>
   Array.from({ length: (stop - start) / step + 1 }, (_, i) => start + i * step);
 const finalYears = range(validYear, validYear - 50, -1);

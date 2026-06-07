@@ -13,9 +13,16 @@ export interface AuthenticationInterface {
       middleName: string;
       lastName: string;
     };
+    birthdate: {
+      month: string;
+      day: string;
+      year: string;
+    } | null;
     email: string;
+    gender: string | null;
     isActivated: boolean | null;
     isVerified: boolean | null;
+    isComplete: boolean;
     profile: string;
     coverphoto: string;
   };

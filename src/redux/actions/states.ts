@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  AuthenticationInterface,
   IContact,
   IEntry,
   IPost,
@@ -7,18 +8,25 @@ import {
 } from "@/reusables/vars/interfaces";
 import { PaginationProp } from "@/reusables/vars/props";
 
-export const authenticationstate = {
+export const authenticationstate: AuthenticationInterface = {
   auth: null,
   user: {
+    id: "",
+    username: "",
+    profile: "",
+    coverphoto: "",
     userID: "",
     fullName: {
       firstName: "",
       middleName: "",
       lastName: "",
     },
+    birthdate: null,
+    gender: null,
     email: "",
     isActivated: null,
     isVerified: null,
+    isComplete: false,
   },
 };
 

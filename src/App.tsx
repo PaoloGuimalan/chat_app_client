@@ -13,9 +13,13 @@ import { AuthCheck } from "./reusables/hooks/requests";
 import Alert from "./app/widgets/Alert";
 import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER } from "./redux/types";
 import ProfileContainer from "./app/tabs/profile/ProfileContainer";
+import { AuthenticationInterface } from "./reusables/vars/interfaces";
+import Setup from "./app/auth/Setup";
 
 function App() {
-  const authentication = useSelector((state: any) => state.authentication);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
   );
@@ -101,7 +105,11 @@ function App() {
             authentication.auth != null ? (
               authentication.auth ? (
                 authentication.user.isVerified ? (
-                  <Home setNextPath={setnextPathState} />
+                  authentication.user.isComplete ? (
+                    <Home setNextPath={setnextPathState} />
+                  ) : (
+                    <Setup />
+                  )
                 ) : (
                   <Navigate to="/verification" />
                 )
@@ -121,7 +129,11 @@ function App() {
             authentication.auth != null ? (
               authentication.auth ? (
                 authentication.user.isVerified ? (
-                  <Navigate to={nextPathState ? nextPathState : "/"} />
+                  authentication.user.isComplete ? (
+                    <Navigate to={nextPathState ? nextPathState : "/"} />
+                  ) : (
+                    <Setup />
+                  )
                 ) : (
                   <Navigate to="/verification" />
                 )
@@ -139,7 +151,11 @@ function App() {
             authentication.auth != null ? (
               authentication.auth ? (
                 authentication.user.isVerified ? (
-                  <Navigate to="/" />
+                  authentication.user.isComplete ? (
+                    <Navigate to="/" />
+                  ) : (
+                    <Setup />
+                  )
                 ) : (
                   <Navigate to="/verification" />
                 )
@@ -157,7 +173,33 @@ function App() {
             authentication.auth != null ? (
               authentication.auth ? (
                 authentication.user.isVerified ? (
-                  <Navigate to="/" />
+                  authentication.user.isComplete ? (
+                    <Navigate to="/" />
+                  ) : (
+                    <Setup />
+                  )
+                ) : (
+                  <Verification />
+                )
+              ) : (
+                <Navigate to="/login" />
+              )
+            ) : (
+              <Splash />
+            )
+          }
+        />
+        <Route
+          path="/setup"
+          element={
+            authentication.auth != null ? (
+              authentication.auth ? (
+                authentication.user.isVerified ? (
+                  authentication.user.isComplete ? (
+                    <Navigate to="/" />
+                  ) : (
+                    <Setup />
+                  )
                 ) : (
                   <Verification />
                 )
