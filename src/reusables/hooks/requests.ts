@@ -14,7 +14,7 @@ import { authenticationstate } from "../../redux/actions/states";
 import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import { Dispatch } from "react";
-import { convertLoginResponse, generateXNonce } from "./reusable";
+import { convertLoginResponse, generateUUID, generateXNonce } from "./reusable";
 import { ConvertedResponse } from "../vars/types";
 import { PaginationProp } from "../vars/props";
 import { IContact, INewEntry } from "../vars/interfaces";
@@ -44,6 +44,16 @@ Axios.interceptors.request.use(async (config) => {
 
     const nonce = await generateXNonce(userID);
     config.headers["X-Nonce"] = nonce;
+
+    let deviceToken = localStorage.getItem("device");
+
+    if (!deviceToken) {
+      deviceToken = generateUUID();
+      localStorage.setItem("device", deviceToken);
+    }
+
+    config.headers["Device-Token"] = deviceToken;
+
     return config;
   } catch (error) {
     return Promise.reject(error);

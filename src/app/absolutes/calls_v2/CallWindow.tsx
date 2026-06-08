@@ -94,16 +94,27 @@ function CallWindow({ data, lineNum }: any) {
     { kind: string; track: MediaStreamTrack; source?: string }[]
   >([]);
   const clientIdRef = useRef<string>(
-    typeof crypto !== "undefined" && "randomUUID" in crypto
-      ? crypto.randomUUID()
-      : `${Date.now()}-${Math.random().toString(36).slice(2)}`,
+    (() => {
+      // 1. Safe guard check for Server-Side Rendering (SSR) / Window context
+      if (typeof window !== "undefined") {
+        const savedDevice = localStorage.getItem("device");
+        if (savedDevice) return savedDevice;
+      }
+
+      // 2. Fallback identifier generator
+      return typeof crypto !== "undefined" && "randomUUID" in crypto
+        ? crypto.randomUUID()
+        : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+    })(), // <--- Added () here to invoke the function immediately
   );
 
   const audioProducerRef = useRef<any>(null);
   const videoProducerRef = useRef<any>(null);
   const screenProducerRef = useRef<any>(null);
   const screenAudioProducerRef = useRef<any>(null);
-  const encodingsRef = useRef<{ camera: any[]; screenshare: any[] } | null>(null);
+  const encodingsRef = useRef<{ camera: any[]; screenshare: any[] } | null>(
+    null,
+  );
   // Tracks whether a reconnect cycle is in progress to guard hasJoinedRef
   const isReconnectingRef = useRef(false);
 
@@ -181,8 +192,16 @@ function CallWindow({ data, lineNum }: any) {
     setSendTransport(null);
     setRecvTransport(null);
     setDevice(null);
-    setconnectTransportState({ params: null, instance: null, triggered: false });
-    setconnectRecvTransportState({ params: null, instance: null, triggered: false });
+    setconnectTransportState({
+      params: null,
+      instance: null,
+      triggered: false,
+    });
+    setconnectRecvTransportState({
+      params: null,
+      instance: null,
+      triggered: false,
+    });
   }, [sendTransport, recvTransport, consumers]);
 
   // Re-runs the join flow using the same clientId so the server treats it as
@@ -193,7 +212,10 @@ function CallWindow({ data, lineNum }: any) {
     JoinRoomRequest({
       conversationID,
       members,
-      instance: connectTransportState.instance || connectRecvTransportState.instance || data.instance,
+      instance:
+        connectTransportState.instance ||
+        connectRecvTransportState.instance ||
+        data.instance,
       clientId: clientIdRef.current,
       username: authentication.user.username,
       muted: !enableMic,
@@ -296,7 +318,10 @@ function CallWindow({ data, lineNum }: any) {
   useReconnect({
     conversationID,
     clientId: clientIdRef.current,
-    instance: connectTransportState.instance || connectRecvTransportState.instance || data.instance,
+    instance:
+      connectTransportState.instance ||
+      connectRecvTransportState.instance ||
+      data.instance,
     sendTransport,
     recvTransport,
     onBeforeRejoin: cleanupTransportsOnly,

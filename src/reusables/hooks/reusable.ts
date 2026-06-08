@@ -466,6 +466,10 @@ function capitalizeFirstLetter(str: string) {
   return str.charAt(0).toUpperCase() + str.slice(1);
 }
 
+function generateUUID(): string {
+  return crypto.randomUUID();
+}
+
 export {
   importData,
   importNonImageData,
@@ -488,4 +492,5 @@ export {
   hasNullValues,
   getDifferentValues,
   capitalizeFirstLetter,
+  generateUUID,
 };

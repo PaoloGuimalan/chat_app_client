@@ -40,6 +40,7 @@ const SSENotificationsTRequest = (
 ) => {
   const payload = {
     token: localStorage.getItem("authtoken"),
+    deviceToken: localStorage.getItem("device"),
     type: "notifications",
   };
 
