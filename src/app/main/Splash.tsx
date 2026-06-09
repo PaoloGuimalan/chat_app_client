@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "../../styles/styles.css";
-import ChatterLoopImg from "../../assets/imgs/chatterloop.png";
+import ChatterLoopImg from "../../assets/imgs/chatterloop.gif";
 import { motion } from "framer-motion";
 import { useSelector } from "react-redux";
 
 function Splash() {
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
 
   return (
@@ -19,13 +19,13 @@ function Splash() {
         }
       >
         <motion.img
-          animate={{
-            scale: 1.1,
-          }}
-          transition={{
-            duration: 1,
-            repeat: Infinity,
-          }}
+          // animate={{
+          //   scale: 1.1,
+          // }}
+          // transition={{
+          //   duration: 1,
+          //   repeat: Infinity,
+          // }}
           src={ChatterLoopImg}
           id="img_icon_splash"
         />

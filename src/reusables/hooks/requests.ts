@@ -70,41 +70,45 @@ const AuthCheck = (dispatch: any) => {
       if (response.data.status) {
         const userData: any = jwt_decode(response.data.result.usertoken);
         // console.log(userData)
-        dispatch({
-          type: SET_AUTHENTICATION,
-          payload: {
-            authentication: {
-              auth: true,
-              user: {
-                userID: userData._id,
-                username: userData.userID,
-                fullName: {
-                  firstName: userData.fullname.firstName,
-                  middleName: userData.fullname.middleName,
-                  lastName: userData.fullname.lastName,
+        setTimeout(() => {
+          dispatch({
+            type: SET_AUTHENTICATION,
+            payload: {
+              authentication: {
+                auth: true,
+                user: {
+                  userID: userData._id,
+                  username: userData.userID,
+                  fullName: {
+                    firstName: userData.fullname.firstName,
+                    middleName: userData.fullname.middleName,
+                    lastName: userData.fullname.lastName,
+                  },
+                  email: userData.email,
+                  birthdate: userData.birthdate,
+                  gender: userData.gender,
+                  isActivated: userData.isActivated,
+                  isVerified: userData.isVerified,
+                  isComplete: userData.isComplete,
+                  profile: userData.profile,
+                  coverphoto: userData.coverphoto || "",
                 },
-                email: userData.email,
-                birthdate: userData.birthdate,
-                gender: userData.gender,
-                isActivated: userData.isActivated,
-                isVerified: userData.isVerified,
-                isComplete: userData.isComplete,
-                profile: userData.profile,
-                coverphoto: userData.coverphoto || "",
               },
             },
-          },
-        });
+          });
+        }, 2000);
       } else {
-        dispatch({
-          type: SET_AUTHENTICATION,
-          payload: {
-            authentication: {
-              ...authenticationstate,
-              auth: false,
+        setTimeout(() => {
+          dispatch({
+            type: SET_AUTHENTICATION,
+            payload: {
+              authentication: {
+                ...authenticationstate,
+                auth: false,
+              },
             },
-          },
-        });
+          });
+        }, 2000);
       }
     })
     .catch((err) => {
