@@ -29,13 +29,16 @@ import {
   UnfollowRealmRequest,
 } from "@/reusables/hooks/requests";
 import { MdPerson } from "react-icons/md";
+import { PiShareFat } from "react-icons/pi";
 
 function RealmProfile({
   realmInfo,
   GetProfileInfoProcess,
+  isSharePage = false,
 }: {
   realmInfo: IRealmProfileInfo;
   GetProfileInfoProcess: (callback: () => void) => void;
+  isSharePage?: boolean;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -162,7 +165,8 @@ function RealmProfile({
   return (
     <div
       ref={divcontentRef}
-      className="cl-profile-page__shell tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll"
+      className="cl-profile-page__shell tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[6px] tw-overflow-y-scroll x-scroll"
+      data-share-page={isSharePage ? "true" : "false"}
     >
       <button
         onClick={() => {
@@ -172,7 +176,38 @@ function RealmProfile({
       >
         <IoArrowBack style={{ fontSize: "20px" }} />
       </button>
-      <div className="cl-profile-page__hero tw-w-full tw-h-[40%] tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center">
+      {isSharePage && (
+        <Card
+          pad={12}
+          style={{ width: "min(100%, 1200px)", marginTop: 8, marginBottom: 4 }}
+        >
+          <div className="tw-flex tw-items-center tw-gap-[10px] tw-w-full">
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 999,
+                background: "var(--brand-soft)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flex: "none",
+              }}
+            >
+              <PiShareFat style={{ fontSize: 18, color: "var(--brand)" }} />
+            </div>
+            <div className="tw-flex tw-flex-col tw-min-w-0">
+              <span className="tw-font-semibold tw-text-[14px] tw-text-[var(--text)]">
+                Shared page
+              </span>
+              <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                View-only preview of this page.
+              </span>
+            </div>
+          </div>
+        </Card>
+      )}
+      <div className="cl-profile-page__hero tw-w-full tw-h-auto tw-min-h-[360px] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-py-[12px] sm:tw-py-[0px]">
         <ProfileCoverContainer
           userID={realmInfo.id}
           realm_id={realmInfo.realm_id}
@@ -181,7 +216,7 @@ function RealmProfile({
           isAllowed={realmInfo.is_admin}
           getpostprocess={() => {}}
         />
-        <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
+        <div className="tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[12px] tw-pr-[12px] sm:tw-pl-[40px] sm:tw-pr-[40px]">
           <ProfilePicContainer
             userID={realmInfo.id}
             realm_id={realmInfo.realm_id}
@@ -191,14 +226,14 @@ function RealmProfile({
             getpostprocess={() => {}}
           />
           <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
-            <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[20px] tw-sm:p-[0px]">
+            <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[16px] tw-sm:p-[0px]">
               <span className="tw-text-[25px] tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
                 <span>{realmInfo.name}</span>
                 {realmInfo.is_verified && (
                   <RiVerifiedBadgeFill size={18} color="var(--brand)" />
                 )}
               </span>
-              <span className="tw-text-[14px] tw-break-all tw-mb-[20px]">
+              <span className="tw-text-[14px] tw-break-all tw-mb-[14px]">
                 {realmInfo.email}
               </span>
               <span className="tw-text-[14px] tw-break-all">
@@ -288,22 +323,22 @@ function RealmProfile({
           </div>
         </div>
       </div>
-      <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
-        <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
+      <div className="cl-profile-page__content tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[6px] tw-items-stretch md:tw-items-start">
+        <div className="cl-profile-page__sidebar tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[8px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
           <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex tw-flex-col">
             <div
-              className={`tw-w-[calc(100%-40px)] tw-p-[20px] tw-flex tw-flex-col ${realmInfo.description && realmInfo.description.length >= 600 ? "tw-items-start" : "tw-items-center"} tw-gap-[15px]`}
+              className={`tw-w-[calc(100%-40px)] tw-p-[18px] tw-flex tw-flex-col ${realmInfo.description && realmInfo.description.length >= 600 ? "tw-items-start" : "tw-items-center"} tw-gap-[12px]`}
             >
               <span className="tw-text-[14px]">{realmInfo.description}</span>
             </div>
             <hr className="tw-w-[calc(100%-40px)] tw-border-[var(--border)] tw-opacity-[0.7] tw-mb-[0px] tw-z-[0]" />
-            <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
+            <div className="tw-w-full tw-p-[18px] tw-flex tw-flex-col tw-items-start tw-gap-[12px]">
               <span className="tw-text-[14px] tw-flex tw-items-center">
                 <MdPerson
                   size={22}
-                color="var(--text-2)"
-                style={{ marginRight: "5px" }}
-              />
+                  color="var(--text-2)"
+                  style={{ marginRight: "5px" }}
+                />
                 {realmInfo.followers_count > 0 ? (
                   <Fragment>
                     Followed by&nbsp;
@@ -318,7 +353,7 @@ function RealmProfile({
             </div>
           </div>
         </div>
-        <div className="tw-w-full tw-pb-[20px] tw-flex tw-flex-col tw-items-center">
+        <div className="cl-profile-page__feed tw-w-full tw-pb-[16px] tw-flex tw-flex-col tw-items-center tw-gap-[8px]">
           {toggleNewPostModal.toggle && realmInfo.is_admin && (
             <NewPostModal
               toShare={false}
@@ -336,7 +371,7 @@ function RealmProfile({
           )}
           {realmInfo.is_admin && (
             <Fragment>
-              <Card pad={14} style={{ marginBottom: 14, width: "100%" }}>
+              <Card pad={14} style={{ marginBottom: 8, width: "100%" }}>
                 {toggleNewPostModal.toggle && (
                   <NewPostModal
                     toShare={false}
@@ -420,7 +455,8 @@ function RealmProfile({
                       fontWeight: 600,
                     }}
                     onMouseEnter={(e) =>
-                      (e.currentTarget.style.background = "var(--surface-hover)")
+                      (e.currentTarget.style.background =
+                        "var(--surface-hover)")
                     }
                     onMouseLeave={(e) =>
                       (e.currentTarget.style.background = "transparent")
@@ -451,17 +487,13 @@ function RealmProfile({
             >
               {posts.map((mp: IPost) => {
                 return (
-                  <Card
+                    <Card
                     pad={10}
-                    style={{ marginBottom: 14, width: "100%" }}
+                    style={{ marginBottom: 10, width: "100%" }}
                     key={mp.post_id}
                     className="tw-flex tw-justify-center tw-w-full"
                   >
-                    <PostItem
-                      key={mp.post_id}
-                      isSharePreview={false}
-                      mp={mp}
-                    />
+                    <PostItem key={mp.post_id} isSharePreview={false} mp={mp} />
                   </Card>
                 );
               })}
@@ -503,7 +535,7 @@ function RealmProfile({
                 return (
                   <Card
                     pad={10}
-                    style={{ marginBottom: 14, width: "100%" }}
+                    style={{ marginBottom: 10, width: "100%" }}
                     key={i}
                     className="tw-flex tw-justify-center tw-w-full"
                   >

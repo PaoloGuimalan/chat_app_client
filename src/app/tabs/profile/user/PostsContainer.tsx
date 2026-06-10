@@ -25,8 +25,10 @@ import { Avatar, Btn, Card, Icon } from "@/reusables/design";
 
 function PostsContainer({
   profileInfo,
+  hideComposer = false,
 }: {
   profileInfo: ProfileUserInfoInterface;
+  hideComposer?: boolean;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -139,8 +141,8 @@ function PostsContainer({
 
   return (
     <Fragment>
-      {authentication.auth && (
-        <Card pad={14} style={{ marginBottom: 14, width: "100%" }}>
+      {authentication.auth && !hideComposer && (
+        <Card pad={12} style={{ marginBottom: 10, width: "100%" }}>
           {toggleNewPostModal.toggle && (
             <NewPostModal
               toShare={false}
@@ -156,7 +158,7 @@ function PostsContainer({
               onclose={settoggleNewPostModal}
             />
           )}
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <Avatar
               id={profileInfo.userID}
               name={profileInfo.fullname.firstName}
@@ -188,11 +190,11 @@ function PostsContainer({
               }
               style={{
                 flex: 1,
-                height: 42,
+                height: 40,
                 border: "none",
                 outline: "none",
                 background: "var(--input)",
-                padding: "0 16px",
+                padding: "0 14px",
                 borderRadius: 21,
                 color: "var(--text)",
                 fontSize: 14,
@@ -204,8 +206,8 @@ function PostsContainer({
               display: "flex",
               alignItems: "center",
               gap: 4,
-              marginTop: 10,
-              paddingTop: 10,
+              marginTop: 8,
+              paddingTop: 8,
               borderTop: "1px solid var(--border)",
             }}
           >
@@ -217,8 +219,8 @@ function PostsContainer({
                 display: "inline-flex",
                 alignItems: "center",
                 gap: 6,
-                height: 34,
-                padding: "0 12px",
+                height: 32,
+                padding: "0 10px",
                 border: "none",
                 background: "transparent",
                 borderRadius: "var(--r-sm)",

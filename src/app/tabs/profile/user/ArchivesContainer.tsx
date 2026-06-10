@@ -112,12 +112,12 @@ function ArchivesContainer({
   return (
     <Fragment>
       {paginatedPosts.count > 0 ? (
-        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
+        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[8px] tw-mt-[0px]">
           {posts.map((mp: IPost) => {
             return (
               <Card
                 pad={10}
-                style={{ marginBottom: 14, width: "100%" }}
+                style={{ marginBottom: 10, width: "100%" }}
                 key={mp.post_id}
                 className="tw-flex tw-justify-center tw-w-full"
               >
@@ -141,12 +141,12 @@ function ArchivesContainer({
           </div>
         </div>
       ) : (
-        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
+        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[8px] tw-mt-[0px]">
           {Array.from({ length: 8 }, (_, i: number) => {
             return (
               <Card
                 pad={10}
-                style={{ marginBottom: 14, width: "100%" }}
+                style={{ marginBottom: 10, width: "100%" }}
                 key={i}
                 className="tw-flex tw-justify-center tw-w-full"
               >

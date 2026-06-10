@@ -42,13 +42,17 @@ import { RiVerifiedBadgeFill } from "react-icons/ri";
 import PostsContainer from "./PostsContainer";
 import SavesContainer from "./SavesContainer";
 import ArchivesContainer from "./ArchivesContainer";
+import { Card } from "@/reusables/design";
+import { PiShareFat } from "react-icons/pi";
 
 function Profile({
   profileInfo,
   GetProfileInfoProcess,
+  isSharePage = false,
 }: {
   profileInfo: ProfileUserInfoInterface;
   GetProfileInfoProcess: () => void;
+  isSharePage?: boolean;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -298,7 +302,8 @@ function Profile({
   return profileInfo ? (
     <div
       ref={divcontentRef}
-      className="cl-profile-page__shell tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll"
+      className="cl-profile-page__shell tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[6px] tw-overflow-y-scroll x-scroll"
+      data-share-page={isSharePage ? "true" : "false"}
     >
       <button
         onClick={() => {
@@ -308,7 +313,38 @@ function Profile({
       >
         <IoArrowBack style={{ fontSize: "20px" }} />
       </button>
-      <div className="cl-profile-page__hero tw-w-full tw-h-[40%] tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center">
+      {isSharePage && (
+        <Card
+          pad={12}
+          style={{ width: "min(100%, 1200px)", marginTop: 8, marginBottom: 4 }}
+        >
+          <div className="tw-flex tw-items-center tw-gap-[10px] tw-w-full">
+            <div
+              style={{
+                width: 38,
+                height: 38,
+                borderRadius: 999,
+                background: "var(--brand-soft)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                flex: "none",
+              }}
+            >
+              <PiShareFat style={{ fontSize: 18, color: "var(--brand)" }} />
+            </div>
+            <div className="tw-flex tw-flex-col tw-min-w-0">
+              <span className="tw-font-semibold tw-text-[14px] tw-text-[var(--text)]">
+                Shared profile
+              </span>
+              <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                View-only preview of this profile.
+              </span>
+            </div>
+          </div>
+        </Card>
+      )}
+      <div className="cl-profile-page__hero tw-w-full tw-h-auto tw-min-h-[360px] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-py-[12px] sm:tw-py-[0px]">
         <ProfileCoverContainer
           userID={profileInfo.id}
           realm_id={null}
@@ -317,7 +353,7 @@ function Profile({
           isAllowed={true}
           getpostprocess={() => {}} // GetPostProcess
         />
-        <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
+        <div className="tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[12px] tw-pr-[12px] sm:tw-pl-[40px] sm:tw-pr-[40px]">
           <ProfilePicContainer
             userID={profileInfo.id}
             realm_id={null}
@@ -327,7 +363,7 @@ function Profile({
             getpostprocess={() => {}} // GetPostProcess
           />
           <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
-            <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[20px] tw-sm:p-[0px]">
+            <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[16px] tw-sm:p-[0px]">
               <span className="tw-text-[25px] tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
                 <span>
                   {profileInfo.fullname.firstName}
@@ -340,7 +376,7 @@ function Profile({
                   <RiVerifiedBadgeFill size={18} color="var(--brand)" />
                 )}
               </span>
-              <span className="tw-text-[14px] tw-break-all tw-mb-[20px]">
+              <span className="tw-text-[14px] tw-break-all tw-mb-[14px]">
                 {profileInfo.email}
               </span>
               <span className="tw-text-[14px] tw-break-all">
@@ -523,10 +559,10 @@ function Profile({
           </div>
         </div>
       </div>
-      <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
-        <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
+      <div className="cl-profile-page__content tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[6px] tw-items-stretch md:tw-items-start">
+        <div className="cl-profile-page__sidebar tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[8px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
           <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex">
-            <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
+            <div className="tw-w-full tw-p-[18px] tw-flex tw-flex-col tw-items-start tw-gap-[12px]">
               {profileInfo.gender && (
                 <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
                   {genderIcons[profileInfo.gender]}
@@ -565,7 +601,7 @@ function Profile({
             </div>
           </div>
           <div className="cl-profile-surface tw-h-fit tw-w-full tw-flex">
-            <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
+            <div className="tw-w-full tw-p-[18px] tw-flex tw-flex-col tw-items-start tw-gap-[12px]">
               <div className="tw-w-full tw-flex">
                 <div className="tw-flex tw-flex-row tw-flex-1 tw-gap-[5px] tw-items-center">
                   <FaBook style={{ fontSize: "17px", color: "var(--text-2)" }} />
@@ -694,9 +730,9 @@ function Profile({
             </div>
           </div>
         </div>
-        <div className="tw-w-full tw-pb-[20px] tw-flex tw-flex-col tw-items-center">
+        <div className="cl-profile-page__feed tw-w-full tw-pb-[12px] tw-flex tw-flex-col tw-items-center tw-gap-[6px]">
           {params.userID === authentication.user.username && (
-              <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex tw-mb-[10px]">
+              <div className="cl-profile-surface cl-profile-page__feed-nav tw-w-full tw-h-fit tw-flex tw-mb-[6px]">
               <motion.div
                 initial={{
                   justifyContent: isMobileView ? "center" : "start",
@@ -704,7 +740,7 @@ function Profile({
                 animate={{
                   justifyContent: isMobileView ? "center" : "start",
                 }}
-                className="tw-w-full tw-p-[12px] tw-flex tw-flex-row tw-flex-wrap tw-items-center tw-gap-[6px]"
+                className="tw-w-full tw-p-[10px] tw-flex tw-flex-row tw-flex-wrap tw-items-center tw-gap-[4px]"
               >
                 <motion.button
                   initial={{
@@ -765,7 +801,9 @@ function Profile({
               </motion.div>
             </div>
           )}
-          {feedmode === "posts" && <PostsContainer profileInfo={profileInfo} />}
+          {feedmode === "posts" && (
+            <PostsContainer profileInfo={profileInfo} hideComposer={isSharePage} />
+          )}
           {feedmode === "saves" && <SavesContainer profileInfo={profileInfo} />}
           {feedmode === "archives" && (
             <ArchivesContainer profileInfo={profileInfo} />

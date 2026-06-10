@@ -104,6 +104,7 @@ function ProfileContainer() {
                   <Profile
                     profileInfo={profileInfo}
                     GetProfileInfoProcess={GetProfileInfoProcess}
+                    isSharePage={isSharePath}
                   />
                 ) : (
                   <BrokenLink
@@ -115,6 +116,7 @@ function ProfileContainer() {
                 <RealmProfile
                   realmInfo={realmInfo}
                   GetProfileInfoProcess={GetProfileInfoProcess}
+                  isSharePage={isSharePath}
                 />
               ) : (
                 <BrokenLink

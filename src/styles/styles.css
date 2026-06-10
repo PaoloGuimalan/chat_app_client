@@ -4876,6 +4876,18 @@ input:checked + .slider:before {
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--brand) 14%, transparent);
 }
 
+.cl-explore-search-shell {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+.cl-explore-search-shell:focus-within {
+  border: none !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
 .cl-diary-page__search-shell #div_input_container {
   min-height: 44px;
   max-height: 48px;
@@ -5081,6 +5093,60 @@ input:checked + .slider:before {
 .cl-pages-create-member-chip--selected {
   background: color-mix(in srgb, var(--brand) 12%, var(--surface) 88%);
   color: var(--brand);
+}
+
+.cl-profile-page__shell .cl-profile-page__hero,
+.cl-profile-page__shell .cl-profile-surface {
+  width: min(100%, 1200px);
+}
+
+.cl-profile-page__shell[data-share-page="true"] .cl-profile-page__hero {
+  min-height: 320px;
+}
+
+.cl-profile-page__shell[data-share-page="true"] .cl-profile-page__sidebar {
+  display: none;
+}
+
+.cl-profile-page__shell[data-share-page="true"] .cl-profile-page__feed {
+  width: 100%;
+  max-width: 920px;
+  margin: 0 auto;
+}
+
+.cl-profile-page__shell[data-share-page="true"] .cl-profile-page__feed-nav {
+  display: none;
+}
+
+.cl-profile-page__shell[data-share-page="true"] .cl-profile-page__content {
+  justify-content: center;
+}
+
+@media screen and (max-width: 799px) {
+  .cl-profile-page__shell {
+    padding: 10px 0 92px;
+    gap: 8px;
+  }
+
+  .cl-profile-page__hero {
+    border-radius: 16px;
+    box-shadow: none;
+  }
+
+  .cl-profile-surface {
+    border-radius: 16px;
+    box-shadow: none;
+  }
+
+  .cl-profile-avatar-shell {
+    border-width: 4px;
+  }
+
+  .cl-profile-action-button,
+  .cl-profile-action-button--secondary,
+  .cl-profile-action-button--danger {
+    min-height: 38px;
+  }
 }
 
 .cl-server-channels-shell {

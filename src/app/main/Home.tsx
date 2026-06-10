@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo } from "react";
 import ChatterLoopImg from "../../assets/imgs/chatterloop.png";
 import { useDispatch, useSelector } from "react-redux";
 import {
@@ -14,7 +14,6 @@ import {
 import Contacts from "../tabs/feed/Contacts";
 import Notifications from "../tabs/feed/Notifications";
 import Messages from "../tabs/feed/Messages";
-import SearchMiniDrawer from "../widgets/SearchMiniDrawer";
 import {
   CloseSSENotifications,
   SSENotificationsTRequest,
@@ -70,6 +69,7 @@ import {
 import CallContainer from "../absolutes/calls_v2/CallContainer";
 import Pages from "../tabs/pages/Pages";
 import RealmContainer from "../tabs/realms/RealmContainer";
+import SearchPage from "../tabs/search/Search";
 import { Avatar, Icon, useTheme } from "@/reusables/design";
 
 interface RailItem {
@@ -123,9 +123,6 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   const alerts = useSelector((state: any) => state.alerts);
   const istypinglist = useSelector((state: any) => state.istypinglist);
   const pagemodal: IPageModal = useSelector((state: any) => state.pagemodal);
-
-  const [searchBoxFocus, setsearchBoxFocus] = useState(false);
-  const [searchbox, setsearchbox] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -393,6 +390,13 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
       onClick: onClickHome,
     },
     {
+      key: "explore",
+      icon: "search",
+      label: "Explore",
+      isActive: location.pathname.startsWith("/explore"),
+      onClick: () => navigate("/explore"),
+    },
+    {
       key: "map",
       icon: "map",
       label: "Map",
@@ -438,9 +442,20 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     },
   ];
 
-  const mobileNavItems = railItems.filter((it) =>
-    ["home", "map", "contacts", "messages", "notifs"].includes(it.key),
-  );
+  const mobileNavItems = railItems
+    .filter((it) => ["home", "contacts", "explore", "servers", "pages"].includes(it.key))
+    .map((item) =>
+      item.key === "explore"
+        ? {
+            ...item,
+            label: "Search",
+        }
+        : item,
+    );
+  const mobileNavOrder = ["home", "contacts", "explore", "servers", "pages"];
+  const orderedMobileNavItems = mobileNavOrder
+    .map((key) => mobileNavItems.find((item) => item.key === key))
+    .filter((item): item is RailItem => Boolean(item));
 
   const showRail = !isMobileView && !isMapFeedMobileView;
   const showMobileNav = isMobileView && !isMapFeedMobileView;
@@ -492,17 +507,18 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
         {showMobileNav && (
           <MobileTopBar
             onProfile={onProfileClick}
+            onMessages={() => navigate("/messages")}
+            onNotifications={() => navigate("/notifications")}
             profileSrc={
               authentication.user.profile !== "none"
                 ? authentication.user.profile
                 : undefined
             }
-            searchbox={searchbox}
-            setsearchbox={setsearchbox}
-            onSearchFocus={() => setsearchBoxFocus(true)}
-            onSearchBlur={() => setTimeout(() => setsearchBoxFocus(false), 500)}
+            profileName={authentication.user.fullName?.firstName}
             theme={theme}
             toggleTheme={toggleTheme}
+            messagesBadge={totalUnreadMessages > 0 ? totalUnreadMessages : undefined}
+            notificationsBadge={totalUnreadNotifs > 0 ? totalUnreadNotifs : undefined}
           />
         )}
 
@@ -516,13 +532,6 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             flexDirection: "column",
           }}
         >
-          {searchBoxFocus && (
-            <SearchMiniDrawer
-              searchbox={searchbox}
-              setsearchBoxFocus={setsearchBoxFocus}
-            />
-          )}
-
           <div
             style={{
               flex: 1,
@@ -553,6 +562,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
               <Route path="/messages" element={<Messages />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/contacts" element={<Contacts />} />
+              <Route path="/explore" element={<SearchPage />} />
               <Route path="/mapfeed" element={<MapFeed />} />
               <Route path="/servers/*" element={<Servers />} />
               <Route path="/pages/*" element={<Pages />} />
@@ -593,7 +603,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           </div>
         )}
 
-        {showMobileNav && <MobileNav items={mobileNavItems} />}
+        {showMobileNav && <MobileNav items={orderedMobileNavItems} />}
       </div>
 
       {screensizelistener.W >= 1100 && pagemodal && (
@@ -787,28 +797,31 @@ const railBtnStyle = {
 
 function MobileTopBar({
   onProfile,
+  onMessages,
+  onNotifications,
   profileSrc,
-  searchbox,
-  setsearchbox,
-  onSearchFocus,
-  onSearchBlur,
+  profileName,
   theme,
   toggleTheme,
+  messagesBadge,
+  notificationsBadge,
 }: {
   onProfile: () => void;
+  onMessages: () => void;
+  onNotifications: () => void;
   profileSrc?: string;
-  searchbox: string;
-  setsearchbox: (v: string) => void;
-  onSearchFocus: () => void;
-  onSearchBlur: () => void;
+  profileName?: string;
   theme: string;
   toggleTheme: () => void;
+  messagesBadge?: number;
+  notificationsBadge?: number;
 }) {
   return (
     <header
       style={{
         display: "flex",
         alignItems: "center",
+        justifyContent: "space-between",
         gap: 10,
         height: "var(--header-h)",
         flex: "none",
@@ -828,65 +841,95 @@ function MobileTopBar({
           borderRadius: "50%",
         }}
       >
-        <img
-          src={profileSrc}
-          alt=""
-          style={{
-            width: 36,
-            height: 36,
-            borderRadius: "50%",
-            objectFit: "cover",
-          }}
-        />
+        <Avatar id={profileName} name={profileName} src={profileSrc} size={36} />
       </button>
       <div
         style={{
-          flex: 1,
+          marginLeft: "auto",
           display: "flex",
           alignItems: "center",
           gap: 8,
-          height: 38,
-          padding: "0 12px",
-          background: "var(--input)",
-          borderRadius: "var(--r-sm)",
+          flex: "none",
         }}
       >
-        <Icon n="search" s={18} c="var(--text-3)" />
-        <input
-          value={searchbox}
-          onChange={(e) => setsearchbox(e.target.value)}
-          onFocus={onSearchFocus}
-          onBlur={onSearchBlur}
-          placeholder="Search…"
-          style={{
-            flex: 1,
-            border: "none",
-            outline: "none",
-            background: "transparent",
-            color: "var(--text)",
-            fontSize: 13.5,
-          }}
+        <TopBarAction
+          onClick={onMessages}
+          icon="forum"
+          label="Messages"
+          badge={messagesBadge}
+        />
+        <TopBarAction
+          onClick={onNotifications}
+          icon="notifications"
+          label="Notifications"
+          badge={notificationsBadge}
+        />
+        <TopBarAction
+          onClick={toggleTheme}
+          icon={theme === "dark" ? "light_mode" : "dark_mode"}
+          label="Toggle mode"
         />
       </div>
-      <button
-        onClick={toggleTheme}
-        style={{
-          width: 38,
-          height: 38,
-          flex: "none",
-          borderRadius: "var(--r-sm)",
-          border: "1px solid var(--border)",
-          background: "var(--surface)",
-          cursor: "pointer",
-          color: "var(--text-2)",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-        }}
-      >
-        <Icon n={theme === "dark" ? "light_mode" : "dark_mode"} s={18} />
-      </button>
     </header>
+  );
+}
+
+function TopBarAction({
+  onClick,
+  icon,
+  label,
+  badge,
+}: {
+  onClick: () => void;
+  icon: string;
+  label: string;
+  badge?: number;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={label}
+      title={label}
+      style={{
+        width: 38,
+        height: 38,
+        flex: "none",
+        borderRadius: "var(--r-sm)",
+        border: "1px solid var(--border)",
+        background: "var(--surface)",
+        cursor: "pointer",
+        color: "var(--text-2)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        position: "relative",
+      }}
+    >
+      <Icon n={icon} s={18} />
+      {badge ? (
+        <span
+          style={{
+            position: "absolute",
+            top: -2,
+            right: -2,
+            minWidth: 16,
+            height: 16,
+            padding: "0 4px",
+            background: "var(--pink)",
+            color: "#fff",
+            fontSize: 9,
+            fontWeight: 700,
+            borderRadius: 999,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            border: "2px solid var(--surface)",
+          }}
+        >
+          {badge}
+        </span>
+      ) : null}
+    </button>
   );
 }
 
