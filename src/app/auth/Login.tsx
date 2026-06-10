@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import "../../styles/styles.css";
-import { motion } from "framer-motion";
 import ChatterLoopImg from "../../assets/imgs/chatterloop.png";
 import { useNavigate } from "react-router-dom";
 import {
@@ -31,7 +29,7 @@ import {
   contactsliststate,
   conversationsetupstate,
 } from "@/redux/actions/states";
-import CachedImage from "../reusables/cachers/CachedImage";
+import { Btn, Field, Icon, useTheme } from "@/reusables/design";
 
 function Login() {
   const alerts = useSelector((state: any) => state.alerts);
@@ -42,62 +40,40 @@ function Login() {
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { theme, toggleTheme } = useTheme();
 
   const clearStates = () => {
     dispatch({
       type: SET_CONVERSATION_SETUP,
-      payload: {
-        conversationsetup: conversationsetupstate,
-      },
+      payload: { conversationsetup: conversationsetupstate },
     });
-
     dispatch({
       type: SET_MESSAGES_LIST_OVERRIDE,
-      payload: {
-        messageslist: [],
-      },
+      payload: { messageslist: [] },
     });
-
     dispatch({
       type: SET_CLEAR_ALERTS,
-      payload: {
-        alerts: [],
-      },
+      payload: { alerts: [] },
     });
-
     dispatch({
       type: SET_CALLS_LIST,
-      payload: {
-        callslist: [],
-      },
+      payload: { callslist: [] },
     });
-
     dispatch({
       type: CLEAR_PENDING_CALL_ALERTS,
-      payload: {
-        clearstate: [],
-      },
+      payload: { clearstate: [] },
     });
-
     dispatch({
       type: SET_CONTACTS_LIST_OVERRIDE,
-      payload: {
-        contactslist: contactsliststate,
-      },
+      payload: { contactslist: contactsliststate },
     });
-
     dispatch({
       type: SET_MINIMIZED_CONVERSATION_OVERRIDE,
-      payload: {
-        conversations: [],
-      },
+      payload: { conversations: [] },
     });
-
     dispatch({
       type: SET_NOTIFICATIONS_LIST_OVERRIDE,
-      payload: {
-        notficationslist: { list: [], totalunread: 0 },
-      },
+      payload: { notficationslist: { list: [], totalunread: 0 } },
     });
   };
 
@@ -106,10 +82,7 @@ function Login() {
     setisWaitingRequest(true);
     if (email_username.trim() != "" && password.trim() != "") {
       LoginRequest(
-        {
-          email_username: email_username,
-          password: password,
-        },
+        { email_username, password },
         dispatch,
         alerts,
         setisWaitingRequest,
@@ -133,190 +106,364 @@ function Login() {
     clearStates();
     setisWaitingRequest(true);
     ThirdPartyAuthenticationRequest(
-      {
-        token,
-      },
+      { token },
       dispatch,
       alerts,
       setisWaitingRequest,
     );
   };
 
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 760px)").matches;
+
   return (
     <GoogleOAuthProvider clientId={envs.GOOGLE_CLIENT_ID}>
-      <div id="div_login">
-        <motion.div
-          initial={{
-            height: "0px",
-            paddingTop: "0px",
-            paddingBottom: "0px",
+      <div
+        className="cl-redesign"
+        data-theme={theme}
+        style={{
+          position: "fixed",
+          inset: 0,
+          display: "flex",
+          background: "var(--bg)",
+        }}
+      >
+        {!isMobile && <BrandPanel />}
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            padding: 22,
+            position: "relative",
+            overflowY: "auto",
           }}
-          animate={{
-            height: "auto",
-            paddingTop: "20px",
-            paddingBottom: "0px",
-            border: "solid 1px white",
-          }}
-          transition={{
-            duration: 1,
-            delay: 0.5,
-          }}
-          id="div_login_form"
         >
-          <span id="span_login_label">Chatterloop</span>
-          <div id="div_img_icon_login_container">
-            <CachedImage src={ChatterLoopImg} id="img_icon_login" />
-          </div>
-          <div id="div_login_form_inputs">
-            <div id="div_inputs_container">
-              <input
-                type="text"
-                placeholder="Email or Username"
-                className="inputs_login"
+          <button
+            onClick={toggleTheme}
+            title="Toggle theme"
+            aria-label="Toggle theme"
+            style={{
+              position: "absolute",
+              top: 18,
+              right: 18,
+              width: 40,
+              height: 40,
+              borderRadius: "var(--r-sm)",
+              border: "1px solid var(--border)",
+              background: "var(--surface)",
+              cursor: "pointer",
+              color: "var(--text-2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon n={theme === "dark" ? "light_mode" : "dark_mode"} s={20} />
+          </button>
+
+          <div style={{ width: "100%", maxWidth: 380 }} className="cl-pop">
+            {isMobile && (
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 10,
+                  justifyContent: "center",
+                  marginBottom: 22,
+                }}
+              >
+                <img
+                  src={ChatterLoopImg}
+                  alt=""
+                  style={{ width: 38, height: 38 }}
+                />
+                <span style={{ fontSize: 24, fontWeight: 800 }}>
+                  Chatterloop
+                </span>
+              </div>
+            )}
+
+            <h1
+              style={{
+                margin: "0 0 4px",
+                fontSize: 26,
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+              }}
+            >
+              Welcome back
+            </h1>
+            <p
+              style={{
+                margin: "0 0 22px",
+                color: "var(--text-2)",
+                fontSize: 14,
+              }}
+            >
+              Log in to jump back into your loop.
+            </p>
+
+            <div
+              style={{ display: "flex", flexDirection: "column", gap: 13 }}
+            >
+              <Field
+                icon="alternate_email"
+                label="Email or Username"
+                placeholder="you@chatterloop.app"
                 value={email_username}
-                onChange={(e) => {
-                  setemail_username(e.target.value);
+                onChange={(e) => setemail_username(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !isWaitingRequest) verifyLogin();
                 }}
               />
-              <input
+              <Field
+                icon="lock"
+                label="Password"
                 type="password"
-                placeholder="Password"
-                className="inputs_login"
+                placeholder="••••••••"
                 value={password}
-                onChange={(e) => {
-                  setpassword(e.target.value);
+                onChange={(e) => setpassword(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && !isWaitingRequest) verifyLogin();
                 }}
               />
-              {isWaitingRequest ? (
-                <motion.div
-                  animate={{
-                    rotate: -360,
-                  }}
-                  transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                  }}
-                  id="div_loader_request"
-                >
-                  <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-                </motion.div>
-              ) : (
-                <div className="tw-flex tw-flex-col tw-w-full tw-gap-[10px] tw-items-center tw-pb-[20px]">
-                  <button
-                    id="btn_login"
-                    onClick={() => {
-                      verifyLogin();
-                    }}
-                  >
-                    Log In
-                  </button>
-                  <div className="tw-flex tw-flex-col tw-w-[90%] tw-items-center">
-                    <hr className="tw-w-full tw-border-white" />
-                    <span className="tw-font-Inter tw-text-[#3a3a3a] tw-text-[14px] tw-p-[5px] tw-pl-[10px] tw-pr-[10px] tw--mt-[24px] tw-bg-[#dfdfdf] tw-w-fit tw-font-semibold">
-                      OR
-                    </span>
-                  </div>
-                  <GoogleLogin
-                    onSuccess={(credentialResponse: CredentialResponse) => {
-                      if (credentialResponse.credential) {
-                        verifyTPAuthentication(credentialResponse.credential);
-                      } else {
-                        dispatch({
-                          type: SET_ALERTS,
-                          payload: {
-                            alerts: {
-                              id: alerts.length,
-                              type: "warning",
-                              content: "Unable to login using this account.",
-                            },
-                          },
-                        });
-                      }
-                    }}
-                    onError={() => {
-                      dispatch({
-                        type: SET_ALERTS,
-                        payload: {
-                          alerts: {
-                            id: alerts.length,
-                            type: "error",
-                            content:
-                              "There was a problem logging in with Google.",
-                          },
-                        },
-                      });
-                    }}
-                  />
-                </div>
-              )}
             </div>
-            <div id="div_question_label_login">
-              <span id="span_question_label">Don't have an account yet?</span>
+
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "flex-end",
+                alignItems: "center",
+                margin: "12px 0 18px",
+              }}
+            >
               <span
-                id="span_sign_up_redirect"
-                onClick={() => {
-                  navigate("/register");
+                style={{
+                  fontSize: 13,
+                  color: "var(--brand)",
+                  fontWeight: 600,
+                  cursor: "pointer",
+                }}
+              >
+                Forgot password?
+              </span>
+            </div>
+
+            <Btn
+              block
+              size="lg"
+              onClick={verifyLogin}
+              disabled={isWaitingRequest}
+            >
+              {isWaitingRequest ? (
+                <AiOutlineLoading3Quarters
+                  className="cl-spin"
+                  style={{ fontSize: 20 }}
+                />
+              ) : (
+                "Log In"
+              )}
+            </Btn>
+
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 12,
+                margin: "18px 0",
+              }}
+            >
+              <div
+                style={{ flex: 1, height: 1, background: "var(--border)" }}
+              />
+              <span
+                style={{
+                  fontSize: 12,
+                  color: "var(--text-3)",
+                  fontWeight: 600,
+                }}
+              >
+                OR
+              </span>
+              <div
+                style={{ flex: 1, height: 1, background: "var(--border)" }}
+              />
+            </div>
+
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <GoogleLogin
+                width="320"
+                onSuccess={(credentialResponse: CredentialResponse) => {
+                  if (credentialResponse.credential) {
+                    verifyTPAuthentication(credentialResponse.credential);
+                  } else {
+                    dispatch({
+                      type: SET_ALERTS,
+                      payload: {
+                        alerts: {
+                          id: alerts.length,
+                          type: "warning",
+                          content: "Unable to login using this account.",
+                        },
+                      },
+                    });
+                  }
+                }}
+                onError={() => {
+                  dispatch({
+                    type: SET_ALERTS,
+                    payload: {
+                      alerts: {
+                        id: alerts.length,
+                        type: "error",
+                        content:
+                          "There was a problem logging in with Google.",
+                      },
+                    },
+                  });
+                }}
+              />
+            </div>
+
+            <div
+              style={{
+                textAlign: "center",
+                marginTop: 22,
+                fontSize: 13.5,
+                color: "var(--text-2)",
+              }}
+            >
+              Don't have an account yet?{" "}
+              <span
+                onClick={() => navigate("/register")}
+                style={{
+                  color: "var(--brand)",
+                  fontWeight: 700,
+                  cursor: "pointer",
                 }}
               >
                 Sign Up
               </span>
             </div>
           </div>
-        </motion.div>
-        <motion.div
-          initial={{
-            scale: 0,
-          }}
-          animate={{
-            scale: 1,
-          }}
-          transition={{
-            delay: 1.2,
-            duration: 1.5,
-          }}
-          id="div_bubble1"
-        />
-        <motion.div
-          initial={{
-            scale: 0,
-          }}
-          animate={{
-            scale: 1,
-          }}
-          transition={{
-            delay: 1.2,
-            duration: 1.5,
-          }}
-          id="div_bubble2"
-        />
-        <motion.div
-          initial={{
-            scale: 0,
-          }}
-          animate={{
-            scale: 1,
-          }}
-          transition={{
-            delay: 1.2,
-            duration: 1.5,
-          }}
-          id="div_bubble3"
-        />
-        <motion.div
-          initial={{
-            scale: 0,
-          }}
-          animate={{
-            scale: 1,
-          }}
-          transition={{
-            delay: 1.2,
-            duration: 1.5,
-          }}
-          id="div_bubble4"
-        />
+        </div>
+        <style>{spinKeyframes}</style>
       </div>
     </GoogleOAuthProvider>
+  );
+}
+
+const spinKeyframes = `
+.cl-spin { animation: cl-spin 0.9s linear infinite; display: inline-block; }
+@keyframes cl-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+`;
+
+export function BrandPanel() {
+  return (
+    <div
+      style={{
+        width: "44%",
+        maxWidth: 560,
+        position: "relative",
+        overflow: "hidden",
+        background:
+          "linear-gradient(150deg, #1c7def 0%, #1257b0 55%, #0e3f87 100%)",
+        color: "#fff",
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "space-between",
+        padding: "44px 46px",
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          width: 420,
+          height: 420,
+          borderRadius: "50%",
+          background: "rgba(255,255,255,0.10)",
+          top: -120,
+          right: -120,
+        }}
+      />
+      <div
+        style={{
+          position: "absolute",
+          width: 240,
+          height: 240,
+          borderRadius: "50%",
+          background: "rgba(255,255,255,0.08)",
+          bottom: 60,
+          left: -80,
+        }}
+      />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 12,
+          position: "relative",
+        }}
+      >
+        <div
+          style={{
+            width: 46,
+            height: 46,
+            borderRadius: 14,
+            background: "rgba(255,255,255,0.18)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <img
+            src={ChatterLoopImg}
+            alt=""
+            style={{
+              width: 32,
+              height: 32,
+              filter: "brightness(0) invert(1)",
+            }}
+          />
+        </div>
+        <span
+          style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}
+        >
+          Chatterloop
+        </span>
+      </div>
+      <div style={{ position: "relative" }}>
+        <div
+          style={{
+            fontSize: 40,
+            fontWeight: 800,
+            lineHeight: 1.1,
+            letterSpacing: "-0.03em",
+            maxWidth: 420,
+          }}
+        >
+          A more visible way to stay connected.
+        </div>
+        <div
+          style={{
+            marginTop: 18,
+            fontSize: 16,
+            opacity: 0.85,
+            fontWeight: 500,
+          }}
+        >
+          Link · Share · Explore
+        </div>
+      </div>
+      <div
+        style={{ position: "relative", fontSize: 12.5, opacity: 0.7 }}
+      >
+        © Neon Systems · ChatterLoop
+      </div>
+    </div>
   );
 }
 

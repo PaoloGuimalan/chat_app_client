@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
-import "../../styles/styles.css";
-import { motion } from "framer-motion";
+import { CSSProperties, useState } from "react";
 import ChatterLoopImg from "../../assets/imgs/chatterloop.png";
 import { useNavigate } from "react-router-dom";
 import { getDaysInMonth, monthList, years } from "../../reusables/vars/lists";
@@ -11,27 +9,66 @@ import { checkIfValid } from "../../reusables/hooks/validatevariables";
 import { SET_ALERTS } from "../../redux/types";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { monthNameToNumber } from "@/reusables/hooks/reusable";
-import CachedImage from "../reusables/cachers/CachedImage";
+import { Btn, Field, Icon, SelectField, useTheme } from "@/reusables/design";
+import { BrandPanel } from "./Login";
+
+type Gender = "Male" | "Female" | "Others";
+
+const GENDER_STYLE: Record<Gender, { activeBg: CSSProperties["background"] }> = {
+  Male: { activeBg: "#49a1f8" },
+  Female: { activeBg: "#db56a4" },
+  Others: {
+    activeBg:
+      "linear-gradient(180deg, #FE0000 16.66%, #FD8C00 16.66%, 33.32%, #FFE500 33.32%, 49.98%, #119F0B 49.98%, 66.64%, #0644B3 66.64%, 83.3%, #C22EDC 83.3%)",
+  },
+};
+
+function GenderButton({
+  value,
+  active,
+  onClick,
+}: {
+  value: Gender;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      type="button"
+      style={{
+        flex: 1,
+        height: 40,
+        border: "1px solid " + (active ? "transparent" : "var(--border-2)"),
+        borderRadius: "var(--r-sm)",
+        cursor: "pointer",
+        fontSize: 13.5,
+        fontWeight: 650,
+        background: active ? GENDER_STYLE[value].activeBg : "var(--surface)",
+        color: active ? "#fff" : "var(--text-2)",
+        transition: "all .14s",
+      }}
+    >
+      {value}
+    </button>
+  );
+}
 
 function Register() {
   const alerts = useSelector((state: any) => state.alerts);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { theme, toggleTheme } = useTheme();
 
   const [firstName, setfirstName] = useState("");
   const [middleName, setmiddleName] = useState("");
   const [lastName, setlastName] = useState("");
-
   const [email, setemail] = useState("");
-
   const [month, setmonth] = useState("");
   const [day, setday] = useState("");
   const [year, setyear] = useState("");
-
-  const [gender, setgender] = useState("");
-
+  const [gender, setgender] = useState<"" | Gender>("");
   const [password, setpassword] = useState("");
-
   const [agreed, setagreed] = useState(false);
   const [isWaitingRequest, setisWaitingRequest] = useState(false);
 
@@ -52,15 +89,15 @@ function Register() {
       ) {
         RegisterRequest(
           {
-            firstName: firstName,
-            middleName: middleName,
-            lastName: lastName,
+            firstName,
+            middleName,
+            lastName,
             birthmonth: monthNameToNumber(month),
             birthday: day,
             birthyear: year,
-            gender: gender,
-            email: email,
-            password: password,
+            gender,
+            email,
+            password,
           },
           dispatch,
           alerts,
@@ -94,306 +131,280 @@ function Register() {
     }
   };
 
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 760px)").matches;
+
   return (
-    <div id="div_register">
-      <motion.div
-        initial={{
-          width: "0px",
+    <div
+      className="cl-redesign"
+      data-theme={theme}
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        background: "var(--bg)",
+      }}
+    >
+      {!isMobile && <BrandPanel />}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 22,
+          position: "relative",
+          overflowY: "auto",
         }}
-        animate={{
-          width: "95%",
-        }}
-        transition={{
-          duration: 2,
-          delay: 0.5,
-        }}
-        id="div_register_form"
       >
-        <div id="div_icon_register_container">
-          <CachedImage src={ChatterLoopImg} id="img_icon_register" />
-          <span id="span_login_label">Chatterloop</span>
-        </div>
-        <motion.div
-          initial={{
-            opacity: 0,
+        <button
+          onClick={toggleTheme}
+          title="Toggle theme"
+          aria-label="Toggle theme"
+          style={{
+            position: "absolute",
+            top: 18,
+            right: 18,
+            width: 40,
+            height: 40,
+            borderRadius: "var(--r-sm)",
+            border: "1px solid var(--border)",
+            background: "var(--surface)",
+            cursor: "pointer",
+            color: "var(--text-2)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 2,
           }}
-          animate={{
-            opacity: 1,
-          }}
-          transition={{
-            duration: 1,
-            delay: 2,
-          }}
-          id="div_register_form_inputs"
         >
-          <div id="div_inputs_name">
-            <input
-              type="text"
-              placeholder="First Name"
-              className="input_names"
-              value={firstName}
-              onChange={(e) => {
-                setfirstName(e.target.value);
+          <Icon n={theme === "dark" ? "light_mode" : "dark_mode"} s={20} />
+        </button>
+
+        <div
+          style={{ width: "100%", maxWidth: 460, padding: "30px 0" }}
+          className="cl-pop"
+        >
+          {isMobile && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                justifyContent: "center",
+                marginBottom: 22,
               }}
-            />
-            <input
-              type="text"
-              placeholder="Middle Name (Optional)"
-              className="input_names"
-              value={middleName}
-              onChange={(e) => {
-                setmiddleName(e.target.value);
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Last Name"
-              className="input_names"
+            >
+              <img
+                src={ChatterLoopImg}
+                alt=""
+                style={{ width: 38, height: 38 }}
+              />
+              <span style={{ fontSize: 24, fontWeight: 800 }}>Chatterloop</span>
+            </div>
+          )}
+
+          <h1
+            style={{
+              margin: "0 0 4px",
+              fontSize: 26,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Create your account
+          </h1>
+          <p
+            style={{
+              margin: "0 0 22px",
+              color: "var(--text-2)",
+              fontSize: 14,
+            }}
+          >
+            Join the loop in less than a minute.
+          </p>
+
+          <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
+            <div style={{ display: "flex", gap: 10 }}>
+              <Field
+                icon="person"
+                label="First name"
+                placeholder="First"
+                value={firstName}
+                onChange={(e) => setfirstName(e.target.value)}
+              />
+              <Field
+                label="Middle (optional)"
+                placeholder="Middle"
+                value={middleName}
+                onChange={(e) => setmiddleName(e.target.value)}
+              />
+            </div>
+            <Field
+              icon="badge"
+              label="Last name"
+              placeholder="Last"
               value={lastName}
-              onChange={(e) => {
-                setlastName(e.target.value);
-              }}
+              onChange={(e) => setlastName(e.target.value)}
             />
-          </div>
-          <div id="div_inputs_email">
-            <input
-              type="text"
-              placeholder="Email"
-              className="input_email"
+            <Field
+              icon="alternate_email"
+              label="Email"
+              placeholder="you@chatterloop.app"
               value={email}
-              onChange={(e) => {
-                setemail(e.target.value);
-              }}
+              onChange={(e) => setemail(e.target.value)}
             />
-          </div>
-          <div id="div_birthdate">
-            <span id="span_birthdate_label">Birth Date</span>
-            <div id="div_inputs_dates">
-              <select
-                className="input_dates"
-                // placeholder="Month"
-                value={month}
-                onChange={(e) => {
-                  setmonth(e.target.value);
+
+            <div>
+              <span
+                style={{
+                  display: "block",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "var(--text-2)",
+                  marginBottom: 6,
                 }}
               >
-                <option value="" defaultValue={""}>
-                  Month
-                </option>
-                {monthList.map((val, i) => {
-                  return (
-                    <option key={i} value={val}>
+                Birth date
+              </span>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "1.3fr 1fr 1fr",
+                  gap: 10,
+                }}
+              >
+                <SelectField
+                  icon="event"
+                  value={month}
+                  onChange={setmonth}
+                >
+                  <option value="">Month</option>
+                  {monthList.map((val) => (
+                    <option key={val} value={val}>
                       {val}
                     </option>
-                  );
-                })}
-              </select>
-              <select
-                className="input_dates"
-                // placeholder="Year"
-                value={year}
-                onChange={(e) => {
-                  setyear(e.target.value);
-                }}
-              >
-                <option value="" defaultValue={""}>
-                  Year
-                </option>
-                {years.map((val, i) => {
-                  return (
-                    <option key={i} value={val}>
-                      {val}
-                    </option>
-                  );
-                })}
-              </select>
-              <select
-                className="input_dates"
-                // placeholder="Day"
-                value={day}
-                onChange={(e) => {
-                  setday(e.target.value);
-                }}
-              >
-                <option value="" defaultValue={""}>
-                  Day
-                </option>
-                {month != "" && year != ""
-                  ? getDaysInMonth(month, year).map((val, i) => {
-                      return (
-                        <option key={i} value={val}>
+                  ))}
+                </SelectField>
+                <SelectField value={day} onChange={setday}>
+                  <option value="">Day</option>
+                  {month != "" && year != ""
+                    ? getDaysInMonth(month, year).map((val) => (
+                        <option key={val} value={val}>
                           {val}
                         </option>
-                      );
-                    })
-                  : null}
-              </select>
+                      ))
+                    : null}
+                </SelectField>
+                <SelectField value={year} onChange={setyear}>
+                  <option value="">Year</option>
+                  {years.map((val) => (
+                    <option key={val} value={val}>
+                      {val}
+                    </option>
+                  ))}
+                </SelectField>
+              </div>
             </div>
-          </div>
-          <div id="div_birthdate">
-            <span id="span_birthdate_label">Gender</span>
-            <div id="div_inputs_dates">
-              <motion.button
-                initial={{
-                  backgroundColor: "#f0f0f0",
-                }}
-                animate={{
-                  backgroundColor: gender == "Male" ? "#49a1f8" : "#f0f0f0",
-                  color: gender == "Male" ? "white" : "#4A4A4A",
-                }}
-                onClick={() => {
-                  setgender("Male");
-                }}
-                className="input_gender"
-              >
-                Male
-              </motion.button>
-              <motion.button
-                initial={{
-                  backgroundColor: "#f0f0f0",
-                }}
-                animate={{
-                  backgroundColor: gender == "Female" ? "#db56a4" : "#f0f0f0",
-                  color: gender == "Female" ? "white" : "#4A4A4A",
-                }}
-                onClick={() => {
-                  setgender("Female");
-                }}
-                className="input_gender"
-              >
-                Female
-              </motion.button>
-              <motion.button
+
+            <div>
+              <span
                 style={{
-                  background:
-                    gender == "Others"
-                      ? "linear-gradient(180deg, #FE0000 16.66%, #FD8C00 16.66%, 33.32%, #FFE500 33.32%, 49.98%, #119F0B 49.98%, 66.64%, #0644B3 66.64%, 83.3%, #C22EDC 83.3%)"
-                      : "#f0f0f0",
-                  color: gender == "Others" ? "white" : "#4A4A4A",
+                  display: "block",
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: "var(--text-2)",
+                  marginBottom: 6,
                 }}
-                onClick={() => {
-                  setgender("Others");
-                }}
-                className="input_gender"
               >
-                Others
-              </motion.button>
+                Gender
+              </span>
+              <div style={{ display: "flex", gap: 8 }}>
+                {(["Male", "Female", "Others"] as const).map((g) => (
+                  <GenderButton
+                    key={g}
+                    value={g}
+                    active={gender === g}
+                    onClick={() => setgender(g)}
+                  />
+                ))}
+              </div>
             </div>
-          </div>
-          <div id="div_inputs_password">
-            <input
+
+            <Field
+              icon="lock"
+              label="Password"
               type="password"
-              placeholder="Password"
-              className="input_password"
+              placeholder="••••••••"
               value={password}
-              onChange={(e) => {
-                setpassword(e.target.value);
-              }}
+              onChange={(e) => setpassword(e.target.value)}
             />
           </div>
-          <div id="div_checkbox_terms_conditions">
+
+          <label
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginTop: 16,
+              fontSize: 13,
+              color: "var(--text-2)",
+              cursor: "pointer",
+            }}
+          >
             <input
               type="checkbox"
-              id="input_checkbox_terms_conditions"
               checked={agreed}
-              onChange={(e) => {
-                setagreed(e.target.checked);
+              onChange={(e) => setagreed(e.target.checked)}
+              style={{
+                accentColor: "var(--brand)",
+                width: 15,
+                height: 15,
               }}
             />
-            <span id="span_checkbox_terms_conditions">
-              I agree to the Terms and Conditions
-            </span>
-          </div>
-          <div id="div_button_sign_up">
+            I agree to the Terms and Conditions
+          </label>
+
+          <Btn
+            block
+            size="lg"
+            onClick={processregister}
+            disabled={isWaitingRequest}
+            style={{ marginTop: 18 }}
+          >
             {isWaitingRequest ? (
-              <motion.div
-                animate={{
-                  rotate: -360,
-                }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                }}
-                id="div_loader_request"
-              >
-                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-              </motion.div>
+              <AiOutlineLoading3Quarters
+                className="cl-spin"
+                style={{ fontSize: 20 }}
+              />
             ) : (
-              <button
-                id="btn_register"
-                onClick={() => {
-                  processregister();
-                }}
-              >
-                Sign Up
-              </button>
+              "Sign Up"
             )}
-          </div>
-          <div id="div_question_label_login">
-            <span id="span_question_label">Already have an account?</span>
+          </Btn>
+
+          <div
+            style={{
+              textAlign: "center",
+              marginTop: 22,
+              fontSize: 13.5,
+              color: "var(--text-2)",
+            }}
+          >
+            Already have an account?{" "}
             <span
-              id="span_sign_up_redirect"
-              onClick={() => {
-                navigate("/login");
+              onClick={() => navigate("/login")}
+              style={{
+                color: "var(--brand)",
+                fontWeight: 700,
+                cursor: "pointer",
               }}
             >
               Log In
             </span>
           </div>
-        </motion.div>
-      </motion.div>
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_register1"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_register2"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_register3"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_register4"
-      />
+        </div>
+      </div>
     </div>
   );
 }

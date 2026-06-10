@@ -1,10 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
-import "../../styles/styles.css";
-import { motion } from "framer-motion";
-import VerificationImg from "../../assets/imgs/verification_icon.png";
+import { KeyboardEvent, useRef, useState } from "react";
+import ChatterLoopImg from "../../assets/imgs/chatterloop.png";
 import { useDispatch, useSelector } from "react-redux";
-import VerificationInput from "react-verification-input";
 import {
   LogoutRequest,
   VerifyCodeRequest,
@@ -12,28 +9,46 @@ import {
 import { checkIfValid } from "../../reusables/hooks/validatevariables";
 import { SET_ALERTS } from "../../redux/types";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import CachedImage from "../reusables/cachers/CachedImage";
+import { Btn, Icon, useTheme } from "@/reusables/design";
+import { BrandPanel } from "./Login";
 
 function Verification() {
   const authentication = useSelector((state: any) => state.authentication);
   const alerts = useSelector((state: any) => state.alerts);
 
-  const [verificationcode, setverificationcode] = useState("");
+  const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
   const [isWaitingRequest, setisWaitingRequest] = useState(false);
+  const refs = useRef<(HTMLInputElement | null)[]>([]);
   const dispatch = useDispatch();
+  const { theme, toggleTheme } = useTheme();
+
+  const setDigit = (i: number, v: string) => {
+    if (!/^\d?$/.test(v)) return;
+    setCode((c) => {
+      const n = [...c];
+      n[i] = v;
+      return n;
+    });
+    if (v && i < 5) refs.current[i + 1]?.focus();
+  };
+
+  const onKey = (i: number, e: KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === "Backspace" && !code[i] && i) refs.current[i - 1]?.focus();
+  };
+
+  const verificationcode = code.join("");
+  const full = code.every(Boolean);
 
   const verifyCodeProcess = () => {
     setisWaitingRequest(true);
     if (checkIfValid([verificationcode])) {
       if (verificationcode.split("").length == 6) {
         VerifyCodeRequest(
-          {
-            code: verificationcode,
-          },
+          { code: verificationcode },
           dispatch,
           authentication,
           alerts,
-          setisWaitingRequest
+          setisWaitingRequest,
         );
       } else {
         dispatch({
@@ -67,217 +82,195 @@ function Verification() {
     LogoutRequest(dispatch);
   };
 
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 760px)").matches;
+
   return (
-    <div id="div_verification">
-      <motion.div
-        initial={{
-          width: "0%",
+    <div
+      className="cl-redesign"
+      data-theme={theme}
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        background: "var(--bg)",
+      }}
+    >
+      {!isMobile && <BrandPanel />}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 22,
+          position: "relative",
         }}
-        animate={{
-          width: "95%",
-        }}
-        transition={{
-          duration: 2,
-          delay: 0.5,
-        }}
-        id="div_verification_container"
       >
-        <div id="div_verification_header_container">
-          <div id="div_verification_icon_container">
-            <CachedImage src={VerificationImg} id="img_ver_icon" />
-            <div id="div_ver_bubble" />
-            <div id="div_ver_bubble2" />
-          </div>
-          <motion.span
-            initial={{
-              opacity: 0,
-            }}
-            animate={{
-              opacity: 1,
-            }}
-            transition={{
-              duration: 1,
-              delay: 2.5,
-            }}
-            id="span_verify_label"
-          >
-            Verify your Email Address
-          </motion.span>
-        </div>
-        <motion.div
-          initial={{
-            opacity: 0,
+        <button
+          onClick={toggleTheme}
+          title="Toggle theme"
+          aria-label="Toggle theme"
+          style={{
+            position: "absolute",
+            top: 18,
+            right: 18,
+            width: 40,
+            height: 40,
+            borderRadius: "var(--r-sm)",
+            border: "1px solid var(--border)",
+            background: "var(--surface)",
+            cursor: "pointer",
+            color: "var(--text-2)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
-          animate={{
-            opacity: 1,
-          }}
-          transition={{
-            duration: 1,
-            delay: 2.5,
-          }}
-          id="div_verification_form"
         >
-          <span id="span_verifiaction_label_to_user">
-            A verification code has been sent to{" "}
-            <b>{authentication.user.email}</b>
-          </span>
-          <span id="span_verifiaction_label_to_user">
-            Please check your inbox and enter the verification code below to
-            verify your account.
-          </span>
-          <div id="div_input_code">
-            <VerificationInput
-              classNames={{
-                container: "ver_container",
-                character: "ver_character",
-              }}
-              onChange={(e) => {
-                setverificationcode(e);
-              }}
-            />
-          </div>
-          {isWaitingRequest ? (
-            <motion.div
-              animate={{
-                rotate: -360,
-              }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-              }}
-              id="div_loader_request_verify"
-            >
-              <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-            </motion.div>
-          ) : (
-            <button
-              id="btn_verify"
-              onClick={() => {
-                verifyCodeProcess();
+          <Icon n={theme === "dark" ? "light_mode" : "dark_mode"} s={20} />
+        </button>
+
+        <div
+          style={{ width: "100%", maxWidth: 400, textAlign: "center" }}
+          className="cl-pop"
+        >
+          {isMobile && (
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 10,
+                justifyContent: "center",
+                marginBottom: 18,
               }}
             >
-              Verify
-            </button>
+              <img
+                src={ChatterLoopImg}
+                alt=""
+                style={{ width: 38, height: 38 }}
+              />
+              <span style={{ fontSize: 24, fontWeight: 800 }}>Chatterloop</span>
+            </div>
           )}
-          <div id="div_verification_navigations">
-            <button className="btn_verification_navigations">
+          <div
+            style={{
+              width: 62,
+              height: 62,
+              borderRadius: "50%",
+              background: "var(--brand-soft)",
+              margin: "0 auto 18px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon n="mark_email_read" s={30} c="var(--brand)" />
+          </div>
+          <h1
+            style={{
+              margin: "0 0 6px",
+              fontSize: 24,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            Verify your email
+          </h1>
+          <p
+            style={{ margin: "0 0 24px", color: "var(--text-2)", fontSize: 14 }}
+          >
+            We sent a 6-digit code to{" "}
+            <b style={{ color: "var(--text)" }}>
+              {authentication?.user?.email}
+            </b>
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              gap: 9,
+              justifyContent: "center",
+              marginBottom: 24,
+            }}
+          >
+            {code.map((d, i) => (
+              <input
+                key={i}
+                ref={(el) => (refs.current[i] = el)}
+                value={d}
+                onChange={(e) => setDigit(i, e.target.value)}
+                onKeyDown={(e) => onKey(i, e)}
+                inputMode="numeric"
+                maxLength={1}
+                style={{
+                  width: 46,
+                  height: 56,
+                  textAlign: "center",
+                  fontSize: 22,
+                  fontWeight: 700,
+                  color: "var(--text)",
+                  background: "var(--input)",
+                  border:
+                    "1.5px solid " + (d ? "var(--brand)" : "var(--border-2)"),
+                  borderRadius: "var(--r-sm)",
+                  outline: "none",
+                }}
+              />
+            ))}
+          </div>
+
+          <Btn
+            block
+            size="lg"
+            onClick={verifyCodeProcess}
+            disabled={isWaitingRequest || !full}
+          >
+            {isWaitingRequest ? (
+              <AiOutlineLoading3Quarters
+                className="cl-spin"
+                style={{ fontSize: 20 }}
+              />
+            ) : (
+              "Verify"
+            )}
+          </Btn>
+
+          <div
+            style={{
+              marginTop: 18,
+              fontSize: 13.5,
+              color: "var(--text-2)",
+            }}
+          >
+            Didn't get it?{" "}
+            <span
+              style={{
+                color: "var(--brand)",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
               Resend Code
-            </button>
-            <button
-              className="btn_verification_navigations"
-              onClick={() => {
-                logoutProcess();
+            </span>
+            <span
+              style={{ margin: "0 8px", color: "var(--border-2)" }}
+            >
+              ·
+            </span>
+            <span
+              onClick={logoutProcess}
+              style={{
+                color: "var(--brand)",
+                fontWeight: 700,
+                cursor: "pointer",
               }}
             >
               Logout
-            </button>
+            </span>
           </div>
-        </motion.div>
-      </motion.div>
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification1"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification2"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification3"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification4"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification5"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification6"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification7"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification8"
-      />
+        </div>
+      </div>
     </div>
   );
 }

@@ -1,0 +1,124 @@
+/* ChatterLoop redesign — shared theme tokens.
+ * Scoped under .cl-redesign so they coexist with the legacy app styles
+ * during the screen-by-screen migration. Light + dark, theme persists
+ * to localStorage via ThemeProvider. */
+
+@import url("https://fonts.googleapis.com/icon?family=Material+Icons");
+
+.cl-redesign {
+  --brand: #1c7def;
+  --brand-600: #1769d1;
+  --brand-700: #1257b0;
+  --brand-soft: #e7f0fe;
+  --brand-300: #9cc2ff;
+  --green: #20bd7c;
+  --green-soft: #e2f7ee;
+  --gold: #e69500;
+  --gold-soft: #fff2db;
+  --pink: #ff5b6b;
+  --pink-soft: #ffe6e9;
+  --online: #2ecc71;
+
+  --r-xs: 8px;
+  --r-sm: 10px;
+  --r-md: 14px;
+  --r-lg: 20px;
+  --r-pill: 999px;
+
+  --rail-w: 76px;
+  --header-h: 60px;
+  --bottomnav-h: 60px;
+
+  --font:
+    "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.cl-redesign,
+.cl-redesign[data-theme="light"] {
+  --bg: #eef1f5;
+  --bg-grad-a: #eaf0f8;
+  --bg-grad-b: #eef1f5;
+  --surface: #ffffff;
+  --surface-2: #f6f8fb;
+  --surface-3: #eceff3;
+  --surface-hover: #f0f2f6;
+  --input: #eef1f5;
+  --border: #e3e6eb;
+  --border-2: #d7dbe2;
+  --text: #14161a;
+  --text-2: #5b606b;
+  --text-3: #8b909b;
+  --on-brand: #ffffff;
+  --shadow-sm: 0 1px 2px rgba(20, 30, 55, 0.06),
+    0 1px 3px rgba(20, 30, 55, 0.05);
+  --shadow-md: 0 2px 8px rgba(20, 30, 55, 0.08),
+    0 8px 24px rgba(20, 30, 55, 0.06);
+  --shadow-lg: 0 8px 30px rgba(20, 30, 55, 0.14);
+  --scrim: rgba(15, 20, 35, 0.45);
+  --glass: rgba(255, 255, 255, 0.72);
+}
+
+.cl-redesign[data-theme="dark"] {
+  --bg: #0b0e14;
+  --bg-grad-a: #0d1119;
+  --bg-grad-b: #0b0e14;
+  --surface: #151a23;
+  --surface-2: #1b2230;
+  --surface-3: #222a3a;
+  --surface-hover: #1e2532;
+  --input: #1b2230;
+  --border: #262f3f;
+  --border-2: #313c50;
+  --text: #e8ebf1;
+  --text-2: #99a1b1;
+  --text-3: #6b7488;
+  --brand-soft: rgba(60, 139, 255, 0.16);
+  --green-soft: rgba(32, 189, 124, 0.16);
+  --gold-soft: rgba(230, 149, 0, 0.16);
+  --pink-soft: rgba(255, 91, 107, 0.16);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 12px 40px rgba(0, 0, 0, 0.6);
+  --scrim: rgba(0, 0, 0, 0.6);
+  --glass: rgba(21, 26, 35, 0.72);
+}
+
+.cl-redesign,
+.cl-redesign * {
+  box-sizing: border-box;
+}
+
+.cl-redesign {
+  font-family: var(--font);
+  color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.cl-redesign button { font-family: inherit; }
+.cl-redesign input, .cl-redesign textarea, .cl-redesign select { font-family: inherit; }
+.cl-redesign a { color: inherit; text-decoration: none; }
+
+.cl-redesign .cl-fade { animation: clFade 0.28s var(--ease) both; }
+@keyframes clFade {
+  from { transform: translateY(7px); opacity: 0; }
+  to { transform: none; opacity: 1; }
+}
+.cl-redesign .cl-pop { animation: clPop 0.3s var(--spring) both; }
+@keyframes clPop {
+  from { transform: scale(0.975); opacity: 0; }
+  to { transform: scale(1); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-redesign *,
+  .cl-redesign *::before,
+  .cl-redesign *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
