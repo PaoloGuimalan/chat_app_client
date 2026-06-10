@@ -114,12 +114,18 @@ function Feed() {
         flex: 1,
         minHeight: 0,
         overflowY: "auto",
-        padding: "16px 18px 24px",
-        maxWidth: 720,
         width: "100%",
-        margin: "0 auto",
       }}
     >
+      <div
+        style={{
+          maxWidth: 680,
+          margin: "0 auto",
+          padding: "16px 18px 24px",
+          display: "flex",
+          flexDirection: "column",
+        }}
+      >
       {toggleNewPostModal.toggle && (
         <NewPostModal
           toShare={false}
@@ -369,6 +375,7 @@ function Feed() {
           />
         </div>
       )}
+      </div>
     </div>
   );
 }

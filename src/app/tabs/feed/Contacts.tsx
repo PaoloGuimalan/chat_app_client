@@ -134,7 +134,6 @@ function Contacts() {
   if (!isStandalone && isMobile) {
     return null;
   }
-  const maxW = isStandalone ? 640 : 360;
 
   const rows: ContactRowData[] = contactslist.flatMap((cnts) => {
     if (cnts.type !== "single") return [];
@@ -167,12 +166,11 @@ function Contacts() {
         flex: 1,
         minHeight: 0,
         width: "100%",
-        maxWidth: maxW,
+        maxWidth: isStandalone ? 640 : "100%",
         margin: isStandalone ? "0 auto" : undefined,
         padding: isStandalone ? "16px 22px" : "16px 12px",
         gap: 12,
-        background: isStandalone ? "transparent" : "var(--surface)",
-        borderLeft: !isStandalone ? "1px solid var(--border)" : "none",
+        background: "transparent",
       }}
     >
       <div

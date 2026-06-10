@@ -548,17 +548,6 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           />
         )}
 
-        {!isMobileView && (
-          <DesktopTopSearch
-            searchbox={searchbox}
-            setsearchbox={setsearchbox}
-            onSearchFocus={() => setsearchBoxFocus(true)}
-            onSearchBlur={() =>
-              setTimeout(() => setsearchBoxFocus(false), 500)
-            }
-          />
-        )}
-
         <main
           style={{
             flex: 1,
@@ -580,9 +569,9 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             style={{
               flex: 1,
               minHeight: 0,
-              overflow: "auto",
               display: "flex",
               flexDirection: "column",
+              overflow: "hidden",
             }}
           >
             <Routes>
@@ -946,63 +935,6 @@ function MobileTopBar({
         <Icon n={theme === "dark" ? "light_mode" : "dark_mode"} s={18} />
       </button>
     </header>
-  );
-}
-
-function DesktopTopSearch({
-  searchbox,
-  setsearchbox,
-  onSearchFocus,
-  onSearchBlur,
-}: {
-  searchbox: string;
-  setsearchbox: (v: string) => void;
-  onSearchFocus: () => void;
-  onSearchBlur: () => void;
-}) {
-  return (
-    <div
-      style={{
-        flex: "none",
-        padding: "14px 22px 0",
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 540,
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          height: 44,
-          padding: "0 16px",
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "var(--r-md)",
-          boxShadow: "var(--shadow-sm)",
-        }}
-      >
-        <Icon n="search" s={20} c="var(--text-3)" />
-        <input
-          value={searchbox}
-          onChange={(e) => setsearchbox(e.target.value)}
-          onFocus={onSearchFocus}
-          onBlur={onSearchBlur}
-          autoComplete="off"
-          placeholder="Search something…"
-          style={{
-            flex: 1,
-            border: "none",
-            outline: "none",
-            background: "transparent",
-            color: "var(--text)",
-            fontSize: 14,
-          }}
-        />
-      </div>
-    </div>
   );
 }
 
