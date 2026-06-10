@@ -7,26 +7,20 @@ import { motion } from "framer-motion";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import GroupChatIcon from "../../../assets/imgs/group-chat-icon.jpg";
 import { FcVideoCall, FcAddImage } from "react-icons/fc"; //FcInfo
-import { BiSolidInfoCircle, BiSolidPhoneCall, BiWindows } from "react-icons/bi";
-import {
-  RiAddCircleFill,
-  RiInboxArchiveFill,
-  RiInboxUnarchiveFill,
-} from "react-icons/ri";
+import { BiSolidInfoCircle, BiSolidPhoneCall } from "react-icons/bi";
+import { RiAddCircleFill } from "react-icons/ri";
 import { IoArrowBack, IoDocumentOutline, IoSend } from "react-icons/io5";
-import { MdAudiotrack, MdDelete } from "react-icons/md";
+import { MdAudiotrack } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai"; //AiFillInfoCircle
 import { checkIfValid } from "../../../reusables/hooks/validatevariables";
 import {
   CallRequest,
   ConversationInfoRequest,
-  InitConversationListRequest,
   InitConversationRequest,
   IsTypingBroadcastRequest,
   SeenMessageRequest,
   SendFilesRequest,
   SendMessageRequest,
-  UpdateChatHistoryRequest,
 } from "../../../reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -40,18 +34,13 @@ import {
 } from "../../../reusables/hooks/reusable";
 import {
   CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
-  CLOSE_MINIMIZED_CONVERSATION,
-  REMOVE_CONVERSATION,
   // MEDIA_MY_VIDEO_HOLDER,
   // MEDIA_TRACK_HOLDER,
   // REMOVE_REJECTED_CALL_LIST,
   // SET_CALLS_LIST,
   SET_CONVERSATION_SETUP,
-  SET_MESSAGES_LIST_OVERRIDE,
-  SET_MINIMIZED_CONVERSATION,
   SET_MUTATE_ALERTS,
   SET_PENDING_MESSAGES_LIST,
-  SET_PREVIEW_PARTICIPANTS_BULK,
 } from "../../../redux/types";
 import { useLocation, useNavigate } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
@@ -62,9 +51,7 @@ import {
 } from "@/reusables/vars/interfaces";
 import IsTypingLoader from "./partials/IsTypingLoader";
 import { FaHashtag, FaLock } from "react-icons/fa6";
-import { HiDotsVertical } from "react-icons/hi";
 import { conversationsetupstate } from "@/redux/actions/states";
-import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Conversation({ conversationsetup, theme, isMinimized }: any) {
@@ -137,7 +124,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     useState<boolean>(false);
   const [conversationinfo, setconversationinfo] =
     useState<ConversationInfoInterface | null>(null);
-  const [toggleMenu, settoggleMenu] = useState<boolean>(false);
   const callRequestInFlightRef = useRef<Set<string>>(new Set());
 
   const getMemberInfo = (userID: string) => {
@@ -176,6 +162,25 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const urllocation = useLocation();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  const handleConversationBack = useCallback(() => {
+    if (conversationsetup.type === "server") {
+      navigate(
+        urllocation.pathname
+          .split("/")
+          .slice(0, urllocation.pathname.split("/").length - 1)
+          .join("/"),
+      );
+      return;
+    }
+
+    dispatch({
+      type: SET_CONVERSATION_SETUP,
+      payload: {
+        conversationsetup: conversationsetupstate,
+      },
+    });
+  }, [conversationsetup.type, dispatch, navigate, urllocation.pathname]);
 
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
@@ -819,61 +824,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     });
   };
 
-  const UpdateChatHistoryProcess = (action: string) => {
-    settoggleMenu(false);
-    UpdateChatHistoryRequest({
-      conversationID: conversationsetup.conversationid,
-      action,
-    })
-      .then(() => {
-        if (isMinimized) {
-          dispatch({
-            type: CLOSE_MINIMIZED_CONVERSATION,
-            payload: {
-              conversationID: conversationsetup.conversationid,
-            },
-          });
-        } else {
-          dispatch({
-            type: SET_CONVERSATION_SETUP,
-            payload: {
-              conversationsetup: conversationsetupstate,
-            },
-          });
-        }
-
-        if (action !== "unarchive") {
-          dispatch({
-            type: REMOVE_CONVERSATION,
-            payload: {
-              conversationID: conversationsetup.conversationid,
-            },
-          });
-        } else {
-          InitConversationListRequest(1, 20).then((response) => {
-            dispatch({
-              type: SET_PREVIEW_PARTICIPANTS_BULK,
-              payload: {
-                participants: response.conversationslist
-                  .map((mp: any) => mp.voice_participants)
-                  .flat(),
-              },
-            });
-            dispatch({
-              type: SET_MESSAGES_LIST_OVERRIDE,
-              payload: {
-                messageslist: response.conversationslist,
-              },
-            });
-            setisLoading(false);
-          });
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
   return (
     <motion.div
       animate={{
@@ -899,6 +849,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               : "20px",
       }}
       id="div_conversation"
+      className="cl-conversation-shell"
     >
       <motion.div
         initial={{
@@ -1013,26 +964,17 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             id="div_conversation_header"
           >
             <div id="div_conversation_user">
-              {conversationType === "server" ? (
-                screensizelistener.W <= 900 && (
-                  <div
-                    onClick={() => {
-                      // console.log(conversationsetup);
-                      navigate(
-                        urllocation.pathname
-                          .split("/")
-                          .slice(0, urllocation.pathname.split("/").length - 1)
-                          .join("/"),
-                      );
-                    }}
-                    id="div_img_cncts_container"
-                  >
-                    <div id="div_img_server_back_container_cncts">
-                      <IoArrowBack style={{ fontSize: "20px" }} />
-                    </div>
-                  </div>
-                )
-              ) : (
+              {screensizelistener.W <= 900 && (
+                <button
+                  type="button"
+                  onClick={handleConversationBack}
+                  className="btn_conversation_header_navigation cl-conversation-back"
+                  aria-label="Back"
+                >
+                  <IoArrowBack style={{ fontSize: "18px" }} />
+                </button>
+              )}
+              {conversationType === "server" ? null : (
                 <div id="div_img_cncts_container">
                   <div id="div_img_search_profiles_container_cncts">
                     {conversationsetup.type == "single" ? (
@@ -1201,214 +1143,22 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   <FcVideoCall style={{ fontSize: "25px" }} />
                 </motion.button>
               )}
-              <div className="tw-relative">
-                <motion.button
-                  whileHover={{
-                    backgroundColor: "#e6e6e6",
-                  }}
-                  className="btn_conversation_header_navigation"
-                  disabled={conversationinfo ? false : true}
-                  onClick={() => {
-                    settoggleMenu(!toggleMenu);
-                  }}
-                  // onBlur={() => {
-                  //   settoggleMenu(false);
-                  // }}
-                >
-                  <HiDotsVertical
-                    style={{ fontSize: "25px", color: theme.primary }}
-                  />
-                </motion.button>
-                <motion.div
-                  initial={{
-                    scale: 0,
-                  }}
-                  animate={{
-                    scale: toggleMenu ? 1 : 0,
-                  }}
-                  className="tw-flex-col tw-absolute tw-top-[30px] tw-min-w-[80px] tw-right-0 tw-rounded-md tw-bg-white tw-p-[5px] tw-shadow-md tw-z-50"
-                >
-                  <motion.button
-                    initial={{
-                      backgroundColor: "white",
-                    }}
-                    whileHover={{
-                      backgroundColor: "#e6e6e6",
-                    }}
-                    className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
-                    disabled={conversationinfo ? false : true}
-                    onClick={() => {
-                      settoggleConversationInfoModal(
-                        !toggleConversationInfoModal,
-                      );
-                      settoggleMenu(false);
-                    }}
-                  >
-                    <BiSolidInfoCircle
-                      style={{ fontSize: "20px", color: theme.primary }}
-                    />
-                    <span className="tw-text-[12px] tw-font-Inter">Info</span>
-                  </motion.button>
-                  {conversationinfo?.type !== "single" &&
-                    conversationinfo?.is_admin && (
-                      <motion.button
-                        initial={{
-                          backgroundColor: "white",
-                        }}
-                        whileHover={{
-                          backgroundColor: "#e6e6e6",
-                        }}
-                        className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
-                        disabled={conversationinfo ? false : true}
-                        onClick={() => {
-                          navigate(`/realms/${conversationinfo?.contactID}`);
-                        }}
-                      >
-                        <IoMdSettings
-                          style={{ fontSize: "20px", color: theme.primary }}
-                        />
-                        <span className="tw-text-[12px] tw-font-Inter">
-                          Manage
-                        </span>
-                      </motion.button>
-                    )}
-                  {!isMinimized &&
-                    !(screensizelistener.W <= 900) &&
-                    conversationType !== "server" && (
-                      <motion.button
-                        initial={{
-                          backgroundColor: "white",
-                        }}
-                        whileHover={{
-                          backgroundColor: "#e6e6e6",
-                        }}
-                        className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
-                        disabled={conversationinfo ? false : true}
-                        onClick={() => {
-                          dispatch({
-                            type: SET_MINIMIZED_CONVERSATION,
-                            payload: {
-                              conversation: conversationsetup,
-                            },
-                          });
-                          dispatch({
-                            type: SET_CONVERSATION_SETUP,
-                            payload: {
-                              conversationsetup: conversationsetupstate,
-                            },
-                          });
-                          settoggleMenu(false);
-                        }}
-                      >
-                        <BiWindows
-                          style={{ fontSize: "20px", color: theme.primary }}
-                        />
-                        <span className="tw-text-[12px] tw-font-Inter">
-                          Minimize
-                        </span>
-                      </motion.button>
-                    )}
-                  {conversationinfo &&
-                  conversationinfo.chatHistory &&
-                  conversationinfo.chatHistory.isArchived
-                    ? conversationType !== "server" && (
-                        <motion.button
-                          initial={{
-                            backgroundColor: "white",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#e6e6e6",
-                          }}
-                          className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
-                          disabled={conversationinfo ? false : true}
-                          onClick={() => {
-                            UpdateChatHistoryProcess("unarchive");
-                          }}
-                        >
-                          <RiInboxUnarchiveFill
-                            style={{
-                              fontSize: "20px",
-                              color: theme.primary,
-                            }}
-                          />
-                          <span className="tw-text-[12px] tw-font-Inter">
-                            Unarchive
-                          </span>
-                        </motion.button>
-                      )
-                    : conversationType !== "server" && (
-                        <motion.button
-                          initial={{
-                            backgroundColor: "white",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#e6e6e6",
-                          }}
-                          className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
-                          disabled={conversationinfo ? false : true}
-                          onClick={() => {
-                            UpdateChatHistoryProcess("archive");
-                          }}
-                        >
-                          <RiInboxArchiveFill
-                            style={{
-                              fontSize: "20px",
-                              color: theme.primary,
-                            }}
-                          />
-                          <span className="tw-text-[12px] tw-font-Inter">
-                            Archive
-                          </span>
-                        </motion.button>
-                      )}
-                  {conversationType !== "server" && (
-                    <motion.button
-                      initial={{
-                        backgroundColor: "white",
-                      }}
-                      whileHover={{
-                        backgroundColor: "#e6e6e6",
-                      }}
-                      className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
-                      disabled={conversationinfo ? false : true}
-                      onClick={() => {
-                        UpdateChatHistoryProcess("clear");
-                      }}
-                    >
-                      <MdDelete style={{ fontSize: "20px", color: "red" }} />
-                      <span className="tw-text-[12px] tw-font-Inter">
-                        Delete
-                      </span>
-                    </motion.button>
-                  )}
-                  {isMinimized && (
-                    <motion.button
-                      initial={{
-                        backgroundColor: "white",
-                      }}
-                      whileHover={{
-                        backgroundColor: "#e6e6e6",
-                      }}
-                      className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
-                      disabled={conversationinfo ? false : true}
-                      onClick={() => {
-                        dispatch({
-                          type: CLOSE_MINIMIZED_CONVERSATION,
-                          payload: {
-                            conversationID: conversationsetup.conversationid,
-                          },
-                        });
-                        settoggleMenu(false);
-                      }}
-                    >
-                      <IoMdClose style={{ fontSize: "20px", color: "red" }} />
-                      <span className="tw-text-[12px] tw-font-Inter">
-                        Close
-                      </span>
-                    </motion.button>
-                  )}
-                </motion.div>
-              </div>
+              <motion.button
+                whileHover={{
+                  backgroundColor: "#e6e6e6",
+                }}
+                className="btn_conversation_header_navigation"
+                disabled={conversationinfo ? false : true}
+                onClick={() => {
+                  settoggleConversationInfoModal(!toggleConversationInfoModal);
+                }}
+                aria-label="Conversation info"
+                title="Info"
+              >
+                <BiSolidInfoCircle
+                  style={{ fontSize: "22px", color: theme.primary }}
+                />
+              </motion.button>
             </div>
           </motion.div>
           {isLoading ? (
@@ -1440,6 +1190,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 }
               }}
             >
+              <div className="cl-conversation-day-divider">Today</div>
               {filteredistypinglist.length > 0 && <IsTypingLoader />}
               {pendingmessageslist
                 .filter(

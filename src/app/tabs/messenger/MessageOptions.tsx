@@ -34,7 +34,7 @@ function MessageOptions({
 
   return (
     <div
-      className={`tw-bg-transparent tw-flex tw-flex-1 tw-gap-[1px] ${
+      className={`cl-message-options tw-bg-transparent tw-flex tw-flex-1 tw-gap-[1px] ${
         type == "sender"
           ? "tw-justify-end tw-pr-[5px] tw-flex-row"
           : "tw-justify-end tw-pl-[5px] tw-flex-row-reverse"

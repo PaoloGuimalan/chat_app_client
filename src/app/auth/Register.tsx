@@ -1,85 +1,63 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
-import "../../styles/styles.css";
-import { motion } from "framer-motion";
-import ChatterLoopImg from "../../assets/imgs/chatterloop.png";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { getDaysInMonth, monthList, years } from "../../reusables/vars/lists";
-import { RegisterRequest } from "../../reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import {
+  getDaysInMonth,
+  monthList,
+  years,
+} from "../../reusables/vars/lists";
+import { RegisterRequest } from "../../reusables/hooks/requests";
 import { checkIfValid } from "../../reusables/hooks/validatevariables";
 import { SET_ALERTS } from "../../redux/types";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { monthNameToNumber } from "@/reusables/hooks/reusable";
-import CachedImage from "../reusables/cachers/CachedImage";
+import AuthShell from "./AuthShell";
 
 function Register() {
   const alerts = useSelector((state: any) => state.alerts);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [theme, setTheme] = useState(() => localStorage.getItem("cl_up_theme") || "light");
 
-  const [firstName, setfirstName] = useState("");
-  const [middleName, setmiddleName] = useState("");
-  const [lastName, setlastName] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [middleName, setMiddleName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [email, setEmail] = useState("");
+  const [month, setMonth] = useState("");
+  const [day, setDay] = useState("");
+  const [year, setYear] = useState("");
+  const [gender, setGender] = useState("");
+  const [password, setPassword] = useState("");
+  const [agreed, setAgreed] = useState(false);
+  const [isWaitingRequest, setIsWaitingRequest] = useState(false);
 
-  const [email, setemail] = useState("");
+  const isReady = useMemo(
+    () =>
+      checkIfValid([
+        firstName,
+        lastName,
+        email,
+        month,
+        day,
+        year,
+        gender,
+        password,
+      ]) && agreed,
+    [firstName, lastName, email, month, day, year, gender, password, agreed],
+  );
 
-  const [month, setmonth] = useState("");
-  const [day, setday] = useState("");
-  const [year, setyear] = useState("");
+  const toggleTheme = () => {
+    const nextTheme = theme === "dark" ? "light" : "dark";
+    setTheme(nextTheme);
+    document.documentElement.setAttribute("data-theme", nextTheme);
+    localStorage.setItem("cl_up_theme", nextTheme);
+  };
 
-  const [gender, setgender] = useState("");
+  const processRegister = () => {
+    setIsWaitingRequest(true);
 
-  const [password, setpassword] = useState("");
-
-  const [agreed, setagreed] = useState(false);
-  const [isWaitingRequest, setisWaitingRequest] = useState(false);
-
-  const processregister = () => {
-    setisWaitingRequest(true);
-    if (agreed) {
-      if (
-        checkIfValid([
-          firstName,
-          lastName,
-          email,
-          month,
-          day,
-          year,
-          gender,
-          password,
-        ])
-      ) {
-        RegisterRequest(
-          {
-            firstName: firstName,
-            middleName: middleName,
-            lastName: lastName,
-            birthmonth: monthNameToNumber(month),
-            birthday: day,
-            birthyear: year,
-            gender: gender,
-            email: email,
-            password: password,
-          },
-          dispatch,
-          alerts,
-          setisWaitingRequest,
-        );
-      } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: alerts.length,
-              type: "warning",
-              content: "Please complete the fields.",
-            },
-          },
-        });
-        setisWaitingRequest(false);
-      }
-    } else {
+    if (!agreed) {
       dispatch({
         type: SET_ALERTS,
         payload: {
@@ -90,312 +68,265 @@ function Register() {
           },
         },
       });
-      setisWaitingRequest(false);
+      setIsWaitingRequest(false);
+      return;
     }
+
+    if (!checkIfValid([firstName, lastName, email, month, day, year, gender, password])) {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: alerts.length,
+            type: "warning",
+            content: "Please complete the fields.",
+          },
+        },
+      });
+      setIsWaitingRequest(false);
+      return;
+    }
+
+    RegisterRequest(
+      {
+        firstName,
+        middleName,
+        lastName,
+        birthmonth: monthNameToNumber(month),
+        birthday: day,
+        birthyear: year,
+        gender,
+        email,
+        password,
+      },
+      dispatch,
+      alerts,
+      setIsWaitingRequest,
+    );
   };
 
   return (
-    <div id="div_register">
-      <motion.div
-        initial={{
-          width: "0px",
-        }}
-        animate={{
-          width: "95%",
-        }}
-        transition={{
-          duration: 2,
-          delay: 0.5,
-        }}
-        id="div_register_form"
-      >
-        <div id="div_icon_register_container">
-          <CachedImage src={ChatterLoopImg} id="img_icon_register" />
-          <span id="span_login_label">Chatterloop</span>
+    <AuthShell
+      title="Create your account"
+      subtitle="Join the loop in less than a minute."
+      theme={theme}
+      onToggleTheme={toggleTheme}
+    >
+      <div style={{ padding: 28 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 22 }}>
+          <h1 style={{ margin: 0, fontSize: 28, fontWeight: 800, letterSpacing: "-0.02em" }}>
+            Sign up
+          </h1>
+          <p style={{ margin: 0, color: "var(--cl-text-2)", fontSize: 14 }}>
+            Set up your profile and start connecting.
+          </p>
         </div>
-        <motion.div
-          initial={{
-            opacity: 0,
-          }}
-          animate={{
-            opacity: 1,
-          }}
-          transition={{
-            duration: 1,
-            delay: 2,
-          }}
-          id="div_register_form_inputs"
-        >
-          <div id="div_inputs_name">
+
+        <div style={{ display: "grid", gap: 14 }}>
+          <div className="cl-grid-2">
+            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--cl-text-2)" }}>
+                First name
+              </span>
+              <input
+                type="text"
+                placeholder="Paolo"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                style={authInputStyle}
+              />
+            </label>
+            <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+              <span style={{ fontSize: 12, fontWeight: 600, color: "var(--cl-text-2)" }}>
+                Last name
+              </span>
+              <input
+                type="text"
+                placeholder="Guimalan"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                style={authInputStyle}
+              />
+            </label>
+          </div>
+
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--cl-text-2)" }}>
+              Middle name <span style={{ opacity: 0.7 }}>(optional)</span>
+            </span>
             <input
               type="text"
-              placeholder="First Name"
-              className="input_names"
-              value={firstName}
-              onChange={(e) => {
-                setfirstName(e.target.value);
-              }}
-            />
-            <input
-              type="text"
-              placeholder="Middle Name (Optional)"
-              className="input_names"
+              placeholder="Middle name"
               value={middleName}
-              onChange={(e) => {
-                setmiddleName(e.target.value);
-              }}
+              onChange={(e) => setMiddleName(e.target.value)}
+              style={authInputStyle}
             />
+          </label>
+
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--cl-text-2)" }}>
+              Email
+            </span>
             <input
               type="text"
-              placeholder="Last Name"
-              className="input_names"
-              value={lastName}
-              onChange={(e) => {
-                setlastName(e.target.value);
-              }}
-            />
-          </div>
-          <div id="div_inputs_email">
-            <input
-              type="text"
-              placeholder="Email"
-              className="input_email"
+              placeholder="you@chatterloop.app"
               value={email}
-              onChange={(e) => {
-                setemail(e.target.value);
-              }}
+              onChange={(e) => setEmail(e.target.value)}
+              style={authInputStyle}
             />
-          </div>
-          <div id="div_birthdate">
-            <span id="span_birthdate_label">Birth Date</span>
-            <div id="div_inputs_dates">
-              <select
-                className="input_dates"
-                // placeholder="Month"
-                value={month}
-                onChange={(e) => {
-                  setmonth(e.target.value);
-                }}
-              >
-                <option value="" defaultValue={""}>
-                  Month
-                </option>
-                {monthList.map((val, i) => {
-                  return (
-                    <option key={i} value={val}>
-                      {val}
-                    </option>
-                  );
-                })}
+          </label>
+
+          <div style={{ display: "grid", gap: 10 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--cl-text-2)" }}>
+              Birth date
+            </span>
+            <div className="cl-grid-3">
+              <select value={month} onChange={(e) => setMonth(e.target.value)} style={authInputStyle}>
+                <option value="">Month</option>
+                {monthList.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
               </select>
-              <select
-                className="input_dates"
-                // placeholder="Year"
-                value={year}
-                onChange={(e) => {
-                  setyear(e.target.value);
-                }}
-              >
-                <option value="" defaultValue={""}>
-                  Year
-                </option>
-                {years.map((val, i) => {
-                  return (
-                    <option key={i} value={val}>
-                      {val}
-                    </option>
-                  );
-                })}
-              </select>
-              <select
-                className="input_dates"
-                // placeholder="Day"
-                value={day}
-                onChange={(e) => {
-                  setday(e.target.value);
-                }}
-              >
-                <option value="" defaultValue={""}>
-                  Day
-                </option>
-                {month != "" && year != ""
-                  ? getDaysInMonth(month, year).map((val, i) => {
-                      return (
-                        <option key={i} value={val}>
-                          {val}
-                        </option>
-                      );
-                    })
+              <select value={day} onChange={(e) => setDay(e.target.value)} style={authInputStyle}>
+                <option value="">Day</option>
+                {month !== "" && year !== ""
+                  ? getDaysInMonth(month, year).map((value) => (
+                      <option key={value} value={value}>
+                        {value}
+                      </option>
+                    ))
                   : null}
               </select>
+              <select value={year} onChange={(e) => setYear(e.target.value)} style={authInputStyle}>
+                <option value="">Year</option>
+                {years.map((value) => (
+                  <option key={value} value={value}>
+                    {value}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
-          <div id="div_birthdate">
-            <span id="span_birthdate_label">Gender</span>
-            <div id="div_inputs_dates">
-              <motion.button
-                initial={{
-                  backgroundColor: "#f0f0f0",
-                }}
-                animate={{
-                  backgroundColor: gender == "Male" ? "#49a1f8" : "#f0f0f0",
-                  color: gender == "Male" ? "white" : "#4A4A4A",
-                }}
-                onClick={() => {
-                  setgender("Male");
-                }}
-                className="input_gender"
-              >
-                Male
-              </motion.button>
-              <motion.button
-                initial={{
-                  backgroundColor: "#f0f0f0",
-                }}
-                animate={{
-                  backgroundColor: gender == "Female" ? "#db56a4" : "#f0f0f0",
-                  color: gender == "Female" ? "white" : "#4A4A4A",
-                }}
-                onClick={() => {
-                  setgender("Female");
-                }}
-                className="input_gender"
-              >
-                Female
-              </motion.button>
-              <motion.button
-                style={{
-                  background:
-                    gender == "Others"
-                      ? "linear-gradient(180deg, #FE0000 16.66%, #FD8C00 16.66%, 33.32%, #FFE500 33.32%, 49.98%, #119F0B 49.98%, 66.64%, #0644B3 66.64%, 83.3%, #C22EDC 83.3%)"
-                      : "#f0f0f0",
-                  color: gender == "Others" ? "white" : "#4A4A4A",
-                }}
-                onClick={() => {
-                  setgender("Others");
-                }}
-                className="input_gender"
-              >
-                Others
-              </motion.button>
+
+          <div style={{ display: "grid", gap: 10 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--cl-text-2)" }}>
+              Gender
+            </span>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
+              {[
+                { value: "Male", label: "Male" },
+                { value: "Female", label: "Female" },
+                { value: "Others", label: "Others" },
+              ].map((option) => {
+                const active = gender === option.value;
+                return (
+                  <button
+                    key={option.value}
+                    type="button"
+                    onClick={() => setGender(option.value)}
+                    style={{
+                      ...genderButtonStyle,
+                      borderColor: active ? "transparent" : "var(--cl-border-2)",
+                      background:
+                        option.value === "Others" && active
+                          ? "linear-gradient(180deg, #FE0000 16.66%, #FD8C00 16.66%, 33.32%, #FFE500 33.32%, 49.98%, #119F0B 49.98%, 66.64%, #0644B3 66.64%, 83.3%, #C22EDC 83.3%)"
+                          : active
+                            ? "var(--cl-brand)"
+                            : "var(--cl-surface)",
+                      color: active ? "#fff" : "var(--cl-text)",
+                    }}
+                  >
+                    {option.label}
+                  </button>
+                );
+              })}
             </div>
           </div>
-          <div id="div_inputs_password">
+
+          <label style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <span style={{ fontSize: 12, fontWeight: 600, color: "var(--cl-text-2)" }}>
+              Password
+            </span>
             <input
               type="password"
-              placeholder="Password"
-              className="input_password"
+              placeholder="••••••••"
               value={password}
-              onChange={(e) => {
-                setpassword(e.target.value);
-              }}
+              onChange={(e) => setPassword(e.target.value)}
+              style={authInputStyle}
             />
-          </div>
-          <div id="div_checkbox_terms_conditions">
+          </label>
+
+          <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13, color: "var(--cl-text-2)" }}>
             <input
               type="checkbox"
-              id="input_checkbox_terms_conditions"
               checked={agreed}
-              onChange={(e) => {
-                setagreed(e.target.checked);
-              }}
+              onChange={(e) => setAgreed(e.target.checked)}
+              style={{ accentColor: "var(--cl-brand)" }}
             />
-            <span id="span_checkbox_terms_conditions">
-              I agree to the Terms and Conditions
-            </span>
-          </div>
-          <div id="div_button_sign_up">
+            I agree to the Terms and Conditions
+          </label>
+
+          <button
+            type="button"
+            onClick={processRegister}
+            disabled={!isReady || isWaitingRequest}
+            style={{
+              width: "100%",
+              height: 46,
+              border: "none",
+              borderRadius: "var(--cl-radius-sm)",
+              background: "var(--cl-brand)",
+              color: "#fff",
+              fontSize: 15,
+              fontWeight: 700,
+              cursor: isReady && !isWaitingRequest ? "pointer" : "not-allowed",
+              opacity: isReady && !isWaitingRequest ? 1 : 0.7,
+              boxShadow: "0 2px 8px rgba(28,125,239,0.30)",
+            }}
+          >
             {isWaitingRequest ? (
-              <motion.div
-                animate={{
-                  rotate: -360,
-                }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                }}
-                id="div_loader_request"
-              >
-                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-              </motion.div>
+              <AiOutlineLoading3Quarters style={{ animation: "clSpin 1s linear infinite" }} />
             ) : (
-              <button
-                id="btn_register"
-                onClick={() => {
-                  processregister();
-                }}
-              >
-                Sign Up
-              </button>
+              "Sign Up"
             )}
-          </div>
-          <div id="div_question_label_login">
-            <span id="span_question_label">Already have an account?</span>
+          </button>
+
+          <div style={{ textAlign: "center", marginTop: 8, fontSize: 13.5, color: "var(--cl-text-2)" }}>
+            Already have an account?{" "}
             <span
-              id="span_sign_up_redirect"
-              onClick={() => {
-                navigate("/login");
-              }}
+              onClick={() => navigate("/login")}
+              style={{ color: "var(--cl-brand)", fontWeight: 700, cursor: "pointer" }}
             >
               Log In
             </span>
           </div>
-        </motion.div>
-      </motion.div>
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_register1"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_register2"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_register3"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_register4"
-      />
-    </div>
+        </div>
+      </div>
+    </AuthShell>
   );
 }
+
+const authInputStyle: React.CSSProperties = {
+  width: "100%",
+  height: 44,
+  borderRadius: "var(--cl-radius-sm)",
+  border: "1px solid var(--cl-border)",
+  background: "var(--cl-input)",
+  color: "var(--cl-text)",
+  padding: "0 14px",
+  outline: "none",
+  fontSize: 14,
+};
+
+const genderButtonStyle: React.CSSProperties = {
+  height: 42,
+  borderRadius: "var(--cl-radius-sm)",
+  border: "1px solid var(--cl-border-2)",
+  fontSize: 14,
+  fontWeight: 700,
+  cursor: "pointer",
+};
 
 export default Register;

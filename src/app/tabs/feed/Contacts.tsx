@@ -1,520 +1,479 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useRef } from "react";
-import "../../../styles/styles.css";
-import { FcContacts } from "react-icons/fc";
-import { AiOutlineLoading3Quarters, AiOutlineMessage } from "react-icons/ai";
-import { BiUserMinus } from "react-icons/bi";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import {
+  AiOutlineLoading3Quarters,
+  AiOutlineMessage,
+  AiOutlineSearch,
+} from "react-icons/ai";
+import { BiUserMinus } from "react-icons/bi";
+import { FiArrowRight, FiUsers } from "react-icons/fi";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
+import DefaultProfile from "../../../assets/imgs/default.png";
+import CachedImage from "@/app/reusables/cachers/CachedImage";
 import {
   ContactsListInitRequest,
   DeclineContactRequest,
-} from "../../../reusables/hooks/requests";
-import DefaultProfile from "../../../assets/imgs/default.png";
-import {
-  SET_CONVERSATION_SETUP,
-  SET_TOGGLE_RIGHT_WIDGET,
-} from "../../../redux/types";
-import { useNavigate } from "react-router-dom";
-import { conversationsetupstate } from "../../../redux/actions/states";
+} from "@/reusables/hooks/requests";
+import { AuthenticationInterface, IContact } from "@/reusables/vars/interfaces";
+import { PaginationProp } from "@/reusables/vars/props";
 import {
   contactsToUserdetails,
   isUserOnline,
   userSessionStatusFromContacts,
-} from "../../../reusables/hooks/reusable";
-import { PaginationProp } from "@/reusables/vars/props";
-import { AuthenticationInterface, IContact } from "@/reusables/vars/interfaces";
-import ContactItemLoader from "@/app/reusables/loaders/ContactItemLoader";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { RiVerifiedBadgeFill } from "react-icons/ri";
+} from "@/reusables/hooks/reusable";
+import {
+  conversationsetupstate,
+} from "@/redux/actions/states";
+import {
+  SET_CONVERSATION_SETUP,
+  SET_TOGGLE_RIGHT_WIDGET,
+} from "@/redux/types";
+
+type ContactFilter = "all" | "online" | "incoming" | "outgoing";
+
+const PAGE_SIZE = 24;
 
 function Contacts() {
-  const activeuserslist = useSelector((state: any) => state.activeuserslist);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const contacts: PaginationProp<IContact> = useSelector(
     (state: any) => state.contactslist,
   );
-  const contactslist: IContact[] = contacts.results;
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
   );
-  const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
   const alerts = useSelector((state: any) => state.alerts);
-  const navigate = useNavigate();
-  const dispatch = useDispatch();
 
-  const [isLoading, setisLoading] = useState(true);
-  const [isDisabledByRequest, setisDisabledByRequest] = useState(false);
+  const contactslist = contacts.results ?? [];
+  const [searchValue, setSearchValue] = useState("");
+  const [debouncedSearchValue, setDebouncedSearchValue] = useState("");
+  const [selectedFilter, setSelectedFilter] =
+    useState<ContactFilter>("all");
+  const [page, setPage] = useState(1);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isDisabledByRequest, setIsDisabledByRequest] = useState(false);
 
-  const [page, setpage] = useState(1);
-  const [range] = useState(50);
+  const listContainerRef = useRef<HTMLDivElement | null>(null);
+  const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
-    ContactsListInitRequest(page, range, false, dispatch, setisLoading);
-  }, [page, range]);
+    const timer = window.setTimeout(() => {
+      setDebouncedSearchValue(searchValue.trim());
+    }, 250);
 
-  const settogglerightwidget = (toggle: any) => {
+    return () => window.clearTimeout(timer);
+  }, [searchValue]);
+
+  useEffect(() => {
+    setPage(1);
+    setIsLoading(true);
+    ContactsListInitRequest(
+      1,
+      PAGE_SIZE,
+      true,
+      dispatch,
+      setIsLoading,
+      false,
+      debouncedSearchValue === "" ? null : debouncedSearchValue,
+    );
+  }, [debouncedSearchValue, dispatch]);
+
+  useEffect(() => {
+    if (page <= 1) {
+      return;
+    }
+
+    setIsLoading(true);
+    ContactsListInitRequest(
+      page,
+      PAGE_SIZE,
+      false,
+      dispatch,
+      setIsLoading,
+      false,
+      debouncedSearchValue === "" ? null : debouncedSearchValue,
+    );
+  }, [page, debouncedSearchValue, dispatch]);
+
+  useEffect(() => {
+    const root = listContainerRef.current;
+    const target = loadMoreRef.current;
+
+    if (!root || !target) {
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting && !isLoading && contacts.next) {
+          setPage((currentPage) => currentPage + 1);
+        }
+      },
+      {
+        root,
+        rootMargin: "160px",
+      },
+    );
+
+    observer.observe(target);
+
+    return () => observer.disconnect();
+  }, [contacts.next, isLoading, debouncedSearchValue]);
+
+  const getContactPeer = (contact: IContact) => {
+    const isCurrentUserActionBy =
+      contact.action_by?.id === authentication.user.userID;
+
+    return {
+      peer: isCurrentUserActionBy ? contact.involved_user : contact.action_by,
+      isOutgoing: isCurrentUserActionBy,
+    };
+  };
+
+  const openConversation = (contact: IContact) => {
+    const { isOutgoing } = getContactPeer(contact);
+
+    if (screensizelistener.W <= 1100) {
+      dispatch({
+        type: SET_CONVERSATION_SETUP,
+        payload: {
+          conversationsetup: {
+            conversationid: contact.connection_id,
+            userdetails: isOutgoing
+              ? contactsToUserdetails(contact, false)
+              : contactsToUserdetails(contact, true),
+            groupdetails: conversationsetupstate.groupdetails,
+            type: "single",
+          },
+        },
+      });
+      navigate("/messages");
+      return;
+    }
+
+    dispatch({
+      type: SET_CONVERSATION_SETUP,
+      payload: {
+        conversationsetup: {
+          conversationid: contact.connection_id,
+          userdetails: isOutgoing
+            ? contactsToUserdetails(contact, false)
+            : contactsToUserdetails(contact, true),
+          groupdetails: conversationsetupstate.groupdetails,
+          type: "single",
+        },
+      },
+    });
     dispatch({
       type: SET_TOGGLE_RIGHT_WIDGET,
       payload: {
-        togglerightwidget: toggle,
+        togglerightwidget: "messages",
       },
     });
   };
 
-  const declineRequestProcess = (connection_id: any, action: string) => {
-    setisDisabledByRequest(true);
-    // console.log(addUserID);
-    // dispatch({
-    //   type: SET_MUTATE_ALERTS,
-    //   payload: {
-    //     alerts: {
-    //       type: "warning",
-    //       content: "Add Connection is temporary disabled",
-    //     },
-    //   },
-    // });
+  const declineRequestProcess = (connectionID: string, action: string) => {
+    setIsDisabledByRequest(true);
     DeclineContactRequest(
       {
-        connection_id,
+        connection_id: connectionID,
         action,
       },
       dispatch,
       alerts,
-      setisDisabledByRequest,
+      setIsDisabledByRequest,
     );
   };
 
-  const navigateToConversation = (
-    type: any,
-    conversationID: any,
-    userdetails: any,
-  ) => {
-    if (screensizelistener.W <= 1100) {
-      if (type == "single") {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: userdetails,
-              groupdetails: conversationsetupstate.groupdetails,
-              type: "single",
-            },
-          },
-        });
-        navigate("/messages");
-      } else {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: conversationsetupstate.userdetails,
-              groupdetails: userdetails,
-              type: "group",
-            },
-          },
-        });
-        navigate("/messages");
-      }
-    } else {
-      if (type == "single") {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: userdetails,
-              groupdetails: conversationsetupstate.groupdetails,
-              type: "single",
-            },
-          },
-        });
-        settogglerightwidget("messages");
-      } else {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: conversationsetupstate.userdetails,
-              groupdetails: userdetails,
-              type: "group",
-            },
-          },
-        });
-        settogglerightwidget("messages");
-      }
-    }
-  };
+  const normalizedContacts = useMemo(() => {
+    return contactslist
+      .map((contact) => {
+        const { peer, isOutgoing } = getContactPeer(contact);
+        const isOnline = isUserOnline(activeuserslist, peer.id);
+        const sessionStatus = userSessionStatusFromContacts(
+          activeuserslist,
+          peer.id,
+        );
 
-  const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
-  const divcontentRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let currentView = false;
-    if (divcontentRef) {
-      if (divcontentRef.current) {
-        divcontentRef.current.onscroll = () => {
-          // console.log("Hello")
-          if (divlazyloaderRef && divlazyloaderRef.current) {
-            const top = divlazyloaderRef.current.getBoundingClientRect().top;
-            const isVisible = top + 0 >= 0 && top - 0 <= window.innerHeight;
-            // const isVisible = top > 0 ? true : false;
-            // console.log((top + 0) >= 0 && (top - 0) <= window.innerHeight);
-            if (currentView != isVisible) {
-              currentView = isVisible;
-              if (currentView) {
-                // setrange((prev) => prev + 20);
-                setpage((prev) => prev + 1);
-              }
-            }
-          }
+        return {
+          contact,
+          peer,
+          isOutgoing,
+          isOnline,
+          sessionStatus,
+          displayName: `${peer.first_name}${
+            peer.middle_name === "N/A" ? "" : ` ${peer.middle_name}`
+          } ${peer.last_name}`.trim(),
         };
-      }
-    }
-  }, [divcontentRef, divlazyloaderRef, isLoading]);
+      })
+      .filter((entry) => {
+        if (selectedFilter === "online") {
+          return entry.isOnline;
+        }
+
+        if (selectedFilter === "incoming") {
+          return !entry.isOutgoing;
+        }
+
+        if (selectedFilter === "outgoing") {
+          return entry.isOutgoing;
+        }
+
+        return true;
+      })
+      .sort((left, right) => {
+        return new Date(right.contact.action_date).getTime() -
+          new Date(left.contact.action_date).getTime();
+      });
+  }, [activeuserslist, contactslist, selectedFilter, authentication.user.userID]);
+
+  const activeCount = useMemo(() => {
+    return normalizedContacts.filter((entry) => entry.isOnline).length;
+  }, [normalizedContacts]);
+
+  const incomingCount = useMemo(() => {
+    return contactslist.filter((contact) => {
+      const { isOutgoing } = getContactPeer(contact);
+      return !isOutgoing;
+    }).length;
+  }, [contactslist, authentication.user.userID]);
+
+  const outgoingCount = useMemo(() => {
+    return contactslist.filter((contact) => {
+      const { isOutgoing } = getContactPeer(contact);
+      return isOutgoing;
+    }).length;
+  }, [contactslist, authentication.user.userID]);
 
   return (
-    <motion.div
-      animate={{
-        display: pathnamelistener.includes("contacts")
-          ? "flex"
-          : screensizelistener.W <= 1100
-            ? "none"
-            : "flex",
-        maxWidth: pathnamelistener.includes("contacts")
-          ? "600px"
-          : screensizelistener.W <= 900
-            ? "350px"
-            : "350px",
-      }}
-      id="div_contacts"
-    >
-      <div id="div_contacts_label_container">
-        <FcContacts style={{ fontSize: "28px" }} />
-        <span className="span_contacts_label">Contacts</span>
-      </div>
-      {isLoading ? (
-        <div id="div_contacts_list_container" className="scroller">
-          {Array.from({ length: 20 }, (_, i: number) => {
-            return <ContactItemLoader key={i} />;
-          })}
-        </div>
-      ) : contactslist.length == 0 ? (
-        <div id="div_contacts_list_empty_container">
-          <span className="span_empty_list_label">No Contacts</span>
-        </div>
-      ) : (
-        <div
-          ref={divcontentRef}
-          id="div_contacts_list_container"
-          className="scroller"
-        >
-          {contactslist.map((cnts: IContact, i: number) => {
-            if (cnts.type == "single") {
-              if (cnts.involved_user && cnts.action_by) {
-                if (cnts.action_by.id == authentication.user.userID) {
-                  return (
-                    <motion.div
-                      whileHover={{
-                        backgroundColor: "#e6e6e6",
-                      }}
-                      key={i}
-                      className="div_cncts_cards"
-                    >
-                      <div id="div_img_cncts_container">
-                        <div id="div_img_search_profiles_container_cncts">
-                          <CachedImage
-                            src={
-                              cnts.involved_user.profile == "none"
-                                ? DefaultProfile
-                                : cnts.involved_user.profile
-                            }
-                            className={
-                              cnts.involved_user.profile == "none"
-                                ? "img_search_profiles_ntfs"
-                                : ""
-                            }
-                            id={
-                              cnts.involved_user.profile == "none"
-                                ? ""
-                                : "img_actual_profile"
-                            }
-                          />
-                        </div>
-                        {isUserOnline(
-                          activeuserslist,
-                          cnts.involved_user.id,
-                        ) && <div className="div_online_indicator" />}
-                      </div>
-                      <div className="tw-flex tw-flex-1 tw-h-full tw-overflow-hidden tw-flex-col tw-justify-center">
-                        <div className="div_contact_fullname_container">
-                          <span
-                            className="span_cncts_fullname_label tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
-                            onClick={() => {
-                              navigate(`/${cnts.involved_user.username}`);
-                            }}
-                          >
-                            <div className="tw-flex tw-items-center tw-gap-[4px]">
-                              <span>
-                                {cnts.involved_user.first_name}
-                                {cnts.involved_user.middle_name == "N/A"
-                                  ? ""
-                                  : ` ${cnts.involved_user.middle_name}`}{" "}
-                                {cnts.involved_user.last_name}
-                              </span>
-                              {cnts.involved_user.is_badged && (
-                                <RiVerifiedBadgeFill
-                                  size={16}
-                                  color="#1c7def"
-                                />
-                              )}
-                            </div>
-                          </span>
-                        </div>
-                        {isUserOnline(
-                          activeuserslist,
-                          cnts.involved_user.id,
-                        ) ? (
-                          <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
-                            <span className="tw-text-[12px] tw-font-Inter">
-                              Active Now
-                            </span>
-                          </div>
-                        ) : (
-                          userSessionStatusFromContacts(
-                            activeuserslist,
-                            cnts.involved_user.id,
-                          ) && (
-                            <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px] div_time_since_active_ellipsis">
-                              <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">
-                                {userSessionStatusFromContacts(
-                                  activeuserslist,
-                                  cnts.involved_user.id,
-                                )}
-                              </span>
-                            </div>
-                          )
-                        )}
-                      </div>
-                      <div className="div_cncts_navigations">
-                        <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#9cc2ff",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#9cc2ff",
-                            color: "white",
-                          }}
-                          onClick={() => {
-                            navigateToConversation(
-                              "single",
-                              cnts.connection_id,
-                              contactsToUserdetails(cnts, false),
-                            );
-                          }}
-                          className="btn_cncts_navigations"
-                        >
-                          <AiOutlineMessage
-                            style={{
-                              fontSize: "20px",
-                              borderRadius: "7px",
-                              padding: "3px",
-                            }}
-                          />
-                        </motion.button>
-                        <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#ff6675",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#ff6675",
-                            color: "white",
-                          }}
-                          className="btn_cncts_navigations"
-                          onClick={() => {
-                            declineRequestProcess(cnts.connection_id, "remove");
-                          }}
-                          disabled={isDisabledByRequest}
-                        >
-                          <BiUserMinus
-                            style={{
-                              fontSize: "20px",
-                              borderRadius: "7px",
-                              padding: "3px",
-                            }}
-                          />
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  );
-                } else {
-                  return (
-                    <motion.div
-                      whileHover={{
-                        backgroundColor: "#e6e6e6",
-                      }}
-                      key={i}
-                      className="div_cncts_cards"
-                    >
-                      <div id="div_img_cncts_container">
-                        <div id="div_img_search_profiles_container_cncts">
-                          <CachedImage
-                            src={
-                              cnts.action_by.profile == "none"
-                                ? DefaultProfile
-                                : cnts.action_by.profile
-                            }
-                            className={
-                              cnts.action_by.profile == "none"
-                                ? "img_search_profiles_ntfs"
-                                : ""
-                            }
-                            id={
-                              cnts.action_by.profile == "none"
-                                ? ""
-                                : "img_actual_profile"
-                            }
-                          />
-                        </div>
-                        {isUserOnline(activeuserslist, cnts.action_by.id) && (
-                          <div className="div_online_indicator" />
-                        )}
-                      </div>
-                      <div className="tw-flex tw-flex-1 tw-h-full tw-overflow-hidden tw-flex-col tw-justify-center">
-                        <div className="div_contact_fullname_container">
-                          <span
-                            className="span_cncts_fullname_label tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
-                            onClick={() => {
-                              navigate(`/${cnts.action_by.username}`);
-                            }}
-                          >
-                            <div className="tw-flex tw-items-center tw-gap-[4px]">
-                              <span>
-                                {cnts.action_by.first_name}
-                                {cnts.action_by.middle_name == "N/A"
-                                  ? ""
-                                  : ` ${cnts.action_by.middle_name}`}{" "}
-                                {cnts.action_by.last_name}
-                              </span>
-                              {cnts.action_by.is_badged && (
-                                <RiVerifiedBadgeFill
-                                  size={16}
-                                  color="#1c7def"
-                                />
-                              )}
-                            </div>
-                          </span>
-                        </div>
-                        {isUserOnline(activeuserslist, cnts.action_by.id) ? (
-                          <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
-                            <span className="tw-text-[12px] tw-font-Inter">
-                              Active Now
-                            </span>
-                          </div>
-                        ) : (
-                          userSessionStatusFromContacts(
-                            activeuserslist,
-                            cnts.action_by.id,
-                          ) && (
-                            <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px] div_time_since_active_ellipsis">
-                              <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">
-                                {userSessionStatusFromContacts(
-                                  activeuserslist,
-                                  cnts.action_by.id,
-                                )}
-                              </span>
-                            </div>
-                          )
-                        )}
-                      </div>
-                      <div className="div_cncts_navigations">
-                        <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#9cc2ff",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#9cc2ff",
-                            color: "white",
-                          }}
-                          onClick={() => {
-                            navigateToConversation(
-                              "single",
-                              cnts.connection_id,
-                              contactsToUserdetails(cnts, true),
-                            );
-                          }}
-                          className="btn_cncts_navigations"
-                        >
-                          <AiOutlineMessage
-                            style={{
-                              fontSize: "20px",
-                              borderRadius: "7px",
-                              padding: "3px",
-                            }}
-                          />
-                        </motion.button>
-                        <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#ff6675",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#ff6675",
-                            color: "white",
-                          }}
-                          className="btn_cncts_navigations"
-                          onClick={() => {
-                            declineRequestProcess(cnts.connection_id, "remove");
-                          }}
-                          disabled={isDisabledByRequest}
-                        >
-                          <BiUserMinus
-                            style={{
-                              fontSize: "20px",
-                              borderRadius: "7px",
-                              padding: "3px",
-                            }}
-                          />
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  );
-                }
-              } else {
-                return null;
-              }
-            } else {
-              return null;
-            }
-          })}
-          {contacts.next && (
-            <div ref={divlazyloaderRef} id="div_isLoading_notifications">
-              <motion.div
-                animate={{
-                  rotate: -360,
-                }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                }}
-                id="div_loader_request"
-              >
-                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-              </motion.div>
+    <div className="cl-screen-shell">
+      <div className="cl-contacts-shell">
+        <section className="cl-card cl-card-pad cl-contacts-main">
+          <div className="cl-contacts-hero">
+            <div>
+              <div className="cl-section-title" style={{ marginBottom: 8 }}>
+                <div>
+                  <h3>Contacts</h3>
+                  <div className="cl-contacts-subtitle">
+                    Manage your connections, jump into chats, and review who is online.
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
-        </div>
-      )}
-    </motion.div>
+
+            <div className="cl-contacts-chips">
+              {(
+                [
+                  { key: "all", label: "All" },
+                  { key: "online", label: "Online" },
+                  { key: "incoming", label: "Incoming" },
+                  { key: "outgoing", label: "Outgoing" },
+                ] as const
+              ).map((chip) => (
+                <button
+                  key={chip.key}
+                  type="button"
+                  className="cl-pill"
+                  data-active={selectedFilter === chip.key}
+                  onClick={() => setSelectedFilter(chip.key)}
+                >
+                  {chip.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div className="cl-grid-3 cl-contacts-stats">
+            <div className="cl-card cl-card-pad cl-contacts-stat">
+              <span className="cl-contacts-stat-value">{contacts.count}</span>
+              <span className="cl-contacts-stat-label">Connections</span>
+            </div>
+            <div className="cl-card cl-card-pad cl-contacts-stat">
+              <span className="cl-contacts-stat-value">{activeCount}</span>
+              <span className="cl-contacts-stat-label">Online now</span>
+            </div>
+            <div className="cl-card cl-card-pad cl-contacts-stat">
+              <span className="cl-contacts-stat-value">
+                {incomingCount}/{outgoingCount}
+              </span>
+              <span className="cl-contacts-stat-label">Incoming / outgoing</span>
+            </div>
+          </div>
+
+          <div className="cl-input-shell cl-contacts-search">
+            <AiOutlineSearch size={18} color="var(--cl-text-3)" />
+            <input
+              value={searchValue}
+              onChange={(event) => setSearchValue(event.target.value)}
+              placeholder="Search contacts"
+              autoComplete="off"
+            />
+          </div>
+
+          <div className="cl-contacts-list" ref={listContainerRef}>
+            {isLoading ? (
+              <div className="cl-contacts-loading-state">
+                <AiOutlineLoading3Quarters className="cl-spin" size={20} />
+                <span>Loading contacts</span>
+              </div>
+            ) : normalizedContacts.length > 0 ? (
+              normalizedContacts.map(({ contact, peer, isOutgoing, isOnline, sessionStatus, displayName }) => (
+                <motion.article
+                  key={contact.connection_id}
+                  className="cl-card cl-contacts-item"
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.15 }}
+                >
+                  <button
+                    type="button"
+                    className="cl-contacts-avatar"
+                    onClick={() => navigate(`/${peer.username}`)}
+                    aria-label={`Open ${displayName} profile`}
+                  >
+                    <CachedImage
+                      src={peer.profile === "none" ? DefaultProfile : peer.profile}
+                      id={peer.profile === "none" ? "img_default_profile" : "img_actual_profile"}
+                    />
+                    {isOnline && <span className="cl-contacts-online-dot" />}
+                  </button>
+
+                  <div className="cl-contacts-body">
+                    <div className="cl-contacts-name-row">
+                      <button
+                        type="button"
+                        className="cl-contacts-name"
+                        onClick={() => navigate(`/${peer.username}`)}
+                      >
+                        <span>{displayName}</span>
+                        {peer.is_badged && (
+                          <RiVerifiedBadgeFill size={16} color="var(--cl-brand)" />
+                        )}
+                      </button>
+                      <span className="cl-pill" data-active={isOnline}>
+                        {isOnline ? "Active now" : sessionStatus || "Offline"}
+                      </span>
+                    </div>
+
+                    <div className="cl-contacts-meta">
+                      <span>@{peer.username}</span>
+                      {contact.nickname && <span>Alias: {contact.nickname}</span>}
+                      <span>{isOutgoing ? "You added them" : "They added you"}</span>
+                    </div>
+                  </div>
+
+                  <div className="cl-contacts-actions">
+                    <button
+                      type="button"
+                      className="cl-contacts-action-btn"
+                      onClick={() => openConversation(contact)}
+                      title="Open conversation"
+                    >
+                      <AiOutlineMessage size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      className="cl-contacts-action-btn cl-contacts-action-destructive"
+                      onClick={() => declineRequestProcess(contact.connection_id, "remove")}
+                      disabled={isDisabledByRequest}
+                      title="Remove contact"
+                    >
+                      <BiUserMinus size={18} />
+                    </button>
+                    <button
+                      type="button"
+                      className="cl-contacts-action-btn"
+                      onClick={() => navigate(`/${peer.username}`)}
+                      title="Open profile"
+                    >
+                      <FiArrowRight size={18} />
+                    </button>
+                  </div>
+                </motion.article>
+              ))
+            ) : (
+              <div className="cl-card cl-card-pad cl-contacts-empty">
+                <FiUsers size={18} />
+                <div>
+                  <div className="cl-contacts-empty-title">No contacts found</div>
+                  <div className="cl-contacts-empty-copy">
+                    Try a different search term or switch the filter chip.
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {contacts.next && (
+              <div ref={loadMoreRef} className="cl-contacts-sentinel">
+                <AiOutlineLoading3Quarters className="cl-spin" size={18} />
+                <span>Loading more</span>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <aside className="cl-feed-sidebar cl-contacts-sidebar">
+          <div className="cl-card cl-card-pad">
+            <div className="cl-section-title">
+              <h3>Quick actions</h3>
+            </div>
+            <div className="cl-contacts-quick-actions">
+              <button
+                type="button"
+                className="cl-pill"
+                data-active={false}
+                onClick={() => navigate("/messages")}
+              >
+                Open messages
+              </button>
+              <button
+                type="button"
+                className="cl-pill"
+                data-active={false}
+                onClick={() => navigate("/search")}
+              >
+                Explore people
+              </button>
+              <button
+                type="button"
+                className="cl-pill"
+                data-active={false}
+                onClick={() => navigate("/settings")}
+              >
+                Contact settings
+              </button>
+            </div>
+          </div>
+
+          <div className="cl-card cl-card-pad">
+            <div className="cl-section-title">
+              <h3>Overview</h3>
+            </div>
+            <div className="cl-contacts-overview">
+              <div>
+                <span className="cl-contacts-overview-value">{contacts.count}</span>
+                <span className="cl-contacts-overview-label">Total contacts</span>
+              </div>
+              <div>
+                <span className="cl-contacts-overview-value">{activeCount}</span>
+                <span className="cl-contacts-overview-label">Online now</span>
+              </div>
+              <div>
+                <span className="cl-contacts-overview-value">{normalizedContacts.length}</span>
+                <span className="cl-contacts-overview-label">Visible results</span>
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
+    </div>
   );
 }
 

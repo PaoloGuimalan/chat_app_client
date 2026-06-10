@@ -3,18 +3,15 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import "../../styles/styles.css";
+import ChatterLoopLogo from "../../assets/imgs/chatterloop.png";
 import DefaultProfile from "../../assets/imgs/default.png";
 import { useDispatch, useSelector } from "react-redux";
-import { motion } from "framer-motion";
 import {
   AiOutlineSearch,
-  AiOutlineHome,
-  AiOutlineMessage,
-  AiOutlineBell,
   AiOutlineLogout,
 } from "react-icons/ai";
-import { FiMap } from "react-icons/fi";
-import { RiContactsBook2Line } from "react-icons/ri";
+import { FiMoon, FiSun } from "react-icons/fi";
+import { RiSettings3Line } from "react-icons/ri";
 import {
   ActiveContactsRequest,
   // BroadcastCoordinatesRequest,
@@ -26,10 +23,9 @@ import {
 import Contacts from "../tabs/feed/Contacts";
 import Notifications from "../tabs/feed/Notifications";
 import Messages from "../tabs/feed/Messages";
-import SearchMiniDrawer from "../widgets/SearchMiniDrawer";
 import {
-  CloseSSENotifications,
   SSENotificationsTRequest,
+  CloseSSENotifications,
 } from "../../reusables/hooks/sse";
 import {
   CLEAR_PENDING_CALL_ALERTS,
@@ -45,7 +41,6 @@ import {
   SET_NOTIFICATIONS_LIST_OVERRIDE,
   SET_RAW_COORDINATES,
   SET_REMOVE_IS_TYPING_LIST,
-  SET_TOGGLE_RIGHT_WIDGET,
   SET_USER_SETTINGS,
 } from "../../redux/types";
 import {
@@ -85,13 +80,12 @@ import {
 import CallContainer from "../absolutes/calls_v2/CallContainer";
 import Pages from "../tabs/pages/Pages";
 import RealmContainer from "../tabs/realms/RealmContainer";
+import SearchScreen from "../tabs/search/Search";
+import { desktopNavigation, mobileNavigation } from "./navigation";
 
 function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   const location = useLocation();
 
-  const togglerightwidget = useSelector(
-    (state: any) => state.togglerightwidget,
-  );
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -116,15 +110,52 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
 
   const currentPathname = location.pathname;
 
+  const [theme, setTheme] = useState<string>(() => {
+    return localStorage.getItem("cl_up_theme") || "light";
+  });
+
+  useEffect(() => {
+    document.documentElement.setAttribute("data-theme", theme);
+    localStorage.setItem("cl_up_theme", theme);
+  }, [theme]);
+
+  const toggleTheme = () => {
+    setTheme((currentTheme) => (currentTheme === "dark" ? "light" : "dark"));
+  };
+
+  const unreadMessagesCount = useMemo(() => {
+    return messageslist.reduce((total: number, message: any) => total + (message.unread || 0), 0);
+  }, [messageslist]);
+
+  const currentSection = useMemo(() => {
+    if (currentPathname.startsWith("/search")) return "search";
+    if (currentPathname.startsWith("/mapfeed")) return "map";
+    if (currentPathname.startsWith("/messages")) return "messages";
+    if (currentPathname.startsWith("/contacts")) return "contacts";
+    if (currentPathname.startsWith("/servers")) return "servers";
+    if (currentPathname.startsWith("/notifications")) return "notifications";
+    if (currentPathname.startsWith("/settings")) return "settings";
+    if (currentPathname.startsWith("/user")) return "profile";
+    if (currentPathname.startsWith("/realms")) return "realms";
+    return "feed";
+  }, [currentPathname]);
+
+  const shellTitles: Record<string, string> = {
+    feed: "Home",
+    search: "Explore",
+    map: "Map",
+    messages: "Messages",
+    contacts: "Contacts",
+    servers: "Servers",
+    notifications: "Activity",
+    settings: "Settings",
+    profile: "Profile",
+    realms: "Realm",
+  };
+
   useEffect(() => {
     setNextPath(null);
   }, []);
-
-  const isMapFeedMobileView = useMemo(() => {
-    const isMapView = currentPathname.includes("mapfeed");
-
-    return isMobileView && isMapView;
-  }, [isMobileView, currentPathname]);
 
   const notificationslist = useSelector(
     (state: any) => state.notificationslist,
@@ -132,10 +163,6 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   const alerts = useSelector((state: any) => state.alerts);
   const istypinglist = useSelector((state: any) => state.istypinglist);
   const pagemodal: IPageModal = useSelector((state: any) => state.pagemodal);
-  // const [togglerightwidget, settogglerightwidget] = useState("notifs")
-
-  const [searchBoxFocus, setsearchBoxFocus] = useState(false);
-  const [searchbox, setsearchbox] = useState("");
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -211,12 +238,6 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     });
   };
 
-  const logoutProcess = () => {
-    clearStates();
-    CloseSSENotifications();
-    LogoutRequest(dispatch);
-  };
-
   useEffect(() => {
     initEventSources();
 
@@ -271,21 +292,6 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     }
   };
 
-  const settogglerightwidget = (toggle: any) => {
-    dispatch({
-      type: SET_CONVERSATION_SETUP,
-      payload: {
-        conversationsetup: conversationsetupstate,
-      },
-    });
-    dispatch({
-      type: SET_TOGGLE_RIGHT_WIDGET,
-      payload: {
-        togglerightwidget: toggle,
-      },
-    });
-  };
-
   const onClickHome = () => {
     if (location.pathname === "/") {
       const localListener = new CustomEvent("broadcast_reload_feed", {
@@ -295,6 +301,12 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     } else {
       navigate("/");
     }
+  };
+
+  const logoutProcess = () => {
+    clearStates();
+    CloseSSENotifications();
+    LogoutRequest(dispatch);
   };
 
   useEffect(() => {
@@ -492,231 +504,267 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   }, [authentication.user]);
 
   return (
-    <div id="div_home">
-      {/* <CallCollection /> */}
+    <div className="cl-app-shell">
       <CallContainer />
-      <div id="div_home_navigations" className="tw-z-[1] tw-border-[0px]">
-        <div id="div_profile_search_container">
-          {isMapFeedMobileView ? (
-            <motion.button
-              whileHover={{
-                backgroundColor: "#e6e6e6",
-              }}
-              onClick={onClickHome}
-              className="btn_navigations"
+
+      {!isMobileView && (
+        <aside className="cl-rail">
+          <button
+            type="button"
+            className="cl-rail-btn"
+            onClick={onClickHome}
+            title="Home"
+            data-active={currentSection === "feed"}
+          >
+            <img src={ChatterLoopLogo} alt="ChatterLoop" style={{ width: 30, height: 30 }} />
+          </button>
+
+          <div className="cl-rail-stack">
+            {desktopNavigation.map((item) => {
+              const Icon = item.icon;
+              const active =
+                currentSection === item.key ||
+                (item.path !== "/" && currentPathname.startsWith(item.path));
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className="cl-rail-btn"
+                  data-active={active}
+                  title={item.label}
+                  onClick={() => {
+                    if (item.key === "messages" && screensizelistener.W <= 900) {
+                      dispatch({
+                        type: SET_CONVERSATION_SETUP,
+                        payload: {
+                          conversationsetup: conversationsetupstate,
+                        },
+                      });
+                    }
+
+                    navigate(item.path);
+                  }}
+                >
+                  <Icon size={24} />
+                  {(item.key === "messages" && unreadMessagesCount > 0) ||
+                  (item.key === "notifications" && notificationslist.totalunread > 0) ? (
+                    <span
+                      className="span_icon_counts"
+                      style={{
+                        position: "absolute",
+                        top: 7,
+                        right: 8,
+                      }}
+                    >
+                      {item.key === "messages"
+                        ? unreadMessagesCount
+                        : notificationslist.totalunread}
+                    </span>
+                  ) : null}
+                </button>
+              );
+            })}
+          </div>
+
+          <div className="cl-rail-footer">
+            <button
+              type="button"
+              className="cl-rail-btn"
+              title="Toggle theme"
+              onClick={toggleTheme}
             >
-              <AiOutlineHome style={{ fontSize: "25px", color: "#4A4A4A" }} />
-            </motion.button>
-          ) : (
-            <motion.div
-              whileHover={{
-                backgroundColor: "#e6e6e6",
-              }}
-              onClick={() => {
-                if (screensizelistener.W <= 1100) {
-                  navigate("/user");
-                } else {
-                  navigate(`/${authentication.user.username}`);
-                }
-              }}
-              id="img_profile_container"
+              {theme === "dark" ? <FiSun size={22} /> : <FiMoon size={22} />}
+            </button>
+            <button
+              type="button"
+              className="cl-rail-btn"
+              title="Settings"
+              data-active={currentSection === "settings"}
+              onClick={() => navigate("/settings")}
+            >
+              <RiSettings3Line size={22} />
+            </button>
+            <button
+              type="button"
+              className="cl-rail-btn"
+              title="Logout"
+              onClick={logoutProcess}
+            >
+              <AiOutlineLogout size={22} />
+            </button>
+            <button
+              type="button"
+              className="cl-rail-avatar"
+              title="Profile"
+              onClick={() => navigate(`/${authentication.user.username}`)}
             >
               {authentication.user.profile !== "none" ? (
-                <div id="img_default_profile_container">
-                  <CachedImage
-                    src={authentication.user.profile}
-                    id="img_actual_profile"
-                  />
-                </div>
-              ) : (
-                <div id="img_default_profile_container">
-                  <CachedImage src={DefaultProfile} id="img_default_profile" />
-                </div>
-              )}
-              <span id="span_user_firstname_label">
-                {authentication.user.fullName.firstName}
-              </span>
-            </motion.div>
-          )}
-          <div id="div_search_container">
-            <div id="div_input_container">
-              <AiOutlineSearch style={{ fontSize: "20px", color: "#4A4A4A" }} />
-              <input
-                value={searchbox}
-                autoComplete="off"
-                onChange={(e) => {
-                  setsearchbox(e.target.value);
-                }}
-                onFocus={() => {
-                  setsearchBoxFocus(true);
-                }}
-                onBlur={() => {
-                  setTimeout(() => {
-                    setsearchBoxFocus(false);
-                  }, 500);
-                }}
-                type="text"
-                placeholder="Search something..."
-                id="input_search_box"
-              />
-            </div>
-          </div>
-          {isMapFeedMobileView && (
-            <motion.button
-              initial={{
-                color: "#4A4A4A",
-              }}
-              whileHover={{
-                backgroundColor: "#ff6675",
-                color: "white",
-              }}
-              onClick={() => {
-                logoutProcess();
-              }}
-              className="btn_navigations"
-            >
-              <AiOutlineLogout style={{ fontSize: "25px" }} />
-            </motion.button>
-          )}
-        </div>
-        {!isMapFeedMobileView && (
-          <div id="div_buttons_navigation">
-            <motion.button
-              whileHover={{
-                backgroundColor: "#e6e6e6",
-              }}
-              onClick={onClickHome}
-              className="btn_navigations"
-            >
-              <AiOutlineHome style={{ fontSize: "25px", color: "#4A4A4A" }} />
-            </motion.button>
-            <motion.button
-              whileHover={{
-                backgroundColor: "#e6e6e6",
-              }}
-              onClick={() => {
-                navigate("/mapfeed");
-              }}
-              className="btn_navigations"
-            >
-              <FiMap style={{ fontSize: "22px", color: "#4A4A4A" }} />
-            </motion.button>
-            {screensizelistener.W <= 1100 && (
-              <motion.button
-                whileHover={{
-                  backgroundColor: "#e6e6e6",
-                }}
-                onClick={() => {
-                  navigate("/contacts");
-                }}
-                className="btn_navigations"
-              >
-                <RiContactsBook2Line
-                  style={{ fontSize: "25px", color: "#4A4A4A" }}
+                <CachedImage
+                  src={authentication.user.profile}
+                  id="img_actual_profile"
                 />
-              </motion.button>
-            )}
-            <motion.button
-              whileHover={{
-                backgroundColor: "#e6e6e6",
-              }}
-              onClick={() => {
-                if (screensizelistener.W <= 900) {
-                  dispatch({
-                    type: SET_CONVERSATION_SETUP,
-                    payload: {
-                      conversationsetup: conversationsetupstate,
-                    },
-                  });
-                  navigate("/messages");
-                } else {
-                  settogglerightwidget("messages");
-                }
-              }}
-              className="btn_navigations"
-            >
-              {messageslist.length > 0 &&
-                messageslist
-                  .map((msgs: any) => msgs.unread)
-                  .reduce((prev: any, next: any) => prev + next) > 0 && (
-                  <span className="span_icon_counts">
-                    {messageslist
-                      .map((msgs: any) => msgs.unread)
-                      .reduce((prev: any, next: any) => prev + next)}
-                  </span>
-                )}
-              <AiOutlineMessage
-                style={{ fontSize: "25px", color: "#4A4A4A" }}
-              />
-            </motion.button>
-            <motion.button
-              whileHover={{
-                backgroundColor: "#e6e6e6",
-              }}
-              onClick={() => {
-                if (screensizelistener.W <= 900) {
-                  dispatch({
-                    type: SET_CONVERSATION_SETUP,
-                    payload: {
-                      conversationsetup: conversationsetupstate,
-                    },
-                  });
-                  navigate("/notifications");
-                } else {
-                  settogglerightwidget("notifs");
-                }
-              }}
-              className="btn_navigations"
-            >
-              {notificationslist.totalunread > 0 && (
-                <span className="span_icon_counts">
-                  {notificationslist.totalunread}
-                </span>
+              ) : (
+                <CachedImage src={DefaultProfile} id="img_default_profile" />
               )}
-              <AiOutlineBell style={{ fontSize: "25px", color: "#4A4A4A" }} />
-            </motion.button>
-            <motion.button
-              initial={{
-                color: "#4A4A4A",
-              }}
-              whileHover={{
-                backgroundColor: "#ff6675",
-                color: "white",
-              }}
-              onClick={() => {
-                logoutProcess();
-              }}
-              className="btn_navigations"
-            >
-              <AiOutlineLogout style={{ fontSize: "25px" }} />
-            </motion.button>
+            </button>
           </div>
+        </aside>
+      )}
+
+      <div className="cl-main-shell">
+        {isMobileView && (
+          <header className="cl-mobile-topbar">
+            <button
+              type="button"
+              className="cl-shell-icon-btn"
+              onClick={() => navigate(`/${authentication.user.username}`)}
+              style={{ width: 34, height: 34, borderRadius: "50%" }}
+            >
+              {authentication.user.profile !== "none" ? (
+                <CachedImage
+                  src={authentication.user.profile}
+                  id="img_actual_profile"
+                />
+              ) : (
+                <CachedImage src={DefaultProfile} id="img_default_profile" />
+              )}
+            </button>
+            <h1 className="cl-mobile-topbar-title">
+              {shellTitles[currentSection] || "ChatterLoop"}
+            </h1>
+            <div style={{ marginLeft: "auto", display: "flex", gap: 4 }}>
+              <button
+                type="button"
+                className="cl-shell-icon-btn"
+                onClick={() => navigate("/search")}
+              >
+                <AiOutlineSearch size={22} />
+              </button>
+              <button
+                type="button"
+                className="cl-shell-icon-btn"
+                onClick={toggleTheme}
+              >
+                {theme === "dark" ? <FiSun size={20} /> : <FiMoon size={20} />}
+              </button>
+              <button
+                type="button"
+                className="cl-shell-icon-btn"
+                onClick={logoutProcess}
+                title="Logout"
+              >
+                <AiOutlineLogout size={20} />
+              </button>
+            </div>
+          </header>
+        )}
+
+        <main className="cl-main-scroller">
+          <div className="cl-shell-page cl-fade">
+            <Routes>
+              <Route
+                path="/"
+                element={<DesktopHome />}
+              />
+              <Route path="/search" element={<SearchScreen />} />
+              <Route path="/:userID/*" element={<ProfileContainer />} />
+              <Route path="/realms/*" element={<RealmContainer />} />
+              <Route path="/settings" element={<Settings isModal={false} />} />
+              <Route
+                path="/user"
+                element={
+                  screensizelistener.W <= 1100 ? (
+                    <UserMenu />
+                  ) : (
+                    <Navigate to={"/"} />
+                  )
+                }
+              />
+              <Route path="/messages" element={<Messages />} />
+              <Route path="/notifications" element={<Notifications />} />
+              <Route path="/contacts" element={<Contacts />} />
+              <Route path="/mapfeed" element={<MapFeed />} />
+              <Route path="/servers/*" element={<Servers />} />
+              <Route path="/pages/*" element={<Pages />} />
+            </Routes>
+          </div>
+        </main>
+
+        {isMobileView && (
+          <nav className="cl-mobile-nav">
+            {mobileNavigation.map((item) => {
+              const Icon = item.icon;
+              const active =
+                currentSection === item.key ||
+                (item.path !== "/" && currentPathname.startsWith(item.path));
+              const badgeValue =
+                item.key === "messages"
+                  ? unreadMessagesCount
+                  : item.key === "notifications"
+                    ? notificationslist.totalunread
+                    : 0;
+
+              return (
+                <button
+                  key={item.key}
+                  type="button"
+                  className="cl-mobile-nav-btn"
+                  data-active={active}
+                  onClick={() => {
+                    if (item.key === "messages") {
+                      dispatch({
+                        type: SET_CONVERSATION_SETUP,
+                        payload: {
+                          conversationsetup: conversationsetupstate,
+                        },
+                      });
+                    }
+
+                    navigate(item.path);
+                  }}
+                >
+                  <Icon size={26} />
+                  {badgeValue > 0 ? (
+                    <span
+                      className="span_icon_counts"
+                      style={{
+                        position: "absolute",
+                        top: 6,
+                        right: "50%",
+                        marginRight: -18,
+                      }}
+                    >
+                      {badgeValue}
+                    </span>
+                  ) : null}
+                  <span
+                    className="cl-mobile-nav-dot"
+                    style={{ background: active ? "var(--cl-brand)" : "transparent" }}
+                  />
+                </button>
+              );
+            })}
+          </nav>
         )}
       </div>
-      {searchBoxFocus && (
-        <SearchMiniDrawer
-          searchbox={searchbox}
-          setsearchBoxFocus={setsearchBoxFocus}
-        />
-      )}
-      {!(screensizelistener.W <= 900) && (
-        <div className="tw-z-[100] tw-absolute tw-bottom-0 tw-bg-transparent tw-left-0 tw-h-auto tw-p-[0px] tw-pl-[10px] tw-flex -row tw-gap-[10px]">
-          {minimizedconversation.map((mp: any) => {
-            return (
-              <div
-                className="tw-w-[330px] tw-h-[500px] tw-max-h-[600px] tw-max-w-[330px] tw-flex"
-                key={mp.conversationid}
-              >
-                <Conversation
-                  conversationsetup={mp}
-                  theme={{ primary: "#1c7def", lighten: "#82b7f6" }}
-                  isMinimized={true}
-                />
-              </div>
-            );
-          })}
+
+      {!isMobileView && minimizedconversation.length > 0 && (
+        <div className="tw-z-[100] tw-absolute tw-bottom-0 tw-left-0 tw-flex tw-gap-[10px] tw-p-[0px] tw-pl-[10px]">
+          {minimizedconversation.map((mp: any) => (
+            <div
+              className="tw-flex tw-h-[500px] tw-max-h-[600px] tw-w-[330px] tw-max-w-[330px]"
+              key={mp.conversationid}
+            >
+              <Conversation
+                conversationsetup={mp}
+                theme={{ primary: "#1c7def", lighten: "#82b7f6" }}
+                isMinimized={true}
+              />
+            </div>
+          ))}
         </div>
       )}
+
       {screensizelistener.W >= 1100 && pagemodal && (
         <Modal
           component={
@@ -726,27 +774,6 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           }
         />
       )}
-      <Routes>
-        <Route
-          path="/"
-          element={<DesktopHome togglerightwidget={togglerightwidget} />}
-        />
-        <Route path="/:userID/*" element={<ProfileContainer />} />
-        <Route path="/realms/*" element={<RealmContainer />} />
-        <Route path="/settings" element={<Settings isModal={false} />} />
-        <Route
-          path="/user"
-          element={
-            screensizelistener.W <= 1100 ? <UserMenu /> : <Navigate to={"/"} />
-          }
-        />
-        <Route path="/messages" element={<Messages />} />
-        <Route path="/notifications" element={<Notifications />} />
-        <Route path="/contacts" element={<Contacts />} />
-        <Route path="/mapfeed" element={<MapFeed />} />
-        <Route path="/servers/*" element={<Servers />} />
-        <Route path="/pages/*" element={<Pages />} />
-      </Routes>
     </div>
   );
 }

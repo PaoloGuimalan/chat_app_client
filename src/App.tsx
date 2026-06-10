@@ -50,6 +50,11 @@ function App() {
   }, []);
 
   useEffect(() => {
+    const theme = localStorage.getItem("cl_up_theme") || "light";
+    document.documentElement.setAttribute("data-theme", theme);
+  }, []);
+
+  useEffect(() => {
     dispatch({
       type: SET_PATHNAME_LISTENER,
       payload: {

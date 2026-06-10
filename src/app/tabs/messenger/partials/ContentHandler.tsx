@@ -332,6 +332,13 @@ function ContentHandler({
                 className="tw-whitespace-pre-line"
                 dangerouslySetInnerHTML={{ __html: urlify(cnvs.content) }}
               />
+              <span className="cl-message-inline-time">
+                {cnvs.messageDate.time
+                  ? cnvs.messageDate.time
+                  : cnvs.messageDate.date
+                    ? timeSince(cnvs.messageDate.date)
+                    : timeSince(cnvs.messageDate)}
+              </span>
               <div
                 className={`tw-w-full tw--mb-[15px] tw-mt-[5px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
                   cnvs.sender == authentication.user.userID
@@ -1306,7 +1313,7 @@ function ContentHandler({
                     window.open(cnvs.content, "_blank");
                   }
                 }}
-                className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
+                className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px] cl-message-file"
                 title={
                   cnvs.messageDate.time
                     ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
