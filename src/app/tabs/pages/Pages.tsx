@@ -1,14 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { motion } from "framer-motion";
-import { useEffect } from "react";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
-import { IoArrowBack } from "react-icons/io5";
-import { RiPagesFill } from "react-icons/ri";
-import { BsFileEarmarkPerson, BsPersonFillAdd } from "react-icons/bs";
 import Default from "./partials/Default";
 import MyPages from "./partials/MyPages";
 import FollowedPages from "./partials/FollowedPages";
+import { Icon, useTheme } from "@/reusables/design";
 
 function Pages() {
   const screensizelistener = useSelector(
@@ -16,118 +12,113 @@ function Pages() {
   );
   const urllocation = useLocation();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
-  useEffect(() => {}, []);
+  const isMobile = screensizelistener.W <= 900;
+  const insidePage = urllocation.pathname.split("/").length >= 4;
+  const railHidden = isMobile && insidePage;
+
+  const sections = [
+    {
+      key: "my-pages",
+      icon: "description",
+      title: "My Pages",
+      isActive: urllocation.pathname.includes("my-pages"),
+      onClick: () => navigate("/pages/my-pages"),
+    },
+    {
+      key: "followed",
+      icon: "person_add",
+      title: "Followed Pages",
+      isActive: urllocation.pathname.includes("followed"),
+      onClick: () => navigate("/pages/followed"),
+    },
+  ];
 
   return (
-    <div className="tw-w-full tw-h-full tw-bg-[#d8d8da] tw-absolute tw-z-[2] tw-flex tw-flex-row">
-      <motion.div
-        initial={{
-          minWidth:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "70px"
-                : "0px"
-              : "70px",
-          width:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "70px"
-                : "0px"
-              : "70px",
+    <div
+      className="cl-redesign"
+      data-theme={theme}
+      style={{
+        position: "absolute",
+        inset: 0,
+        background: "var(--bg)",
+        display: "flex",
+        flexDirection: "row",
+        zIndex: 2,
+      }}
+    >
+      <div
+        style={{
+          width: railHidden ? 0 : 76,
+          minWidth: railHidden ? 0 : 76,
+          flex: "none",
+          overflow: "hidden",
+          background: "var(--surface-2)",
+          borderRight: railHidden ? "none" : "1px solid var(--border)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: railHidden ? 0 : "12px 0",
+          gap: 6,
+          transition: "width .2s var(--ease)",
         }}
-        animate={{
-          minWidth:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "70px"
-                : "0px"
-              : "70px",
-          width:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "70px"
-                : "0px"
-              : "70px",
-        }}
-        className="thinscroller tw-bg-[#d8d8da] tw-flex tw-flex-col tw-max-w-[70px] tw-items-center tw-pt-[10px] tw-pb-[10px] tw-overflow-x-hidden tw-overflow-y-auto"
       >
-        <motion.button
-          whileHover={{
-            backgroundColor: "#e6e6e6",
-          }}
-          onClick={() => {
-            navigate("/");
-          }}
-          className="btn_server_navigations"
+        <button
+          onClick={() => navigate("/")}
+          title="Back"
+          style={pagesRailBtn}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background = "var(--surface-hover)")
+          }
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
-          <IoArrowBack style={{ fontSize: "25px", color: "#4997f2" }} />
-        </motion.button>
-        <motion.button
-          whileHover={{
-            backgroundColor: "#e6e6e6",
-          }}
-          onClick={() => {
-            navigate("/pages");
-          }}
-          className="btn_server_navigations"
+          <Icon n="arrow_back" s={22} c="#4997f2" />
+        </button>
+        <button
+          onClick={() => navigate("/pages")}
+          title="All Pages"
+          style={pagesRailBtn}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background = "var(--surface-hover)")
+          }
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
-          <RiPagesFill style={{ fontSize: "25px", color: "#4997f2" }} />
-        </motion.button>
-        <hr className="tw-w-[65%]" />
-        <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[2px]">
-          <motion.button
-            initial={{
-              color: "#404040",
-            }}
-            animate={{
-              backgroundColor: urllocation.pathname.includes("my-pages")
-                ? "#e6e6e6"
-                : "transparent",
-            }}
-            whileHover={{
-              backgroundColor: "#4997f2",
-              color: "#4997f2",
-            }}
-            onClick={() => {
-              navigate(`/pages/my-pages`);
-            }}
-            title={"My Pages"}
-            className="btn_server_navigations"
-          >
-            <div id="div_img_cncts_container">
-              <div id="div_img_search_profiles_container_cncts">
-                <BsFileEarmarkPerson style={{ fontSize: "25px" }} />
-              </div>
-            </div>
-          </motion.button>
-          <motion.button
-            initial={{
-              color: "#404040",
-            }}
-            animate={{
-              backgroundColor: urllocation.pathname.includes("followed")
-                ? "#e6e6e6"
-                : "transparent",
-            }}
-            whileHover={{
-              backgroundColor: "#4997f2",
-              color: "#4997f2",
-            }}
-            onClick={() => {
-              navigate(`/pages/followed`);
-            }}
-            title={"Followed Pages"}
-            className="btn_server_navigations"
-          >
-            <div id="div_img_cncts_container">
-              <div id="div_img_search_profiles_container_cncts">
-                <BsPersonFillAdd style={{ fontSize: "25px" }} />
-              </div>
-            </div>
-          </motion.button>
-        </div>
-      </motion.div>
+          <Icon n="auto_stories" s={22} c="#4997f2" />
+        </button>
+        <div
+          style={{
+            width: "60%",
+            height: 1,
+            background: "var(--border)",
+            margin: "4px 0",
+          }}
+        />
+        {sections.map((s) => {
+          const on = s.isActive;
+          return (
+            <button
+              key={s.key}
+              onClick={s.onClick}
+              title={s.title}
+              style={{
+                ...pagesRailBtn,
+                background: on ? "var(--brand-soft)" : "transparent",
+                color: on ? "var(--brand)" : "var(--text-2)",
+              }}
+              onMouseEnter={(e) => {
+                if (!on)
+                  e.currentTarget.style.background = "var(--surface-hover)";
+              }}
+              onMouseLeave={(e) => {
+                if (!on) e.currentTarget.style.background = "transparent";
+              }}
+            >
+              <Icon n={s.icon} s={22} />
+            </button>
+          );
+        })}
+      </div>
       <Routes>
         <Route path="/" element={<Default />} />
         <Route path="/my-pages/*" element={<MyPages />} />
@@ -136,5 +127,19 @@ function Pages() {
     </div>
   );
 }
+
+const pagesRailBtn = {
+  width: 48,
+  height: 48,
+  flex: "none",
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+  borderRadius: "var(--r-md)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  transition: "background .14s",
+} as const;
 
 export default Pages;

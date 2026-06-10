@@ -1,14 +1,11 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useRef, useState } from "react";
-import "../../../styles/styles.css";
-import { AiOutlineMessage, AiOutlineLoading3Quarters } from "react-icons/ai";
-import { TbServer2 } from "react-icons/tb";
-import { BiGroup, BiSolidPhoneCall } from "react-icons/bi";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { BiSolidPhoneCall } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
 import Conversation from "../messenger/Conversation";
 import { InitConversationListRequest } from "../../../reusables/hooks/requests";
-import { motion } from "framer-motion";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import GroupChatIcon from "../../../assets/imgs/group-chat-icon.jpg";
 import ServerIcon from "../../../assets/imgs/servericon.png";
@@ -24,7 +21,6 @@ import { isUserOnline, timeSince } from "../../../reusables/hooks/reusable";
 import CreateServerModal from "@/app/widgets/modals/CreateServerModal";
 import { useNavigate } from "react-router-dom";
 import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
 import {
   AuthenticationInterface,
   IPreviewParicipants,
@@ -34,28 +30,200 @@ import {
   getSettings,
   persistSettings,
 } from "@/reusables/hooks/localforagehelper";
+import { Avatar, Btn, Chip, Icon, useTheme } from "@/reusables/design";
+
+const TYPE_CHECKER: Record<string, string> = {
+  video: "a video",
+  audio: "an audio",
+  image: "a photo",
+  any: "a file",
+};
+
+function lastMessagePreview(
+  msgslst: any,
+  authUserID: string,
+): { text: string; html?: boolean } {
+  const senderPrefix = msgslst.sender == authUserID ? "you: " : "";
+  if (msgslst.isDeleted) {
+    return { text: `${senderPrefix}[Deleted message]` };
+  }
+  if (msgslst.messageType === "text" || msgslst.messageType === "notif") {
+    return { text: `${senderPrefix}${msgslst.content || ""}`, html: true };
+  }
+  if (
+    !msgslst.messageType.includes("image") &&
+    !msgslst.messageType.includes("video") &&
+    !msgslst.messageType.includes("audio")
+  ) {
+    return { text: `${senderPrefix}Sent ${TYPE_CHECKER["any"]}` };
+  }
+  return {
+    text: `${senderPrefix}Sent ${TYPE_CHECKER[msgslst.messageType.split("/")[0]]}`,
+  };
+}
+
+function timestampLabel(msgslst: any): string {
+  if (msgslst.messageDate?.time) {
+    return `${msgslst.messageDate.date} · ${msgslst.messageDate.time}`;
+  }
+  if (msgslst.messageDate?.date) {
+    return timeSince(msgslst.messageDate.date);
+  }
+  return timeSince(msgslst.messageDate);
+}
+
+function MessageRow({
+  imgSrc,
+  title,
+  titleColor,
+  titleIcon,
+  subtitle,
+  subtitleColor,
+  subtitleHtml,
+  time,
+  unread,
+  showOnline,
+  showCall,
+  onClick,
+}: {
+  imgSrc: string | null;
+  title: string;
+  titleColor?: string;
+  titleIcon?: string;
+  subtitle: string;
+  subtitleColor?: string;
+  subtitleHtml?: boolean;
+  time: string;
+  unread: number;
+  showOnline?: boolean;
+  showCall?: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      onClick={onClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 11,
+        width: "100%",
+        padding: "10px 12px",
+        border: "none",
+        borderRadius: "var(--r-sm)",
+        cursor: "pointer",
+        textAlign: "left",
+        background: "transparent",
+        transition: "background .14s",
+      }}
+      onMouseEnter={(e) =>
+        (e.currentTarget.style.background = "var(--surface-hover)")
+      }
+      onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+    >
+      <div style={{ position: "relative", flex: "none" }}>
+        <Avatar id={title} name={title} src={imgSrc || undefined} size={46} />
+        {showOnline && (
+          <span
+            style={{
+              position: "absolute",
+              right: 0,
+              bottom: 0,
+              width: 12,
+              height: 12,
+              borderRadius: "50%",
+              background: "var(--online)",
+              border: "2px solid var(--surface)",
+            }}
+          />
+        )}
+      </div>
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 5,
+            color: titleColor || "var(--text)",
+            fontWeight: 700,
+            fontSize: 14,
+          }}
+        >
+          <span
+            style={{
+              overflow: "hidden",
+              textOverflow: "ellipsis",
+              whiteSpace: "nowrap",
+              minWidth: 0,
+            }}
+          >
+            {title}
+          </span>
+          {titleIcon && <Icon n={titleIcon} s={15} c={titleColor} />}
+        </div>
+        <div
+          style={{
+            fontSize: 12.5,
+            color: subtitleColor || "var(--text-2)",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+          }}
+          {...(subtitleHtml
+            ? { dangerouslySetInnerHTML: { __html: subtitle } }
+            : { children: subtitle })}
+        />
+        <div style={{ fontSize: 11, color: "var(--text-3)" }}>{time}</div>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          gap: 4,
+          flex: "none",
+        }}
+      >
+        {unread > 0 && (
+          <span
+            style={{
+              minWidth: 18,
+              height: 18,
+              padding: "0 5px",
+              background: "var(--brand)",
+              color: "#fff",
+              fontSize: 11,
+              fontWeight: 700,
+              borderRadius: 999,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            {unread}
+          </span>
+        )}
+        {showCall && <BiSolidPhoneCall color="var(--green)" />}
+      </div>
+    </button>
+  );
+}
 
 function Messages() {
   const [isLoading, setisLoading] = useState<boolean>(true);
   const [isCreateGCToggle, setisCreateGCToggle] = useState<boolean>(false);
-  const [isCreateServerToggle, setisCreateServerToggle] =
-    useState<boolean>(false);
+  const [isCreateServerToggle, setisCreateServerToggle] = useState<boolean>(false);
   const [conversationTypeSet, setconversationTypeSet] =
     useState<string>("common");
 
   const previewparticipants: IPreviewParicipants[] = useSelector(
     (state: any) => state.previewparticipants,
   );
-
   const usersettings: IUserSettings = useSelector(
     (state: any) => state.usersettings,
   );
 
-  const getChannelPreviewParticipants = (channelID: string) => {
-    return previewparticipants.filter(
-      (flt: IPreviewParicipants) => flt.channelID === channelID,
-    );
-  };
+  const getChannelPreviewParticipants = (channelID: string) =>
+    previewparticipants.filter((flt) => flt.channelID === channelID);
 
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -72,59 +240,43 @@ function Messages() {
   const istypinglist = useSelector((state: any) => state.istypinglist);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const [page, setpage] = useState<number>(1);
   const [range] = useState<number>(20);
-
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);
-
   const [isNext, setisNext] = useState<boolean>(true);
 
   useEffect(() => {
     if (authentication.user.userID) {
       getSettings(authentication.user.userID)
         .then((value) => {
-          if (value) {
-            if (value.messages && value.messages.type) {
-              setconversationTypeSet(value.messages.type);
-              return;
-            }
-
-            setconversationTypeSet("common");
+          if (value?.messages?.type) {
+            setconversationTypeSet(value.messages.type);
           } else {
             setconversationTypeSet("common");
           }
         })
-        .catch((err) => {
-          console.log(err);
-        });
+        .catch((err) => console.log(err));
     }
   }, [authentication]);
 
   useEffect(() => {
     let currentView = false;
-    if (divcontentRef) {
-      if (divcontentRef.current) {
-        divcontentRef.current.onscroll = () => {
-          // console.log("Hello")
-          if (divlazyloaderRef && divlazyloaderRef.current) {
-            const top = divlazyloaderRef.current.getBoundingClientRect().top;
-            const isVisible = top + 0 >= 0 && top - 0 <= window.innerHeight;
-            // const isVisible = top > 0 ? true : false;
-            // console.log((top + 0) >= 0 && (top - 0) <= window.innerHeight);
-            if (currentView != isVisible) {
-              currentView = isVisible;
-              if (currentView) {
-                // setrange((prev) => prev + 20);
-                setpage((prev) => prev + 1);
-              }
-            }
+    if (divcontentRef.current) {
+      divcontentRef.current.onscroll = () => {
+        if (divlazyloaderRef.current) {
+          const top = divlazyloaderRef.current.getBoundingClientRect().top;
+          const isVisible = top >= 0 && top <= window.innerHeight;
+          if (currentView != isVisible) {
+            currentView = isVisible;
+            if (currentView) setpage((prev) => prev + 1);
           }
-        };
-      }
+        }
+      };
     }
-  }, [divcontentRef, divlazyloaderRef, conversationsetup, isLoading]);
+  }, [conversationsetup, isLoading]);
 
   useEffect(() => {
     InitConversationListRequest(page, range).then((response) => {
@@ -139,9 +291,7 @@ function Messages() {
       });
       dispatch({
         type: SET_MESSAGES_LIST,
-        payload: {
-          messageslist: response.conversationslist,
-        },
+        payload: { messageslist: response.conversationslist },
       });
       setisLoading(false);
     });
@@ -158,7 +308,7 @@ function Messages() {
         payload: {
           conversationsetup: {
             conversationid: conversationID,
-            userdetails: userdetails,
+            userdetails,
             groupdetails: conversationsetupstate.groupdetails,
             type: "single",
           },
@@ -179,29 +329,17 @@ function Messages() {
     }
   };
 
-  const messageTypeChecker: any = {
-    video: "a video",
-    audio: "an audio",
-    image: "a photo",
-    any: "a file",
-  };
-
   const setConversationListGroups = (type: string) => {
     if (authentication.user.userID) {
       persistSettings(authentication.user.userID, {
         ...usersettings,
-        messages: {
-          ...usersettings.messages,
-          type: type,
-        },
+        messages: { ...usersettings.messages, type },
       })
         .then(() => {
           setconversationTypeSet(type);
           dispatch({
             type: SET_MESSAGES_LIST_OVERRIDE,
-            payload: {
-              messageslist: [],
-            },
+            payload: { messageslist: [] },
           });
           setisLoading(true);
           InitConversationListRequest(1, range).then((response) => {
@@ -217,39 +355,48 @@ function Messages() {
             });
             dispatch({
               type: SET_MESSAGES_LIST_OVERRIDE,
-              payload: {
-                messageslist: response.conversationslist,
-              },
+              payload: { messageslist: response.conversationslist },
             });
             setisLoading(false);
           });
         })
-        .catch((err) => {
-          console.log(err);
-        });
+        .catch((err) => console.log(err));
     }
   };
 
-  return conversationsetup.conversationid ? (
-    <Conversation
-      conversationsetup={conversationsetup}
-      theme={{ primary: "#1c7def", lighten: "#82b7f6" }}
-    />
-  ) : (
-    <motion.div
-      animate={{
-        display: pathnamelistener.includes("messages")
-          ? "flex"
-          : screensizelistener.W <= 900
-            ? "none"
-            : "flex",
-        maxWidth: pathnamelistener.includes("messages")
-          ? "600px"
-          : screensizelistener.W <= 900
-            ? "350px"
-            : "350px",
+  if (conversationsetup.conversationid) {
+    return (
+      <Conversation
+        conversationsetup={conversationsetup}
+        theme={{ primary: "#1c7def", lighten: "#82b7f6" }}
+      />
+    );
+  }
+
+  const isStandalone = pathnamelistener.includes("messages");
+  const isMobile = screensizelistener.W <= 900;
+  if (!isStandalone && isMobile) {
+    return null;
+  }
+  const maxW = isStandalone ? 640 : 360;
+
+  return (
+    <div
+      className="cl-redesign"
+      data-theme={theme}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
+        width: "100%",
+        maxWidth: maxW,
+        margin: isStandalone ? "0 auto" : undefined,
+        padding: isStandalone ? "16px 22px" : "16px 12px",
+        gap: 12,
+        background: isStandalone ? "transparent" : "var(--surface)",
+        borderLeft: !isStandalone ? "1px solid var(--border)" : "none",
       }}
-      id="div_messages_main"
     >
       {isCreateGCToggle && (
         <CreateGroupChatModal setisCreateGCToggle={setisCreateGCToggle} />
@@ -257,533 +404,274 @@ function Messages() {
       {isCreateServerToggle && (
         <CreateServerModal setisCreateServerToggle={setisCreateServerToggle} />
       )}
-      <div id="div_messages_label_container">
-        <AiOutlineMessage
+
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: isStandalone ? 0 : "0 4px",
+        }}
+      >
+        <span
           style={{
-            fontSize: "20px",
-            color: "white",
-            backgroundColor: "#9cc2ff",
-            borderRadius: "7px",
-            padding: "3px",
+            width: 32,
+            height: 32,
+            borderRadius: "var(--r-sm)",
+            background: "var(--brand-soft)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
-        />
-        <span className="span_messages_label">Messages</span>
+        >
+          <Icon n="forum" s={18} c="var(--brand)" />
+        </span>
+        <h2
+          style={{
+            margin: 0,
+            fontSize: isStandalone ? 22 : 17,
+            fontWeight: 800,
+            letterSpacing: "-0.02em",
+            flex: 1,
+          }}
+        >
+          Messages
+        </h2>
       </div>
-      <div id="div_messages_options">
-        <motion.button
-          id="btn_create_gc"
-          onClick={() => {
-            setisCreateGCToggle(true);
+
+      <div style={{ display: "flex", gap: 8 }}>
+        <Btn
+          size="sm"
+          variant="soft"
+          iconL="group_add"
+          onClick={() => setisCreateGCToggle(true)}
+          style={{ flex: 1, justifyContent: "center" }}
+        >
+          Create Group
+        </Btn>
+        <Btn
+          size="sm"
+          variant="soft"
+          iconL="dns"
+          onClick={() => setisCreateServerToggle(true)}
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            background: "var(--gold-soft)",
+            color: "var(--gold)",
           }}
         >
-          <BiGroup style={{ fontSize: "20px" }} />
-          <span id="span_btn_label" className="tw-font-Inter">
-            Create Group Chat
-          </span>
-        </motion.button>
-        <motion.button
-          id="btn_create_server"
-          onClick={() => {
-            setisCreateServerToggle(true);
-          }}
-        >
-          <TbServer2 style={{ fontSize: "20px" }} />
-          <span id="span_btn_label" className="tw-font-Inter">
-            Create Server
-          </span>
-        </motion.button>
+          Create Server
+        </Btn>
       </div>
-      <div id="div_messages_type_options">
-        <motion.button
-          initial={{
-            color: "white",
-            backgroundColor:
-              conversationTypeSet === "all" ? "#a7a7a7" : "#d2d2d2",
-          }}
-          animate={{
-            color: "white",
-            backgroundColor:
-              conversationTypeSet === "all" ? "#a7a7a7" : "#d2d2d2",
-          }}
-          onClick={() => {
-            setConversationListGroups("all");
-          }}
-          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
-        >
-          All
-        </motion.button>
-        <motion.button
-          initial={{
-            color: "white",
-            backgroundColor:
-              conversationTypeSet === "common" ? "#a7a7a7" : "#d2d2d2",
-          }}
-          animate={{
-            color: "white",
-            backgroundColor:
-              conversationTypeSet === "common" ? "#a7a7a7" : "#d2d2d2",
-          }}
-          onClick={() => {
-            setConversationListGroups("common");
-          }}
-          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
-        >
-          Common
-        </motion.button>
-        <motion.button
-          initial={{
-            color: "white",
-            backgroundColor:
-              conversationTypeSet === "direct" ? "#a7a7a7" : "#d2d2d2",
-          }}
-          animate={{
-            color: "white",
-            backgroundColor:
-              conversationTypeSet === "direct" ? "#a7a7a7" : "#d2d2d2",
-          }}
-          onClick={() => {
-            setConversationListGroups("direct");
-          }}
-          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
-        >
-          Direct
-        </motion.button>
-        <motion.button
-          initial={{
-            color: "white",
-            backgroundColor:
-              conversationTypeSet === "groups" ? "#a7a7a7" : "#d2d2d2",
-          }}
-          animate={{
-            color: "white",
-            backgroundColor:
-              conversationTypeSet === "groups" ? "#a7a7a7" : "#d2d2d2",
-          }}
-          onClick={() => {
-            setConversationListGroups("groups");
-          }}
-          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
-        >
-          Groups
-        </motion.button>
-        <motion.button
-          initial={{
-            color: "white",
-            backgroundColor:
-              conversationTypeSet === "servers" ? "#a7a7a7" : "#d2d2d2",
-          }}
-          animate={{
-            color: "white",
-            backgroundColor:
-              conversationTypeSet === "servers" ? "#a7a7a7" : "#d2d2d2",
-          }}
-          onClick={() => {
-            setConversationListGroups("servers");
-          }}
-          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
-        >
-          Servers
-        </motion.button>
+
+      <div
+        style={{
+          display: "flex",
+          gap: 6,
+          overflowX: "auto",
+          paddingBottom: 4,
+        }}
+      >
+        {(
+          [
+            ["all", "All"],
+            ["common", "Common"],
+            ["direct", "Direct"],
+            ["groups", "Groups"],
+            ["servers", "Servers"],
+          ] as const
+        ).map(([k, l]) => (
+          <Chip
+            key={k}
+            active={conversationTypeSet === k}
+            onClick={() => setConversationListGroups(k)}
+          >
+            {l}
+          </Chip>
+        ))}
       </div>
+
       {isLoading ? (
-        <div id="div_messages_list_container" className="scroller">
-          {Array.from({ length: 20 }, (_, i: number) => {
-            return <MessageItemLoader key={i} />;
-          })}
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+          }}
+        >
+          {Array.from({ length: 12 }, (_, i) => (
+            <MessageItemLoader key={i} />
+          ))}
         </div>
-      ) : messageslist.length == 0 ? (
-        <div id="div_messages_list_empty_container">
-          <span className="span_empty_list_label">No Messages</span>
+      ) : messageslist.length === 0 ? (
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 10,
+            color: "var(--text-3)",
+          }}
+        >
+          <Icon n="chat_bubble_outline" s={42} />
+          <span style={{ fontSize: 14, fontWeight: 600 }}>No messages</span>
         </div>
       ) : (
         <div
           ref={divcontentRef}
-          id="div_messages_list_container"
-          className="scroller"
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 2,
+          }}
         >
-          {messageslist.map((msgslst: any, i: number) => {
-            if (msgslst.conversationType == "single") {
-              return msgslst.users.map((msgsurs: any, i: number) => {
-                if (msgsurs._id != authentication.user.userID) {
+          {messageslist.flatMap((msgslst: any, i: number) => {
+            const typingHere =
+              istypinglist.filter(
+                (flt: any) => flt.conversationID === msgslst.conversationID,
+              ).length > 0;
+            const callHere =
+              getChannelPreviewParticipants(msgslst.conversationID).length > 0;
+
+            if (msgslst.conversationType === "single") {
+              return msgslst.users
+                .filter((u: any) => u._id !== authentication.user.userID)
+                .map((msgsurs: any, j: number) => {
+                  const name = `${msgsurs.fullname.firstName}${
+                    msgsurs.fullname.middleName === "N/A"
+                      ? ""
+                      : ` ${msgsurs.fullname.middleName}`
+                  } ${msgsurs.fullname.lastName}`;
+                  const last = lastMessagePreview(
+                    msgslst,
+                    authentication.user.userID,
+                  );
                   return (
-                    <motion.div
-                      whileHover={{
-                        backgroundColor: "rgb(200, 200, 200)",
-                      }}
-                      onClick={() => {
+                    <MessageRow
+                      key={`${i}-${j}`}
+                      imgSrc={
+                        msgsurs.profile === "none"
+                          ? DefaultProfile
+                          : msgsurs.profile
+                      }
+                      title={name}
+                      subtitle={
+                        typingHere ? "is typing…" : last.text
+                      }
+                      subtitleColor={
+                        typingHere ? "var(--brand)" : undefined
+                      }
+                      subtitleHtml={!typingHere && last.html}
+                      time={timestampLabel(msgslst)}
+                      unread={msgslst.unread || 0}
+                      showOnline={isUserOnline(activeuserslist, msgsurs._id)}
+                      showCall={callHere}
+                      onClick={() =>
                         navigateToConversation(
                           "single",
                           msgslst.conversationID,
                           msgsurs,
-                        );
-                      }}
-                      key={i}
-                      className="div_messages_list_cards tw-border-[0px]"
-                    >
-                      <div id="div_img_cncts_container">
-                        <div id="div_img_search_profiles_container_cncts">
-                          <CachedImage
-                            src={
-                              msgsurs.profile == "none"
-                                ? DefaultProfile
-                                : msgsurs.profile
-                            }
-                            className={
-                              msgsurs.profile == "none"
-                                ? "img_search_profiles_ntfs"
-                                : ""
-                            }
-                            id={
-                              msgsurs.profile == "none"
-                                ? ""
-                                : "img_actual_profile"
-                            }
-                          />
-                        </div>
-                        {isUserOnline(activeuserslist, msgsurs._id) && (
-                          <div className="div_online_indicator" />
-                        )}
-                      </div>
-                      <div id="div_messages_list_name">
-                        <span className="span_messages_list_name">
-                          {msgsurs.fullname.firstName}
-                          {msgsurs.fullname.middleName == "N/A"
-                            ? ""
-                            : ` ${msgsurs.fullname.middleName}`}{" "}
-                          {msgsurs.fullname.lastName}
-                        </span>
-                        {istypinglist.filter(
-                          (flt: any) =>
-                            flt.conversationID === msgslst.conversationID,
-                        ).length > 0 ? (
-                          <span className="span_messages_list_name">
-                            is typing...
-                          </span>
-                        ) : msgslst.isDeleted ? (
-                          <span className="span_messages_list_name">
-                            {msgslst.sender == authentication.user.userID
-                              ? "you: "
-                              : ""}
-                            [Deleted message]
-                          </span>
-                        ) : (
-                          <span className="span_messages_list_name">
-                            {msgslst.sender == authentication.user.userID
-                              ? "you: "
-                              : ""}
-                            {msgslst.messageType === "text" ||
-                            msgslst.messageType === "notif" ? (
-                              <span
-                                dangerouslySetInnerHTML={{
-                                  __html: msgslst.isDeleted
-                                    ? "[Deleted]"
-                                    : msgslst.content,
-                                }}
-                              />
-                            ) : !msgslst.messageType.includes("image") &&
-                              !msgslst.messageType.includes("video") &&
-                              !msgslst.messageType.includes("audio") ? (
-                              `Sent ${messageTypeChecker["any"]}`
-                            ) : (
-                              `Sent ${
-                                messageTypeChecker[
-                                  msgslst.messageType.split("/")[0]
-                                ]
-                              }`
-                            )}
-                          </span>
-                        )}
-                        {msgslst.messageDate.time ? (
-                          <span className="span_messages_list_name">
-                            {msgslst.messageDate.date} .{" "}
-                            {msgslst.messageDate.time}
-                          </span>
-                        ) : (
-                          <span className="span_messages_list_name">
-                            {msgslst.messageDate.date
-                              ? timeSince(msgslst.messageDate.date)
-                              : timeSince(msgslst.messageDate)}
-                          </span>
-                        )}
-                      </div>
-                      {(msgslst.unread > 0 ||
-                        getChannelPreviewParticipants(msgslst.conversationID)
-                          .length > 0) && (
-                        <div className="tw-flex tw-flex-col tw-justify-between">
-                          {msgslst.unread > 0 && (
-                            <span className="span_messages_list_counts">
-                              {msgslst.unread}
-                            </span>
-                          )}
-                          {getChannelPreviewParticipants(msgslst.conversationID)
-                            .length > 0 && (
-                            <div>
-                              <BiSolidPhoneCall color="lime" />
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </motion.div>
+                        )
+                      }
+                    />
                   );
-                }
-              });
-            } else if (msgslst.conversationType == "group") {
-              return (
-                <motion.div
-                  whileHover={{
-                    backgroundColor: "rgb(200, 200, 200)",
-                  }}
-                  onClick={() => {
+                });
+            }
+
+            if (msgslst.conversationType === "group") {
+              const last = lastMessagePreview(
+                msgslst,
+                authentication.user.userID,
+              );
+              const img =
+                msgslst.groupdetails?.profile &&
+                msgslst.groupdetails.profile !== "N/A"
+                  ? msgslst.groupdetails.profile
+                  : GroupChatIcon;
+              return [
+                <MessageRow
+                  key={i}
+                  imgSrc={img}
+                  title={msgslst.groupdetails.groupName}
+                  titleColor="var(--brand)"
+                  titleIcon="group"
+                  subtitle={typingHere ? "someone is typing…" : last.text}
+                  subtitleColor={typingHere ? "var(--brand)" : undefined}
+                  subtitleHtml={!typingHere && last.html}
+                  time={timestampLabel(msgslst)}
+                  unread={msgslst.unread || 0}
+                  showCall={callHere}
+                  onClick={() =>
                     navigateToConversation("group", msgslst.conversationID, {
                       ...msgslst.groupdetails,
                       receivers: msgslst.receivers,
-                    });
-                  }}
-                  key={i}
-                  className="div_messages_list_cards tw-border-[0px]"
-                >
-                  <div id="div_img_cncts_container">
-                    <div id="div_img_search_profiles_container_cncts">
-                      <CachedImage
-                        src={
-                          msgslst.groupdetails &&
-                          msgslst.groupdetails?.profile &&
-                          msgslst.groupdetails?.profile !== "N/A"
-                            ? msgslst.groupdetails?.profile
-                            : GroupChatIcon
-                        }
-                        id={
-                          msgslst.groupdetails &&
-                          msgslst.groupdetails?.profile &&
-                          msgslst.groupdetails?.profile !== "N/A"
-                            ? "img_actual_profile_main"
-                            : ""
-                        }
-                        className={
-                          msgslst.groupdetails &&
-                          msgslst.groupdetails?.profile &&
-                          msgslst.groupdetails?.profile !== "N/A"
-                            ? ""
-                            : "img_gc_profiles_ntfs"
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div id="div_messages_list_name">
-                    <span className="span_messages_list_name tw-flex tw-items-end tw-gap-[3px] tw-text-[#1c7DEF]">
-                      {msgslst.groupdetails.groupName}{" "}
-                      <BiGroup style={{ fontSize: "20px", color: "#1c7DEF" }} />
-                    </span>
-                    {istypinglist.filter(
-                      (flt: any) =>
-                        flt.conversationID === msgslst.conversationID,
-                    ).length > 0 ? (
-                      <span className="span_messages_list_name">
-                        someone is typing...
-                      </span>
-                    ) : msgslst.isDeleted ? (
-                      <span className="span_messages_list_name">
-                        {msgslst.sender == authentication.user.userID
-                          ? "you: "
-                          : ""}
-                        [Deleted message]
-                      </span>
-                    ) : (
-                      <span className="span_messages_list_name">
-                        {msgslst.sender == authentication.user.userID
-                          ? "you: "
-                          : ""}
-                        {msgslst.messageType === "text" ||
-                        msgslst.messageType === "notif" ? (
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: msgslst.isDeleted
-                                ? "[Deleted]"
-                                : msgslst.content,
-                            }}
-                          />
-                        ) : !msgslst.messageType.includes("image") &&
-                          !msgslst.messageType.includes("video") &&
-                          !msgslst.messageType.includes("audio") ? (
-                          `Sent ${messageTypeChecker["any"]}`
-                        ) : (
-                          `Sent ${
-                            messageTypeChecker[
-                              msgslst.messageType.split("/")[0]
-                            ]
-                          }`
-                        )}
-                      </span>
-                    )}
-                    {msgslst.messageDate.time ? (
-                      <span className="span_messages_list_name">
-                        {msgslst.messageDate.date} . {msgslst.messageDate.time}
-                      </span>
-                    ) : (
-                      <span className="span_messages_list_name">
-                        {msgslst.messageDate.date
-                          ? timeSince(msgslst.messageDate.date)
-                          : timeSince(msgslst.messageDate)}
-                      </span>
-                    )}
-                  </div>
-                  {(msgslst.unread > 0 ||
-                    getChannelPreviewParticipants(msgslst.conversationID)
-                      .length > 0) && (
-                    <div className="tw-flex tw-flex-col tw-justify-between">
-                      {msgslst.unread > 0 && (
-                        <span className="span_messages_list_counts">
-                          {msgslst.unread}
-                        </span>
-                      )}
-                      {getChannelPreviewParticipants(msgslst.conversationID)
-                        .length > 0 && (
-                        <div>
-                          <BiSolidPhoneCall color="lime" />
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </motion.div>
+                    })
+                  }
+                />,
+              ];
+            }
+
+            if (msgslst.conversationType === "server") {
+              const last = lastMessagePreview(
+                msgslst,
+                authentication.user.userID,
               );
-            } else if (msgslst.conversationType === "server") {
-              return (
-                <motion.div
-                  whileHover={{
-                    backgroundColor: "rgb(200, 200, 200)",
-                  }}
-                  onClick={() => {
+              const img =
+                msgslst.serverdetails?.profile &&
+                msgslst.serverdetails.profile !== "N/A"
+                  ? msgslst.serverdetails.profile
+                  : ServerIcon;
+              const title = `${msgslst.serverdetails?.serverName} · ${msgslst.groupdetails.groupName}`;
+              return [
+                <MessageRow
+                  key={i}
+                  imgSrc={img}
+                  title={title}
+                  titleColor="var(--gold)"
+                  titleIcon="dns"
+                  subtitle={typingHere ? "someone is typing…" : last.text}
+                  subtitleColor={typingHere ? "var(--brand)" : undefined}
+                  subtitleHtml={!typingHere && last.html}
+                  time={timestampLabel(msgslst)}
+                  unread={msgslst.unread || 0}
+                  onClick={() =>
                     navigate(
                       `/servers/${msgslst.serverdetails?.serverID}/${msgslst.groupdetails.groupID}`,
-                    );
-                  }}
-                  key={i}
-                  className="div_messages_list_cards tw-border-[0px]"
-                >
-                  <div id="div_img_cncts_container">
-                    <div id="div_img_search_profiles_container_cncts">
-                      <CachedImage
-                        src={
-                          msgslst.serverdetails &&
-                          msgslst.serverdetails?.profile &&
-                          msgslst.serverdetails?.profile !== "N/A"
-                            ? msgslst.serverdetails?.profile
-                            : ServerIcon
-                        }
-                        id={
-                          msgslst.serverdetails &&
-                          msgslst.serverdetails?.profile &&
-                          msgslst.serverdetails?.profile !== "N/A"
-                            ? "img_actual_profile_main"
-                            : ""
-                        }
-                        className={
-                          msgslst.serverdetails &&
-                          msgslst.serverdetails?.profile &&
-                          msgslst.serverdetails?.profile !== "N/A"
-                            ? ""
-                            : "img_server_profiles_ntfs"
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div id="div_messages_list_name">
-                    <span className="span_messages_list_name_server tw-flex tw-items-start tw-gap-[3px] tw-text-[#e69500]">
-                      <div className="tw-flex tw-flex-col">
-                        <span className="tw-text-[14px]">
-                          {msgslst.serverdetails?.serverName}
-                        </span>
-                        <span className="tw-text-[12px]">
-                          {msgslst.groupdetails.groupName}
-                        </span>
-                      </div>
-                      <TbServer2
-                        style={{ fontSize: "20px", color: "#e69500" }}
-                      />
-                    </span>
-                    {istypinglist.filter(
-                      (flt: any) =>
-                        flt.conversationID === msgslst.conversationID,
-                    ).length > 0 ? (
-                      <span className="span_messages_list_name">
-                        someone is typing...
-                      </span>
-                    ) : msgslst.isDeleted ? (
-                      <span className="span_messages_list_name">
-                        {msgslst.sender == authentication.user.userID
-                          ? "you: "
-                          : ""}
-                        [Deleted message]
-                      </span>
-                    ) : (
-                      <span className="span_messages_list_name">
-                        {msgslst.sender == authentication.user.userID
-                          ? "you: "
-                          : ""}
-                        {msgslst.messageType === "text" ||
-                        msgslst.messageType === "notif" ? (
-                          <span
-                            dangerouslySetInnerHTML={{
-                              __html: msgslst.isDeleted
-                                ? "[Deleted]"
-                                : msgslst.content,
-                            }}
-                          />
-                        ) : !msgslst.messageType.includes("image") &&
-                          !msgslst.messageType.includes("video") &&
-                          !msgslst.messageType.includes("audio") ? (
-                          `Sent ${messageTypeChecker["any"]}`
-                        ) : (
-                          `Sent ${
-                            messageTypeChecker[
-                              msgslst.messageType.split("/")[0]
-                            ]
-                          }`
-                        )}
-                      </span>
-                    )}
-                    {msgslst.messageDate.time ? (
-                      <span className="span_messages_list_name">
-                        {msgslst.messageDate.date} . {msgslst.messageDate.time}
-                      </span>
-                    ) : (
-                      <span className="span_messages_list_name">
-                        {msgslst.messageDate.date
-                          ? timeSince(msgslst.messageDate.date)
-                          : timeSince(msgslst.messageDate)}
-                      </span>
-                    )}
-                  </div>
-                  {msgslst.unread > 0 && (
-                    <div>
-                      <span className="span_messages_list_counts">
-                        {msgslst.unread}
-                      </span>
-                    </div>
-                  )}
-                </motion.div>
-              );
+                    )
+                  }
+                />,
+              ];
             }
+            return [];
           })}
           {isNext && (
-            <div ref={divlazyloaderRef} id="div_isLoading_notifications">
-              <motion.div
-                animate={{
-                  rotate: -360,
-                }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                }}
-                id="div_loader_request"
-              >
-                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-              </motion.div>
+            <div
+              ref={divlazyloaderRef}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                padding: 16,
+                color: "var(--text-3)",
+              }}
+            >
+              <AiOutlineLoading3Quarters
+                className="cl-spin"
+                style={{ fontSize: 22 }}
+              />
             </div>
           )}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 

@@ -1,12 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef } from "react";
-import "../../../styles/styles.css";
-import { FcContacts } from "react-icons/fc";
-import { AiOutlineLoading3Quarters, AiOutlineMessage } from "react-icons/ai";
-import { BiUserMinus } from "react-icons/bi";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
-import { motion } from "framer-motion";
 import {
   ContactsListInitRequest,
   DeclineContactRequest,
@@ -26,8 +22,20 @@ import {
 import { PaginationProp } from "@/reusables/vars/props";
 import { AuthenticationInterface, IContact } from "@/reusables/vars/interfaces";
 import ContactItemLoader from "@/app/reusables/loaders/ContactItemLoader";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { RiVerifiedBadgeFill } from "react-icons/ri";
+import { Avatar, Icon, IconBtn, useTheme } from "@/reusables/design";
+
+interface ContactRowData {
+  id: string;
+  username: string;
+  firstName: string;
+  middleName: string | null;
+  lastName: string;
+  profile: string;
+  isBadged?: boolean;
+  connectionID: string;
+  selfActed: boolean;
+  involvedUserdetails: any;
+}
 
 function Contacts() {
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
@@ -45,6 +53,7 @@ function Contacts() {
   const alerts = useSelector((state: any) => state.alerts);
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const { theme } = useTheme();
 
   const [isLoading, setisLoading] = useState(true);
   const [isDisabledByRequest, setisDisabledByRequest] = useState(false);
@@ -59,29 +68,14 @@ function Contacts() {
   const settogglerightwidget = (toggle: any) => {
     dispatch({
       type: SET_TOGGLE_RIGHT_WIDGET,
-      payload: {
-        togglerightwidget: toggle,
-      },
+      payload: { togglerightwidget: toggle },
     });
   };
 
   const declineRequestProcess = (connection_id: any, action: string) => {
     setisDisabledByRequest(true);
-    // console.log(addUserID);
-    // dispatch({
-    //   type: SET_MUTATE_ALERTS,
-    //   payload: {
-    //     alerts: {
-    //       type: "warning",
-    //       content: "Add Connection is temporary disabled",
-    //     },
-    //   },
-    // });
     DeclineContactRequest(
-      {
-        connection_id,
-        action,
-      },
+      { connection_id, action },
       dispatch,
       alerts,
       setisDisabledByRequest,
@@ -93,63 +87,27 @@ function Contacts() {
     conversationID: any,
     userdetails: any,
   ) => {
-    if (screensizelistener.W <= 1100) {
-      if (type == "single") {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: userdetails,
-              groupdetails: conversationsetupstate.groupdetails,
-              type: "single",
-            },
-          },
-        });
-        navigate("/messages");
-      } else {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: conversationsetupstate.userdetails,
-              groupdetails: userdetails,
-              type: "group",
-            },
-          },
-        });
-        navigate("/messages");
-      }
-    } else {
-      if (type == "single") {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: userdetails,
-              groupdetails: conversationsetupstate.groupdetails,
-              type: "single",
-            },
-          },
-        });
-        settogglerightwidget("messages");
-      } else {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: conversationsetupstate.userdetails,
-              groupdetails: userdetails,
-              type: "group",
-            },
-          },
-        });
-        settogglerightwidget("messages");
-      }
-    }
+    const isMobile = screensizelistener.W <= 1100;
+    const payload =
+      type === "single"
+        ? {
+            conversationid: conversationID,
+            userdetails,
+            groupdetails: conversationsetupstate.groupdetails,
+            type: "single",
+          }
+        : {
+            conversationid: conversationID,
+            userdetails: conversationsetupstate.userdetails,
+            groupdetails: userdetails,
+            type: "group",
+          };
+    dispatch({
+      type: SET_CONVERSATION_SETUP,
+      payload: { conversationsetup: payload },
+    });
+    if (isMobile) navigate("/messages");
+    else settogglerightwidget("messages");
   };
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
@@ -157,364 +115,282 @@ function Contacts() {
 
   useEffect(() => {
     let currentView = false;
-    if (divcontentRef) {
-      if (divcontentRef.current) {
-        divcontentRef.current.onscroll = () => {
-          // console.log("Hello")
-          if (divlazyloaderRef && divlazyloaderRef.current) {
-            const top = divlazyloaderRef.current.getBoundingClientRect().top;
-            const isVisible = top + 0 >= 0 && top - 0 <= window.innerHeight;
-            // const isVisible = top > 0 ? true : false;
-            // console.log((top + 0) >= 0 && (top - 0) <= window.innerHeight);
-            if (currentView != isVisible) {
-              currentView = isVisible;
-              if (currentView) {
-                // setrange((prev) => prev + 20);
-                setpage((prev) => prev + 1);
-              }
-            }
+    if (divcontentRef.current) {
+      divcontentRef.current.onscroll = () => {
+        if (divlazyloaderRef.current) {
+          const top = divlazyloaderRef.current.getBoundingClientRect().top;
+          const isVisible = top >= 0 && top <= window.innerHeight;
+          if (currentView != isVisible) {
+            currentView = isVisible;
+            if (currentView) setpage((prev) => prev + 1);
           }
-        };
-      }
+        }
+      };
     }
-  }, [divcontentRef, divlazyloaderRef, isLoading]);
+  }, [isLoading]);
+
+  const isStandalone = pathnamelistener.includes("contacts");
+  const isMobile = screensizelistener.W <= 1100;
+  if (!isStandalone && isMobile) {
+    return null;
+  }
+  const maxW = isStandalone ? 640 : 360;
+
+  const rows: ContactRowData[] = contactslist.flatMap((cnts) => {
+    if (cnts.type !== "single") return [];
+    if (!cnts.involved_user || !cnts.action_by) return [];
+    const selfActed = cnts.action_by.id === authentication.user.userID;
+    const u = selfActed ? cnts.involved_user : cnts.action_by;
+    return [
+      {
+        id: u.id,
+        username: u.username,
+        firstName: u.first_name,
+        middleName: u.middle_name,
+        lastName: u.last_name,
+        profile: u.profile,
+        isBadged: u.is_badged,
+        connectionID: cnts.connection_id,
+        selfActed,
+        involvedUserdetails: contactsToUserdetails(cnts, !selfActed),
+      },
+    ];
+  });
 
   return (
-    <motion.div
-      animate={{
-        display: pathnamelistener.includes("contacts")
-          ? "flex"
-          : screensizelistener.W <= 1100
-            ? "none"
-            : "flex",
-        maxWidth: pathnamelistener.includes("contacts")
-          ? "600px"
-          : screensizelistener.W <= 900
-            ? "350px"
-            : "350px",
+    <div
+      className="cl-redesign"
+      data-theme={theme}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
+        width: "100%",
+        maxWidth: maxW,
+        margin: isStandalone ? "0 auto" : undefined,
+        padding: isStandalone ? "16px 22px" : "16px 12px",
+        gap: 12,
+        background: isStandalone ? "transparent" : "var(--surface)",
+        borderLeft: !isStandalone ? "1px solid var(--border)" : "none",
       }}
-      id="div_contacts"
     >
-      <div id="div_contacts_label_container">
-        <FcContacts style={{ fontSize: "28px" }} />
-        <span className="span_contacts_label">Contacts</span>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: isStandalone ? 0 : "0 4px",
+        }}
+      >
+        <span
+          style={{
+            width: 32,
+            height: 32,
+            borderRadius: "var(--r-sm)",
+            background: "var(--green-soft)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Icon n="contacts" s={18} c="var(--green)" />
+        </span>
+        <h2
+          style={{
+            margin: 0,
+            fontSize: isStandalone ? 22 : 17,
+            fontWeight: 800,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          Contacts
+        </h2>
       </div>
+
       {isLoading ? (
-        <div id="div_contacts_list_container" className="scroller">
-          {Array.from({ length: 20 }, (_, i: number) => {
-            return <ContactItemLoader key={i} />;
-          })}
+        <div
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 6,
+          }}
+        >
+          {Array.from({ length: 12 }, (_, i) => (
+            <ContactItemLoader key={i} />
+          ))}
         </div>
-      ) : contactslist.length == 0 ? (
-        <div id="div_contacts_list_empty_container">
-          <span className="span_empty_list_label">No Contacts</span>
+      ) : rows.length === 0 ? (
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            color: "var(--text-3)",
+          }}
+        >
+          <Icon n="contacts" s={42} />
+          <span style={{ fontSize: 14, fontWeight: 600 }}>No contacts</span>
         </div>
       ) : (
         <div
           ref={divcontentRef}
-          id="div_contacts_list_container"
-          className="scroller"
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 4,
+            paddingRight: 4,
+          }}
         >
-          {contactslist.map((cnts: IContact, i: number) => {
-            if (cnts.type == "single") {
-              if (cnts.involved_user && cnts.action_by) {
-                if (cnts.action_by.id == authentication.user.userID) {
-                  return (
-                    <motion.div
-                      whileHover={{
-                        backgroundColor: "#e6e6e6",
-                      }}
-                      key={i}
-                      className="div_cncts_cards"
-                    >
-                      <div id="div_img_cncts_container">
-                        <div id="div_img_search_profiles_container_cncts">
-                          <CachedImage
-                            src={
-                              cnts.involved_user.profile == "none"
-                                ? DefaultProfile
-                                : cnts.involved_user.profile
-                            }
-                            className={
-                              cnts.involved_user.profile == "none"
-                                ? "img_search_profiles_ntfs"
-                                : ""
-                            }
-                            id={
-                              cnts.involved_user.profile == "none"
-                                ? ""
-                                : "img_actual_profile"
-                            }
-                          />
-                        </div>
-                        {isUserOnline(
-                          activeuserslist,
-                          cnts.involved_user.id,
-                        ) && <div className="div_online_indicator" />}
-                      </div>
-                      <div className="tw-flex tw-flex-1 tw-h-full tw-overflow-hidden tw-flex-col tw-justify-center">
-                        <div className="div_contact_fullname_container">
-                          <span
-                            className="span_cncts_fullname_label tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
-                            onClick={() => {
-                              navigate(`/${cnts.involved_user.username}`);
-                            }}
-                          >
-                            <div className="tw-flex tw-items-center tw-gap-[4px]">
-                              <span>
-                                {cnts.involved_user.first_name}
-                                {cnts.involved_user.middle_name == "N/A"
-                                  ? ""
-                                  : ` ${cnts.involved_user.middle_name}`}{" "}
-                                {cnts.involved_user.last_name}
-                              </span>
-                              {cnts.involved_user.is_badged && (
-                                <RiVerifiedBadgeFill
-                                  size={16}
-                                  color="#1c7def"
-                                />
-                              )}
-                            </div>
-                          </span>
-                        </div>
-                        {isUserOnline(
-                          activeuserslist,
-                          cnts.involved_user.id,
-                        ) ? (
-                          <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
-                            <span className="tw-text-[12px] tw-font-Inter">
-                              Active Now
-                            </span>
-                          </div>
-                        ) : (
-                          userSessionStatusFromContacts(
-                            activeuserslist,
-                            cnts.involved_user.id,
-                          ) && (
-                            <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px] div_time_since_active_ellipsis">
-                              <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">
-                                {userSessionStatusFromContacts(
-                                  activeuserslist,
-                                  cnts.involved_user.id,
-                                )}
-                              </span>
-                            </div>
-                          )
-                        )}
-                      </div>
-                      <div className="div_cncts_navigations">
-                        <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#9cc2ff",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#9cc2ff",
-                            color: "white",
-                          }}
-                          onClick={() => {
-                            navigateToConversation(
-                              "single",
-                              cnts.connection_id,
-                              contactsToUserdetails(cnts, false),
-                            );
-                          }}
-                          className="btn_cncts_navigations"
-                        >
-                          <AiOutlineMessage
-                            style={{
-                              fontSize: "20px",
-                              borderRadius: "7px",
-                              padding: "3px",
-                            }}
-                          />
-                        </motion.button>
-                        <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#ff6675",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#ff6675",
-                            color: "white",
-                          }}
-                          className="btn_cncts_navigations"
-                          onClick={() => {
-                            declineRequestProcess(cnts.connection_id, "remove");
-                          }}
-                          disabled={isDisabledByRequest}
-                        >
-                          <BiUserMinus
-                            style={{
-                              fontSize: "20px",
-                              borderRadius: "7px",
-                              padding: "3px",
-                            }}
-                          />
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  );
-                } else {
-                  return (
-                    <motion.div
-                      whileHover={{
-                        backgroundColor: "#e6e6e6",
-                      }}
-                      key={i}
-                      className="div_cncts_cards"
-                    >
-                      <div id="div_img_cncts_container">
-                        <div id="div_img_search_profiles_container_cncts">
-                          <CachedImage
-                            src={
-                              cnts.action_by.profile == "none"
-                                ? DefaultProfile
-                                : cnts.action_by.profile
-                            }
-                            className={
-                              cnts.action_by.profile == "none"
-                                ? "img_search_profiles_ntfs"
-                                : ""
-                            }
-                            id={
-                              cnts.action_by.profile == "none"
-                                ? ""
-                                : "img_actual_profile"
-                            }
-                          />
-                        </div>
-                        {isUserOnline(activeuserslist, cnts.action_by.id) && (
-                          <div className="div_online_indicator" />
-                        )}
-                      </div>
-                      <div className="tw-flex tw-flex-1 tw-h-full tw-overflow-hidden tw-flex-col tw-justify-center">
-                        <div className="div_contact_fullname_container">
-                          <span
-                            className="span_cncts_fullname_label tw-border-[#808080] hover:tw-border-solid tw-border-[0px] tw-border-b-[1px]"
-                            onClick={() => {
-                              navigate(`/${cnts.action_by.username}`);
-                            }}
-                          >
-                            <div className="tw-flex tw-items-center tw-gap-[4px]">
-                              <span>
-                                {cnts.action_by.first_name}
-                                {cnts.action_by.middle_name == "N/A"
-                                  ? ""
-                                  : ` ${cnts.action_by.middle_name}`}{" "}
-                                {cnts.action_by.last_name}
-                              </span>
-                              {cnts.action_by.is_badged && (
-                                <RiVerifiedBadgeFill
-                                  size={16}
-                                  color="#1c7def"
-                                />
-                              )}
-                            </div>
-                          </span>
-                        </div>
-                        {isUserOnline(activeuserslist, cnts.action_by.id) ? (
-                          <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px]">
-                            <span className="tw-text-[12px] tw-font-Inter">
-                              Active Now
-                            </span>
-                          </div>
-                        ) : (
-                          userSessionStatusFromContacts(
-                            activeuserslist,
-                            cnts.action_by.id,
-                          ) && (
-                            <div className="tw-flex tw-flex-1 tw-pl-[10px] tw-pr-[10px] div_time_since_active_ellipsis">
-                              <span className="tw-text-[12px] tw-font-Inter tw-text-[#5a5a5a]">
-                                {userSessionStatusFromContacts(
-                                  activeuserslist,
-                                  cnts.action_by.id,
-                                )}
-                              </span>
-                            </div>
-                          )
-                        )}
-                      </div>
-                      <div className="div_cncts_navigations">
-                        <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#9cc2ff",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#9cc2ff",
-                            color: "white",
-                          }}
-                          onClick={() => {
-                            navigateToConversation(
-                              "single",
-                              cnts.connection_id,
-                              contactsToUserdetails(cnts, true),
-                            );
-                          }}
-                          className="btn_cncts_navigations"
-                        >
-                          <AiOutlineMessage
-                            style={{
-                              fontSize: "20px",
-                              borderRadius: "7px",
-                              padding: "3px",
-                            }}
-                          />
-                        </motion.button>
-                        <motion.button
-                          initial={{
-                            backgroundColor: "transparent",
-                            color: "#ff6675",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#ff6675",
-                            color: "white",
-                          }}
-                          className="btn_cncts_navigations"
-                          onClick={() => {
-                            declineRequestProcess(cnts.connection_id, "remove");
-                          }}
-                          disabled={isDisabledByRequest}
-                        >
-                          <BiUserMinus
-                            style={{
-                              fontSize: "20px",
-                              borderRadius: "7px",
-                              padding: "3px",
-                            }}
-                          />
-                        </motion.button>
-                      </div>
-                    </motion.div>
-                  );
+          {rows.map((r, i) => {
+            const online = isUserOnline(activeuserslist, r.id);
+            const sessionStatus = !online
+              ? userSessionStatusFromContacts(activeuserslist, r.id)
+              : null;
+            const fullName = `${r.firstName}${
+              r.middleName === "N/A" ? "" : ` ${r.middleName}`
+            } ${r.lastName}`;
+            return (
+              <div
+                key={i}
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 12,
+                  padding: "10px 12px",
+                  borderRadius: "var(--r-sm)",
+                  transition: "background .14s",
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "var(--surface-hover)")
                 }
-              } else {
-                return null;
-              }
-            } else {
-              return null;
-            }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+              >
+                <div style={{ position: "relative", flex: "none" }}>
+                  <Avatar
+                    id={r.id}
+                    name={fullName}
+                    src={r.profile === "none" ? DefaultProfile : r.profile}
+                    size={46}
+                  />
+                  {online && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        right: 0,
+                        bottom: 0,
+                        width: 12,
+                        height: 12,
+                        borderRadius: "50%",
+                        background: "var(--online)",
+                        border: "2px solid var(--surface)",
+                      }}
+                    />
+                  )}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <button
+                    onClick={() => navigate(`/${r.username}`)}
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 5,
+                      border: "none",
+                      background: "transparent",
+                      padding: 0,
+                      cursor: "pointer",
+                      color: "var(--text)",
+                      fontWeight: 700,
+                      fontSize: 14,
+                    }}
+                  >
+                    <span
+                      style={{
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {fullName}
+                    </span>
+                    {r.isBadged && (
+                      <Icon n="verified" s={15} c="var(--brand)" />
+                    )}
+                  </button>
+                  <div
+                    style={{ fontSize: 12, color: "var(--text-2)", marginTop: 2 }}
+                  >
+                    {online
+                      ? "Active now"
+                      : sessionStatus
+                        ? sessionStatus
+                        : null}
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 2, flex: "none" }}>
+                  <IconBtn
+                    n="forum"
+                    title="Message"
+                    onClick={() =>
+                      navigateToConversation(
+                        "single",
+                        r.connectionID,
+                        r.involvedUserdetails,
+                      )
+                    }
+                    style={{
+                      color: "var(--brand)",
+                      border: "none",
+                      background: "transparent",
+                    }}
+                  />
+                  <IconBtn
+                    n="person_remove"
+                    title="Remove contact"
+                    onClick={() => {
+                      if (!isDisabledByRequest)
+                        declineRequestProcess(r.connectionID, "remove");
+                    }}
+                    style={{
+                      color: "var(--pink)",
+                      border: "none",
+                      background: "transparent",
+                    }}
+                  />
+                </div>
+              </div>
+            );
           })}
           {contacts.next && (
-            <div ref={divlazyloaderRef} id="div_isLoading_notifications">
-              <motion.div
-                animate={{
-                  rotate: -360,
-                }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                }}
-                id="div_loader_request"
-              >
-                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-              </motion.div>
+            <div
+              ref={divlazyloaderRef}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                padding: 16,
+                color: "var(--text-3)",
+              }}
+            >
+              <AiOutlineLoading3Quarters
+                className="cl-spin"
+                style={{ fontSize: 22 }}
+              />
             </div>
           )}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 

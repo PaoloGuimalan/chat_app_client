@@ -1,8 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useEffect, useRef, useState } from "react";
-import "../../../styles/styles.css";
-import { AiOutlineBell, AiOutlineLoading3Quarters } from "react-icons/ai";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AcceptContactRequest,
@@ -10,11 +9,10 @@ import {
   NotificationInitRequest,
   ReadNotificationsRequest,
 } from "../../../reusables/hooks/requests";
-import { motion } from "framer-motion";
 import DefaultProfile from "../../../assets/imgs/default.png";
 import NotificationItemLoader from "@/app/reusables/loaders/NotificationItemLoader";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { timeSince } from "@/reusables/hooks/reusable";
+import { Avatar, Btn, Card, Icon, useTheme } from "@/reusables/design";
 
 function Notifications() {
   const [isLoading, setisLoading] = useState(true);
@@ -31,16 +29,15 @@ function Notifications() {
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
   const alerts = useSelector((state: any) => state.alerts);
   const dispatch = useDispatch();
+  const { theme } = useTheme();
 
   useEffect(() => {
     NotificationInitRequest(page, range, dispatch, setisLoading);
   }, [page, range]);
 
   useEffect(() => {
-    if (!isLoading) {
-      ReadNotificationsRequest();
-    }
-  }, [isLoading]); //notificationslist.list.length,
+    if (!isLoading) ReadNotificationsRequest();
+  }, [isLoading]);
 
   const declineRequestProcess = (
     connection_id: any,
@@ -49,11 +46,7 @@ function Notifications() {
   ) => {
     setisDisabledByRequest(true);
     DeclineContactRequest(
-      {
-        connection_id,
-        to_user_id,
-        action,
-      },
+      { connection_id, to_user_id, action },
       dispatch,
       alerts,
       setisDisabledByRequest,
@@ -63,10 +56,7 @@ function Notifications() {
   const acceptRequestProcess = (connection_id: string, to_user_id: string) => {
     setisDisabledByRequest(true);
     AcceptContactRequest(
-      {
-        connection_id,
-        to_user_id,
-      },
+      { connection_id, to_user_id },
       dispatch,
       alerts,
       setisDisabledByRequest,
@@ -78,189 +68,243 @@ function Notifications() {
 
   useEffect(() => {
     let currentView = false;
-    if (divcontentRef) {
-      if (divcontentRef.current) {
-        divcontentRef.current.onscroll = () => {
-          // console.log("Hello")
-          if (divlazyloaderRef && divlazyloaderRef.current) {
-            const top = divlazyloaderRef.current.getBoundingClientRect().top;
-            const isVisible = top + 0 >= 0 && top - 0 <= window.innerHeight;
-            // const isVisible = top > 0 ? true : false;
-            // console.log((top + 0) >= 0 && (top - 0) <= window.innerHeight);
-            if (currentView != isVisible) {
-              currentView = isVisible;
-              if (currentView) {
-                // setrange((prev) => prev + 20);
-                setpage((prev) => prev + 1);
-              }
-            }
+    if (divcontentRef.current) {
+      divcontentRef.current.onscroll = () => {
+        if (divlazyloaderRef.current) {
+          const top = divlazyloaderRef.current.getBoundingClientRect().top;
+          const isVisible = top >= 0 && top <= window.innerHeight;
+          if (currentView != isVisible) {
+            currentView = isVisible;
+            if (currentView) setpage((prev) => prev + 1);
           }
-        };
-      }
+        }
+      };
     }
-  }, [divcontentRef, divlazyloaderRef, isLoading]);
+  }, [isLoading]);
+
+  const isStandalone = pathnamelistener.includes("notifications");
+  const isMobile = screensizelistener.W <= 900;
+  if (!isStandalone && isMobile) {
+    return null;
+  }
+  const maxW = isStandalone ? 640 : 360;
 
   return (
-    <motion.div
-      animate={{
-        display: pathnamelistener.includes("notifications")
-          ? "flex"
-          : screensizelistener.W <= 900
-            ? "none"
-            : "flex",
-        maxWidth: pathnamelistener.includes("notifications")
-          ? "600px"
-          : screensizelistener.W <= 900
-            ? "350px"
-            : "350px",
+    <div
+      className="cl-redesign"
+      data-theme={theme}
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        flex: 1,
+        minHeight: 0,
+        width: "100%",
+        maxWidth: maxW,
+        margin: isStandalone ? "0 auto" : undefined,
+        padding: isStandalone ? "16px 22px" : "16px 12px",
+        gap: 12,
+        background: isStandalone ? "transparent" : "var(--surface)",
+        borderLeft: !isStandalone ? "1px solid var(--border)" : "none",
       }}
-      id="div_notifications_main"
     >
-      <div id="div_notifications_label_container">
-        <AiOutlineBell
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          padding: isStandalone ? 0 : "0 4px",
+        }}
+      >
+        <span
           style={{
-            fontSize: "20px",
-            color: "#b66a00",
-            backgroundColor: "#f2a43a",
-            borderRadius: "7px",
-            padding: "3px",
+            width: 32,
+            height: 32,
+            borderRadius: "var(--r-sm)",
+            background: "var(--gold-soft)",
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
           }}
-        />
-        <span className="span_notifications_label">Notifications</span>
+        >
+          <Icon n="notifications" s={18} c="var(--gold)" />
+        </span>
+        <h2
+          style={{
+            margin: 0,
+            fontSize: isStandalone ? 22 : 17,
+            fontWeight: 800,
+            letterSpacing: "-0.02em",
+          }}
+        >
+          {isStandalone ? "Activity" : "Notifications"}
+        </h2>
       </div>
+
       {isLoading ? (
-        // <div id="div_isLoading_notifications">
-        //   <motion.div
-        //     animate={{
-        //       rotate: -360,
-        //     }}
-        //     transition={{
-        //       duration: 1,
-        //       repeat: Infinity,
-        //     }}
-        //     id="div_loader_request"
-        //   >
-        //     <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-        //   </motion.div>
-        // </div>
-        <div id="div_notifications_list_container" className="scroller">
-          {Array.from({ length: 20 }, (_, i: number) => {
-            return <NotificationItemLoader key={i} />;
-          })}
+        <div
+          ref={divcontentRef}
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+          }}
+        >
+          {Array.from({ length: 10 }, (_, i) => (
+            <NotificationItemLoader key={i} />
+          ))}
         </div>
-      ) : notificationslist.list.length == 0 ? (
-        <div id="div_notifications_list_empty_container">
-          <span className="span_empty_list_label">No Notifications</span>
+      ) : notificationslist.list.length === 0 ? (
+        <div
+          style={{
+            flex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+            color: "var(--text-3)",
+          }}
+        >
+          <Icon n="notifications_none" s={42} />
+          <span style={{ fontSize: 14, fontWeight: 600 }}>
+            No notifications
+          </span>
         </div>
       ) : (
         <div
           ref={divcontentRef}
-          id="div_notifications_list_container"
-          className="scroller"
+          style={{
+            flex: 1,
+            minHeight: 0,
+            overflowY: "auto",
+            display: "flex",
+            flexDirection: "column",
+            gap: 8,
+            paddingRight: 4,
+          }}
         >
           {notificationslist.list.map((ntfs: any, i: number) => {
+            const profileSrc =
+              ntfs.fromUser.profile === "none"
+                ? DefaultProfile
+                : ntfs.fromUser.profile;
+            const isContactRequest = ntfs.type === "contact_request";
+            const showActions = isContactRequest && !ntfs.referenceStatus;
             return (
-              <motion.div
-                whileHover={{
-                  backgroundColor: "#e6e6e6",
-                }}
+              <Card
                 key={i}
-                className="div_ntfs_cards"
+                pad={12}
+                hover
+                style={{
+                  display: "flex",
+                  gap: 12,
+                  alignItems: "flex-start",
+                  borderColor: "var(--border)",
+                }}
               >
-                <div id="div_img_ntfs_container">
-                  <div id="div_img_search_profiles_container_ntfs">
-                    <CachedImage
-                      src={
-                        ntfs.fromUser.profile == "none"
-                          ? DefaultProfile
-                          : ntfs.fromUser.profile
-                      }
-                      id={
-                        ntfs.fromUser.profile == "none"
-                          ? ""
-                          : "img_actual_profile_ntfs"
-                      }
-                      className="img_search_profiles_ntfs"
-                    />
-                  </div>
-                </div>
-                <div id="div_ntfs_content">
-                  <span id="span_ntfs_content_headline">
+                <Avatar
+                  id={ntfs.fromUserID || ntfs.fromUser?.userID || ntfs.fromUser?.name}
+                  name={ntfs.content?.headline || ntfs.fromUser?.fullName?.firstName}
+                  src={profileSrc}
+                  size={44}
+                />
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <div
+                    style={{
+                      fontSize: 13.5,
+                      fontWeight: 700,
+                      color: "var(--text)",
+                    }}
+                  >
                     {ntfs.content.headline}
-                  </span>
-                  <span id="span_ntfs_content_details">
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 12.5,
+                      color: "var(--text-2)",
+                      marginTop: 2,
+                    }}
+                  >
                     {ntfs.content.details}
-                  </span>
-                  {ntfs.date.time ? (
-                    <div id="div_ntfs_date_time">
-                      <span className="span_ntfs_date_time">
-                        {ntfs.date.date}
-                      </span>
-                      <span className="span_ntfs_date_time">
-                        {ntfs.date.time}
-                      </span>
-                    </div>
-                  ) : (
-                    <div id="div_ntfs_date_time">
-                      <span className="span_ntfs_date_time">
-                        {timeSince(ntfs.date.date)}
-                      </span>
+                  </div>
+                  <div
+                    style={{
+                      fontSize: 11.5,
+                      color: "var(--text-3)",
+                      marginTop: 4,
+                      display: "flex",
+                      gap: 6,
+                    }}
+                  >
+                    {ntfs.date.time ? (
+                      <>
+                        <span>{ntfs.date.date}</span>
+                        <span>·</span>
+                        <span>{ntfs.date.time}</span>
+                      </>
+                    ) : (
+                      <span>{timeSince(ntfs.date.date)}</span>
+                    )}
+                  </div>
+                  {showActions && (
+                    <div
+                      style={{
+                        display: "flex",
+                        gap: 8,
+                        marginTop: 10,
+                      }}
+                    >
+                      <Btn
+                        size="sm"
+                        disabled={isDisabledByRequest}
+                        onClick={() =>
+                          acceptRequestProcess(ntfs.referenceID, ntfs.fromUserID)
+                        }
+                      >
+                        Confirm
+                      </Btn>
+                      <Btn
+                        size="sm"
+                        variant="outline"
+                        disabled={isDisabledByRequest}
+                        onClick={() =>
+                          declineRequestProcess(
+                            ntfs.referenceID,
+                            ntfs.fromUserID,
+                            "decline",
+                          )
+                        }
+                      >
+                        Decline
+                      </Btn>
                     </div>
                   )}
-                  {ntfs.type == "contact_request" ? (
-                    ntfs.referenceStatus ? null : (
-                      <div id="div_navigations_contact_request">
-                        <button
-                          className="btn_navigations_contact_request confirm_contact_request"
-                          disabled={isDisabledByRequest}
-                          onClick={() => {
-                            acceptRequestProcess(
-                              ntfs.referenceID,
-                              ntfs.fromUserID,
-                            );
-                          }}
-                        >
-                          Confirm
-                        </button>
-                        <button
-                          className="btn_navigations_contact_request decline_contact_request"
-                          disabled={isDisabledByRequest}
-                          onClick={() => {
-                            declineRequestProcess(
-                              ntfs.referenceID,
-                              ntfs.fromUserID,
-                              "decline",
-                            );
-                          }}
-                        >
-                          Decline
-                        </button>
-                      </div>
-                    )
-                  ) : null}
                 </div>
-              </motion.div>
+              </Card>
             );
           })}
           {notificationslist.next && (
-            <div ref={divlazyloaderRef} id="div_isLoading_notifications">
-              <motion.div
-                animate={{
-                  rotate: -360,
-                }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                }}
-                id="div_loader_request"
-              >
-                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-              </motion.div>
+            <div
+              ref={divlazyloaderRef}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                padding: 16,
+                color: "var(--text-3)",
+              }}
+            >
+              <AiOutlineLoading3Quarters
+                className="cl-spin"
+                style={{ fontSize: 22 }}
+              />
             </div>
           )}
         </div>
       )}
-    </motion.div>
+    </div>
   );
 }
 

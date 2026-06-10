@@ -52,6 +52,10 @@
   --text-2: #5b606b;
   --text-3: #8b909b;
   --on-brand: #ffffff;
+  --rail: linear-gradient(180deg, #1c7def 0%, #1466cf 100%);
+  --rail-icon: rgba(255, 255, 255, 0.78);
+  --rail-icon-active: #1c7def;
+  --rail-active-bg: #ffffff;
   --shadow-sm: 0 1px 2px rgba(20, 30, 55, 0.06),
     0 1px 3px rgba(20, 30, 55, 0.05);
   --shadow-md: 0 2px 8px rgba(20, 30, 55, 0.08),
@@ -75,6 +79,10 @@
   --text: #e8ebf1;
   --text-2: #99a1b1;
   --text-3: #6b7488;
+  --rail: linear-gradient(180deg, #14233b 0%, #0f1a2e 100%);
+  --rail-icon: rgba(255, 255, 255, 0.62);
+  --rail-icon-active: #ffffff;
+  --rail-active-bg: rgba(60, 139, 255, 0.22);
   --brand-soft: rgba(60, 139, 255, 0.16);
   --green-soft: rgba(32, 189, 124, 0.16);
   --gold-soft: rgba(230, 149, 0, 0.16);

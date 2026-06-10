@@ -1,15 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { InitServerListRequest } from "@/reusables/hooks/requests";
-import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import ServerIcon from "../../../assets/imgs/servericon.png";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Default from "./partials/Default";
 import Channels from "./partials/Channels";
 import { useSelector } from "react-redux";
-import { IoArrowBack } from "react-icons/io5";
-import { TbServer2 } from "react-icons/tb";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { Icon, useTheme } from "@/reusables/design";
 
 function Servers() {
   const screensizelistener = useSelector(
@@ -17,6 +14,7 @@ function Servers() {
   );
   const urllocation = useLocation();
   const navigate = useNavigate();
+  const { theme } = useTheme();
 
   const [serverlist, setserverlist] = useState<any[]>([]);
   const [isLoaded, setisLoaded] = useState<boolean>(false);
@@ -25,154 +23,173 @@ function Servers() {
     InitServerListRequest()
       .then((response) => {
         setserverlist(response);
-        setTimeout(() => {
-          setisLoaded(true);
-        }, 1000);
+        setTimeout(() => setisLoaded(true), 1000);
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch((err) => console.log(err));
   }, []);
 
+  const isMobile = screensizelistener.W <= 900;
+  const isInsideServer = urllocation.pathname.split("/").length >= 4;
+  const railHidden = isMobile && isInsideServer;
+
   return (
-    <div className="tw-w-full tw-h-full tw-bg-[#d8d8da] tw-absolute tw-z-[2] tw-flex tw-flex-row">
-      <motion.div
-        initial={{
-          minWidth:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "70px"
-                : "0px"
-              : "70px",
-          width:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "70px"
-                : "0px"
-              : "70px",
+    <div
+      className="cl-redesign"
+      data-theme={theme}
+      style={{
+        position: "absolute",
+        inset: 0,
+        background: "var(--bg)",
+        display: "flex",
+        flexDirection: "row",
+        zIndex: 2,
+      }}
+    >
+      <div
+        style={{
+          width: railHidden ? 0 : 76,
+          minWidth: railHidden ? 0 : 76,
+          flex: "none",
+          overflowX: "hidden",
+          overflowY: "auto",
+          background: "var(--surface-2)",
+          borderRight: railHidden ? "none" : "1px solid var(--border)",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          padding: railHidden ? 0 : "12px 0",
+          gap: 6,
+          transition: "width .2s var(--ease)",
         }}
-        animate={{
-          minWidth:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "70px"
-                : "0px"
-              : "70px",
-          width:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "70px"
-                : "0px"
-              : "70px",
-        }}
-        className="thinscroller tw-bg-[#d8d8da] tw-flex tw-flex-col tw-max-w-[70px] tw-items-center tw-pt-[10px] tw-pb-[10px] tw-overflow-x-hidden tw-overflow-y-auto"
       >
-        <motion.button
-          whileHover={{
-            backgroundColor: "#e6e6e6",
-          }}
-          onClick={() => {
-            navigate("/");
-          }}
-          className="btn_server_navigations"
+        <button
+          onClick={() => navigate("/")}
+          title="Back"
+          style={railIconButton}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background = "var(--surface-hover)")
+          }
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
-          <IoArrowBack style={{ fontSize: "25px", color: "#e69500" }} />
-        </motion.button>
-        <motion.button
-          whileHover={{
-            backgroundColor: "#e6e6e6",
-          }}
-          onClick={() => {
-            navigate("/servers");
-          }}
-          className="btn_server_navigations"
+          <Icon n="arrow_back" s={22} c="var(--gold)" />
+        </button>
+        <button
+          onClick={() => navigate("/servers")}
+          title="All servers"
+          style={railIconButton}
+          onMouseEnter={(e) =>
+            (e.currentTarget.style.background = "var(--surface-hover)")
+          }
+          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
-          <TbServer2 style={{ fontSize: "25px", color: "#e69500" }} />
-        </motion.button>
-        <hr className="tw-w-[65%]" />
-        <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[2px]">
+          <Icon n="dns" s={22} c="var(--gold)" />
+        </button>
+        <div
+          style={{
+            width: "60%",
+            height: 1,
+            background: "var(--border)",
+            margin: "4px 0 4px",
+          }}
+        />
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            gap: 6,
+            width: "100%",
+          }}
+        >
           {isLoaded
             ? serverlist.map((mp: any) => {
+                const active = urllocation.pathname.includes(mp.serverID);
                 return (
-                  <motion.button
+                  <button
                     key={mp.serverID}
-                    animate={{
-                      backgroundColor: urllocation.pathname.includes(
-                        mp.serverID,
-                      )
-                        ? "#e6e6e6"
-                        : "transparent",
-                    }}
-                    whileHover={{
-                      backgroundColor: "#e69500",
-                    }}
-                    onClick={() => {
-                      navigate(`/servers/${mp.serverID}`);
-                    }}
+                    onClick={() => navigate(`/servers/${mp.serverID}`)}
                     title={mp.serverName}
-                    className="btn_server_navigations"
+                    style={{
+                      width: 48,
+                      height: 48,
+                      flex: "none",
+                      border: "none",
+                      background: active ? "var(--gold-soft)" : "transparent",
+                      cursor: "pointer",
+                      borderRadius: active ? "var(--r-md)" : "50%",
+                      transition:
+                        "border-radius .18s var(--spring), background .16s",
+                      padding: 0,
+                      overflow: "hidden",
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!active)
+                        e.currentTarget.style.background = "var(--surface-hover)";
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!active)
+                        e.currentTarget.style.background = "transparent";
+                    }}
                   >
-                    <div id="div_img_cncts_container">
-                      <div id="div_img_search_profiles_container_cncts">
-                        <CachedImage
-                          src={
-                            mp && mp.profile && mp.profile !== "N/A"
-                              ? mp.profile
-                              : ServerIcon
-                          }
-                          id={
-                            mp && mp.profile && mp.profile !== "N/A"
-                              ? "img_actual_profile_main"
-                              : ""
-                          }
-                          className={
-                            mp && mp.profile && mp.profile !== "N/A"
-                              ? ""
-                              : "img_gc_profiles_ntfs"
-                          }
-                        />
-                      </div>
-                    </div>
-                  </motion.button>
+                    <img
+                      src={
+                        mp.profile && mp.profile !== "N/A"
+                          ? mp.profile
+                          : ServerIcon
+                      }
+                      alt=""
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        objectFit: "cover",
+                      }}
+                    />
+                  </button>
                 );
               })
-            : Array.from({ length: 5 }).map((_: any, i: number) => {
-                return (
-                  <motion.button
-                    key={i}
-                    initial={{
-                      backgroundColor: "#d2d2d2",
-                    }}
-                    animate={{
-                      backgroundColor: "#9c9c9c",
-                    }}
-                    transition={{
-                      duration: 0.7,
-                      delay: i - 1,
-                      repeat: Infinity,
-                      ease: "easeInOut",
-                    }}
-                    className="btn_server_navigations"
-                  >
-                    <div id="div_img_cncts_container">
-                      {/* <div id='div_img_search_profiles_container_cncts'>
-                        <img src={ServerIcon} className='img_server_profiles_ntfs' />
-                      </div> */}
-                    </div>
-                  </motion.button>
-                );
-              })}
+            : Array.from({ length: 5 }).map((_, i) => (
+                <div
+                  key={i}
+                  style={{
+                    width: 48,
+                    height: 48,
+                    flex: "none",
+                    borderRadius: "50%",
+                    background: "var(--surface-3)",
+                    animation: "clPulse 1.4s var(--ease) infinite",
+                    animationDelay: `${i * 0.1}s`,
+                  }}
+                />
+              ))}
         </div>
-      </motion.div>
+      </div>
       <Routes>
         <Route path="/" element={<Default />} />
-        <Route
-          path="/:serverID/*"
-          element={<Channels />} // serverlist={serverlist}
-        />
+        <Route path="/:serverID/*" element={<Channels />} />
       </Routes>
+      <style>{pulseKeyframes}</style>
     </div>
   );
 }
+
+const railIconButton = {
+  width: 48,
+  height: 48,
+  flex: "none",
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+  borderRadius: "var(--r-md)",
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+} as const;
+
+const pulseKeyframes = `
+@keyframes clPulse {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+`;
 
 export default Servers;

@@ -6,11 +6,56 @@ import {
 } from "@/reusables/hooks/requests";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { getDaysInMonth, monthList, years } from "@/reusables/vars/lists";
-import { motion } from "framer-motion";
-import { useEffect, useMemo, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { BsPersonFillExclamation } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
+import {
+  Btn,
+  Icon,
+  SelectField,
+  useTheme,
+} from "@/reusables/design";
+import { BrandPanel } from "./Login";
+
+type Gender = "Male" | "Female" | "Others";
+
+const GENDER_ACTIVE: Record<Gender, CSSProperties["background"]> = {
+  Male: "#49a1f8",
+  Female: "#db56a4",
+  Others:
+    "linear-gradient(180deg, #FE0000 16.66%, #FD8C00 16.66%, 33.32%, #FFE500 33.32%, 49.98%, #119F0B 49.98%, 66.64%, #0644B3 66.64%, 83.3%, #C22EDC 83.3%)",
+};
+
+function GenderButton({
+  value,
+  active,
+  onClick,
+}: {
+  value: Gender;
+  active: boolean;
+  onClick: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      style={{
+        flex: 1,
+        height: 40,
+        border: "1px solid " + (active ? "transparent" : "var(--border-2)"),
+        borderRadius: "var(--r-sm)",
+        cursor: "pointer",
+        fontSize: 13.5,
+        fontWeight: 650,
+        background: active ? GENDER_ACTIVE[value] : "var(--surface)",
+        color: active ? "#fff" : "var(--text-2)",
+        transition: "all .14s",
+      }}
+    >
+      {value}
+    </button>
+  );
+}
 
 function Setup() {
   const authentication: AuthenticationInterface = useSelector(
@@ -24,18 +69,17 @@ function Setup() {
 
   const [isWaitingRequest, setisWaitingRequest] = useState<boolean>(false);
   const [requiredFields, setrequiredFields] = useState<string[]>([]);
-
   const [month, setmonth] = useState<string>("");
   const [day, setday] = useState<string>("");
   const [year, setyear] = useState<string>("");
+  const [gender, setgender] = useState<"" | Gender>("");
 
-  const [gender, setgender] = useState<string>("");
+  const { theme, toggleTheme } = useTheme();
 
   useEffect(() => {
     const requiredKeys = ["birthdate", "gender"];
     if (authentication.user) {
       const toFillKeys = getMissingFields(authentication.user, requiredKeys);
-
       setrequiredFields(toFillKeys);
     }
   }, [authentication.user]);
@@ -43,15 +87,8 @@ function Setup() {
   const dispatch = useDispatch();
 
   const isOver13 = useMemo(() => {
-    // Return true automatically if birthdate is not in requiredFields
-    if (!requiredFields.includes("birthdate")) {
-      return true;
-    }
-
-    // Return false if any value is an empty string
+    if (!requiredFields.includes("birthdate")) return true;
     if (month === "" || day === "" || year === "") return false;
-
-    // Convert month name to month number (0-11)
     const monthNames = [
       "January",
       "February",
@@ -67,25 +104,14 @@ function Setup() {
       "December",
     ];
     const monthIndex = monthNames.indexOf(month);
-
-    // Invalid month name
     if (monthIndex === -1) return false;
-
     const birthDate = new Date(parseInt(year), monthIndex, parseInt(day));
-
-    // Validate date is real
     if (birthDate.getMonth() !== monthIndex) return false;
-
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
-
     const monthDiff = today.getMonth() - birthDate.getMonth();
     const dayDiff = today.getDate() - birthDate.getDate();
-
-    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) {
-      age--;
-    }
-
+    if (monthDiff < 0 || (monthDiff === 0 && dayDiff < 0)) age--;
     return age > 13;
   }, [month, day, year, requiredFields]);
 
@@ -95,38 +121,17 @@ function Setup() {
     yearStr: string,
   ): string | null => {
     const monthMap: Record<string, string> = {
-      january: "01",
-      february: "02",
-      march: "03",
-      april: "04",
-      may: "05",
-      june: "06",
-      july: "07",
-      august: "08",
-      september: "09",
-      october: "10",
-      november: "11",
-      december: "12",
-      jan: "01",
-      feb: "02",
-      mar: "03",
-      apr: "04",
-      jun: "06",
-      jul: "07",
-      aug: "08",
-      sep: "09",
-      oct: "10",
-      nov: "11",
-      dec: "12",
+      january: "01", february: "02", march: "03", april: "04",
+      may: "05", june: "06", july: "07", august: "08",
+      september: "09", october: "10", november: "11", december: "12",
+      jan: "01", feb: "02", mar: "03", apr: "04",
+      jun: "06", jul: "07", aug: "08", sep: "09",
+      oct: "10", nov: "11", dec: "12",
     };
-
     const numericMonth = monthMap[monthName.trim().toLowerCase()];
-
     if (!numericMonth || !dayStr || !yearStr) return null;
-
     const numericDay = dayStr.trim().padStart(2, "0");
     const numericYear = yearStr.trim();
-
     return `${numericYear}-${numericMonth}-${numericDay} 08:00:00.000 +0800`;
   };
 
@@ -136,7 +141,6 @@ function Setup() {
 
   const completeProfileProcess = () => {
     setisWaitingRequest(true);
-
     const finalPayload: any = {};
 
     if (requiredFields.includes("birthdate")) {
@@ -154,13 +158,11 @@ function Setup() {
         setisWaitingRequest(false);
         return;
       }
-
-      const birthdate = getFormattedDate(month, day, year);
-      finalPayload["birthdate"] = birthdate;
+      finalPayload["birthdate"] = getFormattedDate(month, day, year);
     }
 
     if (requiredFields.includes("gender")) {
-      if (gender.trim() === "") {
+      if (gender === "" || gender.trim() === "") {
         dispatch({
           type: SET_ALERTS,
           payload: {
@@ -174,332 +176,216 @@ function Setup() {
         setisWaitingRequest(false);
         return;
       }
-      finalPayload["gender"] = gender.toLowerCase();
+      finalPayload["gender"] = (gender as string).toLowerCase();
     }
 
     CompleteProfileRequest(finalPayload, dispatch, alerts, setisWaitingRequest);
   };
 
+  const isMobile =
+    typeof window !== "undefined" &&
+    window.matchMedia("(max-width: 760px)").matches;
+
   return (
-    <div id="div_verification">
-      <motion.div
-        initial={{
-          width: "0%",
+    <div
+      className="cl-redesign"
+      data-theme={theme}
+      style={{
+        position: "fixed",
+        inset: 0,
+        display: "flex",
+        background: "var(--bg)",
+      }}
+    >
+      {!isMobile && <BrandPanel />}
+      <div
+        style={{
+          flex: 1,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          padding: 22,
+          position: "relative",
+          overflowY: "auto",
         }}
-        animate={{
-          width: "95%",
-        }}
-        transition={{
-          duration: 2,
-          delay: 0.5,
-        }}
-        id="div_setup_container"
       >
-        <div id="div_verification_header_container">
-          <div id="div_verification_icon_container" className="tw-bg-[#dfdfdf]">
-            <BsPersonFillExclamation size={65} color="#3f3f3f" />
-            <div id="div_ver_bubble" className="tw-bg-[#dfdfdf]" />
-            <div id="div_ver_bubble2" className="tw-bg-[#dfdfdf]" />
+        <button
+          onClick={toggleTheme}
+          title="Toggle theme"
+          aria-label="Toggle theme"
+          style={{
+            position: "absolute",
+            top: 18,
+            right: 18,
+            width: 40,
+            height: 40,
+            borderRadius: "var(--r-sm)",
+            border: "1px solid var(--border)",
+            background: "var(--surface)",
+            cursor: "pointer",
+            color: "var(--text-2)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Icon n={theme === "dark" ? "light_mode" : "dark_mode"} s={20} />
+        </button>
+
+        <div
+          style={{ width: "100%", maxWidth: 420, textAlign: "center" }}
+          className="cl-pop"
+        >
+          <div
+            style={{
+              width: 62,
+              height: 62,
+              borderRadius: "50%",
+              background: "var(--brand-soft)",
+              margin: "0 auto 18px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
+            <Icon n="account_circle" s={32} c="var(--brand)" />
           </div>
-          <motion.span
-            initial={{
-              opacity: 0,
+          <h1
+            style={{
+              margin: "0 0 6px",
+              fontSize: 24,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
             }}
-            animate={{
-              opacity: 1,
-            }}
-            transition={{
-              duration: 1,
-              delay: 2.5,
-            }}
-            id="span_verify_label"
           >
             Complete your profile
-          </motion.span>
-        </div>
-        <motion.div
-          initial={{
-            opacity: 0,
-          }}
-          animate={{
-            opacity: 1,
-          }}
-          transition={{
-            duration: 1,
-            delay: 2.5,
-          }}
-          id="div_verification_form"
-        >
-          <span id="span_verifiaction_label_to_user">
-            Please complete the asked details and verify if all are true.
-          </span>
-          <div className="tw-w-full tw-flex tw-flex-col tw-gap-[15px] tw-mb-[0px]">
+          </h1>
+          <p
+            style={{
+              margin: "0 0 24px",
+              color: "var(--text-2)",
+              fontSize: 14,
+            }}
+          >
+            Just a couple more details and you're in.
+          </p>
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: 14,
+              textAlign: "left",
+            }}
+          >
             {requiredFields.includes("birthdate") && (
-              <div id="div_birthdate">
-                <span id="span_birthdate_label">Birth Date</span>
-                <div id="div_inputs_dates">
-                  <select
-                    className="input_dates"
-                    // placeholder="Month"
-                    value={month}
-                    onChange={(e) => {
-                      setmonth(e.target.value);
-                    }}
-                  >
-                    <option value="" defaultValue={""}>
-                      Month
-                    </option>
-                    {monthList.map((val, i) => {
-                      return (
-                        <option key={i} value={val}>
-                          {val}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <select
-                    className="input_dates"
-                    // placeholder="Year"
-                    value={year}
-                    onChange={(e) => {
-                      setyear(e.target.value);
-                    }}
-                  >
-                    <option value="" defaultValue={""}>
-                      Year
-                    </option>
-                    {years.map((val, i) => {
-                      return (
-                        <option key={i} value={val}>
-                          {val}
-                        </option>
-                      );
-                    })}
-                  </select>
-                  <select
-                    className="input_dates"
-                    // placeholder="Day"
-                    value={day}
-                    onChange={(e) => {
-                      setday(e.target.value);
-                    }}
-                  >
-                    <option value="" defaultValue={""}>
-                      Day
-                    </option>
+              <div>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "var(--text-2)",
+                    marginBottom: 6,
+                  }}
+                >
+                  Birth date
+                </span>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "1.3fr 1fr 1fr",
+                    gap: 10,
+                  }}
+                >
+                  <SelectField icon="event" value={month} onChange={setmonth}>
+                    <option value="">Month</option>
+                    {monthList.map((val) => (
+                      <option key={val} value={val}>
+                        {val}
+                      </option>
+                    ))}
+                  </SelectField>
+                  <SelectField value={day} onChange={setday}>
+                    <option value="">Day</option>
                     {month != "" && year != ""
-                      ? getDaysInMonth(month, year).map((val, i) => {
-                          return (
-                            <option key={i} value={val}>
-                              {val}
-                            </option>
-                          );
-                        })
+                      ? getDaysInMonth(month, year).map((val) => (
+                          <option key={val} value={val}>
+                            {val}
+                          </option>
+                        ))
                       : null}
-                  </select>
+                  </SelectField>
+                  <SelectField value={year} onChange={setyear}>
+                    <option value="">Year</option>
+                    {years.map((val) => (
+                      <option key={val} value={val}>
+                        {val}
+                      </option>
+                    ))}
+                  </SelectField>
                 </div>
               </div>
             )}
+
             {requiredFields.includes("gender") && (
-              <div id="div_birthdate">
-                <span id="span_birthdate_label">Gender</span>
-                <div id="div_inputs_dates">
-                  <motion.button
-                    initial={{
-                      backgroundColor: "#f0f0f0",
-                    }}
-                    animate={{
-                      backgroundColor: gender == "Male" ? "#49a1f8" : "#f0f0f0",
-                      color: gender == "Male" ? "white" : "#4A4A4A",
-                    }}
-                    onClick={() => {
-                      setgender("Male");
-                    }}
-                    className="input_gender"
-                  >
-                    Male
-                  </motion.button>
-                  <motion.button
-                    initial={{
-                      backgroundColor: "#f0f0f0",
-                    }}
-                    animate={{
-                      backgroundColor:
-                        gender == "Female" ? "#db56a4" : "#f0f0f0",
-                      color: gender == "Female" ? "white" : "#4A4A4A",
-                    }}
-                    onClick={() => {
-                      setgender("Female");
-                    }}
-                    className="input_gender"
-                  >
-                    Female
-                  </motion.button>
-                  <motion.button
-                    style={{
-                      background:
-                        gender == "Others"
-                          ? "linear-gradient(180deg, #FE0000 16.66%, #FD8C00 16.66%, 33.32%, #FFE500 33.32%, 49.98%, #119F0B 49.98%, 66.64%, #0644B3 66.64%, 83.3%, #C22EDC 83.3%)"
-                          : "#f0f0f0",
-                      color: gender == "Others" ? "white" : "#4A4A4A",
-                    }}
-                    onClick={() => {
-                      setgender("Others");
-                    }}
-                    className="input_gender"
-                  >
-                    Others
-                  </motion.button>
+              <div>
+                <span
+                  style={{
+                    display: "block",
+                    fontSize: 12,
+                    fontWeight: 600,
+                    color: "var(--text-2)",
+                    marginBottom: 6,
+                  }}
+                >
+                  Gender
+                </span>
+                <div style={{ display: "flex", gap: 8 }}>
+                  {(["Male", "Female", "Others"] as const).map((g) => (
+                    <GenderButton
+                      key={g}
+                      value={g}
+                      active={gender === g}
+                      onClick={() => setgender(g)}
+                    />
+                  ))}
                 </div>
               </div>
             )}
           </div>
-          <div className="tw-w-full tw-flex tw-gap-[20px] tw-items-center tw-justify-center">
+
+          <Btn
+            block
+            size="lg"
+            onClick={completeProfileProcess}
+            disabled={isWaitingRequest}
+            style={{ marginTop: 22 }}
+          >
             {isWaitingRequest ? (
-              <button
-                id="btn_complete"
-                disabled
-                className="tw-flex tw-items-center tw-justify-center"
-              >
-                <motion.div
-                  animate={{
-                    rotate: -360,
-                  }}
-                  transition={{
-                    duration: 1,
-                    repeat: Infinity,
-                  }}
-                  id="div_loader_request_complete"
-                  className="tw-mt-[8px]"
-                >
-                  <AiOutlineLoading3Quarters style={{ fontSize: "15px" }} />
-                </motion.div>
-              </button>
+              <AiOutlineLoading3Quarters
+                className="cl-spin"
+                style={{ fontSize: 20 }}
+              />
             ) : (
-              <button
-                id="btn_complete"
-                onClick={() => {
-                  completeProfileProcess();
-                }}
-              >
-                Complete
-              </button>
+              "Complete"
             )}
-            <button
-              className="btn_verification_navigations"
-              onClick={() => {
-                logoutProcess();
+          </Btn>
+
+          <div style={{ marginTop: 18, fontSize: 13.5 }}>
+            <span
+              onClick={logoutProcess}
+              style={{
+                color: "var(--brand)",
+                fontWeight: 700,
+                cursor: "pointer",
               }}
             >
               Logout
-            </button>
+            </span>
           </div>
-        </motion.div>
-      </motion.div>
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification1"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification2"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification3"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification4"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification5"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification6"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification7"
-      />
-      <motion.div
-        initial={{
-          scale: 0,
-        }}
-        animate={{
-          scale: 1,
-        }}
-        transition={{
-          delay: 1.2,
-          duration: 1.5,
-        }}
-        id="div_bubble_verification8"
-      />
+        </div>
+      </div>
     </div>
   );
 }
