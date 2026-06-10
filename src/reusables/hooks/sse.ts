@@ -2,6 +2,7 @@
 import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import {
+  REMOVE_PREVIEW_PARTICIPANT,
   SET_ALERTS,
   SET_COORDINATES,
   // SET_CONTACTS_LIST_OVERRIDE,
@@ -10,6 +11,8 @@ import {
   // SET_NOTIFICATIONS_LIST,
   // SET_NOTIFICATIONS_LIST_OVERRIDE,
   SET_PENDING_CALL_ALERTS,
+  SET_PREVIEW_PARTICIPANTS,
+  SET_PREVIEW_PARTICIPANTS_BULK,
   SET_REJECTED_CALL_LIST,
   UPDATE_ACTIVE_USERS_LIST,
 } from "../../redux/types";
@@ -37,6 +40,7 @@ const SSENotificationsTRequest = (
 ) => {
   const payload = {
     token: localStorage.getItem("authtoken"),
+    deviceToken: localStorage.getItem("device"),
     type: "notifications",
   };
 
@@ -191,6 +195,15 @@ const SSENotificationsTRequest = (
             callID: conversationID,
           },
         });
+
+        document.dispatchEvent(
+          new CustomEvent("room-events-relay", {
+            detail: {
+              event: "callreject",
+              data: JSON.stringify(decodedResult.rejectdata),
+            },
+          }),
+        );
       }
     }
   });
@@ -231,12 +244,32 @@ const SSENotificationsTRequest = (
           dispatch({
             type: SET_MESSAGES_LIST_OVERRIDE,
             payload: {
-              messageslist: response,
+              messageslist: response.conversationslist,
             },
           });
         });
 
-        if (authentication.user.userID != parsedresponse.message) {
+        if (parsedresponse.message.deletedMessageID) {
+          document.dispatchEvent(
+            new CustomEvent(parsedresponse.message.conversationID, {
+              detail: {
+                event: "reload_deleted_message",
+                data: parsedresponse,
+              },
+            }),
+          );
+        } else {
+          document.dispatchEvent(
+            new CustomEvent(parsedresponse.message.conversationID, {
+              detail: {
+                event: "reload",
+                data: parsedresponse,
+              },
+            }),
+          );
+        }
+
+        if (authentication.user.userID != parsedresponse.message.userID) {
           if (parsedresponse.onseen) {
             //play ringtone
             setTimeout(() => {
@@ -249,75 +282,6 @@ const SSENotificationsTRequest = (
               const audioMessage = new Audio(message_ringtone);
               audioMessage.play();
             }, 1500);
-
-            // const conversationType =
-            //   decodedResult.conversationslist[0].conversationType == "group"
-            //     ? ` from ${decodedResult.conversationslist[0].groupdetails.groupName}`
-            //     : "";
-
-            // const NativeNotificationAlert = {
-            //   userID: decodedResult.conversationslist[0].sender,
-            //   from:
-            //     decodedResult.conversationslist[0].users[0].userID ==
-            //     decodedResult.conversationslist[0].sender
-            //       ? `${
-            //           decodedResult.conversationslist[0].users[0].fullname
-            //             .firstName
-            //         } ${
-            //           decodedResult.conversationslist[0].users[0].fullname
-            //             .middleName == "N/A"
-            //             ? ""
-            //             : `${decodedResult.conversationslist[0].users[0].fullname.middleName} `
-            //         }${
-            //           decodedResult.conversationslist[0].users[0].fullname
-            //             .lastName
-            //         }${conversationType}`
-            //       : `${
-            //           decodedResult.conversationslist[0].users[1].fullname
-            //             .firstName
-            //         } ${
-            //           decodedResult.conversationslist[0].users[1].fullname
-            //             .middleName == "N/A"
-            //             ? ""
-            //             : `${decodedResult.conversationslist[0].users[1].fullname.middleName} `
-            //         }${
-            //           decodedResult.conversationslist[0].users[1].fullname
-            //             .lastName
-            //         }${conversationType}`,
-            //   content: decodedResult.conversationslist[0].content,
-            // };
-
-            // try {
-            //   if (!document.hasFocus()) {
-            //     if (Notification.permission === "granted") {
-            //       new Notification(`${NativeNotificationAlert.from}`, {
-            //         body: NativeNotificationAlert.content,
-            //         icon: chatterloop_icon,
-            //       });
-            //     }
-            //   }
-            // } catch (ex) {
-            //   dispatch({
-            //     type: SET_ALERTS,
-            //     payload: {
-            //       alerts: {
-            //         id: currentAlertState.length,
-            //         type: "info",
-            //         content:
-            //           "Notification permission is only available for Windows and Android",
-            //       },
-            //     },
-            //   });
-            // }
-
-            // if(Notification.permission === "granted"){
-            //     navigator.serviceWorker.ready.then((reg) => {
-            //         reg.showNotification(`${NativeNotificationAlert.from}`, {
-            //             body: NativeNotificationAlert.content,
-            //             icon: chatterloop_icon
-            //         })
-            //     })
-            // }
           }
         }
       }
@@ -339,6 +303,200 @@ const SSENotificationsTRequest = (
         });
       }
     }
+  });
+
+  sseNtfsSource.addEventListener("voice-joined", (e: any) => {
+    const parsedresponse = JSON.parse(e.data);
+    if (parsedresponse.auth) {
+      if (parsedresponse.status) {
+        const decodedResult: any = jwt_decode(parsedresponse.result);
+
+        dispatch({
+          type: SET_PREVIEW_PARTICIPANTS,
+          payload: {
+            previewparticipant: decodedResult.voice_participant,
+          },
+        });
+      }
+    }
+  });
+
+  sseNtfsSource.addEventListener("join-room-response", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "join-room-response",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("create-transport-response", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "create-transport-response",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("transport-connect-response", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "transport-connect-response",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("produce-response", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay-produce", {
+        detail: {
+          event: "produce-response",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("new_producer", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "new_producer",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("participant-joined", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "participant-joined",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("participant-left", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "participant-left",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("update_participants", (e: any) => {
+    const data = JSON.parse(e.data);
+
+    if (data.result.action === "left") {
+      dispatch({
+        type: REMOVE_PREVIEW_PARTICIPANT,
+        payload: {
+          previewparticipant: {
+            clientID: data.result.clientId,
+          },
+        },
+      });
+    }
+  });
+
+  sseNtfsSource.addEventListener("participant-status", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "participant-status",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("producer-closed", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "producer-closed",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("consume-response", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "consume-response",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("consume-transport-error", (e: any) => {
+    console.log("consume-transport-error", e.data);
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "consume-transport-error",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("consume-error", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "consume-error",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("removed_user_notif", (e: any) => {
+    const data = JSON.parse(e.data);
+
+    InitConversationListRequest(1, 10).then((response) => {
+      dispatch({
+        type: SET_PREVIEW_PARTICIPANTS_BULK,
+        payload: {
+          participants: response.conversationslist
+            .map((mp: any) => mp.voice_participants)
+            .flat(),
+        },
+      });
+      dispatch({
+        type: SET_MESSAGES_LIST_OVERRIDE,
+        payload: {
+          messageslist: response.conversationslist,
+        },
+      });
+    });
+
+    document.dispatchEvent(
+      new CustomEvent(data.result.realm_id, {
+        detail: {
+          event: "removed_user_notif",
+          data: data,
+        },
+      }),
+    );
   });
 };
 

@@ -24,6 +24,7 @@ import { entriesliststate } from "@/redux/actions/states";
 import { formattedDateToWords } from "@/reusables/hooks/reusable";
 import Skeleton from "react-loading-skeleton";
 import EntryView from "./EntryView";
+import BrokenLink from "@/app/reusables/catchers/BrokenLink";
 
 function Diary() {
   const authentication: AuthenticationInterface = useSelector(
@@ -43,6 +44,8 @@ function Diary() {
   const params = useParams();
 
   const entry_id = searchParams.get("entry_id");
+  const profile_user_id = params.userID;
+  const isOwnDiary = profile_user_id === authentication.user.username;
 
   const navigate = useNavigate();
 
@@ -53,25 +56,31 @@ function Diary() {
 
   const entriesByDate = useMemo(() => {
     const sorted = [...entries.results].sort((a, b) => {
-      const dateDiff = new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime();
+      const dateDiff =
+        new Date(a.entry_date).getTime() - new Date(b.entry_date).getTime();
       if (dateDiff === 0) {
-        return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
       }
       return dateDiff;
     });
-    
+
     // Group by entry_date
-    const grouped = sorted.reduce((acc, entry) => {
-      const date = entry.entry_date;
-      if (!acc[date]) acc[date] = [];
-      acc[date].push(entry);
-      return acc;
-    }, {} as { [date: string]: IEntry[] });
+    const grouped = sorted.reduce(
+      (acc, entry) => {
+        const date = entry.entry_date;
+        if (!acc[date]) acc[date] = [];
+        acc[date].push(entry);
+        return acc;
+      },
+      {} as { [date: string]: IEntry[] },
+    );
 
     return Object.entries(grouped)
       .map(([date, groupEntries]) => ({
         date,
-        entries: groupEntries.reverse()
+        entries: groupEntries.reverse(),
       }))
       .reverse();
   }, [entries]);
@@ -133,6 +142,15 @@ function Diary() {
   useEffect(() => {
     GetUserEntriesProcess(page, 10);
   }, [page]);
+
+  if (!isOwnDiary) {
+    return (
+      <BrokenLink
+        label="Ohh no!"
+        secondaryLabel={`You do not have access to @${params.userID}'s diary.`}
+      />
+    );
+  }
 
   return (
     <div className="tw-bg-[#d8d8da] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-hidden x-scroll">
@@ -278,126 +296,142 @@ function Diary() {
             {isLoaded ? (
               entries.count > 0 ? (
                 <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-pt-[20px] tw-w-[calc(100%-40px)]">
-                  {entriesByDate.map((mp_grouped: { date: string; entries: IEntry[] }, i: number) => {
-                    if(mp_grouped.entries.length === 1){
-                      const mp = mp_grouped.entries[0];
-                      return (
-                        <motion.div
-                          whileHover={{
-                            boxShadow: "0px 0px 5px 0px #808080",
-                          }}
-                          key={mp.id}
-                          onClick={() => {
-                            navigate(`/${params.userID}/diary?entry_id=${mp.id}`);
-                          }}
-                          className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px] tw-select-none tw-cursor-pointer"
-                        >
-                          <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
-                            <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left">
-                              {mp.title}
-                            </span>
-                            {mp.mood && (
-                              <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap">
-                                {mp.mood.emoji} {mp.mood.name}
+                  {entriesByDate.map(
+                    (
+                      mp_grouped: { date: string; entries: IEntry[] },
+                      i: number,
+                    ) => {
+                      if (mp_grouped.entries.length === 1) {
+                        const mp = mp_grouped.entries[0];
+                        return (
+                          <motion.div
+                            whileHover={{
+                              boxShadow: "0px 0px 5px 0px #808080",
+                            }}
+                            key={mp.id}
+                            onClick={() => {
+                              navigate(
+                                `/${params.userID}/diary?entry_id=${mp.id}`,
+                              );
+                            }}
+                            className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px] tw-select-none tw-cursor-pointer"
+                          >
+                            <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
+                              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left">
+                                {mp.title}
                               </span>
-                            )}
-                          </div>
-                          {mp.tag_objects.length > 0 && (
-                            <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px]">
-                              {mp.tag_objects.map((mp: IEntryTag) => {
-                                return (
-                                  <div
-                                    key={mp.id}
-                                    className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                                  >
-                                    <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
-                                      {mp.name}
-                                    </span>
-                                  </div>
-                                );
-                              })}
+                              {mp.mood && (
+                                <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap">
+                                  {mp.mood.emoji} {mp.mood.name}
+                                </span>
+                              )}
                             </div>
-                          )}
-                          <span
-                            className="tw-text-[12px] tw-font-Inter tw-text-left tw-overflow-hidden tw-text-ellipsis"
-                            dangerouslySetInnerHTML={{ __html: mp.content }}
-                          ></span>
-                          <div className="tw-w-full tw-flex tw-pt-[10px] tw-pb-[5px]">
-                            <span className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]">
-                              {formattedDateToWords(mp.entry_date, "YYYY-MM-DD")}
-                            </span>
-                          </div>
-                        </motion.div>
-                      );
-                    } else {
-                      const tag_objects = mp_grouped.entries
-                      .map((entr: IEntry) => entr.tag_objects)
-                      .flat()
-                      .filter((tag, index, self) => 
-                        index === self.findIndex(t => t.id === tag.id)
-                      );
-                      return(
-                        <motion.div
-                          key={i}
-                          className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-min-h-[185px] tw-gap-[2px] tw-select-none tw-cursor-pointer"
-                        >
-                          <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
-                            <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left">
-                              {formattedDateToWords(mp_grouped.date, "YYYY-MM-DD")}
-                            </span>
-                          </div>
-                          {tag_objects.length > 0 && (
-                            <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px] tw-pb-[10px]">
-                              {tag_objects.map((mp: IEntryTag) => {
-                                return (
-                                  <div
-                                    key={mp.id}
-                                    className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                                  >
-                                    <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
-                                      {mp.name}
-                                    </span>
-                                  </div>
-                                );
-                              })}
-                            </div>
-                          )}
-                          <div className="tw-w-full tw-flex tw-flex-col tw-gap-[4px]">
-                            {mp_grouped.entries.map((mp: IEntry) => {
-                              return(
-                                <motion.div
-                                  whileHover={{
-                                    boxShadow: "0px 0px 5px 0px #808080",
-                                  }}
-                                  key={mp.id}
-                                  onClick={() => {
-                                    navigate(`/${params.userID}/diary?entry_id=${mp.id}`);
-                                  }}
-                                  className="tw-min-h-[0px] tw-bg-white tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px] tw-select-none tw-cursor-pointer"
-                                >
-                                  <div className="tw-w-full tw-flex tw-justify-between tw-pt-[0px] tw-items-center">
-                                    <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-left">
-                                      {mp.title}
-                                    </span>
-                                    {mp.mood && (
-                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap">
-                                        {mp.mood.emoji} {mp.mood.name}
+                            {mp.tag_objects.length > 0 && (
+                              <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px]">
+                                {mp.tag_objects.map((mp: IEntryTag) => {
+                                  return (
+                                    <div
+                                      key={mp.id}
+                                      className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                                    >
+                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                                        {mp.name}
                                       </span>
-                                    )}
-                                  </div>
-                                </motion.div>
-                              )
-                            })}
-                          </div>
-                          <div className="tw-w-full tw-flex tw-pt-[10px] tw-pb-[5px]">
-                            <span className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]">
-                              {mp_grouped.entries.length} entries
-                            </span>
-                          </div>
-                        </motion.div>
-                      )
-                    }
-                  })}
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            <span
+                              className="tw-text-[12px] tw-font-Inter tw-text-left tw-overflow-hidden tw-text-ellipsis"
+                              dangerouslySetInnerHTML={{ __html: mp.content }}
+                            ></span>
+                            <div className="tw-w-full tw-flex tw-pt-[10px] tw-pb-[5px]">
+                              <span className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]">
+                                {formattedDateToWords(
+                                  mp.entry_date,
+                                  "YYYY-MM-DD",
+                                )}
+                              </span>
+                            </div>
+                          </motion.div>
+                        );
+                      } else {
+                        const tag_objects = mp_grouped.entries
+                          .map((entr: IEntry) => entr.tag_objects)
+                          .flat()
+                          .filter(
+                            (tag, index, self) =>
+                              index === self.findIndex((t) => t.id === tag.id),
+                          );
+                        return (
+                          <motion.div
+                            key={i}
+                            className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-min-h-[185px] tw-gap-[2px] tw-select-none tw-cursor-pointer"
+                          >
+                            <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
+                              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left">
+                                {formattedDateToWords(
+                                  mp_grouped.date,
+                                  "YYYY-MM-DD",
+                                )}
+                              </span>
+                            </div>
+                            {tag_objects.length > 0 && (
+                              <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px] tw-pb-[10px]">
+                                {tag_objects.map((mp: IEntryTag) => {
+                                  return (
+                                    <div
+                                      key={mp.id}
+                                      className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                                    >
+                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                                        {mp.name}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            )}
+                            <div className="tw-w-full tw-flex tw-flex-col tw-gap-[4px]">
+                              {mp_grouped.entries.map((mp: IEntry) => {
+                                return (
+                                  <motion.div
+                                    whileHover={{
+                                      boxShadow: "0px 0px 5px 0px #808080",
+                                    }}
+                                    key={mp.id}
+                                    onClick={() => {
+                                      navigate(
+                                        `/${params.userID}/diary?entry_id=${mp.id}`,
+                                      );
+                                    }}
+                                    className="tw-min-h-[0px] tw-bg-white tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px] tw-select-none tw-cursor-pointer"
+                                  >
+                                    <div className="tw-w-full tw-flex tw-justify-between tw-pt-[0px] tw-items-center">
+                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-left">
+                                        {mp.title}
+                                      </span>
+                                      {mp.mood && (
+                                        <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap">
+                                          {mp.mood.emoji} {mp.mood.name}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </motion.div>
+                                );
+                              })}
+                            </div>
+                            <div className="tw-w-full tw-flex tw-pt-[10px] tw-pb-[5px]">
+                              <span className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]">
+                                {mp_grouped.entries.length} entries
+                              </span>
+                            </div>
+                          </motion.div>
+                        );
+                      }
+                    },
+                  )}
                 </div>
               ) : (
                 <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-pt-[50px]">

@@ -9,7 +9,9 @@ import {
   END_CALL_LIST,
   MEDIA_MY_VIDEO_HOLDER,
   MEDIA_TRACK_HOLDER,
+  REMOVE_CONVERSATION,
   REMOVE_PENDING_CALL_ALERTS,
+  REMOVE_PREVIEW_PARTICIPANT,
   REMOVE_REJECTED_CALL_LIST,
   SET_ACTIVE_USERS_LIST,
   SET_ALERTS,
@@ -37,6 +39,8 @@ import {
   SET_PENDING_CALL_ALERTS,
   SET_PENDING_MESSAGES_LIST,
   SET_POSTS_FEED_LIST,
+  SET_PREVIEW_PARTICIPANTS,
+  SET_PREVIEW_PARTICIPANTS_BULK,
   SET_RAW_COORDINATES,
   SET_REJECTED_CALL_LIST,
   SET_REMOVE_IS_TYPING_LIST,
@@ -57,8 +61,10 @@ import {
   IContact,
   ICoordinatesAnchor,
   IPageModal,
+  IPreviewParicipants,
   IUserSettings,
 } from "@/reusables/vars/interfaces";
+import jwtDecode from "jwt-decode";
 
 export const setauthentication = (state = authenticationstate, action: any) => {
   switch (action.type) {
@@ -118,7 +124,7 @@ export const setcontactslist = (
 };
 
 export const setnotificationslist = (
-  state = { list: [], totalunread: 0 },
+  state = { list: [], totalunread: 0, total: 0, next: true },
   action: any,
 ) => {
   switch (action.type) {
@@ -149,6 +155,12 @@ export const setmessageslist = (state = [], action: any) => {
       return uniqueById;
     case SET_MESSAGES_LIST_OVERRIDE:
       return action.payload.messageslist;
+    case REMOVE_CONVERSATION:
+      const filteredList = state.filter(
+        (flt: any) => flt.conversationID !== action.payload.conversationID,
+      );
+
+      return filteredList;
     default:
       return state;
   }
@@ -405,17 +417,86 @@ export const setcoordinates = (
       );
       return [...prevNoUser, currentCoordinates];
     default:
-      return state;
+      const authtoken: any = localStorage.getItem("authtoken");
+      const userID: any = authtoken ? jwtDecode<any>(authtoken).userID : null;
+      const username: any = authtoken
+        ? jwtDecode<any>(authtoken).username
+        : null;
+      return state.length > 0
+        ? state
+        : [
+            {
+              referenceID: userID,
+              label: username,
+              longitude: 120.9842,
+              latitude: 14.5995,
+              heading: -17.6,
+              speed: 0,
+              mode: null,
+              type: "profile",
+            },
+          ];
   }
 };
 
-export const setrawcoordinates = (
-  state: ICoordinatesAnchor[] = [],
-  action: any,
-) => {
+export const setrawcoordinates = (state: ICoordinatesAnchor, action: any) => {
   switch (action.type) {
     case SET_RAW_COORDINATES:
       return action.payload.rawcoordinates;
+    default:
+      const authtoken: any = localStorage.getItem("authtoken");
+      const userID: any = authtoken ? jwtDecode<any>(authtoken).userID : null;
+      const username: any = authtoken
+        ? jwtDecode<any>(authtoken).username
+        : null;
+      const finalState = state ?? {
+        referenceID: userID,
+        label: username,
+        longitude: 120.9842,
+        latitude: 14.5995,
+        heading: -17.6,
+        speed: 0,
+        mode: null,
+        type: "profile",
+      };
+      return finalState;
+  }
+};
+
+export const setpreviewparticipant = (
+  state: IPreviewParicipants[] = [],
+  action: any,
+) => {
+  switch (action.type) {
+    case SET_PREVIEW_PARTICIPANTS:
+      const new_participant: IPreviewParicipants =
+        action.payload.previewparticipant;
+      const final_state = state.filter(
+        (flt) =>
+          flt.channelID !== new_participant.channelID &&
+          flt.clientID !== new_participant.clientID,
+      );
+      return [...final_state, new_participant];
+    case SET_PREVIEW_PARTICIPANTS_BULK:
+      const incomingParticipants: IPreviewParicipants[] =
+        action.payload.participants;
+
+      const incomingClientIDs = new Set(
+        incomingParticipants.map((p) => p.clientID),
+      );
+
+      const filteredState = state.filter(
+        (existing) => !incomingClientIDs.has(existing.clientID),
+      );
+
+      return [...filteredState, ...incomingParticipants];
+    case REMOVE_PREVIEW_PARTICIPANT:
+      const left_participant: IPreviewParicipants =
+        action.payload.previewparticipant;
+      const final_left_state = state.filter(
+        (flt) => flt.clientID !== left_participant.clientID,
+      );
+      return final_left_state;
     default:
       return state;
   }

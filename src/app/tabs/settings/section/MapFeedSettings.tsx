@@ -28,7 +28,7 @@ function MapFeedSettings() {
   };
 
   return (
-    <div className="tw-w-full tw-flex tw-gap-[10px] tw-flex-col tw-items-start tw-font-Inter">
+    <div className="tw-w-full tw-h-full tw-flex tw-gap-[10px] tw-flex-col tw-items-start tw-font-Inter">
       <div className="tw-w-full tw-flex tw-items-start">
         <span className="tw-text-[16px] tw-font-Inter tw-font-semibold">
           Map Feed Access

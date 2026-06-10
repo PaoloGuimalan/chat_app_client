@@ -43,6 +43,7 @@ function EmojiPickerHandler({
               ...prev,
               {
                 userID: authentication.user.userID,
+                fullName: authentication.user.fullName,
                 ...emoji,
               },
             ]);

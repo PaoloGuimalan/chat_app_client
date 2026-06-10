@@ -1,6 +1,7 @@
 import { usersettingsstate } from "@/redux/actions/states";
 import { IContact, IUserSettings } from "../vars/interfaces";
 import { ConvertedResponse, OriginalResponse } from "../vars/types";
+import envs from "./env_configs";
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 function importData(resolve: any, rawresolve: any) {
@@ -11,7 +12,7 @@ function importData(resolve: any, rawresolve: any) {
   input.onchange = () => {
     const files = Array.from(input.files);
     files.map((flmp: any) => {
-      getBase64(flmp, "default", "image", resolve);
+      getBase64(flmp, flmp.name, "image", resolve);
       rawresolve(flmp);
     });
   };
@@ -157,7 +158,13 @@ function formattedDateToWords(formattedDate: string, format?: string) {
 function urlify(text: string) {
   const urlRegex = /(https?:\/\/[^\s]+)/g;
   return text.replace(urlRegex, function (url) {
-    return '<a href="' + url + '" target="_blank">' + url + "</a>";
+    return (
+      '<a href="' +
+      url +
+      '" target="_blank" style="color: inherit;">' +
+      url +
+      "</a>"
+    );
   });
   // or alternatively
   // return text.replace(urlRegex, '<a href="$1">$1</a>')
@@ -217,13 +224,15 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
       time: formatTime(dateCreated),
     },
     id: response.id,
-    userID: response.username,
+    userID: response.id,
+    username: response.username,
     profile: response.profile || "none",
     gender: genderFormatted,
     email: response.email || "",
     password: null,
     isActivated: response.is_active,
     isVerified: response.is_verified,
+    isComplete: response.is_complete,
     __v: 0,
     iat: response.iat,
     exp: response.exp,
@@ -233,6 +242,7 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
 function contactsToUserdetails(contact: IContact, isUserOne: boolean) {
   if (isUserOne) {
     return {
+      _id: contact.action_by.id,
       userID: contact.action_by.username,
       fullname: {
         firstName: contact.action_by.first_name,
@@ -245,6 +255,7 @@ function contactsToUserdetails(contact: IContact, isUserOne: boolean) {
   }
 
   return {
+    _id: contact.involved_user.id,
     userID: contact.involved_user.username,
     fullname: {
       firstName: contact.involved_user.first_name,
@@ -369,6 +380,96 @@ function isUserSettingsComplete(
   return validateAgainstDefault(settings, usersettingsstate);
 }
 
+function sanitizeForStorage(content: string) {
+  if (!content) return "";
+  return content
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+async function generateXNonce(userId: string) {
+  const secret = envs.SECRET;
+  const encoder = new TextEncoder();
+
+  const hashedSecret = await window.crypto.subtle.digest(
+    "SHA-256",
+    encoder.encode(secret),
+  );
+
+  const timestamp = Math.floor(Date.now() / 1000);
+  const random = Math.random().toString(36).substring(2, 10);
+  const plainText = `${userId}.${timestamp}.${random}`;
+
+  const key = await window.crypto.subtle.importKey(
+    "raw",
+    hashedSecret,
+    { name: "AES-GCM" },
+    false,
+    ["encrypt"],
+  );
+
+  const iv = window.crypto.getRandomValues(new Uint8Array(12));
+  const encryptedBuffer = await window.crypto.subtle.encrypt(
+    { name: "AES-GCM", iv: iv },
+    key,
+    encoder.encode(plainText),
+  );
+
+  const ivHex = Array.from(iv)
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  const cipherTextHex = Array.from(new Uint8Array(encryptedBuffer))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+
+  return `${ivHex}.${cipherTextHex}`;
+}
+
+function hasNullValues(obj: any): any {
+  if (obj === null || obj === undefined) return true;
+
+  if (typeof obj === "string") {
+    return obj.trim() === "";
+  }
+
+  if (Array.isArray(obj)) {
+    return obj.length === 0 || obj.some(hasNullValues);
+  }
+
+  if (typeof obj !== "object") return false;
+
+  // Check object properties
+  for (const value of Object.values(obj)) {
+    if (hasNullValues(value)) return true;
+  }
+
+  return false;
+}
+
+function getDifferentValues(obj1: any, obj2: any) {
+  const differences: any = {};
+
+  for (const [key, value] of Object.entries(obj2)) {
+    if (!(key in obj1) || obj1[key] !== value) {
+      differences[key] = value;
+    }
+  }
+
+  return differences;
+}
+
+function capitalizeFirstLetter(str: string) {
+  if (!str) return str; // Handle empty strings
+  return str.charAt(0).toUpperCase() + str.slice(1);
+}
+
+function generateUUID(): string {
+  return crypto.randomUUID();
+}
+
 export {
   importData,
   importNonImageData,
@@ -386,4 +487,10 @@ export {
   timeSince,
   userSessionStatusFromContacts,
   isUserSettingsComplete,
+  sanitizeForStorage,
+  generateXNonce,
+  hasNullValues,
+  getDifferentValues,
+  capitalizeFirstLetter,
+  generateUUID,
 };

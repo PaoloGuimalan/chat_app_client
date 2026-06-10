@@ -15,11 +15,15 @@ import { InitServerChannelsRequest } from "@/reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ChannelsListInterface,
+  IPreviewParicipants,
   ServerChannelsListInterface,
 } from "@/reusables/vars/interfaces";
 import { FaHashtag, FaLocationArrow, FaLock } from "react-icons/fa6";
 import { motion } from "framer-motion";
-import { SET_CONVERSATION_SETUP } from "@/redux/types";
+import {
+  SET_CONVERSATION_SETUP,
+  SET_PREVIEW_PARTICIPANTS_BULK,
+} from "@/redux/types";
 import { conversationsetupstate } from "@/redux/actions/states";
 // import { FcInfo } from "react-icons/fc";
 import ServerInfoModal from "@/app/widgets/modals/Servers/ServerInfoModal";
@@ -27,27 +31,35 @@ import { IoMdAdd } from "react-icons/io";
 import CreateChannelModal from "@/app/widgets/modals/Servers/CreateChannelModal";
 import { BiSolidInfoCircle } from "react-icons/bi";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { AiFillSound, AiOutlineSound } from "react-icons/ai";
+import { MdSettingsVoice } from "react-icons/md";
 
-function Channels({ serverlist }: any) {
+function Channels() {
+  // serverlist
   const messageslist = useSelector((state: any) => state.messageslist);
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
+
+  const previewparticipants: IPreviewParicipants[] = useSelector(
+    (state: any) => state.previewparticipants,
+  );
+
   const dispatch = useDispatch();
   const params = useParams();
   const urllocation = useLocation();
   const navigate = useNavigate();
 
   const serverID = useMemo(() => params.serverID, [params]);
-  const serverDetails = useMemo(
-    () =>
-      serverlist
-        ? serverlist.length > 0
-          ? serverlist.filter((flt: any) => flt.serverID === serverID)[0]
-          : null
-        : null,
-    [serverlist, serverID]
-  );
+  // const serverDetails = useMemo(
+  //   () =>
+  //     serverlist
+  //       ? serverlist.length > 0
+  //         ? serverlist.filter((flt: any) => flt.serverID === serverID)[0]
+  //         : null
+  //       : null,
+  //   [serverlist, serverID],
+  // );
 
   const [serverdetails, setserverdetails] =
     useState<ServerChannelsListInterface | null>(null);
@@ -56,31 +68,75 @@ function Channels({ serverlist }: any) {
   const [toggleserveraddchannelmodal, settoggleserveraddchannelmodal] =
     useState<boolean>(false);
   const [isLoaded, setisLoaded] = useState<boolean>(false);
+  const [haveAccess, sethaveAccess] = useState<boolean>(false);
 
   const InitServerChannelsProcess = () => {
     InitServerChannelsRequest({
       serverID: serverID,
     })
       .then((response: any) => {
-        // console.log(response.data[0]);
+        dispatch({
+          type: SET_PREVIEW_PARTICIPANTS_BULK,
+          payload: {
+            participants: response.data[0].channels
+              .map((mp: any) => mp.voice_participants)
+              .flat(),
+          },
+        });
         setserverdetails(response.data[0]);
         setTimeout(() => {
           setisLoaded(true);
+          sethaveAccess(true);
         }, 1000);
       })
       .catch((err) => {
+        sethaveAccess(false);
+        navigate("/servers");
         console.log(err);
       });
   };
 
+  const getChannelPreviewParticipants = (channelID: string) => {
+    return previewparticipants.filter(
+      (flt: IPreviewParicipants) => flt.channelID === channelID,
+    );
+  };
+
   useEffect(() => {
     setisLoaded(false);
+    sethaveAccess(false);
     setserverdetails(null);
   }, [serverID]);
 
   useEffect(() => {
     InitServerChannelsProcess();
   }, [serverID, messageslist]);
+
+  useEffect(() => {
+    if (!serverdetails?._id) return;
+
+    const eventName = serverdetails?._id;
+    const handler = (event: CustomEvent) => {
+      const data = event.detail.data;
+      switch (event.detail.event) {
+        case "removed_user_notif":
+          if (data.result.type === "server") {
+            navigate("/servers");
+
+            return;
+          }
+          break;
+        default:
+          break;
+      }
+    };
+
+    document.addEventListener(eventName, handler as EventListener);
+
+    return () => {
+      document.removeEventListener(eventName, handler as EventListener);
+    };
+  }, [serverdetails]);
 
   return (
     <motion.div
@@ -163,8 +219,27 @@ function Channels({ serverlist }: any) {
               <div id="div_img_cncts_container">
                 <div id="div_img_search_profiles_container_cncts">
                   <CachedImage
-                    src={ServerIcon}
-                    className="img_gc_profiles_ntfs"
+                    src={
+                      serverdetails &&
+                      serverdetails.profile &&
+                      serverdetails.profile !== "N/A"
+                        ? serverdetails.profile
+                        : ServerIcon
+                    }
+                    id={
+                      serverdetails &&
+                      serverdetails.profile &&
+                      serverdetails.profile !== "N/A"
+                        ? "img_actual_profile_main"
+                        : ""
+                    }
+                    className={
+                      serverdetails &&
+                      serverdetails.profile &&
+                      serverdetails.profile !== "N/A"
+                        ? ""
+                        : "img_gc_profiles_ntfs"
+                    }
                   />
                 </div>
               </div>
@@ -247,6 +322,7 @@ function Channels({ serverlist }: any) {
                   serverID={serverdetails?.serverID}
                   setisCreateChannelToggle={settoggleserveraddchannelmodal}
                   servermemberslist={serverdetails?.usersWithInfo}
+                  refreshChannelsList={InitServerChannelsProcess}
                 />
               )}
               {serverdetails?.channels &&
@@ -254,7 +330,7 @@ function Channels({ serverlist }: any) {
                   <button
                     onClick={() => {
                       settoggleserveraddchannelmodal(
-                        !toggleserveraddchannelmodal
+                        !toggleserveraddchannelmodal,
                       );
                     }}
                     className="tw-w-[30px] tw-h-[30px] tw-p-0 tw-flex tw-items-center tw-justify-center tw-border-none tw-rounded-[7px] hover:tw-bg-[#ffc965] hover:tw-text-white tw-cursor-pointer"
@@ -267,7 +343,8 @@ function Channels({ serverlist }: any) {
             </div>
             <div className="tw-bg-transparent tw-gap-[3px] tw-w-[calc(100%-20px)] tw-pb-[5px] tw-pl-[10px] tw-pr-[10px] tw-flex tw-flex-1 tw-flex-col tw-items-start">
               {isLoaded
-                ? serverdetails?.channels.map((mp: ChannelsListInterface) => {
+                ? haveAccess &&
+                  serverdetails?.channels.map((mp: ChannelsListInterface) => {
                     return (
                       <motion.div
                         key={mp.groupID}
@@ -299,7 +376,13 @@ function Channels({ serverlist }: any) {
                         }}
                         className="tw-select-none tw-cursor-pointer tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[calc(100%-10px)] tw-rounded-[4px]"
                       >
-                        {mp.privacy ? (
+                        {mp.channelType === "voice" ? (
+                          mp.privacy ? (
+                            <AiFillSound />
+                          ) : (
+                            <AiOutlineSound />
+                          )
+                        ) : mp.privacy ? (
                           <FaLock style={{ fontSize: "13px" }} />
                         ) : (
                           <FaHashtag />
@@ -315,6 +398,9 @@ function Channels({ serverlist }: any) {
                         >
                           {mp.groupName}
                         </span>
+                        {mp.channelType === "voice" &&
+                          getChannelPreviewParticipants(mp.groupID).length >
+                            0 && <MdSettingsVoice />}
                         {urllocation.pathname.includes(mp.groupID) && (
                           <FaLocationArrow />
                         )}
@@ -370,8 +456,26 @@ function Channels({ serverlist }: any) {
         className="tw-flex tw-flex-1 tw-h-full tw-overflow-x-hidden tw-rounded-tr-[10px] tw-rounded-br-[10px]"
       >
         <Routes>
-          <Route path="/" element={<NoChannel server={serverDetails} />} />
-          <Route path="/:conversationID" element={<ServerConversation />} />
+          <Route
+            path="/"
+            element={
+              isLoaded && haveAccess ? (
+                <NoChannel server={serverdetails} />
+              ) : (
+                <div className="tw-bg-white tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]" />
+              )
+            }
+          />
+          <Route
+            path="/:conversationID"
+            element={
+              isLoaded && haveAccess ? (
+                <ServerConversation />
+              ) : (
+                <div className="tw-bg-white tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]" />
+              )
+            }
+          />
         </Routes>
       </motion.div>
     </motion.div>

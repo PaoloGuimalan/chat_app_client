@@ -50,6 +50,7 @@ import { useSearchParams } from "react-router-dom";
 import { HiOutlineSquare3Stack3D } from "react-icons/hi2";
 import { SET_COORDINATES, SET_USER_SETTINGS } from "@/redux/types";
 import { persistSettings } from "@/reusables/hooks/localforagehelper";
+import { useWakeLock } from "react-screen-wake-lock";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -192,6 +193,7 @@ function MapFeed() {
 
       return {
         referenceID: authentication.user.userID,
+        label: authentication.user.username,
         longitude: 120.9842,
         latitude: 14.5995,
         heading: -17.6,
@@ -203,6 +205,7 @@ function MapFeed() {
 
     return {
       referenceID: authentication.user.userID,
+      label: authentication.user.username,
       longitude: 120.9842,
       latitude: 14.5995,
       heading: -17.6,
@@ -285,14 +288,22 @@ function MapFeed() {
   };
 
   const [searchParams] = useSearchParams();
+  const [isAnchorLoaded, setisAnchorLoaded] = useState<boolean>(false);
 
   useEffect(() => {
     const query = searchParams.get("anchor");
 
     if (query) {
-      setFollowLocation(query);
+      const fetchToAnchor = coordinates.filter((flt) => flt.label === query);
+      if (fetchToAnchor.length > 0) {
+        if (!isAnchorLoaded) {
+          setFollowLocation(fetchToAnchor[0].referenceID);
+          setisAnchorLoaded(true);
+        }
+        // setFollowLocation(query);
+      }
     }
-  }, [searchParams]);
+  }, [searchParams, othersLocation, isAnchorLoaded]);
 
   // useEffect(() => {
   //   if (isLocationSharing) {
@@ -462,6 +473,7 @@ function MapFeed() {
           payload: {
             coordinates: {
               referenceID: authentication.user.userID,
+              label: authentication.user.username,
               longitude: snappedLng,
               latitude: snappedLat,
               heading: rawCoordinates.heading,
@@ -479,6 +491,7 @@ function MapFeed() {
         payload: {
           coordinates: {
             referenceID: authentication.user.userID,
+            label: authentication.user.username,
             longitude: rawCoordinates.longitude,
             latitude: rawCoordinates.latitude,
             heading: rawCoordinates.heading,
@@ -648,8 +661,27 @@ function MapFeed() {
     },
   ];
 
+  const { isSupported, released, request, release } = useWakeLock({
+    onRequest: () => {},
+    onError: () => {},
+    onRelease: () => {},
+  });
+
+  useEffect(() => {
+    if (isSupported) {
+      request();
+    }
+
+    return () => {
+      if (!released) {
+        release();
+      }
+    };
+  }, [isSupported, request, release]);
+
   const handleClick = useCallback(
     (event: any) => {
+      request();
       const coordinatesCircle = coordinates
         .filter((flt) => flt.referenceID !== authentication.user.userID)
         .map((mp) => `gps-circle-${mp.referenceID}`);
@@ -702,11 +734,11 @@ function MapFeed() {
   };
 
   useEffect(() => {
-    const toGetUsersInMap = othersLocation.map((mp) => mp.referenceID);
+    const toGetUsersInMap = othersLocation.map((mp) => mp.label);
 
-    toGetUsersInMap.forEach((userID) => {
-      if (UsersInMap.findIndex((usr) => usr.userID === userID) === -1) {
-        GetProfileInfoProcess(userID);
+    toGetUsersInMap.forEach((username) => {
+      if (UsersInMap.findIndex((usr) => usr.userID === username) === -1) {
+        GetProfileInfoProcess(username);
       }
     });
   }, [UsersInMap, othersLocation]);
@@ -715,8 +747,8 @@ function MapFeed() {
     <Map
       ref={mapRef}
       initialViewState={{
-        longitude: toFollowLocation?.longitude,
-        latitude: toFollowLocation?.latitude,
+        longitude: toFollowLocation?.longitude ?? 120.9842,
+        latitude: toFollowLocation?.latitude ?? 14.5995,
         zoom: 17,
         pitch: 45,
         bearing: toFollowLocation?.heading
@@ -753,9 +785,7 @@ function MapFeed() {
       )}
 
       {othersLocation.map((mp: ICoordinatesAnchor, i: number) => {
-        const userInfo = UsersInMap.find(
-          (usr) => usr.userID === mp.referenceID,
-        );
+        const userInfo = UsersInMap.find((usr) => usr.id === mp.referenceID);
         if (userInfo) {
           return (
             <Fragment key={i}>
@@ -767,7 +797,11 @@ function MapFeed() {
               {followLocation === mp.referenceID && (
                 <ProfilePopup
                   coordinates={mp}
-                  user={{ ...userInfo, fullName: userInfo.fullname }}
+                  user={{
+                    ...userInfo,
+                    username: userInfo.userID,
+                    fullName: userInfo.fullname,
+                  }}
                 />
               )}
               <Source
@@ -1086,7 +1120,7 @@ function MapFeed() {
               >
                 <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-items-center tw-gap-[5px]">
                   <span className="tw-whitespace-nowrap tw-text-ellipsis tw-truncate tw-text-[12px] tw-font-Inter tw-flex-1">
-                    {window.location.href}?anchor={authentication.user.userID}
+                    {window.location.href}?anchor={authentication.user.username}
                   </span>
                   <button
                     className="tw-h-[25px] tw-w-[40px] tw-cursor-pointer tw-border-none tw-bg-transparent"
@@ -1094,7 +1128,7 @@ function MapFeed() {
                       navigator.clipboard.writeText(
                         window.location.href +
                           "?anchor=" +
-                          authentication.user.userID,
+                          authentication.user.username,
                       )
                     }
                   >
@@ -1320,7 +1354,7 @@ function MapFeed() {
               >
                 <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-items-center tw-gap-[5px]">
                   <span className="tw-whitespace-nowrap tw-text-ellipsis tw-truncate tw-text-[12px] tw-font-Inter tw-flex-1">
-                    {window.location.href}?anchor={authentication.user.userID}
+                    {window.location.href}?anchor={authentication.user.username}
                   </span>
                   <button
                     className="tw-h-[25px] tw-w-[40px] tw-cursor-pointer tw-border-none tw-bg-transparent"
@@ -1328,7 +1362,7 @@ function MapFeed() {
                       navigator.clipboard.writeText(
                         window.location.href +
                           "?anchor=" +
-                          authentication.user.userID,
+                          authentication.user.username,
                       )
                     }
                   >

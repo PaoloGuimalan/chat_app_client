@@ -242,20 +242,22 @@ function Notifications() {
               </motion.div>
             );
           })}
-          <div ref={divlazyloaderRef} id="div_isLoading_notifications">
-            <motion.div
-              animate={{
-                rotate: -360,
-              }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-              }}
-              id="div_loader_request"
-            >
-              <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-            </motion.div>
-          </div>
+          {notificationslist.next && (
+            <div ref={divlazyloaderRef} id="div_isLoading_notifications">
+              <motion.div
+                animate={{
+                  rotate: -360,
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                }}
+                id="div_loader_request"
+              >
+                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+              </motion.div>
+            </div>
+          )}
         </div>
       )}
     </motion.div>

@@ -8,6 +8,9 @@ import { IoArrowBack } from "react-icons/io5";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import MapFeedSettings from "./section/MapFeedSettings";
+import { RiInboxArchiveFill } from "react-icons/ri";
+import ArchivedMessages from "./section/ArchivedMessages";
+import { BiMessageError } from "react-icons/bi";
 
 function Settings({ isModal }: { isModal: boolean }) {
   const navigate = useNavigate();
@@ -22,18 +25,18 @@ function Settings({ isModal }: { isModal: boolean }) {
   });
 
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
 
   const isMobileView = useMemo(
     () => screensizelistener.W <= 1100,
-    [screensizelistener]
+    [screensizelistener],
   );
 
   const mappedSettingsList = useMemo(
     () => [
       {
-        category: "Account Settings",
+        category: "Account",
         description:
           "Review, Update, Validate, and Manage your informations on how you want it to appear.",
         items: [
@@ -47,6 +50,36 @@ function Settings({ isModal }: { isModal: boolean }) {
             click: function () {
               //   console.log("TEST");
             },
+          },
+        ],
+      },
+      {
+        category: "Messages",
+        description:
+          "Access your archived or restricted messages and other messaging settings",
+        items: [
+          {
+            icon: <RiInboxArchiveFill size={45} color="#757b87" />,
+            name: "Archives",
+            description:
+              "Check your archived messages and revisit conversations.",
+            isDisabled: false,
+            component: <ArchivedMessages />,
+            click: function () {
+              setmodalPage({
+                isToggled: true,
+                component: <ArchivedMessages />,
+              });
+            },
+          },
+          {
+            icon: <BiMessageError size={45} color="#757b87" />,
+            name: "Restricted",
+            description:
+              "Access your restricted conversations and/or unrestrict certain people.",
+            isDisabled: true,
+            component: <ArchivedMessages />,
+            click: function () {},
           },
         ],
       },
@@ -66,25 +99,31 @@ function Settings({ isModal }: { isModal: boolean }) {
                 isToggled: true,
                 component: <MapFeedSettings />,
               });
-              //   console.log("TEST");
             },
           },
         ],
       },
     ],
-    []
+    [],
   );
 
   return (
     <div
       className={`tw-bg-[#f0f2f5] tw-w-full tw-h-full ${
         !isModal ? "tw-absolute" : "tw-rounded-sm tw-relative"
-      } tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll tw-font-Inter`}
+      } tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-font-Inter`}
     >
       {!isModal ? (
         <button
           onClick={() => {
-            navigate("/");
+            if (modalPage.isToggled) {
+              setmodalPage({
+                isToggled: false,
+                component: null,
+              });
+            } else {
+              navigate("/");
+            }
           }}
           className="tw-z-[10] tw-shadow-lg tw-bg-[#d2d2d2] tw-fixed tw-top-[4px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
         >
@@ -113,9 +152,9 @@ function Settings({ isModal }: { isModal: boolean }) {
         >
           <span className="tw-text-[14px] tw-font-semibold">Settings</span>
         </div>
-        <div className="tw-flex tw-w-full tw-gap-[4px] tw-h-full">
+        <div className="tw-flex tw-w-full tw-gap-[4px] tw-h-[calc(100%-60px)]">
           {!isMobileView && (
-            <div className="tw-flex tw-flex-col tw-gap-[4px] tw-flex-1">
+            <div className="tw-flex tw-flex-col tw-gap-[4px] tw-flex-1 tw-overflow-y-auto t-scroll">
               {/* Settings Categories */}
               {mappedSettingsList.map((mp, i) => {
                 return (
@@ -167,7 +206,7 @@ function Settings({ isModal }: { isModal: boolean }) {
             </div>
           )}
           {!modalPage.isToggled && isMobileView && (
-            <div className="tw-flex tw-flex-col tw-gap-[4px] tw-flex-1">
+            <div className="tw-flex tw-flex-col tw-gap-[4px] tw-flex-1 tw-overflow-y-auto t-scroll">
               {/* Settings Categories */}
               {mappedSettingsList.map((mp, i) => {
                 return (
@@ -220,11 +259,13 @@ function Settings({ isModal }: { isModal: boolean }) {
           )}
           {modalPage.isToggled && (
             <div
-              className={`tw-flex tw-w-[calc(100%-40px)] ${
+              className={`tw-flex tw-w-[calc(100%-25px)] ${
                 !isMobileView && "tw-max-w-[60%]"
-              } tw-h-[calc(100%-35px)] tw-flex-col tw-bg-white tw-p-[20px] tw-pt-[15px] tw-gap-[15px]`}
+              } tw-h-[calc(100%-35px)] tw-flex-col tw-bg-white tw-p-[20px] tw-pt-[15px] tw-pr-[0px] tw-gap-[15px]`}
             >
-              {modalPage.component}
+              <div className="tw-w-full tw-flex tw-flex-col tw-flex-1 tw-overflow-y-scroll t-scroll tw-pr-[5px]">
+                {modalPage.component}
+              </div>
             </div>
           )}
         </div>

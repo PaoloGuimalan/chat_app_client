@@ -1,34 +1,99 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { PublicServersListRequest } from "@/reusables/hooks/requests";
-import { useEffect, useMemo, useState } from "react";
+import { GetTopRealmsRequest } from "@/reusables/hooks/requests";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 import ServerItemLoader from "@/app/reusables/loaders/ServerItemLoader";
 import PublicServerItem from "@/app/widgets/items/PublicServerItem";
 import { useSelector } from "react-redux";
+import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
+import { RiPagesLine } from "react-icons/ri";
+import { PaginationProp } from "@/reusables/vars/props";
+import { genericpaginationstate } from "@/redux/actions/states";
 
 function Default() {
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
 
   const isMobileView = useMemo(
     () => screensizelistener.W < 800,
-    [screensizelistener]
+    [screensizelistener],
   );
 
-  const [publicServers, setpublicServers] = useState<any[]>([]);
+  const [pages, setpages] = useState<PaginationProp<IRealmProfileInfo>>(
+    genericpaginationstate,
+  );
   const [isLoaded, setisLoaded] = useState<boolean>(false);
+  const [isPaginating, setisPaginating] = useState<boolean>(false);
+  const [currentPage, setcurrentPage] = useState<number>(1);
+  const [searchbox, setsearchbox] = useState<string>("");
 
-  useEffect(() => {
-    PublicServersListRequest()
+  const GetTopRealmsProcess = (callback?: () => void) => {
+    GetTopRealmsRequest(
+      currentPage,
+      10,
+      "server",
+      searchbox.trim() === "" ? null : searchbox,
+    )
       .then((response) => {
-        setpublicServers(response.result);
+        setpages((prev) => {
+          const prevIds = new Set(prev.results.map((item) => item.id));
+          const newItems = response.results.filter(
+            (item: IRealmProfileInfo) => !prevIds.has(item.id),
+          );
+
+          return {
+            ...response,
+            results: [...prev.results, ...newItems],
+          };
+        });
         setisLoaded(true);
+        setisPaginating(false);
+        if (callback) {
+          callback();
+        }
       })
       .catch((err) => {
+        setisLoaded(true);
+        setisPaginating(false);
         console.log(err);
       });
-  }, []);
+  };
+
+  useEffect(() => {
+    GetTopRealmsProcess();
+  }, [currentPage]);
+
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const debouncedFetch = useCallback(
+    (currentPage: number, searchValue: string) => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+
+      timeoutRef.current = setTimeout(() => {
+        if (searchValue.trim() !== "") {
+          setisLoaded(false); // optional: show loading at start
+          GetTopRealmsRequest(currentPage, 10, "server", searchValue)
+            .then((response) => {
+              setpages(response);
+              setisLoaded(true);
+              setisPaginating(false);
+            })
+            .catch((err) => {
+              setisLoaded(true);
+              setisPaginating(false);
+              console.log(err);
+            });
+        } else {
+          GetTopRealmsProcess();
+        }
+      }, 500);
+    },
+    [],
+  );
 
   return (
     <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-center tw-pt-[15px] tw-pb-[10px] tw-pr-[7px]">
@@ -68,10 +133,11 @@ function Default() {
                   style={{ fontSize: "20px", color: "#4A4A4A" }}
                 />
                 <input
-                  // value={searchbox}
+                  value={searchbox}
                   autoComplete="off"
-                  onChange={() => {
-                    // setsearchbox(e.target.value);
+                  onChange={(e) => {
+                    setsearchbox(e.target.value);
+                    debouncedFetch(1, e.target.value);
                   }}
                   type="text"
                   placeholder="Search something..."
@@ -91,13 +157,60 @@ function Default() {
               Top Servers
             </span>
             <div className="tw-w-full tw-flex tw-justify-evenly tw-gap-[10px] tw-flex-wrap tw-pb-[20px]">
-              {isLoaded
-                ? publicServers.map((mp: any, i: number) => {
-                    return <PublicServerItem key={i} mp={mp} />;
-                  })
-                : Array.from({ length: 20 }).map((_, i) => {
-                    return <ServerItemLoader key={i} />;
+              {isLoaded ? (
+                pages.results.length === 0 ? (
+                  <div className="tw-w-full tw-flex tw-flex-col tw-justify-center tw-items-center tw-gap-[10px] tw-pb-[20px] tw-pt-[80px]">
+                    <RiPagesLine
+                      style={{
+                        fontSize: isMobileView ? "80px" : "80px",
+                        color: "#7f7f85",
+                      }}
+                    />
+                    <div className="tw-flex tw-flex-col tw-gap-[5px]">
+                      <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[#7f7f85]">
+                        No servers yet
+                      </span>
+                      <span className="tw-text-[14px] tw-font-Inter tw-text-[#7f7f85]">
+                        Create your server and start building a community.
+                      </span>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
+                    {pages.results.map((mp: IRealmProfileInfo) => {
+                      return (
+                        <PublicServerItem key={mp.id} mp={mp} flexed={false} />
+                      );
+                    })}
+                  </div>
+                )
+              ) : (
+                <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
+                  {Array.from({ length: 20 }).map((_, i) => {
+                    return <ServerItemLoader key={i} flexed={false} />;
                   })}
+                </div>
+              )}
+              {isLoaded && isPaginating && (
+                <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
+                  {Array.from({ length: 10 }).map((_, i) => {
+                    return <ServerItemLoader key={i} flexed={false} />;
+                  })}
+                </div>
+              )}
+              {pages.next && (
+                <div className="tw-w-full tw-flex tw-justify-center">
+                  <button
+                    onClick={() => {
+                      setcurrentPage((prev) => prev + 1);
+                      setisPaginating(true);
+                    }}
+                    className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#404040] tw-border-[#404040] tw-rounded-[6px] tw-text-[12px]"
+                  >
+                    Load more
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

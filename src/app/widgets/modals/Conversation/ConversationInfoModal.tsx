@@ -49,7 +49,7 @@ function ConversationInfoModal({
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.userID == userID,
+      (flt: any) => flt.id == userID,
     );
 
     return userIDExistInArray.length > 0 ? true : false;
@@ -57,7 +57,7 @@ function ConversationInfoModal({
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.userID != userID,
+      (flt: any) => flt.id != userID,
     );
 
     setmarkedMembers(userIDnotSimilar);
@@ -84,7 +84,7 @@ function ConversationInfoModal({
     const initialpayload = {
       conversationID: conversationinfo.conversationInfo?.groupID,
       memberstoadd: markedMembers,
-      receivers: [...markedMembers.map((mp) => mp.userID)],
+      receivers: [...markedMembers.map((mp) => mp.id)],
     };
     AddNewMemberRequest(initialpayload)
       .then((response) => {
@@ -101,7 +101,7 @@ function ConversationInfoModal({
 
   const userInfo = useMemo(() => {
     const info = conversationinfo.usersWithInfo.filter(
-      (flt) => flt.userID !== authentication.user.userID,
+      (flt) => flt._id !== authentication.user.userID,
     );
 
     if (info.length > 0) {
@@ -149,12 +149,7 @@ function ConversationInfoModal({
                         className={
                           userInfo?.profile == "none"
                             ? "img_search_profiles_ntfs"
-                            : ""
-                        }
-                        id={
-                          userInfo?.profile == "none"
-                            ? ""
-                            : "img_actual_profile"
+                            : "tw-w-full tw-h-full tw-rounded-full"
                         }
                       />
                     </div>
@@ -403,11 +398,28 @@ function ConversationInfoModal({
                       <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
                         <CachedImage
                           src={
-                            conversationinfo.type === "server"
-                              ? ServerIcon
-                              : GroupChatIcon
+                            conversationinfo.conversationInfo &&
+                            conversationinfo.conversationInfo?.profile &&
+                            conversationinfo.conversationInfo?.profile !== "N/A"
+                              ? conversationinfo.conversationInfo?.profile
+                              : conversationinfo.type === "server"
+                                ? ServerIcon
+                                : GroupChatIcon
                           }
-                          className="img_gc_profiles_ntfs"
+                          id={
+                            conversationinfo.conversationInfo &&
+                            conversationinfo.conversationInfo?.profile &&
+                            conversationinfo.conversationInfo?.profile !== "N/A"
+                              ? "img_actual_profile_main"
+                              : ""
+                          }
+                          className={
+                            conversationinfo.conversationInfo &&
+                            conversationinfo.conversationInfo?.profile &&
+                            conversationinfo.conversationInfo?.profile !== "N/A"
+                              ? ""
+                              : "img_gc_profiles_ntfs"
+                          }
                         />
                       </div>
                     </div>
@@ -452,7 +464,7 @@ function ConversationInfoModal({
                               <button
                                 className="btn_remove_selected"
                                 onClick={() => {
-                                  removeFromList(mrkm.userID);
+                                  removeFromList(mrkm.id);
                                 }}
                               >
                                 <IoClose
@@ -464,8 +476,35 @@ function ConversationInfoModal({
                         })}
                       </motion.div>
                     )}
-                    {conversationinfo.conversationInfo?.type === "server" ? (
-                      conversationinfo.conversationInfo?.privacy && (
+                    {conversationinfo.is_admin &&
+                      (conversationinfo.conversationInfo?.type === "server" ? (
+                        conversationinfo.conversationInfo?.privacy && (
+                          <div
+                            onClick={() => {
+                              GetContactsListProcess(!expandcontacts);
+                            }}
+                            className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
+                          >
+                            <div
+                              id="div_img_search_profiles_container_cncts"
+                              className="tw-bg-transparent tw-border-transparent"
+                            >
+                              {expandcontacts ? (
+                                <IoClose style={{ fontSize: "20px" }} />
+                              ) : (
+                                <MdOutlineGroupAdd
+                                  style={{ fontSize: "20px" }}
+                                />
+                              )}
+                            </div>
+                            <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
+                              <span className="tw-flex tw-flex-1 tw-text-[13px]">
+                                {expandcontacts ? "Close list" : "Add a user"}
+                              </span>
+                            </div>
+                          </div>
+                        )
+                      ) : (
                         <div
                           onClick={() => {
                             GetContactsListProcess(!expandcontacts);
@@ -488,31 +527,7 @@ function ConversationInfoModal({
                             </span>
                           </div>
                         </div>
-                      )
-                    ) : (
-                      <div
-                        onClick={() => {
-                          GetContactsListProcess(!expandcontacts);
-                        }}
-                        className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
-                      >
-                        <div
-                          id="div_img_search_profiles_container_cncts"
-                          className="tw-bg-transparent tw-border-transparent"
-                        >
-                          {expandcontacts ? (
-                            <IoClose style={{ fontSize: "20px" }} />
-                          ) : (
-                            <MdOutlineGroupAdd style={{ fontSize: "20px" }} />
-                          )}
-                        </div>
-                        <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                          <span className="tw-flex tw-flex-1 tw-text-[13px]">
-                            {expandcontacts ? "Close list" : "Add a user"}
-                          </span>
-                        </div>
-                      </div>
-                    )}
+                      ))}
                     {markedMembers.length > 0 && expandcontacts && (
                       <div
                         onClick={() => {
@@ -580,9 +595,9 @@ function ConversationInfoModal({
                                   } ${cnts.fullname.lastName}`;
                                   const checkmemberslist =
                                     conversationinfo.users.map(
-                                      (mp: UsersInConversation) => mp.userID,
+                                      (mp: UsersInConversation) => mp._id,
                                     );
-                                  if (!checkmemberslist.includes(cnts.userID)) {
+                                  if (!checkmemberslist.includes(cnts._id)) {
                                     if (fullNameFilter.includes(searchFilter)) {
                                       return (
                                         <motion.div
@@ -595,17 +610,16 @@ function ConversationInfoModal({
                                           <input
                                             type="checkbox"
                                             checked={valueToArrayChecker(
-                                              cnts.userID,
+                                              cnts._id,
                                             )}
                                             onChange={() => {
                                               if (
-                                                !valueToArrayChecker(
-                                                  cnts.userID,
-                                                )
+                                                !valueToArrayChecker(cnts._id)
                                               ) {
                                                 setmarkedMembers([
                                                   ...markedMembers,
                                                   {
+                                                    id: cnts._id,
                                                     userID: cnts.userID,
                                                     fullName: `${
                                                       cnts.fullname.firstName
@@ -620,7 +634,7 @@ function ConversationInfoModal({
                                                   },
                                                 ]);
                                               } else {
-                                                removeFromList(cnts.userID);
+                                                removeFromList(cnts._id);
                                               }
                                             }}
                                             className="checkbox_selector_people"
@@ -665,22 +679,20 @@ function ConversationInfoModal({
                                   if (cnts.type == "single") {
                                     if (cnts.action_by && cnts.involved_user) {
                                       if (
-                                        cnts.action_by.username ===
+                                        cnts.action_by.id ===
                                           authentication.user.userID &&
                                         conversationinfo.usersWithInfo.filter(
                                           (flt: any) =>
-                                            flt.userID ===
-                                            cnts.involved_user.username,
+                                            flt._id === cnts.involved_user.id,
                                         ).length === 0
                                       ) {
                                         const checkmemberslist =
                                           conversationinfo.users.map(
-                                            (mp: UsersInConversation) =>
-                                              mp.userID,
+                                            (mp: UsersInConversation) => mp._id,
                                           );
                                         if (
                                           checkmemberslist.includes(
-                                            cnts.involved_user.username,
+                                            cnts.involved_user.id,
                                           )
                                         ) {
                                           return null;
@@ -707,18 +719,19 @@ function ConversationInfoModal({
                                               <input
                                                 type="checkbox"
                                                 checked={valueToArrayChecker(
-                                                  cnts.involved_user.username,
+                                                  cnts.involved_user.id,
                                                 )}
                                                 onChange={() => {
                                                   if (
                                                     !valueToArrayChecker(
-                                                      cnts.involved_user
-                                                        .username,
+                                                      cnts.involved_user.id,
                                                     )
                                                   ) {
                                                     setmarkedMembers([
                                                       ...markedMembers,
                                                       {
+                                                        id: cnts.involved_user
+                                                          .id,
                                                         userID:
                                                           cnts.involved_user
                                                             .username,
@@ -739,8 +752,7 @@ function ConversationInfoModal({
                                                     ]);
                                                   } else {
                                                     removeFromList(
-                                                      cnts.involved_user
-                                                        .username,
+                                                      cnts.involved_user.id,
                                                     );
                                                   }
                                                 }}
@@ -792,12 +804,11 @@ function ConversationInfoModal({
                                       } else {
                                         const checkmemberslist =
                                           conversationinfo.users.map(
-                                            (mp: UsersInConversation) =>
-                                              mp.userID,
+                                            (mp: UsersInConversation) => mp._id,
                                           );
                                         if (
                                           checkmemberslist.includes(
-                                            cnts.action_by.username,
+                                            cnts.action_by.id,
                                           )
                                         ) {
                                           return null;
@@ -805,8 +816,7 @@ function ConversationInfoModal({
                                         if (
                                           conversationinfo.usersWithInfo.filter(
                                             (flt: any) =>
-                                              flt.userID ===
-                                              cnts.action_by.username,
+                                              flt._id === cnts.action_by.id,
                                           ).length === 0
                                         ) {
                                           const fullNameFilter = `${
@@ -832,17 +842,18 @@ function ConversationInfoModal({
                                                 <input
                                                   type="checkbox"
                                                   checked={valueToArrayChecker(
-                                                    cnts.action_by.username,
+                                                    cnts.action_by.id,
                                                   )}
                                                   onChange={() => {
                                                     if (
                                                       !valueToArrayChecker(
-                                                        cnts.action_by.username,
+                                                        cnts.action_by.id,
                                                       )
                                                     ) {
                                                       setmarkedMembers([
                                                         ...markedMembers,
                                                         {
+                                                          id: cnts.action_by.id,
                                                           userID:
                                                             cnts.action_by
                                                               .username,
@@ -863,7 +874,7 @@ function ConversationInfoModal({
                                                       ]);
                                                     } else {
                                                       removeFromList(
-                                                        cnts.action_by.username,
+                                                        cnts.action_by.id,
                                                       );
                                                     }
                                                   }}

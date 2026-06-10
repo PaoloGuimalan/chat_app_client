@@ -5,22 +5,48 @@ import PeerService from "../hooks/peer";
 export interface AuthenticationInterface {
   auth: boolean | null;
   user: {
+    id: string;
     userID: string;
+    username: string;
     fullName: {
       firstName: string;
       middleName: string;
       lastName: string;
     };
+    birthdate: {
+      month: string;
+      day: string;
+      year: string;
+    } | null;
     email: string;
+    gender: string | null;
     isActivated: boolean | null;
     isVerified: boolean | null;
+    isComplete: boolean;
     profile: string;
     coverphoto: string;
   };
 }
 
-export interface ProfileUserInfoInterface {
+export interface IUserInterface {
+  _id: string;
   userID: string;
+  fullName: {
+    firstName: string;
+    middleName: string;
+    lastName: string;
+  };
+  email?: string;
+  isActivated?: boolean | null;
+  isVerified?: boolean | null;
+  profile: string;
+  coverphoto?: string;
+}
+
+export interface ProfileUserInfoInterface {
+  id: string;
+  userID: string;
+  username: string;
   fullname: {
     firstName: string;
     middleName: string;
@@ -47,6 +73,46 @@ export interface ProfileUserInfoInterface {
   };
   isActivated: boolean;
   isVerified: boolean;
+  isBadged: boolean;
+}
+
+export interface IRealmBasicInfo {
+  id: string;
+  realm_id: string;
+  name: string;
+  profile: string;
+  cover_photo: string | null;
+  description: string | null;
+  email: string | null;
+  slug: string | null;
+  type: string;
+  is_active: boolean;
+  is_private: boolean;
+  is_verified: boolean;
+  created_by: string;
+  parent: IRealmBasicInfo | null;
+}
+
+export interface IRealmProfileInfo {
+  cover_photo: string | null;
+  created_by: string;
+  description: string | null;
+  email: string | null;
+  id: string;
+  is_active: boolean;
+  is_private: boolean;
+  is_verified: boolean;
+  name: string;
+  parent: IRealmBasicInfo | null;
+  profile: string | null;
+  realm_id: string;
+  slug: string | null;
+  type: string;
+  is_admin: boolean;
+  is_member: boolean;
+  followers_count: number;
+  members: number;
+  is_follower: boolean;
 }
 
 export interface ProfilePostState {
@@ -108,6 +174,7 @@ export interface ConversationInfoInterface {
   contactID: string;
   actionBy: string;
   actionDate: { date: string; time: string };
+  is_admin: boolean;
   status: boolean;
   type: string;
   users: UsersInConversation[];
@@ -115,6 +182,14 @@ export interface ConversationInfoInterface {
   conversationInfo?: ConversationDetails;
   usersWithInfo: UserWithInfoConversationInterface[];
   conversationfiles: ConversationFilesInterface[];
+  chatHistory: {
+    _id: string;
+    conversationID: string;
+    userID: string;
+    cleared_at: string | null;
+    isArchived: boolean;
+    isRestricted: boolean;
+  } | null;
 }
 
 export interface RemoteStreams {
@@ -144,11 +219,13 @@ export interface ChannelsListInterface {
   };
   createdBy: string;
   type: string;
+  channelType: string;
   privacy: boolean;
   messages: MessagesUnreadInterface[];
 }
 
 export interface ServerUsersWithInfo {
+  _id: string;
   userID: string;
   fullname: {
     firstName: string;
@@ -170,6 +247,7 @@ export interface ServerChannelsListInterface {
   members: ChannelMembersInterface[];
   createdBy: string;
   privacy: boolean;
+  is_admin: boolean;
   channels: ChannelsListInterface[];
   usersWithInfo: ServerUsersWithInfo[];
 }
@@ -220,6 +298,16 @@ export interface IPostScore {
   post: string;
 }
 
+export interface IAuthorRealm {
+  id: string;
+  realm_id: string;
+  name: string;
+  profile: string;
+  type: string;
+  is_verified: true;
+  slug: string;
+}
+
 export interface IPost {
   post_id: string;
   tagging: ITagging[];
@@ -228,6 +316,7 @@ export interface IPost {
   map_info: IMapInfo;
   user: IUserContactPreview;
   is_shared: boolean;
+  is_saved: boolean;
   file_type: string;
   caption: string;
   content_type: string;
@@ -235,6 +324,9 @@ export interface IPost {
   privacy_status: string;
   is_sponsored: boolean;
   is_live: boolean;
+  is_archived: boolean;
+  deleted_at: string | boolean | null;
+  deleted_by: string | boolean | null;
   on_feed: string;
   date_posted: string; // ISO string, or Date if preferred
   from_system: boolean;
@@ -242,6 +334,7 @@ export interface IPost {
   user_reaction: string | null;
   // activity_counts: IActivityCounts[];
   score: IPostScore;
+  author_realm: IAuthorRealm | null;
 }
 
 //POST DATA INTERFACE END
@@ -266,6 +359,24 @@ export interface IUserContactPreview {
   last_name: string;
   profile: string;
   gender: string;
+  is_badged: boolean;
+}
+
+export interface IRealmMember {
+  account: IUserContactPreview;
+  added_by: IUserContactPreview;
+  date_joined: string;
+  member_id: string;
+  nickname: string | null;
+  realm: string;
+  role: string;
+}
+
+export interface IRealmFollower {
+  follower: IUserContactPreview;
+  realm_id: string;
+  follow_id: string;
+  created_at: string;
 }
 
 export interface IContact {
@@ -327,6 +438,7 @@ export interface IPostComment {
 
 export interface ICoordinatesAnchor {
   referenceID: string;
+  label: string;
   longitude: number;
   latitude: number;
   heading: number | null;
@@ -424,4 +536,41 @@ export interface IUserSettings {
     current_mode: number;
     toggleSpeed: boolean;
   };
+  messages: {
+    type: string;
+  };
+}
+
+export interface IPreviewParicipants {
+  userID: string;
+  username: string;
+  profile: string | null;
+  clientID: string;
+  channelID: string;
+  instance: string | null;
+}
+
+export interface ISavedPost {
+  id: string;
+  post: {
+    post_id: string;
+    is_shared: boolean;
+    file_type: string;
+    caption: string;
+    content_type: string;
+    is_tagged: boolean;
+    privacy_status: string;
+    is_sponsored: boolean;
+    is_live: boolean;
+    is_archived: boolean;
+    on_feed: string;
+    date_posted: string;
+    from_system: boolean;
+    deleted_at: string | null;
+    user: IUserContactPreview;
+    author_realm: IAuthorRealm | null;
+    deleted_by: string | null;
+  };
+  saved_at: string;
+  user: string;
 }

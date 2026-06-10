@@ -20,6 +20,7 @@ import {
   setpendingcallalerts,
   setpendingmessageslist,
   setpostsfeedlist,
+  setpreviewparticipant,
   setrawcoordinates,
   setrejectedcalllist,
   setscreensizelistener,
@@ -53,6 +54,7 @@ const combiner = combineReducers({
   usersettings: setusersettings,
   coordinates: setcoordinates,
   rawcoordinates: setrawcoordinates,
+  previewparticipants: setpreviewparticipant,
 });
 
 const store = createStore(combiner);

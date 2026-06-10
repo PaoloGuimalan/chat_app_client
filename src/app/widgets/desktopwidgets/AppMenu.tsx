@@ -10,11 +10,12 @@ import AppItems from "../items/AppItems";
 import { PiListBold } from "react-icons/pi";
 import { SET_PAGE_MODAL } from "@/redux/types";
 import Settings from "@/app/tabs/settings/Settings";
+import { RiPagesFill } from "react-icons/ri";
 
 function AppMenu() {
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
 
   const [isLoading, _] = useState(false); //setisLoading
@@ -44,12 +45,20 @@ function AppMenu() {
       _id: 2,
       appname: "Servers",
       icon: <TbServer2 style={{ fontSize: "40px", color: "#e69500" }} />,
-      description: "Browse and Socialize through servers",
+      description: "Browse and Socialize through servers.",
       navigation: "/servers",
       click: null,
     },
     {
       _id: 3,
+      appname: "Pages",
+      icon: <RiPagesFill style={{ fontSize: "37px", color: "#4997f2" }} />,
+      description: "Browse pages you may be interested in.",
+      navigation: "/pages",
+      click: null,
+    },
+    {
+      _id: 4,
       appname: "Chatterloop Extension",
       icon: <FcPuzzle style={{ fontSize: "40px" }} />,
       description: "Merge your contents from accross different platforms.",
@@ -66,15 +75,15 @@ function AppMenu() {
           pathnamelistener.includes("user")
             ? "flex"
             : screensizelistener.W <= 1100
-            ? "none"
-            : "flex",
+              ? "none"
+              : "flex",
         maxWidth:
           pathnamelistener.includes("contacts") ||
           pathnamelistener.includes("user")
             ? "600px"
             : screensizelistener.W <= 900
-            ? "350px"
-            : "350px",
+              ? "350px"
+              : "350px",
       }}
       id="div_app_menu"
     >

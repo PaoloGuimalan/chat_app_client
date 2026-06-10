@@ -18,8 +18,8 @@ import { callalert } from "../../reusables/hooks/soundmodules";
 import alert_incoming_call from "../../assets/sounds/alert_call_tune.mp3";
 import {
   CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
-  MEDIA_MY_VIDEO_HOLDER,
-  MEDIA_TRACK_HOLDER,
+  // MEDIA_MY_VIDEO_HOLDER,
+  // MEDIA_TRACK_HOLDER,
   REMOVE_PENDING_CALL_ALERTS,
   REMOVE_REJECTED_CALL_LIST,
 } from "../../redux/types";
@@ -28,7 +28,7 @@ import CachedImage from "../reusables/cachers/CachedImage";
 
 function Alert({ al }: any) {
   const alerts = useSelector((state: any) => state.alerts);
-  const mediatrackholder = useSelector((state: any) => state.mediatrackholder);
+  // const mediatrackholder = useSelector((state: any) => state.mediatrackholder);
   const rejectcalls = useSelector((state: any) => state.rejectcalls);
   const [timerUnToggle, settimerUnToggle] = useState(true);
   const [displayUntoggle, setdisplayUntoggle] = useState(true);
@@ -129,60 +129,60 @@ function Alert({ al }: any) {
     },
   };
 
-  const initMediaDevices = (callmetadata: any) => {
-    if (mediatrackholder.length > 0) {
-      acceptCallProcess(callmetadata);
-    } else {
-      navigator.mediaDevices
-        .getUserMedia({
-          video: true,
-          audio: true,
-        })
-        .then((value) => {
-          dispatch({
-            type: MEDIA_MY_VIDEO_HOLDER,
-            payload: {
-              mediamyvideoholder: value,
-            },
-          });
-          dispatch({
-            type: MEDIA_TRACK_HOLDER,
-            payload: {
-              mediatrackholder: value.getTracks(),
-            },
-          });
-          acceptCallProcess(callmetadata);
-        })
-        .catch((err) => {
-          console.log(err);
-        });
-    }
-  };
+  // const initMediaDevices = (callmetadata: any) => {
+  //   if (mediatrackholder.length > 0) {
+  //     acceptCallProcess(callmetadata);
+  //   } else {
+  //     navigator.mediaDevices
+  //       .getUserMedia({
+  //         video: true,
+  //         audio: true,
+  //       })
+  //       .then((value) => {
+  //         dispatch({
+  //           type: MEDIA_MY_VIDEO_HOLDER,
+  //           payload: {
+  //             mediamyvideoholder: value,
+  //           },
+  //         });
+  //         dispatch({
+  //           type: MEDIA_TRACK_HOLDER,
+  //           payload: {
+  //             mediatrackholder: value.getTracks(),
+  //           },
+  //         });
+  //         acceptCallProcess(callmetadata);
+  //       })
+  //       .catch((err) => {
+  //         console.log(err);
+  //       });
+  //   }
+  // };
 
-  const acceptCallProcess = (callmetadata: any) => {
-    setonStop(true);
-    audioMessage.pause();
-    callinstancetune.stop();
-    if (audioMessage) callaudiomonocontrol().stop();
-    settimerUnToggle(false);
-    setTimeout(() => {
-      setdisplayUntoggle(false);
-      audioMessage = null;
-    }, 500);
-    dispatch({
-      type: REMOVE_PENDING_CALL_ALERTS,
-      payload: {
-        callID: al.callmetadata.conversationID,
-      },
-    });
+  // const acceptCallProcess = (callmetadata: any) => {
+  //   setonStop(true);
+  //   audioMessage.pause();
+  //   callinstancetune.stop();
+  //   if (audioMessage) callaudiomonocontrol().stop();
+  //   settimerUnToggle(false);
+  //   setTimeout(() => {
+  //     setdisplayUntoggle(false);
+  //     audioMessage = null;
+  //   }, 500);
+  //   dispatch({
+  //     type: REMOVE_PENDING_CALL_ALERTS,
+  //     payload: {
+  //       callID: al.callmetadata.conversationID,
+  //     },
+  //   });
 
-    dispatch({
-      type: CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
-      payload: {
-        callmetadata: callmetadata,
-      },
-    });
-  };
+  //   dispatch({
+  //     type: CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
+  //     payload: {
+  //       callmetadata: callmetadata,
+  //     },
+  //   });
+  // };
 
   const rejectCallProcess = (trigger: any) => {
     setonStop(true);
@@ -210,6 +210,31 @@ function Alert({ al }: any) {
     }
   };
 
+  const initializeCall = (conversationsetup: any) => {
+    setonStop(true);
+    audioMessage.pause();
+    callinstancetune.stop();
+    if (audioMessage) callaudiomonocontrol().stop();
+    settimerUnToggle(false);
+    setTimeout(() => {
+      setdisplayUntoggle(false);
+      audioMessage = null;
+    }, 500);
+    dispatch({
+      type: REMOVE_PENDING_CALL_ALERTS,
+      payload: {
+        callID: al.callmetadata.conversationID,
+      },
+    });
+
+    dispatch({
+      type: CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
+      payload: {
+        callmetadata: conversationsetup,
+      },
+    });
+  };
+
   return al.type == "incomingcall" ? (
     <motion.div
       initial={{
@@ -230,7 +255,8 @@ function Alert({ al }: any) {
         <div id="div_close_alert_container_ic">
           <button
             onClick={() => {
-              initMediaDevices(al.callmetadata);
+              // initMediaDevices(al.callmetadata);
+              initializeCall(al.callmetadata);
             }}
             id="btn_close_alert"
           >

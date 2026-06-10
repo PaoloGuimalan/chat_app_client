@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { Dispatch, SetStateAction } from "react";
 import {
   ConversationInfoInterface,
   ICoordinatesAnchor,
   ServerChannelsListInterface,
+  UserWithInfoConversationInterface,
 } from "./interfaces";
 
 export interface MessageOptionsProp {
@@ -16,9 +18,11 @@ export interface ContentHandlerProp {
   i: number;
   cnvs: any;
   conversationsetup: any;
+  members: UserWithInfoConversationInterface[];
   setisReplying: (data: any) => void;
   setfullImageScreen: (data: any) => void;
   scrollBottom: () => void;
+  setunreadmessages: Dispatch<SetStateAction<string[]>>;
   theme: any;
 }
 
@@ -55,6 +59,7 @@ export interface ProfilePopupProp {
   };
   user: {
     userID: string;
+    username: string;
     fullName: {
       firstName: string;
       middleName: string;

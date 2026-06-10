@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import Axios from "axios";
+import axios from "axios";
 import {
   SET_ACTIVE_USERS_LIST,
   SET_ALERTS,
@@ -14,17 +14,51 @@ import { authenticationstate } from "../../redux/actions/states";
 import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import { Dispatch } from "react";
-import { convertLoginResponse } from "./reusable";
+import { convertLoginResponse, generateUUID, generateXNonce } from "./reusable";
 import { ConvertedResponse } from "../vars/types";
 import { PaginationProp } from "../vars/props";
 import { IContact, INewEntry } from "../vars/interfaces";
 import { removeNullsFromObject } from "./validatevariables";
 import envs from "./env_configs";
-import { clearViewPosts, getAllViewCache } from "./localforagehelper";
+import {
+  clearViewPosts,
+  getAllViewCache,
+  getSettings,
+} from "./localforagehelper";
+import jwtDecode from "jwt-decode";
 
 const API = envs.CHATTERLOOP_API;
 const USER_SERVICE_API = envs.USER_SERVICE_API;
 const SECRET = envs.SECRET;
+
+const Axios = axios.create();
+
+Axios.interceptors.request.use(async (config) => {
+  try {
+    const user = localStorage.getItem("authtoken");
+    const decoded: { username: string; userID: string } | null = user
+      ? jwt_decode(user)
+      : null;
+
+    const userID = decoded ? decoded.userID : "guest";
+
+    const nonce = await generateXNonce(userID);
+    config.headers["X-Nonce"] = nonce;
+
+    let deviceToken = localStorage.getItem("device");
+
+    if (!deviceToken) {
+      deviceToken = generateUUID();
+      localStorage.setItem("device", deviceToken);
+    }
+
+    config.headers["Device-Token"] = deviceToken;
+
+    return config;
+  } catch (error) {
+    return Promise.reject(error);
+  }
+});
 
 const AuthCheck = (dispatch: any) => {
   Axios.get(`${API}/auth/jwtchecker`, {
@@ -36,37 +70,45 @@ const AuthCheck = (dispatch: any) => {
       if (response.data.status) {
         const userData: any = jwt_decode(response.data.result.usertoken);
         // console.log(userData)
-        dispatch({
-          type: SET_AUTHENTICATION,
-          payload: {
-            authentication: {
-              auth: true,
-              user: {
-                userID: userData.userID,
-                fullName: {
-                  firstName: userData.fullname.firstName,
-                  middleName: userData.fullname.middleName,
-                  lastName: userData.fullname.lastName,
+        setTimeout(() => {
+          dispatch({
+            type: SET_AUTHENTICATION,
+            payload: {
+              authentication: {
+                auth: true,
+                user: {
+                  userID: userData._id,
+                  username: userData.userID,
+                  fullName: {
+                    firstName: userData.fullname.firstName,
+                    middleName: userData.fullname.middleName,
+                    lastName: userData.fullname.lastName,
+                  },
+                  email: userData.email,
+                  birthdate: userData.birthdate,
+                  gender: userData.gender,
+                  isActivated: userData.isActivated,
+                  isVerified: userData.isVerified,
+                  isComplete: userData.isComplete,
+                  profile: userData.profile,
+                  coverphoto: userData.coverphoto || "",
                 },
-                email: userData.email,
-                isActivated: userData.isActivated,
-                isVerified: userData.isVerified,
-                profile: userData.profile,
-                coverphoto: userData.coverphoto || "",
               },
             },
-          },
-        });
+          });
+        }, 2000);
       } else {
-        dispatch({
-          type: SET_AUTHENTICATION,
-          payload: {
-            authentication: {
-              ...authenticationstate,
-              auth: false,
+        setTimeout(() => {
+          dispatch({
+            type: SET_AUTHENTICATION,
+            payload: {
+              authentication: {
+                ...authenticationstate,
+                auth: false,
+              },
             },
-          },
-        });
+          });
+        }, 2000);
       }
     })
     .catch((err) => {
@@ -106,15 +148,19 @@ const LoginRequest = (
             authentication: {
               auth: true,
               user: {
-                userID: userData.userID,
+                userID: userData.id,
+                username: userData.username,
                 fullName: {
                   firstName: userData.fullname.firstName,
                   middleName: userData.fullname.middleName,
                   lastName: userData.fullname.lastName,
                 },
+                birthdate: userData.birthdate,
+                gender: userData.gender,
                 email: userData.email,
                 isActivated: userData.isActivated,
                 isVerified: userData.isVerified,
+                isComplete: userData.isComplete,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },
@@ -186,14 +232,18 @@ const ThirdPartyAuthenticationRequest = (
               auth: true,
               user: {
                 userID: userData.userID,
+                username: userData.username,
                 fullName: {
                   firstName: userData.fullname.firstName,
                   middleName: userData.fullname.middleName,
                   lastName: userData.fullname.lastName,
                 },
+                birthdate: userData.birthdate,
+                gender: userData.gender,
                 email: userData.email,
                 isActivated: userData.isActivated,
                 isVerified: userData.isVerified,
+                isComplete: userData.isComplete,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },
@@ -262,7 +312,8 @@ const RegisterRequest = (
             authentication: {
               auth: true,
               user: {
-                userID: response.data.username,
+                userID: response.data.userID,
+                username: response.data.username,
                 fullName: {
                   firstName: payload.firstName,
                   middleName: payload.middleName,
@@ -271,6 +322,7 @@ const RegisterRequest = (
                 email: payload.email,
                 isActivated: true,
                 isVerified: false,
+                isComplete: true,
               },
             },
           },
@@ -560,6 +612,8 @@ const NotificationInitRequest = (
             notficationslist: {
               list: decodedResult.notifications,
               totalunread: decodedResult.totalunread,
+              total: decodedResult.total,
+              next: decodedResult.next,
             },
           },
         });
@@ -595,6 +649,8 @@ const NotificationOverrideRequest = (
             notficationslist: {
               list: decodedResult.notifications,
               totalunread: decodedResult.totalunread,
+              total: decodedResult.total,
+              next: decodedResult.next,
             },
           },
         });
@@ -750,6 +806,8 @@ const ContactsListInitRequest = (
   override: boolean,
   dispatch: Dispatch<any>,
   setisLoading: any,
+  isState: boolean = false,
+  search: string | null = null,
 ) => {
   // `${API}/u/getContacts`
   Axios.get(
@@ -758,25 +816,36 @@ const ContactsListInitRequest = (
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
       },
+      params: {
+        search,
+      },
     },
   )
     .then((response) => {
       const paginatedContacts: PaginationProp<IContact> = response.data;
 
-      if (override) {
-        dispatch({
-          type: SET_CONTACTS_LIST_OVERRIDE,
-          payload: {
-            contactslist: paginatedContacts,
-          },
-        });
+      if (isState) {
+        if (override) {
+          dispatch(paginatedContacts);
+        } else {
+          dispatch(paginatedContacts);
+        }
       } else {
-        dispatch({
-          type: SET_CONTACTS_LIST,
-          payload: {
-            contactslist: paginatedContacts,
-          },
-        });
+        if (override) {
+          dispatch({
+            type: SET_CONTACTS_LIST_OVERRIDE,
+            payload: {
+              contactslist: paginatedContacts,
+            },
+          });
+        } else {
+          dispatch({
+            type: SET_CONTACTS_LIST,
+            payload: {
+              contactslist: paginatedContacts,
+            },
+          });
+        }
       }
 
       setisLoading(false);
@@ -860,10 +929,54 @@ const SendFilesRequest = (params: any) => {
     });
 };
 
+const ManualInitConversationListRequest = async (
+  page: number,
+  range: number,
+) => {
+  return await Axios.get(`${API}/m/archives`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+      page: page,
+      range: range,
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 const InitConversationListRequest = async (page: number, range: number) => {
+  const authtoken = localStorage.getItem("authtoken");
+  const decodedtoken: any = authtoken ? jwtDecode(authtoken) : null;
+  const userID = decodedtoken ? decodedtoken.userID : null;
+  let type = "common";
+
+  await getSettings(userID)
+    .then((value) => {
+      if (value) {
+        if (value.messages && value.messages.type) {
+          type = value.messages.type;
+          return;
+        }
+
+        type = "common";
+      } else {
+        type = "common";
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
   return await Axios.get(`${API}/u/initConversationList`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
+      type,
       page: page,
       range: range,
     },
@@ -873,7 +986,7 @@ const InitConversationListRequest = async (page: number, range: number) => {
         const decodedResult: any = jwt_decode(response.data.result);
 
         // console.log(decodedResult.conversationslist)
-        return decodedResult.conversationslist;
+        return decodedResult;
       }
     })
     .catch((err) => {
@@ -900,7 +1013,7 @@ const SeenMessageRequest = async (params: any) => {
   )
     .then((response) => {
       if (response.data.status) {
-        return 1;
+        return response.data;
       } else {
         return 0;
       }
@@ -917,6 +1030,7 @@ const InitConversationRequest = (
   settotalMessages: any,
   setisLoading: any,
   scrollBottom: any,
+  onError: (() => void) | null = null,
 ) => {
   const conversationID = params.conversationID;
   const page = params.page;
@@ -956,6 +1070,9 @@ const InitConversationRequest = (
       }
     })
     .catch((err) => {
+      if (onError) {
+        onError();
+      }
       console.log(err);
     });
 
@@ -1045,6 +1162,28 @@ const CallRequest = async (params: any) => {
     });
 };
 
+const VoiceRequest = async (params: any) => {
+  const payload = params;
+
+  return await Axios.post(`${API}/u/notify-voice-join`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return true;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 const ActiveContactsRequest = (dispatch: Dispatch<any>) => {
   Axios.get(`${API}/u/activecontacts`, {
     headers: {
@@ -1112,7 +1251,7 @@ const EndCallRequest = (params: any) => {
     });
 };
 
-const GetProfileInfo = async (params: any) => {
+const GetProfileInfo = async (params: any, query?: any) => {
   const userID = params.userID;
 
   // `${API}/p/userinfo/${userID}`
@@ -1120,6 +1259,7 @@ const GetProfileInfo = async (params: any) => {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
     },
+    params: query,
   })
     .then((response: any) => {
       return response;
@@ -1172,7 +1312,7 @@ const UploadMediaRequest = async (payload: any) => {
     });
 };
 
-const GetPostRequest = async (params: any) => {
+const GetPostRequest = async (params: any, archive?: boolean) => {
   const current_user_id = params.current_user_id;
   const userID = params.userID;
   const page = params.page;
@@ -1188,6 +1328,9 @@ const GetPostRequest = async (params: any) => {
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
+      },
+      params: {
+        archive: archive,
       },
     },
   )
@@ -1338,12 +1481,16 @@ const InitServerListRequest = async () => {
 
 const InitServerConversationRequest = async (params: any) => {
   const conversationID = params.conversationID;
+  const serverID = params.serverID;
 
-  return await Axios.get(`${API}/s/initserversetup/${conversationID}`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.get(
+    `${API}/s/initserversetup/${serverID}/${conversationID}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => {
       if (response.data.status) {
         const decodedResult: any = jwt_decode(response.data.result);
@@ -1402,11 +1549,14 @@ const AddNewMemberToServer = async (payload: any) => {
     });
 };
 
-const CreateChannelRequest = (payloadprop: any, setisCreateGCToggle: any) => {
+const CreateChannelRequest = async (
+  payloadprop: any,
+  setisCreateGCToggle: any,
+) => {
   const payload = payloadprop;
   const encodedPayload = sign(payload, SECRET);
 
-  Axios.post(
+  await Axios.post(
     `${API}/u/createchannel`,
     {
       token: encodedPayload,
@@ -1420,10 +1570,12 @@ const CreateChannelRequest = (payloadprop: any, setisCreateGCToggle: any) => {
     .then((response) => {
       if (response.data.status) {
         setisCreateGCToggle(false);
+        return true;
       }
     })
     .catch((err) => {
       console.log(err);
+      return false;
     });
 };
 
@@ -1441,10 +1593,13 @@ const GetMembersListInServer = (
       if (response.data.status) {
         const decodedResult: any = jwt_decode(response.data.result);
 
-        dispatch(decodedResult.members);
+        dispatch(
+          decodedResult.members.map((mp: any) => ({
+            ...mp,
+            userID: mp.username,
+          })),
+        );
         setisLoading(false);
-
-        // console.log(decodedResult.members)
       } else {
         /* empty */
       }
@@ -1782,7 +1937,774 @@ const SnapCoordinatesOpenRoute = async (payload: any) => {
     });
 };
 
+const JoinRoomRequest = async (payload: any) => {
+  return await Axios.post(`${envs.CHATTERLOOP_API}/webrtc/join-room`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const CreateTransportRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/create-transport`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const TransportConnectRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/transport-connect`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const GetEncodingsRequest = async () => {
+  return await Axios.get(`${envs.CHATTERLOOP_API}/webrtc/encodings`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return null;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const TransportProduceRequest = async (payload: any) => {
+  return await Axios.post(`${envs.CHATTERLOOP_API}/webrtc/produce`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const ConsumeRequest = async (payload: any) => {
+  return await Axios.post(`${envs.CHATTERLOOP_API}/webrtc/consume`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        //action if needed
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const CloseProducerRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/close-producer`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const LeaveRoomRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/leave-room`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const ParticipantStatusRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/participant-status`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const CreatePageRequest = async (payload: {
+  pageName: string;
+  pageDescription: string;
+  email: string;
+  slug: string;
+  otherUsers: any[];
+  profile: File;
+  cover_photo: File;
+}) => {
+  const formData = new FormData();
+  formData.append("pageName", payload.pageName);
+  formData.append("pageDescription", payload.pageDescription);
+  formData.append("email", payload.email);
+  formData.append("slug", payload.slug);
+  formData.append("otherUsers", JSON.stringify(payload.otherUsers));
+  formData.append("profile", payload.profile);
+  formData.append("cover_photo", payload.cover_photo);
+
+  return await Axios.post(`${envs.CHATTERLOOP_API}/u/createpage`, formData, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const FollowRealmRequest = async (payload: any) => {
+  return await Axios.post(
+    `${envs.USER_SERVICE_API}/api/realm/follow`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const UnfollowRealmRequest = async (payload: any) => {
+  return await Axios.delete(`${envs.USER_SERVICE_API}/api/realm/follow`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: payload,
+  })
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const GetFollowRealmRequest = async (
+  page: number,
+  range: number,
+  type: string,
+  search?: string,
+) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/follow`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params: {
+      page,
+      page_size: range,
+      type,
+      search,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const GetMyRealmsRequest = async (
+  page: number,
+  range: number,
+  type: string,
+  search?: string,
+) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/my-list`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params: {
+      page,
+      page_size: range,
+      type,
+      search,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const GetTopRealmsRequest = async (
+  page: number,
+  range: number,
+  type: string,
+  search?: string | null,
+) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/top`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params: {
+      page,
+      page_size: range,
+      type,
+      search,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const DeletePostRequest = async (post_ids: string[]) => {
+  return await Axios.delete(`${USER_SERVICE_API}/api/newsfeed/default`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: {
+      post_ids,
+    },
+  })
+    .then((response) => {
+      clearViewPosts();
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const UpdatePostRequest = async (post_id: string, fields: any) => {
+  return await Axios.put(
+    `${USER_SERVICE_API}/api/newsfeed/default`,
+    {
+      post_id,
+      fields,
+    },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      clearViewPosts();
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const SavePostRequest = async (post_id: string) => {
+  return await Axios.post(
+    `${USER_SERVICE_API}/api/newsfeed/saves`,
+    {
+      post_id,
+    },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const UnsavePostRequest = async (post_id: string) => {
+  return await Axios.delete(`${USER_SERVICE_API}/api/newsfeed/saves`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: {
+      post_id,
+    },
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const GetSavedPostsRequest = async (params: any) => {
+  const page = params.page;
+  const range = params.range;
+
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/newsfeed/saves?page=${page}&page_size=${range}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const UpdateRealmMediaRequest = async (payload: {
+  realm_id: string;
+  realm_type: string;
+  media_type: "profile" | "cover_photo";
+  image: File;
+}) => {
+  const formData = new FormData();
+  formData.append("realm_id", payload.realm_id);
+  formData.append("realm_type", payload.realm_type);
+  formData.append("media_type", payload.media_type);
+  formData.append("image", payload.image);
+
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/realms/upload-media`,
+    formData,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const UpdateRealmRequest = async (realm_id: string, fields: any) => {
+  return await Axios.put(
+    `${USER_SERVICE_API}/api/realm/my-list`,
+    {
+      realm_id,
+      fields,
+    },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+
+      if (err.response.data.includes("duplicate key")) {
+        throw new Error("Slug already exists");
+      }
+
+      throw new Error(err);
+    });
+};
+
+const GetRealmMembersRequest = async (
+  realm_id: string,
+  page: number,
+  range: number,
+  search?: string | null,
+) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/members`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params: {
+      realm_id,
+      page,
+      page_size: range,
+      search,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const GetRealmFollowersRequest = async (
+  realm_id: string,
+  page: number,
+  range: number,
+  search?: string | null,
+) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/realm-followers`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params: {
+      realm_id,
+      page,
+      page_size: range,
+      search,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const RemoveRealmFollowersRequest = async (
+  realm_id: string,
+  follow_id: string,
+) => {
+  return await Axios.delete(`${USER_SERVICE_API}/api/realm/realm-followers`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: {
+      realm_id,
+      follow_id,
+    },
+  })
+    .then((response) => {
+      if (response.data) {
+        return response.data;
+      } else {
+        return false;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const UpdateMemberRoleRequest = async (
+  realm_id: string,
+  member_id: any,
+  new_role: any,
+) => {
+  return await Axios.put(
+    `${API}/s/update-member-realm-role`,
+    { realm_id, member_id, new_role },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const RemoveRealmMemberRequest = async (
+  realm_id: string,
+  account_ids: string[],
+) => {
+  return await Axios.delete(`${API}/realms/remove-user`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: {
+      realm_id,
+      account_ids,
+    },
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const UpdateChatHistoryRequest = async (payload: any) => {
+  return await Axios.post(`${API}/m/history`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const ReconnectStaleCallerSessionRequest = async (
+  conversationID: string,
+  clientId: string,
+  instance: string | null,
+) => {
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/webrtc/reconnect`,
+    { conversationID, clientId, instance },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken") || "",
+      },
+    },
+  );
+};
+
+const CompleteProfileRequest = async (
+  params: any,
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  const payload = params;
+  Axios.put(`${USER_SERVICE_API}/api/user/me`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken") || "",
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        const userData: ConvertedResponse = convertLoginResponse(
+          response.data.data,
+        );
+
+        dispatch({
+          type: SET_AUTHENTICATION,
+          payload: {
+            authentication: {
+              auth: true,
+              user: {
+                userID: userData.id,
+                username: userData.username,
+                fullName: {
+                  firstName: userData.fullname.firstName,
+                  middleName: userData.fullname.middleName,
+                  lastName: userData.fullname.lastName,
+                },
+                birthdate: userData.birthdate,
+                gender: userData.gender,
+                email: userData.email,
+                isActivated: userData.isActivated,
+                isVerified: userData.isVerified,
+                isComplete: userData.isComplete,
+                profile: userData.profile,
+                coverphoto: userData.coverphoto || "",
+              },
+            },
+          },
+        });
+      } else {
+        dispatch({
+          type: SET_ALERTS,
+          payload: {
+            alerts: {
+              id: currentAlertState.length,
+              type: "warning",
+              content: response.data.message,
+            },
+          },
+        });
+      }
+      setisWaitingRequest(false);
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+    });
+};
+
 export {
+  JoinRoomRequest,
+  CreateTransportRequest,
+  TransportConnectRequest,
+  TransportProduceRequest,
+  ConsumeRequest,
+  CloseProducerRequest,
+  LeaveRoomRequest,
+  ParticipantStatusRequest,
   AuthCheck,
   LoginRequest,
   ThirdPartyAuthenticationRequest,
@@ -1841,4 +2763,28 @@ export {
   BroadcastCoordinatesRequest,
   SnapCoordinatesOpenRoute,
   UploadMediaRequest,
+  VoiceRequest,
+  CreatePageRequest,
+  FollowRealmRequest,
+  UnfollowRealmRequest,
+  GetFollowRealmRequest,
+  GetMyRealmsRequest,
+  GetTopRealmsRequest,
+  DeletePostRequest,
+  UpdatePostRequest,
+  SavePostRequest,
+  UnsavePostRequest,
+  GetSavedPostsRequest,
+  UpdateRealmMediaRequest,
+  UpdateRealmRequest,
+  GetRealmMembersRequest,
+  GetRealmFollowersRequest,
+  UpdateMemberRoleRequest,
+  RemoveRealmMemberRequest,
+  RemoveRealmFollowersRequest,
+  UpdateChatHistoryRequest,
+  ManualInitConversationListRequest,
+  GetEncodingsRequest,
+  ReconnectStaleCallerSessionRequest,
+  CompleteProfileRequest,
 };

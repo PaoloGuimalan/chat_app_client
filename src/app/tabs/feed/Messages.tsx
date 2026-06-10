@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import "../../../styles/styles.css";
 import { AiOutlineMessage, AiOutlineLoading3Quarters } from "react-icons/ai";
 import { TbServer2 } from "react-icons/tb";
-import { BiGroup } from "react-icons/bi";
+import { BiGroup, BiSolidPhoneCall } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
 import Conversation from "../messenger/Conversation";
 import { InitConversationListRequest } from "../../../reusables/hooks/requests";
@@ -15,6 +15,8 @@ import ServerIcon from "../../../assets/imgs/servericon.png";
 import {
   SET_CONVERSATION_SETUP,
   SET_MESSAGES_LIST,
+  SET_MESSAGES_LIST_OVERRIDE,
+  SET_PREVIEW_PARTICIPANTS_BULK,
 } from "../../../redux/types";
 import CreateGroupChatModal from "../../widgets/modals/CreateGroupChatModal";
 import { conversationsetupstate } from "../../../redux/actions/states";
@@ -23,14 +25,41 @@ import CreateServerModal from "@/app/widgets/modals/CreateServerModal";
 import { useNavigate } from "react-router-dom";
 import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import {
+  AuthenticationInterface,
+  IPreviewParicipants,
+  IUserSettings,
+} from "@/reusables/vars/interfaces";
+import {
+  getSettings,
+  persistSettings,
+} from "@/reusables/hooks/localforagehelper";
 
 function Messages() {
   const [isLoading, setisLoading] = useState<boolean>(true);
   const [isCreateGCToggle, setisCreateGCToggle] = useState<boolean>(false);
   const [isCreateServerToggle, setisCreateServerToggle] =
     useState<boolean>(false);
+  const [conversationTypeSet, setconversationTypeSet] =
+    useState<string>("common");
 
-  const authentication = useSelector((state: any) => state.authentication);
+  const previewparticipants: IPreviewParicipants[] = useSelector(
+    (state: any) => state.previewparticipants,
+  );
+
+  const usersettings: IUserSettings = useSelector(
+    (state: any) => state.usersettings,
+  );
+
+  const getChannelPreviewParticipants = (channelID: string) => {
+    return previewparticipants.filter(
+      (flt: IPreviewParicipants) => flt.channelID === channelID,
+    );
+  };
+
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
@@ -49,6 +78,29 @@ function Messages() {
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);
+
+  const [isNext, setisNext] = useState<boolean>(true);
+
+  useEffect(() => {
+    if (authentication.user.userID) {
+      getSettings(authentication.user.userID)
+        .then((value) => {
+          if (value) {
+            if (value.messages && value.messages.type) {
+              setconversationTypeSet(value.messages.type);
+              return;
+            }
+
+            setconversationTypeSet("common");
+          } else {
+            setconversationTypeSet("common");
+          }
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
+  }, [authentication]);
 
   useEffect(() => {
     let currentView = false;
@@ -76,10 +128,19 @@ function Messages() {
 
   useEffect(() => {
     InitConversationListRequest(page, range).then((response) => {
+      setisNext(response.next);
+      dispatch({
+        type: SET_PREVIEW_PARTICIPANTS_BULK,
+        payload: {
+          participants: response.conversationslist
+            .map((mp: any) => mp.voice_participants)
+            .flat(),
+        },
+      });
       dispatch({
         type: SET_MESSAGES_LIST,
         payload: {
-          messageslist: response,
+          messageslist: response.conversationslist,
         },
       });
       setisLoading(false);
@@ -123,6 +184,50 @@ function Messages() {
     audio: "an audio",
     image: "a photo",
     any: "a file",
+  };
+
+  const setConversationListGroups = (type: string) => {
+    if (authentication.user.userID) {
+      persistSettings(authentication.user.userID, {
+        ...usersettings,
+        messages: {
+          ...usersettings.messages,
+          type: type,
+        },
+      })
+        .then(() => {
+          setconversationTypeSet(type);
+          dispatch({
+            type: SET_MESSAGES_LIST_OVERRIDE,
+            payload: {
+              messageslist: [],
+            },
+          });
+          setisLoading(true);
+          InitConversationListRequest(1, range).then((response) => {
+            setisNext(response.next);
+            setpage(2);
+            dispatch({
+              type: SET_PREVIEW_PARTICIPANTS_BULK,
+              payload: {
+                participants: response.conversationslist
+                  .map((mp: any) => mp.voice_participants)
+                  .flat(),
+              },
+            });
+            dispatch({
+              type: SET_MESSAGES_LIST_OVERRIDE,
+              payload: {
+                messageslist: response.conversationslist,
+              },
+            });
+            setisLoading(false);
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+        });
+    }
   };
 
   return conversationsetup.conversationid ? (
@@ -188,21 +293,99 @@ function Messages() {
           </span>
         </motion.button>
       </div>
+      <div id="div_messages_type_options">
+        <motion.button
+          initial={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "all" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          animate={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "all" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          onClick={() => {
+            setConversationListGroups("all");
+          }}
+          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+        >
+          All
+        </motion.button>
+        <motion.button
+          initial={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "common" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          animate={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "common" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          onClick={() => {
+            setConversationListGroups("common");
+          }}
+          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+        >
+          Common
+        </motion.button>
+        <motion.button
+          initial={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "direct" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          animate={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "direct" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          onClick={() => {
+            setConversationListGroups("direct");
+          }}
+          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+        >
+          Direct
+        </motion.button>
+        <motion.button
+          initial={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "groups" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          animate={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "groups" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          onClick={() => {
+            setConversationListGroups("groups");
+          }}
+          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+        >
+          Groups
+        </motion.button>
+        <motion.button
+          initial={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "servers" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          animate={{
+            color: "white",
+            backgroundColor:
+              conversationTypeSet === "servers" ? "#a7a7a7" : "#d2d2d2",
+          }}
+          onClick={() => {
+            setConversationListGroups("servers");
+          }}
+          className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+        >
+          Servers
+        </motion.button>
+      </div>
       {isLoading ? (
-        // <div id="div_isLoading_notifications">
-        //   <motion.div
-        //     animate={{
-        //       rotate: -360,
-        //     }}
-        //     transition={{
-        //       duration: 1,
-        //       repeat: Infinity,
-        //     }}
-        //     id="div_loader_request"
-        //   >
-        //     <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-        //   </motion.div>
-        // </div>
         <div id="div_messages_list_container" className="scroller">
           {Array.from({ length: 20 }, (_, i: number) => {
             return <MessageItemLoader key={i} />;
@@ -221,7 +404,7 @@ function Messages() {
           {messageslist.map((msgslst: any, i: number) => {
             if (msgslst.conversationType == "single") {
               return msgslst.users.map((msgsurs: any, i: number) => {
-                if (msgsurs.userID != authentication.user.userID) {
+                if (msgsurs._id != authentication.user.userID) {
                   return (
                     <motion.div
                       whileHover={{
@@ -257,7 +440,7 @@ function Messages() {
                             }
                           />
                         </div>
-                        {isUserOnline(activeuserslist, msgsurs.userID) && (
+                        {isUserOnline(activeuserslist, msgsurs._id) && (
                           <div className="div_online_indicator" />
                         )}
                       </div>
@@ -276,23 +459,38 @@ function Messages() {
                           <span className="span_messages_list_name">
                             is typing...
                           </span>
+                        ) : msgslst.isDeleted ? (
+                          <span className="span_messages_list_name">
+                            {msgslst.sender == authentication.user.userID
+                              ? "you: "
+                              : ""}
+                            [Deleted message]
+                          </span>
                         ) : (
                           <span className="span_messages_list_name">
                             {msgslst.sender == authentication.user.userID
                               ? "you: "
                               : ""}
                             {msgslst.messageType === "text" ||
-                            msgslst.messageType === "notif"
-                              ? msgslst.content
-                              : !msgslst.messageType.includes("image") &&
-                                  !msgslst.messageType.includes("video") &&
-                                  !msgslst.messageType.includes("audio")
-                                ? `Sent ${messageTypeChecker["any"]}`
-                                : `Sent ${
-                                    messageTypeChecker[
-                                      msgslst.messageType.split("/")[0]
-                                    ]
-                                  }`}
+                            msgslst.messageType === "notif" ? (
+                              <span
+                                dangerouslySetInnerHTML={{
+                                  __html: msgslst.isDeleted
+                                    ? "[Deleted]"
+                                    : msgslst.content,
+                                }}
+                              />
+                            ) : !msgslst.messageType.includes("image") &&
+                              !msgslst.messageType.includes("video") &&
+                              !msgslst.messageType.includes("audio") ? (
+                              `Sent ${messageTypeChecker["any"]}`
+                            ) : (
+                              `Sent ${
+                                messageTypeChecker[
+                                  msgslst.messageType.split("/")[0]
+                                ]
+                              }`
+                            )}
                           </span>
                         )}
                         {msgslst.messageDate.time ? (
@@ -302,15 +500,27 @@ function Messages() {
                           </span>
                         ) : (
                           <span className="span_messages_list_name">
-                            {timeSince(msgslst.messageDate.date)}
+                            {msgslst.messageDate.date
+                              ? timeSince(msgslst.messageDate.date)
+                              : timeSince(msgslst.messageDate)}
                           </span>
                         )}
                       </div>
-                      {msgslst.unread > 0 && (
-                        <div>
-                          <span className="span_messages_list_counts">
-                            {msgslst.unread}
-                          </span>
+                      {(msgslst.unread > 0 ||
+                        getChannelPreviewParticipants(msgslst.conversationID)
+                          .length > 0) && (
+                        <div className="tw-flex tw-flex-col tw-justify-between">
+                          {msgslst.unread > 0 && (
+                            <span className="span_messages_list_counts">
+                              {msgslst.unread}
+                            </span>
+                          )}
+                          {getChannelPreviewParticipants(msgslst.conversationID)
+                            .length > 0 && (
+                            <div>
+                              <BiSolidPhoneCall color="lime" />
+                            </div>
+                          )}
                         </div>
                       )}
                     </motion.div>
@@ -335,8 +545,27 @@ function Messages() {
                   <div id="div_img_cncts_container">
                     <div id="div_img_search_profiles_container_cncts">
                       <CachedImage
-                        src={GroupChatIcon}
-                        className="img_gc_profiles_ntfs"
+                        src={
+                          msgslst.groupdetails &&
+                          msgslst.groupdetails?.profile &&
+                          msgslst.groupdetails?.profile !== "N/A"
+                            ? msgslst.groupdetails?.profile
+                            : GroupChatIcon
+                        }
+                        id={
+                          msgslst.groupdetails &&
+                          msgslst.groupdetails?.profile &&
+                          msgslst.groupdetails?.profile !== "N/A"
+                            ? "img_actual_profile_main"
+                            : ""
+                        }
+                        className={
+                          msgslst.groupdetails &&
+                          msgslst.groupdetails?.profile &&
+                          msgslst.groupdetails?.profile !== "N/A"
+                            ? ""
+                            : "img_gc_profiles_ntfs"
+                        }
                       />
                     </div>
                   </div>
@@ -352,23 +581,38 @@ function Messages() {
                       <span className="span_messages_list_name">
                         someone is typing...
                       </span>
+                    ) : msgslst.isDeleted ? (
+                      <span className="span_messages_list_name">
+                        {msgslst.sender == authentication.user.userID
+                          ? "you: "
+                          : ""}
+                        [Deleted message]
+                      </span>
                     ) : (
                       <span className="span_messages_list_name">
                         {msgslst.sender == authentication.user.userID
                           ? "you: "
                           : ""}
                         {msgslst.messageType === "text" ||
-                        msgslst.messageType === "notif"
-                          ? msgslst.content
-                          : !msgslst.messageType.includes("image") &&
-                              !msgslst.messageType.includes("video") &&
-                              !msgslst.messageType.includes("audio")
-                            ? `Sent ${messageTypeChecker["any"]}`
-                            : `Sent ${
-                                messageTypeChecker[
-                                  msgslst.messageType.split("/")[0]
-                                ]
-                              }`}
+                        msgslst.messageType === "notif" ? (
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: msgslst.isDeleted
+                                ? "[Deleted]"
+                                : msgslst.content,
+                            }}
+                          />
+                        ) : !msgslst.messageType.includes("image") &&
+                          !msgslst.messageType.includes("video") &&
+                          !msgslst.messageType.includes("audio") ? (
+                          `Sent ${messageTypeChecker["any"]}`
+                        ) : (
+                          `Sent ${
+                            messageTypeChecker[
+                              msgslst.messageType.split("/")[0]
+                            ]
+                          }`
+                        )}
                       </span>
                     )}
                     {msgslst.messageDate.time ? (
@@ -377,15 +621,27 @@ function Messages() {
                       </span>
                     ) : (
                       <span className="span_messages_list_name">
-                        {timeSince(msgslst.messageDate.date)}
+                        {msgslst.messageDate.date
+                          ? timeSince(msgslst.messageDate.date)
+                          : timeSince(msgslst.messageDate)}
                       </span>
                     )}
                   </div>
-                  {msgslst.unread > 0 && (
-                    <div>
-                      <span className="span_messages_list_counts">
-                        {msgslst.unread}
-                      </span>
+                  {(msgslst.unread > 0 ||
+                    getChannelPreviewParticipants(msgslst.conversationID)
+                      .length > 0) && (
+                    <div className="tw-flex tw-flex-col tw-justify-between">
+                      {msgslst.unread > 0 && (
+                        <span className="span_messages_list_counts">
+                          {msgslst.unread}
+                        </span>
+                      )}
+                      {getChannelPreviewParticipants(msgslst.conversationID)
+                        .length > 0 && (
+                        <div>
+                          <BiSolidPhoneCall color="lime" />
+                        </div>
+                      )}
                     </div>
                   )}
                 </motion.div>
@@ -407,8 +663,27 @@ function Messages() {
                   <div id="div_img_cncts_container">
                     <div id="div_img_search_profiles_container_cncts">
                       <CachedImage
-                        src={ServerIcon}
-                        className="img_server_profiles_ntfs"
+                        src={
+                          msgslst.serverdetails &&
+                          msgslst.serverdetails?.profile &&
+                          msgslst.serverdetails?.profile !== "N/A"
+                            ? msgslst.serverdetails?.profile
+                            : ServerIcon
+                        }
+                        id={
+                          msgslst.serverdetails &&
+                          msgslst.serverdetails?.profile &&
+                          msgslst.serverdetails?.profile !== "N/A"
+                            ? "img_actual_profile_main"
+                            : ""
+                        }
+                        className={
+                          msgslst.serverdetails &&
+                          msgslst.serverdetails?.profile &&
+                          msgslst.serverdetails?.profile !== "N/A"
+                            ? ""
+                            : "img_server_profiles_ntfs"
+                        }
                       />
                     </div>
                   </div>
@@ -433,23 +708,38 @@ function Messages() {
                       <span className="span_messages_list_name">
                         someone is typing...
                       </span>
+                    ) : msgslst.isDeleted ? (
+                      <span className="span_messages_list_name">
+                        {msgslst.sender == authentication.user.userID
+                          ? "you: "
+                          : ""}
+                        [Deleted message]
+                      </span>
                     ) : (
                       <span className="span_messages_list_name">
                         {msgslst.sender == authentication.user.userID
                           ? "you: "
                           : ""}
                         {msgslst.messageType === "text" ||
-                        msgslst.messageType === "notif"
-                          ? msgslst.content
-                          : !msgslst.messageType.includes("image") &&
-                              !msgslst.messageType.includes("video") &&
-                              !msgslst.messageType.includes("audio")
-                            ? `Sent ${messageTypeChecker["any"]}`
-                            : `Sent ${
-                                messageTypeChecker[
-                                  msgslst.messageType.split("/")[0]
-                                ]
-                              }`}
+                        msgslst.messageType === "notif" ? (
+                          <span
+                            dangerouslySetInnerHTML={{
+                              __html: msgslst.isDeleted
+                                ? "[Deleted]"
+                                : msgslst.content,
+                            }}
+                          />
+                        ) : !msgslst.messageType.includes("image") &&
+                          !msgslst.messageType.includes("video") &&
+                          !msgslst.messageType.includes("audio") ? (
+                          `Sent ${messageTypeChecker["any"]}`
+                        ) : (
+                          `Sent ${
+                            messageTypeChecker[
+                              msgslst.messageType.split("/")[0]
+                            ]
+                          }`
+                        )}
                       </span>
                     )}
                     {msgslst.messageDate.time ? (
@@ -458,7 +748,9 @@ function Messages() {
                       </span>
                     ) : (
                       <span className="span_messages_list_name">
-                        {timeSince(msgslst.messageDate.date)}
+                        {msgslst.messageDate.date
+                          ? timeSince(msgslst.messageDate.date)
+                          : timeSince(msgslst.messageDate)}
                       </span>
                     )}
                   </div>
@@ -473,20 +765,22 @@ function Messages() {
               );
             }
           })}
-          <div ref={divlazyloaderRef} id="div_isLoading_notifications">
-            <motion.div
-              animate={{
-                rotate: -360,
-              }}
-              transition={{
-                duration: 1,
-                repeat: Infinity,
-              }}
-              id="div_loader_request"
-            >
-              <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
-            </motion.div>
-          </div>
+          {isNext && (
+            <div ref={divlazyloaderRef} id="div_isLoading_notifications">
+              <motion.div
+                animate={{
+                  rotate: -360,
+                }}
+                transition={{
+                  duration: 1,
+                  repeat: Infinity,
+                }}
+                id="div_loader_request"
+              >
+                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+              </motion.div>
+            </div>
+          )}
         </div>
       )}
     </motion.div>

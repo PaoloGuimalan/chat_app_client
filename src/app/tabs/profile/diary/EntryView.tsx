@@ -3,7 +3,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { GetEntryRequest } from "@/reusables/hooks/requests";
 import {
-  AuthenticationInterface,
   IEntry,
   IEntryTag,
   IEntryViewAttachment,
@@ -13,21 +12,19 @@ import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import { IoArrowBack } from "react-icons/io5";
 import { useSelector } from "react-redux";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { formattedDateToWords } from "@/reusables/hooks/reusable";
 import UploadedAttachment from "./UploadedAttachment";
 
 function EntryView() {
-  const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication,
-  );
-
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
   );
 
   const [searchParams] = useSearchParams();
+
+  const params = useParams();
 
   const entry_id = searchParams.get("entry_id");
 
@@ -81,7 +78,7 @@ function EntryView() {
             {isMobileView && (
               <button
                 onClick={() => {
-                  navigate(`/${authentication.user.userID}/diary`);
+                  navigate(`/${params.userID}/diary`);
                 }}
                 className="tw-flex tw-items-center tw-justify-center tw-border-none tw-bg-transparent tw-h-[40px] tw-w-[40px]"
               >

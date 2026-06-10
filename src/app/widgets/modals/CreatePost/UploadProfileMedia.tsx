@@ -14,10 +14,12 @@ import { FaGlobeAsia } from "react-icons/fa";
 import { CreatePostRequest } from "@/reusables/hooks/requests";
 
 function UploadProfileMedia({
+  realm_id,
   type,
   getpostprocess,
   onclose,
 }: {
+  realm_id: string | null;
   type: string;
   onclose: (state: boolean) => void;
   getpostprocess: () => void;
@@ -37,18 +39,10 @@ function UploadProfileMedia({
           if (arr.type.includes("image")) {
             setmedialist({
               id: 1,
-              name: null,
+              name: arr.name,
               reference: arr.data,
               caption: "",
               referenceMediaType: "image",
-            });
-          } else if (arr.type.includes("video")) {
-            setmedialist({
-              id: 1,
-              name: null,
-              reference: arr.data,
-              caption: "",
-              referenceMediaType: "video",
             });
           } else {
             dispatch({
@@ -78,19 +72,10 @@ function UploadProfileMedia({
           if (rawFiles.type.includes("image")) {
             setrawmedialist({
               id: 1,
-              name: null,
-              reference: rawFiles.data,
-              caption: "",
-              referenceMediaType: "image",
-            });
-          } else if (rawFiles.type.includes("video")) {
-            // console.log(rawFiles)
-            setrawmedialist({
-              id: 1,
               name: rawFiles.name,
               reference: rawFiles.data,
               caption: "",
-              referenceMediaType: "video",
+              referenceMediaType: "image",
             });
           }
         }
@@ -124,6 +109,7 @@ function UploadProfileMedia({
           users: [], //userID for filteration depending on status
         }, //public, friends, filtered
         onfeed: "feed",
+        realm_id: realm_id ? realm_id : null,
       })
         .then((response: any) => {
           if (response.data.status) {

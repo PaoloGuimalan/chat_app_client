@@ -61,12 +61,14 @@ async function persistViewPosts(postID: string, data: any) {
   const existingData: {
     duration: number;
     created_at: string;
+    post_owner_id: string;
     user_id: string;
   } | null = await localforage.getItem(postID);
 
   let pendingData = {
     duration: parseFloat(Number(data.duration).toFixed(3)),
     created_at: data.created_at,
+    post_owner_id: data.post_owner_id,
     user_id: data.user_id,
   };
 
@@ -75,6 +77,7 @@ async function persistViewPosts(postID: string, data: any) {
     pendingData = {
       duration: parseFloat(Number(totalDuration).toFixed(3)),
       created_at: existingData.created_at,
+      post_owner_id: data.post_owner_id,
       user_id: existingData.user_id,
     };
   }
@@ -127,6 +130,7 @@ async function getAllViewCache(current_user_id: string) {
       .map((item: any) => ({
         post_id: item.post_id,
         duration: item.duration,
+        post_owner_id: item.post_owner_id,
         created_at: item.created_at,
       }));
   } catch (error) {

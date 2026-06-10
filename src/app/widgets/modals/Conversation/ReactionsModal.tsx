@@ -5,8 +5,6 @@ import DefaultProfile from "../../../../assets/imgs/default.png";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function ReactionsModal({ reactions, onclose }: any) {
-  console.log(reactions);
-
   return (
     <Modal
       component={
@@ -34,7 +32,10 @@ function ReactionsModal({ reactions, onclose }: any) {
                   <div id="div_img_search_profiles_container_cncts">
                     <CachedImage
                       src={mp.profile == "none" ? DefaultProfile : mp.profile}
-                      className="img_search_profiles_ntfs"
+                      className={
+                        mp.profile == "none" ? "img_search_profiles_ntfs" : ""
+                      }
+                      id={mp.profile == "none" ? "" : "img_actual_profile"}
                     />
                   </div>
                   <div className="tw-flex tw-flex-1 span_userdetails_ellipsis tw-items-center">

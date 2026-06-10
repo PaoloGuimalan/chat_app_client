@@ -13,7 +13,7 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 function Servers() {
   const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener
+    (state: any) => state.screensizelistener,
   );
   const urllocation = useLocation();
   const navigate = useNavigate();
@@ -98,7 +98,7 @@ function Servers() {
                     key={mp.serverID}
                     animate={{
                       backgroundColor: urllocation.pathname.includes(
-                        mp.serverID
+                        mp.serverID,
                       )
                         ? "#e6e6e6"
                         : "transparent",
@@ -115,8 +115,21 @@ function Servers() {
                     <div id="div_img_cncts_container">
                       <div id="div_img_search_profiles_container_cncts">
                         <CachedImage
-                          src={ServerIcon}
-                          className="img_server_profiles_ntfs"
+                          src={
+                            mp && mp.profile && mp.profile !== "N/A"
+                              ? mp.profile
+                              : ServerIcon
+                          }
+                          id={
+                            mp && mp.profile && mp.profile !== "N/A"
+                              ? "img_actual_profile_main"
+                              : ""
+                          }
+                          className={
+                            mp && mp.profile && mp.profile !== "N/A"
+                              ? ""
+                              : "img_gc_profiles_ntfs"
+                          }
                         />
                       </div>
                     </div>
@@ -155,7 +168,7 @@ function Servers() {
         <Route path="/" element={<Default />} />
         <Route
           path="/:serverID/*"
-          element={<Channels serverlist={serverlist} />}
+          element={<Channels />} // serverlist={serverlist}
         />
       </Routes>
     </div>

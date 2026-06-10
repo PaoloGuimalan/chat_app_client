@@ -22,6 +22,7 @@ export function NewPostModal({
   sharePreviewData,
   withImage,
   profileInfo,
+  realmInfo,
   setcreateposttext,
   getpostprocess,
   onclose,
@@ -49,7 +50,7 @@ export function NewPostModal({
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: arr.name,
                 reference: arr.data,
                 caption: "",
                 referenceMediaType: "image",
@@ -60,7 +61,7 @@ export function NewPostModal({
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: arr.name,
                 reference: arr.data,
                 caption: "",
                 referenceMediaType: "video",
@@ -96,7 +97,7 @@ export function NewPostModal({
               ...prev,
               {
                 id: prev.length + 1,
-                name: null,
+                name: rawFiles.name,
                 reference: rawFiles.data,
                 caption: "",
                 referenceMediaType: "image",
@@ -124,9 +125,11 @@ export function NewPostModal({
     if (toShare || mainpostcaption.trim() !== "" || medialist.length > 0) {
       setisuploadingpost(true);
       const validatedTaggedList =
-        authentication.user.userID == profileInfo?.userID
+        authentication.user.userID == profileInfo?.id
           ? []
-          : [profileInfo?.userID, ...taggedList];
+          : realmInfo
+            ? [...taggedList]
+            : [profileInfo?.username, ...taggedList]; //this taggedlist needs to be in username format, not id
 
       // console.log(validatedTaggedList);
 
@@ -167,6 +170,7 @@ export function NewPostModal({
           users: [], //userID for filteration depending on status
         }, //public, friends, filtered
         onfeed: "feed",
+        realm_id: realmInfo ? realmInfo.realm_id : null,
       })
         .then((response: any) => {
           if (response.data.status) {
@@ -189,19 +193,6 @@ export function NewPostModal({
         .catch((err: any) => {
           console.log(err);
         });
-      // onclose(false);
-      // setisuploadingpost(false);
-      // setcreateposttext("");
-      // getpostprocess();
-      // dispatch({
-      //   type: SET_MUTATE_ALERTS,
-      //   payload: {
-      //     alerts: {
-      //       type: "warning",
-      //       content: "Posting is temporary disabled",
-      //     },
-      //   },
-      // });
     } else {
       dispatch({
         type: SET_MUTATE_ALERTS,

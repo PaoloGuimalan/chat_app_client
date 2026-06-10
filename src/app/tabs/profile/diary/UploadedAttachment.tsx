@@ -162,7 +162,7 @@ function UploadedAttachment({
           className="tw-rounded-[5px] tw-border tw-border-gray-200 tw-bg-gray-50 hover:tw-bg-gray-100 tw-transition-colors"
           style={{ width: `${size.width}px`, height: `${size.height}px` }}
         >
-          <img
+          <CachedImage
             ref={imgRef}
             src={attachment.url}
             onClick={() => {

@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
+  AuthenticationInterface,
   IContact,
   IEntry,
   IPost,
@@ -7,18 +8,25 @@ import {
 } from "@/reusables/vars/interfaces";
 import { PaginationProp } from "@/reusables/vars/props";
 
-export const authenticationstate = {
+export const authenticationstate: AuthenticationInterface = {
   auth: null,
   user: {
+    id: "",
+    username: "",
+    profile: "",
+    coverphoto: "",
     userID: "",
     fullName: {
       firstName: "",
       middleName: "",
       lastName: "",
     },
+    birthdate: null,
+    gender: null,
     email: "",
     isActivated: null,
     isVerified: null,
+    isComplete: false,
   },
 };
 
@@ -74,6 +82,13 @@ export const entriesliststate: PaginationProp<IEntry> = {
   results: [],
 };
 
+export const genericpaginationstate: PaginationProp<any> = {
+  count: 0,
+  next: null,
+  previous: null,
+  results: [],
+};
+
 export const usersettingsstate = {
   personal_info: null,
   map_feed_access: {
@@ -81,5 +96,8 @@ export const usersettingsstate = {
     share_location: false,
     current_mode: 0,
     toggleSpeed: false,
+  },
+  messages: {
+    type: "common",
   },
 };

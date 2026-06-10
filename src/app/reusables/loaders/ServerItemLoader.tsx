@@ -1,8 +1,10 @@
 import Skeleton from "react-loading-skeleton";
 
-function ServerItemLoader() {
+function ServerItemLoader({ flexed }: { flexed: boolean }) {
   return (
-    <div className="tw-bg-white tw-w-full tw-h-[300px] tw-min-h-[300px] tw-max-w-[300px] tw-flex tw-flex-col tw-rounded-[5px]">
+    <div
+      className={`tw-bg-white tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col tw-rounded-[5px]`}
+    >
       <div className="tw-bg-white tw-w-full tw-h-full tw-min-h-[0px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-start tw-items-center  tw-rounded-[5px]">
         <div className="tw-bg-[#D2D2D2] tw-w-full tw-flex tw-max-w-[1500px] tw-rounded-b-[0px] tw-h-[120px] tw-rounded-t-[5px]" />
         <div className="tw-w-[calc(100%-30px)] tw-pl-[15px] tw-pr-[15px] tw-flex tw-flex-col tw-items-start tw-gap-[5px]">
