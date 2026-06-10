@@ -13,19 +13,20 @@ function SavedPostItemLoader() {
   );
 
   return (
-    <div className=" tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[20px] tw-flex tw-flex-col tw-gap-[10px]">
+    <div className="tw-w-full tw-p-[20px] tw-pb-[20px] tw-flex tw-flex-col tw-gap-[10px]">
       <div
         style={{
           borderWidth: "0px",
         }}
-        className=" tw-bg-white tw-border-solid tw-border-[#d2d2d2] tw-rounded-[7px] tw-w-[calc(100%-40px)] tw-p-[0px] tw-pb-[0px] tw-flex tw-flex-row tw-gap-[10px]"
+        className="tw-w-full tw-p-[0px] tw-pb-[0px] tw-flex tw-flex-row tw-gap-[10px]"
       >
         {isMobileView ? (
           <Skeleton
             className="tw-max-w-full"
             containerClassName="tw-w-[85px] tw-h-[85px]"
             height="85px"
-            baseColor="rgb(210, 210, 210)"
+            baseColor="var(--surface-3)"
+            highlightColor="var(--surface-hover)"
             count={1}
           />
         ) : (
@@ -33,7 +34,8 @@ function SavedPostItemLoader() {
             className="tw-max-w-full"
             containerClassName="tw-w-[120px] tw-h-[120px]"
             height="120px"
-            baseColor="rgb(210, 210, 210)"
+            baseColor="var(--surface-3)"
+            highlightColor="var(--surface-hover)"
             count={1}
           />
         )}
@@ -44,7 +46,8 @@ function SavedPostItemLoader() {
               containerClassName="tw-w-full"
               //   width="100%"
               height="17px"
-              baseColor="rgb(210, 210, 210)"
+              baseColor="var(--surface-3)"
+              highlightColor="var(--surface-hover)"
               count={1}
             />
             <Skeleton
@@ -52,7 +55,8 @@ function SavedPostItemLoader() {
               containerClassName="tw-w-[150px]"
               //   width="100%"
               height="12px"
-              baseColor="rgb(210, 210, 210)"
+              baseColor="var(--surface-3)"
+              highlightColor="var(--surface-hover)"
               count={1}
             />
           </div>
@@ -62,7 +66,8 @@ function SavedPostItemLoader() {
               containerClassName="tw-w-[70px]"
               //   width="100%"
               height="25px"
-              baseColor="rgb(210, 210, 210)"
+              baseColor="var(--surface-3)"
+              highlightColor="var(--surface-hover)"
               count={1}
             />
             <Skeleton
@@ -70,7 +75,8 @@ function SavedPostItemLoader() {
               containerClassName="tw-w-[70px]"
               //   width="100%"
               height="25px"
-              baseColor="rgb(210, 210, 210)"
+              baseColor="var(--surface-3)"
+              highlightColor="var(--surface-hover)"
               count={1}
             />
           </div>

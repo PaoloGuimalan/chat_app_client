@@ -4,7 +4,6 @@ import Modal from "@/app/reusables/Modal";
 import { ConversationInfoModalProp } from "@/reusables/vars/props";
 import { IoMdClose } from "react-icons/io";
 import { useNavigate } from "react-router-dom";
-import DefaultProfile from "../../../../assets/imgs/default.png";
 import GroupChatIcon from "../../../../assets/imgs/group-chat-icon.jpg";
 import ServerIcon from "../../../../assets/imgs/servericon.png";
 import { useSelector } from "react-redux";
@@ -28,6 +27,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaHashtag } from "react-icons/fa6";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { timeSince } from "@/reusables/hooks/reusable";
+import { Avatar } from "@/reusables/design";
 
 function ConversationInfoModal({
   conversationinfo,
@@ -111,10 +111,24 @@ function ConversationInfoModal({
     return null;
   }, [authentication.user.userID, conversationinfo.usersWithInfo]);
 
+  const renderUserAvatar = (
+    userID: string,
+    fullName: string,
+    profile?: string | null,
+    size = 40,
+  ) => (
+    <Avatar
+      id={userID}
+      name={fullName}
+      src={profile && profile !== "none" ? profile : undefined}
+      size={size}
+    />
+  );
+
   return (
     <Modal
       component={
-        <div className="div_modal_container tw-max-w-[800px] tw-max-h-[550px] tw-items-center">
+        <div className="div_modal_container cl-conversation-info-modal tw-max-w-[800px] tw-max-h-[550px] tw-items-center">
           <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-pl-[10px] tw-pr-[10px] tw-pt-[7px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
             {conversationinfo.type == "single" ? (
               <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">
@@ -129,7 +143,7 @@ function ConversationInfoModal({
               onClick={() => {
                 onclose(false);
               }}
-              className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
+              className="cl-conversation-info-modal-close tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
             >
               <IoMdClose style={{ fontSize: "17px" }} />
             </button>
@@ -139,20 +153,18 @@ function ConversationInfoModal({
               <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-items-center tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
                 <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-flex-col tw-items-center tw-gap-[10px]">
                   <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
-                    <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
-                      <CachedImage
-                        src={
-                          userInfo?.profile !== "none"
-                            ? userInfo?.profile
-                            : DefaultProfile
-                        }
-                        className={
-                          userInfo?.profile == "none"
-                            ? "img_search_profiles_ntfs"
-                            : "tw-w-full tw-h-full tw-rounded-full"
-                        }
-                      />
-                    </div>
+                    {renderUserAvatar(
+                      userInfo?.userID || "conversation-user",
+                      userInfo
+                        ? `${userInfo.fullname.firstName} ${
+                            userInfo.fullname.middleName === "N/A"
+                              ? ""
+                              : `${userInfo.fullname.middleName} `
+                          }${userInfo.fullname.lastName}`
+                        : "Conversation",
+                      userInfo?.profile,
+                      120,
+                    )}
                   </div>
                   <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                     {
@@ -182,9 +194,12 @@ function ConversationInfoModal({
                     onClick={() => {
                       settoggleMemberDropper(!toggleMemberDropper);
                     }}
-                    className="tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                    className="cl-conversation-info-modal-members tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                    style={{ color: "var(--text)" }}
                   >
-                    Members
+                    <span className="cl-conversation-info-modal-members__label">
+                      Members
+                    </span>
                   </button>
                   <motion.div
                     initial={{
@@ -203,26 +218,18 @@ function ConversationInfoModal({
                             onClick={() => {
                               navigate(`/${mp.userID}`);
                             }}
-                            className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
+                            className="cl-conversation-info-modal-member tw-w-[calc(100%-10px)] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
                           >
                             <div id="div_img_search_profiles_container_cncts">
-                              <CachedImage
-                                src={
-                                  mp.profile == "none"
-                                    ? DefaultProfile
-                                    : mp.profile
-                                }
-                                className={
-                                  mp.profile == "none"
-                                    ? "img_search_profiles_ntfs"
-                                    : ""
-                                }
-                                id={
-                                  mp.profile == "none"
+                              {renderUserAvatar(
+                                mp.userID,
+                                `${mp.fullname.firstName} ${
+                                  mp.fullname.middleName === "N/A"
                                     ? ""
-                                    : "img_actual_profile"
-                                }
-                              />
+                                    : `${mp.fullname.middleName} `
+                                }${mp.fullname.lastName}`,
+                                mp.profile,
+                              )}
                             </div>
                             <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
                               <span className="tw-flex tw-flex-1 tw-text-[13px]">
@@ -248,9 +255,17 @@ function ConversationInfoModal({
                     }}
                     animate={{
                       borderColor:
-                        toggledfiles === "media" ? "black" : "transparent",
+                        toggledfiles === "media"
+                          ? "var(--brand)"
+                          : "transparent",
                     }}
-                    className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                    style={{
+                      color:
+                        toggledfiles === "media"
+                          ? "var(--text)"
+                          : "var(--text-2)",
+                    }}
+                    className="cl-conversation-info-modal-tab tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
                   >
                     Media
                   </motion.button>
@@ -259,10 +274,18 @@ function ConversationInfoModal({
                       settoggledfiles("audio");
                     }}
                     animate={{
-                      borderColor:
-                        toggledfiles === "audio" ? "black" : "transparent",
+                        borderColor:
+                        toggledfiles === "audio"
+                          ? "var(--brand)"
+                          : "transparent",
                     }}
-                    className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                    style={{
+                      color:
+                        toggledfiles === "audio"
+                          ? "var(--text)"
+                          : "var(--text-2)",
+                    }}
+                    className="cl-conversation-info-modal-tab tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
                   >
                     Audio
                   </motion.button>
@@ -271,10 +294,18 @@ function ConversationInfoModal({
                       settoggledfiles("files");
                     }}
                     animate={{
-                      borderColor:
-                        toggledfiles === "files" ? "black" : "transparent",
+                        borderColor:
+                        toggledfiles === "files"
+                          ? "var(--brand)"
+                          : "transparent",
                     }}
-                    className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                    style={{
+                      color:
+                        toggledfiles === "files"
+                          ? "var(--text)"
+                          : "var(--text-2)",
+                    }}
+                    className="cl-conversation-info-modal-tab tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
                   >
                     Files
                   </motion.button>
@@ -285,14 +316,14 @@ function ConversationInfoModal({
                       (mp: ConversationFilesInterface, i: number) => {
                         if (mp.fileDetails.data) {
                           if (mp.fileType.includes("image")) {
-                            return (
-                              <CachedImage
-                                key={i}
-                                src={mp.fileDetails.data}
-                                className="tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black"
-                              />
-                            );
-                          } else if (mp.fileType.includes("video")) {
+                              return (
+                                <CachedImage
+                                  key={i}
+                                  src={mp.fileDetails.data}
+                                className="cl-conversation-info-modal-media tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black"
+                                />
+                              );
+                            } else if (mp.fileType.includes("video")) {
                             // console.log(mp.fileDetails.data.split("%%")[0])
                             return (
                               <video
@@ -301,7 +332,7 @@ function ConversationInfoModal({
                                 src={mp.fileDetails.data
                                   .split("%%%")[0]
                                   .replace("###", "%23%23%23")}
-                                className="tw-w-full tw-flex tw-flex-1 tw-max-h-[200px] tw-object-cover tw-bg-black"
+                                className="cl-conversation-info-modal-media tw-w-full tw-flex tw-flex-1 tw-max-h-[200px] tw-object-cover tw-bg-black"
                               />
                             );
                           }
@@ -319,7 +350,7 @@ function ConversationInfoModal({
                             return (
                               <div
                                 key={i}
-                                className="tw-w-full"
+                                className="cl-conversation-info-modal-audio-item tw-w-full"
                                 title={
                                   mp.dateUploaded.time
                                     ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
@@ -362,7 +393,7 @@ function ConversationInfoModal({
                                     "_blank",
                                   );
                                 }}
-                                className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
+                                className="cl-conversation-info-modal-file tw-w-[calc(100%-20px)] tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
                                 title={
                                   mp.dateUploaded.time
                                     ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
@@ -433,9 +464,12 @@ function ConversationInfoModal({
                     onClick={() => {
                       settoggleMemberDropper(!toggleMemberDropper);
                     }}
-                    className="tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                    className="cl-conversation-info-modal-members tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                    style={{ color: "var(--text)" }}
                   >
-                    Members
+                    <span className="cl-conversation-info-modal-members__label">
+                      Members
+                    </span>
                   </button>
                   <motion.div
                     initial={{
@@ -639,25 +673,18 @@ function ConversationInfoModal({
                                             }}
                                             className="checkbox_selector_people"
                                           />
-                                          <div id="div_img_cncts_container">
+                                              <div id="div_img_cncts_container">
                                             <div id="div_img_search_profiles_container_cncts">
-                                              <CachedImage
-                                                src={
-                                                  cnts.profile == "none"
-                                                    ? DefaultProfile
-                                                    : cnts.profile
-                                                }
-                                                className={
-                                                  cnts.profile == "none"
-                                                    ? "img_search_profiles_ntfs"
-                                                    : ""
-                                                }
-                                                id={
-                                                  cnts.profile == "none"
+                                              {renderUserAvatar(
+                                                cnts._id,
+                                                `${cnts.fullname.firstName} ${
+                                                  cnts.fullname.middleName ===
+                                                  "N/A"
                                                     ? ""
-                                                    : "img_actual_profile"
-                                                }
-                                              />
+                                                    : `${cnts.fullname.middleName} `
+                                                }${cnts.fullname.lastName}`,
+                                                cnts.profile,
+                                              )}
                                             </div>
                                           </div>
                                           <div className="div_contact_fullname_container">
@@ -758,31 +785,22 @@ function ConversationInfoModal({
                                                 }}
                                                 className="checkbox_selector_people"
                                               />
-                                              <div id="div_img_cncts_container">
-                                                <div id="div_img_search_profiles_container_cncts">
-                                                  <CachedImage
-                                                    src={
+                                                <div id="div_img_cncts_container">
+                                                  <div id="div_img_search_profiles_container_cncts">
+                                                    {renderUserAvatar(
+                                                      cnts.involved_user.id,
+                                                      `${cnts.involved_user.first_name} ${
+                                                        cnts.involved_user
+                                                          .middle_name ===
+                                                        "N/A"
+                                                          ? ""
+                                                          : `${cnts.involved_user.middle_name} `
+                                                      }${cnts.involved_user.last_name}`,
                                                       cnts.involved_user
-                                                        .profile == "none"
-                                                        ? DefaultProfile
-                                                        : cnts.involved_user
-                                                            .profile
-                                                    }
-                                                    className={
-                                                      cnts.involved_user
-                                                        .profile == "none"
-                                                        ? "img_search_profiles_ntfs"
-                                                        : ""
-                                                    }
-                                                    id={
-                                                      cnts.involved_user
-                                                        .profile == "none"
-                                                        ? ""
-                                                        : "img_actual_profile"
-                                                    }
-                                                  />
+                                                        .profile,
+                                                    )}
+                                                  </div>
                                                 </div>
-                                              </div>
                                               <div className="div_contact_fullname_container">
                                                 <span className="tw-flex tw-flex-1 tw-text-[13px]">
                                                   {
@@ -882,27 +900,17 @@ function ConversationInfoModal({
                                                 />
                                                 <div id="div_img_cncts_container">
                                                   <div id="div_img_search_profiles_container_cncts">
-                                                    <CachedImage
-                                                      src={
+                                                    {renderUserAvatar(
+                                                      cnts.action_by.id,
+                                                      `${cnts.action_by.first_name} ${
                                                         cnts.action_by
-                                                          .profile == "none"
-                                                          ? DefaultProfile
-                                                          : cnts.action_by
-                                                              .profile
-                                                      }
-                                                      className={
-                                                        cnts.action_by
-                                                          .profile == "none"
-                                                          ? "img_search_profiles_ntfs"
-                                                          : ""
-                                                      }
-                                                      id={
-                                                        cnts.action_by
-                                                          .profile == "none"
+                                                          .middle_name ===
+                                                        "N/A"
                                                           ? ""
-                                                          : "img_actual_profile"
-                                                      }
-                                                    />
+                                                          : `${cnts.action_by.middle_name} `
+                                                      }${cnts.action_by.last_name}`,
+                                                      cnts.action_by.profile,
+                                                    )}
                                                   </div>
                                                 </div>
                                                 <div className="div_contact_fullname_container">
@@ -946,23 +954,15 @@ function ConversationInfoModal({
                             className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
                           >
                             <div id="div_img_search_profiles_container_cncts">
-                              <CachedImage
-                                src={
-                                  mp.profile == "none"
-                                    ? DefaultProfile
-                                    : mp.profile
-                                }
-                                className={
-                                  mp.profile == "none"
-                                    ? "img_search_profiles_ntfs"
-                                    : ""
-                                }
-                                id={
-                                  mp.profile == "none"
+                              {renderUserAvatar(
+                                mp.userID,
+                                `${mp.fullname.firstName} ${
+                                  mp.fullname.middleName === "N/A"
                                     ? ""
-                                    : "img_actual_profile"
-                                }
-                              />
+                                    : `${mp.fullname.middleName} `
+                                }${mp.fullname.lastName}`,
+                                mp.profile,
+                              )}
                             </div>
                             <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
                               <span className="tw-flex tw-flex-1 tw-text-[13px]">
@@ -988,7 +988,15 @@ function ConversationInfoModal({
                     }}
                     animate={{
                       borderColor:
-                        toggledfiles === "media" ? "black" : "transparent",
+                        toggledfiles === "media"
+                          ? "var(--brand)"
+                          : "transparent",
+                    }}
+                    style={{
+                      color:
+                        toggledfiles === "media"
+                          ? "var(--text)"
+                          : "var(--text-2)",
                     }}
                     className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
                   >
@@ -1000,7 +1008,15 @@ function ConversationInfoModal({
                     }}
                     animate={{
                       borderColor:
-                        toggledfiles === "audio" ? "black" : "transparent",
+                        toggledfiles === "audio"
+                          ? "var(--brand)"
+                          : "transparent",
+                    }}
+                    style={{
+                      color:
+                        toggledfiles === "audio"
+                          ? "var(--text)"
+                          : "var(--text-2)",
                     }}
                     className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
                   >
@@ -1012,7 +1028,15 @@ function ConversationInfoModal({
                     }}
                     animate={{
                       borderColor:
-                        toggledfiles === "files" ? "black" : "transparent",
+                        toggledfiles === "files"
+                          ? "var(--brand)"
+                          : "transparent",
+                    }}
+                    style={{
+                      color:
+                        toggledfiles === "files"
+                          ? "var(--text)"
+                          : "var(--text-2)",
                     }}
                     className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
                   >
@@ -1059,7 +1083,7 @@ function ConversationInfoModal({
                             return (
                               <div
                                 key={i}
-                                className="tw-w-full"
+                                className="cl-conversation-info-modal-audio-item tw-w-full"
                                 title={
                                   mp.dateUploaded.time
                                     ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
@@ -1102,7 +1126,7 @@ function ConversationInfoModal({
                                     "_blank",
                                   );
                                 }}
-                                className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
+                                className="cl-conversation-info-modal-file tw-w-[calc(100%-20px)] tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
                                 title={
                                   mp.dateUploaded.time
                                     ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`

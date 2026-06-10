@@ -88,7 +88,7 @@ function ServerConversation() {
         borderTopLeftRadius: screensizelistener.W <= 900 ? "10px" : "0px",
       }}
       // id="div_server_conversation_list"
-      className="tw-bg-[#f1f1f2] tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]"
+      className="tw-bg-[var(--surface)] tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px] tw-border-l tw-border-[var(--border)]"
     >
       {conversationsetup.conversationid && isconversationsetuploaded ? (
         channelUsers.length > 0 ? (
@@ -105,14 +105,14 @@ function ServerConversation() {
             />
           )
         ) : (
-          <div className="tw-rounded-[10px] tw-bg-white tw-flex tw-items-center tw-justify-center tw-w-full tw-h-full">
+          <div className="tw-rounded-[10px] tw-bg-[var(--surface)] tw-flex tw-items-center tw-justify-center tw-w-full tw-h-full tw-text-[var(--text)]">
             <span className="tw-text-[13px]">No Channel Found</span>
           </div>
         )
       ) : (
         <div
           // id="div_server_conversation_list"
-          className="tw-rounded-[10px] tw-bg-white tw-flex tw-items-center tw-justify-center tw-w-full tw-h-full"
+          className="tw-rounded-[10px] tw-bg-[var(--surface)] tw-flex tw-items-center tw-justify-center tw-w-full tw-h-full tw-text-[var(--text)]"
         >
           <span className="tw-text-[13px]">
             {haveAccess !== null

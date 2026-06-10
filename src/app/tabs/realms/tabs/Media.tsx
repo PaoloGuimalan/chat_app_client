@@ -87,12 +87,12 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
   };
 
   return (
-    <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-p-[20px] tw-gap-[20px]">
-      <div className="tw-flex tw-flex-col tw-items-start">
-        <span className="tw-text-[#383838] tw-text-[16px] tw-font-semibold tw-font-Inter">
+    <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-p-[18px] sm:tw-p-[24px] tw-gap-[18px] tw-bg-[var(--background)] tw-min-h-0">
+      <div className="tw-flex tw-flex-col tw-items-start tw-gap-[4px]">
+        <span className="tw-text-[var(--text)] tw-text-[20px] tw-font-semibold tw-font-Inter">
           Media
         </span>
-        <span className="tw-text-[#383838] tw-text-[14px] tw-font-Inter">
+        <span className="tw-text-[var(--text-2)] tw-text-[14px] tw-font-Inter tw-max-w-[760px]">
           Manage your{" "}
           {realmState.type === "group" && realmState.parent
             ? "channel"
@@ -100,7 +100,7 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
           profile or cover photo
         </span>
       </div>
-      <div className="tw-w-full tw-flex tw-flex-col tw-gap-[20px] tw-pb-[20px]">
+      <div className="tw-w-full tw-flex tw-flex-col tw-gap-[16px] tw-pb-[20px]">
         <input
           ref={profileInputRef}
           type="file"
@@ -120,14 +120,14 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
           disabled={isSaving}
         />
         <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[10px]">
-          <span className="tw-text-[#383838] tw-text-[16px] tw-font-semibold tw-font-Inter">
+          <span className="tw-text-[var(--text)] tw-text-[16px] tw-font-semibold tw-font-Inter">
             Profile
           </span>
-          <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-[calc(100%-40px)] tw-bg-white tw-min-h-[300px] tw-items-center tw-justify-center tw-rounded-md tw-p-[20px]">
+          <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-full tw-max-w-[860px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-min-h-[300px] tw-items-center tw-justify-center tw-rounded-[var(--r-md)] tw-p-[18px] sm:tw-p-[24px]">
             {selectedProfile && (
               <CachedImage
                 src={URL.createObjectURL(selectedProfile)}
-                className="tw-w-full tw-max-w-[220px] tw-border-[1px] tw-border-solid tw-border-[#e2e2e2] tw-rounded-md"
+                className="tw-w-full tw-max-w-[220px] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)]"
               />
             )}
             {!selectedProfile &&
@@ -136,17 +136,17 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
               !selectedProfile ? (
                 <CachedImage
                   src={realmState.profile}
-                  className="tw-w-full tw-max-w-[220px] tw-border-[1px] tw-border-solid tw-border-[#e2e2e2] tw-rounded-md"
+                  className="tw-w-full tw-max-w-[220px] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)]"
                 />
               ) : (
-                <div className="tw-bg-[#e2e2e2] img-placeholder tw-h-full tw-max-h-[220px] tw-w-full tw-max-w-[220px] tw-border-[1px] tw-border-solid tw-border-[#e2e2e2] tw-rounded-md" />
+                <div className="tw-bg-[var(--surface-2)] img-placeholder tw-h-full tw-max-h-[220px] tw-w-full tw-max-w-[220px] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)]" />
               ))}
 
             <div className="tw-flex tw-gap-[5px]">
               <button
                 disabled={isSaving}
                 onClick={handleDivClick}
-                className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#acacac] tw-text-white tw-border-white tw-rounded-[6px] tw-text-[12px]"
+                className="tw-min-w-[96px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--surface-2)] tw-text-[var(--text)] tw-rounded-[var(--r-md)] tw-text-[13px] hover:tw-bg-[var(--surface-hover)] tw-transition-colors"
               >
                 Select Image
               </button>
@@ -156,7 +156,7 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
                   onClick={() => {
                     UploadRealmMediaProcess("profile");
                   }}
-                  className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-border-white tw-rounded-[6px] tw-text-[12px]"
+                  className="tw-min-w-[96px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--brand)] tw-text-white tw-rounded-[var(--r-md)] tw-text-[13px]"
                 >
                   Upload
                 </button>
@@ -166,30 +166,30 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
         </div>
         {realmState.type !== "group" && (
           <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[10px]">
-            <span className="tw-text-[#383838] tw-text-[16px] tw-font-semibold tw-font-Inter">
+            <span className="tw-text-[var(--text)] tw-text-[16px] tw-font-semibold tw-font-Inter">
               Cover Photo
             </span>
-            <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-[calc(100%-40px)] tw-bg-white tw-h-auto tw-items-center tw-justify-center tw-rounded-md tw-p-[20px]">
+            <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-full tw-max-w-[860px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-h-auto tw-items-center tw-justify-center tw-rounded-[var(--r-md)] tw-p-[18px] sm:tw-p-[24px]">
               {selectedCoverPhoto && (
                 <CachedImage
                   src={URL.createObjectURL(selectedCoverPhoto)}
-                  className="tw-w-full tw-h-[400px] tw-object-cover tw-border-[1px] tw-border-solid tw-border-[#e2e2e2] tw-rounded-md"
+                  className="tw-w-full tw-h-[400px] tw-object-cover tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)]"
                 />
               )}
               {!selectedCoverPhoto &&
                 (realmState.cover_photo && realmState.cover_photo !== "N/A" ? (
                   <CachedImage
                     src={realmState.cover_photo}
-                    className="tw-w-full tw-h-[400px] tw-object-cover tw-border-[1px] tw-border-solid tw-border-[#e2e2e2] tw-rounded-md"
+                    className="tw-w-full tw-h-[400px] tw-object-cover tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)]"
                   />
                 ) : (
-                  <div className="tw-w-full tw-h-[400px] tw-bg-[#e2e2e2] img-placeholder tw-border-[1px] tw-border-solid tw-border-[#e2e2e2] tw-rounded-md" />
+                  <div className="tw-w-full tw-h-[400px] tw-bg-[var(--surface-2)] img-placeholder tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)]" />
                 ))}
               <div className="tw-flex tw-gap-[5px]">
                 <button
                   disabled={isSaving}
                   onClick={handleCoverClick}
-                  className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#acacac] tw-text-white tw-border-white tw-rounded-[6px] tw-text-[12px]"
+                  className="tw-min-w-[96px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--surface-2)] tw-text-[var(--text)] tw-rounded-[var(--r-md)] tw-text-[13px] hover:tw-bg-[var(--surface-hover)] tw-transition-colors"
                 >
                   Select Image
                 </button>
@@ -199,7 +199,7 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
                     onClick={() => {
                       UploadRealmMediaProcess("cover_photo");
                     }}
-                    className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-border-white tw-rounded-[6px] tw-text-[12px]"
+                    className="tw-min-w-[96px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--brand)] tw-text-white tw-rounded-[var(--r-md)] tw-text-[13px]"
                   >
                     Upload
                   </button>

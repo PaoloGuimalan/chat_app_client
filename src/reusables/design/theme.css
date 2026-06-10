@@ -36,6 +36,8 @@
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
+:root,
+:root[data-theme="light"],
 .cl-redesign,
 .cl-redesign[data-theme="light"] {
   --bg: #eef1f5;
@@ -65,6 +67,7 @@
   --glass: rgba(255, 255, 255, 0.72);
 }
 
+:root[data-theme="dark"],
 .cl-redesign[data-theme="dark"] {
   --bg: #0b0e14;
   --bg-grad-a: #0d1119;

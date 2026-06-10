@@ -6,10 +6,9 @@ import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { IoClose } from "react-icons/io5";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import DefaultProfile from "../../../../assets/imgs/default.png";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { CreateChannelRequest } from "@/reusables/hooks/requests";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { Avatar } from "@/reusables/design";
 
 function CreateChannelModal({
   serverID,
@@ -92,7 +91,7 @@ function CreateChannelModal({
               style={{
                 maxHeight: gcprivacy ? "700px" : "325px",
               }}
-              className={`tw-z-[2] tw-absolute tw-h-[calc(98%-90px)] tw-w-[calc(98%-20px)] tw-max-w-[calc(400px-20px)] tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}
+              className={`tw-z-[2] tw-absolute tw-h-[calc(98%-90px)] tw-w-[calc(98%-20px)] tw-max-w-[calc(400px-20px)] tw-bg-[var(--surface)] tw-opacity-[0.9] tw-flex tw-items-center tw-justify-center`}
             >
               <div id="div_conversation_content_loader">
                 <motion.div
@@ -243,12 +242,12 @@ function CreateChannelModal({
                             if (cnts._id !== authentication.user.userID) {
                               return (
                                 <motion.div
-                                  whileHover={{
-                                    backgroundColor: "#e6e6e6",
-                                  }}
-                                  key={i}
-                                  className="div_cncts_cards"
-                                >
+                                whileHover={{
+                                  backgroundColor: "var(--surface-hover)",
+                                }}
+                                key={i}
+                                className="div_cncts_cards"
+                              >
                                   <input
                                     type="checkbox"
                                     checked={valueToArrayChecker(cnts._id)}
@@ -276,22 +275,19 @@ function CreateChannelModal({
                                   />
                                   <div id="div_img_cncts_container">
                                     <div id="div_img_search_profiles_container_cncts">
-                                      <CachedImage
+                                      <Avatar
+                                        id={cnts._id}
+                                        name={`${cnts.fullname.firstName} ${cnts.fullname.lastName}`}
                                         src={
-                                          cnts.profile == "none"
-                                            ? DefaultProfile
-                                            : cnts.profile
+                                          cnts.profile && cnts.profile !== "none"
+                                            ? cnts.profile
+                                            : null
                                         }
-                                        className={
-                                          cnts.profile == "none"
-                                            ? "img_search_profiles_ntfs"
-                                            : ""
-                                        }
-                                        id={
-                                          cnts.profile == "none"
-                                            ? ""
-                                            : "img_actual_profile"
-                                        }
+                                        size={40}
+                                        style={{
+                                          width: 40,
+                                          height: 40,
+                                        }}
                                       />
                                     </div>
                                   </div>
@@ -335,7 +331,7 @@ function CreateChannelModal({
                   <div id="div_create_cancel_btns">
                     <button
                       disabled={false}
-                      className="btns_create_server_cancel"
+                      className="btns_create_server_cancel cl-server-accent-button"
                       onClick={() => {
                         processCreateGroupChat();
                       }}

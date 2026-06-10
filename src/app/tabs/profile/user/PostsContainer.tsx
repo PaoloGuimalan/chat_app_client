@@ -1,15 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import CachedImage from "@/app/reusables/cachers/CachedImage";
 import {
   AuthenticationInterface,
   IPost,
   ProfileUserInfoInterface,
 } from "@/reusables/vars/interfaces";
 import { Fragment, useEffect, useRef, useState } from "react";
-import DefaultProfile from "../../../../assets/imgs/default.png";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
-import { FcAddImage } from "react-icons/fc";
 import PostItem from "./PostItem";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
@@ -24,6 +21,7 @@ import { useParams } from "react-router-dom";
 import { postsliststate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
 import { SET_EMOJIS_LIST } from "@/redux/types";
+import { Avatar, Btn, Card, Icon } from "@/reusables/design";
 
 function PostsContainer({
   profileInfo,
@@ -142,35 +140,29 @@ function PostsContainer({
   return (
     <Fragment>
       {authentication.auth && (
-        <div
-          id="div_feed_header_post_input_profile"
-          className="tw-border-[0px] tw-mb-[10px]"
-        >
-          {profileInfo.profile !== "none" ? (
-            <div id="img_default_profile_container">
-              <CachedImage src={profileInfo.profile} id="img_actual_profile" />
-            </div>
-          ) : (
-            <div id="div_img_feed_header_container">
-              <CachedImage src={DefaultProfile} id="img_feed_header" />
-            </div>
+        <Card pad={14} style={{ marginBottom: 14, width: "100%" }}>
+          {toggleNewPostModal.toggle && (
+            <NewPostModal
+              toShare={false}
+              sharePreviewData={null}
+              withImage={toggleNewPostModal.withImage}
+              profileInfo={{
+                id: profileInfo.id,
+                username: profileInfo.userID,
+              }}
+              realmInfo={null}
+              setcreateposttext={setcreateposttext}
+              getpostprocess={GetPostProcess}
+              onclose={settoggleNewPostModal}
+            />
           )}
-          <div id="div_input_feed_flex">
-            {toggleNewPostModal.toggle && (
-              <NewPostModal
-                toShare={false}
-                sharePreviewData={null}
-                withImage={toggleNewPostModal.withImage}
-                profileInfo={{
-                  id: profileInfo.id,
-                  username: profileInfo.userID,
-                }}
-                realmInfo={null}
-                setcreateposttext={setcreateposttext}
-                getpostprocess={GetPostProcess}
-                onclose={settoggleNewPostModal}
-              />
-            )}
+          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+            <Avatar
+              id={profileInfo.userID}
+              name={profileInfo.fullname.firstName}
+              src={profileInfo.profile !== "none" ? profileInfo.profile : undefined}
+              size={42}
+            />
             <input
               type="text"
               autoComplete="off"
@@ -194,31 +186,89 @@ function PostsContainer({
                   ? "Share your thoughts..."
                   : `Write on ${profileInfo.fullname.firstName}'s wall...`
               }
-              id="input_feed_box"
+              style={{
+                flex: 1,
+                height: 42,
+                border: "none",
+                outline: "none",
+                background: "var(--input)",
+                padding: "0 16px",
+                borderRadius: 21,
+                color: "var(--text)",
+                fontSize: 14,
+              }}
             />
           </div>
-          <div id="div_btn_image_container">
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 4,
+              marginTop: 10,
+              paddingTop: 10,
+              borderTop: "1px solid var(--border)",
+            }}
+          >
             <button
               onClick={() => {
                 settoggleNewPostModal({ toggle: true, withImage: true });
               }}
-              id="btn_image_feed"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 6,
+                height: 34,
+                padding: "0 12px",
+                border: "none",
+                background: "transparent",
+                borderRadius: "var(--r-sm)",
+                cursor: "pointer",
+                color: "var(--text-2)",
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+              onMouseEnter={(e) =>
+                (e.currentTarget.style.background = "var(--surface-hover)")
+              }
+              onMouseLeave={(e) =>
+                (e.currentTarget.style.background = "transparent")
+              }
             >
-              <FcAddImage style={{ fontSize: "35px" }} />
+              <Icon n="image" s={20} c="var(--green)" />
+              Photo
             </button>
+            <Btn
+              size="sm"
+              style={{
+                marginLeft: "auto",
+                opacity: createposttext.trim() ? 1 : 0.7,
+              }}
+              onClick={() => {
+                settoggleNewPostModal({ toggle: true, withImage: false });
+              }}
+            >
+              Post
+            </Btn>
           </div>
-        </div>
+        </Card>
       )}
       {paginatedPosts.count > 0 ? (
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {posts.map((mp: IPost) => {
             return (
-              <PostItem
+              <Card
+                pad={10}
+                style={{ marginBottom: 14, width: "100%" }}
                 key={mp.post_id}
-                isSharePreview={false}
-                mp={mp}
-                show_archived={false}
-              />
+                className="tw-flex tw-justify-center tw-w-full"
+              >
+                <PostItem
+                  key={mp.post_id}
+                  isSharePreview={false}
+                  mp={mp}
+                  show_archived={false}
+                />
+              </Card>
             );
           })}
           {/* {paginatedPosts.next && ( */}
@@ -255,7 +305,16 @@ function PostsContainer({
       ) : (
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {Array.from({ length: 8 }, (_, i: number) => {
-            return <PostItemLoader key={i} />;
+            return (
+              <Card
+                pad={10}
+                style={{ marginBottom: 14, width: "100%" }}
+                key={i}
+                className="tw-flex tw-justify-center tw-w-full"
+              >
+                <PostItemLoader key={i} />
+              </Card>
+            );
           })}
         </div>
       )}

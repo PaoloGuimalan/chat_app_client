@@ -175,7 +175,7 @@ export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
 
 export function Field({ icon, label, ...rest }: FieldProps) {
   return (
-    <label style={{ display: "block" }}>
+    <label style={{ display: "block", width: "100%" }}>
       {label && (
         <span
           style={{
@@ -244,7 +244,7 @@ export function SelectField({
   style,
 }: SelectFieldProps) {
   return (
-    <label style={{ display: "block", ...style }}>
+    <label style={{ display: "block", width: "100%", ...style }}>
       {label && (
         <span
           style={{

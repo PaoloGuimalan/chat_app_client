@@ -140,9 +140,11 @@ function RealmMembers({
   );
 
   return (
-    <div className="tw-w-full tw-h-auto tw-flex-1 tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
-      <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
-        <span className="tw-text-[14px] tw-font-semibold">Members</span>
+    <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-transparent tw-flex">
+      <div className="tw-w-full tw-p-[18px] sm:tw-p-[24px] tw-flex tw-flex-col tw-items-start tw-gap-[15px] tw-bg-transparent tw-min-h-0">
+        <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text)]">
+          Members
+        </span>
         <div id="div_modal_input_columns_add_people" className="tw-w-full">
           <div id="div_input_filter_container">
             <span id="span_input_label">
@@ -177,18 +179,18 @@ function RealmMembers({
           ) : (
             <motion.div
               id="div_contacts_select_container"
-              className="scroller"
+              className="scroller tw-pr-[8px]"
               ref={divcontentRef}
             >
-              <div className="tw-w-full tw-flex tw-flex-col tw-max-h-[350px] tw-min-h-[350px]">
+              <div className="tw-w-full tw-flex tw-flex-col tw-max-h-[350px] tw-min-h-[350px] tw-gap-[8px]">
                 {memberslist.map((cnts: IRealmMember) => {
                   return (
                     <motion.div
                       whileHover={{
-                        backgroundColor: "#e6e6e6",
+                        backgroundColor: "var(--surface-hover)",
                       }}
                       key={cnts.member_id}
-                      className="div_realm_members_cards_col"
+                      className="div_realm_members_cards_col tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none"
                       title={`${cnts.account.first_name}${
                         cnts.account.middle_name == "N/A"
                           ? ""
@@ -225,7 +227,7 @@ function RealmMembers({
                               : ` ${cnts.account.middle_name}`}{" "}
                             {cnts.account.last_name}
                           </span>
-                          <span className="tw-text-[12px] tw-font-Inter tw-text-left tw-text-[#525252]">
+                          <span className="tw-text-[12px] tw-font-Inter tw-text-left tw-text-[var(--text-2)]">
                             {capitalizeFirstLetter(cnts.role)}
                           </span>
                         </div>

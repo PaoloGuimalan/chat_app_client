@@ -8,7 +8,7 @@ import {
   ISavedPost,
   ITagging,
 } from "@/reusables/vars/interfaces";
-import DefaultProfile from "../../../../assets/imgs/default.png";
+import { Avatar } from "@/reusables/design";
 import { useSelector } from "react-redux";
 import { useMemo, useRef, useState } from "react";
 import { GoBookmarkSlashFill } from "react-icons/go";
@@ -196,7 +196,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
       {isRestored && (
         <OverlayMessage
           message="Post Unsaved"
-          className="tw-bg-white tw-absolute tw-w-full tw-h-full tw-opacity-[0.8] tw-z-[5] tw-flex tw-items-center tw-justify-center tw-rounded-md"
+          className="cl-feed-card__overlay tw-absolute tw-w-full tw-h-full tw-opacity-[0.8] tw-z-[5] tw-flex tw-items-center tw-justify-center tw-rounded-md"
         />
       )}
       {toggleNewPostModal.toggle && (
@@ -230,7 +230,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                       ? "600px"
                       : "none",
               }}
-              className={`tw-bg-white custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full tw-flex tw-flex-row tw-flex-wrap ${
+              className={`cl-feed-card cl-feed-card__modal-shell custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full tw-flex tw-flex-row tw-flex-wrap ${
                 previewPost.is_shared || previewPost.references.length === 0
                   ? ""
                   : "custom:tw-overflow-hidden"
@@ -240,7 +240,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
             >
               {!previewPost.is_shared && (
                 <Carousel
-                  className="tw-bg-black tw-w-full tw-h-full tw-flex-1 tw-min-w-[350px]"
+                  className="tw-bg-[var(--surface-2)] tw-w-full tw-h-full tw-flex-1 tw-min-w-[350px]"
                   showIndicators={false}
                   showThumbs={false}
                 >
@@ -249,7 +249,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                       return (
                         <div
                           key={mpr.reference_id}
-                          className="tw-h-full tw-bg-black"
+                          className="tw-h-full tw-bg-[var(--surface-2)]"
                         >
                           <CachedImage
                             src={mpr.reference}
@@ -261,7 +261,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                       return (
                         <div
                           key={mpr.reference_id}
-                          className="tw-h-full tw-max-h-full tw-bg-black"
+                          className="tw-h-full tw-max-h-full tw-bg-[var(--surface-2)]"
                         >
                           <video
                             controls
@@ -283,7 +283,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                       ? "custom:tw-max-w-full"
                       : "custom:tw-max-w-[400px]"
                     : "custom:tw-max-w-full"
-                } tw-min-w-[350px] tw-bg-white tw-flex-col tw-pb-[10px] ${
+                } tw-min-w-[350px] cl-feed-card__modal-side tw-flex-col tw-pb-[10px] ${
                   previewPost.is_shared || previewPost.references.length === 0
                     ? ""
                     : "custom:tw-h-full"
@@ -291,41 +291,24 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
               >
                 <div className="tw-w-[calc(100%-50px)] tw-p-[25px] tw-flex tw-justify-between">
                   <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
-                    {previewPost.author_realm ? (
-                      previewPost.author_realm.profile !== "none" ? (
-                        <div id="img_default_profile_container">
-                          <CachedImage
-                            src={previewPost.author_realm.profile}
-                            id="img_actual_profile"
-                          />
-                        </div>
-                      ) : (
-                        <div id="div_img_feed_post_container">
-                          <CachedImage
-                            src={DefaultProfile}
-                            id="img_feed_header"
-                          />
-                        </div>
-                      )
-                    ) : previewPost.user.profile !== "none" ? (
-                      <div id="img_default_profile_container">
-                        <CachedImage
-                          src={previewPost.user.profile}
-                          id="img_actual_profile"
-                        />
-                      </div>
-                    ) : (
-                      <div id="div_img_feed_post_container">
-                        <CachedImage
-                          src={DefaultProfile}
-                          id="img_feed_header"
-                        />
-                      </div>
-                    )}
+                    <Avatar
+                      id={previewPost.author_realm?.slug ?? previewPost.user.username}
+                      name={previewPost.author_realm?.name ?? `${previewPost.user.first_name} ${previewPost.user.last_name}`}
+                      src={
+                        previewPost.author_realm
+                          ? previewPost.author_realm.profile !== "none"
+                            ? previewPost.author_realm.profile
+                            : undefined
+                          : previewPost.user.profile !== "none"
+                            ? previewPost.user.profile
+                            : undefined
+                      }
+                      size={35}
+                    />
                     <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
                       <div className="tw-text-left tw-flex tw-flex-wrap">
                         <span
-                          className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                          className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                           onClick={() => {
                             if (previewPost.author_realm) {
                               navigate(`/${previewPost.author_realm.slug}`);
@@ -341,7 +324,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                               {previewPost.author_realm.is_verified && (
                                 <RiVerifiedBadgeFill
                                   size={16}
-                                  color="#1c7def"
+                                  color="var(--brand)"
                                 />
                               )}
                             </div>
@@ -357,7 +340,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                               {previewPost.user.is_badged && (
                                 <RiVerifiedBadgeFill
                                   size={16}
-                                  color="#1c7def"
+                                  color="var(--brand)"
                                 />
                               )}
                             </div>
@@ -373,7 +356,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                             (mptg: ITagging, i: number) => {
                               return (
                                 <span
-                                  className="tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                                  className="cl-feed-card__title tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                   onClick={() => {
                                     navigate(`/${mptg.user.username}`);
                                   }}
@@ -390,7 +373,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                                     {mptg.user.is_badged && (
                                       <RiVerifiedBadgeFill
                                         size={16}
-                                        color="#1c7def"
+                                        color="var(--brand)"
                                       />
                                     )}
                                   </div>
@@ -483,7 +466,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                       onClick={() => {
                         setminimizedCaption(false);
                       }}
-                      className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}
+                      className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
                     >
                       Expand
                     </button>
@@ -493,7 +476,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                       onClick={() => {
                         setminimizedCaption(true);
                       }}
-                      className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}
+                      className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
                     >
                       See less
                     </button>
@@ -535,20 +518,20 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                       </div>
                       <div className="tw-w-full tw-flex tw-justify-between tw-items-center">
                         {total_reactions > 0 && (
-                          <span className="tw-text-[12px] tw-text-gray-800">
+                          <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                             {total_reactions}{" "}
                             {total_reactions === 1 ? " reaction" : " reactions"}
                           </span>
                         )}
                         <div className="tw-flex tw-gap-[10px] tw-items-center">
                           {commentsCount > 0 && (
-                            <span className="tw-text-[12px] tw-text-gray-800">
+                            <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                               {commentsCount}{" "}
                               {commentsCount === 1 ? " comment" : " comments"}
                             </span>
                           )}
                           {shareCount > 0 && (
-                            <span className="tw-text-[12px] tw-text-gray-800">
+                            <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                               {shareCount}{" "}
                               {shareCount === 1 ? " share" : " shares"}
                             </span>
@@ -556,7 +539,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                         </div>
                       </div>
                     </motion.div>
-                    <hr className="tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px] tw-z-[0]" />
+                    <hr className="cl-feed-card__divider tw-w-full tw-mb-[5px] tw-z-[0]" />
                     <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
                       <button
                         onMouseEnter={() => {
@@ -566,10 +549,10 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                           settoggleEmojis(false);
                         }}
                         disabled={emojiLoading}
-                        className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                        className="cl-feed-card__action tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
                       >
                         <motion.div
-                          className="tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-bg-white tw-shadow-lg tw-bottom-[calc(100%+15px)]"
+                          className="cl-feed-card__reaction-popover tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-shadow-lg tw-bottom-[calc(100%+15px)]"
                           initial={{
                             scale: 0,
                           }}
@@ -597,14 +580,14 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                           <BiLike
                             style={{
                               fontSize: "25px",
-                              color: "#666666",
+                              color: "var(--text-2)",
                             }}
                           />
                         )}
                       </button>
-                      <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
+                      <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
                         <LiaComment
-                          style={{ fontSize: "25px", color: "#666666" }}
+                          style={{ fontSize: "25px", color: "var(--text-2)" }}
                         />
                       </button>
                       <button
@@ -615,18 +598,18 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                             withImage: false,
                           });
                         }}
-                        className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                        className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
                       >
                         <PiShareFat
-                          style={{ fontSize: "25px", color: "#666666" }}
+                          style={{ fontSize: "25px", color: "var(--text-2)" }}
                         />
                       </button>
                       {postOwnerUserID === authentication.user.userID && (
-                        <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
+                        <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
                           <BsPinMap
                             style={{
                               fontSize: "22px",
-                              color: "#666666",
+                              color: "var(--text-2)",
                             }}
                           />
                         </button>
@@ -651,49 +634,43 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
       <div
         style={{
           borderWidth: "0px",
+          boxShadow: "none",
         }}
-        className=" tw-bg-white tw-border-solid tw-border-[#d2d2d2] tw-rounded-[7px] tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[20px] tw-flex tw-flex-row tw-gap-[10px]"
+        className="cl-display-card tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[14px] tw-flex tw-flex-row tw-gap-[10px]"
       >
-        {savedPost.post.author_realm ? (
-          !savedPost.post.author_realm.profile ||
-          savedPost.post.author_realm.profile === "N/A" ? (
-            <CachedImage
-              src={DefaultProfile}
-              className={`${isMobileView ? "tw-w-[85px] tw-h-[85px]" : "tw-w-[120px] tw-h-[120px]"} tw-object-contain tw-rounded-sm`}
-            />
-          ) : (
-            <CachedImage
-              src={savedPost.post.author_realm.profile}
-              className={`${isMobileView ? "tw-w-[85px] tw-h-[85px]" : "tw-w-[120px] tw-h-[120px]"} tw-object-cover tw-rounded-sm`}
-            />
-          )
-        ) : !savedPost.post.user.profile ||
-          savedPost.post.user.profile === "none" ? (
-          <CachedImage
-            src={DefaultProfile}
-            className={`${isMobileView ? "tw-w-[85px] tw-h-[85px]" : "tw-w-[120px] tw-h-[120px]"} tw-object-contain tw-rounded-sm`}
-          />
-        ) : (
-          <CachedImage
-            src={savedPost.post.user.profile}
-            className={`${isMobileView ? "tw-w-[85px] tw-h-[85px]" : "tw-w-[120px] tw-h-[120px]"} tw-object-cover tw-rounded-sm`}
-          />
-        )}
+        <Avatar
+          id={savedPost.post.author_realm?.slug ?? savedPost.post.user.username}
+          name={
+            savedPost.post.author_realm?.name ??
+            `${savedPost.post.user.first_name} ${savedPost.post.user.last_name}`
+          }
+          src={
+            savedPost.post.author_realm
+              ? savedPost.post.author_realm.profile &&
+                savedPost.post.author_realm.profile !== "N/A"
+                ? savedPost.post.author_realm.profile
+                : undefined
+              : savedPost.post.user.profile && savedPost.post.user.profile !== "none"
+                ? savedPost.post.user.profile
+                : undefined
+          }
+          size={isMobileView ? 85 : 120}
+        />
         <div className="tw-flex tw-flex-col tw-flex-1 tw-items-start">
-          <div className="tw-flex tw-flex-col tw-gap-[5px] tw-p-[5px] tw-items-start tw-flex-1">
+          <div className="tw-flex tw-flex-col tw-gap-[6px] tw-p-[5px] tw-items-start tw-flex-1">
             {savedPost.post.caption.trim() === "" ? (
-              <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+              <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
                 {savedPost.post.author_realm?.name ??
                   savedPost.post.user.first_name}
                 {"'s"} Post
               </span>
             ) : (
-              <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-line-clamp-2 tw-text-left">
+              <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-line-clamp-2 tw-text-left tw-text-[var(--text)]">
                 {savedPost.post.caption}
               </span>
             )}
             <div className="tw-flex tw-gap-[5px] tw-items-center">
-              <span className="tw-font-Inter tw-text-[12px]">
+              <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text-2)]">
                 {savedPost.post.content_type
                   .replace("_", " ")
                   .split(" ")
@@ -702,11 +679,11 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
               </span>
               &bull;
               {savedPost.post.author_realm ? (
-                <span className="tw-font-Inter tw-text-[12px]">
+                <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text-2)]">
                   {savedPost.post.author_realm.name}
                 </span>
               ) : (
-                <span className="tw-font-Inter tw-text-[12px]">
+                <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text-2)]">
                   {savedPost.post.user.first_name}
                   {savedPost.post.user.middle_name == "N/A"
                     ? ""
@@ -720,7 +697,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
             <button
               disabled={isFetchingPreview}
               onClick={GetPostPreviewProcess}
-              className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-[#d2d2d2] hover:tw-bg-[#b8b8b8]"
+              className="cl-display-card__button cl-display-card__button--muted tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none"
             >
               <TiArrowLeftThick
                 size={20}
@@ -746,7 +723,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
             <button
               disabled={isSaving}
               onClick={UnsavePostProcess}
-              className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-[#d2d2d2] hover:tw-bg-[#b8b8b8]"
+              className="cl-display-card__button cl-display-card__button--muted tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none"
             >
               <GoBookmarkSlashFill
                 size={15}
@@ -762,3 +739,5 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
 }
 
 export default SavedPostItem;
+
+

@@ -71,25 +71,25 @@ function EntryView() {
   }, [entry_id, currentEntry]);
 
   return (
-    <div className="tw-flex tw-flex-col tw-gap-[15px] tw-h-auto tw-w-full tw-bg-white tw-rounded-[7px] tw-items-center tw-pb-[10px]">
+    <div className="tw-flex tw-flex-col tw-gap-[16px] tw-h-auto tw-w-full tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-items-center tw-pb-[12px] tw-min-h-0">
       {isLoaded && currentEntry && (
         <Fragment>
-          <div className="tw-w-[calc(100%-40px)] tw-flex tw-items-center tw-h-[31px] tw-gap-[2px] tw-p-[18px] tw-pb-[2px] tw-pl-[20px] tw-pr-[20px]">
+          <div className="tw-w-full tw-flex tw-items-center tw-min-h-[56px] tw-gap-[8px] tw-px-[20px] tw-py-[14px] tw-border-b tw-border-[var(--border)]">
             {isMobileView && (
               <button
                 onClick={() => {
                   navigate(`/${params.userID}/diary`);
                 }}
-                className="tw-flex tw-items-center tw-justify-center tw-border-none tw-bg-transparent tw-h-[40px] tw-w-[40px]"
+                className="tw-flex tw-items-center tw-justify-center tw-border-none tw-bg-[var(--surface-2)] tw-h-[40px] tw-w-[40px] tw-rounded-full tw-text-[var(--text)]"
               >
-                <IoArrowBack style={{ fontSize: "20px" }} />
+                <IoArrowBack style={{ fontSize: "20px", color: "var(--text)" }} />
               </button>
             )}
-            <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+            <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
               {currentEntry.title}
             </span>
           </div>
-          <div className="tw-w-[calc(100%-40px)] tw-pl-[20px] tw-pr-[20px]">
+          <div className="tw-w-full tw-px-[20px]">
             <motion.div
               initial={{
                 flexDirection: isPreMobileView ? "column" : "row",
@@ -97,12 +97,12 @@ function EntryView() {
               animate={{
                 flexDirection: isPreMobileView ? "column" : "row",
               }}
-              className="tw-w-full tw-flex tw-gap-[10px]"
+              className="tw-w-full tw-flex tw-gap-[12px]"
             >
               {isPreMobileView && (
-                <div className="tw-bg-[#f0f0f0] tw-rounded-[7px] tw-p-[10px]">
-                  <div className="tw-flex tw-font-Inter tw-text-[14px] tw-gap-[4px] tw-items-center">
-                    <span className="tw-text-left">
+                <div className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)] tw-p-[12px]">
+                  <div className="tw-flex tw-font-Inter tw-text-[14px] tw-gap-[4px] tw-items-center tw-text-[var(--text)]">
+                    <span className="tw-text-left tw-text-[var(--text)]">
                       Entry dated on{" "}
                       <span className="tw-font-semibold">
                         {formattedDateToWords(
@@ -114,9 +114,9 @@ function EntryView() {
                   </div>
                 </div>
               )}
-              <div className="tw-min-h-[300px] tw-w-[calc(100%-20px)] tw-flex-1 tw-bg-[#f0f0f0] tw-p-[10px] tw-pt-[0px] tw-rounded-[7px]">
+              <div className="tw-min-h-[300px] tw-w-full tw-flex-1 tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[12px] tw-pt-[0px] tw-rounded-[var(--r-md)]">
                 <div
-                  className="tw-text-[14px] tw-text-left"
+                  className="tw-text-[14px] tw-text-left tw-text-[var(--text)]"
                   dangerouslySetInnerHTML={{ __html: currentEntry.content }}
                 />
               </div>
@@ -127,12 +127,12 @@ function EntryView() {
                 animate={{
                   maxWidth: isPreMobileView ? "none" : "300px",
                 }}
-                className="tw-w-full tw-flex-1 tw-font-Inter tw-gap-[10px] tw-flex tw-flex-col tw-rounded-[7px]"
+                className="tw-w-full tw-flex-1 tw-font-Inter tw-gap-[12px] tw-flex tw-flex-col tw-rounded-[var(--r-md)] tw-min-w-0"
               >
                 {currentEntry.mood && (
-                  <div className="tw-bg-[#f0f0f0] tw-rounded-[7px] tw-p-[10px]">
-                    <div className="tw-flex tw-font-Inter tw-text-[14px] tw-gap-[4px] tw-items-center">
-                      <span className="tw-text-left">You were feeling</span>
+                  <div className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)] tw-p-[12px]">
+                    <div className="tw-flex tw-font-Inter tw-text-[14px] tw-gap-[4px] tw-items-center tw-text-[var(--text)]">
+                      <span className="tw-text-left tw-text-[var(--text)]">You were feeling</span>
                       <span className="tw-font-semibold tw-text-left">
                         {currentEntry.mood.emoji} {currentEntry.mood.name}
                       </span>
@@ -140,7 +140,7 @@ function EntryView() {
                   </div>
                 )}
                 {currentEntry.tag_objects.length > 0 && (
-                  <div className="tw-bg-[#f0f0f0] tw-rounded-[7px] tw-p-[10px]">
+                  <div className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)] tw-p-[12px]">
                     <motion.div
                       initial={{
                         flexDirection: isPreMobileView ? "row" : "column",
@@ -152,9 +152,9 @@ function EntryView() {
                         alignItems: isPreMobileView ? "center" : "start",
                         flexWrap: isPreMobileView ? "wrap" : "nowrap",
                       }}
-                      className="tw-flex tw-font-Inter tw-text-[14px] tw-gap-[6px]"
+                      className="tw-flex tw-font-Inter tw-text-[14px] tw-gap-[6px] tw-text-[var(--text)]"
                     >
-                      <span className="tw-text-left">
+                      <span className="tw-text-left tw-text-[var(--text)]">
                         You were talking about
                       </span>
                       {isPreMobileView ? (
@@ -162,9 +162,9 @@ function EntryView() {
                           return (
                             <div
                               key={mp.id}
-                              className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                              className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
                             >
-                              <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                              <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
                                 {mp.name}
                               </span>
                             </div>
@@ -176,9 +176,9 @@ function EntryView() {
                             return (
                               <div
                                 key={mp.id}
-                                className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                                className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
                               >
-                                <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                                <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
                                   {mp.name}
                                 </span>
                               </div>
@@ -198,7 +198,7 @@ function EntryView() {
                         : null
                     }
                     inline
-                    calendarClassName="tw-border-none tw-bg-[#f0f0f0]"
+                    calendarClassName="cl-diary-datepicker"
                     className="tw-font-Inter tw-w-full"
                   />
                 )}
@@ -206,14 +206,14 @@ function EntryView() {
             </motion.div>
           </div>
           {currentEntry.attachments.length > 0 && (
-            <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-flex-col tw-p-[10px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
+            <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-flex-col tw-px-[20px] tw-py-[10px] tw-gap-[10px]">
               <div className="tw-w-full tw-flex tw-items-center tw-justify-between">
-                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
                   Attachments
                 </span>
               </div>
-              <div className="tw-bg-[#f0f0f0] tw-w-full tw-flex tw-min-h-[300px] tw-rounded-[7px] tw-items-center tw-justify-center">
-                <div className="tw-flex tw-gap-[10px] tw-flex-row tw-flex-wrap tw-items-center tw-justify-center">
+              <div className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-w-full tw-flex tw-min-h-[300px] tw-rounded-[var(--r-md)] tw-items-center tw-justify-center tw-p-[12px]">
+                <div className="tw-flex tw-gap-[10px] tw-flex-row tw-flex-wrap tw-items-center tw-justify-center tw-w-full">
                   {currentEntry.attachments.map(
                     (attachment: IEntryViewAttachment) => {
                       return (

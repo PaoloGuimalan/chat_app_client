@@ -3,7 +3,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useEffect, useMemo, useState } from "react";
 import ChatterLoopImg from "../../assets/imgs/chatterloop.png";
-import DefaultProfile from "../../assets/imgs/default.png";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ActiveContactsRequest,
@@ -34,7 +33,6 @@ import {
   SET_NOTIFICATIONS_LIST_OVERRIDE,
   SET_RAW_COORDINATES,
   SET_REMOVE_IS_TYPING_LIST,
-  SET_TOGGLE_RIGHT_WIDGET,
   SET_USER_SETTINGS,
 } from "../../redux/types";
 import {
@@ -72,7 +70,7 @@ import {
 import CallContainer from "../absolutes/calls_v2/CallContainer";
 import Pages from "../tabs/pages/Pages";
 import RealmContainer from "../tabs/realms/RealmContainer";
-import { Icon, useTheme } from "@/reusables/design";
+import { Avatar, Icon, useTheme } from "@/reusables/design";
 
 interface RailItem {
   key: string;
@@ -86,9 +84,6 @@ interface RailItem {
 function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   const location = useLocation();
 
-  const togglerightwidget = useSelector(
-    (state: any) => state.togglerightwidget,
-  );
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -223,17 +218,6 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     } catch (ex) {
       console.log(ex);
     }
-  };
-
-  const settogglerightwidget = (toggle: any) => {
-    dispatch({
-      type: SET_CONVERSATION_SETUP,
-      payload: { conversationsetup: conversationsetupstate },
-    });
-    dispatch({
-      type: SET_TOGGLE_RIGHT_WIDGET,
-      payload: { togglerightwidget: toggle },
-    });
   };
 
   const onClickHome = () => {
@@ -400,30 +384,6 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     }
   };
 
-  const onMessagesClick = () => {
-    if (screensizelistener.W <= 900) {
-      dispatch({
-        type: SET_CONVERSATION_SETUP,
-        payload: { conversationsetup: conversationsetupstate },
-      });
-      navigate("/messages");
-    } else {
-      settogglerightwidget("messages");
-    }
-  };
-
-  const onNotifsClick = () => {
-    if (screensizelistener.W <= 900) {
-      dispatch({
-        type: SET_CONVERSATION_SETUP,
-        payload: { conversationsetup: conversationsetupstate },
-      });
-      navigate("/notifications");
-    } else {
-      settogglerightwidget("notifs");
-    }
-  };
-
   const railItems: RailItem[] = [
     {
       key: "home",
@@ -451,7 +411,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
       icon: "forum",
       label: "Messages",
       isActive: location.pathname.startsWith("/messages"),
-      onClick: onMessagesClick,
+      onClick: () => navigate("/messages"),
       badge: totalUnreadMessages > 0 ? totalUnreadMessages : undefined,
     },
     {
@@ -466,7 +426,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
       icon: "notifications",
       label: "Activity",
       isActive: location.pathname.startsWith("/notifications"),
-      onClick: onNotifsClick,
+      onClick: () => navigate("/notifications"),
       badge: totalUnreadNotifs > 0 ? totalUnreadNotifs : undefined,
     },
     {
@@ -479,7 +439,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   ];
 
   const mobileNavItems = railItems.filter((it) =>
-    ["home", "map", "messages", "notifs"].includes(it.key),
+    ["home", "map", "contacts", "messages", "notifs"].includes(it.key),
   );
 
   const showRail = !isMobileView && !isMapFeedMobileView;
@@ -513,7 +473,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           profileSrc={
             authentication.user.profile !== "none"
               ? authentication.user.profile
-              : DefaultProfile
+              : undefined
           }
           profileName={authentication.user.fullName?.firstName}
         />
@@ -535,14 +495,12 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             profileSrc={
               authentication.user.profile !== "none"
                 ? authentication.user.profile
-                : DefaultProfile
+                : undefined
             }
             searchbox={searchbox}
             setsearchbox={setsearchbox}
             onSearchFocus={() => setsearchBoxFocus(true)}
-            onSearchBlur={() =>
-              setTimeout(() => setsearchBoxFocus(false), 500)
-            }
+            onSearchBlur={() => setTimeout(() => setsearchBoxFocus(false), 500)}
             theme={theme}
             toggleTheme={toggleTheme}
           />
@@ -577,7 +535,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             <Routes>
               <Route
                 path="/"
-                element={<DesktopHome togglerightwidget={togglerightwidget} />}
+                element={<DesktopHome />}
               />
               <Route path="/:userID/*" element={<ProfileContainer />} />
               <Route path="/realms/*" element={<RealmContainer />} />
@@ -641,7 +599,9 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
       {screensizelistener.W >= 1100 && pagemodal && (
         <Modal
           component={
-            <div className="div_page_modal_container">{pagemodal.component}</div>
+            <div className="div_page_modal_container">
+              {pagemodal.component}
+            </div>
           }
         />
       )}
@@ -667,7 +627,7 @@ function Rail({
   onSettings: () => void;
   onLogout: () => void;
   onProfile: () => void;
-  profileSrc: string;
+  profileSrc?: string;
   profileName?: string;
 }) {
   void profileName;
@@ -690,7 +650,9 @@ function Rail({
           width: 44,
           height: 44,
           borderRadius: "var(--r-md)",
-          background: "rgba(255,255,255,0.16)",
+          background: "var(--surface)",
+          border: "1px solid var(--border)",
+          boxShadow: "var(--shadow-sm)",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
@@ -701,9 +663,9 @@ function Rail({
           src={ChatterLoopImg}
           alt="ChatterLoop"
           style={{
-            width: 30,
-            height: 30,
-            filter: "brightness(0) invert(1)",
+            width: 32,
+            height: 32,
+            objectFit: "contain",
           }}
         />
       </div>
@@ -803,17 +765,7 @@ function Rail({
           borderRadius: "50%",
         }}
       >
-        <img
-          src={profileSrc}
-          alt=""
-          style={{
-            width: 38,
-            height: 38,
-            borderRadius: "50%",
-            objectFit: "cover",
-            border: "2px solid rgba(255,255,255,0.4)",
-          }}
-        />
+        <Avatar id={profileName} name={profileName} src={profileSrc} size={38} />
       </button>
     </nav>
   );
@@ -844,7 +796,7 @@ function MobileTopBar({
   toggleTheme,
 }: {
   onProfile: () => void;
-  profileSrc: string;
+  profileSrc?: string;
   searchbox: string;
   setsearchbox: (v: string) => void;
   onSearchFocus: () => void;

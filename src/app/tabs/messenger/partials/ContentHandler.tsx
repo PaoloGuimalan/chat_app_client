@@ -13,6 +13,7 @@ import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal";
 import { timeSince, urlify } from "@/reusables/hooks/reusable";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import { useTheme } from "@/reusables/design";
 
 function ContentHandler({
   i,
@@ -28,6 +29,7 @@ function ContentHandler({
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  const { theme: appTheme } = useTheme();
 
   const [toggleEmojiPicker, settoggleEmojiPicker] = useState<boolean>(false);
   const [reactions, setreactions] = useState<any[]>(
@@ -58,6 +60,26 @@ function ContentHandler({
 
     return "Someone";
   };
+
+  const formatMessageClock = (messageDate: any) => {
+    if (messageDate?.time) return messageDate.time;
+    if (messageDate?.date) return timeSince(messageDate.date);
+    return timeSince(messageDate);
+  };
+
+  const isCurrentUserSender = cnvs.sender === authentication.user.userID;
+  const reactionPillStyle =
+    isCurrentUserSender && appTheme === "dark"
+    ? {
+        backgroundColor: theme.primary,
+        color: "var(--on-brand)",
+        border: `1px solid ${theme.primary}`,
+      }
+    : {
+        backgroundColor: "color-mix(in srgb, var(--surface-2) 88%, var(--surface) 12%)",
+        color: "var(--text)",
+        border: "1px solid var(--border)",
+      };
 
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, {
@@ -126,7 +148,7 @@ function ContentHandler({
               theme={theme}
             />
           )}
-          <motion.span
+          <motion.div
             title={
               cnvs.messageDate.time
                 ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
@@ -135,33 +157,30 @@ function ContentHandler({
                   : timeSince(cnvs.messageDate)
             }
             initial={{
-              backgroundColor:
-                cnvs.sender == authentication.user.userID ? "white" : "white",
-              border:
-                cnvs.sender == authentication.user.userID
-                  ? "solid 1px ${theme.primary}"
-                  : "solid 1px rgb(222, 222, 222)",
-              color:
-                cnvs.sender == authentication.user.userID ? "white" : "#3b3b3b",
+              backgroundColor: "transparent",
+              border: "solid 1px var(--border)",
+              color: "var(--text-3)",
               // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
             }}
             animate={{
-              backgroundColor:
-                cnvs.sender == authentication.user.userID ? "white" : "white",
-              border:
-                cnvs.sender == authentication.user.userID
-                  ? "solid 1px rgb(222, 222, 222)"
-                  : "solid 1px rgb(222, 222, 222)",
-              color:
-                cnvs.sender == authentication.user.userID
-                  ? "rgb(222, 222, 222)"
-                  : "rgb(222, 222, 222)",
+              backgroundColor: "transparent",
+              border: "solid 1px var(--border)",
+              color: "var(--text-3)",
               // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
             }}
-            className="span_messages_result c1"
+            className="span_messages_result c1 cl-message-bubble cl-message-bubble--deleted tw-flex tw-flex-col tw-gap-[2px]"
           >
-            Message deleted
-          </motion.span>
+            <span>Message deleted</span>
+            <span
+              className={`cl-message-time ${
+                cnvs.sender == authentication.user.userID
+                  ? ""
+                  : "cl-message-time--incoming"
+              }`}
+            >
+              {formatMessageClock(cnvs.messageDate)}
+            </span>
+          </motion.div>
           {conversationsetup.type == "group" ||
           conversationsetup.type == "server"
             ? i === 0 &&
@@ -300,38 +319,47 @@ function ContentHandler({
                 backgroundColor:
                   cnvs.sender == authentication.user.userID
                     ? theme.primary
-                    : "rgb(222, 222, 222)",
+                    : "var(--surface)",
                 border:
                   cnvs.sender == authentication.user.userID
                     ? `solid 1px ${theme.primary}`
-                    : "solid 1px rgb(222, 222, 222)",
+                    : "solid 1px var(--border)",
                 color:
                   cnvs.sender == authentication.user.userID
                     ? "white"
-                    : "#3b3b3b",
+                    : "var(--text)",
                 // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
               }}
               animate={{
                 backgroundColor:
                   cnvs.sender == authentication.user.userID
                     ? theme.primary
-                    : "rgb(222, 222, 222)",
+                    : "var(--surface)",
                 border:
                   cnvs.sender == authentication.user.userID
                     ? `solid 1px ${theme.primary}`
-                    : "solid 1px rgb(222, 222, 222)",
+                    : "solid 1px var(--border)",
                 color:
                   cnvs.sender == authentication.user.userID
                     ? "white"
-                    : "#3b3b3b",
+                    : "var(--text)",
                 // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
               }}
-              className="span_messages_result c1 tw-mb-[7px]"
+              className="span_messages_result c1 cl-message-bubble cl-message-bubble--text tw-mb-[7px] tw-flex tw-flex-col tw-gap-[2px]"
             >
               <span
                 className="tw-whitespace-pre-line"
                 dangerouslySetInnerHTML={{ __html: urlify(cnvs.content) }}
               />
+              <span
+                className={`cl-message-time ${
+                  cnvs.sender == authentication.user.userID
+                    ? ""
+                    : "cl-message-time--incoming"
+                }`}
+              >
+                {formatMessageClock(cnvs.messageDate)}
+              </span>
               <div
                 className={`tw-w-full tw--mb-[15px] tw-mt-[5px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
                   cnvs.sender == authentication.user.userID
@@ -340,10 +368,8 @@ function ContentHandler({
                 }`}
               >
                 <div
-                  className="tw-w-fit tw-bg-white tw-rounded-[20px] tw-h-[20px] tw-text-[#3b3b3b] tw-pl-[2px] tw-pr-[2px]"
-                  style={{
-                    border: "solid 1px rgb(222, 222, 222)",
-                  }}
+                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
+                  style={reactionPillStyle}
                 >
                   {toggleEmojiPicker && (
                     <EmojiPickerHandler
@@ -590,10 +616,8 @@ function ContentHandler({
                 }`}
               >
                 <div
-                  className="tw-w-fit tw-bg-white tw-rounded-[20px] tw-h-[20px] tw-text-[#3b3b3b] tw-pl-[2px] tw-pr-[2px]"
-                  style={{
-                    border: "solid 1px rgb(222, 222, 222)",
-                  }}
+                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
+                  style={reactionPillStyle}
                 >
                   {toggleEmojiPicker && (
                     <EmojiPickerHandler
@@ -830,10 +854,8 @@ function ContentHandler({
                 }`}
               >
                 <div
-                  className="tw-w-fit tw-bg-white tw-rounded-[20px] tw-h-[20px] tw-text-[#3b3b3b] tw-pl-[2px] tw-pr-[2px]"
-                  style={{
-                    border: "solid 1px rgb(222, 222, 222)",
-                  }}
+                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
+                  style={reactionPillStyle}
                 >
                   {toggleEmojiPicker && (
                     <EmojiPickerHandler
@@ -1069,10 +1091,8 @@ function ContentHandler({
                 }`}
               >
                 <div
-                  className="tw-w-fit tw-bg-white tw-rounded-[20px] tw-h-[20px] tw-text-[#3b3b3b] tw-pl-[2px] tw-pr-[2px]"
-                  style={{
-                    border: "solid 1px rgb(222, 222, 222)",
-                  }}
+                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
+                  style={reactionPillStyle}
                 >
                   {toggleEmojiPicker && (
                     <EmojiPickerHandler
@@ -1306,7 +1326,13 @@ function ContentHandler({
                     window.open(cnvs.content, "_blank");
                   }
                 }}
-                className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
+                className="cl-message-file-card tw-w-full tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
+                style={{
+                  backgroundColor: "var(--surface-2)",
+                  color: "var(--text)",
+                  border: "1px solid var(--border)",
+                  boxSizing: "border-box",
+                }}
                 title={
                   cnvs.messageDate.time
                     ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
@@ -1334,10 +1360,8 @@ function ContentHandler({
                 }`}
               >
                 <div
-                  className="tw-w-fit tw-bg-white tw-rounded-[20px] tw-h-[20px] tw-text-[#3b3b3b] tw-pl-[2px] tw-pr-[2px]"
-                  style={{
-                    border: "solid 1px rgb(222, 222, 222)",
-                  }}
+                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
+                  style={reactionPillStyle}
                 >
                   {toggleEmojiPicker && (
                     <EmojiPickerHandler

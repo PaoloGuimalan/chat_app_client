@@ -82,10 +82,10 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
   return (
     <Modal
       component={
-        <div id="div_modal_container">
+        <div id="div_modal_container" className="cl-create-modal">
           {isSaving && (
             <div
-              className={`tw-z-[2] tw-absolute tw-h-[calc(98%-90px)] tw-max-h-[700px] tw-w-[calc(98%-20px)] tw-max-w-[calc(400px-20px)] tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}
+              className={`tw-z-[2] tw-absolute tw-h-[calc(98%-90px)] tw-max-h-[700px] tw-w-[calc(98%-20px)] tw-max-w-[calc(400px-20px)] tw-bg-[var(--surface)] tw-opacity-[0.88] tw-flex tw-items-center tw-justify-center`}
             >
               <div id="div_conversation_content_loader">
                 <motion.div
@@ -223,7 +223,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                 return (
                                   <motion.div
                                     whileHover={{
-                                      backgroundColor: "#e6e6e6",
+                                      backgroundColor: "var(--surface-hover)",
                                     }}
                                     key={i}
                                     className="div_cncts_cards"
@@ -310,7 +310,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                 return (
                                   <motion.div
                                     whileHover={{
-                                      backgroundColor: "#e6e6e6",
+                                      backgroundColor: "var(--surface-hover)",
                                     }}
                                     key={i}
                                     className="div_cncts_cards"

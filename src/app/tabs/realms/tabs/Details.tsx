@@ -64,12 +64,12 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
   };
 
   return (
-    <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-p-[20px] tw-gap-[20px]">
-      <div className="tw-flex tw-flex-col tw-items-start">
-        <span className="tw-text-[#383838] tw-text-[16px] tw-font-semibold tw-font-Inter">
+    <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-p-[18px] sm:tw-p-[24px] tw-gap-[18px] tw-bg-[var(--background)] tw-min-h-0">
+      <div className="tw-flex tw-flex-col tw-items-start tw-gap-[4px]">
+        <span className="tw-text-[var(--text)] tw-text-[20px] tw-font-semibold tw-font-Inter">
           Profile Details
         </span>
-        <span className="tw-text-[#383838] tw-text-[14px] tw-font-Inter">
+        <span className="tw-text-[var(--text-2)] tw-text-[14px] tw-font-Inter tw-max-w-[760px]">
           Manage your{" "}
           {realmState.type === "group" && realmState.parent
             ? "channel"
@@ -77,16 +77,16 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
           details. Keep information up to date.
         </span>
       </div>
-      <div className="tw-w-full tw-flex tw-flex-col tw-gap-[20px] tw-pb-[20px]">
+      <div className="tw-w-full tw-flex tw-flex-col tw-gap-[16px] tw-pb-[20px] tw-min-h-0">
         <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[10px]">
-          <span className="tw-text-[#383838] tw-text-[16px] tw-font-semibold tw-font-Inter">
+          <span className="tw-text-[var(--text)] tw-text-[16px] tw-font-semibold tw-font-Inter">
             Basic Details
           </span>
-          <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-[calc(100%-40px)] tw-bg-white tw-items-center tw-justify-start tw-rounded-md tw-p-[20px] tw-pb-[30px]">
-            <div className="tw-flex tw-flex-wrap tw-w-full tw-max-w-[700px] tw-gap-[10px]">
+          <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-full tw-max-w-[860px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-items-center tw-justify-start tw-rounded-[var(--r-md)] tw-p-[18px] sm:tw-p-[24px]">
+            <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-w-full tw-gap-[12px]">
               {currentPreset.includes("name") && (
-                <div className="tw-flex tw-flex-col tw-w-[calc(50%-20px)] tw-p-[4px] tw-items-start tw-gap-[6px]">
-                  <span className="tw-text-[#383838] tw-text-[14px] tw-font-semibold tw-font-Inter">
+                <div className="tw-flex tw-flex-col tw-w-full tw-items-start tw-gap-[6px]">
+                  <span className="tw-text-[var(--text)] tw-text-[14px] tw-font-semibold tw-font-Inter">
                     Name
                   </span>
                   <input
@@ -102,25 +102,25 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
                     }}
                     type="text"
                     placeholder="Name"
-                    className="tw-w-[calc(100%-14px)] tw-h-[35px] tw-rounded-md tw-border-[0px] tw-bg-[#ebebeb] tw-px-[7px] tw-font-Inter"
+                    className="tw-w-full tw-h-[42px] tw-rounded-[var(--r-md)] tw-border tw-border-[var(--border)] tw-bg-[var(--input)] tw-px-[12px] tw-font-Inter tw-text-[var(--text)] tw-outline-none focus:tw-border-[var(--brand)]"
                   />
                 </div>
               )}
               {currentPreset.includes("slug") && (
-                <div className="tw-flex tw-flex-col tw-w-[calc(50%-20px)] tw-p-[4px] tw-items-start tw-gap-[6px]">
-                  <span className="tw-text-[#383838] tw-text-[14px] tw-font-semibold tw-font-Inter">
+                <div className="tw-flex tw-flex-col tw-w-full tw-items-start tw-gap-[6px]">
+                  <span className="tw-text-[var(--text)] tw-text-[14px] tw-font-semibold tw-font-Inter">
                     Slug
                   </span>
                   <motion.input
                     initial={{
-                      border: errorFields.includes("slug")
-                        ? "2px solid red"
-                        : "0px",
+                      borderColor: errorFields.includes("slug")
+                        ? "var(--red)"
+                        : "var(--border)",
                     }}
                     animate={{
-                      border: errorFields.includes("slug")
-                        ? "2px solid red"
-                        : "0px",
+                      borderColor: errorFields.includes("slug")
+                        ? "var(--red)"
+                        : "var(--border)",
                     }}
                     disabled={isSaving}
                     onChange={(e) => {
@@ -134,13 +134,13 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
                     value={realmState.slug ?? ""}
                     type="text"
                     placeholder="Slug"
-                    className="tw-w-[calc(100%-14px)] tw-h-[35px] tw-rounded-md tw-bg-[#ebebeb] tw-px-[7px] tw-font-Inter"
+                    className="tw-w-full tw-h-[42px] tw-rounded-[var(--r-md)] tw-border tw-bg-[var(--input)] tw-px-[12px] tw-font-Inter tw-text-[var(--text)] tw-outline-none focus:tw-border-[var(--brand)]"
                   />
                 </div>
               )}
               {currentPreset.includes("description") && (
-                <div className="tw-flex tw-flex-col tw-w-[calc(100%-20px)] tw-p-[4px] tw-items-start tw-gap-[6px]">
-                  <span className="tw-text-[#383838] tw-text-[14px] tw-font-semibold tw-font-Inter">
+                <div className="tw-flex tw-flex-col tw-w-full tw-items-start tw-gap-[6px] md:tw-col-span-2">
+                  <span className="tw-text-[var(--text)] tw-text-[14px] tw-font-semibold tw-font-Inter">
                     Description
                   </span>
                   <textarea
@@ -152,16 +152,16 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
                           ...prev,
                           description: e.target.value,
                         };
-                      });
+                    });
                     }}
                     placeholder="Description"
-                    className="tw-w-[calc(100%-20px)] tw-h-[150px] tw-rounded-md tw-border-[0px] tw-bg-[#ebebeb] tw-p-[10px] tw-font-Inter"
+                    className="tw-w-full tw-min-h-[150px] tw-rounded-[var(--r-md)] tw-border tw-border-[var(--border)] tw-bg-[var(--input)] tw-p-[12px] tw-font-Inter tw-text-[var(--text)] tw-outline-none focus:tw-border-[var(--brand)]"
                   />
                 </div>
               )}
               {currentPreset.includes("email") && (
-                <div className="tw-flex tw-flex-col tw-w-[calc(50%-20px)] tw-p-[4px] tw-items-start tw-gap-[6px]">
-                  <span className="tw-text-[#383838] tw-text-[14px] tw-font-semibold tw-font-Inter">
+                <div className="tw-flex tw-flex-col tw-w-full tw-items-start tw-gap-[6px]">
+                  <span className="tw-text-[var(--text)] tw-text-[14px] tw-font-semibold tw-font-Inter">
                     Email
                   </span>
                   <input
@@ -177,13 +177,13 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
                     }}
                     type="text"
                     placeholder="Email"
-                    className="tw-w-[calc(100%-14px)] tw-h-[35px] tw-rounded-md tw-border-[0px] tw-bg-[#ebebeb] tw-px-[7px] tw-font-Inter"
+                    className="tw-w-full tw-h-[42px] tw-rounded-[var(--r-md)] tw-border tw-border-[var(--border)] tw-bg-[var(--input)] tw-px-[12px] tw-font-Inter tw-text-[var(--text)] tw-outline-none focus:tw-border-[var(--brand)]"
                   />
                 </div>
               )}
               {currentPreset.includes("privacy") && (
-                <div className="tw-flex tw-flex-col tw-w-[calc(50%-20px)] tw-p-[4px] tw-items-start tw-gap-[6px]">
-                  <span className="tw-text-[#383838] tw-text-[14px] tw-font-semibold tw-font-Inter">
+                <div className="tw-flex tw-flex-col tw-w-full tw-items-start tw-gap-[6px]">
+                  <span className="tw-text-[var(--text)] tw-text-[14px] tw-font-semibold tw-font-Inter">
                     Privacy
                   </span>
                   <select
@@ -197,20 +197,20 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
                         };
                       });
                     }}
-                    className="tw-w-[calc(100%-0px)] tw-h-[35px] tw-rounded-md tw-border-[0px] tw-bg-[#ebebeb] tw-px-[10px] tw-font-Inter"
+                    className="tw-w-full tw-h-[42px] tw-rounded-[var(--r-md)] tw-border tw-border-[var(--border)] tw-bg-[var(--input)] tw-px-[12px] tw-font-Inter tw-text-[var(--text)] tw-outline-none focus:tw-border-[var(--brand)]"
                   >
                     <option value={"false"}>Public</option>
                     <option value={"true"}>Private</option>
                   </select>
                 </div>
               )}
-              <div className="tw-flex tw-justify-center tw-gap-[5px] tw-w-full">
+              <div className="tw-flex tw-justify-end tw-gap-[10px] tw-w-full tw-pt-[8px]">
                 <button
                   disabled={isSaving}
                   onClick={() => {
                     setrealmState(realm);
                   }}
-                  className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#acacac] tw-text-white tw-border-white tw-rounded-[6px] tw-text-[12px]"
+                  className="tw-min-w-[92px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--surface-2)] tw-text-[var(--text)] tw-rounded-[var(--r-md)] tw-text-[13px] hover:tw-bg-[var(--surface-hover)] tw-transition-colors"
                 >
                   Reset
                 </button>
@@ -219,7 +219,7 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
                   disabled={
                     Object.keys(stateDifference).length === 0 || isSaving
                   }
-                  className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-border-white tw-rounded-[6px] tw-text-[12px]"
+                  className="tw-min-w-[92px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--brand)] tw-text-white tw-rounded-[var(--r-md)] tw-text-[13px] disabled:tw-opacity-[0.65] tw-transition-colors"
                 >
                   Save
                 </button>

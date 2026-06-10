@@ -14,6 +14,7 @@ import { genericpaginationstate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
 import SavedPostItem from "./SavedPostItem";
 import SavedPostItemLoader from "@/app/reusables/loaders/SavedPostItemLoader";
+import { Card } from "@/reusables/design";
 
 function SavesContainer({
   profileInfo,
@@ -102,7 +103,16 @@ function SavesContainer({
       {paginatedPosts.count > 0 ? (
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {posts.map((mp: ISavedPost) => {
-            return <SavedPostItem key={mp.id} savedPost={mp} />;
+            return (
+              <Card
+                pad={10}
+                style={{ marginBottom: 14, width: "100%" }}
+                key={mp.id}
+                className="tw-flex tw-justify-center tw-w-full"
+              >
+                <SavedPostItem key={mp.id} savedPost={mp} />
+              </Card>
+            );
           })}
         </div>
       ) : ispostsloaded ? (
@@ -117,7 +127,16 @@ function SavesContainer({
       ) : (
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {Array.from({ length: 8 }, (_, i: number) => {
-            return <SavedPostItemLoader key={i} />;
+            return (
+              <Card
+                pad={10}
+                style={{ marginBottom: 14, width: "100%" }}
+                key={i}
+                className="tw-flex tw-justify-center tw-w-full"
+              >
+                <SavedPostItemLoader key={i} />
+              </Card>
+            );
           })}
         </div>
       )}

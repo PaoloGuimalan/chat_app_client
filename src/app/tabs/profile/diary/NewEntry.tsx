@@ -249,24 +249,31 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
   const customStyles = {
     control: (base: any, _: any) => ({
       ...base,
-      // Main selection box styles
-      borderRadius: "7px",
-      backgroundColor: "#eaecef",
+      minHeight: "48px",
+      borderRadius: "var(--r-md)",
+      backgroundColor: "var(--surface-2)",
       cursor: "pointer",
       border: "none",
+      boxShadow: "none",
+      paddingLeft: "2px",
+      paddingRight: "2px",
     }),
 
     // Bonus: Single value inside selection
     singleValue: (base: any, _: any) => ({
       ...base,
-      color: "#1f2937",
+      color: "var(--text)",
       fontWeight: 500,
-      backgroundColor: "#eaecef",
+      backgroundColor: "var(--surface-2)",
     }),
 
     menu: (base: any, _: any) => ({
       ...base,
-      backgroundColor: "#eaecef",
+      backgroundColor: "var(--surface)",
+      border: "1px solid var(--border)",
+      boxShadow: "var(--shadow-sm)",
+      borderRadius: "var(--r-md)",
+      overflow: "hidden",
     }),
 
     menuList: (base: any) => ({
@@ -278,10 +285,10 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
         height: "0.45rem",
       },
       "::-webkit-scrollbar-track": {
-        backgroundColor: "rgba(0, 0, 0, 0.123)",
+        backgroundColor: "var(--surface-2)",
       },
       "::-webkit-scrollbar-thumb": {
-        backgroundColor: "grey",
+        backgroundColor: "var(--border-2)",
       },
     }),
   };
@@ -362,10 +369,10 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
   };
 
   return (
-    <div className="tw-flex tw-flex-col tw-gap-[15px] tw-h-auto tw-w-full tw-bg-white tw-rounded-[7px] tw-items-center tw-relative">
+    <div className="tw-flex tw-flex-col tw-gap-[16px] tw-h-auto tw-w-full tw-bg-[var(--surface)] tw-rounded-[var(--r-md)] tw-items-center tw-relative tw-min-h-0">
       {isSaving && (
         <div
-          className={`tw-absolute tw-h-full tw-w-full tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center tw-z-[100]`}
+          className={`tw-absolute tw-inset-0 tw-bg-[var(--surface)] tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center tw-z-[100]`}
         >
           <div id="div_conversation_content_loader">
             <motion.div
@@ -383,18 +390,18 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
           </div>
         </div>
       )}
-      <div className="tw-w-[calc(100%-40px)] tw-flex tw-items-center tw-h-[31px] tw-gap-[2px] tw-p-[18px] tw-pb-[2px] tw-pl-[20px] tw-pr-[20px]">
+      <div className="tw-w-full tw-flex tw-items-center tw-min-h-[56px] tw-gap-[8px] tw-px-[20px] tw-py-[14px] tw-border-b tw-border-[var(--border)]">
         {isMobileView && (
           <button
             onClick={() => {
               navigate(`/${params.userID}/diary`);
             }}
-            className="tw-items-center tw-justify-center tw-border-none tw-bg-transparent tw-h-[40px] tw-w-[40px]"
+            className="tw-flex tw-items-center tw-justify-center tw-border-none tw-bg-transparent tw-h-[40px] tw-w-[40px] tw-rounded-full tw-text-[var(--text)]"
           >
-            <IoArrowBack style={{ fontSize: "20px" }} />
+            <IoArrowBack style={{ fontSize: "20px", color: "var(--text)" }} />
           </button>
         )}
-        <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+        <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
           Create New Entry
         </span>
         <div className="tw-flex tw-flex-1 tw-justify-end">
@@ -402,21 +409,22 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
             <button
               disabled={isSaving}
               onClick={SaveNewEntry}
-              className="tw-cursor-pointer tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]"
+              className="tw-cursor-pointer tw-h-[38px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-rounded-[var(--r-md)] tw-pl-[12px] tw-pr-[12px] tw-items-center tw-flex tw-gap-[6px] tw-text-[var(--text)]"
             >
-              <FaSave size={18} />
-              <span className="tw-text-[12px] tw-font-Inter tw-font-semibold">
+              <FaSave size={18} color="var(--text)" />
+              <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
                 Save
               </span>
             </button>
           )}
         </div>
       </div>
-      <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
+      <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-px-[20px] tw-gap-[12px]">
         <input
           disabled={isSaving}
           id="input_title_name"
           type="text"
+          className="tw-h-[50px] tw-rounded-xl"
           value={newEntryData.title}
           onChange={(event) => {
             setnewEntryData((prev: INewEntry) => {
@@ -452,7 +460,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
           />
         )}
       </div>
-      <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-flex-col tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
+      <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-flex-col tw-px-[20px] tw-gap-[12px]">
         {isMobileView && (
           <AsyncPaginate
             isDisabled={isSaving}
@@ -502,8 +510,8 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
           className="tw-text-[12px] tw-font-Inter tw-text-left t-scroll tw-flex-1"
         />
       </div>
-      <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
-        <div className="tw-w-full tw-min-h-[300px] tw-bg-[#eaecef] tw-rounded-[7px] my-editor-wrapper">
+      <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-px-[20px]">
+        <div className="tw-w-full tw-min-h-[300px] tw-bg-[var(--surface-2)] tw-rounded-[var(--r-md)] my-editor-wrapper tw-border tw-border-[var(--border)]">
           <ReactQuill
             readOnly={isSaving}
             modules={modules}
@@ -516,11 +524,11 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
                 };
               });
             }}
-            className="tw-w-full tw-rounded-[7px] tw-h-[calc(100%-42px)]"
+            className="tw-w-full tw-rounded-[var(--r-md)] tw-h-[calc(100%-42px)]"
           />
         </div>
       </div>
-      <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-flex-row tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
+      <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-flex-row tw-px-[20px] tw-gap-[12px]">
         <div className="tw-flex tw-flex-1">
           <DatePicker
             autoComplete="off"
@@ -544,7 +552,8 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
             placeholderText="Select Entry Date"
             dateFormat="MMMM d, yyyy"
             id="input_entry_date"
-            className="tw-font-Inter"
+            calendarClassName="cl-diary-datepicker"
+            className="tw-font-Inter tw-h-[50px]"
           />
         </div>
         <div className="tw-flex tw-flex-1">
@@ -585,32 +594,32 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
           />
         </div>
       </div>
-      <div className="tw-w-[calc(100%-40px)] tw-max-w-[1200px] tw-flex tw-flex-col tw-p-[10px] tw-pl-[20px] tw-pr-[20px] tw-gap-[10px]">
+      <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-flex-col tw-px-[20px] tw-py-[10px] tw-gap-[12px]">
         <div className="tw-w-full tw-flex tw-items-center tw-justify-between">
-          <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+          <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
             Attachments
           </span>
           <button
             disabled={isSaving}
             onClick={sendNonImageFilesProcess}
-            className="tw-cursor-pointer tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]"
+            className="tw-cursor-pointer tw-h-[38px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-rounded-[var(--r-md)] tw-pl-[12px] tw-pr-[12px] tw-items-center tw-flex tw-gap-[6px] tw-text-[var(--text)]"
           >
-            <BiSolidImageAdd size={18} />
-            <span className="tw-text-[12px] tw-font-Inter tw-font-semibold">
+            <BiSolidImageAdd size={18} color="var(--text)" />
+            <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
               Add Attachments
             </span>
           </button>
         </div>
-        <div className="tw-bg-[#f7f7f9] tw-w-full tw-flex tw-min-h-[300px] tw-rounded-[7px] tw-items-center tw-justify-center">
+        <div className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-w-full tw-flex tw-min-h-[300px] tw-rounded-[var(--r-md)] tw-items-center tw-justify-center tw-p-[12px]">
           {medialist.length === 0 ? (
             <div className="tw-flex tw-gap-[10px] tw-flex-col tw-items-center">
-              <MdImageNotSupported size={70} color="#808080" />
-              <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[#808080]">
+              <MdImageNotSupported size={70} color="var(--text-2)" />
+              <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[var(--text-2)]">
                 No Attachments Yet
               </span>
             </div>
           ) : (
-            <div className="tw-flex tw-gap-[10px] tw-flex-row tw-flex-wrap tw-items-center tw-justify-center">
+            <div className="tw-flex tw-gap-[10px] tw-flex-row tw-flex-wrap tw-items-center tw-justify-center tw-w-full">
               {medialist.map((attachment: IPendingEntryAttachment) => {
                 return (
                   <PendingAttachmentItem

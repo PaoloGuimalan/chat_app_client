@@ -2,44 +2,45 @@ import Skeleton from "react-loading-skeleton";
 
 function NotificationItemLoader() {
   return (
-    <div className="div_ntfs_cards">
-      <div id="div_img_ntfs_container">
-        <div id="div_img_search_profiles_container_ntfs">
-          <Skeleton
-            circle
-            height="45px"
-            width="45px"
-            className="img_search_profiles_ntfs"
-            baseColor="rgb(210, 210, 210)"
-          />
-        </div>
-      </div>
-      <div id="div_ntfs_content">
+    <div className="cl-notification-row cl-notification-row--loading">
+      <div className="cl-notification-row__avatar">
         <Skeleton
-          containerClassName="tw-w-full tw-max-w-[150px]"
-          //   width="100%"
-          height="10px"
-          baseColor="rgb(210, 210, 210)"
+          circle
+          height="44px"
+          width="44px"
+          className="img_search_profiles_ntfs"
+          baseColor="var(--surface-3)"
+          highlightColor="var(--surface-hover)"
+        />
+      </div>
+      <div className="cl-notification-row__content">
+        <Skeleton
+          containerClassName="tw-w-full tw-max-w-[160px]"
+          height="12px"
+          baseColor="var(--surface-3)"
+          highlightColor="var(--surface-hover)"
           count={1}
         />
         <Skeleton
           containerClassName="tw-w-full"
-          //   width="100%"
-          height="15px"
-          baseColor="rgb(210, 210, 210)"
+          height="16px"
+          baseColor="var(--surface-3)"
+          highlightColor="var(--surface-hover)"
           count={2}
         />
-        <div className="tw-flex tw-flex-row tw-h-[20px] tw-w-full tw-gap-[5px]">
+        <div className="cl-notification-row__meta">
           <Skeleton
             containerClassName="tw-w-full tw-max-w-[80px]"
-            height="15px"
-            baseColor="rgb(210, 210, 210)"
+            height="14px"
+            baseColor="var(--surface-3)"
+            highlightColor="var(--surface-hover)"
             count={1}
           />
           <Skeleton
             containerClassName="tw-w-full tw-max-w-[80px]"
-            height="15px"
-            baseColor="rgb(210, 210, 210)"
+            height="14px"
+            baseColor="var(--surface-3)"
+            highlightColor="var(--surface-hover)"
             count={1}
           />
         </div>

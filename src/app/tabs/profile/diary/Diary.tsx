@@ -153,29 +153,23 @@ function Diary() {
   }
 
   return (
-    <div className="tw-bg-[#d8d8da] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-hidden x-scroll">
-      <div className="tw-flex tw-items-center tw-gap-[5px] tw-pt-[10px] tw-pl-[20px] tw-pr-[20px] sm:tw-left-[20px] tw-w-[calc(100%-40px)] tw-h-full tw-min-h-[50px] tw-max-h-[50px]">
+    <div className="tw-bg-[var(--background)] tw-text-[var(--text)] tw-w-full tw-h-full tw-absolute tw-inset-0 tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-hidden x-scroll">
+      <div className="tw-flex tw-items-center tw-gap-[8px] tw-pt-[10px] tw-pl-[18px] tw-pr-[18px] sm:tw-pl-[24px] sm:tw-pr-[24px] tw-w-[calc(100%-36px)] sm:tw-w-[calc(100%-48px)] tw-h-full tw-min-h-[60px] tw-max-h-[60px]">
         <button
           onClick={() => {
             navigate(`/${params.userID}`);
           }}
-          className="tw-z-[10] tw-shadow-lg tw-bg-[#f0f2f5] tw-h-full tw-min-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
+          className="tw-z-[10] tw-shadow-sm tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-h-full tw-min-w-[50px] tw-rounded-[50px] tw-flex tw-items-center tw-justify-center tw-text-[var(--text)] tw-cursor-pointer"
         >
-          <IoArrowBack
-            style={{ fontSize: "20px" }}
-            className="tw-text-[#7f7f85]"
-          />
+          <IoArrowBack style={{ fontSize: "20px", color: "var(--text)" }} />
         </button>
         <button
           onClick={() => {
             navigate("/");
           }}
-          className="tw-z-[10] tw-shadow-lg tw-bg-[#f0f2f5] tw-h-full tw-min-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
+          className="tw-z-[10] tw-shadow-sm tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-h-full tw-min-w-[50px] tw-rounded-[50px] tw-flex tw-items-center tw-justify-center tw-text-[var(--text)] tw-cursor-pointer"
         >
-          <AiOutlineHome
-            style={{ fontSize: "22px" }}
-            className="tw-text-[#7f7f85]"
-          />
+          <AiOutlineHome style={{ fontSize: "22px", color: "var(--text)" }} />
         </button>
         <TypeAnimation
           sequence={[
@@ -199,7 +193,7 @@ function Diary() {
           wrapper="span"
           speed={80}
           style={{ fontSize: "14px", width: "fit" }}
-          className="tw-whitespace-nowrap tw-font-semibold tw-font-Inter tw-pl-[5px]"
+          className="tw-whitespace-nowrap tw-font-semibold tw-font-Inter tw-pl-[5px] tw-text-[var(--text)]"
           cursor={false}
           // repeat={Infinity}
         />
@@ -207,7 +201,7 @@ function Diary() {
           {authentication.user.profile === "none" ? (
             <div
               id="img_default_profile_container"
-              className="tw-shadow-lg tw-bg-[#f0f2f5] tw-w-[45px] tw-h-[45px] tw-max-w-[45px] tw-max-h-[45px]"
+              className="tw-shadow-sm tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-w-[45px] tw-h-[45px] tw-max-w-[45px] tw-max-h-[45px]"
             >
               <CachedImage
                 src={DefaultProfile}
@@ -217,23 +211,23 @@ function Diary() {
           ) : (
             <CachedImage
               src={authentication.user.profile}
-              className="tw-w-[45px] tw-h-[45px] tw-rounded-full tw-shadow-lg tw-bg-[#f0f2f5]"
+              className="tw-w-[45px] tw-h-[45px] tw-rounded-full tw-shadow-sm tw-bg-[var(--surface)] tw-border tw-border-[var(--border)]"
               id="img_actual_profile"
             />
           )}
         </div>
       </div>
       <div
-        className={`tw-h-[calc(100%-90px)] tw-flex tw-items-end tw-pb-[15px] ${
+        className={`tw-flex tw-flex-1 tw-min-h-0 tw-items-end tw-pb-[16px] tw-pt-[8px] ${
           isMobileView
-            ? "tw-pl-[10px] tw-pr-[10px] tw-w-[calc(100%-20px)]"
-            : "tw-w-[calc(100%-40px)]"
-        } tw-pt-[10px]`}
+            ? "tw-px-[12px] tw-w-full"
+            : "tw-px-[20px] sm:tw-px-[24px] tw-w-full"
+        }`}
       >
         <div
           className={`tw-bg-transparent ${
-            isMobileView ? "tw-gap-[0px]" : "tw-gap-[7px]"
-          } tw-w-full tw-h-full tw-rounded-xl tw-flex`}
+            isMobileView ? "tw-gap-[0px]" : "tw-gap-[12px]"
+          } tw-w-full tw-h-full tw-min-h-0 tw-rounded-xl tw-flex`}
         >
           <motion.div
             initial={{
@@ -260,11 +254,11 @@ function Diary() {
                   : "100%"
                 : "350px",
             }}
-            className="tw-flex tw-flex-col tw-overflow-x-hidden tw-overflow-y-auto t-scroll tw-bg-white tw-rounded-[7px] tw-items-center tw-pb-[15px]"
+            className="tw-pt-[20px] tw-flex tw-flex-col tw-overflow-x-hidden tw-overflow-y-auto t-scroll tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-items-center tw-pb-[15px] tw-min-h-0"
             ref={divcontentRef}
           >
-            <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[18px] tw-min-h-[30px] tw-pl-[20px] tw-pr-[20px] tw-items-center tw-justify-between">
-              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-whitespace-nowrap">
+            <div className="tw-w-full tw-flex tw-py-[14px] tw-px-[18px] tw-min-h-[30px] tw-items-center tw-justify-between tw-border-b tw-border-[var(--border)]">
+              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-whitespace-nowrap tw-text-[var(--text)]">
                 Your Entries
               </span>
               {(isMobileView || (entry_id !== null && entry_id !== "new")) && (
@@ -272,22 +266,23 @@ function Diary() {
                   onClick={() => {
                     navigate(`/${params.userID}/diary?entry_id=new`);
                   }}
-                  className="tw-h-[35px] tw-border-none tw-rounded-md tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px]"
+                  className="tw-h-[35px] tw-border-none tw-rounded-[var(--r-md)] tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px] tw-bg-[var(--surface-2)] tw-text-[var(--text)]"
                 >
-                  <FaPen />
-                  <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-cursor-pointer">
+                  <FaPen color="var(--text)" />
+                  <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-cursor-pointer tw-text-[var(--text)]">
                     Write an Entry
                   </span>
                 </button>
               )}
             </div>
-            <div className="tw-w-[calc(100%-40px)] tw-flex tw-p-[0px] tw-pl-[20px] tw-pr-[20px]">
+            <div className="cl-diary-page__search-shell tw-w-full tw-flex tw-px-[18px] tw-pt-[10px]">
               <div id="div_input_container">
                 <AiOutlineSearch
-                  style={{ fontSize: "20px", color: "#4A4A4A" }}
+                  style={{ fontSize: "20px", color: "var(--text-2)" }}
                 />
                 <input
                   id="input_gc_name"
+                  className="tw-border-none"
                   type="text"
                   placeholder="Search an entry"
                 />
@@ -295,7 +290,7 @@ function Diary() {
             </div>
             {isLoaded ? (
               entries.count > 0 ? (
-                <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-pt-[20px] tw-w-[calc(100%-40px)]">
+                <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-px-[20px] tw-pt-[20px] tw-w-full">
                   {entriesByDate.map(
                     (
                       mp_grouped: { date: string; entries: IEntry[] },
@@ -306,7 +301,7 @@ function Diary() {
                         return (
                           <motion.div
                             whileHover={{
-                              boxShadow: "0px 0px 5px 0px #808080",
+                              boxShadow: "var(--shadow-sm)",
                             }}
                             key={mp.id}
                             onClick={() => {
@@ -314,27 +309,27 @@ function Diary() {
                                 `/${params.userID}/diary?entry_id=${mp.id}`,
                               );
                             }}
-                            className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px] tw-select-none tw-cursor-pointer"
+                            className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none tw-w-full tw-rounded-[var(--r-md)] tw-p-[12px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[4px] tw-select-none tw-cursor-pointer"
                           >
-                            <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
-                              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left">
+                            <div className="tw-w-full tw-flex tw-justify-between tw-items-start tw-gap-[8px]">
+                              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left tw-text-[var(--text)]">
                                 {mp.title}
                               </span>
                               {mp.mood && (
-                                <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap">
+                                <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap">
                                   {mp.mood.emoji} {mp.mood.name}
                                 </span>
                               )}
                             </div>
                             {mp.tag_objects.length > 0 && (
-                              <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px]">
+                              <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[8px]">
                                 {mp.tag_objects.map((mp: IEntryTag) => {
                                   return (
                                     <div
                                       key={mp.id}
-                                      className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                                      className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
                                     >
-                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
                                         {mp.name}
                                       </span>
                                     </div>
@@ -346,8 +341,8 @@ function Diary() {
                               className="tw-text-[12px] tw-font-Inter tw-text-left tw-overflow-hidden tw-text-ellipsis"
                               dangerouslySetInnerHTML={{ __html: mp.content }}
                             ></span>
-                            <div className="tw-w-full tw-flex tw-pt-[10px] tw-pb-[5px]">
-                              <span className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]">
+                            <div className="tw-w-full tw-flex tw-pt-[8px] tw-pb-[2px]">
+                              <span className="tw-text-[11px] span_messages_list_name tw-text-[var(--text-2)]">
                                 {formattedDateToWords(
                                   mp.entry_date,
                                   "YYYY-MM-DD",
@@ -367,10 +362,10 @@ function Diary() {
                         return (
                           <motion.div
                             key={i}
-                            className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-min-h-[185px] tw-gap-[2px] tw-select-none tw-cursor-pointer"
+                            className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none tw-w-full tw-rounded-[var(--r-md)] tw-p-[12px] tw-flex tw-flex-col tw-items-start tw-min-h-[185px] tw-gap-[4px] tw-select-none tw-cursor-pointer"
                           >
-                            <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
-                              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left">
+                            <div className="tw-w-full tw-flex tw-justify-between tw-items-start tw-gap-[8px]">
+                              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left tw-text-[var(--text)]">
                                 {formattedDateToWords(
                                   mp_grouped.date,
                                   "YYYY-MM-DD",
@@ -378,14 +373,14 @@ function Diary() {
                               </span>
                             </div>
                             {tag_objects.length > 0 && (
-                              <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px] tw-pb-[10px]">
+                              <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[8px] tw-pb-[8px]">
                                 {tag_objects.map((mp: IEntryTag) => {
                                   return (
                                     <div
                                       key={mp.id}
-                                      className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                                      className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
                                     >
-                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
                                         {mp.name}
                                       </span>
                                     </div>
@@ -393,12 +388,12 @@ function Diary() {
                                 })}
                               </div>
                             )}
-                            <div className="tw-w-full tw-flex tw-flex-col tw-gap-[4px]">
+                            <div className="tw-w-full tw-flex tw-flex-col tw-gap-[6px]">
                               {mp_grouped.entries.map((mp: IEntry) => {
                                 return (
                                   <motion.div
                                     whileHover={{
-                                      boxShadow: "0px 0px 5px 0px #808080",
+                                      boxShadow: "var(--shadow-sm)",
                                     }}
                                     key={mp.id}
                                     onClick={() => {
@@ -406,14 +401,14 @@ function Diary() {
                                         `/${params.userID}/diary?entry_id=${mp.id}`,
                                       );
                                     }}
-                                    className="tw-min-h-[0px] tw-bg-white tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px] tw-select-none tw-cursor-pointer"
+                                    className="tw-min-h-[0px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-w-full tw-rounded-[var(--r-md)] tw-p-[12px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[4px] tw-select-none tw-cursor-pointer"
                                   >
-                                    <div className="tw-w-full tw-flex tw-justify-between tw-pt-[0px] tw-items-center">
-                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-left">
+                                    <div className="tw-w-full tw-flex tw-justify-between tw-items-start tw-gap-[8px]">
+                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-left tw-text-[var(--text)]">
                                         {mp.title}
                                       </span>
                                       {mp.mood && (
-                                        <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap">
+                                        <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap">
                                           {mp.mood.emoji} {mp.mood.name}
                                         </span>
                                       )}
@@ -422,8 +417,8 @@ function Diary() {
                                 );
                               })}
                             </div>
-                            <div className="tw-w-full tw-flex tw-pt-[10px] tw-pb-[5px]">
-                              <span className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]">
+                            <div className="tw-w-full tw-flex tw-pt-[8px] tw-pb-[2px]">
+                              <span className="tw-text-[11px] span_messages_list_name tw-text-[var(--text-2)]">
                                 {mp_grouped.entries.length} entries
                               </span>
                             </div>
@@ -435,56 +430,62 @@ function Diary() {
                 </div>
               ) : (
                 <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-pt-[50px]">
-                  <TbBookOff size={70} color="#808080" />
-                  <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[#808080]">
+                  <TbBookOff size={70} color="var(--text-2)" />
+                  <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[var(--text-2)]">
                     No Entries Made Yet
                   </span>
                 </div>
               )
             ) : (
-              <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-pt-[10px] tw-w-[calc(100%-40px)]">
+              <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-px-[20px] tw-pt-[10px] tw-w-full">
                 {Array.from({ length: 3 }).map((_, i: number) => {
                   return (
                     <div
                       key={i}
-                      className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px]"
+                      className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none tw-w-full tw-rounded-[var(--r-md)] tw-p-[12px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[4px]"
                     >
                       <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
                         <Skeleton
                           containerClassName="tw-w-full tw-max-w-[150px]"
                           height={"22px"}
                           className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left tw-w-full"
-                          baseColor="rgb(210, 210, 210)"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                         <Skeleton
                           width="80px"
                           height={"22px"}
-                          className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                       </div>
                       <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px]">
                         <Skeleton
                           width={"60px"}
-                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                         <Skeleton
                           width={"60px"}
-                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                         <Skeleton
                           width={"60px"}
-                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                       </div>
-                      <div className="tw-w-[calc(100%-20px)] tw-pt-[8px]">
+                      <div className="tw-w-full tw-pt-[8px]">
                         <Skeleton
                           height={"12px"}
-                          className="tw-p-[4px] tw-mt-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-p-[4px] tw-mt-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                           count={3}
                         />
                       </div>
@@ -492,8 +493,9 @@ function Diary() {
                         <Skeleton
                           height={"12px"}
                           width={"100px"}
-                          className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-text-[11px] span_messages_list_name tw-text-[var(--text-2)]"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                       </div>
                     </div>
@@ -504,50 +506,56 @@ function Diary() {
             {entries.next && (
               <div
                 ref={divlazyloaderRef}
-                className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-p-[0px] tw-pl-[20px] tw-pr-[20px] tw-pt-[10px] tw-w-[calc(100%-40px)]"
+                className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-px-[20px] tw-pt-[10px] tw-w-full"
               >
                 {Array.from({ length: 3 }).map((_, i: number) => {
                   return (
                     <div
                       key={i}
-                      className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-[7px] tw-p-[10px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[2px]"
+                      className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none tw-w-full tw-rounded-[var(--r-md)] tw-p-[12px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[4px]"
                     >
-                      <div className="tw-w-full tw-flex tw-justify-between tw-pt-[5px] tw-items-center">
+                      <div className="tw-w-full tw-flex tw-justify-between tw-items-start tw-gap-[8px]">
                         <Skeleton
                           containerClassName="tw-w-full tw-max-w-[150px]"
                           height={"22px"}
                           className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left tw-w-full"
-                          baseColor="rgb(210, 210, 210)"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                         <Skeleton
                           width="80px"
                           height={"22px"}
-                          className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[#5a5a5a] tw-whitespace-nowrap"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                       </div>
                       <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[4px] tw-pt-[10px]">
                         <Skeleton
                           width={"60px"}
-                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                         <Skeleton
                           width={"60px"}
-                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                         <Skeleton
                           width={"60px"}
-                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                       </div>
-                      <div className="tw-w-[calc(100%-20px)] tw-pt-[8px]">
+                      <div className="tw-w-full tw-pt-[8px]">
                         <Skeleton
                           height={"12px"}
-                          className="tw-p-[4px] tw-mt-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-p-[4px] tw-mt-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                           count={3}
                         />
                       </div>
@@ -555,8 +563,9 @@ function Diary() {
                         <Skeleton
                           height={"12px"}
                           width={"100px"}
-                          className="tw-text-[11px] span_messages_list_name tw-text-[#5a5a5a]"
-                          baseColor="rgb(210, 210, 210)"
+                          className="tw-text-[11px] span_messages_list_name tw-text-[var(--text-2)]"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
                         />
                       </div>
                     </div>
@@ -590,7 +599,7 @@ function Diary() {
                   : "0px"
                 : "none",
             }}
-            className="tw-flex tw-flex-col tw-gap-[15px] tw-overflow-x-hidden tw-overflow-y-auto t-scroll tw-bg-white tw-rounded-[7px] tw-items-center"
+            className="tw-flex tw-flex-col tw-gap-[15px] tw-overflow-x-hidden tw-overflow-y-auto t-scroll tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-items-center"
           >
             {entry_id === null || entry_id === "new" ? (
               <NewEntry

@@ -190,9 +190,11 @@ function ContactMember({
   );
 
   return (
-    <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
-      <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
-        <span className="tw-text-[14px] tw-font-semibold">{label}</span>
+    <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-transparent tw-flex">
+      <div className="tw-w-full tw-p-[18px] sm:tw-p-[24px] tw-flex tw-flex-col tw-items-start tw-gap-[15px] tw-bg-transparent tw-min-h-0">
+        <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text)]">
+          {label}
+        </span>
         <div id="div_modal_input_columns_add_people" className="tw-w-full">
           <div id="div_input_filter_container">
             <span id="span_input_label">Add People</span>
@@ -257,23 +259,23 @@ function ContactMember({
             <motion.div
               id="div_contacts_select_container"
               ref={divcontentRef}
-              className="scroller"
+              className="scroller tw-pr-[8px]"
             >
               {isRealm &&
               (type === "channel" || type === "voice") &&
               parentRealmID ? (
-                <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px]">
-                  <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-fit">
+                <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px] tw-gap-[8px]">
+                  <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-fit tw-gap-[8px]">
                     {memberslist.map((cnts: IRealmMember, i: number) => {
                       if (cnts.account.id !== authentication.user.userID) {
                         if (!excludeIDs.includes(cnts.account.id)) {
                           return (
                             <motion.div
                               whileHover={{
-                                backgroundColor: "#e6e6e6",
+                                backgroundColor: "var(--surface-hover)",
                               }}
                               key={i}
-                              className="div_realm_members_cards"
+                              className="div_realm_members_cards tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none"
                               title={`${cnts.account.first_name}${
                                 cnts.account.middle_name == "N/A"
                                   ? ""
@@ -342,8 +344,8 @@ function ContactMember({
                   </div>
                 </div>
               ) : (
-                <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px]">
-                  <div className="tw-w-full tw-flex tw-flex-col sm:tw-flex-row tw-flex-wrap tw-h-fit">
+                <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px] tw-gap-[8px]">
+                  <div className="tw-w-full tw-flex tw-flex-col sm:tw-flex-row tw-flex-wrap tw-h-fit tw-gap-[8px]">
                     {contactslist.map((cnts: IContact, i: number) => {
                       if (cnts.type == "single") {
                         if (cnts.action_by && cnts.involved_user) {
@@ -357,10 +359,10 @@ function ContactMember({
                               return (
                                 <motion.div
                                   whileHover={{
-                                    backgroundColor: "#e6e6e6",
+                                    backgroundColor: "var(--surface-hover)",
                                   }}
                                   key={i}
-                                  className="div_realm_members_cards"
+                                  className="div_realm_members_cards tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none"
                                   title={`${cnts.involved_user.first_name}${
                                     cnts.involved_user.middle_name == "N/A"
                                       ? ""
@@ -436,10 +438,10 @@ function ContactMember({
                               return (
                                 <motion.div
                                   whileHover={{
-                                    backgroundColor: "#e6e6e6",
+                                    backgroundColor: "var(--surface-hover)",
                                   }}
                                   key={i}
-                                  className="div_realm_members_cards"
+                                  className="div_realm_members_cards tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none"
                                   title={`${cnts.action_by.first_name}${
                                     cnts.action_by.middle_name == "N/A"
                                       ? ""

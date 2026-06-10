@@ -13,11 +13,10 @@ import {
   SearchRequest,
 } from "../../reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
-import DefaultProfile from "../../assets/imgs/default.png";
 import { UserSearchResult } from "@/reusables/vars/interfaces";
 // import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { useNavigate } from "react-router-dom";
-import CachedImage from "../reusables/cachers/CachedImage";
+import { Avatar } from "@/reusables/design";
 
 function SearchMiniDrawer({
   searchbox,
@@ -174,12 +173,13 @@ function SearchMiniDrawer({
                 className="div_search_profiles_results"
               >
                 <div id="div_img_search_profiles_container">
-                  <CachedImage
-                    src={srch.profile == "none" ? DefaultProfile : srch.profile}
-                    className={
-                      srch.profile == "none" ? "img_search_profiles_ntfs" : ""
-                    }
-                    id={srch.profile == "none" ? "" : "img_actual_profile"}
+                  <Avatar
+                    id={srch.id}
+                    name={`${srch.first_name} ${
+                      srch.middle_name === "N/A" ? "" : `${srch.middle_name} `
+                    }${srch.last_name}`}
+                    src={srch.profile === "none" ? undefined : srch.profile}
+                    size={40}
                   />
                 </div>
                 <div

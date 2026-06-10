@@ -1,6 +1,7 @@
 // import { persistAndReturnImage } from "@/reusables/hooks/localforagehelper";
 import { CachedImageProp } from "@/reusables/vars/props";
 import { forwardRef, LegacyRef, useEffect, useState } from "react";
+import DefaultProfile from "../../../assets/imgs/default.png";
 
 const CachedImage = forwardRef(
   (
@@ -44,7 +45,11 @@ const CachedImage = forwardRef(
           onLoad={onLoad}
           onClick={onClick}
           onError={() => {
-            setonError(true);
+            if (workingURL !== DefaultProfile) {
+              setworkingURL(DefaultProfile);
+            } else {
+              setonError(true);
+            }
           }}
         />
       ))

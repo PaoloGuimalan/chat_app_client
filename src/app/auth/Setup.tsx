@@ -50,6 +50,7 @@ function GenderButton({
         background: active ? GENDER_ACTIVE[value] : "var(--surface)",
         color: active ? "#fff" : "var(--text-2)",
         transition: "all .14s",
+        width: "100%",
       }}
     >
       {value}
@@ -294,8 +295,9 @@ function Setup() {
                 <div
                   style={{
                     display: "grid",
-                    gridTemplateColumns: "1.3fr 1fr 1fr",
-                    gap: 10,
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: 12,
+                    width: "100%",
                   }}
                 >
                   <SelectField icon="event" value={month} onChange={setmonth}>
@@ -341,7 +343,14 @@ function Setup() {
                 >
                   Gender
                 </span>
-                <div style={{ display: "flex", gap: 8 }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                    gap: 10,
+                    width: "100%",
+                  }}
+                >
                   {(["Male", "Female", "Others"] as const).map((g) => (
                     <GenderButton
                       key={g}

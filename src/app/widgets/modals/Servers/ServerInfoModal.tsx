@@ -4,8 +4,6 @@ import Modal from "@/app/reusables/Modal";
 import { ServerInfoModalProp } from "@/reusables/vars/props";
 import { motion } from "framer-motion";
 import { IoMdClose } from "react-icons/io";
-import DefaultProfile from "../../../../assets/imgs/default.png";
-import ServerIcon from "../../../../assets/imgs/servericon.png";
 import { useState } from "react";
 import { IoCheckmark, IoClose } from "react-icons/io5";
 import { MdOutlineGroupAdd } from "react-icons/md";
@@ -22,7 +20,8 @@ import {
 } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
+import ServerAvatar from "@/reusables/design/ServerAvatar";
+import { Avatar } from "@/reusables/design";
 
 function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   const authentication: AuthenticationInterface = useSelector(
@@ -88,42 +87,31 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
             <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">
               Server
             </span>
-            <button
-              onClick={() => {
-                onclose(false);
-              }}
-              className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
-            >
-              <IoMdClose style={{ fontSize: "17px" }} />
-            </button>
+              <button
+                onClick={() => {
+                  onclose(false);
+                }}
+                className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--text)]"
+              >
+                <IoMdClose style={{ fontSize: "17px" }} />
+              </button>
           </div>
           <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-flex tw-h-[calc(100%-70px)] tw-flex-col tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-y-scroll lg:tw-overflow-y-none thinscroller">
             <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-items-center tw-overflow-y-none thinscroller">
               <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-flex-col tw-items-center tw-gap-[10px]">
                 <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
                   <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
-                    <CachedImage
+                    <ServerAvatar
+                      name={serverdetails.serverName}
                       src={
                         serverdetails &&
                         serverdetails.profile &&
                         serverdetails.profile !== "N/A"
                           ? serverdetails.profile
-                          : ServerIcon
+                          : null
                       }
-                      id={
-                        serverdetails &&
-                        serverdetails.profile &&
-                        serverdetails.profile !== "N/A"
-                          ? "img_actual_profile_main"
-                          : ""
-                      }
-                      className={
-                        serverdetails &&
-                        serverdetails.profile &&
-                        serverdetails.profile !== "N/A"
-                          ? ""
-                          : "img_gc_profiles_ntfs"
-                      }
+                      size={120}
+                      shape="circle"
                     />
                   </div>
                 </div>
@@ -135,21 +123,22 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                     onClick={() => {
                       navigate(`/realms/${serverdetails.serverID}`);
                     }}
-                    className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#e69500] tw-text-white tw-border-[#e69500] tw-rounded-[6px] tw-text-[12px]"
+                    className="cl-server-accent-button tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] tw-text-[12px]"
                   >
                     Manage
                   </button>
                 )}
               </div>
               <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start">
-                <button
-                  onClick={() => {
-                    settoggleMemberDropper(!toggleMemberDropper);
-                  }}
-                  className="tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
-                >
-                  Members
-                </button>
+                  <button
+                    onClick={() => {
+                      settoggleMemberDropper(!toggleMemberDropper);
+                    }}
+                    className="cl-server-info-members-label tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                    style={{ color: "var(--text)" }}
+                  >
+                    Members
+                  </button>
                 <motion.div
                   initial={{
                     height: "0px",
@@ -194,7 +183,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                       onClick={() => {
                         GetContactsListProcess(!expandcontacts);
                       }}
-                      className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
+                      className="tw-w-[calc(100%-10px)] hover:tw-bg-[var(--surface-hover)] tw-rounded-[8px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
                     >
                       <div
                         id="div_img_search_profiles_container_cncts"
@@ -218,7 +207,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                       onClick={() => {
                         AddNewMemberProcess();
                       }}
-                      className="tw-w-[calc(100%-10px)] hover:tw-text-white hover:tw-bg-[#1c7def] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
+                      className="cl-server-accent-button cl-server-accent-button--ghost tw-w-[calc(100%-10px)] tw-rounded-[8px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
                     >
                       <div
                         id="div_img_search_profiles_container_cncts"
@@ -290,7 +279,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                     return (
                                       <motion.div
                                         whileHover={{
-                                          backgroundColor: "#e6e6e6",
+                                          backgroundColor: "var(--surface-hover)",
                                         }}
                                         key={i}
                                         className="div_cncts_cards"
@@ -335,25 +324,21 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                         />
                                         <div id="div_img_cncts_container">
                                           <div id="div_img_search_profiles_container_cncts">
-                                            <CachedImage
+                                            <Avatar
+                                              id={cnts.involved_user.id}
+                                              name={`${cnts.involved_user.first_name} ${cnts.involved_user.last_name}`}
                                               src={
-                                                cnts.involved_user.profile ==
-                                                "none"
-                                                  ? DefaultProfile
-                                                  : cnts.involved_user.profile
+                                                cnts.involved_user.profile &&
+                                                cnts.involved_user.profile !==
+                                                  "none"
+                                                  ? cnts.involved_user.profile
+                                                  : null
                                               }
-                                              className={
-                                                cnts.involved_user.profile ==
-                                                "none"
-                                                  ? "img_search_profiles_ntfs"
-                                                  : ""
-                                              }
-                                              id={
-                                                cnts.involved_user.profile ==
-                                                "none"
-                                                  ? ""
-                                                  : "img_actual_profile"
-                                              }
+                                              size={40}
+                                              style={{
+                                                width: 40,
+                                                height: 40,
+                                              }}
                                             />
                                           </div>
                                         </div>
@@ -390,7 +375,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                       return (
                                         <motion.div
                                           whileHover={{
-                                            backgroundColor: "#e6e6e6",
+                                            backgroundColor: "var(--surface-hover)",
                                           }}
                                           key={i}
                                           className="div_cncts_cards"
@@ -434,25 +419,21 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                           />
                                           <div id="div_img_cncts_container">
                                             <div id="div_img_search_profiles_container_cncts">
-                                              <CachedImage
+                                              <Avatar
+                                                id={cnts.action_by.id}
+                                                name={`${cnts.action_by.first_name} ${cnts.action_by.last_name}`}
                                                 src={
-                                                  cnts.action_by.profile ==
-                                                  "none"
-                                                    ? DefaultProfile
-                                                    : cnts.action_by.profile
+                                                  cnts.action_by.profile &&
+                                                  cnts.action_by.profile !==
+                                                    "none"
+                                                    ? cnts.action_by.profile
+                                                    : null
                                                 }
-                                                className={
-                                                  cnts.action_by.profile ==
-                                                  "none"
-                                                    ? "img_search_profiles_ntfs"
-                                                    : ""
-                                                }
-                                                id={
-                                                  cnts.action_by.profile ==
-                                                  "none"
-                                                    ? ""
-                                                    : "img_actual_profile"
-                                                }
+                                                size={40}
+                                                style={{
+                                                  width: 40,
+                                                  height: 40,
+                                                }}
                                               />
                                             </div>
                                           </div>
@@ -492,23 +473,22 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                           onClick={() => {
                             navigate(`/${mp.userID}`);
                           }}
-                          className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
+                                          className="tw-w-[calc(100%-10px)] hover:tw-bg-[var(--surface-hover)] tw-rounded-[8px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
                         >
                           <div id="div_img_search_profiles_container_cncts">
-                            <CachedImage
+                            <Avatar
+                              id={mp._id}
+                              name={`${mp.fullname.firstName} ${mp.fullname.lastName}`}
                               src={
-                                mp.profile == "none"
-                                  ? DefaultProfile
-                                  : mp.profile
+                                mp.profile && mp.profile !== "none"
+                                  ? mp.profile
+                                  : null
                               }
-                              className={
-                                mp.profile == "none"
-                                  ? "img_search_profiles_ntfs"
-                                  : ""
-                              }
-                              id={
-                                mp.profile == "none" ? "" : "img_actual_profile"
-                              }
+                              size={40}
+                              style={{
+                                width: 40,
+                                height: 40,
+                              }}
                             />
                           </div>
                           <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">

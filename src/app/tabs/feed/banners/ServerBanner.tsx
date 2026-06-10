@@ -44,12 +44,12 @@ function ServerBanner() {
     <div className="div_feed_post_container tw-gap-[30px] tw-pb-[25px]">
       <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[4px]">
         <div className="tw-flex tw-w-full tw-items-center tw-gap-[4px]">
-          <TbServer2 style={{ fontSize: "25px", color: "#666666" }} />
-          <span className="tw-text-[16px] tw-font-semibold tw-font-Inter tw-text-[#3b3b3b]">
+          <TbServer2 style={{ fontSize: "25px", color: "var(--text-2)" }} />
+          <span className="tw-text-[16px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
             Servers
           </span>
         </div>
-        <span className="tw-text-[12px] tw-text-left">
+        <span className="tw-text-[12px] tw-text-left tw-text-[var(--text-2)]">
           Check out some of these servers, or start your own realm.
         </span>
       </div>
@@ -60,14 +60,14 @@ function ServerBanner() {
               <RiPagesLine
                 style={{
                   fontSize: "80px",
-                  color: "#7f7f85",
+                  color: "var(--text-2)",
                 }}
               />
               <div className="tw-flex tw-flex-col tw-gap-[5px]">
-                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[#7f7f85]">
+                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text-2)]">
                   No servers yet
                 </span>
-                <span className="tw-text-[14px] tw-font-Inter tw-text-[#7f7f85]">
+                <span className="tw-text-[14px] tw-font-Inter tw-text-[var(--text-2)]">
                   Create your server and start building a community.
                 </span>
               </div>

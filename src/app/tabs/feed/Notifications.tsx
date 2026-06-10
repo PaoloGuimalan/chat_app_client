@@ -9,7 +9,6 @@ import {
   NotificationInitRequest,
   ReadNotificationsRequest,
 } from "../../../reusables/hooks/requests";
-import DefaultProfile from "../../../assets/imgs/default.png";
 import NotificationItemLoader from "@/app/reusables/loaders/NotificationItemLoader";
 import { timeSince } from "@/reusables/hooks/reusable";
 import { Avatar, Btn, Card, Icon, useTheme } from "@/reusables/design";
@@ -88,6 +87,10 @@ function Notifications() {
     return null;
   }
 
+  const columnWidth = isStandalone
+    ? "min(640px, calc(100% - 22px))"
+    : "100%";
+
   return (
     <div
       className="cl-redesign"
@@ -95,47 +98,52 @@ function Notifications() {
       style={{
         display: "flex",
         flexDirection: "column",
+        alignItems: "stretch",
         flex: 1,
         minHeight: 0,
         width: "100%",
-        maxWidth: isStandalone ? 640 : "100%",
-        margin: isStandalone ? "0 auto" : undefined,
-        padding: isStandalone ? "16px 22px" : "16px 12px",
+        maxWidth: "100%",
+        margin: 0,
+        padding: isStandalone ? "16px 0 16px 22px" : "16px 12px",
         gap: 12,
         background: "transparent",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: isStandalone ? 0 : "0 4px",
-        }}
-      >
-        <span
+      <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+        <div
           style={{
-            width: 32,
-            height: 32,
-            borderRadius: "var(--r-sm)",
-            background: "var(--gold-soft)",
-            display: "inline-flex",
+            width: columnWidth,
+            display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            gap: 10,
+            padding: isStandalone ? 0 : "0 4px",
           }}
         >
-          <Icon n="notifications" s={18} c="var(--gold)" />
-        </span>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: isStandalone ? 22 : 17,
-            fontWeight: 800,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          {isStandalone ? "Activity" : "Notifications"}
-        </h2>
+          <span
+            style={{
+              width: 32,
+              height: 32,
+              borderRadius: "var(--r-sm)",
+              background: "var(--gold-soft)",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flex: "none",
+            }}
+          >
+            <Icon n="notifications" s={18} c="var(--gold)" />
+          </span>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: isStandalone ? 22 : 17,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+            }}
+          >
+            {isStandalone ? "Activity" : "Notifications"}
+          </h2>
+        </div>
       </div>
 
       {isLoading ? (
@@ -148,16 +156,28 @@ function Notifications() {
             display: "flex",
             flexDirection: "column",
             gap: 8,
+            width: "100%",
+            alignItems: "center",
           }}
         >
-          {Array.from({ length: 10 }, (_, i) => (
-            <NotificationItemLoader key={i} />
-          ))}
+          <div
+            style={{
+              width: columnWidth,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            {Array.from({ length: 10 }, (_, i) => (
+              <NotificationItemLoader key={i} />
+            ))}
+          </div>
         </div>
       ) : notificationslist.list.length === 0 ? (
         <div
           style={{
             flex: 1,
+            width: "100%",
             display: "flex",
             flexDirection: "column",
             alignItems: "center",
@@ -181,109 +201,144 @@ function Notifications() {
             display: "flex",
             flexDirection: "column",
             gap: 8,
-            paddingRight: 4,
+            width: "100%",
+            alignItems: "center",
+            paddingRight: isStandalone ? 0 : 4,
           }}
         >
-          {notificationslist.list.map((ntfs: any, i: number) => {
-            const profileSrc =
-              ntfs.fromUser.profile === "none"
-                ? DefaultProfile
-                : ntfs.fromUser.profile;
-            const isContactRequest = ntfs.type === "contact_request";
-            const showActions = isContactRequest && !ntfs.referenceStatus;
-            return (
-              <Card
-                key={i}
-                pad={12}
-                hover
-                style={{
-                  display: "flex",
-                  gap: 12,
-                  alignItems: "flex-start",
-                  borderColor: "var(--border)",
-                }}
-              >
-                <Avatar
-                  id={ntfs.fromUserID || ntfs.fromUser?.userID || ntfs.fromUser?.name}
-                  name={ntfs.content?.headline || ntfs.fromUser?.fullName?.firstName}
-                  src={profileSrc}
-                  size={44}
-                />
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <div
-                    style={{
-                      fontSize: 13.5,
-                      fontWeight: 700,
-                      color: "var(--text)",
-                    }}
-                  >
-                    {ntfs.content.headline}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 12.5,
-                      color: "var(--text-2)",
-                      marginTop: 2,
-                    }}
-                  >
-                    {ntfs.content.details}
-                  </div>
-                  <div
-                    style={{
-                      fontSize: 11.5,
-                      color: "var(--text-3)",
-                      marginTop: 4,
-                      display: "flex",
-                      gap: 6,
-                    }}
-                  >
-                    {ntfs.date.time ? (
-                      <>
-                        <span>{ntfs.date.date}</span>
-                        <span>·</span>
-                        <span>{ntfs.date.time}</span>
-                      </>
-                    ) : (
-                      <span>{timeSince(ntfs.date.date)}</span>
-                    )}
-                  </div>
-                  {showActions && (
+          <div
+            style={{
+              width: columnWidth,
+              display: "flex",
+              flexDirection: "column",
+              gap: 8,
+            }}
+          >
+            {notificationslist.list.map((ntfs: any, i: number) => {
+              const isContactRequest = ntfs.type === "contact_request";
+              const showActions = isContactRequest && !ntfs.referenceStatus;
+              return (
+                <Card
+                  key={i}
+                  pad={12}
+                  hover
+                  style={{
+                    width: "100%",
+                    minHeight: 84,
+                    display: "flex",
+                    gap: 12,
+                    alignItems: "flex-start",
+                    borderColor: "var(--border)",
+                  }}
+                >
+                  <Avatar
+                    id={ntfs.fromUserID || ntfs.fromUser?.userID || ntfs.fromUser?.name}
+                    name={
+                      ntfs.content?.headline ||
+                      ntfs.fromUser?.fullName?.firstName ||
+                      "Notification"
+                    }
+                    src={
+                      ntfs.fromUser?.profile && ntfs.fromUser.profile !== "none"
+                        ? ntfs.fromUser.profile
+                        : undefined
+                    }
+                    size={44}
+                  />
+                  <div style={{ flex: 1, minWidth: 0 }}>
                     <div
                       style={{
                         display: "flex",
-                        gap: 8,
-                        marginTop: 10,
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: 10,
                       }}
                     >
-                      <Btn
-                        size="sm"
-                        disabled={isDisabledByRequest}
-                        onClick={() =>
-                          acceptRequestProcess(ntfs.referenceID, ntfs.fromUserID)
-                        }
+                      <div
+                        style={{
+                          fontSize: 13.5,
+                          fontWeight: 700,
+                          color: "var(--text)",
+                          minWidth: 0,
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                          whiteSpace: "nowrap",
+                        }}
                       >
-                        Confirm
-                      </Btn>
-                      <Btn
-                        size="sm"
-                        variant="outline"
-                        disabled={isDisabledByRequest}
-                        onClick={() =>
-                          declineRequestProcess(
-                            ntfs.referenceID,
-                            ntfs.fromUserID,
-                            "decline",
-                          )
-                        }
+                        {ntfs.content.headline}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 11.5,
+                          color: "var(--text-3)",
+                          flex: "none",
+                          textAlign: "right",
+                          whiteSpace: "nowrap",
+                        }}
                       >
-                        Decline
-                      </Btn>
+                        {ntfs.date.time ? (
+                          <>
+                            <span>{ntfs.date.date}</span>
+                            <span> · </span>
+                            <span>{ntfs.date.time}</span>
+                          </>
+                        ) : (
+                          <span>{timeSince(ntfs.date.date)}</span>
+                        )}
+                      </div>
                     </div>
-                  )}
-                </div>
-              </Card>
-            );
-          })}
+                    <div
+                      style={{
+                        fontSize: 12.5,
+                        color: "var(--text-2)",
+                        marginTop: 2,
+                        textAlign: "left",
+                      }}
+                    >
+                      {ntfs.content.details}
+                    </div>
+                    {showActions && (
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 8,
+                          marginTop: 10,
+                          flexWrap: "wrap",
+                        }}
+                      >
+                        <Btn
+                          size="sm"
+                          disabled={isDisabledByRequest}
+                          onClick={() =>
+                            acceptRequestProcess(
+                              ntfs.referenceID,
+                              ntfs.fromUserID,
+                            )
+                          }
+                        >
+                          Confirm
+                        </Btn>
+                        <Btn
+                          size="sm"
+                          variant="outline"
+                          disabled={isDisabledByRequest}
+                          onClick={() =>
+                            declineRequestProcess(
+                              ntfs.referenceID,
+                              ntfs.fromUserID,
+                              "decline",
+                            )
+                          }
+                        >
+                          Decline
+                        </Btn>
+                      </div>
+                    )}
+                  </div>
+                </Card>
+              );
+            })}
+          </div>
           {notificationslist.next && (
             <div
               ref={divlazyloaderRef}

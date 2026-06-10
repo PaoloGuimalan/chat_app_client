@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React from 'react'
 import { useEffect, useMemo, useRef, useState } from "react";
-import DefaultProfile from "../../../../assets/imgs/default.png";
 import { BiLike } from "react-icons/bi";
 import { LiaComment } from "react-icons/lia";
 import { PiShareFat } from "react-icons/pi";
@@ -33,6 +32,7 @@ import { RiVerifiedBadgeFill } from "react-icons/ri";
 import PostOptions from "./PostOptions";
 import OverlayLoader from "@/app/reusables/loaders/OverlayLoader";
 import OverlayMessage from "@/app/reusables/catchers/OverlayMessage";
+import { Avatar } from "@/reusables/design";
 
 function PostItem({
   isSharePreview,
@@ -68,6 +68,34 @@ function PostItem({
   const textRef = useRef<HTMLSpanElement | null>(null);
   const textContainerRef = useRef<HTMLDivElement | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const postAuthorAvatar = (size = 35) => {
+    if (postState.author_realm) {
+      return (
+        <Avatar
+          id={postState.author_realm.slug}
+          name={postState.author_realm.name}
+          src={
+            postState.author_realm.profile !== "none"
+              ? postState.author_realm.profile
+              : undefined
+          }
+          size={size}
+        />
+      );
+    }
+
+    return (
+      <Avatar
+        id={postState.user.username}
+        name={`${postState.user.first_name} ${postState.user.last_name}`}
+        src={
+          postState.user.profile !== "none" ? postState.user.profile : undefined
+        }
+        size={size}
+      />
+    );
+  };
 
   const postOwnerUserID = postState.user.username;
 
@@ -167,9 +195,11 @@ function PostItem({
 
   if (postState.deleted_at || (!show_archived && postState.is_archived)) {
     return (
-      <div className="tw-bg-[#ebebeb] tw-flex tw-flex-col tw-gap-[15px] tw-w-full tw-h-auto tw-min-h-[200px] tw-items-center tw-justify-center tw-border-solid tw-border-[1px] tw-border-[#d2d2d2] tw-rounded-[7px]">
-        <BsFileEarmarkExcel style={{ fontSize: "55px", color: "#666666" }} />
-        <div className="tw-flex tw-w-full tw-max-w-[200px] tw-items-center tw-justify-center tw-text-[#666666] tw-text-[13px] ">
+      <div className="cl-post-item-unavailable tw-flex tw-flex-col tw-gap-[15px] tw-w-full tw-h-auto tw-min-h-[200px] tw-items-center tw-justify-center">
+        <BsFileEarmarkExcel
+          style={{ fontSize: "55px", color: "var(--text-2)" }}
+        />
+        <div className="tw-flex tw-w-full tw-max-w-[200px] tw-items-center tw-justify-center tw-text-[13px] tw-text-[var(--text-2)] ">
           <span>This post is unavailable</span>
         </div>
       </div>
@@ -177,14 +207,14 @@ function PostItem({
   }
 
   return (
-    <div ref={ref} className="tw-w-full tw-relative">
+    <div ref={ref} className="cl-post-item-shell tw-w-full tw-relative">
       {isProcessing && (
-        <OverlayLoader className="tw-bg-white tw-absolute tw-w-full tw-h-full tw-opacity-[0.8] tw-z-[5] tw-flex tw-items-center tw-justify-center tw-rounded-md" />
+        <OverlayLoader className="cl-feed-card__overlay tw-absolute tw-w-full tw-h-full tw-opacity-[0.8] tw-z-[5] tw-flex tw-items-center tw-justify-center tw-rounded-md" />
       )}
       {isRestored && (
         <OverlayMessage
           message="Post Restored"
-          className="tw-bg-white tw-absolute tw-w-full tw-h-full tw-opacity-[0.8] tw-z-[5] tw-flex tw-items-center tw-justify-center tw-rounded-md"
+          className="cl-feed-card__overlay tw-absolute tw-w-full tw-h-full tw-opacity-[0.8] tw-z-[5] tw-flex tw-items-center tw-justify-center tw-rounded-md"
         />
       )}
       {minimizedCaption !== null && (
@@ -192,40 +222,16 @@ function PostItem({
           style={{
             borderWidth: isSharePreview ? "1px" : "0px",
           }}
-          className=" tw-bg-white tw-border-solid tw-border-[#d2d2d2] tw-rounded-[7px] tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]"
+          className="cl-post-item-card tw-w-full tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]"
         >
           <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
             <div className="tw-w-[35px] tw-h-[35px] tw-mr-[10px]">
-              {postState.author_realm ? (
-                postState.author_realm.profile !== "none" ? (
-                  <div id="img_default_profile_container">
-                    <CachedImage
-                      src={postState.author_realm.profile}
-                      id="img_actual_profile"
-                    />
-                  </div>
-                ) : (
-                  <div id="div_img_feed_post_container">
-                    <CachedImage src={DefaultProfile} id="img_feed_header" />
-                  </div>
-                )
-              ) : postState.user.profile !== "none" ? (
-                <div id="img_default_profile_container">
-                  <CachedImage
-                    src={postState.user.profile}
-                    id="img_actual_profile"
-                  />
-                </div>
-              ) : (
-                <div id="div_img_feed_post_container">
-                  <CachedImage src={DefaultProfile} id="img_feed_header" />
-                </div>
-              )}
+              {postAuthorAvatar(35)}
             </div>
             <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px]">
               <div className="tw-text-left tw-flex">
                 <span
-                  className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                  className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                   onClick={() => {
                     if (postState.author_realm) {
                       navigate(`/${postState.author_realm.slug}`);
@@ -239,7 +245,7 @@ function PostItem({
                     <div className="tw-flex tw-items-center tw-gap-[4px]">
                       <span>{postState.author_realm.name}</span>
                       {postState.author_realm.is_verified && (
-                        <RiVerifiedBadgeFill size={16} color="#1c7def" />
+                        <RiVerifiedBadgeFill size={16} color="var(--brand)" />
                       )}
                     </div>
                   ) : (
@@ -252,7 +258,7 @@ function PostItem({
                         {postState.user.last_name}
                       </span>
                       {postState.user.is_badged && (
-                        <RiVerifiedBadgeFill size={16} color="#1c7def" />
+                        <RiVerifiedBadgeFill size={16} color="var(--brand)" />
                       )}
                     </div>
                   )}
@@ -275,7 +281,7 @@ function PostItem({
                   postState.tagging.map((mptg: ITagging, i: number) => {
                     return (
                       <span
-                        className="tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                        className="cl-feed-card__title tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                         onClick={() => {
                           navigate(`/${mptg.user.username}`);
                         }}
@@ -290,7 +296,10 @@ function PostItem({
                             {mptg.user.last_name}
                           </span>
                           {mptg.user.is_badged && (
-                            <RiVerifiedBadgeFill size={16} color="#1c7def" />
+                            <RiVerifiedBadgeFill
+                              size={16}
+                              color="var(--brand)"
+                            />
                           )}
                         </div>
                       </span>
@@ -351,7 +360,7 @@ function PostItem({
                 onClick={() => {
                   setminimizedCaption(false);
                 }}
-                className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}
+                className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
               >
                 Expand
               </button>
@@ -361,7 +370,7 @@ function PostItem({
                 onClick={() => {
                   setminimizedCaption(true);
                 }}
-                className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}
+                className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
               >
                 See less
               </button>
@@ -382,7 +391,7 @@ function PostItem({
                             ? "600px"
                             : "none",
                     }}
-                    className={`tw-bg-white custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full tw-flex tw-flex-row tw-flex-wrap ${
+                    className={`cl-post-item-modal-shell custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full tw-flex tw-flex-row tw-flex-wrap ${
                       postState.is_shared || postState.references.length === 0
                         ? ""
                         : "custom:tw-overflow-hidden"
@@ -405,7 +414,7 @@ function PostItem({
                       </div> */}
                     {!postState.is_shared && (
                       <Carousel
-                        className="tw-bg-black tw-w-full tw-h-full tw-flex-1 tw-min-w-[350px]"
+                        className="tw-bg-[var(--surface-2)] tw-w-full tw-h-full tw-flex-1 tw-min-w-[350px]"
                         showIndicators={false}
                         showThumbs={false}
                       >
@@ -414,7 +423,7 @@ function PostItem({
                             return (
                               <div
                                 key={mpr.reference_id}
-                                className="tw-h-full tw-bg-black"
+                                className="tw-h-full tw-bg-[var(--surface-2)]"
                               >
                                 <CachedImage
                                   src={mpr.reference}
@@ -428,7 +437,7 @@ function PostItem({
                             return (
                               <div
                                 key={mpr.reference_id}
-                                className="tw-h-full tw-max-h-full tw-bg-black"
+                                className="tw-h-full tw-max-h-full tw-bg-[var(--surface-2)]"
                               >
                                 <video
                                   controls
@@ -450,49 +459,19 @@ function PostItem({
                             ? "custom:tw-max-w-full"
                             : "custom:tw-max-w-[400px]"
                           : "custom:tw-max-w-full"
-                      } tw-min-w-[350px] tw-bg-white tw-flex-col tw-pb-[10px] ${
+                      } tw-min-w-[350px] cl-post-item-modal-side tw-flex-col tw-pb-[10px] ${
                         postState.is_shared || postState.references.length === 0
                           ? ""
                           : "custom:tw-h-full"
                       }`}
                     >
-                      <div className="tw-w-[calc(100%-50px)] tw-p-[25px] tw-flex tw-justify-between">
+                      <div className="tw-w-full tw-p-[25px] tw-flex tw-justify-between tw-gap-[12px]">
                         <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
-                          {postState.author_realm ? (
-                            postState.author_realm.profile !== "none" ? (
-                              <div id="img_default_profile_container">
-                                <CachedImage
-                                  src={postState.author_realm.profile}
-                                  id="img_actual_profile"
-                                />
-                              </div>
-                            ) : (
-                              <div id="div_img_feed_post_container">
-                                <CachedImage
-                                  src={DefaultProfile}
-                                  id="img_feed_header"
-                                />
-                              </div>
-                            )
-                          ) : postState.user.profile !== "none" ? (
-                            <div id="img_default_profile_container">
-                              <CachedImage
-                                src={postState.user.profile}
-                                id="img_actual_profile"
-                              />
-                            </div>
-                          ) : (
-                            <div id="div_img_feed_post_container">
-                              <CachedImage
-                                src={DefaultProfile}
-                                id="img_feed_header"
-                              />
-                            </div>
-                          )}
+                          {postAuthorAvatar(35)}
                           <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
                             <div className="tw-text-left tw-flex tw-flex-wrap">
                               <span
-                                className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                                className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                 onClick={() => {
                                   if (postState.author_realm) {
                                     navigate(`/${postState.author_realm.slug}`);
@@ -508,7 +487,7 @@ function PostItem({
                                     {postState.author_realm.is_verified && (
                                       <RiVerifiedBadgeFill
                                         size={16}
-                                        color="#1c7def"
+                                        color="var(--brand)"
                                       />
                                     )}
                                   </div>
@@ -524,7 +503,7 @@ function PostItem({
                                     {postState.user.is_badged && (
                                       <RiVerifiedBadgeFill
                                         size={16}
-                                        color="#1c7def"
+                                        color="var(--brand)"
                                       />
                                     )}
                                   </div>
@@ -540,7 +519,7 @@ function PostItem({
                                   (mptg: ITagging, i: number) => {
                                     return (
                                       <span
-                                        className="tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                                        className="cl-feed-card__title tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                         onClick={() => {
                                           navigate(`/${mptg.user.username}`);
                                         }}
@@ -557,7 +536,7 @@ function PostItem({
                                           {mptg.user.is_badged && (
                                             <RiVerifiedBadgeFill
                                               size={16}
-                                              color="#1c7def"
+                                              color="var(--brand)"
                                             />
                                           )}
                                         </div>
@@ -618,7 +597,7 @@ function PostItem({
                         </button>
                       </div>
                       <div
-                        className={`tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px] tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
+                        className={`tw-w-full tw-px-[25px] tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
                       >
                         <div
                           ref={textContainerRef}
@@ -640,7 +619,7 @@ function PostItem({
                             onClick={() => {
                               setminimizedCaption(false);
                             }}
-                            className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}
+                            className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
                           >
                             Expand
                           </button>
@@ -651,7 +630,7 @@ function PostItem({
                               onClick={() => {
                                 setminimizedCaption(true);
                               }}
-                              className={`tw-text-[12px] tw-text-left tw-bg-transparent tw-text-gray-700 tw-p-[5px] tw-border-none tw-cursor-pointer hover:tw-bg-gray-400 tw-rounded-[4px]`}
+                              className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
                             >
                               See less
                             </button>
@@ -663,7 +642,7 @@ function PostItem({
                             );
                           })}
                       </div>
-                      <div className="tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px] tw-mt-[10px] tw-pb-[5px]">
+                      <div className="tw-w-full tw-px-[25px] tw-mt-[10px] tw-pb-[5px]">
                         <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
                           <motion.div
                             initial={{
@@ -697,7 +676,7 @@ function PostItem({
                             </div>
                             <div className="tw-w-full tw-flex tw-justify-between tw-items-center">
                               {total_reactions > 0 && (
-                                <span className="tw-text-[12px] tw-text-gray-800">
+                                <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                                   {total_reactions}{" "}
                                   {total_reactions === 1
                                     ? " reaction"
@@ -706,7 +685,7 @@ function PostItem({
                               )}
                               <div className="tw-flex tw-gap-[10px] tw-items-center">
                                 {commentsCount > 0 && (
-                                  <span className="tw-text-[12px] tw-text-gray-800">
+                                  <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                                     {commentsCount}{" "}
                                     {commentsCount === 1
                                       ? " comment"
@@ -714,7 +693,7 @@ function PostItem({
                                   </span>
                                 )}
                                 {shareCount > 0 && (
-                                  <span className="tw-text-[12px] tw-text-gray-800">
+                                  <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                                     {shareCount}{" "}
                                     {shareCount === 1 ? " share" : " shares"}
                                   </span>
@@ -722,7 +701,7 @@ function PostItem({
                               </div>
                             </div>
                           </motion.div>
-                          <hr className="tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px] tw-z-[0]" />
+                          <hr className="cl-feed-card__divider tw-w-full tw-mb-[5px] tw-z-[0]" />
                           <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
                             {authentication.auth && (
                               <button
@@ -739,10 +718,10 @@ function PostItem({
                                   }, 700);
                                 }}
                                 disabled={emojiLoading}
-                                className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                                className="cl-feed-card__action tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
                               >
                                 <motion.div
-                                  className="tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-bg-white tw-shadow-lg tw-bottom-[calc(100%+15px)]"
+                                  className="cl-feed-card__reaction-popover tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-shadow-lg tw-bottom-[calc(100%+15px)]"
                                   initial={{
                                     scale: 0,
                                   }}
@@ -775,15 +754,18 @@ function PostItem({
                                   <BiLike
                                     style={{
                                       fontSize: "25px",
-                                      color: "#666666",
+                                      color: "var(--text-2)",
                                     }}
                                   />
                                 )}
                               </button>
                             )}
-                            <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
+                            <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
                               <LiaComment
-                                style={{ fontSize: "25px", color: "#666666" }}
+                                style={{
+                                  fontSize: "25px",
+                                  color: "var(--text-2)",
+                                }}
                               />
                             </button>
                             {authentication.auth && (
@@ -794,19 +776,22 @@ function PostItem({
                                     withImage: false,
                                   });
                                 }}
-                                className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                                className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
                               >
                                 <PiShareFat
-                                  style={{ fontSize: "25px", color: "#666666" }}
+                                  style={{
+                                    fontSize: "25px",
+                                    color: "var(--text-2)",
+                                  }}
                                 />
                               </button>
                             )}
                             {postOwnerUserID === authentication.user.userID && (
-                              <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
+                              <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
                                 <BsPinMap
                                   style={{
                                     fontSize: "22px",
-                                    color: "#666666",
+                                    color: "var(--text-2)",
                                   }}
                                 />
                               </button>
@@ -833,9 +818,9 @@ function PostItem({
               />
             )}
             {postState.references.length > 0 && !postState.is_shared && (
-              <div className="tw-bg-white tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px] tw-min-h-[400px]">
+              <div className="cl-feed-card__media-grid tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px] tw-min-h-[400px]">
                 {" "}
-                {/**tw-bg-black*/}
+                {/**tw-bg-[var(--surface-2)]*/}
                 {postState.references.map((mpu: IReference, i: number) => {
                   if (i <= 3) {
                     if (mpu.reference_media_type.includes("image")) {
@@ -848,7 +833,7 @@ function PostItem({
                               }
                             }}
                             key={mpu.reference_id}
-                            className="tw-flex tw-max-h-[500px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]"
+                            className="tw-flex tw-max-h-[500px] tw-flex-1 tw-bg-[var(--surface-2)] tw-min-w-[100px] lg:tw-min-w-[200px]"
                           >
                             <CachedImage
                               src={mpu.reference}
@@ -865,7 +850,7 @@ function PostItem({
                               }
                             }}
                             key={mpu.reference_id}
-                            className="tw-flex tw-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]"
+                            className="tw-flex tw-h-[400px] tw-flex-1 tw-bg-[var(--surface-2)] tw-min-w-[100px] lg:tw-min-w-[200px]"
                           >
                             <CachedImage
                               src={mpu.reference}
@@ -878,7 +863,7 @@ function PostItem({
                       return (
                         <div
                           key={mpu.reference_id}
-                          className="tw-flex tw-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[100px] lg:tw-min-w-[200px]"
+                          className="tw-flex tw-h-[400px] tw-flex-1 tw-bg-[var(--surface-2)] tw-min-w-[100px] lg:tw-min-w-[200px]"
                         >
                           <video
                             controls
@@ -895,11 +880,11 @@ function PostItem({
                     onClick={() => {
                       settogglePostCarousel(true);
                     }}
-                    className="tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-black tw-min-w-[200px]"
+                    className="tw-flex tw-max-h-[400px] tw-flex-1 tw-bg-[var(--surface-2)] tw-min-w-[200px]"
                   >
-                    <div className="tw-cursor-pointer tw-select-none tw-relative tw-h-full tw-w-full tw-bg-black tw-opacity-[0.8] tw-top-0 tw-left-0 tw-z-[1] tw-flex tw-items-center tw-justify-center">
+                    <div className="tw-cursor-pointer tw-select-none tw-relative tw-h-full tw-w-full tw-bg-[var(--surface-2)] tw-opacity-[0.85] tw-top-0 tw-left-0 tw-z-[1] tw-flex tw-items-center tw-justify-center">
                       <div>
-                        <span className="tw-text-white tw-font-Inter tw-font-semibold tw-text-[40px]">
+                        <span className="tw-text-[var(--text)] tw-font-Inter tw-font-semibold tw-text-[40px]">
                           + {postState.references.length - 4}
                         </span>
                       </div>
@@ -972,27 +957,27 @@ function PostItem({
                 </div>
                 <div className="tw-w-full tw-flex tw-justify-between tw-items-center">
                   {total_reactions > 0 && (
-                    <span className="tw-text-[12px] tw-text-gray-800">
+                    <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                       {total_reactions}{" "}
                       {total_reactions === 1 ? " reaction" : " reactions"}
                     </span>
                   )}
                   <div className="tw-flex tw-gap-[10px] tw-items-center">
                     {commentsCount > 0 && (
-                      <span className="tw-text-[12px] tw-text-gray-800">
+                      <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                         {commentsCount}{" "}
                         {commentsCount === 1 ? " comment" : " comments"}
                       </span>
                     )}
                     {shareCount > 0 && (
-                      <span className="tw-text-[12px] tw-text-gray-800">
+                      <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                         {shareCount} {shareCount === 1 ? " share" : " shares"}
                       </span>
                     )}
                   </div>
                 </div>
               </motion.div>
-              <hr className="tw-w-full tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[5px] tw-z-[0]" />
+              <hr className="cl-feed-card__divider tw-w-full tw-mb-[5px] tw-z-[0]" />
               <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
                 {authentication.auth && (
                   <button
@@ -1009,10 +994,10 @@ function PostItem({
                       }, 700);
                     }}
                     disabled={emojiLoading}
-                    className="tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                    className="cl-feed-card__action tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
                   >
                     <motion.div
-                      className="tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-bg-white tw-shadow-lg tw-bottom-[calc(100%+15px)]"
+                      className="cl-feed-card__reaction-popover tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-shadow-lg tw-bottom-[calc(100%+15px)]"
                       initial={{
                         scale: 0,
                       }}
@@ -1037,7 +1022,9 @@ function PostItem({
                             "...")}
                       </div>
                     ) : (
-                      <BiLike style={{ fontSize: "25px", color: "#666666" }} />
+                      <BiLike
+                        style={{ fontSize: "25px", color: "var(--text-2)" }}
+                      />
                     )}
                   </button>
                 )}
@@ -1045,25 +1032,29 @@ function PostItem({
                   onClick={() => {
                     settogglePostCarousel(true);
                   }}
-                  className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                  className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
                 >
-                  <LiaComment style={{ fontSize: "25px", color: "#666666" }} />
+                  <LiaComment
+                    style={{ fontSize: "25px", color: "var(--text-2)" }}
+                  />
                 </button>
                 {authentication.auth && (
                   <button
                     onClick={() => {
                       settoggleNewPostModal({ toggle: true, withImage: false });
                     }}
-                    className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]"
+                    className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
                   >
                     <PiShareFat
-                      style={{ fontSize: "25px", color: "#666666" }}
+                      style={{ fontSize: "25px", color: "var(--text-2)" }}
                     />
                   </button>
                 )}
                 {postOwnerUserID === authentication.user.userID && (
-                  <button className="tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer hover:tw-bg-gray-200 tw-rounded-[5px]">
-                    <BsPinMap style={{ fontSize: "22px", color: "#666666" }} />
+                  <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
+                    <BsPinMap
+                      style={{ fontSize: "22px", color: "var(--text-2)" }}
+                    />
                   </button>
                 )}
               </div>

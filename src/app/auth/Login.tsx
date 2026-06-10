@@ -175,14 +175,10 @@ function Login() {
                   marginBottom: 22,
                 }}
               >
-                <img
-                  src={ChatterLoopImg}
-                  alt=""
-                  style={{ width: 38, height: 38 }}
-                />
-                <span style={{ fontSize: 24, fontWeight: 800 }}>
-                  Chatterloop
-                </span>
+              <BrandMark size={38} />
+              <span style={{ fontSize: 24, fontWeight: 800 }}>
+                Chatterloop
+              </span>
               </div>
             )}
 
@@ -206,9 +202,7 @@ function Login() {
               Log in to jump back into your loop.
             </p>
 
-            <div
-              style={{ display: "flex", flexDirection: "column", gap: 13 }}
-            >
+            <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
               <Field
                 icon="alternate_email"
                 label="Email or Username"
@@ -319,8 +313,7 @@ function Login() {
                       alerts: {
                         id: alerts.length,
                         type: "error",
-                        content:
-                          "There was a problem logging in with Google.",
+                        content: "There was a problem logging in with Google.",
                       },
                     },
                   });
@@ -360,6 +353,33 @@ const spinKeyframes = `
 .cl-spin { animation: cl-spin 0.9s linear infinite; display: inline-block; }
 @keyframes cl-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
 `;
+
+export function BrandMark({ size = 46 }: { size?: number }) {
+  return (
+    <div
+      style={{
+        width: size,
+        height: size,
+        borderRadius: 14,
+        background: "rgba(255,255,255,0.18)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        flex: "none",
+      }}
+    >
+      <img
+        src={ChatterLoopImg}
+        alt=""
+        style={{
+          width: Math.round(size * 0.72),
+          height: Math.round(size * 0.72),
+          objectFit: "contain",
+        }}
+      />
+    </div>
+  );
+}
 
 export function BrandPanel() {
   return (
@@ -408,27 +428,7 @@ export function BrandPanel() {
           position: "relative",
         }}
       >
-        <div
-          style={{
-            width: 46,
-            height: 46,
-            borderRadius: 14,
-            background: "rgba(255,255,255,0.18)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
-          <img
-            src={ChatterLoopImg}
-            alt=""
-            style={{
-              width: 32,
-              height: 32,
-              filter: "brightness(0) invert(1)",
-            }}
-          />
-        </div>
+        <BrandMark />
         <span
           style={{ fontSize: 24, fontWeight: 800, letterSpacing: "-0.02em" }}
         >
@@ -458,10 +458,8 @@ export function BrandPanel() {
           Link · Share · Explore
         </div>
       </div>
-      <div
-        style={{ position: "relative", fontSize: 12.5, opacity: 0.7 }}
-      >
-        © Neon Systems · ChatterLoop
+      <div style={{ position: "relative", fontSize: 12.5, opacity: 0.7 }}>
+        © Neon Systems · Chatterloop
       </div>
     </div>
   );

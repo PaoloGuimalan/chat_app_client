@@ -148,11 +148,11 @@ function UploadProfileMedia({
     <Modal
       component={
         <div
-          className={`div_modal_container tw-max-w-[600px] tw-max-h-[600px]`}
+          className={`div_modal_container cl-create-post-shell cl-create-post-shell--upload tw-max-h-[600px]`}
         >
           {isuploadingpost && (
             <div
-              className={`tw-absolute tw-h-full tw-w-full tw-max-w-[600px] tw-max-h-[520px] tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}
+              className={`cl-create-post-loading tw-absolute tw-inset-0 tw-h-full tw-w-full tw-max-h-[520px] tw-flex tw-items-center tw-justify-center`}
             >
               <div id="div_conversation_content_loader">
                 <motion.div
@@ -173,42 +173,40 @@ function UploadProfileMedia({
           <div id="div_modal_header">
             <div className="div_modal_header_label">
               <BsFileEarmarkPost style={{ fontSize: "20px" }} />
-              <span className="span_modal_header_label tw-font-inter">
+              <span className="span_modal_header_label tw-font-inter tw-text-[var(--text)]">
                 {type === "profile" && "Upload Profile Picture"}
                 {type === "cover_photo" && "Upload Cover Photo"}
               </span>
             </div>
           </div>
-          <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-items-center tw-justify-center tw-pl-[10px] tw-pr-[10px] tw-pb-[10px] scroller tw-overflow-y-auto">
-            {" "}
-            {/**tw-flex tw-flex-1 */}
-            <div className="tw-w-full tw-h-full tw-bg-transparent tw-flex tw-flex-col">
+          <div className="cl-create-post-body scroller tw-w-full tw-items-stretch tw-justify-start">
+            <div className="tw-w-full tw-h-full tw-bg-transparent tw-flex tw-flex-col tw-gap-[12px] tw-min-h-0 tw-items-stretch">
               <textarea
                 disabled={isuploadingpost}
                 value={mainpostcaption}
                 onChange={(e) => {
                   setmainpostcaption(e.target.value);
                 }}
-                className="tw-w-full tw-min-h-[80px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller tw-font-Inter"
+                className="cl-create-post-textarea tw-font-inter thinscroller tw-font-Inter"
                 placeholder="Type your caption"
               />
-              <div className="tw-flex tw-h-[300px] tw-flex-col tw-w-full tw-gap-[12px] tw-bg-transparent tw-rounded-[7px] scroller">
+              <div className="cl-create-post-attachments tw-w-full tw-h-[300px]">
                 {medialist === null ? (
                   <div
                     onClick={() => {
                       sendNonImageFilesProcess();
                     }}
-                    className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-bg-transparent tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center"
+                    className="cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-border-dashed tw-items-center tw-justify-center"
                   >
                     <MdAddToPhotos
-                      style={{ fontSize: "60px", color: "#888888" }}
+                      style={{ fontSize: "60px", color: "var(--text-2)" }}
                     />
-                    <span className="tw-text-[14px] tw-font-semibold tw-text-[#888888]">
+                    <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text-2)]">
                       Select a Photo
                     </span>
                   </div>
                 ) : (
-                  <div className="tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-p-[10px] tw-bg-[#f2f2f2] tw-rounded-[5px] tw-gap-[10px]">
+                  <div className="cl-create-post-media-card tw-w-full">
                     <button
                       onClick={() => {
                         setrawmedialist(null);
@@ -227,12 +225,12 @@ function UploadProfileMedia({
               </div>
             </div>
           </div>
-          <div className="tw-w-[calc(100%-20px)] tw-flex tw-flex-row tw-gap-[5px] tw-pl-[10px] tw-pr-[10px] tw-pt-[5px]">
+          <div className="cl-create-post-toolbar">
             <button
               onClick={() => {
                 setcurrenttab("privacy");
               }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#194888]"
+              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand-700)]"
             >
               <FaGlobeAsia style={{ fontSize: "20px" }} />
             </button>
@@ -240,12 +238,12 @@ function UploadProfileMedia({
               onClick={() => {
                 setcurrenttab("content");
               }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#1c7DEF]"
+              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand)]"
             >
               <BsFileEarmarkPost style={{ fontSize: "20px" }} />
             </button>
           </div>
-          <div id="div_create_cancel_btns">
+          <div id="div_create_cancel_btns" className="cl-create-post-actions">
             <button
               disabled={isuploadingpost}
               className="btns_create_cancel"

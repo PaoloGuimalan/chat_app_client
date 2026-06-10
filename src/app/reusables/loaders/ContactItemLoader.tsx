@@ -2,7 +2,7 @@ import Skeleton from "react-loading-skeleton";
 
 function ContactItemLoader() {
   return (
-    <div className="div_cncts_cards">
+    <div className="cl-contact-row cl-contact-row--loading">
       <div id="div_img_cncts_container">
         <div id="div_img_search_profiles_container_cncts">
           <Skeleton
@@ -10,17 +10,19 @@ function ContactItemLoader() {
             height="42px"
             width="42px"
             className="img_search_profiles_ntfs"
-            baseColor="rgb(210, 210, 210)"
+            baseColor="var(--surface-3)"
+            highlightColor="var(--surface-hover)"
           />
         </div>
       </div>
-      <div className="div_contact_fullname_loader">
+      <div className="cl-contact-row__content cl-contact-row__content--loader">
         <Skeleton
           className="tw-max-w-full"
           containerClassName="tw-w-full"
           //   width="100%"
           height="20px"
-          baseColor="rgb(210, 210, 210)"
+          baseColor="var(--surface-3)"
+          highlightColor="var(--surface-hover)"
           count={1}
         />
       </div>

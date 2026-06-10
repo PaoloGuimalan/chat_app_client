@@ -7,7 +7,6 @@ import {
   IPost,
   IRealmProfileInfo,
 } from "@/reusables/vars/interfaces";
-import DefaultProfile from "../../../../assets/imgs/default.png";
 import { IoArrowBack } from "react-icons/io5";
 import { useNavigate, useParams } from "react-router-dom";
 import { Fragment, useEffect, useRef, useState } from "react";
@@ -21,10 +20,9 @@ import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 import { FaFileAlt } from "react-icons/fa";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { FcAddImage } from "react-icons/fc";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { useSelector } from "react-redux";
+import { Avatar, Btn, Card, Icon } from "@/reusables/design";
 import {
   FollowRealmRequest,
   GetPostRequest,
@@ -65,6 +63,10 @@ function RealmProfile({
   const [range] = useState<number>(20);
 
   const params = useParams();
+  const realmAvatarSrc: string | undefined =
+    realmInfo.profile != null && realmInfo.profile !== "none"
+      ? realmInfo.profile
+      : undefined;
 
   useEffect(() => {
     let currentView = false;
@@ -160,17 +162,17 @@ function RealmProfile({
   return (
     <div
       ref={divcontentRef}
-      className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll"
+      className="cl-profile-page__shell tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll"
     >
       <button
         onClick={() => {
           navigate("/");
         }}
-        className="tw-z-[10] tw-shadow-lg tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
+        className="tw-z-[10] tw-shadow-lg tw-bg-[var(--surface)] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-full tw-border tw-border-[var(--border)] tw-flex tw-items-center tw-justify-center tw-text-[var(--text)] tw-cursor-pointer"
       >
         <IoArrowBack style={{ fontSize: "20px" }} />
       </button>
-      <div className="tw-bg-white tw-w-full tw-h-[40%] tw-min-h-[500px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
+      <div className="cl-profile-page__hero tw-w-full tw-h-[40%] tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center">
         <ProfileCoverContainer
           userID={realmInfo.id}
           realm_id={realmInfo.realm_id}
@@ -193,7 +195,7 @@ function RealmProfile({
               <span className="tw-text-[25px] tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
                 <span>{realmInfo.name}</span>
                 {realmInfo.is_verified && (
-                  <RiVerifiedBadgeFill size={18} color="#1c7def" />
+                  <RiVerifiedBadgeFill size={18} color="var(--brand)" />
                 )}
               </span>
               <span className="tw-text-[14px] tw-break-all tw-mb-[20px]">
@@ -212,7 +214,7 @@ function RealmProfile({
                   onClick={() => {
                     navigate("/login");
                   }}
-                  className="tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                 >
                   Login
                 </button>
@@ -225,7 +227,7 @@ function RealmProfile({
                     onClick={() => {
                       navigate(`/realms/${realmInfo.realm_id}`);
                     }}
-                    className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-border-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
+                    className="cl-profile-action-button--secondary tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                   >
                     Manage
                   </button>
@@ -234,7 +236,7 @@ function RealmProfile({
                   <button
                     onClick={UnfollowRealmProcess}
                     disabled={isConnectionButtonsLoading}
-                    className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[#1c7def] tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#1c7def] tw-rounded-[6px] tw-text-[12px]"
+                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                   >
                     {isConnectionButtonsLoading ? (
                       <motion.div
@@ -248,7 +250,7 @@ function RealmProfile({
                         id="div_loader_request_nano_light"
                       >
                         <AiOutlineLoading3Quarters
-                          style={{ fontSize: "15px", color: "#1c7def" }}
+                          style={{ fontSize: "15px", color: "var(--brand)" }}
                         />
                       </motion.div>
                     ) : (
@@ -259,7 +261,7 @@ function RealmProfile({
                   <button
                     onClick={FollowRealmProcess}
                     disabled={isConnectionButtonsLoading}
-                    className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                    className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                   >
                     {isConnectionButtonsLoading ? (
                       <motion.div
@@ -288,20 +290,20 @@ function RealmProfile({
       </div>
       <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
         <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
-          <div className="tw-w-full tw-h-fit tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex tw-flex-col">
+          <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex tw-flex-col">
             <div
               className={`tw-w-[calc(100%-40px)] tw-p-[20px] tw-flex tw-flex-col ${realmInfo.description && realmInfo.description.length >= 600 ? "tw-items-start" : "tw-items-center"} tw-gap-[15px]`}
             >
               <span className="tw-text-[14px]">{realmInfo.description}</span>
             </div>
-            <hr className="tw-w-[calc(100%-40px)] tw-text-[#666666] tw-border-white tw-opacity-[0.4] tw-mb-[0px] tw-z-[0]" />
+            <hr className="tw-w-[calc(100%-40px)] tw-border-[var(--border)] tw-opacity-[0.7] tw-mb-[0px] tw-z-[0]" />
             <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
               <span className="tw-text-[14px] tw-flex tw-items-center">
                 <MdPerson
                   size={22}
-                  color="#666666"
-                  style={{ marginRight: "5px" }}
-                />
+                color="var(--text-2)"
+                style={{ marginRight: "5px" }}
+              />
                 {realmInfo.followers_count > 0 ? (
                   <Fragment>
                     Followed by&nbsp;
@@ -334,23 +336,29 @@ function RealmProfile({
           )}
           {realmInfo.is_admin && (
             <Fragment>
-              <div
-                id="div_feed_header_post_input_profile"
-                className="tw-border-[0px]"
-              >
-                {realmInfo.profile && realmInfo.profile !== "none" ? (
-                  <div id="img_default_profile_container">
-                    <CachedImage
-                      src={realmInfo.profile}
-                      id="img_actual_profile"
-                    />
-                  </div>
-                ) : (
-                  <div id="div_img_feed_header_container">
-                    <CachedImage src={DefaultProfile} id="img_feed_header" />
-                  </div>
+              <Card pad={14} style={{ marginBottom: 14, width: "100%" }}>
+                {toggleNewPostModal.toggle && (
+                  <NewPostModal
+                    toShare={false}
+                    sharePreviewData={null}
+                    withImage={toggleNewPostModal.withImage}
+                    profileInfo={{
+                      id: authentication.user.userID,
+                      username: authentication.user.username,
+                    }}
+                    realmInfo={realmInfo}
+                    setcreateposttext={setcreateposttext}
+                    getpostprocess={GetPostProcess}
+                    onclose={settoggleNewPostModal}
+                  />
                 )}
-                <div id="div_input_feed_flex">
+                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+                  <Avatar
+                    id={realmInfo.slug ?? undefined}
+                    name={realmInfo.name ?? ""}
+                    src={realmAvatarSrc}
+                    size={42}
+                  />
                   <input
                     type="text"
                     autoComplete="off"
@@ -370,20 +378,71 @@ function RealmProfile({
                     }}
                     className="tw-font-Inter"
                     placeholder="Publish a post"
-                    id="input_feed_box"
+                    style={{
+                      flex: 1,
+                      height: 42,
+                      border: "none",
+                      outline: "none",
+                      background: "var(--input)",
+                      padding: "0 16px",
+                      borderRadius: 21,
+                      color: "var(--text)",
+                      fontSize: 14,
+                    }}
                   />
                 </div>
-                <div id="div_btn_image_container">
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 4,
+                    marginTop: 10,
+                    paddingTop: 10,
+                    borderTop: "1px solid var(--border)",
+                  }}
+                >
                   <button
                     onClick={() => {
                       settoggleNewPostModal({ toggle: true, withImage: true });
                     }}
-                    id="btn_image_feed"
+                    style={{
+                      display: "inline-flex",
+                      alignItems: "center",
+                      gap: 6,
+                      height: 34,
+                      padding: "0 12px",
+                      border: "none",
+                      background: "transparent",
+                      borderRadius: "var(--r-sm)",
+                      cursor: "pointer",
+                      color: "var(--text-2)",
+                      fontSize: 13,
+                      fontWeight: 600,
+                    }}
+                    onMouseEnter={(e) =>
+                      (e.currentTarget.style.background = "var(--surface-hover)")
+                    }
+                    onMouseLeave={(e) =>
+                      (e.currentTarget.style.background = "transparent")
+                    }
                   >
-                    <FcAddImage style={{ fontSize: "35px" }} />
+                    <Icon n="image" s={20} c="var(--green)" />
+                    Photo
                   </button>
+                  <Btn
+                    size="sm"
+                    style={{
+                      marginLeft: "auto",
+                      opacity: createposttext.trim() ? 1 : 0.7,
+                    }}
+                    onClick={() => {
+                      settoggleNewPostModal({ toggle: true, withImage: false });
+                    }}
+                  >
+                    Post
+                  </Btn>
                 </div>
-              </div>
+              </Card>
             </Fragment>
           )}
           {paginatedPosts.count > 0 ? (
@@ -392,7 +451,18 @@ function RealmProfile({
             >
               {posts.map((mp: IPost) => {
                 return (
-                  <PostItem key={mp.post_id} isSharePreview={false} mp={mp} />
+                  <Card
+                    pad={10}
+                    style={{ marginBottom: 14, width: "100%" }}
+                    key={mp.post_id}
+                    className="tw-flex tw-justify-center tw-w-full"
+                  >
+                    <PostItem
+                      key={mp.post_id}
+                      isSharePreview={false}
+                      mp={mp}
+                    />
+                  </Card>
                 );
               })}
               {paginatedPosts.next && (
@@ -430,7 +500,16 @@ function RealmProfile({
               className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px]  ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
             >
               {Array.from({ length: 8 }, (_, i: number) => {
-                return <PostItemLoader key={i} />;
+                return (
+                  <Card
+                    pad={10}
+                    style={{ marginBottom: 14, width: "100%" }}
+                    key={i}
+                    className="tw-flex tw-justify-center tw-w-full"
+                  >
+                    <PostItemLoader key={i} />
+                  </Card>
+                );
               })}
             </div>
           )}

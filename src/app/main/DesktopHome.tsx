@@ -1,23 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useSelector } from "react-redux";
-import Notifications from "../tabs/feed/Notifications";
-import Messages from "../tabs/feed/Messages";
 import Feed from "../tabs/feed/Feed";
-import Contacts from "../tabs/feed/Contacts";
 
-function DesktopHome({ togglerightwidget }: { togglerightwidget: string }) {
-  const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener,
-  );
-  const showRightPanel = screensizelistener.W > 900;
-  const showContactsRail = screensizelistener.W >= 1280;
-
-  let rightPanel = null;
-  if (showRightPanel) {
-    rightPanel =
-      togglerightwidget === "notifs" ? <Notifications /> : <Messages />;
-  }
-
+function DesktopHome() {
   return (
     <div
       style={{
@@ -28,7 +12,7 @@ function DesktopHome({ togglerightwidget }: { togglerightwidget: string }) {
         gap: 0,
       }}
     >
-      {showContactsRail && (
+      {/* {showContactsRail && (
         <div
           style={{
             width: 320,
@@ -42,7 +26,7 @@ function DesktopHome({ togglerightwidget }: { togglerightwidget: string }) {
         >
           <Contacts />
         </div>
-      )}
+      )} */}
       <div
         style={{
           flex: 1,
@@ -54,21 +38,6 @@ function DesktopHome({ togglerightwidget }: { togglerightwidget: string }) {
       >
         <Feed />
       </div>
-      {rightPanel && (
-        <div
-          style={{
-            width: 360,
-            flex: "none",
-            display: "flex",
-            flexDirection: "column",
-            minHeight: 0,
-            borderLeft: "1px solid var(--border)",
-            background: "var(--surface)",
-          }}
-        >
-          {rightPanel}
-        </div>
-      )}
     </div>
   );
 }

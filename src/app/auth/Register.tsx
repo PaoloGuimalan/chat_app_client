@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CSSProperties, useState } from "react";
-import ChatterLoopImg from "../../assets/imgs/chatterloop.png";
 import { useNavigate } from "react-router-dom";
 import { getDaysInMonth, monthList, years } from "../../reusables/vars/lists";
 import { RegisterRequest } from "../../reusables/hooks/requests";
@@ -10,7 +9,7 @@ import { SET_ALERTS } from "../../redux/types";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { monthNameToNumber } from "@/reusables/hooks/reusable";
 import { Btn, Field, Icon, SelectField, useTheme } from "@/reusables/design";
-import { BrandPanel } from "./Login";
+import { BrandMark, BrandPanel } from "./Login";
 
 type Gender = "Male" | "Female" | "Others";
 
@@ -47,6 +46,7 @@ function GenderButton({
         background: active ? GENDER_STYLE[value].activeBg : "var(--surface)",
         color: active ? "#fff" : "var(--text-2)",
         transition: "all .14s",
+        width: "100%",
       }}
     >
       {value}
@@ -196,11 +196,7 @@ function Register() {
                 marginBottom: 22,
               }}
             >
-              <img
-                src={ChatterLoopImg}
-                alt=""
-                style={{ width: 38, height: 38 }}
-              />
+              <BrandMark size={38} />
               <span style={{ fontSize: 24, fontWeight: 800 }}>Chatterloop</span>
             </div>
           )}
@@ -226,7 +222,14 @@ function Register() {
           </p>
 
           <div style={{ display: "flex", flexDirection: "column", gap: 13 }}>
-            <div style={{ display: "flex", gap: 10 }}>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+                gap: 12,
+                width: "100%",
+              }}
+            >
               <Field
                 icon="person"
                 label="First name"
@@ -271,8 +274,9 @@ function Register() {
               <div
                 style={{
                   display: "grid",
-                  gridTemplateColumns: "1.3fr 1fr 1fr",
-                  gap: 10,
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                  gap: 12,
+                  width: "100%",
                 }}
               >
                 <SelectField
@@ -320,7 +324,14 @@ function Register() {
               >
                 Gender
               </span>
-              <div style={{ display: "flex", gap: 8 }}>
+              <div
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
+                  gap: 10,
+                  width: "100%",
+                }}
+              >
                 {(["Male", "Female", "Others"] as const).map((g) => (
                   <GenderButton
                     key={g}

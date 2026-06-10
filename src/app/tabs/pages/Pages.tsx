@@ -73,7 +73,7 @@ function Pages() {
           }
           onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
-          <Icon n="arrow_back" s={22} c="#4997f2" />
+          <Icon n="arrow_back" s={22} c="var(--brand)" />
         </button>
         <button
           onClick={() => navigate("/pages")}
@@ -84,7 +84,7 @@ function Pages() {
           }
           onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
         >
-          <Icon n="auto_stories" s={22} c="#4997f2" />
+          <Icon n="auto_stories" s={22} c="var(--brand)" />
         </button>
         <div
           style={{

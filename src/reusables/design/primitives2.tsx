@@ -4,6 +4,9 @@ import {
   HTMLAttributes,
   MouseEvent,
   ReactNode,
+  forwardRef,
+  useEffect,
+  useState,
 } from "react";
 import { Icon } from "./primitives";
 
@@ -53,8 +56,17 @@ export function Avatar({
   ring,
   style,
 }: AvatarProps) {
+  const [resolvedSrc, setResolvedSrc] = useState<string | null | undefined>(
+    src,
+  );
+
+  useEffect(() => {
+    setResolvedSrc(src);
+  }, [src]);
+
   const key = id || name || "x";
   const [a, b] = AV_GRADS[avHash(key) % AV_GRADS.length];
+  const shouldShowImage = !!resolvedSrc;
   return (
     <span
       style={{
@@ -65,10 +77,10 @@ export function Avatar({
         height: size,
         ...style,
       }}
-    >
-      {src ? (
+      >
+      {shouldShowImage ? (
         <img
-          src={src}
+          src={resolvedSrc || ""}
           alt={name || ""}
           style={{
             width: size,
@@ -78,6 +90,9 @@ export function Avatar({
             boxShadow: ring
               ? "0 0 0 2px var(--surface), 0 0 0 4px var(--brand)"
               : "none",
+          }}
+          onError={() => {
+            setResolvedSrc(null);
           }}
         />
       ) : (
@@ -126,10 +141,14 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, "childre
   hover?: boolean;
 }
 
-export function Card({ children, pad = 16, hover, style, ...rest }: CardProps) {
+export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
+  { children, pad = 16, hover, style, ...rest },
+  ref,
+) {
   return (
     <div
       {...rest}
+      ref={ref}
       style={{
         background: "var(--surface)",
         border: "1px solid var(--border)",
@@ -153,7 +172,7 @@ export function Card({ children, pad = 16, hover, style, ...rest }: CardProps) {
       {children}
     </div>
   );
-}
+});
 
 type BadgeTone = "brand" | "green" | "gold" | "pink" | "grey";
 

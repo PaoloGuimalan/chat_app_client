@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { KeyboardEvent, useRef, useState } from "react";
-import ChatterLoopImg from "../../assets/imgs/chatterloop.png";
 import { useDispatch, useSelector } from "react-redux";
 import {
   LogoutRequest,
@@ -10,7 +9,7 @@ import { checkIfValid } from "../../reusables/hooks/validatevariables";
 import { SET_ALERTS } from "../../redux/types";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { Btn, Icon, useTheme } from "@/reusables/design";
-import { BrandPanel } from "./Login";
+import { BrandMark, BrandPanel } from "./Login";
 
 function Verification() {
   const authentication = useSelector((state: any) => state.authentication);
@@ -145,11 +144,7 @@ function Verification() {
                 marginBottom: 18,
               }}
             >
-              <img
-                src={ChatterLoopImg}
-                alt=""
-                style={{ width: 38, height: 38 }}
-              />
+              <BrandMark size={38} />
               <span style={{ fontSize: 24, fontWeight: 800 }}>Chatterloop</span>
             </div>
           )}

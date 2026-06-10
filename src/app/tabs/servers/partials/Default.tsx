@@ -96,41 +96,31 @@ function Default() {
   );
 
   return (
-    <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-center tw-pt-[15px] tw-pb-[10px] tw-pr-[7px]">
-      <div
-        id="div_server_list"
-        className="tw-rounded-[10px] tw-shadow-lg tw-bg-white tw-flex tw-flex-col tw-items-center tw-justify-start tw-w-full tw-h-full tw-overflow-y-scroll x-scroll"
-      >
-        <div className="tw-w-full tw-flex tw-flex-col tw-pt-[40px] tw-h-[40%] tw-min-h-[40%] tw-items-center tw-justify-center">
-          <span
-            className={`${
-              isMobileView
-                ? "tw-text-[16px] tw-pl-[20px] tw-pr-[20px]"
-                : "tw-text-[20px]"
-            } tw-font-Inter tw-font-semibold tw-text-[#333333]`}
-          >
-            Welcome to Chatterloop Servers
-          </span>
-          <span
-            className={`${
-              isMobileView
-                ? "tw-text-[12px] tw-pl-[20px] tw-pr-[20px]"
-                : "tw-text-[14px]"
-            } tw-font-Inter`}
-          >
-            Discover something new, explore the Realms of Chatterloop.
-          </span>
-          <div
-            className={`${
-              isMobileView
-                ? "tw-pl-[20px] tw-pr-[20px] tw-w-[calc(100%-40px)]"
-                : "tw-w-full"
-            } tw-max-w-[500px] tw-pt-[20px]`}
-          >
+    <div className="tw-w-full tw-h-full tw-flex tw-justify-center tw-items-stretch">
+      <div className="tw-w-full tw-h-full tw-min-h-0 tw-flex tw-flex-col tw-overflow-hidden tw-bg-[var(--surface)]">
+        <div className="cl-server-page__hero tw-w-full tw-bg-[var(--surface)] tw-px-[18px] tw-py-[18px] sm:tw-px-[28px] sm:tw-py-[26px]">
+          <div className="cl-server-page__hero-copy">
+            <span className="cl-server-page__eyebrow">Servers</span>
+            <span
+              className={`${
+                isMobileView ? "tw-text-[20px]" : "tw-text-[28px]"
+              } tw-font-Inter tw-font-semibold tw-leading-[1.05] tw-text-[var(--text)]`}
+            >
+              Welcome to Chatterloop Servers
+            </span>
+            <span
+              className={`${
+                isMobileView ? "tw-text-[11px]" : "tw-text-[13px]"
+              } tw-font-Inter tw-text-[var(--text-2)] tw-max-w-[680px]`}
+            >
+              Discover something new, explore the Realms of Chatterloop.
+            </span>
+          </div>
+          <div className="cl-server-page__search-shell">
             <div id="div_search_container">
               <div id="div_input_container">
                 <AiOutlineSearch
-                  style={{ fontSize: "20px", color: "#4A4A4A" }}
+                  style={{ fontSize: "20px", color: "var(--gold)" }}
                 />
                 <input
                   value={searchbox}
@@ -147,71 +137,74 @@ function Default() {
             </div>
           </div>
         </div>
-        <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center">
-          <div className="tw-w-full tw-flex tw-flex-col tw-max-w-[90%] tw-items-start tw-gap-[20px]">
-            <span
-              className={`${
-                isMobileView ? "tw-text-[14px]" : "tw-text-[16px]"
-              } tw-font-Inter tw-font-semibold`}
-            >
-              Top Servers
-            </span>
-            <div className="tw-w-full tw-flex tw-justify-evenly tw-gap-[10px] tw-flex-wrap tw-pb-[20px]">
-              {isLoaded ? (
-                pages.results.length === 0 ? (
-                  <div className="tw-w-full tw-flex tw-flex-col tw-justify-center tw-items-center tw-gap-[10px] tw-pb-[20px] tw-pt-[80px]">
-                    <RiPagesLine
-                      style={{
-                        fontSize: isMobileView ? "80px" : "80px",
-                        color: "#7f7f85",
-                      }}
-                    />
-                    <div className="tw-flex tw-flex-col tw-gap-[5px]">
-                      <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[#7f7f85]">
-                        No servers yet
-                      </span>
-                      <span className="tw-text-[14px] tw-font-Inter tw-text-[#7f7f85]">
-                        Create your server and start building a community.
-                      </span>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
-                    {pages.results.map((mp: IRealmProfileInfo) => {
-                      return (
-                        <PublicServerItem key={mp.id} mp={mp} flexed={false} />
-                      );
-                    })}
-                  </div>
-                )
-              ) : (
-                <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
-                  {Array.from({ length: 20 }).map((_, i) => {
-                    return <ServerItemLoader key={i} flexed={false} />;
-                  })}
-                </div>
-              )}
-              {isLoaded && isPaginating && (
-                <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
-                  {Array.from({ length: 10 }).map((_, i) => {
-                    return <ServerItemLoader key={i} flexed={false} />;
-                  })}
-                </div>
-              )}
-              {pages.next && (
-                <div className="tw-w-full tw-flex tw-justify-center">
-                  <button
-                    onClick={() => {
-                      setcurrentPage((prev) => prev + 1);
-                      setisPaginating(true);
-                    }}
-                    className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#404040] tw-border-[#404040] tw-rounded-[6px] tw-text-[12px]"
-                  >
-                    Load more
-                  </button>
-                </div>
-              )}
+        <div className="tw-flex-1 tw-min-h-0 tw-overflow-y-auto x-scroll tw-bg-[var(--surface-2)]">
+          <div className="tw-w-full tw-flex tw-flex-col tw-gap-[18px] tw-p-[18px] sm:tw-p-[24px]">
+            <div className="tw-flex tw-items-center tw-justify-between tw-gap-[12px] tw-flex-wrap">
+              <span
+                className={`${
+                  isMobileView ? "tw-text-[14px]" : "tw-text-[16px]"
+                } tw-font-Inter tw-font-semibold tw-text-[var(--text)]`}
+              >
+                Top Servers
+              </span>
+              <span className="tw-text-[12px] tw-text-[var(--text-2)] tw-font-Inter">
+                {pages.results.length} result{pages.results.length === 1 ? "" : "s"}
+              </span>
             </div>
+            {isLoaded ? (
+              pages.results.length === 0 ? (
+                <div className="tw-w-full tw-min-h-[320px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-gap-[10px] tw-py-[48px] tw-text-center">
+                  <RiPagesLine
+                    style={{
+                      fontSize: isMobileView ? "80px" : "80px",
+                      color: "var(--text-2)",
+                    }}
+                  />
+                  <div className="tw-flex tw-flex-col tw-gap-[5px] tw-max-w-[340px]">
+                    <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
+                      No servers yet
+                    </span>
+                    <span className="tw-text-[14px] tw-font-Inter tw-text-[var(--text-2)]">
+                      Create your server and start building a community.
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="tw-w-full tw-flex tw-flex-wrap tw-justify-center tw-gap-[12px]">
+                  {pages.results.map((mp: IRealmProfileInfo) => {
+                    return (
+                      <PublicServerItem key={mp.id} mp={mp} flexed={false} />
+                    );
+                  })}
+                </div>
+              )
+            ) : (
+              <div className="tw-w-full tw-flex tw-flex-wrap tw-justify-center tw-gap-[12px]">
+                {Array.from({ length: 20 }).map((_, i) => {
+                  return <ServerItemLoader key={i} flexed={false} />;
+                })}
+              </div>
+            )}
+            {isLoaded && isPaginating && (
+              <div className="tw-w-full tw-flex tw-flex-wrap tw-justify-center tw-gap-[12px]">
+                {Array.from({ length: 10 }).map((_, i) => {
+                  return <ServerItemLoader key={i} flexed={false} />;
+                })}
+              </div>
+            )}
+            {pages.next && (
+              <div className="tw-w-full tw-flex tw-justify-center tw-pb-[8px]">
+                <button
+                  onClick={() => {
+                    setcurrentPage((prev) => prev + 1);
+                    setisPaginating(true);
+                  }}
+                  className="cl-display-card__button cl-display-card__button--outline tw-min-w-[110px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[14px] tw-pr-[14px] tw-text-[12px]"
+                >
+                  Load more
+                </button>
+              </div>
+            )}
           </div>
         </div>
       </div>

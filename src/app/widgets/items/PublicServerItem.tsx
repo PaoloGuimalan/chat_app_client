@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
-import ServerIcon from "../../../assets/imgs/servericon.png";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { AddNewMemberToServer } from "@/reusables/hooks/requests";
@@ -9,9 +8,9 @@ import {
   AuthenticationInterface,
   IRealmProfileInfo,
 } from "@/reusables/vars/interfaces";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
+import ServerAvatar from "@/reusables/design/ServerAvatar";
 
 function PublicServerItem({
   mp,
@@ -59,71 +58,59 @@ function PublicServerItem({
 
   return (
     <div
-      className={`tw-bg-white tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col tw-rounded-[5px]`}
+      className={`cl-display-card tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col`}
     >
-      <div className="tw-bg-white tw-w-full tw-h-full tw-min-h-[0px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-start tw-items-center  tw-rounded-[5px]">
+      <div className="cl-display-card__surface tw-w-full tw-h-full tw-min-h-[0px] tw-flex tw-flex-col tw-justify-start tw-items-center">
         {mp.cover_photo ? (
           <img
             src={mp.cover_photo}
-            className="tw-bg-black tw-w-full tw-object-cover tw-flex tw-max-w-[1500px] tw-h-[120px] tw-rounded-t-[5px]"
+            className="cl-display-card__cover tw-w-full tw-object-cover tw-flex tw-max-w-[1500px] tw-h-[120px]"
           />
         ) : (
-          <div className="tw-bg-black tw-w-full tw-flex tw-max-w-[1500px] tw-rounded-b-[0px] tw-h-[120px] tw-rounded-t-[5px]" />
+          <div className="cl-display-card__cover tw-w-full tw-flex tw-max-w-[1500px] tw-h-[120px]" />
         )}
-        <div className="tw-w-[calc(100%-30px)] tw-pl-[15px] tw-pr-[15px] tw-flex tw-flex-col tw-items-start tw-gap-[5px] tw-flex-1">
-          <div className="tw-cursor-pointer tw-bg-white tw-shadow-md tw-w-[50px] tw-h-[50px] tw-border-solid tw-border-[5px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[20px] tw-relative tw--mt-[30px]">
-            <CachedImage
-              src={
-                mp && mp.profile && mp.profile !== "N/A"
-                  ? mp.profile
-                  : ServerIcon
-              }
-              id={
-                mp && mp.profile && mp.profile !== "N/A"
-                  ? "img_actual_profile_main"
-                  : ""
-              }
-              className={
-                mp && mp.profile && mp.profile !== "N/A"
-                  ? ""
-                  : "img_gc_profiles_ntfs"
-              }
-            />
-          </div>
-          <div className="tw-w-[calc(100%-10px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[5px] tw-flex-1">
+        <div className="cl-display-card__body tw-w-[calc(100%-30px)] tw-pl-[15px] tw-pr-[15px] tw-flex tw-flex-col tw-items-start tw-gap-[8px] tw-flex-1">
+          <ServerAvatar
+            name={mp.name}
+            src={mp.profile && mp.profile !== "N/A" ? mp.profile : null}
+            size={50}
+            shape="rounded"
+            className="cl-display-card__avatar-shell tw-cursor-pointer tw-shadow-md tw-relative tw--mt-[30px]"
+          />
+          <div className="tw-w-[calc(100%-10px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-flex-1 tw-min-w-0">
             <span
-              className="tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+              className="cl-display-card__title tw-min-w-0 tw-w-full tw-flex tw-items-center tw-gap-[4px] tw-overflow-hidden tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
               onClick={() => {
                 if (isJoined) {
                   navigate(`/servers/${mp.id}`);
                 }
               }}
             >
-              <div className="tw-flex tw-items-center tw-gap-[4px]">
-                <span>{mp.name}</span>
+              <div className="tw-flex tw-items-center tw-gap-[4px] tw-min-w-0 tw-flex-1 tw-overflow-hidden">
+                <span className="tw-truncate">{mp.name}</span>
                 {mp.is_verified && (
                   <RiVerifiedBadgeFill size={16} color="#1c7def" />
                 )}
               </div>
             </span>
-            <span className="tw-text-[12px] tw-font-Inter tw-text-left line_clamp tw-text-[#3f3f3f]">
+            <span className="cl-display-card__description tw-text-[12px] tw-font-Inter tw-text-left line_clamp">
               {mp.description}
             </span>
-            <div className="tw-w-full tw-flex tw-flex-row tw-flex-1 tw-justify-between tw-items-end tw-pb-[15px]">
-              <span className="tw-text-[12px] tw-text-[#3f3f3f] tw-mb-[5px]">
+            <div className="tw-w-full tw-flex tw-flex-row tw-flex-1 tw-justify-between tw-items-end tw-gap-[10px] tw-pb-[15px]">
+              <span className="cl-display-card__meta tw-text-[12px] tw-mb-[5px]">
                 {mp.members} member/s
               </span>
               {isJoined ? (
                 <button
                   disabled
-                  className="tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none tw-bg-[#dfdfdf] tw-rounded-[4px]"
+                  className="cl-display-card__button cl-display-card__button--muted tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none"
                 >
                   Joined
                 </button>
               ) : isJoining ? (
                 <button
                   disabled
-                  className="tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none tw-bg-[#dfdfdf] tw-rounded-[4px]"
+                  className="cl-display-card__button cl-display-card__button--muted tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none"
                 >
                   <div className="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center">
                     <motion.div
@@ -143,7 +130,7 @@ function PublicServerItem({
               ) : (
                 <button
                   onClick={joinServerProcess}
-                  className="tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none tw-bg-[#e69500] tw-rounded-[4px] tw-cursor-pointer tw-text-white"
+                  className="cl-display-card__button cl-display-card__button--primary tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none tw-cursor-pointer"
                 >
                   Join
                 </button>

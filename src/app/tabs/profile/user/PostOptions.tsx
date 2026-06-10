@@ -113,14 +113,14 @@ function PostOptions({
       {isOptionsToggled && (
         <div
           autoFocus
-          className="tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[100px] tw-absolute tw-right-[25px] tw-top-[10px] tw-bg-white tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-border-[#d2d2d2] tw-shadow-md"
+          className="cl-post-options-menu tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[100px] tw-absolute tw-right-[25px] tw-top-[10px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md"
         >
           {!postState.is_archived &&
             (!postState.is_saved ? (
               <button
                 disabled={isSaving}
                 onClick={SavePostProcess}
-                className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+                className="cl-post-options-button tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
               >
                 <IoBookmark
                   size={15}
@@ -132,7 +132,7 @@ function PostOptions({
               <button
                 disabled={isSaving}
                 onClick={UnsavePostProcess}
-                className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+                className="cl-post-options-button tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
               >
                 <GoBookmarkSlashFill
                   size={15}
@@ -147,7 +147,7 @@ function PostOptions({
                 onClick={() => {
                   ArchivePostProcess(false);
                 }}
-                className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+                className="cl-post-options-button tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
               >
                 <RiInboxUnarchiveFill
                   size={16}
@@ -160,7 +160,7 @@ function PostOptions({
                 onClick={() => {
                   ArchivePostProcess(true);
                 }}
-                className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+                className="cl-post-options-button tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
               >
                 <FaArchive size={12} style={{ marginRight: "4px" }} />
                 <span>Archive</span>
@@ -169,7 +169,7 @@ function PostOptions({
           {post.user.id === authentication.user.userID && (
             <button
               onClick={DeletePostProcess}
-              className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+              className="cl-post-options-button cl-post-options-button--danger tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
             >
               <MdDelete size={18} style={{ marginLeft: "-3px" }} />
               <span>Delete</span>

@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../../../styles/styles.css";
 import { motion } from "framer-motion";
-import DefaultProfile from "../../../assets/imgs/default.png";
 import GroupChatIcon from "../../../assets/imgs/group-chat-icon.jpg";
 import { FcVideoCall, FcAddImage } from "react-icons/fc"; //FcInfo
 import { BiSolidInfoCircle, BiSolidPhoneCall, BiWindows } from "react-icons/bi";
@@ -62,10 +61,10 @@ import {
 } from "@/reusables/vars/interfaces";
 import IsTypingLoader from "./partials/IsTypingLoader";
 import { FaHashtag, FaLock } from "react-icons/fa6";
-import { HiDotsVertical } from "react-icons/hi";
 import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { Avatar } from "@/reusables/design";
 
 function Conversation({ conversationsetup, theme, isMinimized }: any) {
   const authentication = useSelector((state: any) => state.authentication);
@@ -113,6 +112,23 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     () => conversationsetup.type,
     [conversationsetup],
   );
+  const isServerConversation = conversationType === "server";
+
+  const conversationIdentityKey = useMemo(() => {
+    const userID = conversationsetup.userdetails?._id ?? "";
+    const groupID = conversationsetup.groupdetails?.groupID ?? "";
+    return [
+      conversationsetup.conversationid ?? "",
+      conversationsetup.type ?? "",
+      userID,
+      groupID,
+    ].join("|");
+  }, [
+    conversationsetup.conversationid,
+    conversationsetup.type,
+    conversationsetup.userdetails?._id,
+    conversationsetup.groupdetails?.groupID,
+  ]);
 
   const [messageValue, setmessageValue] = useState<string>("");
   const [conversationList, setconversationList] = useState<any[]>([]);
@@ -222,11 +238,11 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
 
   useEffect(() => {
     InputFocusInit();
-  }, [conversationsetup, inputMessageRef, isLoading]);
+  }, [conversationIdentityKey, inputMessageRef, isLoading]);
 
   useEffect(() => {
     ConversationInfoProcess();
-  }, [conversationsetup]);
+  }, [conversationIdentityKey]);
 
   const scrollBottom = () => {
     const items = document.querySelectorAll(".div_messages_result");
@@ -269,7 +285,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     scrollBottom();
   }, [
     autoScroll,
-    conversationsetup,
+    conversationIdentityKey,
     messageslist,
     divcontentRef,
     divlazyloaderRef,
@@ -407,7 +423,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         pendingmessageslist: [],
       },
     });
-  }, [conversationsetup]);
+  }, [conversationIdentityKey]);
 
   const [unreadmessages, setunreadmessages] = useState<string[]>([]);
 
@@ -436,7 +452,13 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     return () => {
       clearTimeout(timerId);
     };
-  }, [range, conversationsetup, conversationinfo, incrementer, unreadmessages]);
+  }, [
+    range,
+    conversationIdentityKey,
+    conversationinfo,
+    incrementer,
+    unreadmessages,
+  ]);
 
   useEffect(() => {
     InitConversationRequest(
@@ -482,7 +504,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         }
       },
     );
-  }, [page, conversationsetup, range, urllocation]);
+  }, [page, conversationIdentityKey, range, urllocation.pathname]);
 
   const GetConversation = useCallback(() => {
     setincrementer((prev) => prev + 1);
@@ -529,7 +551,15 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         }
       },
     );
-  }, [page, range]);
+  }, [
+    conversationIdentityKey,
+    conversationinfo,
+    dispatch,
+    navigate,
+    page,
+    range,
+    urllocation.pathname,
+  ]);
 
   useEffect(() => {
     if (!conversationsetup.conversationid) return;
@@ -607,7 +637,13 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     return () => {
       document.removeEventListener(eventName, handler as EventListener);
     };
-  }, [conversationsetup, urllocation]);
+  }, [
+    conversationIdentityKey,
+    urllocation.pathname,
+    GetConversation,
+    dispatch,
+    navigate,
+  ]);
 
   const sendImageProcess = () => {
     importData(
@@ -874,6 +910,19 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       });
   };
 
+  const goBackToConversationList = () => {
+    dispatch({
+      type: SET_CONVERSATION_SETUP,
+      payload: {
+        conversationsetup: conversationsetupstate,
+      },
+    });
+
+    if (isServerConversation && conversationsetup.groupdetails?.serverID) {
+      navigate(`/servers/${conversationsetup.groupdetails.serverID}`);
+    }
+  };
+
   return (
     <motion.div
       animate={{
@@ -884,47 +933,64 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               ? "none"
               : "flex",
         maxWidth:
-          pathnamelistener.includes("messages") || conversationType === "server"
+          isMinimized
+            ? "100%"
+            : pathnamelistener.includes("messages") || conversationType === "server"
             ? "100%"
             : screensizelistener.W <= 900
               ? "350px"
               : "350px",
         paddingTop:
-          pathnamelistener.includes("messages") || conversationType === "server"
+          isMinimized
+            ? "0px"
+            : pathnamelistener.includes("messages") || conversationType === "server"
             ? conversationType === "server"
               ? "0px"
-              : "10px"
+              : "0px"
             : screensizelistener.W <= 900
               ? "20px"
               : "20px",
       }}
       id="div_conversation"
+      className={
+        isMinimized
+          ? "cl-conversation-window cl-conversation-window--minimized"
+          : "cl-conversation-window"
+      }
     >
       <motion.div
         initial={{
           paddingRight:
-            pathnamelistener.includes("messages") ||
+            isMinimized
+              ? "0px"
+              : pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "20px"
                 : "20px",
           paddingBottom:
-            pathnamelistener.includes("messages") ||
+            isMinimized
+              ? "0px"
+              : pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
                 : "10px",
           width:
-            pathnamelistener.includes("messages") ||
+            isMinimized
+              ? "calc(100% - 0px)"
+              : pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 20px)"
                 : "calc(100% - 20px)",
           height:
-            pathnamelistener.includes("messages") ||
+            isMinimized
+              ? "calc(100% - 0px)"
+              : pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
@@ -933,28 +999,36 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         }}
         animate={{
           paddingRight:
-            pathnamelistener.includes("messages") ||
+            isMinimized
+              ? "0px"
+              : pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "20px"
                 : "20px",
           paddingBottom:
-            pathnamelistener.includes("messages") ||
+            isMinimized
+              ? "0px"
+              : pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
                 : "10px",
           width:
-            pathnamelistener.includes("messages") ||
+            isMinimized
+              ? "calc(100% - 0px)"
+              : pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 20px)"
                 : "calc(100% - 20px)",
           height:
-            pathnamelistener.includes("messages") ||
+            isMinimized
+              ? "calc(100% - 0px)"
+              : pathnamelistener.includes("messages") ||
             conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
@@ -968,29 +1042,33 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             height: "0px",
             paddingBottom: "0px",
             paddingTop: "0px",
-            borderRadius: pathnamelistener.includes("messages")
-              ? "0px"
-              : screensizelistener.W <= 900
-                ? "10px"
-                : "10px",
+            borderRadius: isMinimized
+              ? "18px"
+              : pathnamelistener.includes("messages")
+                ? "0px"
+                : screensizelistener.W <= 900
+                  ? "10px"
+                  : "10px",
             border:
               conversationType === "server"
                 ? "none"
                 : "solid 1px rgb(210, 210, 210)",
           }}
           animate={{
-            height: "calc(100% - 10px)",
-            paddingBottom: "5px",
+            height: "calc(100% - 0px)",
+            paddingBottom: "0px",
             paddingTop: "5px",
-            borderRadius: pathnamelistener.includes("messages")
-              ? "0px"
-              : screensizelistener.W <= 900
-                ? "10px"
-                : "10px",
+            borderRadius: isMinimized
+              ? "18px"
+              : pathnamelistener.includes("messages")
+                ? "0px"
+                : screensizelistener.W <= 900
+                  ? "10px"
+                  : "10px",
           }}
           id="div_conversation_content_handler"
           className={`tw-border-[0px] ${
-            isMinimized && "tw-shadow-md tw-border-[1px] tw-border-[#dedede]"
+            isMinimized && "cl-conversation-window-shell tw-shadow-md tw-border-[1px] tw-border-[#dedede]"
           }`}
         >
           <motion.div
@@ -1013,45 +1091,32 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             id="div_conversation_header"
           >
             <div id="div_conversation_user">
-              {conversationType === "server" ? (
-                screensizelistener.W <= 900 && (
-                  <div
-                    onClick={() => {
-                      // console.log(conversationsetup);
-                      navigate(
-                        urllocation.pathname
-                          .split("/")
-                          .slice(0, urllocation.pathname.split("/").length - 1)
-                          .join("/"),
-                      );
-                    }}
-                    id="div_img_cncts_container"
-                  >
-                    <div id="div_img_server_back_container_cncts">
-                      <IoArrowBack style={{ fontSize: "20px" }} />
-                    </div>
+              {screensizelistener.W <= 900 && (
+                <button
+                  type="button"
+                  aria-label="Back to messages list"
+                  onClick={goBackToConversationList}
+                  id="div_img_cncts_container"
+                  className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-p-0"
+                >
+                  <div id="div_img_server_back_container_cncts">
+                    <IoArrowBack style={{ fontSize: "20px" }} />
                   </div>
-                )
-              ) : (
+                </button>
+              )}
+              {conversationType !== "server" && (
                 <div id="div_img_cncts_container">
                   <div id="div_img_search_profiles_container_cncts">
                     {conversationsetup.type == "single" ? (
-                      <CachedImage
+                      <Avatar
+                        id={conversationsetup.userdetails._id}
+                        name={`${conversationsetup.userdetails.fullname.firstName} ${conversationsetup.userdetails.fullname.lastName}`}
                         src={
                           conversationsetup.userdetails.profile == "none"
-                            ? DefaultProfile
+                            ? undefined
                             : conversationsetup.userdetails.profile
                         }
-                        className={
-                          conversationsetup.userdetails.profile == "none"
-                            ? "img_search_profiles_ntfs"
-                            : ""
-                        }
-                        id={
-                          conversationsetup.userdetails.profile == "none"
-                            ? ""
-                            : "img_actual_profile"
-                        }
+                        size={48}
                       />
                     ) : (
                       <CachedImage
@@ -1153,6 +1218,45 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   onclose={settoggleConversationInfoModal}
                 />
               )}
+              {isMinimized && (
+                <>
+                  <motion.button
+                    whileHover={{
+                      backgroundColor: "var(--surface-hover)",
+                    }}
+                    className="btn_conversation_header_navigation cl-conversation-window-action cl-conversation-window-action--info"
+                    disabled={conversationinfo ? false : true}
+                    onClick={() => {
+                      settoggleConversationInfoModal(
+                        !toggleConversationInfoModal,
+                      );
+                    }}
+                  >
+                    <BiSolidInfoCircle
+                      style={{ fontSize: "21px" }}
+                    />
+                  </motion.button>
+                  <motion.button
+                    whileHover={{
+                      backgroundColor: "var(--surface-hover)",
+                    }}
+                    className="btn_conversation_header_navigation cl-conversation-window-action cl-conversation-window-action--close"
+                    disabled={conversationinfo ? false : true}
+                    onClick={() => {
+                      dispatch({
+                        type: CLOSE_MINIMIZED_CONVERSATION,
+                        payload: {
+                          conversationID: conversationsetup.conversationid,
+                        },
+                      });
+                    }}
+                  >
+                    <IoMdClose style={{ fontSize: "20px" }} />
+                  </motion.button>
+                </>
+              )}
+              {!isMinimized && (
+                <>
               {conversationType !== "server" && (
                 <motion.button
                   // disabled={true}
@@ -1164,9 +1268,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       ? true
                       : false
                   }
-                  whileHover={{
-                    backgroundColor: "#e6e6e6",
-                  }}
                   onClick={() => {
                     // initMediaDevices("audio");
                     initializeCall("audio");
@@ -1189,9 +1290,6 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       ? true
                       : false
                   }
-                  whileHover={{
-                    backgroundColor: "#e6e6e6",
-                  }}
                   onClick={() => {
                     // initMediaDevices("video");
                     initializeCall("video");
@@ -1203,10 +1301,11 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               )}
               <div className="tw-relative">
                 <motion.button
-                  whileHover={{
-                    backgroundColor: "#e6e6e6",
-                  }}
-                  className="btn_conversation_header_navigation"
+                  className={`btn_conversation_header_navigation ${
+                    isServerConversation
+                      ? "cl-conversation-header-action--server"
+                      : ""
+                  }`}
                   disabled={conversationinfo ? false : true}
                   onClick={() => {
                     settoggleMenu(!toggleMenu);
@@ -1215,8 +1314,13 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   //   settoggleMenu(false);
                   // }}
                 >
-                  <HiDotsVertical
-                    style={{ fontSize: "25px", color: theme.primary }}
+                  <BiSolidInfoCircle
+                    style={{
+                      fontSize: "23px",
+                      color: isServerConversation
+                        ? "var(--gold)"
+                        : theme.primary,
+                    }}
                   />
                 </motion.button>
                 <motion.div
@@ -1226,16 +1330,16 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   animate={{
                     scale: toggleMenu ? 1 : 0,
                   }}
-                  className="tw-flex-col tw-absolute tw-top-[30px] tw-min-w-[80px] tw-right-0 tw-rounded-md tw-bg-white tw-p-[5px] tw-shadow-md tw-z-50"
+                  className={`cl-conversation-menu tw-flex-col tw-absolute tw-top-[30px] tw-min-w-[80px] tw-right-0 tw-rounded-md tw-p-[5px] tw-shadow-md tw-z-50 ${
+                    isServerConversation ? "cl-conversation-menu--server" : ""
+                  }`}
                 >
                   <motion.button
-                    initial={{
-                      backgroundColor: "white",
-                    }}
-                    whileHover={{
-                      backgroundColor: "#e6e6e6",
-                    }}
-                    className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                    className={`cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer ${
+                      isServerConversation
+                        ? "cl-conversation-menu-action--server"
+                        : ""
+                    }`}
                     disabled={conversationinfo ? false : true}
                     onClick={() => {
                       settoggleConversationInfoModal(
@@ -1245,27 +1349,25 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     }}
                   >
                     <BiSolidInfoCircle
-                      style={{ fontSize: "20px", color: theme.primary }}
+                      style={{ fontSize: "20px" }}
                     />
                     <span className="tw-text-[12px] tw-font-Inter">Info</span>
                   </motion.button>
                   {conversationinfo?.type !== "single" &&
                     conversationinfo?.is_admin && (
                       <motion.button
-                        initial={{
-                          backgroundColor: "white",
-                        }}
-                        whileHover={{
-                          backgroundColor: "#e6e6e6",
-                        }}
-                        className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                        className={`cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer ${
+                          isServerConversation
+                            ? "cl-conversation-menu-action--server"
+                            : ""
+                        }`}
                         disabled={conversationinfo ? false : true}
                         onClick={() => {
                           navigate(`/realms/${conversationinfo?.contactID}`);
                         }}
-                      >
+                        >
                         <IoMdSettings
-                          style={{ fontSize: "20px", color: theme.primary }}
+                          style={{ fontSize: "20px" }}
                         />
                         <span className="tw-text-[12px] tw-font-Inter">
                           Manage
@@ -1276,13 +1378,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     !(screensizelistener.W <= 900) &&
                     conversationType !== "server" && (
                       <motion.button
-                        initial={{
-                          backgroundColor: "white",
-                        }}
-                        whileHover={{
-                          backgroundColor: "#e6e6e6",
-                        }}
-                        className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                        className="cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                         disabled={conversationinfo ? false : true}
                         onClick={() => {
                           dispatch({
@@ -1299,9 +1395,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                           });
                           settoggleMenu(false);
                         }}
-                      >
+                        >
                         <BiWindows
-                          style={{ fontSize: "20px", color: theme.primary }}
+                          style={{ fontSize: "20px" }}
                         />
                         <span className="tw-text-[12px] tw-font-Inter">
                           Minimize
@@ -1313,23 +1409,14 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   conversationinfo.chatHistory.isArchived
                     ? conversationType !== "server" && (
                         <motion.button
-                          initial={{
-                            backgroundColor: "white",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#e6e6e6",
-                          }}
-                          className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                          className="cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                           disabled={conversationinfo ? false : true}
                           onClick={() => {
                             UpdateChatHistoryProcess("unarchive");
                           }}
                         >
                           <RiInboxUnarchiveFill
-                            style={{
-                              fontSize: "20px",
-                              color: theme.primary,
-                            }}
+                            style={{ fontSize: "20px" }}
                           />
                           <span className="tw-text-[12px] tw-font-Inter">
                             Unarchive
@@ -1338,23 +1425,14 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       )
                     : conversationType !== "server" && (
                         <motion.button
-                          initial={{
-                            backgroundColor: "white",
-                          }}
-                          whileHover={{
-                            backgroundColor: "#e6e6e6",
-                          }}
-                          className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                          className="cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                           disabled={conversationinfo ? false : true}
                           onClick={() => {
                             UpdateChatHistoryProcess("archive");
                           }}
                         >
                           <RiInboxArchiveFill
-                            style={{
-                              fontSize: "20px",
-                              color: theme.primary,
-                            }}
+                            style={{ fontSize: "20px" }}
                           />
                           <span className="tw-text-[12px] tw-font-Inter">
                             Archive
@@ -1363,19 +1441,13 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       )}
                   {conversationType !== "server" && (
                     <motion.button
-                      initial={{
-                        backgroundColor: "white",
-                      }}
-                      whileHover={{
-                        backgroundColor: "#e6e6e6",
-                      }}
-                      className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                      className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                       disabled={conversationinfo ? false : true}
                       onClick={() => {
                         UpdateChatHistoryProcess("clear");
                       }}
                     >
-                      <MdDelete style={{ fontSize: "20px", color: "red" }} />
+                      <MdDelete style={{ fontSize: "20px" }} />
                       <span className="tw-text-[12px] tw-font-Inter">
                         Delete
                       </span>
@@ -1383,13 +1455,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   )}
                   {isMinimized && (
                     <motion.button
-                      initial={{
-                        backgroundColor: "white",
-                      }}
-                      whileHover={{
-                        backgroundColor: "#e6e6e6",
-                      }}
-                      className="tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                      className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                       disabled={conversationinfo ? false : true}
                       onClick={() => {
                         dispatch({
@@ -1401,7 +1467,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         settoggleMenu(false);
                       }}
                     >
-                      <IoMdClose style={{ fontSize: "20px", color: "red" }} />
+                      <IoMdClose style={{ fontSize: "20px" }} />
                       <span className="tw-text-[12px] tw-font-Inter">
                         Close
                       </span>
@@ -1409,6 +1475,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   )}
                 </motion.div>
               </div>
+                </>
+              )}
             </div>
           </motion.div>
           {isLoading ? (
@@ -1995,9 +2063,16 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   sendMessageProcess();
                 }}
                 disabled={isConversationDisabled}
-                className="btn_options_send"
+                className={`btn_options_send ${
+                  isServerConversation ? "cl-conversation-send-button--server" : ""
+                }`}
               >
-                <IoSend style={{ fontSize: "25px", color: theme.primary }} />
+                <IoSend
+                  style={{
+                    fontSize: "25px",
+                    color: isServerConversation ? "var(--on-brand)" : "white",
+                  }}
+                />
               </motion.button>
             </div>
           </div>
@@ -2007,4 +2082,17 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
   );
 }
 
-export default Conversation;
+export default memo(
+  Conversation,
+  (prevProps, nextProps) =>
+    prevProps.isMinimized === nextProps.isMinimized &&
+    prevProps.theme.primary === nextProps.theme.primary &&
+    prevProps.theme.lighten === nextProps.theme.lighten &&
+    prevProps.conversationsetup.conversationid ===
+      nextProps.conversationsetup.conversationid &&
+    prevProps.conversationsetup.type === nextProps.conversationsetup.type &&
+    prevProps.conversationsetup.userdetails?._id ===
+      nextProps.conversationsetup.userdetails?._id &&
+    prevProps.conversationsetup.groupdetails?.groupID ===
+      nextProps.conversationsetup.groupdetails?.groupID,
+);

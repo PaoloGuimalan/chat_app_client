@@ -82,20 +82,20 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
   };
 
   return (
-    <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-p-[20px] tw-gap-[20px]">
-      <div className="tw-flex tw-flex-col tw-items-start">
-        <span className="tw-text-[#383838] tw-text-[16px] tw-font-semibold tw-font-Inter">
+    <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-p-[18px] sm:tw-p-[24px] tw-gap-[18px] tw-bg-[var(--background)] tw-min-h-0">
+      <div className="tw-flex tw-flex-col tw-items-start tw-gap-[4px]">
+        <span className="tw-text-[var(--text)] tw-text-[20px] tw-font-semibold tw-font-Inter">
           Members
         </span>
-        <span className="tw-text-[#383838] tw-text-[14px] tw-font-Inter">
+        <span className="tw-text-[var(--text-2)] tw-text-[14px] tw-font-Inter tw-max-w-[760px]">
           Manage your{" "}
           {realm.type === "group" && realm.parent ? "channel" : realm.type}{" "}
           members and their roles
         </span>
       </div>
-      <div className="tw-flex tw-flex-wrap tw-w-full tw-gap-[10px] tw-h-full">
+      <div className="tw-flex tw-flex-wrap tw-w-full tw-gap-[12px] tw-h-full">
         <div
-          className={`tw-w-full ${addableMember && "xl:tw-max-w-[450px]"} tw-h-full tw-flex`}
+          className={`tw-w-full ${addableMember && "xl:tw-max-w-[450px]"} tw-h-full tw-flex tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-overflow-hidden`}
         >
           <RealmMembers
             realm_id={realm.id}
@@ -106,20 +106,22 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
           />
         </div>
         {addableMember && (
-          <ContactMember
-            parentRealmID={realm.parent?.id ?? null}
-            isRealm={true}
-            type={
-              realm.type === "group" && realm.parent ? "channel" : realm.type
-            }
-            label={
-              realm.type === "page"
-                ? `Add Page Admin/Moderators`
-                : `People you may want to add from ${realmTypeLabel === "channel" || realmTypeLabel === "voice" ? "server" : "contacts"}`
-            }
-            excludeIDs={memberIDs}
-            onAdd={AddNewMemberProcess}
-          />
+          <div className="tw-w-full xl:tw-max-w-[520px] tw-h-full tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-overflow-hidden">
+            <ContactMember
+              parentRealmID={realm.parent?.id ?? null}
+              isRealm={true}
+              type={
+                realm.type === "group" && realm.parent ? "channel" : realm.type
+              }
+              label={
+                realm.type === "page"
+                  ? `Add Page Admin/Moderators`
+                  : `People you may want to add from ${realmTypeLabel === "channel" || realmTypeLabel === "voice" ? "server" : "contacts"}`
+              }
+              excludeIDs={memberIDs}
+              onAdd={AddNewMemberProcess}
+            />
+          </div>
         )}
       </div>
     </div>

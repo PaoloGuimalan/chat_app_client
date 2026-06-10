@@ -1,14 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Modal from "@/app/reusables/Modal";
 import { IoMdClose } from "react-icons/io";
-import DefaultProfile from "../../../../assets/imgs/default.png";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { Avatar } from "@/reusables/design";
 
 function ReactionsModal({ reactions, onclose }: any) {
   return (
     <Modal
       component={
-        <div className="div_modal_container tw-max-w-[400px] tw-max-h-[300px] tw-items-center">
+        <div className="div_modal_container cl-reactions-modal tw-max-w-[400px] tw-max-h-[300px] tw-items-center">
           <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-pl-[10px] tw-pr-[10px] tw-pt-[7px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
             <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">
               Reactions
@@ -17,7 +16,7 @@ function ReactionsModal({ reactions, onclose }: any) {
               onClick={() => {
                 onclose(false);
               }}
-              className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
+              className="cl-reactions-modal-close tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
             >
               <IoMdClose style={{ fontSize: "17px" }} />
             </button>
@@ -30,12 +29,18 @@ function ReactionsModal({ reactions, onclose }: any) {
                   className="tw-w-[calc(100%-10px)] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px]"
                 >
                   <div id="div_img_search_profiles_container_cncts">
-                    <CachedImage
-                      src={mp.profile == "none" ? DefaultProfile : mp.profile}
-                      className={
-                        mp.profile == "none" ? "img_search_profiles_ntfs" : ""
+                    <Avatar
+                      id={mp.userID || mp.fullname?.firstName || String(i)}
+                      name={
+                        mp.fullname
+                          ? `${mp.fullname.firstName} ${
+                              mp.fullname.middleName === "N/A"
+                                ? ""
+                                : `${mp.fullname.middleName} `
+                            }${mp.fullname.lastName}`
+                          : mp.userID || "User"
                       }
-                      id={mp.profile == "none" ? "" : "img_actual_profile"}
+                      src={mp.profile && mp.profile !== "none" ? mp.profile : undefined}
                     />
                   </div>
                   <div className="tw-flex tw-flex-1 span_userdetails_ellipsis tw-items-center">

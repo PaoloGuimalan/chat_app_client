@@ -2,7 +2,7 @@ import Skeleton from "react-loading-skeleton";
 
 function ArchivePostItemLoader() {
   return (
-    <div className=" tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]">
+    <div className="tw-w-full tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]">
       <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
         <div id="div_img_feed_post_container">
           <Skeleton
@@ -16,7 +16,8 @@ function ArchivePostItemLoader() {
               minWidth: "40px",
             }}
             className="img_search_profiles_ntfs"
-            baseColor="rgb(210, 210, 210)"
+            baseColor="var(--surface-3)"
+            highlightColor="var(--surface-hover)"
           />
         </div>
         <div className="tw-flex tw-flex-col tw-items-start tw-gap-[0px]">
@@ -25,7 +26,8 @@ function ArchivePostItemLoader() {
             containerClassName="tw-w-[150px]"
             //   width="100%"
             height="15px"
-            baseColor="rgb(210, 210, 210)"
+            baseColor="var(--surface-3)"
+            highlightColor="var(--surface-hover)"
             count={1}
           />
           <Skeleton
@@ -33,7 +35,8 @@ function ArchivePostItemLoader() {
             containerClassName="tw-w-[100px]"
             //   width="100%"
             height="12px"
-            baseColor="rgb(210, 210, 210)"
+            baseColor="var(--surface-3)"
+            highlightColor="var(--surface-hover)"
             count={1}
           />
         </div>
@@ -46,7 +49,8 @@ function ArchivePostItemLoader() {
           containerClassName="tw-w-full"
           //   width="100%"
           height="20px"
-          baseColor="rgb(210, 210, 210)"
+          baseColor="var(--surface-3)"
+          highlightColor="var(--surface-hover)"
           count={3}
         />
       </div>

@@ -7,9 +7,9 @@ import {
   ContactsListInitRequest,
   DeclineContactRequest,
 } from "../../../reusables/hooks/requests";
-import DefaultProfile from "../../../assets/imgs/default.png";
 import {
   SET_CONVERSATION_SETUP,
+  SET_MINIMIZED_CONVERSATION,
   SET_TOGGLE_RIGHT_WIDGET,
 } from "../../../redux/types";
 import { useNavigate } from "react-router-dom";
@@ -22,7 +22,7 @@ import {
 import { PaginationProp } from "@/reusables/vars/props";
 import { AuthenticationInterface, IContact } from "@/reusables/vars/interfaces";
 import ContactItemLoader from "@/app/reusables/loaders/ContactItemLoader";
-import { Avatar, Icon, IconBtn, useTheme } from "@/reusables/design";
+import { Avatar, Badge, Card, Icon, IconBtn, useTheme } from "@/reusables/design";
 
 interface ContactRowData {
   id: string;
@@ -106,8 +106,25 @@ function Contacts() {
       type: SET_CONVERSATION_SETUP,
       payload: { conversationsetup: payload },
     });
-    if (isMobile) navigate("/messages");
-    else settogglerightwidget("messages");
+    if (isMobile) {
+      navigate("/messages");
+      return;
+    }
+    if (type === "single") {
+      dispatch({
+        type: SET_MINIMIZED_CONVERSATION,
+        payload: {
+          conversation: {
+            conversationid: conversationID,
+            userdetails,
+            groupdetails: conversationsetupstate.groupdetails,
+            type: "single",
+          },
+        },
+      });
+      return;
+    }
+    settogglerightwidget("messages");
   };
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
@@ -158,7 +175,7 @@ function Contacts() {
 
   return (
     <div
-      className="cl-redesign"
+      className="cl-redesign cl-contacts-page"
       data-theme={theme}
       style={{
         display: "flex",
@@ -166,228 +183,134 @@ function Contacts() {
         flex: 1,
         minHeight: 0,
         width: "100%",
-        maxWidth: isStandalone ? 640 : "100%",
+        maxWidth: isStandalone ? 760 : "100%",
         margin: isStandalone ? "0 auto" : undefined,
-        padding: isStandalone ? "16px 22px" : "16px 12px",
-        gap: 12,
+        padding: isStandalone ? "18px 22px" : "16px 12px",
+        gap: 16,
         background: "transparent",
       }}
     >
-      <div
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 10,
-          padding: isStandalone ? 0 : "0 4px",
-        }}
-      >
-        <span
-          style={{
-            width: 32,
-            height: 32,
-            borderRadius: "var(--r-sm)",
-            background: "var(--green-soft)",
-            display: "inline-flex",
-            alignItems: "center",
-            justifyContent: "center",
-          }}
-        >
+      <div className="cl-contacts-page__header">
+        <span className="cl-contacts-page__icon-shell">
           <Icon n="contacts" s={18} c="var(--green)" />
         </span>
-        <h2
-          style={{
-            margin: 0,
-            fontSize: isStandalone ? 22 : 17,
-            fontWeight: 800,
-            letterSpacing: "-0.02em",
-          }}
-        >
-          Contacts
-        </h2>
+        <div className="cl-contacts-page__title-block">
+          <h2 className="cl-contacts-page__title">Contacts</h2>
+          <span className="cl-contacts-page__subtitle">
+            Manage your connections and jump into conversations.
+          </span>
+        </div>
+        <Badge tone="green">{rows.length}</Badge>
       </div>
 
-      {isLoading ? (
-        <div
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: 6,
-          }}
-        >
-          {Array.from({ length: 12 }, (_, i) => (
-            <ContactItemLoader key={i} />
-          ))}
+      <Card
+        pad={0}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflow: "hidden",
+          display: "flex",
+          flexDirection: "column",
+          background: "var(--surface)",
+        }}
+      >
+        <div className="cl-contacts-page__toolbar">
+          <div className="cl-contacts-page__toolbar-copy">
+            <span className="cl-contacts-page__toolbar-title">
+              All contacts
+            </span>
+            <span className="cl-contacts-page__toolbar-subtitle">
+              {rows.length} people available
+            </span>
+          </div>
         </div>
-      ) : rows.length === 0 ? (
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            color: "var(--text-3)",
-          }}
-        >
-          <Icon n="contacts" s={42} />
-          <span style={{ fontSize: 14, fontWeight: 600 }}>No contacts</span>
-        </div>
-      ) : (
-        <div
-          ref={divcontentRef}
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: 4,
-            paddingRight: 4,
-          }}
-        >
-          {rows.map((r, i) => {
-            const online = isUserOnline(activeuserslist, r.id);
-            const sessionStatus = !online
-              ? userSessionStatusFromContacts(activeuserslist, r.id)
-              : null;
-            const fullName = `${r.firstName}${
-              r.middleName === "N/A" ? "" : ` ${r.middleName}`
-            } ${r.lastName}`;
-            return (
-              <div
-                key={i}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "10px 12px",
-                  borderRadius: "var(--r-sm)",
-                  transition: "background .14s",
-                }}
-                onMouseEnter={(e) =>
-                  (e.currentTarget.style.background = "var(--surface-hover)")
-                }
-                onMouseLeave={(e) =>
-                  (e.currentTarget.style.background = "transparent")
-                }
-              >
-                <div style={{ position: "relative", flex: "none" }}>
-                  <Avatar
-                    id={r.id}
-                    name={fullName}
-                    src={r.profile === "none" ? DefaultProfile : r.profile}
-                    size={46}
-                  />
-                  {online && (
-                    <span
+
+        {isLoading ? (
+          <div className="cl-contacts-page__list">
+            {Array.from({ length: 12 }, (_, i) => (
+              <ContactItemLoader key={i} />
+            ))}
+          </div>
+        ) : rows.length === 0 ? (
+          <div className="cl-contacts-page__empty">
+            <Icon n="contacts" s={42} />
+            <span>No contacts</span>
+          </div>
+        ) : (
+          <div ref={divcontentRef} className="cl-contacts-page__list">
+            {rows.map((r, i) => {
+              const online = isUserOnline(activeuserslist, r.id);
+              const sessionStatus = !online
+                ? userSessionStatusFromContacts(activeuserslist, r.id)
+                : null;
+              const fullName = `${r.firstName}${
+                r.middleName === "N/A" ? "" : ` ${r.middleName}`
+              } ${r.lastName}`;
+              return (
+                <div key={i} className="cl-contact-row">
+                  <div className="cl-contact-row__avatar">
+                    <Avatar
+                      id={r.id}
+                      name={fullName}
+                      src={r.profile === "none" ? undefined : r.profile}
+                      size={46}
+                    />
+                    {online && <span className="cl-contact-row__online-dot" />}
+                  </div>
+                  <div className="cl-contact-row__content">
+                    <button
+                      onClick={() => navigate(`/${r.username}`)}
+                      className="cl-contact-row__name"
+                    >
+                      <span className="cl-contact-row__name-text">
+                        {fullName}
+                      </span>
+                      {r.isBadged && <Icon n="verified" s={15} c="var(--brand)" />}
+                    </button>
+                    <div className="cl-contact-row__status cl-contact-row__status--active">
+                      {online ? "Active now" : sessionStatus ? sessionStatus : null}
+                    </div>
+                  </div>
+                  <div className="cl-contact-row__actions">
+                    <IconBtn
+                      n="forum"
+                      title="Message"
+                      onClick={() =>
+                        navigateToConversation(
+                          "single",
+                          r.connectionID,
+                          r.involvedUserdetails,
+                        )
+                      }
                       style={{
-                        position: "absolute",
-                        right: 0,
-                        bottom: 0,
-                        width: 12,
-                        height: 12,
-                        borderRadius: "50%",
-                        background: "var(--online)",
-                        border: "2px solid var(--surface)",
+                        color: "var(--brand)",
+                        background: "var(--surface-2)",
                       }}
                     />
-                  )}
-                </div>
-                <div style={{ flex: 1, minWidth: 0 }}>
-                  <button
-                    onClick={() => navigate(`/${r.username}`)}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 5,
-                      border: "none",
-                      background: "transparent",
-                      padding: 0,
-                      cursor: "pointer",
-                      color: "var(--text)",
-                      fontWeight: 700,
-                      fontSize: 14,
-                    }}
-                  >
-                    <span
-                      style={{
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                        whiteSpace: "nowrap",
+                    <IconBtn
+                      n="person_remove"
+                      title="Remove contact"
+                      onClick={() => {
+                        if (!isDisabledByRequest)
+                          declineRequestProcess(r.connectionID, "remove");
                       }}
-                    >
-                      {fullName}
-                    </span>
-                    {r.isBadged && (
-                      <Icon n="verified" s={15} c="var(--brand)" />
-                    )}
-                  </button>
-                  <div
-                    style={{ fontSize: 12, color: "var(--text-2)", marginTop: 2 }}
-                  >
-                    {online
-                      ? "Active now"
-                      : sessionStatus
-                        ? sessionStatus
-                        : null}
+                      style={{
+                        color: "var(--pink)",
+                        background: "var(--surface-2)",
+                      }}
+                    />
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 2, flex: "none" }}>
-                  <IconBtn
-                    n="forum"
-                    title="Message"
-                    onClick={() =>
-                      navigateToConversation(
-                        "single",
-                        r.connectionID,
-                        r.involvedUserdetails,
-                      )
-                    }
-                    style={{
-                      color: "var(--brand)",
-                      border: "none",
-                      background: "transparent",
-                    }}
-                  />
-                  <IconBtn
-                    n="person_remove"
-                    title="Remove contact"
-                    onClick={() => {
-                      if (!isDisabledByRequest)
-                        declineRequestProcess(r.connectionID, "remove");
-                    }}
-                    style={{
-                      color: "var(--pink)",
-                      border: "none",
-                      background: "transparent",
-                    }}
-                  />
-                </div>
+              );
+            })}
+            {contacts.next && (
+              <div ref={divlazyloaderRef} className="cl-contacts-page__loader">
+                <AiOutlineLoading3Quarters className="cl-spin" style={{ fontSize: 22 }} />
               </div>
-            );
-          })}
-          {contacts.next && (
-            <div
-              ref={divlazyloaderRef}
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                padding: 16,
-                color: "var(--text-3)",
-              }}
-            >
-              <AiOutlineLoading3Quarters
-                className="cl-spin"
-                style={{ fontSize: 22 }}
-              />
-            </div>
-          )}
-        </div>
-      )}
+            )}
+          </div>
+        )}
+      </Card>
     </div>
   );
 }

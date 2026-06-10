@@ -60,77 +60,81 @@ function FollowedPages() {
   }, [currentPage]);
 
   return (
-    <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-center tw-pt-[15px] tw-pb-[10px] tw-pr-[7px]">
-      <div className="tw-rounded-[10px] tw-shadow-lg tw-bg-white tw-flex tw-flex-col tw-items-center tw-justify-start tw-w-full tw-h-full tw-overflow-y-scroll x-scroll">
-        <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center">
-          <div
-            className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[20px] ${isMobileView ? "tw-max-w-[calc(100%-30px)] tw-p-[20px] tw-pt-[15px] tw-pr-[10px]" : "tw-max-w-[calc(100%-80px)] tw-p-[40px] tw-pt-[35px]"}`}
-          >
-            <div
-              className={`tw-w-full tw-flex tw-justify-between tw-h-[34px] ${isMobileView && "tw-items-center"}`}
+    <div className="tw-w-full tw-h-full tw-flex tw-justify-center tw-items-stretch">
+      <div className="tw-w-full tw-h-full tw-min-h-0 tw-flex tw-flex-col tw-overflow-hidden tw-bg-[var(--surface)]">
+        <div className="cl-pages-page__hero tw-w-full tw-bg-[var(--surface)] tw-px-[18px] tw-py-[18px] sm:tw-px-[28px] sm:tw-py-[26px]">
+          <div className="cl-pages-page__hero-copy">
+            <span className="cl-pages-page__eyebrow">Pages</span>
+            <span
+              className={`${
+                isMobileView ? "tw-text-[20px]" : "tw-text-[28px]"
+              } tw-font-Inter tw-font-semibold tw-leading-[1.05] tw-text-[var(--text)]`}
             >
-              <span
-                className={`${
-                  isMobileView ? "tw-text-[14px]" : "tw-text-[16px]"
-                } tw-font-Inter tw-font-semibold`}
-              >
-                Followed Pages
-              </span>
-            </div>
+              Followed Pages
+            </span>
+            <span
+              className={`${
+                isMobileView ? "tw-text-[11px]" : "tw-text-[13px]"
+              } tw-font-Inter tw-text-[var(--text-2)] tw-max-w-[680px]`}
+            >
+              Keep up with the pages you already follow.
+            </span>
+          </div>
+        </div>
+        <div className="tw-flex-1 tw-min-h-0 tw-overflow-y-auto x-scroll tw-bg-[var(--surface-2)]">
+          <div className="tw-w-full tw-flex tw-flex-col tw-gap-[18px] tw-p-[18px] sm:tw-p-[24px]">
             {isLoaded ? (
               pages.results.length === 0 ? (
-                <div className="tw-w-full tw-flex tw-flex-col tw-justify-center tw-items-center tw-gap-[10px] tw-pb-[20px] tw-pt-[120px]">
+                <div className="tw-w-full tw-min-h-[320px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-gap-[10px] tw-py-[48px] tw-text-center">
                   <RiPagesLine
                     style={{
                       fontSize: isMobileView ? "80px" : "120px",
-                      color: "#7f7f85",
+                      color: "var(--brand)",
                     }}
                   />
-                  <div className="tw-flex tw-flex-col tw-gap-[5px]">
-                    <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[#7f7f85]">
+                  <div className="tw-flex tw-flex-col tw-gap-[5px] tw-max-w-[340px]">
+                    <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
                       No Followed Pages yet
                     </span>
-                    <span className="tw-text-[14px] tw-font-Inter tw-text-[#7f7f85]">
+                    <span className="tw-text-[14px] tw-font-Inter tw-text-[var(--text-2)]">
                       Explore contents and pages to get started.
                     </span>
                   </div>
                 </div>
               ) : (
-                <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
-                  {pages.results.map((mp: IRealmProfileInfo) => {
-                    return (
-                      <GenericRealmItem
-                        key={mp.id}
-                        mp={mp}
-                        refresh={GetFollowedPagesProcess}
-                        flexed={false}
-                      />
-                    );
-                  })}
+                <div className="tw-w-full tw-flex tw-flex-wrap tw-justify-center tw-gap-[12px]">
+                  {pages.results.map((mp: IRealmProfileInfo) => (
+                    <GenericRealmItem
+                      key={mp.id}
+                      mp={mp}
+                      refresh={GetFollowedPagesProcess}
+                      flexed={false}
+                    />
+                  ))}
                 </div>
               )
             ) : (
-              <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
-                {Array.from({ length: 20 }).map((_, i) => {
-                  return <ServerItemLoader key={i} flexed={false} />;
-                })}
+              <div className="tw-w-full tw-flex tw-flex-wrap tw-justify-center tw-gap-[12px]">
+                {Array.from({ length: 20 }).map((_, i) => (
+                  <ServerItemLoader key={i} flexed={false} />
+                ))}
               </div>
             )}
             {isLoaded && isPaginating && (
-              <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
-                {Array.from({ length: 10 }).map((_, i) => {
-                  return <ServerItemLoader key={i} flexed={false} />;
-                })}
+              <div className="tw-w-full tw-flex tw-flex-wrap tw-justify-center tw-gap-[12px]">
+                {Array.from({ length: 10 }).map((_, i) => (
+                  <ServerItemLoader key={i} flexed={false} />
+                ))}
               </div>
             )}
             {pages.next && (
-              <div className="tw-w-full tw-flex tw-justify-center">
+              <div className="tw-w-full tw-flex tw-justify-center tw-pb-[8px]">
                 <button
                   onClick={() => {
                     setcurrentPage((prev) => prev + 1);
                     setisPaginating(true);
                   }}
-                  className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-white tw-text-[#404040] tw-border-[#404040] tw-rounded-[6px] tw-text-[12px]"
+                  className="cl-pages-accent-button--ghost tw-min-w-[110px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[14px] tw-pr-[14px] tw-text-[12px]"
                 >
                   Load more
                 </button>

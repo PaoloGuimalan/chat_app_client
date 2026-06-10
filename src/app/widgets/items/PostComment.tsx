@@ -11,17 +11,17 @@ import {
 } from "@/reusables/vars/interfaces";
 import { PaginationProp, PostCommentProp } from "@/reusables/vars/props";
 import { IoSend } from "react-icons/io5";
-import DefaultProfile from "../../../assets/imgs/default.png";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUniqueItemsOfObjects } from "@/reusables/hooks/validatevariables";
+import { timeSince } from "@/reusables/hooks/reusable";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { FaFileAlt } from "react-icons/fa";
 import PostCommentLoader from "@/app/reusables/loaders/PostCommentLoader";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { useSelector } from "react-redux";
+import { Avatar } from "@/reusables/design";
 
 function PostComment({ post_id, parent_id }: PostCommentProp) {
   const authentication: AuthenticationInterface = useSelector(
@@ -99,17 +99,20 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
   };
 
   return (
-    <div className="tw-p-[25px] tw-pt-[5px] tw-w-[calc(100%-50px)] tw-min-h-[250px] tw-flex tw-flex-1 tw-flex-col">
+    <div className="cl-comment-section tw-p-[25px] tw-pt-[5px] tw-w-full tw-min-h-[250px] tw-flex tw-flex-1 tw-flex-col tw-gap-[16px]">
       {authentication.auth && !parent_id && (
-        <div className="tw-min-h-[60px] tw-flex tw-items-center tw-pb-[10px]">
-          <div id="div_img_search_profiles_container_cncts">
-            <CachedImage src={DefaultProfile} id="img_feed_header" />
-          </div>
-          <div id="div_input_feed_flex">
+        <div className="cl-comment-section__composer tw-min-h-[60px] tw-flex tw-items-center tw-gap-[12px] tw-pb-[10px] tw-w-full">
+          <Avatar
+            id={authentication.user.userID}
+            name={authentication.user.fullName?.firstName}
+            src={authentication.user.profile === "none" ? undefined : authentication.user.profile}
+            size={48}
+          />
+          <div id="div_input_feed_flex" className="cl-comment-section__field-shell">
             <textarea
               placeholder="Write a comment..."
               id="textarea_feed_box"
-              className="tw-font-Inter"
+              className="cl-comment-section__field tw-font-Inter"
               value={writeComment}
               onChange={(e) => {
                 setwriteComment(e.target.value);
@@ -117,12 +120,13 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
               disabled={isCommentSaving}
             />
           </div>
-          <div id="div_confirm_send">
+          <div id="div_confirm_send" className="cl-comment-section__send-shell">
             <button
               onClick={() => {
                 SaveCommentProcess();
               }}
               id="btn_image_feed"
+              className="cl-comment-section__send"
               disabled={isCommentSaving}
             >
               {isCommentSaving ? (
@@ -148,48 +152,35 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
           </div>
         </div>
       )}
-      <div className="tw-flex tw-flex-col tw-gap-[10px]">
+      <div className="cl-comment-section__list tw-flex tw-flex-col tw-gap-[14px] tw-w-full">
         {isError ? (
           <span>Error</span>
         ) : comments.results.length === 0 ? (
           isLoaded && (
-            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[40px]">
-              <FaFileAlt style={{ fontSize: "40px", color: "#333333" }} />
-              <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
-                <span className="tw-font-semibold tw-text-[12px]">
+            <div className="cl-comment-section__empty tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[40px] tw-text-[var(--text-2)]">
+              <FaFileAlt style={{ fontSize: "40px", color: "var(--text-2)" }} />
+              <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[var(--text-2)]">
+                <span className="tw-font-semibold tw-text-[12px] tw-text-[var(--text)]">
                   No Comments yet
                 </span>
               </div>
             </div>
           )
         ) : (
-          <div className="tw-flex tw-flex-col tw-gap-[15px] tw-items-start">
+          <div className="cl-comment-section__rows tw-flex tw-flex-col tw-gap-[14px] tw-items-start tw-w-full">
             {comments.results.map((mp: IPostComment) => {
               return (
                 <div
                   key={mp.comment_id}
-                  className="tw-flex tw-gap-[10px] tw-w-full"
+                  className="cl-comment-section__row tw-flex tw-gap-[12px] tw-w-full tw-items-start"
                 >
-                  <div id="div_img_comments_container">
-                    <div id="div_img_search_profiles_container_cncts">
-                      <CachedImage
-                        src={
-                          mp.user.profile == "none"
-                            ? DefaultProfile
-                            : mp.user.profile
-                        }
-                        className={
-                          mp.user.profile == "none"
-                            ? "img_search_profiles_ntfs"
-                            : ""
-                        }
-                        id={
-                          mp.user.profile == "none" ? "" : "img_actual_profile"
-                        }
-                      />
-                    </div>
-                  </div>
-                  <div className="tw-w-fit tw-flex tw-flex-col tw-items-start tw-gap-[5px] tw-text-left">
+                  <Avatar
+                    id={mp.user.id}
+                    name={`${mp.user.first_name} ${mp.user.last_name}`}
+                    src={mp.user.profile == "none" ? undefined : mp.user.profile}
+                    size={46}
+                  />
+                  <div className="tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-text-left tw-flex-1 tw-min-w-0">
                     {/* <span
                       className="tw-break-keep tw-text-[12px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                       onClick={() => {
@@ -203,17 +194,16 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                       {mp.user.last_name}
                     </span> */}
                     <div
-                      style={{ backgroundColor: "rgb(222, 222, 222)" }}
-                      className="tw-p-[10px] tw-rounded-[10px] tw-text-left"
+                      className="cl-comment-section__bubble tw-w-full tw-rounded-[14px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-p-[12px] tw-text-left tw-shadow-sm"
                     >
-                      <div className="tw-w-fit tw-flex tw-flex-col tw-gap-[2px]">
+                      <div className="tw-w-full tw-flex tw-items-start tw-justify-between tw-gap-[10px]">
                         <span
-                          className="tw-break-keep tw-text-[12px] tw-w-fit tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                          className="cl-comment-section__name tw-break-keep tw-text-[12px] tw-w-fit tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[var(--text-2)] tw-text-[var(--text)]"
                           onClick={() => {
                             navigate(`/${mp.user.username}`);
                           }}
                         >
-                          <div className="tw-flex tw-items-center tw-gap-[4px]">
+                          <div className="tw-flex tw-items-center tw-gap-[4px] tw-flex-wrap tw-text-left">
                             <span>
                               {mp.user.first_name}
                               {mp.user.middle_name == "N/A"
@@ -226,7 +216,14 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                             )}
                           </div>
                         </span>
-                        <span className="tw-text-[14px]">{mp.text}</span>
+                        <span className="tw-text-[11px] tw-text-[var(--text-3)] tw-flex-none tw-whitespace-nowrap tw-text-right">
+                          {timeSince(mp.created_at)}
+                        </span>
+                      </div>
+                      <div className="tw-w-full tw-flex tw-flex-col tw-gap-[4px] tw-mt-[4px]">
+                        <span className="cl-comment-section__text tw-text-[14px] tw-leading-[1.5] tw-break-words tw-text-[var(--text)]">
+                          {mp.text}
+                        </span>
                       </div>
                       {/* <span className="tw-text-[14px]">{mp.text}</span> */}
                     </div>
@@ -236,7 +233,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
             })}
             {comments.next && isLoaded && (
               <button
-                className="tw-text-[12px]"
+                className="cl-comment-section__more tw-text-[12px] tw-text-[var(--brand)] hover:tw-text-[var(--brand-hover)]"
                 onClick={() => {
                   setPage((prev) => prev + 1);
                 }}
@@ -249,15 +246,19 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
         {!isLoaded && <PostCommentLoader />}
       </div>
       {parent_id && (
-        <div className="tw-min-h-[60px] tw-flex tw-items-center tw-pb-[0px] tw-pt-[10px]">
-          <div id="div_img_search_profiles_container_cncts">
-            <CachedImage src={DefaultProfile} id="img_feed_header" />
-          </div>
-          <div id="div_input_feed_flex">
+        <div className="cl-comment-section__composer cl-comment-section__composer--reply tw-min-h-[60px] tw-flex tw-items-center tw-gap-[12px] tw-pb-[0px] tw-pt-[10px] tw-w-full">
+          <Avatar
+            id={authentication.user.userID}
+            name={authentication.user.fullName?.firstName}
+            src={authentication.user.profile === "none" ? undefined : authentication.user.profile}
+            size={48}
+          />
+          <div id="div_input_feed_flex" className="cl-comment-section__field-shell">
             <input
               type="text"
               placeholder="Write a comment..."
               id="input_feed_box"
+              className="cl-comment-section__field"
               // value={createposttext}
               // onFocus={() => {
               //   settoggleNewPostModal({ toggle: true, withImage: false });
@@ -267,15 +268,16 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
               // }}
             />
           </div>
-          <div id="div_confirm_send">
+          <div id="div_confirm_send" className="cl-comment-section__send-shell">
             <button
               onClick={() => {
                 // settoggleNewPostModal({ toggle: true, withImage: true });
               }}
               id="btn_image_feed"
+              className="cl-comment-section__send"
               // disabled={true}
             >
-              <IoSend style={{ fontSize: "20px", color: "#3d4551" }} />
+              <IoSend style={{ fontSize: "20px", color: "var(--text-2)" }} />
             </button>
           </div>
         </div>

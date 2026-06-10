@@ -34,7 +34,7 @@ function MessageOptions({
 
   return (
     <div
-      className={`tw-bg-transparent tw-flex tw-flex-1 tw-gap-[1px] ${
+      className={`cl-message-actions tw-bg-transparent tw-flex tw-flex-1 tw-gap-[1px] ${
         type == "sender"
           ? "tw-justify-end tw-pr-[5px] tw-flex-row"
           : "tw-justify-end tw-pl-[5px] tw-flex-row-reverse"
@@ -64,18 +64,18 @@ function MessageOptions({
             onClick={() => {
               DeleteMessageProcess();
             }}
-            className="tw-flex tw-items-center tw-justify-center tw-h-[30px] tw-cursor-pointer tw-bg-transparent tw-border-none"
+            className="cl-message-options-button cl-message-options-button--danger tw-flex tw-items-center tw-justify-center tw-h-[30px] tw-cursor-pointer tw-bg-transparent tw-border-none"
           >
-            <MdDelete style={{ fontSize: "17px", color: "#616466" }} />
+            <MdDelete style={{ fontSize: "17px" }} />
           </button>
         ))}
       <button
         onClick={() => {
           setisReplying();
         }}
-        className="tw-flex tw-items-center tw-justify-center tw-h-[30px] tw-cursor-pointer tw-bg-transparent tw-border-none"
+        className="cl-message-options-button tw-flex tw-items-center tw-justify-center tw-h-[30px] tw-cursor-pointer tw-bg-transparent tw-border-none"
       >
-        <BsFillReplyFill style={{ fontSize: "17px", color: "#616466" }} />
+        <BsFillReplyFill style={{ fontSize: "17px" }} />
       </button>
     </div>
   );

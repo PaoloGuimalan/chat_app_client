@@ -1,12 +1,12 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { InitServerListRequest } from "@/reusables/hooks/requests";
 import { useEffect, useState } from "react";
-import ServerIcon from "../../../assets/imgs/servericon.png";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Default from "./partials/Default";
 import Channels from "./partials/Channels";
 import { useSelector } from "react-redux";
 import { Icon, useTheme } from "@/reusables/design";
+import ServerAvatar from "@/reusables/design/ServerAvatar";
 
 function Servers() {
   const screensizelistener = useSelector(
@@ -110,8 +110,8 @@ function Servers() {
                     onClick={() => navigate(`/servers/${mp.serverID}`)}
                     title={mp.serverName}
                     style={{
-                      width: 48,
-                      height: 48,
+                      width: 42,
+                      height: 42,
                       flex: "none",
                       border: "none",
                       background: active ? "var(--gold-soft)" : "transparent",
@@ -131,18 +131,11 @@ function Servers() {
                         e.currentTarget.style.background = "transparent";
                     }}
                   >
-                    <img
-                      src={
-                        mp.profile && mp.profile !== "N/A"
-                          ? mp.profile
-                          : ServerIcon
-                      }
-                      alt=""
-                      style={{
-                        width: "100%",
-                        height: "100%",
-                        objectFit: "cover",
-                      }}
+                    <ServerAvatar
+                      name={mp.serverName}
+                      src={mp.profile && mp.profile !== "N/A" ? mp.profile : null}
+                      size={42}
+                      shape="circle"
                     />
                   </button>
                 );
@@ -151,8 +144,8 @@ function Servers() {
                 <div
                   key={i}
                   style={{
-                    width: 48,
-                    height: 48,
+                    width: 42,
+                    height: 42,
                     flex: "none",
                     borderRadius: "50%",
                     background: "var(--surface-3)",

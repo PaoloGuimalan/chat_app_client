@@ -42,6 +42,8 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
 
   const conversationID =
     conversationsetup.conversationid || conversationsetup.conversationID;
+  const isServerMobile =
+    conversationType === "server" && screensizelistener.W <= 900;
 
   const currentParticipants = previewparticipants
     .filter((flt: IPreviewParicipants) => flt.channelID === conversationID)
@@ -77,60 +79,84 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
     >
       <motion.div
         initial={{
-          paddingRight:
-            pathnamelistener.includes("messages") ||
-            conversationType === "server"
+          paddingRight: isServerMobile
+            ? "0px"
+            : pathnamelistener.includes("messages") ||
+                conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "20px"
                 : "20px",
-          paddingBottom:
-            pathnamelistener.includes("messages") ||
-            conversationType === "server"
+          paddingBottom: isServerMobile
+            ? "0px"
+            : pathnamelistener.includes("messages") ||
+                conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
                 : "10px",
-          width:
-            pathnamelistener.includes("messages") ||
-            conversationType === "server"
+          paddingTop: isServerMobile
+            ? "0px"
+            : pathnamelistener.includes("messages") ||
+                conversationType === "server"
+              ? "0px"
+              : screensizelistener.W <= 900
+                ? "10px"
+                : "10px",
+          width: isServerMobile
+            ? "100%"
+            : pathnamelistener.includes("messages") ||
+                conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 20px)"
                 : "calc(100% - 20px)",
-          height:
-            pathnamelistener.includes("messages") ||
-            conversationType === "server"
+          height: isServerMobile
+            ? "100%"
+            : pathnamelistener.includes("messages") ||
+                conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 10px)"
                 : "calc(100% - 10px)",
         }}
         animate={{
-          paddingRight:
-            pathnamelistener.includes("messages") ||
-            conversationType === "server"
+          paddingRight: isServerMobile
+            ? "0px"
+            : pathnamelistener.includes("messages") ||
+                conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "20px"
                 : "20px",
-          paddingBottom:
-            pathnamelistener.includes("messages") ||
-            conversationType === "server"
+          paddingBottom: isServerMobile
+            ? "0px"
+            : pathnamelistener.includes("messages") ||
+                conversationType === "server"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
                 : "10px",
-          width:
-            pathnamelistener.includes("messages") ||
-            conversationType === "server"
+          paddingTop: isServerMobile
+            ? "0px"
+            : pathnamelistener.includes("messages") ||
+                conversationType === "server"
+              ? "0px"
+              : screensizelistener.W <= 900
+                ? "10px"
+                : "10px",
+          width: isServerMobile
+            ? "100%"
+            : pathnamelistener.includes("messages") ||
+                conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 20px)"
                 : "calc(100% - 20px)",
-          height:
-            pathnamelistener.includes("messages") ||
-            conversationType === "server"
+          height: isServerMobile
+            ? "100%"
+            : pathnamelistener.includes("messages") ||
+                conversationType === "server"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 10px)"
@@ -140,33 +166,62 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
       >
         <motion.div
           initial={{
-            height: "0px",
-            paddingBottom: "0px",
-            paddingTop: "0px",
-            borderRadius: pathnamelistener.includes("messages")
+            height: isServerMobile ? "100%" : "0px",
+            borderRadius: isServerMobile
               ? "0px"
-              : screensizelistener.W <= 900
-                ? "10px"
-                : "10px",
+              : pathnamelistener.includes("messages")
+                ? "0px"
+                : screensizelistener.W <= 900
+                  ? "10px"
+                  : "10px",
             border:
               conversationType === "server"
                 ? "none"
                 : "solid 1px rgb(210, 210, 210)",
+            paddingBottom: isServerMobile
+              ? "0px"
+              : conversationType === "server" && screensizelistener.W <= 900
+                ? "0px"
+                : "5px",
+            paddingTop: isServerMobile
+              ? "0px"
+              : conversationType === "server" && screensizelistener.W <= 900
+                ? "0px"
+                : "5px",
+            width: isServerMobile ? "100%" : "100%",
+            boxSizing: "border-box",
           }}
           animate={{
-            height: "calc(100% - 10px)",
-            paddingBottom: "5px",
-            paddingTop: "5px",
-            borderRadius: pathnamelistener.includes("messages")
+            height: isServerMobile
+              ? "100%"
+              : conversationType === "server" && screensizelistener.W <= 900
+                ? "100%"
+                : "calc(100% - 10px)",
+            borderRadius: isServerMobile
               ? "0px"
-              : screensizelistener.W <= 900
-                ? "10px"
-                : "10px",
+              : pathnamelistener.includes("messages")
+                ? "0px"
+                : screensizelistener.W <= 900
+                  ? "10px"
+                  : "10px",
+            border:
+              conversationType === "server"
+                ? "none"
+                : "solid 1px rgb(210, 210, 210)",
+            paddingBottom: isServerMobile
+              ? "0px"
+              : conversationType === "server" && screensizelistener.W <= 900
+                ? "0px"
+                : "5px",
+            paddingTop: isServerMobile
+              ? "0px"
+              : conversationType === "server" && screensizelistener.W <= 900
+                ? "0px"
+                : "5px",
+            width: "100%",
           }}
           id="div_conversation_content_handler"
-          className={`tw-border-[0px] ${
-            isMinimized && "tw-shadow-md tw-border-[1px] tw-border-[#dedede]"
-          }`}
+          className={`tw-border-[0px] ${isMinimized && "tw-shadow-md tw-border-[1px] tw-border-[#dedede]"}`}
         >
           <motion.div
             initial={{

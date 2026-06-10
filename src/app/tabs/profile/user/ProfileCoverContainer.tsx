@@ -45,14 +45,14 @@ function ProfileCoverContainer({
           onClick={() => {
             settoggleSelection(!toggleSelection);
           }}
-          className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[10px] tw-h-[200px] tw-relative"
+          className="tw-bg-[var(--surface-2)] tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[20px] tw-h-[200px] tw-relative"
         >
           <CachedImage
             src={coverphoto}
             onClick={() => {
               settoggleSelection(!toggleSelection);
             }}
-            className="tw-bg-black tw-max-h-full tw-max-w-full tw-w-full tw-h-full tw-object-cover tw-rounded-b-[10px] tw-cursor-pointer"
+            className="tw-bg-[var(--surface-2)] tw-max-h-full tw-max-w-full tw-w-full tw-h-full tw-object-cover tw-rounded-b-[20px] tw-cursor-pointer"
           />
           {isUserProfile && (
             <motion.div
@@ -62,41 +62,27 @@ function ProfileCoverContainer({
               animate={{
                 height: toggleSelection ? "auto" : "0px",
               }}
-              className="tw-absolute tw-bottom-0 tw-right-0 tw-bg-white tw-overflow-y-hidden tw-rounded-[7px] tw-shadow-md"
+              className="cl-profile-cover-menu tw-absolute tw-bottom-0 tw-right-0 tw-overflow-y-hidden"
             >
               <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
                 {coverphoto !== "none" && (
                   <motion.button
-                    initial={{
-                      backgroundColor: "transparent",
-                    }}
-                    whileHover={{
-                      backgroundColor: "#d2d2d2",
-                      color: "white",
-                    }}
-                    className="tw-border-none tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-rounded-[4px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
+                    className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
                   >
-                    <BsFilePerson color="#666666" size={22} />
-                    <span className="tw-font-Inter tw-text-[12px]">
+                    <BsFilePerson color="var(--text-2)" size={22} />
+                    <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text)]">
                       View Photo
                     </span>
                   </motion.button>
                 )}
                 <motion.button
-                  initial={{
-                    backgroundColor: "transparent",
-                  }}
-                  whileHover={{
-                    backgroundColor: "#d2d2d2",
-                    color: "white",
-                  }}
                   onClick={() => {
                     settoggleUploadModal(true);
                   }}
-                  className="tw-border-none tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-rounded-[4px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
+                  className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
                 >
-                  <BiSolidImageAdd color="#666666" size={25} />
-                  <span className="tw-font-Inter tw-text-[12px]">
+                  <BiSolidImageAdd color="var(--text-2)" size={25} />
+                  <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text)]">
                     Upload New Photo
                   </span>
                 </motion.button>
@@ -109,7 +95,7 @@ function ProfileCoverContainer({
           onClick={() => {
             settoggleSelection(!toggleSelection);
           }}
-          className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[10px] tw-cursor-pointer tw-relative"
+          className="tw-bg-[var(--surface-2)] tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[20px] tw-cursor-pointer tw-relative"
         >
           {isUserProfile && (
             <motion.div
@@ -119,41 +105,27 @@ function ProfileCoverContainer({
               animate={{
                 height: toggleSelection ? "auto" : "0px",
               }}
-              className="tw-absolute tw-bottom-0 tw-right-0 tw-bg-white tw-overflow-y-hidden tw-rounded-[7px] tw-shadow-md"
+              className="cl-profile-cover-menu tw-absolute tw-bottom-0 tw-right-0 tw-overflow-y-hidden"
             >
               <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
                 {coverphoto !== "none" && (
                   <motion.button
-                    initial={{
-                      backgroundColor: "transparent",
-                    }}
-                    whileHover={{
-                      backgroundColor: "#d2d2d2",
-                      color: "white",
-                    }}
-                    className="tw-border-none tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-rounded-[4px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
+                    className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
                   >
-                    <BsFilePerson color="#666666" size={22} />
-                    <span className="tw-font-Inter tw-text-[12px]">
+                    <BsFilePerson color="var(--text-2)" size={22} />
+                    <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text)]">
                       View Photo
                     </span>
                   </motion.button>
                 )}
                 <motion.button
-                  initial={{
-                    backgroundColor: "transparent",
-                  }}
-                  whileHover={{
-                    backgroundColor: "#d2d2d2",
-                    color: "white",
-                  }}
                   onClick={() => {
                     settoggleUploadModal(true);
                   }}
-                  className="tw-border-none tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-rounded-[4px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
+                  className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
                 >
-                  <BiSolidImageAdd color="#666666" size={25} />
-                  <span className="tw-font-Inter tw-text-[12px]">
+                  <BiSolidImageAdd color="var(--text-2)" size={25} />
+                  <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text)]">
                     Upload New Photo
                   </span>
                 </motion.button>

@@ -9,7 +9,6 @@ import {
   useParams,
 } from "react-router-dom";
 import NoChannel from "./NoChannel";
-import ServerIcon from "../../../../assets/imgs/servericon.png";
 import ServerConversation from "./ServerConversation";
 import { InitServerChannelsRequest } from "@/reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
@@ -30,9 +29,9 @@ import ServerInfoModal from "@/app/widgets/modals/Servers/ServerInfoModal";
 import { IoMdAdd } from "react-icons/io";
 import CreateChannelModal from "@/app/widgets/modals/Servers/CreateChannelModal";
 import { BiSolidInfoCircle } from "react-icons/bi";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { AiFillSound, AiOutlineSound } from "react-icons/ai";
 import { MdSettingsVoice } from "react-icons/md";
+import ServerAvatar from "@/reusables/design/ServerAvatar";
 
 function Channels() {
   // serverlist
@@ -51,6 +50,13 @@ function Channels() {
   const navigate = useNavigate();
 
   const serverID = useMemo(() => params.serverID, [params]);
+  const isMobile = screensizelistener.W <= 900;
+  const isConversationOpen = useMemo(
+    () => urllocation.pathname.split("/").filter(Boolean).length >= 3,
+    [urllocation.pathname],
+  );
+  const showSidebar = !isMobile || !isConversationOpen;
+  const showConversationPane = !isMobile || isConversationOpen;
   // const serverDetails = useMemo(
   //   () =>
   //     serverlist
@@ -141,6 +147,7 @@ function Channels() {
   return (
     <motion.div
       initial={{
+        flexDirection: isMobile ? "column" : "row",
         paddingLeft:
           screensizelistener.W <= 900
             ? urllocation.pathname.split("/").length < 4
@@ -149,6 +156,7 @@ function Channels() {
             : "0px",
       }}
       animate={{
+        flexDirection: isMobile ? "column" : "row",
         paddingLeft:
           screensizelistener.W <= 900
             ? urllocation.pathname.split("/").length < 4
@@ -156,100 +164,65 @@ function Channels() {
               : "7px"
             : "0px",
       }}
-      className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-center tw-justify-start tw-pt-[15px] tw-pb-[10px] tw-pr-[7px]"
+      data-mobile-pane={
+        isMobile
+          ? isConversationOpen
+            ? "conversation"
+            : "sidebar"
+          : "desktop"
+      }
+      className="cl-server-channels-shell tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-items-stretch tw-justify-start tw-h-full tw-min-h-0 tw-p-0 tw-m-0"
     >
-      <motion.div
-        initial={{
-          maxWidth:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "100%"
-                : "0px"
-              : "250px",
-          borderBottomRightRadius:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "10px"
-                : "0px"
-              : "0px",
-          borderTopRightRadius:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "10px"
-                : "0px"
-              : "0px",
-          opacity:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? 1
-                : 0
-              : 1,
-        }}
-        animate={{
-          maxWidth:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "100%"
-                : "0px"
-              : "250px",
-          borderBottomRightRadius:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "10px"
-                : "0px"
-              : "0px",
-          borderTopRightRadius:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "10px"
-                : "0px"
-              : "0px",
-          opacity:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? 1
-                : 0
-              : 1,
-        }}
-        className="tw-bg-[#f1f1f2] tw-shadow-lg tw-flex tw-flex-1 tw-flex-col tw-h-full tw-rounded-tl-[10px] tw-rounded-bl-[10px] tw-items-center tw-overflow-x-hidden"
-      >
-        <div id="div_server_channel_header">
+      {showSidebar && (
+        <motion.div
+          initial={{
+            display: "flex",
+            width: isMobile ? "100%" : "250px",
+            maxWidth: isMobile ? "100%" : "250px",
+            borderBottomRightRadius: isMobile ? "10px" : "0px",
+            borderTopRightRadius: isMobile ? "10px" : "0px",
+            opacity: 1,
+          }}
+          animate={{
+            display: "flex",
+            width: isMobile ? "100%" : "250px",
+            maxWidth: isMobile ? "100%" : "250px",
+            borderBottomRightRadius: isMobile ? "10px" : "0px",
+            borderTopRightRadius: isMobile ? "10px" : "0px",
+            opacity: 1,
+            flex: isMobile ? "1 1 100%" : "0 0 250px",
+          }}
+          className="cl-server-channels-sidebar tw-bg-[var(--surface)] tw-flex tw-w-full tw-flex-1 tw-flex-col tw-h-full tw-items-center tw-overflow-x-hidden tw-border-r tw-border-[var(--border)]"
+        >
+        <div
+          id="div_server_channel_header"
+          className="cl-server-channels-sidebar__header"
+        >
           <div id="div_conversation_user" className="tw-items-center">
             {isLoaded ? (
               <div id="div_img_cncts_container">
                 <div id="div_img_search_profiles_container_cncts">
-                  <CachedImage
+                  <ServerAvatar
+                    name={serverdetails?.serverName}
                     src={
                       serverdetails &&
                       serverdetails.profile &&
                       serverdetails.profile !== "N/A"
                         ? serverdetails.profile
-                        : ServerIcon
+                        : null
                     }
-                    id={
-                      serverdetails &&
-                      serverdetails.profile &&
-                      serverdetails.profile !== "N/A"
-                        ? "img_actual_profile_main"
-                        : ""
-                    }
-                    className={
-                      serverdetails &&
-                      serverdetails.profile &&
-                      serverdetails.profile !== "N/A"
-                        ? ""
-                        : "img_gc_profiles_ntfs"
-                    }
+                    size={40}
+                    shape="circle"
                   />
                 </div>
               </div>
             ) : (
               <motion.button
                 initial={{
-                  backgroundColor: "#d2d2d2",
+                  backgroundColor: "var(--surface-3)",
                 }}
                 animate={{
-                  backgroundColor: "#9c9c9c",
+                  backgroundColor: "var(--surface-hover)",
                 }}
                 transition={{
                   duration: 0.7,
@@ -257,24 +230,27 @@ function Channels() {
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="btn_server_navigations"
+                className="btn_server_navigations cl-server-channel-header__avatar-skeleton"
               >
                 <div id="div_img_search_profiles_container_cncts" />
               </motion.button>
             )}
             {isLoaded ? (
-              <div id="div_conversation_user_name">
-                <span className="span_server_name_label">
+              <div
+                id="div_conversation_user_name"
+                className="cl-server-channel-header__name"
+              >
+                <span className="span_server_name_label cl-server-channel-header__label">
                   {serverdetails?.serverName}
                 </span>
               </div>
             ) : (
               <motion.div
                 initial={{
-                  backgroundColor: "#d2d2d2",
+                  backgroundColor: "var(--surface-3)",
                 }}
                 animate={{
-                  backgroundColor: "#9c9c9c",
+                  backgroundColor: "var(--surface-hover)",
                 }}
                 transition={{
                   duration: 0.7,
@@ -282,7 +258,7 @@ function Channels() {
                   repeat: Infinity,
                   ease: "easeInOut",
                 }}
-                className="tw-select-none tw-h-[12px] tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[100%] tw-rounded-[4px]"
+                className="cl-server-channel-header__name-skeleton tw-select-none tw-h-[12px] tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[100%] tw-rounded-[4px]"
               />
             )}
             <div id="div_conversation_header_navigations">
@@ -294,25 +270,25 @@ function Channels() {
               )}
               <motion.button
                 whileHover={{
-                  backgroundColor: "#e6e6e6",
+                  backgroundColor: "var(--surface-hover)",
                 }}
-                className="btn_conversation_header_navigation"
+                className="btn_conversation_header_navigation cl-conversation-header-action--server"
                 disabled={serverdetails ? false : true}
                 onClick={() => {
                   settoggleserverinfomodal(!toggleserverinfomodal);
                 }}
               >
                 <BiSolidInfoCircle
-                  style={{ fontSize: "25px", color: "#e69500" }}
+                  style={{ fontSize: "25px", color: "var(--gold)" }}
                 />
               </motion.button>
             </div>
           </div>
         </div>
-        <div className="tw-bg-transparent tw-w-[calc(100%-16px)] tw-flex tw-flex-col tw-pl-[8px] tw-pr-[8px] tw-pt-[10px] tw-pb-[10px] tw-items-start">
-          <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[7px]">
-            <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-w-full tw-items-center">
-              <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">
+        <div className="cl-server-channels-sidebar__body tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start tw-min-h-0 tw-flex-1">
+          <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[10px] tw-pt-[10px]">
+            <div className="tw-bg-transparent tw-flex tw-flex-1 tw-flex-row tw-w-full tw-items-center tw-justify-between tw-px-[8px]">
+              <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1 tw-text-[var(--text)] tw-pl-[2px]">
                 {serverdetails?.channels &&
                   serverdetails?.channels.length > 0 &&
                   "Channels"}
@@ -333,35 +309,35 @@ function Channels() {
                         !toggleserveraddchannelmodal,
                       );
                     }}
-                    className="tw-w-[30px] tw-h-[30px] tw-p-0 tw-flex tw-items-center tw-justify-center tw-border-none tw-rounded-[7px] hover:tw-bg-[#ffc965] hover:tw-text-white tw-cursor-pointer"
+                    className="tw-w-[30px] tw-h-[30px] tw-p-0 tw-flex tw-items-center tw-justify-center tw-border-none tw-rounded-[10px] tw-bg-[var(--surface-2)] tw-text-[var(--text)] hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer"
                   >
-                    {" "}
-                    {/** bg hover #d8d8da */}
                     <IoMdAdd style={{ fontSize: "17px" }} />
                   </button>
                 )}
             </div>
-            <div className="tw-bg-transparent tw-gap-[3px] tw-w-[calc(100%-20px)] tw-pb-[5px] tw-pl-[10px] tw-pr-[10px] tw-flex tw-flex-1 tw-flex-col tw-items-start">
+            <div className="cl-server-channels-sidebar__list tw-bg-transparent tw-gap-[6px] tw-w-full tw-flex tw-flex-1 tw-flex-col tw-items-start tw-px-[8px]">
               {isLoaded
                 ? haveAccess &&
                   serverdetails?.channels.map((mp: ChannelsListInterface) => {
+                    const isActive = urllocation.pathname.includes(mp.groupID);
                     return (
                       <motion.div
                         key={mp.groupID}
                         initial={{
-                          backgroundColor: "transparent",
-                          color: urllocation.pathname.includes(mp.groupID)
-                            ? "#e69500"
-                            : "black",
+                          backgroundColor: isActive
+                            ? "color-mix(in srgb, var(--gold) 14%, var(--surface) 86%)"
+                            : "transparent",
+                          color: isActive ? "var(--gold)" : "var(--text)",
                         }}
                         animate={{
-                          color: urllocation.pathname.includes(mp.groupID)
-                            ? "#e69500"
-                            : "black",
+                          backgroundColor: isActive
+                            ? "color-mix(in srgb, var(--gold) 14%, var(--surface) 86%)"
+                            : "transparent",
+                          color: isActive ? "var(--gold)" : "var(--text)",
                         }}
                         whileHover={{
-                          backgroundColor: "#ffc965",
-                          color: "white",
+                          backgroundColor: "var(--surface-hover)",
+                          color: "var(--text)",
                         }}
                         onClick={() => {
                           if (!urllocation.pathname.includes(mp.groupID)) {
@@ -374,41 +350,51 @@ function Channels() {
                             navigate(`/servers/${serverID}/${mp.groupID}`);
                           }
                         }}
-                        className="tw-select-none tw-cursor-pointer tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[calc(100%-10px)] tw-rounded-[4px]"
+                        data-active={isActive}
+                        className="cl-server-channel-row tw-select-none tw-cursor-pointer tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-p-[10px] tw-w-full tw-rounded-[12px]"
                       >
-                        {mp.channelType === "voice" ? (
-                          mp.privacy ? (
-                            <AiFillSound />
+                        <div className="cl-server-channel-row__icon-shell">
+                          {mp.channelType === "voice" ? (
+                            mp.privacy ? (
+                              <AiFillSound />
+                            ) : (
+                              <AiOutlineSound />
+                            )
+                          ) : mp.privacy ? (
+                            <FaLock style={{ fontSize: "13px" }} />
                           ) : (
-                            <AiOutlineSound />
-                          )
-                        ) : mp.privacy ? (
-                          <FaLock style={{ fontSize: "13px" }} />
-                        ) : (
-                          <FaHashtag />
-                        )}
-                        <span
-                          className={`tw-bg-transparent tw-flex ${
-                            urllocation.pathname.includes(mp.groupID)
-                              ? "tw-font-semibold"
-                              : "tw-font-normal"
-                          } tw-flex-1 ${
-                            mp.messages.length > 0 && "tw-font-semibold"
-                          } `}
-                        >
-                          {mp.groupName}
-                        </span>
-                        {mp.channelType === "voice" &&
-                          getChannelPreviewParticipants(mp.groupID).length >
-                            0 && <MdSettingsVoice />}
-                        {urllocation.pathname.includes(mp.groupID) && (
-                          <FaLocationArrow />
-                        )}
-                        {mp.messages.length > 0 && (
-                          <span className="span_channel_messages_list_counts">
-                            {mp.messages[0].unread}
+                            <FaHashtag />
+                          )}
+                        </div>
+                        <div className="tw-flex tw-flex-1 tw-flex-col tw-min-w-0 tw-items-start">
+                          <span
+                            className={`tw-bg-transparent tw-flex tw-flex-1 tw-w-full tw-min-w-0 tw-truncate ${
+                              urllocation.pathname.includes(mp.groupID)
+                                ? "tw-font-semibold"
+                                : "tw-font-normal"
+                            } ${mp.messages.length > 0 && "tw-font-semibold"} `}
+                          >
+                            {mp.groupName}
                           </span>
-                        )}
+                          <span className="tw-text-[11px] tw-text-[var(--text-2)] tw-font-Inter">
+                            {mp.channelType === "voice"
+                              ? "Voice channel"
+                              : "Text channel"}
+                          </span>
+                        </div>
+                        <div className="tw-flex tw-items-center tw-gap-[8px]">
+                          {mp.channelType === "voice" &&
+                            getChannelPreviewParticipants(mp.groupID).length >
+                              0 && <MdSettingsVoice />}
+                          {urllocation.pathname.includes(mp.groupID) && (
+                            <FaLocationArrow />
+                          )}
+                          {mp.messages.length > 0 && (
+                            <span className="span_channel_messages_list_counts">
+                              {mp.messages[0].unread}
+                            </span>
+                          )}
+                        </div>
                       </motion.div>
                     );
                   })
@@ -417,10 +403,10 @@ function Channels() {
                       <motion.div
                         key={i}
                         initial={{
-                          backgroundColor: "#d2d2d2",
+                          backgroundColor: "var(--surface-3)",
                         }}
                         animate={{
-                          backgroundColor: "#9c9c9c",
+                          backgroundColor: "var(--surface-hover)",
                         }}
                         transition={{
                           duration: 0.7,
@@ -428,56 +414,55 @@ function Channels() {
                           repeat: Infinity,
                           ease: "easeInOut",
                         }}
-                        className="tw-select-none tw-h-[12px] tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[5px] tw-pt-[6px] tw-pb-[6px] tw-w-[calc(100%-10px)] tw-rounded-[4px]"
+                        className="tw-select-none tw-h-[14px] tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[4px] tw-p-[8px] tw-w-[calc(100%-8px)] tw-rounded-[10px]"
                       />
                     );
                   })}
             </div>
           </div>
         </div>
-      </motion.div>
-      <motion.div
-        initial={{
-          maxWidth:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "0px"
-                : "none"
-              : "none",
-        }}
-        animate={{
-          maxWidth:
-            screensizelistener.W <= 900
-              ? urllocation.pathname.split("/").length < 4
-                ? "0px"
-                : "none"
-              : "none",
-        }}
-        className="tw-flex tw-flex-1 tw-h-full tw-overflow-x-hidden tw-rounded-tr-[10px] tw-rounded-br-[10px]"
-      >
-        <Routes>
-          <Route
-            path="/"
-            element={
-              isLoaded && haveAccess ? (
-                <NoChannel server={serverdetails} />
-              ) : (
-                <div className="tw-bg-white tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]" />
-              )
-            }
-          />
-          <Route
-            path="/:conversationID"
-            element={
-              isLoaded && haveAccess ? (
-                <ServerConversation />
-              ) : (
-                <div className="tw-bg-white tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px]" />
-              )
-            }
-          />
-        </Routes>
-      </motion.div>
+        </motion.div>
+      )}
+      {showConversationPane && (
+        <motion.div
+          initial={{
+            width: isMobile ? "100%" : "auto",
+            maxWidth: isMobile ? "100%" : "none",
+            flex: isMobile ? "1 1 100%" : "1 1 auto",
+          }}
+          animate={{
+            width: isMobile ? "100%" : "auto",
+            maxWidth: isMobile ? "100%" : "none",
+            flex: isMobile ? "1 1 100%" : "1 1 auto",
+          }}
+          className="cl-server-conversation-shell tw-flex tw-w-full tw-flex-1 tw-h-full tw-overflow-x-hidden tw-border-l tw-border-[var(--border)]"
+        >
+          <Routes>
+            <Route
+              path="/"
+              element={
+                !isMobile && isLoaded && haveAccess ? (
+                  <NoChannel server={serverdetails} />
+                ) : (
+                  !isMobile && (
+                    <div className="tw-bg-[var(--surface)] tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px] tw-border-l tw-border-[var(--border)]" />
+                  )
+                )
+              }
+            />
+            <Route
+              path="/:conversationID"
+              element={
+                isLoaded && haveAccess ? (
+                  <ServerConversation />
+                ) : (
+                  <div className="tw-bg-[var(--surface)] tw-flex tw-flex-col tw-flex-1 tw-items-center tw-justify-center tw-h-full tw-rounded-tr-[10px] tw-rounded-br-[10px] tw-border-l tw-border-[var(--border)]" />
+                )
+              }
+            />
+          </Routes>
+        </motion.div>
+      )}
     </motion.div>
   );
 }

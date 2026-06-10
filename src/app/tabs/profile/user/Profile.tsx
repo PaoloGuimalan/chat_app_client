@@ -205,9 +205,9 @@ function Profile({
   };
 
   const genderIcons: any = {
-    Male: <IoMale style={{ fontSize: "20px", color: "#666666" }} />,
-    Female: <IoFemale style={{ fontSize: "17px", color: "#666666" }} />,
-    Others: <FaTransgender style={{ fontSize: "17px", color: "#666666" }} />,
+    Male: <IoMale style={{ fontSize: "20px", color: "var(--text-2)" }} />,
+    Female: <IoFemale style={{ fontSize: "17px", color: "var(--text-2)" }} />,
+    Others: <FaTransgender style={{ fontSize: "17px", color: "var(--text-2)" }} />,
   };
 
   const settogglerightwidget = (toggle: any) => {
@@ -298,17 +298,17 @@ function Profile({
   return profileInfo ? (
     <div
       ref={divcontentRef}
-      className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll"
+      className="cl-profile-page__shell tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-scroll x-scroll"
     >
       <button
         onClick={() => {
           navigate("/");
         }}
-        className="tw-z-[10] tw-shadow-lg tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
+        className="tw-z-[10] tw-shadow-lg tw-bg-[var(--surface)] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-full tw-border tw-border-[var(--border)] tw-flex tw-items-center tw-justify-center tw-text-[var(--text)] tw-cursor-pointer"
       >
         <IoArrowBack style={{ fontSize: "20px" }} />
       </button>
-      <div className="tw-bg-white tw-w-full tw-h-[40%] tw-min-h-[500px] tw-border-solid tw-border-[0px] tw-border-b-[0px] tw-border-[#d2d2d2] tw-flex tw-flex-col tw-justify-center tw-items-center">
+      <div className="cl-profile-page__hero tw-w-full tw-h-[40%] tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center">
         <ProfileCoverContainer
           userID={profileInfo.id}
           realm_id={null}
@@ -337,7 +337,7 @@ function Profile({
                   {profileInfo.fullname.lastName}
                 </span>
                 {profileInfo.isBadged && (
-                  <RiVerifiedBadgeFill size={18} color="#1c7def" />
+                  <RiVerifiedBadgeFill size={18} color="var(--brand)" />
                 )}
               </span>
               <span className="tw-text-[14px] tw-break-all tw-mb-[20px]">
@@ -356,7 +356,7 @@ function Profile({
                   onClick={() => {
                     navigate("/login");
                   }}
-                  className="tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                 >
                   Login
                 </button>
@@ -373,7 +373,7 @@ function Profile({
                       onClick={() => {
                         initiateConnectionProcess("add");
                       }}
-                      className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                     >
                       {isConnectionButtonsLoading ? (
                         <motion.div
@@ -401,7 +401,7 @@ function Profile({
                         onClick={() => {
                           initiateConnectionProcess("remove");
                         }}
-                        className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#a7a7a7] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                       >
                         {isConnectionButtonsLoading ? (
                           <motion.div
@@ -430,7 +430,7 @@ function Profile({
                             { ...profileInfo, _id: profileInfo.id },
                           );
                         }}
-                        className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                       >
                         Message
                       </button>
@@ -442,7 +442,7 @@ function Profile({
                         onClick={() => {
                           initiateConnectionProcess("accept");
                         }}
-                        className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#1c7def] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                       >
                         {isConnectionButtonsLoading ? (
                           <motion.div
@@ -468,7 +468,7 @@ function Profile({
                         onClick={() => {
                           initiateConnectionProcess("decline");
                         }}
-                        className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#666666] tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                       >
                         {isConnectionButtonsLoading ? (
                           <motion.div
@@ -496,7 +496,7 @@ function Profile({
                       onClick={() => {
                         initiateConnectionProcess("cancel");
                       }}
-                      className="tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-bg-red-500 tw-text-white tw-rounded-[6px] tw-text-[12px]"
+                      className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                     >
                       {isConnectionButtonsLoading ? (
                         <motion.div
@@ -525,7 +525,7 @@ function Profile({
       </div>
       <div className="tw-bg-transparent tw-max-w-[1200px] tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-center md:tw-items-start">
         <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[10px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
-          <div className="tw-w-full tw-h-fit tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+          <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex">
             <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
               {profileInfo.gender && (
                 <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
@@ -536,7 +536,7 @@ function Profile({
                 </div>
               )}
               <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
-                <IoTime style={{ fontSize: "20px", color: "#666666" }} />
+                <IoTime style={{ fontSize: "20px", color: "var(--text-2)" }} />
                 <span className="tw-text-[14px]">Joined </span>
                 <span className="tw-text-[14px] tw-font-semibold tw-text-left">
                   {formattedDateToWords(profileInfo.dateCreated.date)}
@@ -546,7 +546,7 @@ function Profile({
                 <MdCake
                   style={{
                     fontSize: "20px",
-                    color: "#666666",
+                    color: "var(--text-2)",
                     marginTop: "-4px",
                   }}
                 />
@@ -564,18 +564,15 @@ function Profile({
               </div>
             </div>
           </div>
-          <div className="tw-h-fit tw-w-full tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex">
+          <div className="cl-profile-surface tw-h-fit tw-w-full tw-flex">
             <div className="tw-w-full tw-p-[20px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
               <div className="tw-w-full tw-flex">
                 <div className="tw-flex tw-flex-row tw-flex-1 tw-gap-[5px] tw-items-center">
-                  <FaBook style={{ fontSize: "17px", color: "#666666" }} />
+                  <FaBook style={{ fontSize: "17px", color: "var(--text-2)" }} />
                   <span className="tw-text-[14px] tw-font-semibold">Diary</span>
                 </div>
                 {params.userID === authentication.user.username && (
-                  <Link
-                    to={`/${params.userID}/diary`}
-                    className="tw-text-[12px] tw-text-[#333333]"
-                  >
+                  <Link to={`/${params.userID}/diary`} className="tw-text-[12px] tw-text-[var(--brand)]">
                     View
                   </Link>
                 )}
@@ -584,7 +581,7 @@ function Profile({
                 <BiCalendarEdit
                   style={{
                     fontSize: "20px",
-                    color: "#666666",
+                    color: "var(--text-2)",
                     marginTop: "-4px",
                   }}
                 />
@@ -613,7 +610,8 @@ function Profile({
                     className="tw-max-w-full tw-h-[18px]"
                     containerClassName="tw-w-[180px] -tw-mt-[5px]"
                     height="15px"
-                    baseColor="rgb(210, 210, 210)"
+                    baseColor="var(--surface-3)"
+                    highlightColor="var(--surface-hover)"
                     count={1}
                   />
                 )}
@@ -621,7 +619,7 @@ function Profile({
               {params.userID === authentication.user.username && (
                 <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
                   <HiOutlinePencil
-                    style={{ fontSize: "20px", color: "#666666" }}
+                    style={{ fontSize: "20px", color: "var(--text-2)" }}
                   />
                   {diaryPreview.isLoaded ? (
                     <span className="tw-text-[14px]">
@@ -634,7 +632,8 @@ function Profile({
                       className="tw-max-w-full tw-h-[18px]"
                       containerClassName="tw-w-[200px] -tw-mt-[5px]"
                       height="15px"
-                      baseColor="rgb(210, 210, 210)"
+                      baseColor="var(--surface-3)"
+                      highlightColor="var(--surface-hover)"
                       count={1}
                     />
                   )}
@@ -646,7 +645,7 @@ function Profile({
                     <TfiThought
                       style={{
                         fontSize: "20px",
-                        color: "#666666",
+                        color: "var(--text-2)",
                         marginTop: "-4px",
                       }}
                     />
@@ -662,7 +661,8 @@ function Profile({
                         className="tw-max-w-full tw-h-[18px]"
                         containerClassName="tw-w-[220px] -tw-mt-[5px]"
                         height="15px"
-                        baseColor="rgb(210, 210, 210)"
+                        baseColor="var(--surface-3)"
+                        highlightColor="var(--surface-hover)"
                         count={1}
                       />
                     )}
@@ -680,9 +680,9 @@ function Profile({
                       return (
                         <div
                           key={mp.id}
-                          className="tw-p-[6px] tw-pl-[10px] tw-pr-[10px] tw-bg-[#c4c4c4] tw-rounded-[7px]"
+                          className="tw-p-[6px] tw-pl-[10px] tw-pr-[10px] tw-bg-[var(--surface-2)] tw-rounded-[12px] tw-border tw-border-[var(--border)]"
                         >
-                          <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-white">
+                          <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
                             {mp.name}
                           </span>
                         </div>
@@ -696,7 +696,7 @@ function Profile({
         </div>
         <div className="tw-w-full tw-pb-[20px] tw-flex tw-flex-col tw-items-center">
           {params.userID === authentication.user.username && (
-            <div className="tw-w-full tw-h-fit tw-bg-white tw-border-solid tw-border-[0px] tw-border-[#d2d2d2] tw-rounded-[7px] tw-flex tw-mb-[10px]">
+              <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex tw-mb-[10px]">
               <motion.div
                 initial={{
                   justifyContent: isMobileView ? "center" : "start",
@@ -709,54 +709,54 @@ function Profile({
                 <motion.button
                   initial={{
                     backgroundColor:
-                      feedmode === "posts" ? "#c4c4c4" : "transparent",
-                    color: feedmode === "posts" ? "white" : "#666666",
+                      feedmode === "posts" ? "var(--brand-soft)" : "transparent",
+                    color: feedmode === "posts" ? "var(--brand)" : "var(--text-2)",
                   }}
                   animate={{
                     backgroundColor:
-                      feedmode === "posts" ? "#c4c4c4" : "transparent",
-                    color: feedmode === "posts" ? "white" : "#666666",
+                      feedmode === "posts" ? "var(--brand-soft)" : "transparent",
+                    color: feedmode === "posts" ? "var(--brand)" : "var(--text-2)",
                   }}
                   onClick={() => {
                     setfeedmode("posts");
                   }}
-                  className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+                  className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
                 >
                   <span className="tw-text-[12px] tw-font-semibold">Posts</span>
                 </motion.button>
                 <motion.button
                   initial={{
                     backgroundColor:
-                      feedmode === "saves" ? "#c4c4c4" : "transparent",
-                    color: feedmode === "saves" ? "white" : "#666666",
+                      feedmode === "saves" ? "var(--brand-soft)" : "transparent",
+                    color: feedmode === "saves" ? "var(--brand)" : "var(--text-2)",
                   }}
                   animate={{
                     backgroundColor:
-                      feedmode === "saves" ? "#c4c4c4" : "transparent",
-                    color: feedmode === "saves" ? "white" : "#666666",
+                      feedmode === "saves" ? "var(--brand-soft)" : "transparent",
+                    color: feedmode === "saves" ? "var(--brand)" : "var(--text-2)",
                   }}
                   onClick={() => {
                     setfeedmode("saves");
                   }}
-                  className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+                  className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
                 >
                   <span className="tw-text-[12px] tw-font-semibold">Saves</span>
                 </motion.button>
                 <motion.button
                   initial={{
                     backgroundColor:
-                      feedmode === "archives" ? "#c4c4c4" : "transparent",
-                    color: feedmode === "archives" ? "white" : "#666666",
+                      feedmode === "archives" ? "var(--brand-soft)" : "transparent",
+                    color: feedmode === "archives" ? "var(--brand)" : "var(--text-2)",
                   }}
                   animate={{
                     backgroundColor:
-                      feedmode === "archives" ? "#c4c4c4" : "transparent",
-                    color: feedmode === "archives" ? "white" : "#666666",
+                      feedmode === "archives" ? "var(--brand-soft)" : "transparent",
+                    color: feedmode === "archives" ? "var(--brand)" : "var(--text-2)",
                   }}
                   onClick={() => {
                     setfeedmode("archives");
                   }}
-                  className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[8px] tw-cursor-pointer tw-rounded-md tw-border-none"
+                  className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
                 >
                   <span className="tw-text-[12px] tw-font-semibold">
                     Archives
@@ -774,12 +774,12 @@ function Profile({
       </div>
     </div>
   ) : (
-    <div className="tw-bg-[#f0f2f5] tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px]">
+    <div className="cl-profile-page__shell tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px]">
       <button
         onClick={() => {
           navigate("/");
         }}
-        className="tw-z-[100] tw-shadow-lg tw-bg-[#d2d2d2] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-[50px] tw-border-none tw-flex tw-items-center tw-justify-center tw-text-white tw-cursor-pointer"
+        className="tw-z-[100] tw-shadow-lg tw-bg-[var(--surface)] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-full tw-border tw-border-[var(--border)] tw-flex tw-items-center tw-justify-center tw-text-[var(--text)] tw-cursor-pointer"
       >
         <IoArrowBack style={{ fontSize: "20px" }} />
       </button>

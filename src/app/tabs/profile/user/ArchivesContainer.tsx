@@ -14,6 +14,7 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { genericpaginationstate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
+import { Card } from "@/reusables/design";
 import PostItem from "./PostItem";
 import ArchivePostItemLoader from "@/app/reusables/loaders/ArchivePostItemLoader";
 
@@ -114,12 +115,19 @@ function ArchivesContainer({
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {posts.map((mp: IPost) => {
             return (
-              <PostItem
+              <Card
+                pad={10}
+                style={{ marginBottom: 14, width: "100%" }}
                 key={mp.post_id}
-                mp={mp}
-                isSharePreview={false}
-                show_archived={true}
-              />
+                className="tw-flex tw-justify-center tw-w-full"
+              >
+                <PostItem
+                  key={mp.post_id}
+                  mp={mp}
+                  isSharePreview={false}
+                  show_archived={true}
+                />
+              </Card>
             );
           })}
         </div>
@@ -135,7 +143,16 @@ function ArchivesContainer({
       ) : (
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[0px]">
           {Array.from({ length: 8 }, (_, i: number) => {
-            return <ArchivePostItemLoader key={i} />;
+            return (
+              <Card
+                pad={10}
+                style={{ marginBottom: 14, width: "100%" }}
+                key={i}
+                className="tw-flex tw-justify-center tw-w-full"
+              >
+                <ArchivePostItemLoader key={i} />
+              </Card>
+            );
           })}
         </div>
       )}

@@ -210,7 +210,13 @@ export function NewPostModal({
     <Modal
       component={
         <div
-          className={`div_modal_container tw-max-w-[600px] ${
+          className={`div_modal_container cl-create-post-shell ${
+            toShare
+              ? "cl-create-post-shell--share"
+              : iswithImage
+                ? "cl-create-post-shell--media"
+                : ""
+          } ${
             toShare
               ? "tw-max-h-[600px]"
               : iswithImage
@@ -220,13 +226,13 @@ export function NewPostModal({
         >
           {isuploadingpost && !toShare && (
             <div
-              className={`tw-absolute tw-h-full tw-w-full tw-max-w-[600px] ${
+              className={`cl-create-post-loading tw-absolute tw-inset-0 tw-h-full tw-w-full ${
                 toShare
                   ? "tw-max-h-[600px]"
                   : iswithImage
                     ? "tw-max-h-[520px]"
                     : "tw-max-h-[220px]"
-              } tw-bg-white tw-opacity-[0.8] tw-flex tw-items-center tw-justify-center`}
+              } tw-flex tw-items-center tw-justify-center`}
             >
               <div id="div_conversation_content_loader">
                 <motion.div
@@ -251,15 +257,13 @@ export function NewPostModal({
               ) : (
                 <BsFileEarmarkPost style={{ fontSize: "20px" }} />
               )}
-              <span className="span_modal_header_label tw-font-inter">
+              <span className="span_modal_header_label tw-font-inter tw-text-[var(--text)]">
                 {toShare ? "Share Post" : "Create a Post"}
               </span>
             </div>
           </div>
-          <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-items-center tw-justify-center tw-pl-[10px] tw-pr-[10px] tw-pb-[10px] scroller tw-overflow-y-auto">
-            {" "}
-            {/**tw-flex tw-flex-1 */}
-            <div className="tw-w-full tw-h-full tw-bg-transparent tw-flex tw-flex-col">
+          <div className="cl-create-post-body scroller tw-w-full tw-items-stretch tw-justify-start">
+            <div className="tw-w-full tw-h-full tw-bg-transparent tw-flex tw-flex-col tw-gap-[12px] tw-min-h-0 tw-items-stretch">
               <textarea
                 disabled={isuploadingpost}
                 value={mainpostcaption}
@@ -267,11 +271,11 @@ export function NewPostModal({
                   setcreateposttext(e.target.value);
                   setmainpostcaption(e.target.value);
                 }}
-                className="tw-w-full tw-min-h-[80px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller tw-font-Inter"
+                className="cl-create-post-textarea tw-font-inter thinscroller tw-font-Inter"
                 placeholder="Type your caption"
               />
               {iswithImage && (
-                <div className="tw-flex tw-h-[300px] tw-flex-col tw-w-full tw-gap-[12px] tw-bg-transparent tw-rounded-[7px] scroller">
+                <div className="cl-create-post-attachments">
                   {medialist.length > 0 ? (
                     <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px]">
                       {medialist
@@ -292,12 +296,12 @@ export function NewPostModal({
                         onClick={() => {
                           sendNonImageFilesProcess();
                         }}
-                        className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-bg-transparent tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center"
+                        className="cl-create-post-dropzone tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-border-dashed tw-items-center tw-justify-center"
                       >
                         <MdAddToPhotos
-                          style={{ fontSize: "20px", color: "#888888" }}
+                          style={{ fontSize: "20px", color: "var(--text-2)" }}
                         />
-                        <span className="tw-text-[14px] tw-font-semibold tw-text-[#888888]">
+                        <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text-2)]">
                           Add a Photo or Video
                         </span>
                       </div>
@@ -307,12 +311,12 @@ export function NewPostModal({
                       onClick={() => {
                         sendNonImageFilesProcess();
                       }}
-                      className="tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-bg-transparent tw-border-[1px] tw-border-[#888888] tw-border-dashed tw-rounded-[7px] tw-items-center tw-justify-center"
+                      className="cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-border-dashed tw-items-center tw-justify-center"
                     >
                       <MdAddToPhotos
-                        style={{ fontSize: "60px", color: "#888888" }}
+                        style={{ fontSize: "60px", color: "var(--text-2)" }}
                       />
-                      <span className="tw-text-[14px] tw-font-semibold tw-text-[#888888]">
+                      <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text-2)]">
                         Add a Photo or Video
                       </span>
                     </div>
@@ -320,16 +324,18 @@ export function NewPostModal({
                 </div>
               )}
               {toShare && (
-                <PostItem isSharePreview={true} mp={sharePreviewData} />
+                <div className="cl-create-post-preview tw-w-full tw-max-h-[360px] tw-overflow-auto">
+                  <PostItem isSharePreview={true} mp={sharePreviewData} />
+                </div>
               )}
             </div>
           </div>
-          <div className="tw-w-[calc(100%-20px)] tw-flex tw-flex-row tw-gap-[5px] tw-pl-[10px] tw-pr-[10px] tw-pt-[5px]">
+          <div className="cl-create-post-toolbar">
             <button
               onClick={() => {
                 setcurrenttab("privacy");
               }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#194888]"
+              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand-700)]"
             >
               <FaGlobeAsia style={{ fontSize: "20px" }} />
             </button>
@@ -338,7 +344,7 @@ export function NewPostModal({
                 onClick={() => {
                   setiswithImage(true);
                 }}
-                className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#1c7DEF]"
+                className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand)]"
               >
                 <BiSolidImageAdd style={{ fontSize: "24px" }} />
               </button>
@@ -347,7 +353,7 @@ export function NewPostModal({
               onClick={() => {
                 setcurrenttab("content");
               }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#1c7DEF]"
+              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand)]"
             >
               <BsFileEarmarkPost style={{ fontSize: "20px" }} />
             </button>
@@ -355,7 +361,7 @@ export function NewPostModal({
               onClick={() => {
                 setcurrenttab("tagging");
               }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#58c472]"
+              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--green)]"
             >
               <FaUserTag style={{ fontSize: "20px" }} />
             </button>
@@ -363,12 +369,12 @@ export function NewPostModal({
               onClick={() => {
                 setcurrenttab("mapfeedstatus");
               }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[#f66551]"
+              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--pink)]"
             >
               <BsPinMapFill style={{ fontSize: "18px" }} />
             </button>
           </div>
-          <div id="div_create_cancel_btns">
+          <div id="div_create_cancel_btns" className="cl-create-post-actions">
             <button
               disabled={isuploadingpost}
               className="btns_create_cancel"
