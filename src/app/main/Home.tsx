@@ -575,11 +575,12 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             style={{
               position: "absolute",
               bottom: 0,
-              left: 10,
+              right: 10,
               display: "flex",
-              flexDirection: "row",
+              flexDirection: "row-reverse",
               gap: 10,
               zIndex: 100,
+              justifyContent: "flex-end",
             }}
           >
             {minimizedconversation.map((mp: any) => (

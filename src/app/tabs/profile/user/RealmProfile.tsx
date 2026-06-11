@@ -207,7 +207,7 @@ function RealmProfile({
           </div>
         </Card>
       )}
-      <div className="cl-profile-page__hero tw-mb-[6px] tw-w-full tw-h-auto tw-min-h-[360px] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-py-[12px] sm:tw-py-[0px]">
+      <div className="cl-profile-page__hero tw-mb-[6px] tw-w-full tw-h-auto tw-min-h-[auto] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-start sm:tw-justify-center tw-items-center tw-py-[12px] sm:tw-py-[0px]">
         <ProfileCoverContainer
           userID={realmInfo.id}
           realm_id={realmInfo.realm_id}
