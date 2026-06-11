@@ -66,7 +66,7 @@ function MessageOptions({
             }}
             className="cl-message-options-button cl-message-options-button--danger tw-flex tw-items-center tw-justify-center tw-h-[30px] tw-cursor-pointer tw-bg-transparent tw-border-none"
           >
-            <MdDelete style={{ fontSize: "17px" }} />
+            <MdDelete style={{ fontSize: "15px" }} />
           </button>
         ))}
       <button
@@ -75,7 +75,7 @@ function MessageOptions({
         }}
         className="cl-message-options-button tw-flex tw-items-center tw-justify-center tw-h-[30px] tw-cursor-pointer tw-bg-transparent tw-border-none"
       >
-        <BsFillReplyFill style={{ fontSize: "17px" }} />
+        <BsFillReplyFill style={{ fontSize: "15px" }} />
       </button>
     </div>
   );

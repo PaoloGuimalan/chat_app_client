@@ -484,6 +484,7 @@ function Messages() {
           }}
         >
         <div
+          className="cl-messages-shell__header"
           style={{
             display: "flex",
             alignItems: "center",
@@ -492,11 +493,14 @@ function Messages() {
             padding: "18px 18px 12px",
           }}
         >
-          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+          <div
+            className="cl-messages-shell__title"
+            style={{ display: "flex", alignItems: "center", gap: 10 }}
+          >
             <span
               style={{
-                width: 38,
-                height: 38,
+                width: isMobile ? 34 : 38,
+                height: isMobile ? 34 : 38,
                 borderRadius: "var(--r-sm)",
                 background: "var(--brand-soft)",
                 display: "inline-flex",
@@ -504,12 +508,12 @@ function Messages() {
                 justifyContent: "center",
               }}
             >
-              <Icon n="forum" s={18} c="var(--brand)" />
+              <Icon n="forum" s={isMobile ? 16 : 18} c="var(--brand)" />
             </span>
             <h2
               style={{
                 margin: 0,
-                fontSize: 22,
+                fontSize: isMobile ? 18 : 22,
                 fontWeight: 800,
                 letterSpacing: "-0.03em",
               }}
@@ -517,11 +521,11 @@ function Messages() {
               Messages
             </h2>
           </div>
-          <div style={{ position: "relative" }}>
+          <div className="cl-messages-shell__compose" style={{ position: "relative" }}>
             <IconBtn
               n="edit_square"
-              size={38}
-              s={20}
+              size={isMobile ? 34 : 38}
+              s={isMobile ? 18 : 20}
               title="Create chat"
               onClick={() => setToggleComposeMenu((prev) => !prev)}
             />
@@ -567,7 +571,7 @@ function Messages() {
           </div>
         </div>
 
-        <div style={{ padding: "0 18px 12px" }}>
+        <div className="cl-messages-shell__search" style={{ padding: isMobile ? "0 14px 10px" : "0 18px 12px" }}>
           <Field
             icon="search"
             placeholder="Search messages"
@@ -576,7 +580,7 @@ function Messages() {
           />
         </div>
 
-        <div style={{ padding: "0 18px 14px" }}>
+        <div className="cl-messages-shell__tabs" style={{ padding: isMobile ? "0 14px 12px" : "0 18px 14px" }}>
           <SegTabs
             tabs={[
               { key: "all", label: "All" },
@@ -591,14 +595,15 @@ function Messages() {
 
         <div
           ref={divcontentRef}
+          className="cl-messages-shell__list"
           style={{
             flex: 1,
             minHeight: 0,
             overflowY: "auto",
-            padding: "0 14px 14px",
+            padding: isMobile ? "0 12px 12px" : "0 14px 14px",
             display: "flex",
             flexDirection: "column",
-            gap: 8,
+            gap: isMobile ? 6 : 8,
           }}
         >
           {isLoading ? (

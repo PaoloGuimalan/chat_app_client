@@ -113,6 +113,19 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     [conversationsetup],
   );
   const isServerConversation = conversationType === "server";
+  const isCompactConversation = screensizelistener.W <= 799;
+  const conversationHeaderIconSize = isCompactConversation ? "18px" : "20px";
+  const conversationHeaderActionIconSize = isCompactConversation
+    ? "17px"
+    : "19px";
+  const conversationHeaderPrimaryIconSize = isCompactConversation
+    ? "21px"
+    : "25px";
+  const conversationMenuIconSize = isCompactConversation ? "18px" : "20px";
+  const conversationFileIconSize = isCompactConversation ? "34px" : "40px";
+  const conversationComposerIconSize = isCompactConversation ? "22px" : "25px";
+  const conversationCloseIconSize = isCompactConversation ? "16px" : "18px";
+  const conversationLoadingIconSize = isCompactConversation ? "20px" : "25px";
 
   const conversationIdentityKey = useMemo(() => {
     const userID = conversationsetup.userdetails?._id ?? "";
@@ -1089,18 +1102,19 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   : "10px",
             }}
             id="div_conversation_header"
+            className="cl-conversation-header-shell"
           >
             <div id="div_conversation_user">
               {screensizelistener.W <= 900 && (
-                <button
-                  type="button"
-                  aria-label="Back to messages list"
-                  onClick={goBackToConversationList}
-                  id="div_img_cncts_container"
-                  className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-p-0"
-                >
+                  <button
+                    type="button"
+                    aria-label="Back to messages list"
+                    onClick={goBackToConversationList}
+                    id="div_img_cncts_container"
+                    className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-p-0"
+                  >
                   <div id="div_img_server_back_container_cncts">
-                    <IoArrowBack style={{ fontSize: "20px" }} />
+                    <IoArrowBack style={{ fontSize: conversationHeaderIconSize }} />
                   </div>
                 </button>
               )}
@@ -1116,7 +1130,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                             ? undefined
                             : conversationsetup.userdetails.profile
                         }
-                        size={48}
+                        size={screensizelistener.W <= 799 ? 42 : 48}
                       />
                     ) : (
                       <CachedImage
@@ -1151,7 +1165,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 </div>
               )}
               <div id="div_conversation_user_name">
-                {conversationsetup.type == "single" ? (
+                        {conversationsetup.type == "single" ? (
                   <span
                     className="span_userdetails_name tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                     onClick={() => {
@@ -1165,10 +1179,10 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     {conversationsetup.userdetails.fullname.lastName}
                   </span>
                 ) : (
-                  <span className="span_userdetails_name tw-flex tw-items-center tw-gap-[3px]">
+                    <span className="span_userdetails_name tw-flex tw-items-center tw-gap-[3px]">
                     {conversationsetup.type === "server" &&
                       (conversationsetup.groupdetails.privacy ? (
-                        <FaLock style={{ fontSize: "13px" }} />
+                        <FaLock style={{ fontSize: "12px" }} />
                       ) : (
                         <FaHashtag />
                       ))}{" "}
@@ -1232,9 +1246,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       );
                     }}
                   >
-                    <BiSolidInfoCircle
-                      style={{ fontSize: "21px" }}
-                    />
+                      <BiSolidInfoCircle
+                        style={{ fontSize: conversationHeaderActionIconSize }}
+                      />
                   </motion.button>
                   <motion.button
                     whileHover={{
@@ -1251,7 +1265,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       });
                     }}
                   >
-                    <IoMdClose style={{ fontSize: "20px" }} />
+                    <IoMdClose style={{ fontSize: conversationCloseIconSize }} />
                   </motion.button>
                 </>
               )}
@@ -1275,7 +1289,10 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   className="btn_conversation_header_navigation"
                 >
                   <BiSolidPhoneCall
-                    style={{ fontSize: "25px", color: "#4994ec" }}
+                    style={{
+                      fontSize: conversationHeaderPrimaryIconSize,
+                      color: "#4994ec",
+                    }}
                   />
                 </motion.button>
               )}
@@ -1296,7 +1313,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   }}
                   className="btn_conversation_header_navigation"
                 >
-                  <FcVideoCall style={{ fontSize: "25px" }} />
+                  <FcVideoCall
+                    style={{ fontSize: conversationHeaderPrimaryIconSize }}
+                  />
                 </motion.button>
               )}
               <div className="tw-relative">
@@ -1314,14 +1333,14 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   //   settoggleMenu(false);
                   // }}
                 >
-                  <BiSolidInfoCircle
-                    style={{
-                      fontSize: "23px",
-                      color: isServerConversation
-                        ? "var(--gold)"
-                        : theme.primary,
-                    }}
-                  />
+                    <BiSolidInfoCircle
+                      style={{
+                        fontSize: conversationMenuIconSize,
+                        color: isServerConversation
+                          ? "var(--gold)"
+                          : theme.primary,
+                      }}
+                    />
                 </motion.button>
                 <motion.div
                   initial={{
@@ -1349,9 +1368,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     }}
                   >
                     <BiSolidInfoCircle
-                      style={{ fontSize: "20px" }}
+                      style={{ fontSize: conversationMenuIconSize }}
                     />
-                    <span className="tw-text-[12px] tw-font-Inter">Info</span>
+                    <span className="tw-text-[11px] tw-font-Inter">Info</span>
                   </motion.button>
                   {conversationinfo?.type !== "single" &&
                     conversationinfo?.is_admin && (
@@ -1366,10 +1385,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                           navigate(`/realms/${conversationinfo?.contactID}`);
                         }}
                         >
-                        <IoMdSettings
-                          style={{ fontSize: "20px" }}
-                        />
-                        <span className="tw-text-[12px] tw-font-Inter">
+                    <IoMdSettings style={{ fontSize: conversationMenuIconSize }} />
+                        <span className="tw-text-[11px] tw-font-Inter">
                           Manage
                         </span>
                       </motion.button>
@@ -1396,10 +1413,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                           settoggleMenu(false);
                         }}
                         >
-                        <BiWindows
-                          style={{ fontSize: "20px" }}
-                        />
-                        <span className="tw-text-[12px] tw-font-Inter">
+                        <BiWindows style={{ fontSize: conversationMenuIconSize }} />
+                        <span className="tw-text-[11px] tw-font-Inter">
                           Minimize
                         </span>
                       </motion.button>
@@ -1415,10 +1430,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                             UpdateChatHistoryProcess("unarchive");
                           }}
                         >
-                          <RiInboxUnarchiveFill
-                            style={{ fontSize: "20px" }}
-                          />
-                          <span className="tw-text-[12px] tw-font-Inter">
+                          <RiInboxUnarchiveFill style={{ fontSize: conversationMenuIconSize }} />
+                          <span className="tw-text-[11px] tw-font-Inter">
                             Unarchive
                           </span>
                         </motion.button>
@@ -1431,10 +1444,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                             UpdateChatHistoryProcess("archive");
                           }}
                         >
-                          <RiInboxArchiveFill
-                            style={{ fontSize: "20px" }}
-                          />
-                          <span className="tw-text-[12px] tw-font-Inter">
+                          <RiInboxArchiveFill style={{ fontSize: conversationMenuIconSize }} />
+                          <span className="tw-text-[11px] tw-font-Inter">
                             Archive
                           </span>
                         </motion.button>
@@ -1447,8 +1458,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         UpdateChatHistoryProcess("clear");
                       }}
                     >
-                      <MdDelete style={{ fontSize: "20px" }} />
-                      <span className="tw-text-[12px] tw-font-Inter">
+                      <MdDelete style={{ fontSize: conversationMenuIconSize }} />
+                      <span className="tw-text-[11px] tw-font-Inter">
                         Delete
                       </span>
                     </motion.button>
@@ -1467,8 +1478,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         settoggleMenu(false);
                       }}
                     >
-                      <IoMdClose style={{ fontSize: "20px" }} />
-                      <span className="tw-text-[12px] tw-font-Inter">
+                      <IoMdClose style={{ fontSize: conversationMenuIconSize }} />
+                      <span className="tw-text-[11px] tw-font-Inter">
                         Close
                       </span>
                     </motion.button>
@@ -1491,7 +1502,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 }}
                 id="div_loader_request_conv"
               >
-                <AiOutlineLoading3Quarters style={{ fontSize: "25px" }} />
+                <AiOutlineLoading3Quarters style={{ fontSize: conversationLoadingIconSize }} />
               </motion.div>
             </div>
           ) : (
@@ -1673,7 +1684,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         >
                           <div className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]">
                             <div className="tw-w-full tw-max-w-[40px]">
-                              <IoDocumentOutline style={{ fontSize: "40px" }} />
+                              <IoDocumentOutline style={{ fontSize: conversationFileIconSize }} />
                             </div>
                             <span className="tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold">
                               {cnvs.name}
@@ -1759,7 +1770,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       }}
                       id="div_loader_request_conv"
                     >
-                      <AiOutlineLoading3Quarters style={{ fontSize: "20px" }} />
+                      <AiOutlineLoading3Quarters style={{ fontSize: conversationLoadingIconSize }} />
                     </motion.div>
                   </div>
                 </div>
@@ -1777,9 +1788,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   });
                 }}
               >
-                <AiOutlineClose
+                    <AiOutlineClose
                   style={{
-                    fontSize: "17px",
+                    fontSize: conversationCloseIconSize,
                   }}
                 />
               </button>
@@ -1907,7 +1918,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         }}
                         className="btn_remove_preview"
                       >
-                        <AiOutlineClose />
+                        <AiOutlineClose style={{ fontSize: conversationCloseIconSize }} />
                       </button>
                     </div>
                     <video
@@ -1933,11 +1944,11 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         }}
                         className="btn_remove_preview"
                       >
-                        <AiOutlineClose />
+                        <AiOutlineClose style={{ fontSize: conversationCloseIconSize }} />
                       </button>
                     </div>
                     <div className="img_selected_preview tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[7px]">
-                      <MdAudiotrack style={{ fontSize: "40px" }} />
+                      <MdAudiotrack style={{ fontSize: conversationFileIconSize }} />
                       <span className="tw-w-[calc(100%-20px)] tw-text-[10px] tw-truncate">
                         {nonimgl.name}
                       </span>
@@ -1962,7 +1973,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       </button>
                     </div>
                     <div className="img_selected_preview tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[7px]">
-                      <IoDocumentOutline style={{ fontSize: "40px" }} />
+                      <IoDocumentOutline style={{ fontSize: conversationFileIconSize }} />
                       <span className="tw-w-[calc(100%-20px)] tw-text-[10px] tw-truncate">
                         {nonimgl.name}
                       </span>
@@ -2006,7 +2017,10 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 className="btn_options_send"
               >
                 <RiAddCircleFill
-                  style={{ fontSize: "25px", color: "#90caf9" }}
+                  style={{
+                    fontSize: conversationComposerIconSize,
+                    color: "#90caf9",
+                  }}
                 />
               </motion.button>
               <motion.button
@@ -2020,7 +2034,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 }}
                 className="btn_options_send"
               >
-                <FcAddImage style={{ fontSize: "25px" }} />
+                <FcAddImage style={{ fontSize: conversationComposerIconSize }} />
               </motion.button>
             </div>
             <div id="div_input_text_content">
@@ -2069,7 +2083,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               >
                 <IoSend
                   style={{
-                    fontSize: "25px",
+                    fontSize: conversationComposerIconSize,
                     color: isServerConversation ? "var(--on-brand)" : "white",
                   }}
                 />

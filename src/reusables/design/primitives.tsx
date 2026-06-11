@@ -16,7 +16,7 @@ export interface IconProps {
   style?: CSSProperties;
 }
 
-export function Icon({ n, s = 22, c, style }: IconProps) {
+export function Icon({ n, s = 20, c, style }: IconProps) {
   return (
     <span
       className="material-icons"
@@ -31,9 +31,9 @@ type BtnVariant = "primary" | "soft" | "ghost" | "outline";
 type BtnSize = "sm" | "md" | "lg";
 
 const BTN_SIZES: Record<BtnSize, { h: number; px: number; fs: number }> = {
-  sm: { h: 32, px: 12, fs: 13 },
-  md: { h: 38, px: 16, fs: 14 },
-  lg: { h: 46, px: 22, fs: 15 },
+  sm: { h: 28, px: 10, fs: 11.5 },
+  md: { h: 34, px: 13, fs: 12.75 },
+  lg: { h: 40, px: 16, fs: 13.75 },
 };
 
 const BTN_VARIANTS: Record<BtnVariant, CSSProperties> = {
@@ -89,7 +89,7 @@ export function Btn({
         width: block ? "100%" : undefined,
         alignItems: "center",
         justifyContent: "center",
-        gap: 7,
+        gap: 6,
         height: sz.h,
         padding: `0 ${sz.px}px`,
         fontSize: sz.fs,
@@ -114,9 +114,9 @@ export function Btn({
         e.currentTarget.style.transform = "none";
       }}
     >
-      {iconL && <Icon n={iconL} s={sz.fs + 4} />}
+      {iconL && <Icon n={iconL} s={Math.max(15, sz.fs + 2)} />}
       {children}
-      {iconR && <Icon n={iconR} s={sz.fs + 4} />}
+      {iconR && <Icon n={iconR} s={Math.max(15, sz.fs + 2)} />}
     </button>
   );
 }
@@ -132,8 +132,8 @@ export interface IconBtnProps {
 
 export function IconBtn({
   n,
-  s = 22,
-  size = 40,
+  s = 18,
+  size = 34,
   title,
   onClick,
   style,
@@ -180,7 +180,7 @@ export function Field({ icon, label, ...rest }: FieldProps) {
         <span
           style={{
             display: "block",
-            fontSize: 12,
+            fontSize: 11.5,
             fontWeight: 600,
             color: "var(--text-2)",
             marginBottom: 6,
@@ -191,11 +191,11 @@ export function Field({ icon, label, ...rest }: FieldProps) {
       )}
       <span
         style={{
-          display: "flex",
-          alignItems: "center",
-          gap: 8,
-          height: 44,
-          padding: "0 14px",
+        display: "flex",
+        alignItems: "center",
+        gap: 7,
+        height: 40,
+        padding: "0 12px",
           background: "var(--input)",
           border: "1px solid var(--border)",
           borderRadius: "var(--r-sm)",
@@ -208,7 +208,7 @@ export function Field({ icon, label, ...rest }: FieldProps) {
           (e.currentTarget.style.borderColor = "var(--border)")
         }
       >
-        {icon && <Icon n={icon} s={20} c="var(--text-3)" />}
+        {icon && <Icon n={icon} s={16} c="var(--text-3)" />}
         <input
           {...rest}
           style={{
@@ -218,7 +218,7 @@ export function Field({ icon, label, ...rest }: FieldProps) {
             outline: "none",
             background: "transparent",
             color: "var(--text)",
-            fontSize: 14,
+            fontSize: 12.5,
           }}
         />
       </span>
@@ -249,7 +249,7 @@ export function SelectField({
         <span
           style={{
             display: "block",
-            fontSize: 12,
+            fontSize: 11.5,
             fontWeight: 600,
             color: "var(--text-2)",
             marginBottom: 6,
@@ -262,15 +262,15 @@ export function SelectField({
         style={{
           display: "flex",
           alignItems: "center",
-          gap: 8,
-          height: 44,
-          padding: "0 14px",
+          gap: 7,
+        height: 40,
+          padding: "0 12px",
           background: "var(--input)",
           border: "1px solid var(--border)",
           borderRadius: "var(--r-sm)",
         }}
       >
-        {icon && <Icon n={icon} s={20} c="var(--text-3)" />}
+        {icon && <Icon n={icon} s={16} c="var(--text-3)" />}
         <select
           value={value}
           onChange={(e) => onChange(e.target.value)}
@@ -281,7 +281,7 @@ export function SelectField({
             outline: "none",
             background: "transparent",
             color: "var(--text)",
-            fontSize: 14,
+            fontSize: 12.5,
             appearance: "none",
             WebkitAppearance: "none",
             MozAppearance: "none",
@@ -290,7 +290,7 @@ export function SelectField({
         >
           {children}
         </select>
-        <Icon n="expand_more" s={18} c="var(--text-3)" />
+        <Icon n="expand_more" s={16} c="var(--text-3)" />
       </span>
     </label>
   );

@@ -51,7 +51,7 @@ export function Avatar({
   id,
   name,
   src,
-  size = 40,
+  size = 38,
   online,
   ring,
   style,
@@ -142,7 +142,7 @@ export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, "childre
 }
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(function Card(
-  { children, pad = 16, hover, style, ...rest },
+  { children, pad = 14, hover, style, ...rest },
   ref,
 ) {
   return (
@@ -198,11 +198,11 @@ export function Badge({ children, tone = "brand", style }: BadgeProps) {
         display: "inline-flex",
         alignItems: "center",
         gap: 4,
-        height: 22,
-        padding: "0 9px",
+        height: 20,
+        padding: "0 8px",
         background: bg,
         color: fg,
-        fontSize: 12,
+        fontSize: 11.5,
         fontWeight: 650,
         borderRadius: "var(--r-pill)",
         ...style,
@@ -229,13 +229,13 @@ export function Chip({ children, icon, active, onClick, style }: ChipProps) {
         display: "inline-flex",
         alignItems: "center",
         gap: 6,
-        height: 34,
-        padding: "0 14px",
+        height: 30,
+        padding: "0 10px",
         borderRadius: "var(--r-pill)",
         border: "1px solid " + (active ? "transparent" : "var(--border-2)"),
         background: active ? "var(--brand)" : "var(--surface)",
         color: active ? "#fff" : "var(--text-2)",
-        fontSize: 13,
+        fontSize: 11.5,
         fontWeight: 600,
         cursor: "pointer",
         transition: "all .14s",
@@ -243,7 +243,7 @@ export function Chip({ children, icon, active, onClick, style }: ChipProps) {
         ...style,
       }}
     >
-      {icon && <Icon n={icon} s={17} />}
+      {icon && <Icon n={icon} s={15} />}
       {children}
     </button>
   );
@@ -262,8 +262,8 @@ export function Toggle({ on, onChange }: ToggleProps) {
       onClick={() => onChange && onChange(!on)}
       style={{
         position: "relative",
-        width: 44,
-        height: 26,
+        width: 40,
+        height: 22,
         flex: "none",
         borderRadius: 999,
         cursor: "pointer",
@@ -275,10 +275,10 @@ export function Toggle({ on, onChange }: ToggleProps) {
       <span
         style={{
           position: "absolute",
-          top: 3,
-          left: on ? 21 : 3,
-          width: 20,
-          height: 20,
+          top: 2,
+          left: on ? 18 : 2,
+          width: 18,
+          height: 18,
           borderRadius: "50%",
           background: "#fff",
           boxShadow: "0 1px 3px rgba(0,0,0,.3)",
@@ -311,7 +311,7 @@ export function SegTabs({ tabs, value, onChange, style }: SegTabsProps) {
     <div
       style={{
         display: "inline-flex",
-        padding: 4,
+        padding: 2,
         gap: 2,
         background: "var(--surface-3)",
         borderRadius: "var(--r-sm)",
@@ -330,12 +330,12 @@ export function SegTabs({ tabs, value, onChange, style }: SegTabsProps) {
               alignItems: "center",
               justifyContent: "center",
               gap: 6,
-              height: 32,
-              padding: "0 14px",
+              height: 28,
+              padding: "0 10px",
               border: "none",
               borderRadius: "var(--r-xs)",
               cursor: "pointer",
-              fontSize: 13,
+              fontSize: 11.5,
               fontWeight: 650,
               background: on ? "var(--surface)" : "transparent",
               color: on ? "var(--text)" : "var(--text-2)",
@@ -344,7 +344,7 @@ export function SegTabs({ tabs, value, onChange, style }: SegTabsProps) {
               flex: 1,
             }}
           >
-            {t.icon && <Icon n={t.icon} s={17} />}
+            {t.icon && <Icon n={t.icon} s={15} />}
             {t.label}
           </button>
         );
@@ -371,7 +371,7 @@ export function SectionTitle({ children, action }: SectionTitleProps) {
       <h3
         style={{
           margin: 0,
-          fontSize: 16,
+          fontSize: 14,
           fontWeight: 750,
           letterSpacing: "-0.01em",
         }}
