@@ -3,6 +3,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { useCallback, useEffect, useMemo } from "react";
 import ChatterLoopImg from "../../assets/imgs/chatterloop.png";
+import ChatterLoopDarkImg from "../../assets/imgs/chatterloop-dark.png";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ActiveContactsRequest,
@@ -443,13 +444,15 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   ];
 
   const mobileNavItems = railItems
-    .filter((it) => ["home", "contacts", "explore", "servers", "pages"].includes(it.key))
+    .filter((it) =>
+      ["home", "contacts", "explore", "servers", "pages"].includes(it.key),
+    )
     .map((item) =>
       item.key === "explore"
         ? {
             ...item,
             label: "Search",
-        }
+          }
         : item,
     );
   const mobileNavOrder = ["home", "contacts", "explore", "servers", "pages"];
@@ -517,8 +520,12 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             profileName={authentication.user.fullName?.firstName}
             theme={theme}
             toggleTheme={toggleTheme}
-            messagesBadge={totalUnreadMessages > 0 ? totalUnreadMessages : undefined}
-            notificationsBadge={totalUnreadNotifs > 0 ? totalUnreadNotifs : undefined}
+            messagesBadge={
+              totalUnreadMessages > 0 ? totalUnreadMessages : undefined
+            }
+            notificationsBadge={
+              totalUnreadNotifs > 0 ? totalUnreadNotifs : undefined
+            }
           />
         )}
 
@@ -542,10 +549,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             }}
           >
             <Routes>
-              <Route
-                path="/"
-                element={<DesktopHome />}
-              />
+              <Route path="/" element={<DesktopHome />} />
               <Route path="/:userID/*" element={<ProfileContainer />} />
               <Route path="/realms/*" element={<RealmContainer />} />
               <Route path="/settings" element={<Settings isModal={false} />} />
@@ -642,6 +646,9 @@ function Rail({
   profileName?: string;
 }) {
   void profileName;
+
+  const homeIcon = theme === "dark" ? ChatterLoopDarkImg : ChatterLoopImg;
+
   return (
     <nav
       className="cl-main-rail"
@@ -666,7 +673,7 @@ function Rail({
           width: 44,
           height: 44,
           borderRadius: "var(--r-md)",
-          background: "var(--surface)",
+          background: "var(--surface-1)",
           border: "1px solid var(--border)",
           boxShadow: "var(--shadow-sm)",
           display: "flex",
@@ -676,7 +683,7 @@ function Rail({
         }}
       >
         <img
-          src={ChatterLoopImg}
+          src={homeIcon}
           alt="ChatterLoop"
           style={{
             width: 32,
@@ -754,7 +761,12 @@ function Rail({
           );
         })}
       </div>
-      <button className="cl-main-rail__action" title="Toggle theme" onClick={toggleTheme} style={railBtnStyle}>
+      <button
+        className="cl-main-rail__action"
+        title="Toggle theme"
+        onClick={toggleTheme}
+        style={railBtnStyle}
+      >
         <Icon n={theme === "dark" ? "light_mode" : "dark_mode"} s={22} />
       </button>
       <button
@@ -769,7 +781,12 @@ function Rail({
       >
         <Icon n="settings" s={22} />
       </button>
-      <button className="cl-main-rail__action" title="Logout" onClick={onLogout} style={railBtnStyle}>
+      <button
+        className="cl-main-rail__action"
+        title="Logout"
+        onClick={onLogout}
+        style={railBtnStyle}
+      >
         <Icon n="logout" s={22} />
       </button>
       <button
@@ -785,7 +802,12 @@ function Rail({
           borderRadius: "50%",
         }}
       >
-        <Avatar id={profileName} name={profileName} src={profileSrc} size={38} />
+        <Avatar
+          id={profileName}
+          name={profileName}
+          src={profileSrc}
+          size={38}
+        />
       </button>
     </nav>
   );
@@ -851,7 +873,12 @@ function MobileTopBar({
           borderRadius: "50%",
         }}
       >
-        <Avatar id={profileName} name={profileName} src={profileSrc} size={36} />
+        <Avatar
+          id={profileName}
+          name={profileName}
+          src={profileSrc}
+          size={36}
+        />
       </button>
       <div
         style={{
@@ -1016,3 +1043,4 @@ function MobileNav({ items }: { items: RailItem[] }) {
 }
 
 export default Home;
+

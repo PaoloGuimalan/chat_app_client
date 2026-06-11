@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ChatterLoopGif from "../../assets/imgs/chatterloop.gif";
+import ChatterLoopDarkGif from "../../assets/imgs/chatterloop-dark.gif";
 import { useSelector } from "react-redux";
 import { useTheme } from "@/reusables/design";
 
@@ -9,6 +10,7 @@ function Splash() {
   );
   const { theme } = useTheme();
   const isMobile = screensizelistener.W <= 900;
+  const splashGif = theme === "dark" ? ChatterLoopDarkGif : ChatterLoopGif;
 
   return (
     <div
@@ -23,15 +25,15 @@ function Splash() {
         justifyContent: "center",
         gap: 18,
         background:
-          "radial-gradient(1200px 600px at 70% -10%, var(--bg-grad-a), var(--bg-grad-b))",
+          "radial-gradient(1200px 600px at 70% -10%, var(--bg-grad-c), var(--bg-grad-d))",
       }}
     >
       <img
-        src={ChatterLoopGif}
+        src={splashGif}
         alt="ChatterLoop"
         style={{
-          width: isMobile ? 110 : 150,
-          height: isMobile ? 110 : 150,
+          width: isMobile ? 170 : 220,
+          height: isMobile ? 170 : 220,
           objectFit: "contain",
         }}
       />
