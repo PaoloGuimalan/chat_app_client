@@ -643,9 +643,12 @@ function Rail({
   void profileName;
   return (
     <nav
+      className="cl-main-rail"
       style={{
         width: "var(--rail-w)",
         flex: "none",
+        height: "100%",
+        minHeight: 0,
         background: "var(--rail)",
         display: "flex",
         flexDirection: "column",
@@ -653,6 +656,8 @@ function Rail({
         padding: "16px 0 14px",
         gap: 6,
         zIndex: 20,
+        overflowY: "auto",
+        overscrollBehavior: "contain",
       }}
     >
       <div
@@ -680,6 +685,7 @@ function Rail({
         />
       </div>
       <div
+        className="cl-main-rail__items"
         style={{
           flex: 1,
           display: "flex",
@@ -694,6 +700,7 @@ function Rail({
           return (
             <button
               key={item.key}
+              className="cl-main-rail__item"
               title={item.label}
               onClick={item.onClick}
               style={{
@@ -746,10 +753,11 @@ function Rail({
           );
         })}
       </div>
-      <button title="Toggle theme" onClick={toggleTheme} style={railBtnStyle}>
+      <button className="cl-main-rail__action" title="Toggle theme" onClick={toggleTheme} style={railBtnStyle}>
         <Icon n={theme === "dark" ? "light_mode" : "dark_mode"} s={22} />
       </button>
       <button
+        className="cl-main-rail__action"
         title="Settings"
         onClick={onSettings}
         style={{
@@ -760,10 +768,11 @@ function Rail({
       >
         <Icon n="settings" s={22} />
       </button>
-      <button title="Logout" onClick={onLogout} style={railBtnStyle}>
+      <button className="cl-main-rail__action" title="Logout" onClick={onLogout} style={railBtnStyle}>
         <Icon n="logout" s={22} />
       </button>
       <button
+        className="cl-main-rail__profile"
         title="Profile"
         onClick={onProfile}
         style={{

@@ -207,7 +207,7 @@ function RealmProfile({
           </div>
         </Card>
       )}
-      <div className="cl-profile-page__hero tw-w-full tw-h-auto tw-min-h-[360px] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-py-[12px] sm:tw-py-[0px]">
+      <div className="cl-profile-page__hero tw-mb-[6px] tw-w-full tw-h-auto tw-min-h-[360px] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-py-[12px] sm:tw-py-[0px]">
         <ProfileCoverContainer
           userID={realmInfo.id}
           realm_id={realmInfo.realm_id}
@@ -353,7 +353,7 @@ function RealmProfile({
             </div>
           </div>
         </div>
-        <div className="cl-profile-page__feed tw-w-full tw-pb-[16px] tw-flex tw-flex-col tw-items-center tw-gap-[8px]">
+        <div className="cl-profile-page__feed tw-w-full tw-pb-[16px] tw-flex tw-flex-col tw-items-center tw-gap-[0px]">
           {toggleNewPostModal.toggle && realmInfo.is_admin && (
             <NewPostModal
               toShare={false}
@@ -371,7 +371,7 @@ function RealmProfile({
           )}
           {realmInfo.is_admin && (
             <Fragment>
-              <Card pad={14} style={{ marginBottom: 8, width: "100%" }}>
+              <Card pad={14} style={{ marginBottom: 0, width: "100%" }}>
                 {toggleNewPostModal.toggle && (
                   <NewPostModal
                     toShare={false}
@@ -483,13 +483,13 @@ function RealmProfile({
           )}
           {paginatedPosts.count > 0 ? (
             <div
-              className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
+              className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[0px] ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
             >
               {posts.map((mp: IPost) => {
                 return (
-                    <Card
+                  <Card
                     pad={10}
-                    style={{ marginBottom: 10, width: "100%" }}
+                    style={{ marginBottom: 8, width: "100%" }}
                     key={mp.post_id}
                     className="tw-flex tw-justify-center tw-w-full"
                   >
@@ -529,13 +529,13 @@ function RealmProfile({
             </div>
           ) : (
             <div
-              className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px]  ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
+              className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[0px]  ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
             >
               {Array.from({ length: 8 }, (_, i: number) => {
                 return (
                   <Card
                     pad={10}
-                    style={{ marginBottom: 10, width: "100%" }}
+                    style={{ marginBottom: 8, width: "100%" }}
                     key={i}
                     className="tw-flex tw-justify-center tw-w-full"
                   >

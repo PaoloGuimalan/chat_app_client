@@ -142,7 +142,7 @@ function PostsContainer({
   return (
     <Fragment>
       {authentication.auth && !hideComposer && (
-        <Card pad={12} style={{ marginBottom: 10, width: "100%" }}>
+        <Card pad={12} style={{ marginBottom: 8, width: "100%" }}>
           {toggleNewPostModal.toggle && (
             <NewPostModal
               toShare={false}

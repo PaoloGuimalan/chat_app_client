@@ -211,7 +211,9 @@ function Profile({
   const genderIcons: any = {
     Male: <IoMale style={{ fontSize: "20px", color: "var(--text-2)" }} />,
     Female: <IoFemale style={{ fontSize: "17px", color: "var(--text-2)" }} />,
-    Others: <FaTransgender style={{ fontSize: "17px", color: "var(--text-2)" }} />,
+    Others: (
+      <FaTransgender style={{ fontSize: "17px", color: "var(--text-2)" }} />
+    ),
   };
 
   const settogglerightwidget = (toggle: any) => {
@@ -344,7 +346,7 @@ function Profile({
           </div>
         </Card>
       )}
-      <div className="cl-profile-page__hero tw-w-full tw-h-auto tw-min-h-[360px] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-py-[12px] sm:tw-py-[0px]">
+      <div className="cl-profile-page__hero tw-mb-[6px] tw-w-full tw-h-auto tw-min-h-[360px] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-center tw-items-center tw-py-[12px] sm:tw-py-[0px]">
         <ProfileCoverContainer
           userID={profileInfo.id}
           realm_id={null}
@@ -392,7 +394,7 @@ function Profile({
                   onClick={() => {
                     navigate("/login");
                   }}
-                className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                 >
                   Login
                 </button>
@@ -604,11 +606,16 @@ function Profile({
             <div className="tw-w-full tw-p-[18px] tw-flex tw-flex-col tw-items-start tw-gap-[12px]">
               <div className="tw-w-full tw-flex">
                 <div className="tw-flex tw-flex-row tw-flex-1 tw-gap-[5px] tw-items-center">
-                  <FaBook style={{ fontSize: "17px", color: "var(--text-2)" }} />
+                  <FaBook
+                    style={{ fontSize: "17px", color: "var(--text-2)" }}
+                  />
                   <span className="tw-text-[14px] tw-font-semibold">Diary</span>
                 </div>
                 {params.userID === authentication.user.username && (
-                  <Link to={`/${params.userID}/diary`} className="tw-text-[12px] tw-text-[var(--brand)]">
+                  <Link
+                    to={`/${params.userID}/diary`}
+                    className="tw-text-[12px] tw-text-[var(--brand)]"
+                  >
                     View
                   </Link>
                 )}
@@ -730,9 +737,9 @@ function Profile({
             </div>
           </div>
         </div>
-        <div className="cl-profile-page__feed tw-w-full tw-pb-[12px] tw-flex tw-flex-col tw-items-center tw-gap-[6px]">
+        <div className="cl-profile-page__feed tw-w-full tw-pb-[12px] tw-flex tw-flex-col tw-items-center tw-gap-[4px]">
           {params.userID === authentication.user.username && (
-              <div className="cl-profile-surface cl-profile-page__feed-nav tw-w-full tw-h-fit tw-flex tw-mb-[6px]">
+            <div className="cl-profile-surface cl-profile-page__feed-nav tw-w-full tw-h-fit tw-flex tw-mb-[6px]">
               <motion.div
                 initial={{
                   justifyContent: isMobileView ? "center" : "start",
@@ -745,13 +752,19 @@ function Profile({
                 <motion.button
                   initial={{
                     backgroundColor:
-                      feedmode === "posts" ? "var(--brand-soft)" : "transparent",
-                    color: feedmode === "posts" ? "var(--brand)" : "var(--text-2)",
+                      feedmode === "posts"
+                        ? "var(--brand-soft)"
+                        : "transparent",
+                    color:
+                      feedmode === "posts" ? "var(--brand)" : "var(--text-2)",
                   }}
                   animate={{
                     backgroundColor:
-                      feedmode === "posts" ? "var(--brand-soft)" : "transparent",
-                    color: feedmode === "posts" ? "var(--brand)" : "var(--text-2)",
+                      feedmode === "posts"
+                        ? "var(--brand-soft)"
+                        : "transparent",
+                    color:
+                      feedmode === "posts" ? "var(--brand)" : "var(--text-2)",
                   }}
                   onClick={() => {
                     setfeedmode("posts");
@@ -763,13 +776,19 @@ function Profile({
                 <motion.button
                   initial={{
                     backgroundColor:
-                      feedmode === "saves" ? "var(--brand-soft)" : "transparent",
-                    color: feedmode === "saves" ? "var(--brand)" : "var(--text-2)",
+                      feedmode === "saves"
+                        ? "var(--brand-soft)"
+                        : "transparent",
+                    color:
+                      feedmode === "saves" ? "var(--brand)" : "var(--text-2)",
                   }}
                   animate={{
                     backgroundColor:
-                      feedmode === "saves" ? "var(--brand-soft)" : "transparent",
-                    color: feedmode === "saves" ? "var(--brand)" : "var(--text-2)",
+                      feedmode === "saves"
+                        ? "var(--brand-soft)"
+                        : "transparent",
+                    color:
+                      feedmode === "saves" ? "var(--brand)" : "var(--text-2)",
                   }}
                   onClick={() => {
                     setfeedmode("saves");
@@ -781,13 +800,23 @@ function Profile({
                 <motion.button
                   initial={{
                     backgroundColor:
-                      feedmode === "archives" ? "var(--brand-soft)" : "transparent",
-                    color: feedmode === "archives" ? "var(--brand)" : "var(--text-2)",
+                      feedmode === "archives"
+                        ? "var(--brand-soft)"
+                        : "transparent",
+                    color:
+                      feedmode === "archives"
+                        ? "var(--brand)"
+                        : "var(--text-2)",
                   }}
                   animate={{
                     backgroundColor:
-                      feedmode === "archives" ? "var(--brand-soft)" : "transparent",
-                    color: feedmode === "archives" ? "var(--brand)" : "var(--text-2)",
+                      feedmode === "archives"
+                        ? "var(--brand-soft)"
+                        : "transparent",
+                    color:
+                      feedmode === "archives"
+                        ? "var(--brand)"
+                        : "var(--text-2)",
                   }}
                   onClick={() => {
                     setfeedmode("archives");
@@ -802,7 +831,10 @@ function Profile({
             </div>
           )}
           {feedmode === "posts" && (
-            <PostsContainer profileInfo={profileInfo} hideComposer={isSharePage} />
+            <PostsContainer
+              profileInfo={profileInfo}
+              hideComposer={isSharePage}
+            />
           )}
           {feedmode === "saves" && <SavesContainer profileInfo={profileInfo} />}
           {feedmode === "archives" && (
