@@ -142,7 +142,7 @@ function Feed() {
           />
         )}
 
-        <Card pad={14} style={{ marginBottom: 14 }}>
+        <Card pad={14} style={{ marginBottom: 8 }}>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <img
               src={profileSrc}
@@ -231,7 +231,7 @@ function Feed() {
 
         {paginatedPosts.results.length === 0 && postsIsLoaded && (
           <Fragment>
-            <Card pad={20} style={{ marginBottom: 14, textAlign: "center" }}>
+            <Card pad={20} style={{ marginBottom: 8, textAlign: "center" }}>
               <div
                 style={{
                   fontSize: 20,
@@ -265,7 +265,7 @@ function Feed() {
               </div>
             </Card>
 
-            <Card pad={20} style={{ marginBottom: 14 }}>
+            <Card pad={20} style={{ marginBottom: 8 }}>
               <FeatureCardHeader icon="menu_book" title="Chatterloop Diary">
                 Have your daily life written, privately, or let someone see it.
               </FeatureCardHeader>
@@ -297,13 +297,13 @@ function Feed() {
 
             <Card
               pad={20}
-              style={{ marginBottom: 14 }}
+              style={{ marginBottom: 8 }}
               className="tw-flex tw-justify-center"
             >
               <ServerBanner />
             </Card>
 
-            <Card pad={20} style={{ marginBottom: 14 }}>
+            <Card pad={20} style={{ marginBottom: 8 }}>
               <FeatureCardHeader icon="map" title="Map Feed">
                 Browse your feed in a new way. Walk, Travel, Drive, Share, and
                 Socialize interactively based on where you are. (In Development)
@@ -337,13 +337,13 @@ function Feed() {
 
             <Card
               pad={20}
-              style={{ marginBottom: 14 }}
+              style={{ marginBottom: 8 }}
               className="tw-flex tw-justify-center"
             >
               <PagesBanner />
             </Card>
 
-            <Card pad={20} style={{ marginBottom: 14 }}>
+            <Card pad={20} style={{ marginBottom: 8 }}>
               <FeatureCardHeader icon="extension" title="Chatterloop Extension">
                 Sick of switching social platforms frequently? Coming soon,
                 Chatterloop Extension will allow you to share contents from
@@ -367,7 +367,7 @@ function Feed() {
             ? Array.from({ length: 10 }, (_, i: number) => (
                 <Card
                   pad={10}
-                  style={{ marginBottom: 14 }}
+                  style={{ marginBottom: 8 }}
                   key={i}
                   className="tw-flex tw-justify-center"
                 >
@@ -378,7 +378,7 @@ function Feed() {
           : posts.map((mp: IPost, i: number) => (
               <Card
                 pad={10}
-                style={{ marginBottom: 14 }}
+                style={{ marginBottom: 8 }}
                 key={i}
                 className="tw-flex tw-justify-center"
               >

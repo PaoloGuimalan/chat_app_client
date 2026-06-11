@@ -4691,10 +4691,10 @@ input:checked + .slider:before {
 }
 
 .cl-create-post-preview {
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 14px;
-  overflow: hidden;
+  background: transparent;
+  border: none;
+  border-radius: 0;
+  overflow: auto;
 }
 
 .cl-create-post-loading {

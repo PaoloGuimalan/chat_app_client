@@ -101,12 +101,12 @@ function SavesContainer({
   return (
     <Fragment>
       {paginatedPosts.count > 0 ? (
-        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[8px] tw-mt-[0px]">
+        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[0px] tw-mt-[0px]">
           {posts.map((mp: ISavedPost) => {
             return (
               <Card
                 pad={10}
-                style={{ marginBottom: 10, width: "100%" }}
+                style={{ marginBottom: 8, width: "100%" }}
                 key={mp.id}
                 className="tw-flex tw-justify-center tw-w-full"
               >
@@ -125,12 +125,12 @@ function SavesContainer({
           </div>
         </div>
       ) : (
-        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[8px] tw-mt-[0px]">
+        <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[0px] tw-mt-[0px]">
           {Array.from({ length: 8 }, (_, i: number) => {
             return (
               <Card
                 pad={10}
-                style={{ marginBottom: 10, width: "100%" }}
+                style={{ marginBottom: 8, width: "100%" }}
                 key={i}
                 className="tw-flex tw-justify-center tw-w-full"
               >

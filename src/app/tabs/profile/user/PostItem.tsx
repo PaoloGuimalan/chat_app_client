@@ -220,7 +220,9 @@ function PostItem({
       {minimizedCaption !== null && (
         <div
           style={{
-            borderWidth: isSharePreview ? "1px" : "0px",
+            border: isSharePreview ? "1px solid var(--border)" : "0px solid transparent",
+            borderRadius: isSharePreview ? "var(--r-lg)" : "0px",
+            overflow: isSharePreview ? "hidden" : "visible",
           }}
           className="cl-post-item-card tw-w-full tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]"
         >
