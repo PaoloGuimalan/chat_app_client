@@ -231,15 +231,6 @@ const SSENotificationsTRequest = (
     const parsedresponse = JSON.parse(e.data);
     if (parsedresponse.auth) {
       if (parsedresponse.status) {
-        // const decodedResult: any = jwt_decode(parsedresponse.result);
-
-        // dispatch({
-        //   type: SET_MESSAGES_LIST_OVERRIDE,
-        //   payload: {
-        //     messageslist: decodedResult.conversationslist,
-        //   },
-        // });
-
         InitConversationListRequest(1, 20).then((response) => {
           dispatch({
             type: SET_MESSAGES_LIST_OVERRIDE,
@@ -248,6 +239,33 @@ const SSENotificationsTRequest = (
             },
           });
         });
+
+        if (parsedresponse.message.mentioner) {
+          // {
+          //   userID: sender,
+          //   username: `@${username}`,
+          //   realmName: realmName,
+          //   isSingle: decodedToken.conversationType === "single",
+          // }
+
+          const mention = parsedresponse.message.mentioner;
+
+          const audioMessage = new Audio(notification_ringtone);
+          audioMessage.play();
+
+          dispatch({
+            type: SET_ALERTS,
+            payload: {
+              alerts: {
+                id: currentAlertState.length,
+                type: "info",
+                content: mention.isSingle
+                  ? `${mention.username} mentioned you`
+                  : `${mention.username} mentioned you at ${mention.realmName}`,
+              },
+            },
+          });
+        }
 
         if (parsedresponse.message.deletedMessageID) {
           document.dispatchEvent(

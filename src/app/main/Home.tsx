@@ -883,12 +883,7 @@ function MobileTopBar({
           flex: "none",
         }}
       >
-        <TopBarAction
-          onClick={onExplore}
-          icon="search"
-          label="Search"
-          badge={messagesBadge}
-        />
+        <TopBarAction onClick={onExplore} icon="search" label="Search" />
         <TopBarAction
           onClick={onMessages}
           icon="forum"
