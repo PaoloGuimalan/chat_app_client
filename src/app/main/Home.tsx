@@ -420,19 +420,19 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
       badge: totalUnreadMessages > 0 ? totalUnreadMessages : undefined,
     },
     {
-      key: "servers",
-      icon: "dns",
-      label: "Servers",
-      isActive: location.pathname.startsWith("/servers"),
-      onClick: () => navigate("/servers"),
-    },
-    {
       key: "notifs",
       icon: "notifications",
       label: "Activity",
       isActive: location.pathname.startsWith("/notifications"),
       onClick: () => navigate("/notifications"),
       badge: totalUnreadNotifs > 0 ? totalUnreadNotifs : undefined,
+    },
+    {
+      key: "servers",
+      icon: "dns",
+      label: "Servers",
+      isActive: location.pathname.startsWith("/servers"),
+      onClick: () => navigate("/servers"),
     },
     {
       key: "pages",
@@ -443,19 +443,10 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     },
   ];
 
-  const mobileNavItems = railItems
-    .filter((it) =>
-      ["home", "contacts", "explore", "servers", "pages"].includes(it.key),
-    )
-    .map((item) =>
-      item.key === "explore"
-        ? {
-            ...item,
-            label: "Search",
-          }
-        : item,
-    );
-  const mobileNavOrder = ["home", "contacts", "explore", "servers", "pages"];
+  const mobileNavItems = railItems.filter((it) =>
+    ["home", "contacts", "map", "servers", "pages"].includes(it.key),
+  );
+  const mobileNavOrder = ["home", "contacts", "map", "servers", "pages"];
   const orderedMobileNavItems = mobileNavOrder
     .map((key) => mobileNavItems.find((item) => item.key === key))
     .filter((item): item is RailItem => Boolean(item));
@@ -510,6 +501,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
         {showMobileNav && (
           <MobileTopBar
             onProfile={onProfileClick}
+            onExplore={() => navigate("/explore")}
             onMessages={() => navigate("/messages")}
             onNotifications={() => navigate("/notifications")}
             profileSrc={
@@ -663,7 +655,7 @@ function Rail({
         alignItems: "center",
         padding: "16px 0 14px",
         gap: 6,
-        zIndex: 20,
+        zIndex: 2,
         overflowY: "auto",
         overscrollBehavior: "contain",
       }}
@@ -829,6 +821,7 @@ const railBtnStyle = {
 
 function MobileTopBar({
   onProfile,
+  onExplore,
   onMessages,
   onNotifications,
   profileSrc,
@@ -839,6 +832,7 @@ function MobileTopBar({
   notificationsBadge,
 }: {
   onProfile: () => void;
+  onExplore: () => void;
   onMessages: () => void;
   onNotifications: () => void;
   profileSrc?: string;
@@ -860,7 +854,7 @@ function MobileTopBar({
         padding: "0 14px",
         background: "var(--surface)",
         borderBottom: "1px solid var(--border)",
-        zIndex: 15,
+        zIndex: 2,
       }}
     >
       <button
@@ -889,6 +883,12 @@ function MobileTopBar({
           flex: "none",
         }}
       >
+        <TopBarAction
+          onClick={onExplore}
+          icon="search"
+          label="Search"
+          badge={messagesBadge}
+        />
         <TopBarAction
           onClick={onMessages}
           icon="forum"
@@ -980,7 +980,7 @@ function MobileNav({ items }: { items: RailItem[] }) {
         background: "var(--surface)",
         borderTop: "1px solid var(--border)",
         paddingBottom: "env(safe-area-inset-bottom)",
-        zIndex: 15,
+        zIndex: 0,
       }}
     >
       {items.map((it) => {

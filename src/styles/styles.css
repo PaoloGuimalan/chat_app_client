@@ -1250,7 +1250,10 @@
   gap: 8px;
   border: 1px solid var(--border);
   box-shadow: var(--shadow-xs);
-  transition: border-color .14s ease, background-color .14s ease, box-shadow .14s ease;
+  transition:
+    border-color 0.14s ease,
+    background-color 0.14s ease,
+    box-shadow 0.14s ease;
 }
 
 #div_input_container:focus-within {
@@ -1642,7 +1645,9 @@
 
 .cl-server-info-members-label {
   color: var(--text) !important;
-  transition: color .14s ease, opacity .14s ease;
+  transition:
+    color 0.14s ease,
+    opacity 0.14s ease;
 }
 
 .cl-server-info-members-label:hover {
@@ -1926,7 +1931,11 @@
   color: var(--on-brand);
   border: 1px solid color-mix(in srgb, var(--gold) 82%, var(--border) 18%);
   box-shadow: none;
-  transition: background-color .14s ease, border-color .14s ease, color .14s ease, transform .14s ease;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    color 0.14s ease,
+    transform 0.14s ease;
 }
 
 .cl-server-accent-button:hover {
@@ -2274,7 +2283,11 @@ input:checked + .slider:before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color .14s ease, border-color .14s ease, transform .14s ease, color .14s ease;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    transform 0.14s ease,
+    color 0.14s ease;
 }
 
 #btn_image_feed:hover:not(:disabled) {
@@ -2676,7 +2689,7 @@ input:checked + .slider:before {
   border-radius: 10px;
   user-select: none;
   cursor: pointer;
-  transition: background-color .14s ease;
+  transition: background-color 0.14s ease;
 }
 
 .div_cncts_cards:hover {
@@ -2720,7 +2733,7 @@ input:checked + .slider:before {
   font-size: 22px;
   line-height: 1.1;
   font-weight: 800;
-  letter-spacing: -.02em;
+  letter-spacing: -0.02em;
   color: var(--text);
 }
 
@@ -2784,7 +2797,9 @@ input:checked + .slider:before {
   padding: 12px 14px;
   border-radius: var(--r-md);
   background: transparent;
-  transition: background-color .14s ease, transform .14s ease;
+  transition:
+    background-color 0.14s ease,
+    transform 0.14s ease;
 }
 
 .cl-contact-row:hover {
@@ -2880,7 +2895,7 @@ input:checked + .slider:before {
   padding: 12px 14px;
   border-radius: var(--r-md);
   background: transparent;
-  transition: background-color .14s ease;
+  transition: background-color 0.14s ease;
 }
 
 .cl-notification-row:hover {
@@ -2929,7 +2944,10 @@ input:checked + .slider:before {
   background-color: var(--surface-2);
   border: 1px solid var(--border);
   box-shadow: none;
-  transition: background-color .14s ease, border-color .14s ease, transform .14s ease;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    transform 0.14s ease;
   max-height: 60px;
   width: calc(50% - 20px);
   padding: 5px;
@@ -2946,7 +2964,10 @@ input:checked + .slider:before {
   background-color: var(--surface-2);
   border: 1px solid var(--border);
   box-shadow: none;
-  transition: background-color .14s ease, border-color .14s ease, transform .14s ease;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    transform 0.14s ease;
   flex: 1;
   max-height: 60px;
   /* width: calc(50% - 20px); */
@@ -3502,7 +3523,10 @@ input:checked + .slider:before {
   border-radius: 10px;
   border: 1px solid var(--border);
   background: var(--surface);
-  transition: background-color .14s ease, border-color .14s ease, transform .14s ease;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    transform 0.14s ease;
 }
 
 .btn_conversation_header_navigation:hover {
@@ -3567,7 +3591,10 @@ input:checked + .slider:before {
   border-radius: 14px;
   padding: 12px 16px;
   outline: none;
-  transition: border-color .14s ease, background-color .14s ease, box-shadow .14s ease;
+  transition:
+    border-color 0.14s ease,
+    background-color 0.14s ease,
+    box-shadow 0.14s ease;
 }
 
 .cl-comment-section__field::placeholder {
@@ -3594,7 +3621,11 @@ input:checked + .slider:before {
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background-color .14s ease, border-color .14s ease, transform .14s ease, color .14s ease;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    transform 0.14s ease,
+    color 0.14s ease;
 }
 
 .cl-comment-section__send:hover:not(:disabled) {
@@ -3604,7 +3635,7 @@ input:checked + .slider:before {
 }
 
 .cl-comment-section__send:disabled {
-  opacity: .7;
+  opacity: 0.7;
   cursor: not-allowed;
 }
 
@@ -3627,7 +3658,7 @@ input:checked + .slider:before {
   background: var(--surface-2);
   border-color: var(--border);
   color: var(--text);
-  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0,0,0,.04));
+  box-shadow: var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.04));
 }
 
 .cl-comment-section__name {
@@ -3731,7 +3762,10 @@ input:checked + .slider:before {
   align-items: center;
   background: var(--surface-2);
   cursor: pointer;
-  transition: background-color .14s ease, transform .14s ease, border-color .14s ease;
+  transition:
+    background-color 0.14s ease,
+    transform 0.14s ease,
+    border-color 0.14s ease;
 }
 
 .btn_options_send:hover {
@@ -3776,7 +3810,7 @@ input:checked + .slider:before {
   background: var(--surface-2);
   color: var(--text);
   outline: none;
-  box-shadow: inset 0 1px 1px rgba(0,0,0,.02);
+  box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.02);
 }
 
 #input_page_desc {
@@ -3793,7 +3827,11 @@ input:checked + .slider:before {
 }
 
 #div_conversation_content {
-  background: linear-gradient(180deg, var(--surface-2) 0%, rgba(245,248,252,.92) 100%);
+  background: linear-gradient(
+    180deg,
+    var(--surface-2) 0%,
+    rgba(245, 248, 252, 0.92) 100%
+  );
   width: 100%;
   display: flex;
   flex: 1;
@@ -4024,7 +4062,9 @@ input:checked + .slider:before {
 
 .cl-message-actions {
   opacity: 0;
-  transition: opacity .14s ease, transform .14s ease;
+  transition:
+    opacity 0.14s ease,
+    transform 0.14s ease;
 }
 
 .div_messages_result:hover .cl-message-actions {
@@ -4092,7 +4132,10 @@ input:checked + .slider:before {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  transition: background-color .14s ease, border-color .14s ease, transform .14s ease;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    transform 0.14s ease;
   color: var(--text-2);
 }
 
@@ -4138,7 +4181,7 @@ input:checked + .slider:before {
 
 .cl-message-reaction-pill button:hover {
   color: inherit;
-  opacity: .82;
+  opacity: 0.82;
 }
 
 .cl-message-file-card {
@@ -4173,7 +4216,9 @@ input:checked + .slider:before {
   background: transparent !important;
   color: var(--text) !important;
   border-radius: 12px !important;
-  transition: background-color .14s ease, transform .14s ease;
+  transition:
+    background-color 0.14s ease,
+    transform 0.14s ease;
 }
 
 .cl-conversation-menu-action:hover {
@@ -4341,9 +4386,17 @@ input:checked + .slider:before {
 }
 
 .cl-conversation-menu-action--server:hover {
-  background: color-mix(in srgb, var(--gold) 14%, var(--surface-hover) 86%) !important;
+  background: color-mix(
+    in srgb,
+    var(--gold) 14%,
+    var(--surface-hover) 86%
+  ) !important;
   color: var(--gold) !important;
-  border-color: color-mix(in srgb, var(--gold) 28%, var(--border) 72%) !important;
+  border-color: color-mix(
+    in srgb,
+    var(--gold) 28%,
+    var(--border) 72%
+  ) !important;
 }
 
 .cl-conversation-menu-action--server span:last-child {
@@ -4393,7 +4446,9 @@ input:checked + .slider:before {
 
 .cl-conversation-info-modal-members {
   color: var(--text) !important;
-  transition: color .14s ease, opacity .14s ease;
+  transition:
+    color 0.14s ease,
+    opacity 0.14s ease;
 }
 
 .cl-conversation-info-modal-members__label {
@@ -4405,7 +4460,9 @@ input:checked + .slider:before {
 }
 
 .cl-conversation-info-modal-member {
-  transition: background-color .14s ease, color .14s ease;
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease;
 }
 
 .cl-conversation-info-modal-member:hover {
@@ -4522,7 +4579,10 @@ input:checked + .slider:before {
 
 .cl-feed-card__action {
   color: var(--text-2);
-  transition: background-color .14s ease, color .14s ease, transform .14s ease;
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease,
+    transform 0.14s ease;
 }
 
 .cl-feed-card__action:hover {
@@ -4598,7 +4658,9 @@ input:checked + .slider:before {
 
 .cl-post-options-button {
   color: var(--text) !important;
-  transition: background-color .14s ease, color .14s ease;
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease;
 }
 
 .cl-post-options-button:hover {
@@ -4678,7 +4740,10 @@ input:checked + .slider:before {
   background: var(--surface-2);
   color: var(--text-2);
   cursor: pointer;
-  transition: background-color .14s ease, border-color .14s ease, color .14s ease;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    color 0.14s ease;
 }
 
 .cl-create-post-dropzone:hover {
@@ -4736,7 +4801,10 @@ input:checked + .slider:before {
   border-radius: 10px;
   background: transparent;
   cursor: pointer;
-  transition: background-color .14s ease, color .14s ease, border-color .14s ease;
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease,
+    border-color 0.14s ease;
 }
 
 .cl-create-post-toolbar button:hover {
@@ -4874,7 +4942,7 @@ input:checked + .slider:before {
   color: var(--gold);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -4886,7 +4954,7 @@ input:checked + .slider:before {
   color: var(--brand);
   font-size: 11px;
   font-weight: 700;
-  letter-spacing: .04em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
@@ -5005,7 +5073,7 @@ input:checked + .slider:before {
 .cl-profile-page__hero {
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: 20px;
+  border-radius: 0px 0px 20px 20px;
   box-shadow: var(--shadow-sm);
 }
 
@@ -5028,7 +5096,10 @@ input:checked + .slider:before {
   background: var(--brand);
   color: var(--on-brand);
   box-shadow: var(--shadow-sm);
-  transition: background-color .14s ease, transform .14s ease, box-shadow .14s ease;
+  transition:
+    background-color 0.14s ease,
+    transform 0.14s ease,
+    box-shadow 0.14s ease;
 }
 
 .cl-profile-action-button:hover {
@@ -5060,7 +5131,9 @@ input:checked + .slider:before {
   border-radius: 12px;
   background: transparent;
   color: var(--text-2);
-  transition: background-color .14s ease, color .14s ease;
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease;
 }
 
 .cl-profile-tab-button[data-active="true"] {
@@ -5084,7 +5157,9 @@ input:checked + .slider:before {
   border-radius: 10px;
   background: transparent;
   color: var(--text);
-  transition: background-color .14s ease, color .14s ease;
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease;
 }
 
 .cl-profile-cover-menu__item:hover {
@@ -5105,7 +5180,10 @@ input:checked + .slider:before {
   background: var(--surface-2);
   color: var(--text);
   box-shadow: var(--shadow-sm);
-  transition: box-shadow .14s ease, background-color .14s ease, border-color .14s ease;
+  transition:
+    box-shadow 0.14s ease,
+    background-color 0.14s ease,
+    border-color 0.14s ease;
 }
 
 .cl-pages-create-control:focus-within {
@@ -5143,7 +5221,10 @@ input:checked + .slider:before {
   border: 1px solid transparent;
   border-radius: 16px;
   background: var(--surface-2);
-  transition: background-color .14s ease, transform .14s ease, box-shadow .14s ease;
+  transition:
+    background-color 0.14s ease,
+    transform 0.14s ease,
+    box-shadow 0.14s ease;
 }
 
 .cl-pages-create-member-card:hover {
@@ -5270,7 +5351,7 @@ input:checked + .slider:before {
   }
 
   .cl-profile-page__shell {
-    padding: 10px 0 92px;
+    padding: 0px 0 92px;
     gap: 8px;
   }
 
@@ -5329,7 +5410,7 @@ input:checked + .slider:before {
   }
 
   .cl-profile-page__hero {
-    border-radius: 16px;
+    border-radius: 0px 0px 16px 16px;
     box-shadow: none;
   }
 
@@ -5460,7 +5541,11 @@ input:checked + .slider:before {
 .cl-server-channel-row {
   background: transparent;
   border: 1px solid transparent;
-  transition: background-color .14s ease, border-color .14s ease, color .14s ease, transform .14s ease;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease,
+    color 0.14s ease,
+    transform 0.14s ease;
 }
 
 .cl-server-channel-row:hover {
@@ -5527,7 +5612,8 @@ input:checked + .slider:before {
 }
 
 @media screen and (max-width: 900px) {
-  .cl-server-channels-shell[data-mobile-pane="sidebar"] .cl-server-channels-sidebar {
+  .cl-server-channels-shell[data-mobile-pane="sidebar"]
+    .cl-server-channels-sidebar {
     display: flex !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -5535,7 +5621,8 @@ input:checked + .slider:before {
     flex: 1 1 100% !important;
   }
 
-  .cl-server-channels-shell[data-mobile-pane="sidebar"] .cl-server-conversation-shell {
+  .cl-server-channels-shell[data-mobile-pane="sidebar"]
+    .cl-server-conversation-shell {
     display: none !important;
     width: 0 !important;
     max-width: 0 !important;
@@ -5544,7 +5631,8 @@ input:checked + .slider:before {
     border-left: 0 !important;
   }
 
-  .cl-server-channels-shell[data-mobile-pane="conversation"] .cl-server-channels-sidebar {
+  .cl-server-channels-shell[data-mobile-pane="conversation"]
+    .cl-server-channels-sidebar {
     display: none !important;
     width: 0 !important;
     max-width: 0 !important;
@@ -5553,7 +5641,8 @@ input:checked + .slider:before {
     border-right: 0 !important;
   }
 
-  .cl-server-channels-shell[data-mobile-pane="conversation"] .cl-server-conversation-shell {
+  .cl-server-channels-shell[data-mobile-pane="conversation"]
+    .cl-server-conversation-shell {
     display: flex !important;
     width: 100% !important;
     max-width: 100% !important;
@@ -5569,8 +5658,11 @@ input:checked + .slider:before {
 
 .cl-display-card__button {
   border-radius: 8px;
-  transition: background-color .14s ease, color .14s ease, border-color .14s ease,
-    transform .14s ease;
+  transition:
+    background-color 0.14s ease,
+    color 0.14s ease,
+    border-color 0.14s ease,
+    transform 0.14s ease;
 }
 
 .cl-display-card__button--primary {

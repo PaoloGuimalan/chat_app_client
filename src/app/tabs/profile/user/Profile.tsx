@@ -307,14 +307,14 @@ function Profile({
       className="cl-profile-page__shell tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[6px] tw-overflow-y-scroll x-scroll"
       data-share-page={isSharePage ? "true" : "false"}
     >
-      <button
+      {/* <button
         onClick={() => {
           navigate("/");
         }}
         className="tw-z-[10] tw-shadow-lg tw-bg-[var(--surface)] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-full tw-border tw-border-[var(--border)] tw-flex tw-items-center tw-justify-center tw-text-[var(--text)] tw-cursor-pointer"
       >
         <IoArrowBack style={{ fontSize: "20px" }} />
-      </button>
+      </button> */}
       {isSharePage && (
         <Card
           pad={12}
@@ -346,7 +346,7 @@ function Profile({
           </div>
         </Card>
       )}
-      <div className="cl-profile-page__hero tw-mb-[6px] tw-w-full tw-h-auto tw-min-h-[auto] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-start sm:tw-justify-center tw-items-center tw-py-[12px] sm:tw-py-[0px]">
+      <div className="cl-profile-page__hero tw-mb-[6px] tw-w-full tw-h-auto tw-min-h-[auto] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-start sm:tw-justify-center tw-items-center tw-py-[0px] sm:tw-py-[0px]">
         <ProfileCoverContainer
           userID={profileInfo.id}
           realm_id={null}

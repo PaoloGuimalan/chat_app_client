@@ -5,13 +5,13 @@ import {
   IEntry,
   IEntryTag,
 } from "@/reusables/vars/interfaces";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { AiOutlineHome, AiOutlineSearch } from "react-icons/ai";
-import { IoArrowBack } from "react-icons/io5";
+// import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { AiOutlineSearch } from "react-icons/ai";
+// import { IoArrowBack } from "react-icons/io5";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { TypeAnimation } from "react-type-animation";
-import DefaultProfile from "../../../../assets/imgs/default.png";
+// import DefaultProfile from "../../../../assets/imgs/default.png";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { motion } from "framer-motion";
 import "react-quill/dist/quill.snow.css";
@@ -153,8 +153,8 @@ function Diary() {
   }
 
   return (
-    <div className="tw-bg-[var(--background)] tw-text-[var(--text)] tw-w-full tw-h-full tw-absolute tw-inset-0 tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-hidden x-scroll">
-      <div className="tw-flex tw-items-center tw-gap-[8px] tw-pt-[10px] tw-pl-[18px] tw-pr-[18px] sm:tw-pl-[24px] sm:tw-pr-[24px] tw-w-[calc(100%-36px)] sm:tw-w-[calc(100%-48px)] tw-h-full tw-min-h-[60px] tw-max-h-[60px]">
+    <div className="tw-bg-[var(--background)] tw-text-[var(--text)] tw-w-full tw-h-full tw-absolute tw-inset-0 tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[10px] tw-overflow-y-hidden x-scroll tw-pt-[10px]">
+      {/* <div className="tw-flex tw-items-center tw-gap-[8px] tw-pt-[10px] tw-pl-[18px] tw-pr-[18px] sm:tw-pl-[24px] sm:tw-pr-[24px] tw-w-[calc(100%-36px)] sm:tw-w-[calc(100%-48px)] tw-h-full tw-min-h-[60px] tw-max-h-[60px]">
         <button
           onClick={() => {
             navigate(`/${params.userID}`);
@@ -216,7 +216,7 @@ function Diary() {
             />
           )}
         </div>
-      </div>
+      </div> */}
       <div
         className={`tw-flex tw-flex-1 tw-min-h-0 tw-items-end tw-pb-[16px] tw-pt-[8px] ${
           isMobileView
@@ -258,9 +258,35 @@ function Diary() {
             ref={divcontentRef}
           >
             <div className="tw-w-full tw-flex tw-py-[14px] tw-px-[18px] tw-min-h-[30px] tw-items-center tw-justify-between tw-border-b tw-border-[var(--border)]">
-              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-whitespace-nowrap tw-text-[var(--text)]">
+              {/* <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-whitespace-nowrap tw-text-[var(--text)]">
                 Your Entries
-              </span>
+              </span> */}
+              <TypeAnimation
+                sequence={[
+                  // Same substring at the start will only be typed out once, initially
+                  "Chatterloop Diary 🖊️",
+                  1000, // wait 1s before replacing "Mice" with "Hamsters"
+                  "Your Untold Stories 📖",
+                  1000,
+                  "Your Crazy Thoughts 🌀",
+                  1000,
+                  "Dive Into Your Fun Vault 🎉",
+                  1000,
+                  "We wont read it, We swear! 🤫",
+                  1000,
+                  "Unless you Share it 😉",
+                  1000,
+                  "Chatterloop Diary 🖊️",
+                  1000,
+                ]}
+                preRenderFirstString={false}
+                wrapper="span"
+                speed={80}
+                style={{ fontSize: "14px", width: "fit" }}
+                className="tw-whitespace-nowrap tw-font-semibold tw-font-Inter tw-pl-[5px] tw-text-[var(--text)]"
+                cursor={false}
+                // repeat={Infinity}
+              />
               {(isMobileView || (entry_id !== null && entry_id !== "new")) && (
                 <button
                   onClick={() => {
