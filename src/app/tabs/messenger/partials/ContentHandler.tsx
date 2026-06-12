@@ -15,6 +15,53 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useTheme } from "@/reusables/design";
 
+const escapeHtml = (value: string) =>
+  value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+
+const escapeRegExp = (value: string) =>
+  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+const getDisplayName = (member: any) => {
+  return member?.userID || member?.fullname?.firstName || "someone";
+};
+
+const buildMentionRegex = (members: any[]) => {
+  const labels = members
+    .map((member) => getDisplayName(member))
+    .filter(Boolean)
+    .sort((a, b) => b.length - a.length)
+    .map((label) => escapeRegExp(label));
+
+  if (labels.length === 0) {
+    return null;
+  }
+
+  return new RegExp(
+    `(^|\\s)@(${labels.join("|")})(?=(?:\\s|[.,!?;:])|$)`,
+    "g",
+  );
+};
+
+const formatConversationHtml = (content: string, members: any[]) => {
+  let formatted = escapeHtml(content);
+  const mentionRegex = buildMentionRegex(members);
+
+  if (mentionRegex) {
+    formatted = formatted.replace(
+      mentionRegex,
+      (_match, prefix: string, label: string) =>
+        `${prefix}<span class="cl-message-mention">@${label}</span>`,
+    );
+  }
+
+  return urlify(formatted);
+};
+
 function ContentHandler({
   i,
   cnvs,
@@ -80,6 +127,18 @@ function ContentHandler({
         color: "var(--text)",
         border: "1px solid var(--border)",
       };
+  const deletedBubbleStyle =
+    appTheme === "dark"
+      ? {
+          backgroundColor: "rgba(255, 255, 255, 0.03)",
+          border: "1px dashed var(--border-2)",
+          color: "var(--text-2)",
+        }
+      : {
+          backgroundColor: "transparent",
+          border: "1px dashed var(--border-2)",
+          color: "var(--text-3)",
+        };
 
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, {
@@ -157,15 +216,11 @@ function ContentHandler({
                   : timeSince(cnvs.messageDate)
             }
             initial={{
-              backgroundColor: "transparent",
-              border: "solid 1px var(--border)",
-              color: "var(--text-3)",
+              ...deletedBubbleStyle,
               // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
             }}
             animate={{
-              backgroundColor: "transparent",
-              border: "solid 1px var(--border)",
-              color: "var(--text-3)",
+              ...deletedBubbleStyle,
               // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
             }}
             className="span_messages_result c1 cl-message-bubble cl-message-bubble--deleted tw-flex tw-flex-col tw-gap-[2px]"
@@ -176,7 +231,7 @@ function ContentHandler({
                 cnvs.sender == authentication.user.userID
                   ? ""
                   : "cl-message-time--incoming"
-              }`}
+              } cl-message-time--deleted`}
             >
               {formatMessageClock(cnvs.messageDate)}
             </span>
@@ -349,7 +404,12 @@ function ContentHandler({
             >
               <span
                 className="tw-whitespace-pre-line"
-                dangerouslySetInnerHTML={{ __html: urlify(cnvs.content) }}
+                dangerouslySetInnerHTML={{
+                  __html: formatConversationHtml(
+                    cnvs.content,
+                    members ?? [],
+                  ),
+                }}
               />
               <span
                 className={`cl-message-time ${
@@ -1249,7 +1309,7 @@ function ContentHandler({
           ref={ref}
           className="tw-w-full tw-pt-[5px] tw-pb-[10px] div_messages_result tw-justify-center"
         >
-          <span className="tw-text-[12px] tw-font-inter tw-text-[#888] tw-w-full tw-text-center">
+          <span className="cl-conversation-system-message tw-w-full tw-text-center">
             {cnvs.content}
           </span>
         </div>

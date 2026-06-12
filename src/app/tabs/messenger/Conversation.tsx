@@ -113,6 +113,16 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     [conversationsetup],
   );
   const isServerConversation = conversationType === "server";
+  const [mentionState, setMentionState] = useState<{
+    open: boolean;
+    query: string;
+    start: number;
+  }>({
+    open: false,
+    query: "",
+    start: -1,
+  });
+  const [mentionActiveIndex, setMentionActiveIndex] = useState(0);
   const isCompactConversation = screensizelistener.W <= 799;
   const conversationHeaderIconSize = isCompactConversation ? "18px" : "20px";
   const conversationHeaderActionIconSize = isCompactConversation
@@ -168,6 +178,47 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     useState<ConversationInfoInterface | null>(null);
   const [toggleMenu, settoggleMenu] = useState<boolean>(false);
   const callRequestInFlightRef = useRef<Set<string>>(new Set());
+  const normalizeNamePart = (value: any) => {
+    if (!value || value === "N/A") {
+      return "";
+    }
+
+    return String(value).trim();
+  };
+  const conversationMentionMembers = useMemo(() => {
+    const currentUserID = authentication.user?.userID ?? "";
+    const members = conversationinfo?.usersWithInfo ?? [];
+    const mappedMembers = members
+      .filter((member) => member._id !== currentUserID)
+      .map((member) => {
+        const fullName = [
+          normalizeNamePart(member.fullname?.firstName),
+          normalizeNamePart(member.fullname?.middleName),
+          normalizeNamePart(member.fullname?.lastName),
+        ]
+          .filter(Boolean)
+          .join(" ")
+          .trim();
+
+        return {
+          ...member,
+          mentionLabel: member.userID || member.fullname?.firstName || "someone",
+          displayName: fullName || member.fullname?.firstName || "Someone",
+        };
+      })
+      .filter(
+        (member, index, self) =>
+          self.findIndex((item) => item._id === member._id) === index,
+      );
+
+    return conversationType === "single"
+      ? mappedMembers.slice(0, 1)
+      : mappedMembers;
+  }, [
+    authentication.user?.userID,
+    conversationType,
+    conversationinfo?.usersWithInfo,
+  ]);
 
   const getMemberInfo = (userID: string) => {
     if (!conversationinfo) {
@@ -185,6 +236,73 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     return "Someone";
   };
 
+  const getMemberMentionLabel = (member: any) => {
+    return member?.userID || member?.fullname?.firstName || "someone";
+  };
+
+  const getMemberFullName = (member: any) => {
+    const fullName = [
+      normalizeNamePart(member?.fullname?.firstName),
+      normalizeNamePart(member?.fullname?.middleName),
+      normalizeNamePart(member?.fullname?.lastName),
+    ]
+      .filter(Boolean)
+      .join(" ")
+      .trim();
+
+    return fullName || member?.fullname?.firstName || "Someone";
+  };
+
+  const closeMentionSuggestions = () => {
+    setMentionState({
+      open: false,
+      query: "",
+      start: -1,
+    });
+    setMentionActiveIndex(0);
+  };
+
+  const updateMentionSuggestions = (
+    value: string,
+    cursorPosition: number = value.length,
+  ) => {
+    const beforeCursor = value.slice(0, cursorPosition);
+    const mentionMatch = beforeCursor.match(/(^|\s)@([^\s@]*)$/);
+
+    if (!mentionMatch) {
+      closeMentionSuggestions();
+      return;
+    }
+
+    setMentionState({
+      open: true,
+      query: mentionMatch[2] ?? "",
+      start: beforeCursor.lastIndexOf("@"),
+    });
+    setMentionActiveIndex(0);
+  };
+
+  const insertMentionAtCursor = (member: any) => {
+    const textarea = inputMessageRef.current;
+    if (!textarea || mentionState.start < 0) return;
+
+    const selectionStart = textarea.selectionStart ?? messageValue.length;
+    const selectionEnd = textarea.selectionEnd ?? selectionStart;
+    const mentionText = `@${getMemberMentionLabel(member)} `;
+    const before = messageValue.slice(0, mentionState.start);
+    const after = messageValue.slice(selectionEnd);
+    const nextValue = `${before}${mentionText}${after}`;
+
+    setmessageValue(nextValue);
+    closeMentionSuggestions();
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const nextCursor = (before + mentionText).length;
+      textarea.setSelectionRange(nextCursor, nextCursor);
+    });
+  };
+
   const isConversationDisabled = useMemo(() => {
     if (conversationinfo?.users) {
       if (conversationinfo.users.length > 0) {
@@ -196,6 +314,23 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       return true;
     }
   }, [conversationinfo, isLoading]);
+
+  const mentionSuggestions = useMemo(() => {
+    const normalizedQuery = mentionState.query.trim().toLowerCase();
+
+    return conversationMentionMembers
+      .filter((member) => {
+        if (!normalizedQuery) return true;
+
+        const mentionLabel = getMemberMentionLabel(member).toLowerCase();
+        const displayName = getMemberFullName(member).toLowerCase();
+        return (
+          mentionLabel.includes(normalizedQuery) ||
+          displayName.includes(normalizedQuery)
+        );
+      })
+      .slice(0, 6);
+  }, [conversationMentionMembers, mentionState.query]);
 
   const [fullImageScreen, setfullImageScreen] = useState<any>({
     preview: "",
@@ -423,6 +558,7 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
       isReply: false,
       replyingTo: "",
     });
+    closeMentionSuggestions();
   };
 
   useEffect(() => {
@@ -2037,17 +2173,91 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 <FcAddImage style={{ fontSize: conversationComposerIconSize }} />
               </motion.button>
             </div>
-            <div id="div_input_text_content">
+            <div id="div_input_text_content" className="cl-conversation-composer">
+              {mentionState.open && mentionSuggestions.length > 0 && (
+                <div className="cl-mention-suggestion-panel">
+                  {mentionSuggestions.map((member, index) => (
+                    <button
+                      key={member._id}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        insertMentionAtCursor(member);
+                      }}
+                      className={`cl-mention-suggestion-item ${
+                        index === mentionActiveIndex
+                          ? "cl-mention-suggestion-item--active"
+                          : ""
+                      }`}
+                    >
+                      <Avatar
+                        id={member._id}
+                        name={member.mentionLabel}
+                        src={member.profile}
+                        size={28}
+                      />
+                      <span>{member.displayName}</span>
+                    </button>
+                  ))}
+                </div>
+              )}
               <textarea
                 // type="text"
                 ref={inputMessageRef}
                 autoComplete="off"
                 id="input_text_content_send"
                 onKeyDown={(e) => {
+                  if (mentionState.open && mentionSuggestions.length > 0) {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setMentionActiveIndex((prev) =>
+                        prev + 1 >= mentionSuggestions.length ? 0 : prev + 1,
+                      );
+                      return;
+                    }
+
+                    if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      setMentionActiveIndex((prev) =>
+                        prev - 1 < 0 ? mentionSuggestions.length - 1 : prev - 1,
+                      );
+                      return;
+                    }
+
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      insertMentionAtCursor(
+                        mentionSuggestions[mentionActiveIndex] ??
+                          mentionSuggestions[0],
+                      );
+                      return;
+                    }
+
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      closeMentionSuggestions();
+                      return;
+                    }
+                  }
+
                   if (e.key === "Enter" && !e.shiftKey) {
                     e.preventDefault();
                     sendMessageProcess();
                   }
+                }}
+                onClick={(e) => {
+                  const target = e.currentTarget;
+                  updateMentionSuggestions(
+                    target.value,
+                    target.selectionStart ?? target.value.length,
+                  );
+                }}
+                onKeyUp={(e) => {
+                  const target = e.currentTarget;
+                  updateMentionSuggestions(
+                    target.value,
+                    target.selectionStart ?? target.value.length,
+                  );
                 }}
                 className="tw-font-Inter tw-resize-none tw-h-auto tw-whitespace-pre-line"
                 disabled={isConversationDisabled}
@@ -2064,6 +2274,15 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     });
                   }
                   setmessageValue(e.target.value);
+                  updateMentionSuggestions(
+                    e.target.value,
+                    e.target.selectionStart ?? e.target.value.length,
+                  );
+                }}
+                onBlur={() => {
+                  setTimeout(() => {
+                    closeMentionSuggestions();
+                  }, 120);
                 }}
               ></textarea>
             </div>
