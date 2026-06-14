@@ -60,8 +60,10 @@ const BTN_VARIANTS: Record<BtnVariant, CSSProperties> = {
   },
 };
 
-export interface BtnProps
-  extends Omit<ButtonHTMLAttributes<HTMLButtonElement>, "children"> {
+export interface BtnProps extends Omit<
+  ButtonHTMLAttributes<HTMLButtonElement>,
+  "children"
+> {
   children?: ReactNode;
   variant?: BtnVariant;
   size?: BtnSize;
@@ -161,7 +163,9 @@ export function IconBtn({
       onMouseEnter={(e) =>
         (e.currentTarget.style.background = "var(--surface-hover)")
       }
-      onMouseLeave={(e) => (e.currentTarget.style.background = "var(--surface)")}
+      onMouseLeave={(e) =>
+        (e.currentTarget.style.background = "var(--surface)")
+      }
     >
       <Icon n={n} s={s} />
     </button>
@@ -191,11 +195,11 @@ export function Field({ icon, label, ...rest }: FieldProps) {
       )}
       <span
         style={{
-        display: "flex",
-        alignItems: "center",
-        gap: 7,
-        height: 40,
-        padding: "0 12px",
+          display: "flex",
+          alignItems: "center",
+          gap: 7,
+          height: 40,
+          padding: "0 12px",
           background: "var(--input)",
           border: "1px solid var(--border)",
           borderRadius: "var(--r-sm)",
@@ -263,7 +267,7 @@ export function SelectField({
           display: "flex",
           alignItems: "center",
           gap: 7,
-        height: 40,
+          height: 40,
           padding: "0 12px",
           background: "var(--input)",
           border: "1px solid var(--border)",
@@ -279,7 +283,7 @@ export function SelectField({
             height: "100%",
             border: "none",
             outline: "none",
-            background: "transparent",
+            background: "var(--surface-4)",
             color: "var(--text)",
             fontSize: 12.5,
             appearance: "none",
@@ -295,3 +299,4 @@ export function SelectField({
     </label>
   );
 }
+

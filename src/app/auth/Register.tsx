@@ -11,18 +11,19 @@ import { monthNameToNumber } from "@/reusables/hooks/reusable";
 import { Btn, Field, Icon, SelectField, useTheme } from "@/reusables/design";
 import { BrandMark, BrandPanel } from "./Login";
 
-type Gender = "Male" | "Female" | "Others";
+export type Gender = "Male" | "Female" | "Others";
 
-const GENDER_STYLE: Record<Gender, { activeBg: CSSProperties["background"] }> = {
-  Male: { activeBg: "#49a1f8" },
-  Female: { activeBg: "#db56a4" },
-  Others: {
-    activeBg:
-      "linear-gradient(180deg, #FE0000 16.66%, #FD8C00 16.66%, 33.32%, #FFE500 33.32%, 49.98%, #119F0B 49.98%, 66.64%, #0644B3 66.64%, 83.3%, #C22EDC 83.3%)",
-  },
-};
+const GENDER_STYLE: Record<Gender, { activeBg: CSSProperties["background"] }> =
+  {
+    Male: { activeBg: "#49a1f8" },
+    Female: { activeBg: "#db56a4" },
+    Others: {
+      activeBg:
+        "linear-gradient(180deg, #FE0000 16.66%, #FD8C00 16.66%, 33.32%, #FFE500 33.32%, 49.98%, #119F0B 49.98%, 66.64%, #0644B3 66.64%, 83.3%, #C22EDC 83.3%)",
+    },
+  };
 
-function GenderButton({
+export function GenderButton({
   value,
   active,
   onClick,
@@ -279,11 +280,7 @@ function Register() {
                   width: "100%",
                 }}
               >
-                <SelectField
-                  icon="event"
-                  value={month}
-                  onChange={setmonth}
-                >
+                <SelectField icon="event" value={month} onChange={setmonth}>
                   <option value="">Month</option>
                   {monthList.map((val) => (
                     <option key={val} value={val}>
@@ -421,3 +418,4 @@ function Register() {
 }
 
 export default Register;
+

@@ -6,6 +6,8 @@ import { useNavigate } from "react-router-dom";
 import MapFeedSettings from "./section/MapFeedSettings";
 import ArchivedMessages from "./section/ArchivedMessages";
 import { Card, Icon, IconBtn, useTheme } from "@/reusables/design";
+import PersonalInformation from "./section/PersonalInformation";
+import Credentials from "./section/Credentials";
 
 interface SettingsItem {
   key: string;
@@ -55,6 +57,22 @@ function Settings({ isModal }: { isModal: boolean }) {
             name: "Personal Information",
             description:
               "Change your name, birthdate, address, and your other public informations.",
+            isDisabled: false,
+            component: <PersonalInformation />,
+          },
+          {
+            key: "credentials",
+            icon: "key",
+            name: "Credentials",
+            description: "Setup or update your necessary account credentials.",
+            isDisabled: false,
+            component: <Credentials />,
+          },
+          {
+            key: "privacy",
+            icon: "lock",
+            name: "Privacy",
+            description: "Configure your account privacy settings.",
             isDisabled: true,
             component: null,
           },
@@ -134,15 +152,25 @@ function Settings({ isModal }: { isModal: boolean }) {
       }}
     >
       {mappedSettingsList.map((cat) => (
-        <Card key={cat.category} pad={20} style={{ borderRadius: "var(--r-sm)" }}>
+        <Card
+          key={cat.category}
+          pad={20}
+          style={{ borderRadius: "var(--r-sm)" }}
+        >
           <div style={{ marginBottom: 14 }}>
-            <div style={{ fontSize: 14, fontWeight: 750 }}>{cat.category}</div>
+            <div
+              style={{ fontSize: 14, fontWeight: 750 }}
+              className="tw-text-left"
+            >
+              {cat.category}
+            </div>
             <div
               style={{
                 fontSize: 12,
                 color: "var(--text-3)",
                 marginTop: 4,
               }}
+              className="tw-text-left"
             >
               {cat.description}
             </div>
@@ -277,7 +305,7 @@ function Settings({ isModal }: { isModal: boolean }) {
           flex: "none",
         }}
       >
-        <IconBtn n="arrow_back" onClick={onBack} title="Back" />
+        {/* <IconBtn n="arrow_back" onClick={onBack} title="Back" /> */}
         <h1
           style={{
             margin: 0,
@@ -314,3 +342,4 @@ function Settings({ isModal }: { isModal: boolean }) {
 }
 
 export default Settings;
+
