@@ -183,7 +183,7 @@ function PostOptions({
         }}
         className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
       >
-        <BsThreeDots style={{ fontSize: "17px" }} />
+        <BsThreeDots style={{ fontSize: "17px", color: "var(--text)" }} />
       </button>
     </div>
   );

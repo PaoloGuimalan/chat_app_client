@@ -89,7 +89,9 @@ function AppMenu() {
     >
       <div id="div_app_menu_label_container">
         <PiListBold style={{ fontSize: "27px", color: "#2196f3" }} />
-        <span className="span_contacts_label">Menu</span>
+        <span className="span_contacts_label tw-text-[var(--text-2)]">
+          Menu
+        </span>
       </div>
       {isLoading ? (
         <div id="div_isLoading_notifications">

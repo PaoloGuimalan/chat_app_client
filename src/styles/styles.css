@@ -2319,6 +2319,7 @@ input:checked + .slider:before {
   flex-direction: row;
   align-items: center;
   padding: 20px;
+  padding-left: 0px;
   padding-bottom: 10px;
   gap: 7px;
 }
@@ -4819,7 +4820,7 @@ input:checked + .slider:before {
 
 .cl-create-post-textarea {
   width: 100%;
-  min-height: 96px;
+  min-height: 85px;
   resize: none;
   border: 1px solid var(--border);
   border-radius: 14px;

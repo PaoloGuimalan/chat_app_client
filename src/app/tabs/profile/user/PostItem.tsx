@@ -220,7 +220,9 @@ function PostItem({
       {minimizedCaption !== null && (
         <div
           style={{
-            border: isSharePreview ? "1px solid var(--border)" : "0px solid transparent",
+            border: isSharePreview
+              ? "1px solid var(--border)"
+              : "0px solid transparent",
             borderRadius: isSharePreview ? "var(--r-lg)" : "0px",
             overflow: isSharePreview ? "hidden" : "visible",
           }}
@@ -595,7 +597,9 @@ function PostItem({
                           }}
                           className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
                         >
-                          <IoMdClose style={{ fontSize: "17px" }} />
+                          <IoMdClose
+                            style={{ fontSize: "17px", color: "var(--text)" }}
+                          />
                         </button>
                       </div>
                       <div

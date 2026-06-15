@@ -6,6 +6,21 @@ import { BsPersonFill } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Avatar, Card } from "@/reusables/design";
+import { CloseSSENotifications } from "@/reusables/hooks/sse";
+import {
+  CLEAR_PENDING_CALL_ALERTS,
+  SET_CALLS_LIST,
+  SET_CLEAR_ALERTS,
+  SET_CONTACTS_LIST_OVERRIDE,
+  SET_CONVERSATION_SETUP,
+  SET_MESSAGES_LIST_OVERRIDE,
+  SET_MINIMIZED_CONVERSATION_OVERRIDE,
+  SET_NOTIFICATIONS_LIST_OVERRIDE,
+} from "@/redux/types";
+import {
+  contactsliststate,
+  conversationsetupstate,
+} from "@/redux/actions/states";
 
 function UserMenu() {
   const authentication: AuthenticationInterface = useSelector(
@@ -14,7 +29,38 @@ function UserMenu() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  const clearStates = () => {
+    dispatch({
+      type: SET_CONVERSATION_SETUP,
+      payload: { conversationsetup: conversationsetupstate },
+    });
+    dispatch({
+      type: SET_MESSAGES_LIST_OVERRIDE,
+      payload: { messageslist: [] },
+    });
+    dispatch({ type: SET_CLEAR_ALERTS, payload: { alerts: [] } });
+    dispatch({ type: SET_CALLS_LIST, payload: { callslist: [] } });
+    dispatch({
+      type: CLEAR_PENDING_CALL_ALERTS,
+      payload: { clearstate: [] },
+    });
+    dispatch({
+      type: SET_CONTACTS_LIST_OVERRIDE,
+      payload: { contactslist: contactsliststate },
+    });
+    dispatch({
+      type: SET_MINIMIZED_CONVERSATION_OVERRIDE,
+      payload: { conversations: [] },
+    });
+    dispatch({
+      type: SET_NOTIFICATIONS_LIST_OVERRIDE,
+      payload: { notficationslist: { list: [], totalunread: 0 } },
+    });
+  };
+
   const handleLogout = () => {
+    clearStates();
+    CloseSSENotifications();
     LogoutRequest(dispatch);
     navigate("/login");
   };
@@ -22,9 +68,14 @@ function UserMenu() {
   return (
     <div className="tw-w-full tw-max-w-[600px] tw-bg-transparent tw-flex-1 tw-flex tw-flex-col tw-items-center tw-p-[10px] tw-pt-[8px] tw-overflow-y-auto scroller tw-gap-[10px]">
       <Card pad={14} style={{ width: "100%" }}>
-        <div id="div_app_menu_label_container" className="tw-items-center tw-pt-[0px]">
+        <div
+          id="div_app_menu_label_container"
+          className="tw-items-center tw-pt-[0px]"
+        >
           <BsPersonFill style={{ fontSize: "22px", color: "#1c7DEF" }} />
-          <span className="span_contacts_label">Profile</span>
+          <span className="span_contacts_label tw-text-[var(--text-2)]">
+            Profile
+          </span>
         </div>
         <div className="tw-w-full tw-flex tw-flex-col tw-items-center">
           <button
@@ -47,7 +98,7 @@ function UserMenu() {
               <div className="tw-flex tw-flex-col tw-items-start tw-min-w-0 tw-flex-1">
                 <span
                   id="span_user_firstname_label"
-                  className="tw-w-full"
+                  className="tw-w-full tw-text-[var(--text-2)]"
                   style={{ marginBottom: 2 }}
                 >
                   {authentication.user.fullName.firstName}
@@ -78,3 +129,4 @@ function UserMenu() {
 }
 
 export default UserMenu;
+

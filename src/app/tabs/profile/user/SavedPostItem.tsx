@@ -289,11 +289,17 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                     : "custom:tw-h-full"
                 }`}
               >
-                <div className="tw-w-[calc(100%-50px)] tw-p-[25px] tw-flex tw-justify-between">
+                <div className="tw-w-[calc(100%-0px)] tw-p-[25px] tw-flex tw-justify-between">
                   <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
                     <Avatar
-                      id={previewPost.author_realm?.slug ?? previewPost.user.username}
-                      name={previewPost.author_realm?.name ?? `${previewPost.user.first_name} ${previewPost.user.last_name}`}
+                      id={
+                        previewPost.author_realm?.slug ??
+                        previewPost.user.username
+                      }
+                      name={
+                        previewPost.author_realm?.name ??
+                        `${previewPost.user.first_name} ${previewPost.user.last_name}`
+                      }
                       src={
                         previewPost.author_realm
                           ? previewPost.author_realm.profile !== "none"
@@ -442,11 +448,13 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                     }}
                     className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
                   >
-                    <IoMdClose style={{ fontSize: "17px" }} />
+                    <IoMdClose
+                      style={{ fontSize: "17px", color: "var(--text)" }}
+                    />
                   </button>
                 </div>
                 <div
-                  className={`tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px] tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
+                  className={`tw-w-[calc(100%-0px)] tw-pl-[25px] tw-pr-[25px] tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
                 >
                   <div
                     ref={textContainerRef}
@@ -486,7 +494,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                       return <LoadedPostItem key={i} postID={mpu.reference} />;
                     })}
                 </div>
-                <div className="tw-w-[calc(100%-50px)] tw-pl-[25px] tw-pr-[25px] tw-mt-[10px] tw-pb-[5px]">
+                <div className="tw-w-[calc(100%-0px)] tw-pl-[25px] tw-pr-[25px] tw-mt-[10px] tw-pb-[5px]">
                   <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
                     <motion.div
                       initial={{
@@ -650,7 +658,8 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                 savedPost.post.author_realm.profile !== "N/A"
                 ? savedPost.post.author_realm.profile
                 : undefined
-              : savedPost.post.user.profile && savedPost.post.user.profile !== "none"
+              : savedPost.post.user.profile &&
+                  savedPost.post.user.profile !== "none"
                 ? savedPost.post.user.profile
                 : undefined
           }
@@ -739,5 +748,3 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
 }
 
 export default SavedPostItem;
-
-
