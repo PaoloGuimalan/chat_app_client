@@ -2696,6 +2696,90 @@ const CompleteProfileRequest = async (
     });
 };
 
+const UpdateProfileInfoRequest = async (
+  params: any,
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  const payload = params;
+  Axios.put(`${USER_SERVICE_API}/api/user/me`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken") || "",
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        const userData: ConvertedResponse = convertLoginResponse(
+          response.data.data,
+        );
+
+        dispatch({
+          type: SET_ALERTS,
+          payload: {
+            alerts: {
+              id: currentAlertState.length,
+              type: "success",
+              content: "Successfully updated profile",
+            },
+          },
+        });
+
+        dispatch({
+          type: SET_AUTHENTICATION,
+          payload: {
+            authentication: {
+              auth: true,
+              user: {
+                userID: userData.id,
+                username: userData.username,
+                fullName: {
+                  firstName: userData.fullname.firstName,
+                  middleName: userData.fullname.middleName,
+                  lastName: userData.fullname.lastName,
+                },
+                birthdate: userData.birthdate,
+                gender: userData.gender,
+                email: userData.email,
+                isActivated: userData.isActivated,
+                isVerified: userData.isVerified,
+                isComplete: userData.isComplete,
+                profile: userData.profile,
+                coverphoto: userData.coverphoto || "",
+              },
+            },
+          },
+        });
+      } else {
+        dispatch({
+          type: SET_ALERTS,
+          payload: {
+            alerts: {
+              id: currentAlertState.length,
+              type: "warning",
+              content: response.data.message,
+            },
+          },
+        });
+      }
+      setisWaitingRequest(false);
+    })
+    .catch((err) => {
+      console.log(err.message);
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: "Some fields might be invalid or already taken",
+          },
+        },
+      });
+      setisWaitingRequest(false);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -2787,4 +2871,5 @@ export {
   GetEncodingsRequest,
   ReconnectStaleCallerSessionRequest,
   CompleteProfileRequest,
+  UpdateProfileInfoRequest,
 };

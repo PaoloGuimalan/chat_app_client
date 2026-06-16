@@ -296,6 +296,43 @@ const formatToDjangoDate = (date: any) => {
   return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}.${ms} ${offsetStr}`;
 };
 
+const getFormattedDate = (
+  monthName: string,
+  dayStr: string,
+  yearStr: string,
+): string | null => {
+  const monthMap: Record<string, string> = {
+    january: "01",
+    february: "02",
+    march: "03",
+    april: "04",
+    may: "05",
+    june: "06",
+    july: "07",
+    august: "08",
+    september: "09",
+    october: "10",
+    november: "11",
+    december: "12",
+    jan: "01",
+    feb: "02",
+    mar: "03",
+    apr: "04",
+    jun: "06",
+    jul: "07",
+    aug: "08",
+    sep: "09",
+    oct: "10",
+    nov: "11",
+    dec: "12",
+  };
+  const numericMonth = monthMap[monthName.trim().toLowerCase()];
+  if (!numericMonth || !dayStr || !yearStr) return null;
+  const numericDay = dayStr.trim().padStart(2, "0");
+  const numericYear = yearStr.trim();
+  return `${numericYear}-${numericMonth}-${numericDay} 08:00:00.000 +0800`;
+};
+
 function timeSince(dateString: any) {
   const now: any = new Date();
   const past: any = new Date(dateString);
@@ -470,6 +507,42 @@ function generateUUID(): string {
   return crypto.randomUUID();
 }
 
+function is13YearsOldOrAbove(dateStr: string) {
+  // Parse the input date string (e.g., "2002-02-14 08:00:00.000 +0800")
+  const parts = dateStr.trim().split(" ");
+  const dateTimePart = parts[0]; // "2002-02-14"
+  const timePart = parts[1]; // "08:00:00.000"
+  const tzPart = parts[2]; // "+0800"
+
+  // Convert timezone offset "+0800" to format "+08:00" for Date parsing
+  const tzOffset = tzPart.slice(0, 3) + ":" + tzPart.slice(3, 5);
+
+  // Build a parseable date string
+  const fullDateStr = `${dateTimePart}T${timePart}${tzOffset}`;
+
+  const targetDate = new Date(fullDateStr);
+
+  // Check if date is invalid (Date.toString() returns "Invalid Date")
+  if (targetDate.toString() === "Invalid Date" || !targetDate.getTime()) {
+    throw new Error("Invalid date format");
+  }
+
+  const currentDate = new Date();
+
+  // Calculate the difference in years
+  let yearsDiff = currentDate.getFullYear() - targetDate.getFullYear();
+
+  // Adjust if the current date hasn't reached the target date's month/day yet this year
+  const currentMonthDay = currentDate.getMonth() * 32 + currentDate.getDate();
+  const targetMonthDay = targetDate.getMonth() * 32 + targetDate.getDate();
+
+  if (currentMonthDay < targetMonthDay) {
+    yearsDiff--;
+  }
+
+  return yearsDiff >= 13;
+}
+
 export {
   importData,
   importNonImageData,
@@ -493,4 +566,6 @@ export {
   getDifferentValues,
   capitalizeFirstLetter,
   generateUUID,
+  getFormattedDate,
+  is13YearsOldOrAbove,
 };
