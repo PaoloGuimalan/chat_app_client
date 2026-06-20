@@ -9,6 +9,7 @@ import { BsFillMicFill, BsFillMicMuteFill } from "react-icons/bs";
 import ConferenceVoiceWindow from "./ConferenceVoiceWindow";
 import {
   ConversationInfoRequest,
+  CreateRealmInviteRequest,
   GetRealmInviteRequest,
   UpdateRealmInviteRequest,
 } from "@/reusables/hooks/requests";
@@ -231,33 +232,72 @@ function ConferenceRoom() {
     };
   }, [roomData, currentTime]);
 
-  const normalizedUserEmail = (
-    authentication.user.email ? String(authentication.user.email).trim().toLowerCase() : ""
+  const normalizedUserEmail = authentication.user.email
+    ? String(authentication.user.email).trim().toLowerCase()
+    : "";
+  const roomIsPrivate = Boolean(
+    roomData?.data.conversationInfo?.privacy ??
+    roomData?.privacy ??
+    roomData?.is_private ??
+    false,
   );
+  const roomInvites = Array.isArray(roomData?.invites) ? roomData.invites : [];
+  const roomInviteForUser = useMemo(() => {
+    if (!normalizedUserEmail) {
+      return null;
+    }
+
+    return (
+      roomInvites.find((invite: any) => {
+        const targetEmail = invite?.target_email
+          ? String(invite.target_email).trim().toLowerCase()
+          : "";
+
+        return targetEmail === normalizedUserEmail;
+      }) ?? null
+    );
+  }, [normalizedUserEmail, roomInvites]);
   const inviteTargetEmail = inviteInfo?.target_email
     ? String(inviteInfo.target_email).trim().toLowerCase()
     : "";
   const inviteMatchesUser =
     Boolean(inviteTargetEmail) && inviteTargetEmail === normalizedUserEmail;
   const invitePending =
-    inviteInfo?.status === "pending" && inviteMatchesUser && Boolean(inviteToken);
+    inviteInfo?.status === "pending" &&
+    inviteMatchesUser &&
+    Boolean(inviteToken);
   const inviteAccepted =
-    inviteInfo?.status === "accepted" && inviteMatchesUser && Boolean(inviteToken);
+    inviteInfo?.status === "accepted" &&
+    inviteMatchesUser &&
+    Boolean(inviteToken);
   const inviteBlocked =
     Boolean(inviteToken) &&
     Boolean(inviteInfo) &&
     !inviteMatchesUser &&
     inviteInfo?.status !== "accepted";
-  const inviteRequiresSignIn = Boolean(inviteToken) && authentication.auth !== true;
+  const effectiveInviteInfo = inviteInfo ?? roomInviteForUser;
+  const effectiveInviteTargetEmail = effectiveInviteInfo?.target_email
+    ? String(effectiveInviteInfo.target_email).trim().toLowerCase()
+    : "";
+  const effectiveInviteMatchesUser =
+    Boolean(effectiveInviteTargetEmail) &&
+    effectiveInviteTargetEmail === normalizedUserEmail;
+  const effectiveInvitePending =
+    effectiveInviteInfo?.status === "pending" && effectiveInviteMatchesUser;
+  const effectiveInviteAccepted =
+    effectiveInviteInfo?.status === "accepted" && effectiveInviteMatchesUser;
+  const effectiveInviteBlocked =
+    roomIsPrivate &&
+    Boolean(effectiveInviteInfo) &&
+    !effectiveInviteMatchesUser &&
+    effectiveInviteInfo?.status !== "accepted";
+  const inviteRequiresSignIn =
+    (Boolean(inviteToken) || roomIsPrivate) && authentication.auth !== true;
   const canProceedToConference =
     meetingWindowState.canJoin &&
-    (!inviteToken || invitePending || inviteAccepted);
+    (!roomIsPrivate || effectiveInvitePending || effectiveInviteAccepted);
 
   const inviteStatusContent = useMemo(() => {
-    if (!inviteToken) {
-      return null;
-    }
-
     if (authentication.auth === null) {
       return {
         title: "Checking invitation access",
@@ -273,54 +313,83 @@ function ConferenceRoom() {
       };
     }
 
-    if (isInviteLoading) {
+    if (inviteToken && isInviteLoading) {
       return {
         title: "Loading invitation",
         description: "We're checking the invite details for this meeting.",
       };
     }
 
-    if (inviteLoadError) {
+    if (inviteToken && inviteLoadError) {
       return {
         title: "Invitation unavailable",
         description: inviteLoadError,
       };
     }
 
-    if (!inviteInfo) {
+    if (inviteToken && !inviteInfo) {
       return {
         title: "No invitation found",
         description: "This link does not include a valid invite token.",
       };
     }
 
-    if (inviteBlocked) {
+    if ((inviteToken && inviteBlocked) || effectiveInviteBlocked) {
       return {
         title: "Invitation belongs to another account",
         description: `Signed in as ${normalizedUserEmail || "this user"}, but this invite is for ${inviteTargetEmail}.`,
       };
     }
 
-    if (invitePending) {
+    if (inviteToken && invitePending) {
       return {
         title: "Invitation pending",
         description: `Ready for ${inviteTargetEmail}. You can accept it before joining.`,
       };
     }
 
-    if (inviteAccepted) {
+    if (inviteToken && inviteAccepted) {
       return {
         title: "Invitation accepted",
         description: "You're cleared to enter this conference room.",
       };
     }
 
+    if (roomIsPrivate && !effectiveInviteInfo) {
+      return {
+        title: "Private conference",
+        description:
+          "You cannot access this conference yet. Please send a request to join.",
+      };
+    }
+
+    if (roomIsPrivate && effectiveInvitePending) {
+      return {
+        title: "Access request pending",
+        description:
+          "Your request is waiting for approval before you can join.",
+      };
+    }
+
+    if (roomIsPrivate && effectiveInviteAccepted) {
+      return {
+        title: "Access approved",
+        description: "You're cleared to enter this private conference room.",
+      };
+    }
+
     return {
       title: "Invitation loaded",
-      description: `Invite status: ${String(inviteInfo.status)}`,
+      description: roomIsPrivate
+        ? "This private room can only be entered by invited members."
+        : `Invite status: ${String(effectiveInviteInfo?.status ?? "none")}`,
     };
   }, [
     authentication.auth,
+    effectiveInviteAccepted,
+    effectiveInviteBlocked,
+    effectiveInviteInfo,
+    effectiveInvitePending,
     inviteAccepted,
     inviteBlocked,
     inviteInfo,
@@ -330,20 +399,22 @@ function ConferenceRoom() {
     inviteTargetEmail,
     inviteToken,
     isInviteLoading,
+    roomIsPrivate,
     normalizedUserEmail,
   ]);
 
   const acceptInvite = async () => {
-    if (!inviteToken || !inviteInfo || !inviteMatchesUser) return;
+    if (!inviteToken && !roomInviteForUser) return;
+    if (!inviteInfo && !roomInviteForUser) return;
 
     setIsInviteUpdating(true);
     try {
       const response = await UpdateRealmInviteRequest({
-        invite_token: inviteToken,
+        invite_token: inviteToken || roomInviteForUser?.invite_token,
         status: "accepted",
       });
 
-      setInviteInfo(response?.result ?? inviteInfo);
+      setInviteInfo(response?.result ?? inviteInfo ?? roomInviteForUser);
       if (meetingWindowState.canJoin) {
         setHasJoined(true);
       }
@@ -352,7 +423,25 @@ function ConferenceRoom() {
     }
   };
 
+  const requestAccess = async () => {
+    if (!roomData?.realm_id || !normalizedUserEmail) return;
+
+    setIsInviteUpdating(true);
+    try {
+      const response = await CreateRealmInviteRequest({
+        realm_id: roomData.realm_id,
+        target_email: normalizedUserEmail,
+        kind: "request",
+      });
+
+      setInviteInfo(response?.result ?? roomInviteForUser);
+    } finally {
+      setIsInviteUpdating(false);
+    }
+  };
+
   const canJoinNow = canProceedToConference;
+  const showRequestAccess = roomIsPrivate && !effectiveInviteInfo;
 
   if (isLoading) {
     return (
@@ -423,13 +512,15 @@ function ConferenceRoom() {
                   {roomData.groupdetails?.groupName || "Conference"}
                 </span>
                 <span className="tw-text-[13px] tw-text-[var(--text-2)] tw-text-center tw-max-w-[420px]">
-                  {inviteBlocked
+                  {effectiveInviteBlocked
                     ? "This invite belongs to a different account."
-                    : invitePending
+                    : effectiveInvitePending
                       ? "You can accept this invitation before joining."
                       : inviteRequiresSignIn
                         ? "Sign in to verify the invite before joining."
-                        : "Set your camera and microphone before joining."}
+                        : roomIsPrivate && !effectiveInviteInfo
+                          ? "This conference is private. Please send a request to join."
+                          : "Set your camera and microphone before joining."}
                 </span>
               </div>
 
@@ -464,7 +555,7 @@ function ConferenceRoom() {
                   ) : (
                     <FiVideoOff size={18} />
                   )}
-                {lobbyCameraEnabled ? "Camera on" : "Camera off"}
+                  {lobbyCameraEnabled ? "Camera on" : "Camera off"}
                 </button>
               </div>
             </div>
@@ -491,7 +582,7 @@ function ConferenceRoom() {
                     {meetingWindowState.helperLabel}
                   </span>
                 </div>
-                {inviteToken && (
+                {(inviteToken || roomIsPrivate) && (
                   <div className="tw-rounded-[20px] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px] tw-flex tw-flex-col tw-gap-[8px] tw-shadow-[var(--shadow-sm)]">
                     <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                       Invitation
@@ -501,21 +592,22 @@ function ConferenceRoom() {
                     </span>
                     <span className="tw-text-[12px] tw-text-[var(--text-2)] tw-leading-[1.5]">
                       {inviteStatusContent?.description ??
-                        "We’ll verify the invitation for this room."}
+                        "We'll verify the invitation for this room."}
                     </span>
                   </div>
                 )}
-                {Array.isArray(roomData.invites) && roomData.invites.length > 0 && (
-                  <div className="tw-rounded-[20px] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px] tw-flex tw-flex-col tw-gap-[8px] tw-shadow-[var(--shadow-sm)]">
-                    <span className="tw-text-[12px] tw-text-[var(--text-2)]">
-                      Invites
-                    </span>
-                    <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text)]">
-                      {roomData.invites.length} invite
-                      {roomData.invites.length === 1 ? "" : "s"} prepared
-                    </span>
-                  </div>
-                )}
+                {Array.isArray(roomData.invites) &&
+                  roomData.invites.length > 0 && (
+                    <div className="tw-rounded-[20px] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px] tw-flex tw-flex-col tw-gap-[8px] tw-shadow-[var(--shadow-sm)]">
+                      <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                        Invites
+                      </span>
+                      <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text)]">
+                        {roomData.invites.length} invite
+                        {roomData.invites.length === 1 ? "" : "s"} prepared
+                      </span>
+                    </div>
+                  )}
                 <div className="tw-rounded-[20px] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px] tw-flex tw-flex-col tw-gap-[8px] tw-shadow-[var(--shadow-sm)]">
                   <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                     Microphone
@@ -541,8 +633,13 @@ function ConferenceRoom() {
               <button
                 type="button"
                 onClick={async () => {
-                  if (invitePending) {
+                  if (effectiveInvitePending) {
                     await acceptInvite();
+                    return;
+                  }
+
+                  if (showRequestAccess) {
+                    await requestAccess();
                     return;
                   }
 
@@ -551,10 +648,12 @@ function ConferenceRoom() {
                   }
                 }}
                 disabled={
-                  (!canJoinNow && !invitePending) ||
+                  (!canJoinNow &&
+                    !effectiveInvitePending &&
+                    !showRequestAccess) ||
                   isInviteUpdating ||
                   inviteRequiresSignIn ||
-                  (inviteBlocked && !meetingWindowState.canJoin)
+                  (effectiveInviteBlocked && !meetingWindowState.canJoin)
                 }
                 className="tw-h-[48px] tw-rounded-[var(--r-md)] tw-border-none tw-bg-[var(--brand)] tw-text-white tw-font-semibold tw-cursor-pointer tw-flex tw-items-center tw-justify-center tw-gap-[10px] tw-shadow-[var(--shadow-sm)] disabled:tw-opacity-[0.55] disabled:tw-cursor-not-allowed"
               >
@@ -565,10 +664,14 @@ function ConferenceRoom() {
                   </>
                 ) : inviteRequiresSignIn ? (
                   "Sign in to continue"
-                ) : invitePending ? (
-                  meetingWindowState.canJoin
-                    ? "Accept invitation & join"
-                    : "Accept invitation"
+                ) : effectiveInvitePending ? (
+                  meetingWindowState.canJoin ? (
+                    "Accept invitation & join"
+                  ) : (
+                    "Accept invitation"
+                  )
+                ) : showRequestAccess ? (
+                  "Request access"
                 ) : meetingWindowState.canJoin ? (
                   "Join conference"
                 ) : (
@@ -596,3 +699,4 @@ function ConferenceRoom() {
 }
 
 export default ConferenceRoom;
+
