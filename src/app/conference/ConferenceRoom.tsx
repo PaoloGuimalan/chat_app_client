@@ -248,6 +248,21 @@ function ConferenceRoom() {
     roomData?.is_private ??
     false,
   );
+  const roomCreatorUserID =
+    roomInfo?.data?.conversationInfo.createdBy ??
+    roomInfo?.conversationInfo?.created_by_id ??
+    roomInfo?.groupdetails?.createdBy ??
+    roomInfo?.groupdetails?.created_by_id ??
+    roomData?.conversationInfo?.createdBy ??
+    roomData?.conversationInfo?.created_by_id ??
+    roomData?.groupdetails?.createdBy ??
+    roomData?.groupdetails?.created_by_id ??
+    roomData?.createdBy ??
+    roomData?.created_by_id ??
+    null;
+  const hostIsCreator =
+    Boolean(roomCreatorUserID) &&
+    String(roomCreatorUserID) === String(authentication.user.username);
   const roomInvites = Array.isArray(roomData?.invites) ? roomData.invites : [];
   const roomInviteForUser = useMemo(() => {
     if (!normalizedUserEmail) {
@@ -311,7 +326,10 @@ function ConferenceRoom() {
     (Boolean(inviteToken) || roomIsPrivate) && authentication.auth !== true;
   const canProceedToConference =
     meetingWindowState.canJoin &&
-    (!roomIsPrivate || effectiveInvitePending || effectiveInviteAccepted);
+    (!roomIsPrivate ||
+      hostIsCreator ||
+      effectiveInvitePending ||
+      effectiveInviteAccepted);
 
   const inviteStatusContent = useMemo(() => {
     if (authentication.auth === null) {
@@ -372,6 +390,13 @@ function ConferenceRoom() {
     }
 
     if (roomIsPrivate && !effectiveInviteInfo) {
+      if (hostIsCreator) {
+        return {
+          title: "Private conference",
+          description: "You created this room, so you can join directly.",
+        };
+      }
+
       return {
         title: "Private conference",
         description:
@@ -476,6 +501,7 @@ function ConferenceRoom() {
     effectiveRequestPending && !effectiveInviteAccepted;
   const canRequestAccess =
     roomIsPrivate &&
+    !hostIsCreator &&
     authentication.auth === true &&
     !showRequestPending &&
     !effectiveInviteAccepted &&
@@ -674,12 +700,17 @@ function ConferenceRoom() {
               <button
                 type="button"
                 onClick={async () => {
+                  if (hostIsCreator && canJoinNow) {
+                    setHasJoined(true);
+                    return;
+                  }
+
                   if (effectiveInvitePending) {
                     await acceptInvite();
                     return;
                   }
 
-                  if (roomIsPrivate && authentication.auth === true) {
+                  if (showRequestAccess) {
                     await requestAccess();
                     return;
                   }
@@ -692,7 +723,8 @@ function ConferenceRoom() {
                   (!canJoinNow &&
                     !effectiveInvitePending &&
                     !showRequestAccess &&
-                    !(roomIsPrivate && authentication.auth === true)) ||
+                    !hostIsCreator) ||
+                  (hostIsCreator && !canJoinNow) ||
                   isInviteUpdating ||
                   inviteRequiresSignIn ||
                   (effectiveInviteBlocked && !meetingWindowState.canJoin)

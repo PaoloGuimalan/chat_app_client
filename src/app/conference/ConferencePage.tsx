@@ -47,6 +47,7 @@ function ConferencePage() {
   const [meetingMode, setMeetingMode] = useState<"instant" | "scheduled">(
     "instant",
   );
+  const [meetingPrivacy, setMeetingPrivacy] = useState(false);
   const [inviteEmails, setInviteEmails] = useState("");
   const [scheduledFor, setScheduledFor] = useState("");
   const [isCreating, setIsCreating] = useState(false);
@@ -146,7 +147,7 @@ function ConferencePage() {
 
       const response = await CreateConferenceRequest({
         groupName: meetingName.trim() || "Instant meeting",
-        privacy: false,
+        privacy: meetingPrivacy,
         otherUsers: [],
         meetingMode,
         starts_at: meetingMode === "scheduled" ? scheduledFor || null : null,
@@ -484,9 +485,42 @@ function ConferencePage() {
                             ? "tw-bg-[var(--brand-soft)] tw-border-[var(--brand)] tw-text-[var(--brand)]"
                             : "tw-bg-[var(--surface-2)] tw-border-[var(--border)] tw-text-[var(--text)]"
                         }`}
-                      >
-                        Schedule
+                        >
+                          Schedule
                       </button>
+                    </div>
+
+                    <div className="tw-flex tw-flex-col tw-gap-[10px]">
+                      <label className="tw-text-[12px] tw-font-semibold tw-text-[var(--text-2)]">
+                        Privacy
+                      </label>
+                      <div className="tw-grid tw-grid-cols-2 tw-gap-[10px]">
+                        <button
+                          type="button"
+                          onClick={() => setMeetingPrivacy(false)}
+                          className={`tw-h-[42px] tw-rounded-[var(--r-md)] tw-border tw-font-semibold tw-cursor-pointer tw-transition-colors ${
+                            !meetingPrivacy
+                              ? "tw-bg-[var(--brand-soft)] tw-border-[var(--brand)] tw-text-[var(--brand)]"
+                              : "tw-bg-[var(--surface-2)] tw-border-[var(--border)] tw-text-[var(--text)]"
+                          }`}
+                        >
+                          Public
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMeetingPrivacy(true)}
+                          className={`tw-h-[42px] tw-rounded-[var(--r-md)] tw-border tw-font-semibold tw-cursor-pointer tw-transition-colors ${
+                            meetingPrivacy
+                              ? "tw-bg-[var(--brand-soft)] tw-border-[var(--brand)] tw-text-[var(--brand)]"
+                              : "tw-bg-[var(--surface-2)] tw-border-[var(--border)] tw-text-[var(--text)]"
+                          }`}
+                        >
+                          Private
+                        </button>
+                      </div>
+                      <span className="tw-text-[11px] tw-text-[var(--text-2)]">
+                        Private meetings require approved access; public ones can be joined directly.
+                      </span>
                     </div>
 
                     <div className="tw-flex tw-flex-col tw-gap-[10px]">
