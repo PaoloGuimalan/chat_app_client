@@ -115,6 +115,28 @@ export interface IRealmProfileInfo {
   is_follower: boolean;
 }
 
+export type CommunityInviteKind = "invite" | "request";
+export type CommunityInviteStatus =
+  | "pending"
+  | "accepted"
+  | "declined"
+  | "revoked";
+
+export interface CommunityInvite {
+  id: string;
+  realm_id: string;
+  realm_type: string;
+  kind: CommunityInviteKind;
+  status: CommunityInviteStatus;
+  target_email: string;
+  target_user_id: string | null;
+  accepted_by_user_id: string | null;
+  invite_token: string;
+  created_by: string;
+  created_at: string;
+  resolved_at: string | null;
+}
+
 export interface ProfilePostState {
   posts: any[];
   totalposts: number;

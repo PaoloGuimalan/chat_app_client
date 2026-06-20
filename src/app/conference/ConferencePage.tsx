@@ -17,6 +17,7 @@ import { Icon } from "@/reusables/design";
 import envs from "@/reusables/hooks/env_configs";
 import {
   CreateConferenceRequest,
+  CreateRealmInviteRequest,
   LoginRequest,
   LogoutRequest,
   ThirdPartyAuthenticationRequest,
@@ -46,6 +47,7 @@ function ConferencePage() {
   const [meetingMode, setMeetingMode] = useState<"instant" | "scheduled">(
     "instant",
   );
+  const [inviteEmails, setInviteEmails] = useState("");
   const [scheduledFor, setScheduledFor] = useState("");
   const [isCreating, setIsCreating] = useState(false);
 
@@ -69,6 +71,15 @@ function ConferencePage() {
       return prev;
     });
   }, [meetingMode]);
+
+  const normalizeInviteEmails = (value: string) => {
+    const inviteCandidates = value
+      .split(/[\n,;]/g)
+      .map((email) => email.trim().toLowerCase())
+      .filter(Boolean);
+
+    return Array.from(new Set(inviteCandidates));
+  };
 
   const isLoggedIn = authentication.auth === true;
   const isAuthResolving = authentication.auth === null;
@@ -124,6 +135,15 @@ function ConferencePage() {
 
     setIsCreating(true);
     try {
+      const inviteEmailsList = normalizeInviteEmails(inviteEmails);
+      const invitePayload = inviteEmailsList.map((email) => ({
+        kind: "invite",
+        status: "pending",
+        target_email: email,
+        target_user_id: null,
+        accepted_by_user_id: null,
+      }));
+
       const response = await CreateConferenceRequest({
         groupName: meetingName.trim() || "Instant meeting",
         privacy: false,
@@ -131,11 +151,39 @@ function ConferencePage() {
         meetingMode,
         starts_at: meetingMode === "scheduled" ? scheduledFor || null : null,
         expires_at: null,
+        invitees: invitePayload,
       });
 
       const slug = response?.result?.slug;
+      const realmId = response?.result?.realm_id;
+      let createdInvites = response?.result?.invites ?? invitePayload;
+
+      if (realmId && inviteEmailsList.length > 0) {
+        const inviteRequests = inviteEmailsList.map((email) =>
+          CreateRealmInviteRequest({
+            realm_id: realmId,
+            target_email: email,
+            kind: "invite",
+          }),
+        );
+
+        const inviteResponses = await Promise.allSettled(inviteRequests);
+        const inviteResultPayload = inviteResponses
+          .filter((mp): mp is PromiseFulfilledResult<any> => mp.status === "fulfilled")
+          .map((mp) => mp.value?.result)
+          .filter(Boolean);
+
+        if (inviteResultPayload.length > 0) {
+          createdInvites = inviteResultPayload;
+        }
+      }
+
       if (slug) {
-        navigate(`/conference/${slug}`);
+        navigate(`/conference/${slug}`, {
+          state: {
+            invites: createdInvites,
+          },
+        });
       }
     } catch (err: any) {
       dispatch({
@@ -456,6 +504,24 @@ function ConferencePage() {
                       </div>
                     </div>
 
+                    <div className="tw-flex tw-flex-col tw-gap-[10px]">
+                      <label className="tw-text-[12px] tw-font-semibold tw-text-[var(--text-2)]">
+                        Invite emails
+                      </label>
+                      <div className="tw-flex tw-items-center tw-gap-[10px] tw-min-h-[42px] tw-rounded-[var(--r-md)] tw-border tw-border-[var(--border)] tw-bg-[var(--input)] tw-px-[12px] tw-py-[10px]">
+                        <IoMdMail size={16} color="var(--text-3)" />
+                        <input
+                          value={inviteEmails}
+                          onChange={(e) => setInviteEmails(e.target.value)}
+                          placeholder="friend@example.com, team@example.com"
+                          className="tw-flex-1 tw-bg-transparent tw-outline-none tw-border-none tw-text-[13px] tw-text-[var(--text)]"
+                        />
+                      </div>
+                      <span className="tw-text-[11px] tw-text-[var(--text-2)]">
+                        Optional. Separate multiple emails with commas, semicolons, or line breaks.
+                      </span>
+                    </div>
+
                     {meetingMode === "scheduled" && (
                       <div className="tw-flex tw-flex-col tw-gap-[10px]">
                         <label className="tw-text-[12px] tw-font-semibold tw-text-[var(--text-2)]">
@@ -545,4 +611,3 @@ function ConferencePage() {
 }
 
 export default ConferencePage;
-

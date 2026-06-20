@@ -1157,6 +1157,54 @@ const CreateConferenceRequest = async (params: any) => {
     });
 };
 
+const CreateRealmInviteRequest = async (params: any) => {
+  return await Axios.post(
+    `${USER_SERVICE_API}/api/realm/invites`,
+    params,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => response.data)
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const GetRealmInviteRequest = async (params: any) => {
+  return await Axios.get(`${USER_SERVICE_API}/api/realm/invites`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    params,
+  })
+    .then((response) => response.data)
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
+const UpdateRealmInviteRequest = async (params: any) => {
+  return await Axios.patch(
+    `${USER_SERVICE_API}/api/realm/invites`,
+    params,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => response.data)
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 const CallRequest = async (params: any) => {
   const payload = params;
   const encodedPayload = sign(payload, SECRET);
@@ -2834,6 +2882,9 @@ export {
   CreateGroupChatRequest,
   CreateServerRequest,
   CreateConferenceRequest,
+  CreateRealmInviteRequest,
+  GetRealmInviteRequest,
+  UpdateRealmInviteRequest,
   SeenMessageRequest,
   CallRequest,
   ActiveContactsRequest,
