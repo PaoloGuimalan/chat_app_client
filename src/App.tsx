@@ -15,6 +15,7 @@ import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER } from "./redux/types";
 import ProfileContainer from "./app/tabs/profile/ProfileContainer";
 import { AuthenticationInterface } from "./reusables/vars/interfaces";
 import Setup from "./app/auth/Setup";
+import ConferenceContainer from "./app/conference/ConferenceContainer";
 
 function App() {
   const authentication: AuthenticationInterface = useSelector(
@@ -99,6 +100,11 @@ function App() {
         })}
       </div>
       <Routes>
+        <Route path="/conference" element={<ConferenceContainer />} />
+        <Route
+          path="/conference/:slug"
+          element={<ConferenceContainer />}
+        />
         <Route
           path="/*"
           element={

@@ -1133,6 +1133,30 @@ const CreateServerRequest = (params: any, setisCreateGCToggle: any) => {
     });
 };
 
+const CreateConferenceRequest = async (params: any) => {
+  const payload = params;
+  const encodedPayload = sign(payload, SECRET);
+
+  return await Axios.post(
+    `${API}/u/createconference`,
+    {
+      token: encodedPayload,
+    },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      console.log(err);
+      throw new Error(err);
+    });
+};
+
 const CallRequest = async (params: any) => {
   const payload = params;
   const encodedPayload = sign(payload, SECRET);
@@ -2809,6 +2833,7 @@ export {
   ContactsListReusableRequest,
   CreateGroupChatRequest,
   CreateServerRequest,
+  CreateConferenceRequest,
   SeenMessageRequest,
   CallRequest,
   ActiveContactsRequest,
