@@ -236,7 +236,14 @@ function ConferenceRoom() {
     ? String(authentication.user.email).trim().toLowerCase()
     : "";
   const roomIsPrivate = Boolean(
-    roomData?.data.conversationInfo?.privacy ??
+    roomInfo?.groupdetails?.privacy ??
+    roomInfo?.conversationInfo?.privacy ??
+    roomInfo?.data?.conversationInfo?.privacy ??
+    roomInfo?.privacy ??
+    roomInfo?.is_private ??
+    roomData?.groupdetails?.privacy ??
+    roomData?.conversationInfo?.privacy ??
+    roomData?.data?.conversationInfo?.privacy ??
     roomData?.privacy ??
     roomData?.is_private ??
     false,
@@ -276,6 +283,8 @@ function ConferenceRoom() {
     !inviteMatchesUser &&
     inviteInfo?.status !== "accepted";
   const effectiveInviteInfo = inviteInfo ?? roomInviteForUser;
+  const effectiveInviteKind = String(effectiveInviteInfo?.kind ?? "");
+  const effectiveInviteIsRequest = effectiveInviteKind === "request";
   const effectiveInviteTargetEmail = effectiveInviteInfo?.target_email
     ? String(effectiveInviteInfo.target_email).trim().toLowerCase()
     : "";
@@ -283,7 +292,14 @@ function ConferenceRoom() {
     Boolean(effectiveInviteTargetEmail) &&
     effectiveInviteTargetEmail === normalizedUserEmail;
   const effectiveInvitePending =
-    effectiveInviteInfo?.status === "pending" && effectiveInviteMatchesUser;
+    effectiveInviteInfo?.status === "pending" &&
+    effectiveInviteMatchesUser &&
+    !effectiveInviteIsRequest;
+  const effectiveRequestPending =
+    roomIsPrivate &&
+    effectiveInviteInfo?.status === "pending" &&
+    effectiveInviteMatchesUser &&
+    effectiveInviteIsRequest;
   const effectiveInviteAccepted =
     effectiveInviteInfo?.status === "accepted" && effectiveInviteMatchesUser;
   const effectiveInviteBlocked =
@@ -363,11 +379,18 @@ function ConferenceRoom() {
       };
     }
 
-    if (roomIsPrivate && effectiveInvitePending) {
+    if (roomIsPrivate && effectiveRequestPending) {
       return {
         title: "Access request pending",
         description:
           "Your request is waiting for approval before you can join.",
+      };
+    }
+
+    if (roomIsPrivate && effectiveInvitePending) {
+      return {
+        title: "Invitation pending",
+        description: "Your invite is ready. Accept it to continue.",
       };
     }
 
@@ -390,6 +413,7 @@ function ConferenceRoom() {
     effectiveInviteBlocked,
     effectiveInviteInfo,
     effectiveInvitePending,
+    effectiveRequestPending,
     inviteAccepted,
     inviteBlocked,
     inviteInfo,
@@ -424,12 +448,19 @@ function ConferenceRoom() {
   };
 
   const requestAccess = async () => {
-    if (!roomData?.realm_id || !normalizedUserEmail) return;
+    const realmId =
+      roomData?.data.contactID ??
+      roomData?.groupdetails?.realm_id ??
+      roomData?.conversationInfo?.realm_id ??
+      roomData?.data?.conversationInfo?.realm_id ??
+      null;
+
+    if (!realmId || !normalizedUserEmail) return;
 
     setIsInviteUpdating(true);
     try {
       const response = await CreateRealmInviteRequest({
-        realm_id: roomData.realm_id,
+        realm_id: realmId,
         target_email: normalizedUserEmail,
         kind: "request",
       });
@@ -441,7 +472,15 @@ function ConferenceRoom() {
   };
 
   const canJoinNow = canProceedToConference;
-  const showRequestAccess = roomIsPrivate && !effectiveInviteInfo;
+  const showRequestPending =
+    effectiveRequestPending && !effectiveInviteAccepted;
+  const canRequestAccess =
+    roomIsPrivate &&
+    authentication.auth === true &&
+    !showRequestPending &&
+    !effectiveInviteAccepted &&
+    !effectiveInvitePending;
+  const showRequestAccess = canRequestAccess;
 
   if (isLoading) {
     return (
@@ -516,11 +555,13 @@ function ConferenceRoom() {
                     ? "This invite belongs to a different account."
                     : effectiveInvitePending
                       ? "You can accept this invitation before joining."
-                      : inviteRequiresSignIn
-                        ? "Sign in to verify the invite before joining."
-                        : roomIsPrivate && !effectiveInviteInfo
-                          ? "This conference is private. Please send a request to join."
-                          : "Set your camera and microphone before joining."}
+                      : showRequestPending
+                        ? "Your access request is waiting for approval."
+                        : inviteRequiresSignIn
+                          ? "Sign in to verify the invite before joining."
+                          : roomIsPrivate && !effectiveInviteInfo
+                            ? "This conference is private. Please send a request to join."
+                            : "Set your camera and microphone before joining."}
                 </span>
               </div>
 
@@ -638,7 +679,7 @@ function ConferenceRoom() {
                     return;
                   }
 
-                  if (showRequestAccess) {
+                  if (roomIsPrivate && authentication.auth === true) {
                     await requestAccess();
                     return;
                   }
@@ -650,7 +691,8 @@ function ConferenceRoom() {
                 disabled={
                   (!canJoinNow &&
                     !effectiveInvitePending &&
-                    !showRequestAccess) ||
+                    !showRequestAccess &&
+                    !(roomIsPrivate && authentication.auth === true)) ||
                   isInviteUpdating ||
                   inviteRequiresSignIn ||
                   (effectiveInviteBlocked && !meetingWindowState.canJoin)
@@ -670,6 +712,8 @@ function ConferenceRoom() {
                   ) : (
                     "Accept invitation"
                   )
+                ) : showRequestPending ? (
+                  "Request sent"
                 ) : showRequestAccess ? (
                   "Request access"
                 ) : meetingWindowState.canJoin ? (
