@@ -8,9 +8,12 @@ import {
 } from "@/reusables/vars/interfaces";
 import { useDispatch, useSelector } from "react-redux";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { IoArrowBack } from "react-icons/io5";
+import { IoArrowBack, IoClose } from "react-icons/io5";
 import { TfiThought } from "react-icons/tfi";
+import { BsThreeDots } from "react-icons/bs";
+import { MdBlock, MdReport } from "react-icons/md";
 import { useEffect, useMemo, useRef, useState } from "react";
+import Modal from "@/app/reusables/Modal";
 import {
   AcceptContactRequest,
   ContactRequest,
@@ -81,6 +84,24 @@ function Profile({
   const [reportReason, setreportReason] = useState<string>("spam");
   const [reportDescription, setreportDescription] = useState<string>("");
   const [isReportSubmitting, setisReportSubmitting] = useState<boolean>(false);
+  const [isOptionsToggled, setisOptionsToggled] = useState<boolean>(false);
+  const optionsWrapperRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        optionsWrapperRef.current &&
+        !optionsWrapperRef.current.contains(event.target as Node)
+      ) {
+        setisOptionsToggled(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   const reportReasons: { value: string; label: string }[] = [
     { value: "spam", label: "Spam" },
@@ -619,77 +640,128 @@ function Profile({
               )}
             {authentication.auth &&
               authentication.user.username !== params.userID && (
-                <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-flex tw-flex-row tw-gap-[6px] tw-items-center tw-flex-wrap">
+                <div
+                  ref={optionsWrapperRef}
+                  className="tw-relative tw-flex tw-items-center sm:tw-pb-[0px] tw-pb-[20px]"
+                >
                   <button
-                    disabled={isBlockLoading}
-                    onClick={blockUserProcess}
-                    className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    onClick={() => {
+                      setisOptionsToggled((prev) => !prev);
+                    }}
+                    className="tw-ml-[0px] sm:tw-ml-[10px] tw-w-[32px] tw-h-[32px] tw-flex tw-items-center tw-justify-center tw-rounded-full tw-border-none tw-bg-transparent hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer"
+                    aria-label="More options"
                   >
-                    {isBlockLoading
-                      ? "Blocking…"
-                      : confirmBlock
-                        ? "Confirm block"
-                        : "Block"}
+                    <BsThreeDots
+                      style={{ fontSize: "17px", color: "var(--text)" }}
+                    />
                   </button>
-                  {confirmBlock && !isBlockLoading && (
-                    <button
-                      onClick={() => setconfirmBlock(false)}
-                      className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
-                    >
-                      Cancel
-                    </button>
+                  {isOptionsToggled && (
+                    <div className="cl-post-options-menu tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[160px] tw-absolute tw-right-[0px] tw-top-[36px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md">
+                      <button
+                        disabled={isBlockLoading}
+                        onClick={() => {
+                          blockUserProcess();
+                        }}
+                        className="cl-post-options-button cl-post-options-button--danger tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                      >
+                        <MdBlock
+                          size={15}
+                          style={{ marginLeft: "-1px", marginRight: "4px" }}
+                        />
+                        <span>
+                          {isBlockLoading
+                            ? "Blocking…"
+                            : confirmBlock
+                              ? "Confirm block"
+                              : "Block"}
+                        </span>
+                      </button>
+                      {confirmBlock && !isBlockLoading && (
+                        <button
+                          onClick={() => setconfirmBlock(false)}
+                          className="cl-post-options-button tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                        >
+                          <IoClose
+                            size={15}
+                            style={{ marginLeft: "-1px", marginRight: "4px" }}
+                          />
+                          <span>Cancel block</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={() => {
+                          setisOptionsToggled(false);
+                          setisReportOpen(true);
+                        }}
+                        className="cl-post-options-button tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                      >
+                        <MdReport
+                          size={15}
+                          style={{ marginLeft: "-1px", marginRight: "4px" }}
+                        />
+                        <span>Report</span>
+                      </button>
+                    </div>
                   )}
-                  <button
-                    onClick={() => setisReportOpen((prev) => !prev)}
-                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
-                  >
-                    Report
-                  </button>
                 </div>
               )}
           </div>
         </div>
-        {isReportOpen && (
-          <div className="cl-profile-surface tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-max-w-[calc(1200px-80px)] tw-p-[18px] tw-flex tw-flex-col tw-gap-[10px] tw-items-start">
-            <span className="tw-text-[14px] tw-font-semibold">
-              Report this account
-            </span>
-            <select
-              value={reportReason}
-              onChange={(e) => setreportReason(e.target.value)}
-              className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] tw-text-[13px]"
-            >
-              {reportReasons.map((r) => (
-                <option key={r.value} value={r.value}>
-                  {r.label}
-                </option>
-              ))}
-            </select>
-            <textarea
-              value={reportDescription}
-              onChange={(e) => setreportDescription(e.target.value)}
-              placeholder="Additional details (optional)"
-              rows={3}
-              className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] tw-text-[13px] tw-resize-none"
-            />
-            <div className="tw-flex tw-gap-[6px]">
-              <button
-                disabled={isReportSubmitting}
-                onClick={submitReportProcess}
-                className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
-              >
-                {isReportSubmitting ? "Submitting…" : "Submit report"}
-              </button>
-              <button
-                onClick={() => setisReportOpen(false)}
-                className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
-              >
-                Cancel
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+      {isReportOpen && (
+        <Modal
+          component={
+            <div className="cl-profile-surface tw-w-[calc(100%-24px)] tw-max-w-[460px] tw-p-[18px] tw-flex tw-flex-col tw-gap-[10px] tw-items-start tw-rounded-[12px]">
+              <div className="tw-w-full tw-flex tw-items-center tw-gap-[8px]">
+                <MdReport style={{ fontSize: "20px", color: "var(--text)" }} />
+                <span className="tw-flex-1 tw-text-[14px] tw-font-semibold">
+                  Report this account
+                </span>
+                <button
+                  onClick={() => setisReportOpen(false)}
+                  aria-label="Close"
+                  className="tw-w-[28px] tw-h-[28px] tw-flex tw-items-center tw-justify-center tw-rounded-full tw-border-none tw-bg-transparent hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer"
+                >
+                  <IoClose style={{ fontSize: "18px", color: "var(--text)" }} />
+                </button>
+              </div>
+              <select
+                value={reportReason}
+                onChange={(e) => setreportReason(e.target.value)}
+                className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] tw-text-[13px]"
+              >
+                {reportReasons.map((r) => (
+                  <option key={r.value} value={r.value}>
+                    {r.label}
+                  </option>
+                ))}
+              </select>
+              <textarea
+                value={reportDescription}
+                onChange={(e) => setreportDescription(e.target.value)}
+                placeholder="Additional details (optional)"
+                rows={4}
+                className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] tw-text-[13px] tw-resize-none"
+              />
+              <div className="tw-w-full tw-flex tw-gap-[6px] tw-justify-end">
+                <button
+                  onClick={() => setisReportOpen(false)}
+                  className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                >
+                  Cancel
+                </button>
+                <button
+                  disabled={isReportSubmitting}
+                  onClick={submitReportProcess}
+                  className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                >
+                  {isReportSubmitting ? "Submitting…" : "Submit report"}
+                </button>
+              </div>
+            </div>
+          }
+        />
+      )}
       <div className="cl-profile-page__content tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[6px] tw-items-stretch md:tw-items-start">
         <div className="cl-profile-page__sidebar tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[8px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
           <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex">

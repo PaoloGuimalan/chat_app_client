@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect, useRef } from "react";
@@ -5,7 +6,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ContactsListInitRequest,
-  DeclineContactRequest,
+  // DeclineContactRequest,
 } from "../../../reusables/hooks/requests";
 import {
   SET_CONVERSATION_SETUP,
@@ -22,7 +23,14 @@ import {
 import { PaginationProp } from "@/reusables/vars/props";
 import { AuthenticationInterface, IContact } from "@/reusables/vars/interfaces";
 import ContactItemLoader from "@/app/reusables/loaders/ContactItemLoader";
-import { Avatar, Badge, Card, Icon, IconBtn, useTheme } from "@/reusables/design";
+import {
+  Avatar,
+  Badge,
+  Card,
+  Icon,
+  IconBtn,
+  useTheme,
+} from "@/reusables/design";
 
 interface ContactRowData {
   id: string;
@@ -50,13 +58,13 @@ function Contacts() {
     (state: any) => state.screensizelistener,
   );
   const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
-  const alerts = useSelector((state: any) => state.alerts);
+  // const alerts = useSelector((state: any) => state.alerts);
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const { theme } = useTheme();
 
   const [isLoading, setisLoading] = useState(true);
-  const [isDisabledByRequest, setisDisabledByRequest] = useState(false);
+  // const [_isDisabledByRequest, setisDisabledByRequest] = useState(false);
 
   const [page, setpage] = useState(1);
   const [range] = useState(50);
@@ -72,15 +80,15 @@ function Contacts() {
     });
   };
 
-  const declineRequestProcess = (connection_id: any, action: string) => {
-    setisDisabledByRequest(true);
-    DeclineContactRequest(
-      { connection_id, action },
-      dispatch,
-      alerts,
-      setisDisabledByRequest,
-    );
-  };
+  // const declineRequestProcess = (connection_id: any, action: string) => {
+  //   setisDisabledByRequest(true);
+  //   DeclineContactRequest(
+  //     { connection_id, action },
+  //     dispatch,
+  //     alerts,
+  //     setisDisabledByRequest,
+  //   );
+  // };
 
   const navigateToConversation = (
     type: any,
@@ -265,10 +273,16 @@ function Contacts() {
                       <span className="cl-contact-row__name-text">
                         {fullName}
                       </span>
-                      {r.isBadged && <Icon n="verified" s={15} c="var(--brand)" />}
+                      {r.isBadged && (
+                        <Icon n="verified" s={15} c="var(--brand)" />
+                      )}
                     </button>
                     <div className="cl-contact-row__status cl-contact-row__status--active">
-                      {online ? "Active now" : sessionStatus ? sessionStatus : null}
+                      {online
+                        ? "Active now"
+                        : sessionStatus
+                          ? sessionStatus
+                          : null}
                     </div>
                   </div>
                   <div className="cl-contact-row__actions">
@@ -287,7 +301,7 @@ function Contacts() {
                         background: "var(--surface-2)",
                       }}
                     />
-                    <IconBtn
+                    {/* <IconBtn
                       n="person_remove"
                       title="Remove contact"
                       onClick={() => {
@@ -298,14 +312,17 @@ function Contacts() {
                         color: "var(--pink)",
                         background: "var(--surface-2)",
                       }}
-                    />
+                    /> */}
                   </div>
                 </div>
               );
             })}
             {contacts.next && (
               <div ref={divlazyloaderRef} className="cl-contacts-page__loader">
-                <AiOutlineLoading3Quarters className="cl-spin" style={{ fontSize: 22 }} />
+                <AiOutlineLoading3Quarters
+                  className="cl-spin"
+                  style={{ fontSize: 22 }}
+                />
               </div>
             )}
           </div>
@@ -316,3 +333,4 @@ function Contacts() {
 }
 
 export default Contacts;
+
