@@ -78,6 +78,7 @@ function Setup() {
   const [gender, setgender] = useState<"" | Gender>("");
   const [policyAgreed, setpolicyAgreed] = useState<boolean>(false);
   const [termsUrl, settermsUrl] = useState<string>("/terms.html");
+  const [privacyUrl, setprivacyUrl] = useState<string>("/privacy.html");
 
   const { theme, toggleTheme } = useTheme();
 
@@ -86,6 +87,10 @@ function Setup() {
       const terms = docs.find((doc) => doc.document_type === "terms");
       if (terms) {
         settermsUrl(terms.document_url);
+      }
+      const privacy = docs.find((doc) => doc.document_type === "privacy");
+      if (privacy) {
+        setprivacyUrl(privacy.document_url);
       }
     });
   }, []);
@@ -206,7 +211,7 @@ function Setup() {
           alerts: {
             id: alerts.length,
             type: "warning",
-            content: "Please agree to the Terms and Conditions",
+            content: "Please agree to the Terms and Conditions and Privacy Policy",
           },
         },
       });
@@ -215,10 +220,21 @@ function Setup() {
     }
 
     if (requiredFields.includes("birthdate") || requiredFields.includes("gender")) {
-      await CompleteProfileRequest(finalPayload, dispatch, alerts, setisWaitingRequest);
+      const profileUpdateSucceeded = await CompleteProfileRequest(
+        finalPayload,
+        dispatch,
+        alerts,
+        setisWaitingRequest,
+      );
+      if (!profileUpdateSucceeded) {
+        return;
+      }
     }
 
     if (requiredFields.includes("policy")) {
+      if (!localStorage.getItem("authtoken")) {
+        return;
+      }
       await AcceptPoliciesRequest(dispatch, alerts, setisWaitingRequest);
     }
   };
@@ -433,6 +449,16 @@ function Setup() {
                   style={{ color: "var(--brand)", fontWeight: 600 }}
                 >
                   Terms and Conditions
+                </a>{" "}
+                and{" "}
+                <a
+                  href={privacyUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ color: "var(--brand)", fontWeight: 600 }}
+                >
+                  Privacy Policy
                 </a>
               </label>
             )}

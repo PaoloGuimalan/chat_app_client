@@ -2783,6 +2783,7 @@ const CompleteProfileRequest = async (
         });
       }
       setisWaitingRequest(false);
+      return response.data.status as boolean;
     })
     .catch((err) => {
       dispatch({
@@ -2796,6 +2797,7 @@ const CompleteProfileRequest = async (
         },
       });
       setisWaitingRequest(false);
+      return false;
     });
 };
 

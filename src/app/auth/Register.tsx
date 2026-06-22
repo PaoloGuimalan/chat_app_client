@@ -76,12 +76,17 @@ function Register() {
   const [agreed, setagreed] = useState(false);
   const [isWaitingRequest, setisWaitingRequest] = useState(false);
   const [termsUrl, settermsUrl] = useState<string>("/terms.html");
+  const [privacyUrl, setprivacyUrl] = useState<string>("/privacy.html");
 
   useEffect(() => {
     GetCurrentPoliciesRequest().then((docs) => {
       const terms = docs.find((doc) => doc.document_type === "terms");
       if (terms) {
         settermsUrl(terms.document_url);
+      }
+      const privacy = docs.find((doc) => doc.document_type === "privacy");
+      if (privacy) {
+        setprivacyUrl(privacy.document_url);
       }
     });
   }, []);
@@ -138,7 +143,7 @@ function Register() {
           alerts: {
             id: alerts.length,
             type: "warning",
-            content: "Please agree with the Terms and Conditions.",
+            content: "Please agree with the Terms and Conditions and Privacy Policy.",
           },
         },
       });
@@ -394,6 +399,16 @@ function Register() {
               style={{ color: "var(--brand)", fontWeight: 600 }}
             >
               Terms and Conditions
+            </a>{" "}
+            and{" "}
+            <a
+              href={privacyUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{ color: "var(--brand)", fontWeight: 600 }}
+            >
+              Privacy Policy
             </a>
           </label>
 
