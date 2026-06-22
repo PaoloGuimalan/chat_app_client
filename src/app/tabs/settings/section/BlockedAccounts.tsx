@@ -21,9 +21,7 @@ function BlockedAccounts() {
   const dispatch = useDispatch();
 
   const [isLoading, setisLoading] = useState<boolean>(true);
-  const [blockedAccounts, setblockedAccounts] = useState<IBlockedAccount[]>(
-    [],
-  );
+  const [blockedAccounts, setblockedAccounts] = useState<IBlockedAccount[]>([]);
   const [unblockingId, setunblockingId] = useState<string | null>(null);
 
   const loadBlockedAccounts = () => {
@@ -83,10 +81,10 @@ function BlockedAccounts() {
                   size={36}
                 />
                 <div className="tw-flex tw-flex-col tw-flex-1 tw-min-w-0">
-                  <span className="tw-text-[13px] tw-font-semibold">
+                  <span className="tw-text-[13px] tw-text-left tw-font-semibold">
                     {acc.first_name} {acc.last_name}
                   </span>
-                  <span className="tw-text-[12px] tw-text-[#6b6b6d]">
+                  <span className="tw-text-[12px] tw-text-left tw-text-[#6b6b6d]">
                     @{acc.username}
                   </span>
                 </div>
