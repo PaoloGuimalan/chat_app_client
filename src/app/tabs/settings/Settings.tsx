@@ -80,7 +80,7 @@ function Settings({ isModal }: { isModal: boolean }) {
           },
           {
             key: "data-privacy",
-            icon: "shield_lock",
+            icon: "shield",
             name: "Data & Privacy",
             description:
               "Export a copy of your data or permanently delete your account.",
