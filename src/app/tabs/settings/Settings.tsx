@@ -8,6 +8,8 @@ import ArchivedMessages from "./section/ArchivedMessages";
 import { Card, Icon, IconBtn, useTheme } from "@/reusables/design";
 import PersonalInformation from "./section/PersonalInformation";
 import Credentials from "./section/Credentials";
+import DataPrivacy from "./section/DataPrivacy";
+import BlockedAccounts from "./section/BlockedAccounts";
 
 interface SettingsItem {
   key: string;
@@ -75,6 +77,23 @@ function Settings({ isModal }: { isModal: boolean }) {
             description: "Configure your account privacy settings.",
             isDisabled: true,
             component: null,
+          },
+          {
+            key: "data-privacy",
+            icon: "shield_lock",
+            name: "Data & Privacy",
+            description:
+              "Export a copy of your data or permanently delete your account.",
+            isDisabled: false,
+            component: <DataPrivacy />,
+          },
+          {
+            key: "blocked-accounts",
+            icon: "block",
+            name: "Blocked Accounts",
+            description: "Manage accounts you've blocked.",
+            isDisabled: false,
+            component: <BlockedAccounts />,
           },
         ],
       },

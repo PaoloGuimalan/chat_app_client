@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { CSSProperties, useState } from "react";
+import { CSSProperties, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getDaysInMonth, monthList, years } from "../../reusables/vars/lists";
-import { RegisterRequest } from "../../reusables/hooks/requests";
+import {
+  RegisterRequest,
+  GetCurrentPoliciesRequest,
+} from "../../reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
 import { checkIfValid } from "../../reusables/hooks/validatevariables";
 import { SET_ALERTS } from "../../redux/types";
@@ -72,6 +75,16 @@ function Register() {
   const [password, setpassword] = useState("");
   const [agreed, setagreed] = useState(false);
   const [isWaitingRequest, setisWaitingRequest] = useState(false);
+  const [termsUrl, settermsUrl] = useState<string>("/terms.html");
+
+  useEffect(() => {
+    GetCurrentPoliciesRequest().then((docs) => {
+      const terms = docs.find((doc) => doc.document_type === "terms");
+      if (terms) {
+        settermsUrl(terms.document_url);
+      }
+    });
+  }, []);
 
   const processregister = () => {
     setisWaitingRequest(true);
@@ -99,6 +112,7 @@ function Register() {
             gender,
             email,
             password,
+            agreedToTerms: agreed,
           },
           dispatch,
           alerts,
@@ -371,7 +385,16 @@ function Register() {
                 height: 15,
               }}
             />
-            I agree to the Terms and Conditions
+            I agree to the{" "}
+            <a
+              href={termsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              onClick={(e) => e.stopPropagation()}
+              style={{ color: "var(--brand)", fontWeight: 600 }}
+            >
+              Terms and Conditions
+            </a>
           </label>
 
           <Btn

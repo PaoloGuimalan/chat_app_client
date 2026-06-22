@@ -27,6 +27,7 @@ export const authenticationstate: AuthenticationInterface = {
     isActivated: null,
     isVerified: null,
     isComplete: false,
+    pendingConsents: [],
   },
 };
 

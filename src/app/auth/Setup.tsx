@@ -3,6 +3,8 @@ import { SET_ALERTS } from "@/redux/types";
 import {
   LogoutRequest,
   CompleteProfileRequest,
+  AcceptPoliciesRequest,
+  GetCurrentPoliciesRequest,
 } from "@/reusables/hooks/requests";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { getDaysInMonth, monthList, years } from "@/reusables/vars/lists";
@@ -74,13 +76,30 @@ function Setup() {
   const [day, setday] = useState<string>("");
   const [year, setyear] = useState<string>("");
   const [gender, setgender] = useState<"" | Gender>("");
+  const [policyAgreed, setpolicyAgreed] = useState<boolean>(false);
+  const [termsUrl, settermsUrl] = useState<string>("/terms.html");
 
   const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    GetCurrentPoliciesRequest().then((docs) => {
+      const terms = docs.find((doc) => doc.document_type === "terms");
+      if (terms) {
+        settermsUrl(terms.document_url);
+      }
+    });
+  }, []);
 
   useEffect(() => {
     const requiredKeys = ["birthdate", "gender"];
     if (authentication.user) {
       const toFillKeys = getMissingFields(authentication.user, requiredKeys);
+      if (
+        authentication.user.pendingConsents &&
+        authentication.user.pendingConsents.length > 0
+      ) {
+        toFillKeys.push("policy");
+      }
       setrequiredFields(toFillKeys);
     }
   }, [authentication.user]);
@@ -140,7 +159,7 @@ function Setup() {
     LogoutRequest(dispatch);
   };
 
-  const completeProfileProcess = () => {
+  const completeProfileProcess = async () => {
     setisWaitingRequest(true);
     const finalPayload: any = {};
 
@@ -180,7 +199,28 @@ function Setup() {
       finalPayload["gender"] = (gender as string).toLowerCase();
     }
 
-    CompleteProfileRequest(finalPayload, dispatch, alerts, setisWaitingRequest);
+    if (requiredFields.includes("policy") && !policyAgreed) {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: alerts.length,
+            type: "warning",
+            content: "Please agree to the Terms and Conditions",
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return;
+    }
+
+    if (requiredFields.includes("birthdate") || requiredFields.includes("gender")) {
+      await CompleteProfileRequest(finalPayload, dispatch, alerts, setisWaitingRequest);
+    }
+
+    if (requiredFields.includes("policy")) {
+      await AcceptPoliciesRequest(dispatch, alerts, setisWaitingRequest);
+    }
   };
 
   const isMobile =
@@ -361,6 +401,40 @@ function Setup() {
                   ))}
                 </div>
               </div>
+            )}
+
+            {requiredFields.includes("policy") && (
+              <label
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  fontSize: 13,
+                  color: "var(--text-2)",
+                  cursor: "pointer",
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={policyAgreed}
+                  onChange={(e) => setpolicyAgreed(e.target.checked)}
+                  style={{
+                    accentColor: "var(--brand)",
+                    width: 15,
+                    height: 15,
+                  }}
+                />
+                I agree to the{" "}
+                <a
+                  href={termsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ color: "var(--brand)", fontWeight: 600 }}
+                >
+                  Terms and Conditions
+                </a>
+              </label>
             )}
           </div>
 

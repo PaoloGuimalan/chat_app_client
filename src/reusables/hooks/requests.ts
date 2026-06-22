@@ -11,6 +11,7 @@ import {
   SET_NOTIFICATIONS_LIST_OVERRIDE,
 } from "../../redux/types";
 import { authenticationstate } from "../../redux/actions/states";
+import store from "../../redux/store";
 import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import { Dispatch } from "react";
@@ -60,6 +61,28 @@ Axios.interceptors.request.use(async (config) => {
   }
 });
 
+const FORCE_LOGOUT_ERROR_CODES = [
+  "PROFILE_INCOMPLETE",
+  "CONSENT_REQUIRED",
+  "ACCOUNT_UNDERAGE",
+  "ACCOUNT_INACTIVE",
+];
+
+Axios.interceptors.response.use(
+  (response) => response,
+  (error) => {
+    const detail = error?.response?.data?.detail;
+    if (
+      error?.response?.status === 403 &&
+      typeof detail === "string" &&
+      FORCE_LOGOUT_ERROR_CODES.some((code) => detail.startsWith(code))
+    ) {
+      LogoutRequest(store.dispatch);
+    }
+    return Promise.reject(error);
+  },
+);
+
 const AuthCheck = (dispatch: any) => {
   Axios.get(`${API}/auth/jwtchecker`, {
     headers: {
@@ -90,6 +113,7 @@ const AuthCheck = (dispatch: any) => {
                   isActivated: userData.isActivated,
                   isVerified: userData.isVerified,
                   isComplete: userData.isComplete,
+                  pendingConsents: userData.pending_consents || [],
                   profile: userData.profile,
                   coverphoto: userData.coverphoto || "",
                 },
@@ -161,6 +185,7 @@ const LoginRequest = (
                 isActivated: userData.isActivated,
                 isVerified: userData.isVerified,
                 isComplete: userData.isComplete,
+                pendingConsents: userData.pendingConsents,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },
@@ -244,6 +269,7 @@ const ThirdPartyAuthenticationRequest = (
                 isActivated: userData.isActivated,
                 isVerified: userData.isVerified,
                 isComplete: userData.isComplete,
+                pendingConsents: userData.pendingConsents,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },
@@ -306,6 +332,9 @@ const RegisterRequest = (
       if (response.data.status) {
         localStorage.setItem("authtoken", response.data.authtoken);
 
+        const userDataRaw: any = jwt_decode(response.data.usertoken);
+        const userData: ConvertedResponse = convertLoginResponse(userDataRaw);
+
         dispatch({
           type: SET_AUTHENTICATION,
           payload: {
@@ -322,7 +351,8 @@ const RegisterRequest = (
                 email: payload.email,
                 isActivated: true,
                 isVerified: false,
-                isComplete: true,
+                isComplete: userData.isComplete,
+                pendingConsents: userData.pendingConsents,
               },
             },
           },
@@ -2703,7 +2733,7 @@ const CompleteProfileRequest = async (
   setisWaitingRequest: any,
 ) => {
   const payload = params;
-  Axios.put(`${USER_SERVICE_API}/api/user/me`, payload, {
+  return Axios.put(`${USER_SERVICE_API}/api/user/me`, payload, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken") || "",
     },
@@ -2733,6 +2763,7 @@ const CompleteProfileRequest = async (
                 isActivated: userData.isActivated,
                 isVerified: userData.isVerified,
                 isComplete: userData.isComplete,
+                pendingConsents: userData.pendingConsents,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },
@@ -2765,6 +2796,326 @@ const CompleteProfileRequest = async (
         },
       });
       setisWaitingRequest(false);
+    });
+};
+
+const GetCurrentPoliciesRequest = async () => {
+  return Axios.get(`${USER_SERVICE_API}/api/user/policies`).then((response) =>
+    response.data.status
+      ? (response.data.data as {
+          document_type: string;
+          version: string;
+          document_url: string;
+          effective_date: string;
+        }[])
+      : [],
+  );
+};
+
+const AcceptPoliciesRequest = async (
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  return Axios.post(
+    `${USER_SERVICE_API}/api/user/policies/accept`,
+    {},
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken") || "",
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        const userData: ConvertedResponse = convertLoginResponse(
+          response.data.data,
+        );
+
+        dispatch({
+          type: SET_AUTHENTICATION,
+          payload: {
+            authentication: {
+              auth: true,
+              user: {
+                userID: userData.id,
+                username: userData.username,
+                fullName: {
+                  firstName: userData.fullname.firstName,
+                  middleName: userData.fullname.middleName,
+                  lastName: userData.fullname.lastName,
+                },
+                birthdate: userData.birthdate,
+                gender: userData.gender,
+                email: userData.email,
+                isActivated: userData.isActivated,
+                isVerified: userData.isVerified,
+                isComplete: userData.isComplete,
+                pendingConsents: userData.pendingConsents,
+                profile: userData.profile,
+                coverphoto: userData.coverphoto || "",
+              },
+            },
+          },
+        });
+      } else {
+        dispatch({
+          type: SET_ALERTS,
+          payload: {
+            alerts: {
+              id: currentAlertState.length,
+              type: "warning",
+              content: response.data.message,
+            },
+          },
+        });
+      }
+      setisWaitingRequest(false);
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+    });
+};
+
+const ExportAccountDataRequest = async (
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  return Axios.get(`${USER_SERVICE_API}/api/user/me/export`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken") || "",
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        const blob = new Blob([JSON.stringify(response.data.data, null, 2)], {
+          type: "application/json",
+        });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+        link.href = url;
+        link.download = `chatterloop-data-export-${Date.now()}.json`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } else {
+        dispatch({
+          type: SET_ALERTS,
+          payload: {
+            alerts: {
+              id: currentAlertState.length,
+              type: "warning",
+              content: response.data.message,
+            },
+          },
+        });
+      }
+      setisWaitingRequest(false);
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+    });
+};
+
+const DeleteAccountRequest = async (
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  return Axios.delete(`${USER_SERVICE_API}/api/user/me`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken") || "",
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        LogoutRequest(dispatch);
+      } else {
+        dispatch({
+          type: SET_ALERTS,
+          payload: {
+            alerts: {
+              id: currentAlertState.length,
+              type: "warning",
+              content: response.data.message,
+            },
+          },
+        });
+      }
+      setisWaitingRequest(false);
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+    });
+};
+
+const BlockUserRequest = async (
+  userId: string,
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  return Axios.post(
+    `${USER_SERVICE_API}/api/user/blocks`,
+    { user_id: userId },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken") || "",
+      },
+    },
+  )
+    .then((response) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: response.data.status ? "success" : "warning",
+            content: response.data.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return response.data.status as boolean;
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return false;
+    });
+};
+
+const UnblockUserRequest = async (
+  userId: string,
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  return Axios.delete(`${USER_SERVICE_API}/api/user/blocks`, {
+    data: { user_id: userId },
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken") || "",
+    },
+  })
+    .then((response) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: response.data.status ? "success" : "warning",
+            content: response.data.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return response.data.status as boolean;
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return false;
+    });
+};
+
+const ListBlockedUsersRequest = async () => {
+  return Axios.get(`${USER_SERVICE_API}/api/user/blocks`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken") || "",
+    },
+  }).then((response) => (response.data.status ? response.data.data : []));
+};
+
+const ReportUserRequest = async (
+  params: { target_type: string; target_id: string; reason: string; description?: string },
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  return Axios.post(`${USER_SERVICE_API}/api/user/reports`, params, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken") || "",
+    },
+  })
+    .then((response) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: response.data.status ? "success" : "warning",
+            content: response.data.status
+              ? "Report submitted. Thank you for letting us know."
+              : response.data.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return response.data.status as boolean;
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return false;
     });
 };
 
@@ -2816,6 +3167,7 @@ const UpdateProfileInfoRequest = async (
                 isActivated: userData.isActivated,
                 isVerified: userData.isVerified,
                 isComplete: userData.isComplete,
+                pendingConsents: userData.pendingConsents,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },
@@ -2947,5 +3299,13 @@ export {
   GetEncodingsRequest,
   ReconnectStaleCallerSessionRequest,
   CompleteProfileRequest,
+  GetCurrentPoliciesRequest,
+  AcceptPoliciesRequest,
+  ExportAccountDataRequest,
+  DeleteAccountRequest,
+  BlockUserRequest,
+  UnblockUserRequest,
+  ListBlockedUsersRequest,
+  ReportUserRequest,
   UpdateProfileInfoRequest,
 };

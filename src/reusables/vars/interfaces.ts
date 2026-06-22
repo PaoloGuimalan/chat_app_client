@@ -23,6 +23,7 @@ export interface AuthenticationInterface {
     isActivated: boolean | null;
     isVerified: boolean | null;
     isComplete: boolean;
+    pendingConsents: { document_type: string; version: string }[];
     profile: string;
     coverphoto: string;
   };

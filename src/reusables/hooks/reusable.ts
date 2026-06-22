@@ -233,6 +233,7 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
     isActivated: response.is_active,
     isVerified: response.is_verified,
     isComplete: response.is_complete,
+    pendingConsents: response.pending_consents || [],
     __v: 0,
     iat: response.iat,
     exp: response.exp,
