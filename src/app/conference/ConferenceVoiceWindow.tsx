@@ -115,6 +115,15 @@ function ConferenceVoiceWindow({
   >(new Map());
   const [roleMenuFor, setRoleMenuFor] = useState<string | null>(null);
   const [updatingRoleFor, setUpdatingRoleFor] = useState<string | null>(null);
+  // Every participant fetches the member list (for role labels), so we can
+  // also derive "am I an admin" from it. This makes a freshly-promoted user
+  // gain the management UI the moment the refreshed list arrives, regardless
+  // of the room-info payload shape.
+  const selfRoleFromList = memberRoleMap.get(
+    authentication.user.username,
+  )?.role;
+  const effectiveCanManage =
+    Boolean(canManageRequests) || selfRoleFromList === "admin";
   const hasLeftRef = useRef(false);
   const hasJoinedRef = useRef(false);
   const isConsumingRef = useRef(false);
@@ -206,7 +215,7 @@ function ConferenceVoiceWindow({
 
   const fetchPendingRequests = useCallback(
     (showLoader = false) => {
-      if (!realmId || !canManageRequests) {
+      if (!realmId || !effectiveCanManage) {
         return;
       }
       if (showLoader) {
@@ -230,7 +239,7 @@ function ConferenceVoiceWindow({
           }
         });
     },
-    [realmId, canManageRequests],
+    [realmId, effectiveCanManage],
   );
 
   const resolveRequest = useCallback(
@@ -260,20 +269,21 @@ function ConferenceVoiceWindow({
   // Load the current pending requests once for hosts/admins; realtime
   // additions afterwards arrive via SSE (see the listener below).
   useEffect(() => {
-    if (!canManageRequests || !realmId) {
+    if (!effectiveCanManage || !realmId) {
       return;
     }
     fetchPendingRequests(true);
-  }, [canManageRequests, realmId]);
+  }, [effectiveCanManage, realmId]);
 
-  // Realtime: a new join request for this room pushed over SSE.
+  // Realtime: the pending-requests list changed; refetch the full list.
+  // The SSE is only a signal — it carries no request data.
   useEffect(() => {
-    if (!canManageRequests) {
+    if (!effectiveCanManage) {
       return;
     }
 
     const handler = (event: any) => {
-      if (event.detail?.event !== "conference_request") {
+      if (event.detail?.event !== "conference_requests_changed") {
         return;
       }
 
@@ -292,23 +302,14 @@ function ConferenceVoiceWindow({
         return;
       }
 
-      const invite = payload?.invite;
-      if (!invite || (invite.status && invite.status !== "pending")) {
-        return;
-      }
-
-      setPendingRequests((prev) =>
-        prev.some((req) => req.invite_token === invite.invite_token)
-          ? prev
-          : [invite, ...prev],
-      );
+      fetchPendingRequests();
     };
 
     document.addEventListener("room-events-relay", handler);
     return () => {
       document.removeEventListener("room-events-relay", handler);
     };
-  }, [canManageRequests, realmId]);
+  }, [effectiveCanManage, realmId, fetchPendingRequests]);
 
   const fetchMemberRoles = useCallback(() => {
     if (!realmId) {
@@ -343,13 +344,14 @@ function ConferenceVoiceWindow({
       });
   }, [realmId]);
 
-  // Hosts/admins need member roles to render and manage promote/demote.
+  // Every participant loads the member list so admin labels render for all,
+  // and so a promoted user can derive their own new admin status from it.
   useEffect(() => {
-    if (!canManageRequests || !realmId) {
+    if (!realmId) {
       return;
     }
     fetchMemberRoles();
-  }, [canManageRequests, realmId]);
+  }, [realmId]);
 
   const changeMemberRole = useCallback(
     async (username: string, nextRole: "admin" | "member") => {
@@ -435,10 +437,12 @@ function ConferenceVoiceWindow({
     };
   }, [realmId, conversationID]);
 
-  // Realtime: a member's role changed; update the local role map.
+  // Realtime: the members list changed (role/add/remove); every participant
+  // refetches so admin labels stay accurate and a promoted user picks up
+  // their new role. The SSE is only a signal — it carries no member data.
   useEffect(() => {
     const handler = (event: any) => {
-      if (event.detail?.event !== "conference_member_role") {
+      if (event.detail?.event !== "conference_members_changed") {
         return;
       }
 
@@ -457,27 +461,14 @@ function ConferenceVoiceWindow({
         return;
       }
 
-      if (!payload?.username) {
-        return;
-      }
-
-      setMemberRoleMap((prev) => {
-        const next = new Map(prev);
-        const current = next.get(payload.username);
-        next.set(payload.username, {
-          member_id: payload.member_id ?? current?.member_id ?? "",
-          role: payload.role,
-          account_id: payload.account_id ?? current?.account_id ?? "",
-        });
-        return next;
-      });
+      fetchMemberRoles();
     };
 
     document.addEventListener("room-events-relay", handler);
     return () => {
       document.removeEventListener("room-events-relay", handler);
     };
-  }, [realmId]);
+  }, [realmId, fetchMemberRoles]);
 
   const dispatch = useDispatch();
 
@@ -1739,8 +1730,8 @@ function ConferenceVoiceWindow({
             className={`btn_call_controls tw-relative ${isPeopleOpen ? "btn_call_controls_enable" : ""}`}
           >
             <FiUsers />
-            {canManageRequests && pendingRequests.length > 0 && (
-              <span className="tw-absolute tw--top-[2px] tw--right-[2px] tw-min-w-[16px] tw-h-[16px] tw-px-[4px] tw-rounded-full tw-bg-[#e23b3b] tw-text-white tw-text-[10px] tw-font-semibold tw-flex tw-items-center tw-justify-center tw-leading-none">
+            {effectiveCanManage && pendingRequests.length > 0 && (
+              <span className="tw-absolute tw--top-[2px] tw--right-[2px] tw-min-w-[16px] tw-h-[16px] tw-px-[4px] tw-rounded-full tw-bg-[var(--pink)] tw-text-white tw-text-[10px] tw-font-semibold tw-flex tw-items-center tw-justify-center tw-leading-none">
                 {pendingRequests.length}
               </span>
             )}
@@ -1803,7 +1794,7 @@ function ConferenceVoiceWindow({
             </button>
           </div>
           <div className="tw-flex-1 tw-min-h-0 tw-overflow-y-auto t-scroll tw-px-[14px] tw-py-[12px] tw-flex tw-flex-col tw-gap-[18px]">
-            {canManageRequests && (
+            {effectiveCanManage && (
               <div className="tw-flex tw-flex-col tw-gap-[8px]">
                 <div className="tw-flex tw-flex-row tw-items-center tw-justify-between">
                   <span className="tw-text-[12px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--text-2)]">
@@ -1821,9 +1812,9 @@ function ConferenceVoiceWindow({
                   pendingRequests.map((req) => (
                     <div
                       key={req.invite_token || req.id}
-                      className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-border tw-border-[#ededed] tw-bg-[var(--surface)] tw-px-[10px] tw-py-[8px]"
+                      className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-px-[10px] tw-py-[8px]"
                     >
-                      <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[#e3edfb] tw-text-[var(--brand)] tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
+                      <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[var(--brand-soft)] tw-text-[var(--brand)] tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
                         {(req.target_email || "?").charAt(0).toUpperCase()}
                       </div>
                       <span
@@ -1839,7 +1830,7 @@ function ConferenceVoiceWindow({
                         onClick={() =>
                           resolveRequest(req.invite_token, "accepted")
                         }
-                        className="tw-w-[30px] tw-h-[30px] tw-rounded-full tw-border-none tw-bg-[#2fae5f] tw-text-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed tw-flex-shrink-0"
+                        className="tw-w-[30px] tw-h-[30px] tw-rounded-full tw-border-none tw-bg-[var(--green)] tw-text-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed tw-flex-shrink-0"
                       >
                         {updatingRequestToken === req.invite_token ? (
                           <AiOutlineLoading3Quarters className="tw-animate-spin tw-text-[13px]" />
@@ -1854,7 +1845,7 @@ function ConferenceVoiceWindow({
                         onClick={() =>
                           resolveRequest(req.invite_token, "declined")
                         }
-                        className="tw-w-[30px] tw-h-[30px] tw-rounded-full tw-border-none tw-bg-[#e23b3b] tw-text-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed tw-flex-shrink-0"
+                        className="tw-w-[30px] tw-h-[30px] tw-rounded-full tw-border-none tw-bg-[var(--pink)] tw-text-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed tw-flex-shrink-0"
                       >
                         <FiX size={16} />
                       </button>
@@ -1867,8 +1858,8 @@ function ConferenceVoiceWindow({
               <span className="tw-text-[12px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--text-2)]">
                 In call ({joinedParticipants.length + 1})
               </span>
-              <div className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] tw-bg-[var(--surface)]">
-                <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[#4994ec] tw-text-white tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
+              <div className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] tw-bg-[var(--brand-soft)]">
+                <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[var(--brand)] tw-text-white tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
                   {(authentication.user.username || "Y")
                     .charAt(0)
                     .toUpperCase()}
@@ -1878,7 +1869,7 @@ function ConferenceVoiceWindow({
                 </span>
                 {memberRoleMap.get(authentication.user.username)?.role ===
                   "admin" && (
-                  <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[#e3edfb] tw-rounded-full tw-px-[6px] tw-py-[2px]">
+                  <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[var(--brand-soft)] tw-rounded-full tw-px-[6px] tw-py-[2px]">
                     Admin
                   </span>
                 )}
@@ -1892,7 +1883,7 @@ function ConferenceVoiceWindow({
                 const memberInfo = memberRoleMap.get(participant.username);
                 const isAdminMember = memberInfo?.role === "admin";
                 const canManageThisMember = Boolean(
-                  canManageRequests &&
+                  effectiveCanManage &&
                   memberInfo?.member_id &&
                   participant.username !== selfUsername,
                 );
@@ -1900,16 +1891,16 @@ function ConferenceVoiceWindow({
                 return (
                   <div
                     key={participant.clientId}
-                    className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] hover:tw-bg-[var(--surface)]"
+                    className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] hover:tw-bg-[var(--surface-hover)]"
                   >
-                    <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[#e7e7e7] tw-text-[#555] tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
+                    <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[var(--surface-3)] tw-text-[var(--text-2)] tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
                       {(participant.username || "?").charAt(0).toUpperCase()}
                     </div>
                     <span className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
                       @{participant.username}
                     </span>
                     {isAdminMember && (
-                      <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[#e3edfb] tw-rounded-full tw-px-[6px] tw-py-[2px]">
+                      <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[var(--brand-soft)] tw-rounded-full tw-px-[6px] tw-py-[2px]">
                         Admin
                       </span>
                     )}
@@ -1930,7 +1921,7 @@ function ConferenceVoiceWindow({
                                 : participant.username,
                             )
                           }
-                          className="tw-w-[26px] tw-h-[26px] tw-rounded-full tw-border-none tw-bg-transparent tw-text-[#555] tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[#ececec] disabled:tw-opacity-[0.5]"
+                          className="tw-w-[26px] tw-h-[26px] tw-rounded-full tw-border-none tw-bg-transparent tw-text-[var(--text-2)] tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[var(--surface-hover)] disabled:tw-opacity-[0.5]"
                         >
                           {updatingRoleFor === participant.username ? (
                             <AiOutlineLoading3Quarters className="tw-animate-spin tw-text-[13px]" />
@@ -1945,7 +1936,7 @@ function ConferenceVoiceWindow({
                           />
                         )}
                         {isMenuOpen && (
-                          <div className="tw-absolute tw-right-0 tw-top-[30px] tw-z-[3] tw-min-w-[170px] tw-bg-[var(--surface)] tw-rounded-md tw-border tw-border-[#d2d2d2] tw-shadow-md tw-p-[6px] tw-flex tw-flex-col tw-gap-[2px]">
+                          <div className="tw-absolute tw-right-0 tw-top-[30px] tw-z-[3] tw-min-w-[170px] tw-bg-[var(--surface)] tw-rounded-md tw-border tw-border-[var(--border)] tw-shadow-md tw-p-[6px] tw-flex tw-flex-col tw-gap-[2px]">
                             {isAdminMember ? (
                               <button
                                 type="button"
@@ -1955,7 +1946,7 @@ function ConferenceVoiceWindow({
                                     "member",
                                   )
                                 }
-                                className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--text)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[#f0f0f0]"
+                                className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--text)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)]"
                               >
                                 <FaCircleArrowDown size={14} />
                                 <span>Demote to Member</span>
@@ -1969,7 +1960,7 @@ function ConferenceVoiceWindow({
                                     "admin",
                                   )
                                 }
-                                className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--text)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[#f0f0f0]"
+                                className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--text)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)]"
                               >
                                 <FaCircleArrowUp size={14} />
                                 <span>Promote to Admin</span>
@@ -1980,7 +1971,7 @@ function ConferenceVoiceWindow({
                               onClick={() =>
                                 removeParticipant(participant.username)
                               }
-                              className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[#e23b3b] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[#fdecec]"
+                              className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--pink)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)]"
                             >
                               <IoPersonRemove size={14} />
                               <span>Remove from call</span>

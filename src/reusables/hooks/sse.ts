@@ -487,33 +487,33 @@ const SSENotificationsTRequest = (
     );
   });
 
-  sseNtfsSource.addEventListener("conference_request", (e: any) => {
+  sseNtfsSource.addEventListener("conference_requests_changed", (e: any) => {
     document.dispatchEvent(
       new CustomEvent("room-events-relay", {
         detail: {
-          event: "conference_request",
+          event: "conference_requests_changed",
           data: e.data,
         },
       }),
     );
   });
 
-  sseNtfsSource.addEventListener("conference_request_status", (e: any) => {
+  sseNtfsSource.addEventListener("conference_members_changed", (e: any) => {
     document.dispatchEvent(
       new CustomEvent("room-events-relay", {
         detail: {
-          event: "conference_request_status",
+          event: "conference_members_changed",
           data: e.data,
         },
       }),
     );
   });
 
-  sseNtfsSource.addEventListener("conference_member_role", (e: any) => {
+  sseNtfsSource.addEventListener("conference_access_changed", (e: any) => {
     document.dispatchEvent(
       new CustomEvent("room-events-relay", {
         detail: {
-          event: "conference_member_role",
+          event: "conference_access_changed",
           data: e.data,
         },
       }),

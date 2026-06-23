@@ -528,17 +528,40 @@ function ConferenceRoom() {
   }, [roomInfo, roomData]);
 
   // Keep the local admin/member flags in sync with the loaded room info.
+  // Membership is also derived from the realm member list (usersWithInfo /
+  // users), which is always present in the conference payload, so existing
+  // members are recognized even without the dedicated is_member flag.
   useEffect(() => {
+    const memberList = Array.isArray(roomInfo?.usersWithInfo)
+      ? roomInfo.usersWithInfo
+      : Array.isArray(roomInfo?.users)
+        ? roomInfo.users
+        : [];
+    const selfInMemberList = memberList.some(
+      (member: any) =>
+        String(member?.userID) === String(authentication.user.username) ||
+        String(member?._id) === String(authentication.user.userID),
+    );
+
     setSelfIsAdmin(Boolean(roomInfo?.is_admin));
     setSelfIsMember(
-      Boolean(roomInfo?.is_member) || Boolean(roomInfo?.is_admin),
+      Boolean(roomInfo?.data.is_member) ||
+        Boolean(roomInfo?.data.is_admin) ||
+        selfInMemberList,
     );
-  }, [roomInfo]);
+  }, [roomInfo, authentication.user.username, authentication.user.userID]);
 
-  // Realtime: this user's realm role changed (promoted/demoted).
+  // Realtime: conference membership/access changed (role change, member
+  // added/removed, or this user's join request resolved). These are signals
+  // only, so we refetch the room info — which refreshes the member list and
+  // the self admin/member flags that drive the lobby's join-vs-request gating.
   useEffect(() => {
     const handler = (event: any) => {
-      if (event.detail?.event !== "conference_member_role") {
+      const evt = event.detail?.event;
+      if (
+        evt !== "conference_members_changed" &&
+        evt !== "conference_access_changed"
+      ) {
         return;
       }
 
@@ -557,52 +580,29 @@ function ConferenceRoom() {
         return;
       }
 
-      if (
-        String(payload?.username) === String(authentication.user.username) ||
-        String(payload?.account_id) === String(authentication.user.userID)
-      ) {
-        setSelfIsAdmin(payload.role === "admin");
+      if (!roomSlug) {
+        return;
       }
+
+      ConversationInfoRequest({
+        conversationID: roomSlug,
+        type: "conference",
+      })
+        .then((response) => {
+          if (response) {
+            setRoomInfo(response);
+          }
+        })
+        .catch(() => {
+          // Non-fatal — keep the current room info on a failed refresh.
+        });
     };
 
     document.addEventListener("room-events-relay", handler);
     return () => {
       document.removeEventListener("room-events-relay", handler);
     };
-  }, [realmId, authentication.user.username, authentication.user.userID]);
-
-  // Realtime: the host/admin approved or declined this user's join request.
-  useEffect(() => {
-    const handler = (event: any) => {
-      if (event.detail?.event !== "conference_request_status") {
-        return;
-      }
-
-      let payload: any;
-      try {
-        payload = JSON.parse(event.detail.data);
-      } catch {
-        return;
-      }
-
-      if (
-        realmId &&
-        payload?.realm_id &&
-        String(payload.realm_id) !== String(realmId)
-      ) {
-        return;
-      }
-
-      if (payload?.invite) {
-        setInviteInfo(payload.invite);
-      }
-    };
-
-    document.addEventListener("room-events-relay", handler);
-    return () => {
-      document.removeEventListener("room-events-relay", handler);
-    };
-  }, [realmId]);
+  }, [realmId, roomSlug]);
 
   const canJoinNow = canProceedToConference;
   const showRequestPending =
@@ -616,6 +616,32 @@ function ConferenceRoom() {
     !effectiveInviteAccepted &&
     !effectiveInvitePending;
   const showRequestAccess = canRequestAccess;
+
+  // Resolve the single primary lobby action once, in strict priority order,
+  // so the button's onClick, disabled state, and label can never disagree.
+  // Crucially, "join" is resolved before "request" — a member/creator who can
+  // already enter must never fall through to requesting access.
+  type LobbyAction =
+    | "updating"
+    | "signin"
+    | "accept"
+    | "join"
+    | "request-pending"
+    | "request"
+    | "wait";
+  const lobbyAction: LobbyAction = isInviteUpdating
+    ? "updating"
+    : inviteRequiresSignIn
+      ? "signin"
+      : effectiveInvitePending
+        ? "accept"
+        : canJoinNow
+          ? "join"
+          : showRequestPending
+            ? "request-pending"
+            : showRequestAccess
+              ? "request"
+              : "wait";
 
   if (isLoading) {
     return (
@@ -811,56 +837,46 @@ function ConferenceRoom() {
               <button
                 type="button"
                 onClick={async () => {
-                  if (hostIsCreator && canJoinNow) {
-                    setHasJoined(true);
-                    return;
-                  }
-
-                  if (effectiveInvitePending) {
+                  if (lobbyAction === "accept") {
                     await acceptInvite();
                     return;
                   }
-
-                  if (showRequestAccess) {
-                    await requestAccess();
+                  if (lobbyAction === "join") {
+                    setHasJoined(true);
                     return;
                   }
-
-                  if (canJoinNow) {
-                    setHasJoined(true);
+                  if (lobbyAction === "request") {
+                    await requestAccess();
                   }
                 }}
                 disabled={
-                  (!canJoinNow &&
-                    !effectiveInvitePending &&
-                    !showRequestAccess &&
-                    !hostIsCreator) ||
-                  (hostIsCreator && !canJoinNow) ||
-                  isInviteUpdating ||
-                  inviteRequiresSignIn ||
+                  lobbyAction === "updating" ||
+                  lobbyAction === "signin" ||
+                  lobbyAction === "request-pending" ||
+                  lobbyAction === "wait" ||
                   (effectiveInviteBlocked && !meetingWindowState.canJoin)
                 }
                 className="tw-h-[48px] tw-rounded-[var(--r-md)] tw-border-none tw-bg-[var(--brand)] tw-text-white tw-font-semibold tw-cursor-pointer tw-flex tw-items-center tw-justify-center tw-gap-[10px] tw-shadow-[var(--shadow-sm)] disabled:tw-opacity-[0.55] disabled:tw-cursor-not-allowed"
               >
-                {isInviteUpdating ? (
+                {lobbyAction === "updating" ? (
                   <>
                     <AiOutlineLoading3Quarters className="tw-animate-spin" />
                     Updating invite
                   </>
-                ) : inviteRequiresSignIn ? (
+                ) : lobbyAction === "signin" ? (
                   "Sign in to continue"
-                ) : effectiveInvitePending ? (
+                ) : lobbyAction === "accept" ? (
                   meetingWindowState.canJoin ? (
                     "Accept invitation & join"
                   ) : (
                     "Accept invitation"
                   )
-                ) : showRequestPending ? (
-                  "Request sent"
-                ) : showRequestAccess ? (
-                  "Request access"
-                ) : meetingWindowState.canJoin ? (
+                ) : lobbyAction === "join" ? (
                   "Join conference"
+                ) : lobbyAction === "request-pending" ? (
+                  "Request sent"
+                ) : lobbyAction === "request" ? (
+                  "Request access"
                 ) : (
                   "Stay in lobby"
                 )}
