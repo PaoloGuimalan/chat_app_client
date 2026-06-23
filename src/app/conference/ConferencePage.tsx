@@ -23,7 +23,7 @@ import {
   ThirdPartyAuthenticationRequest,
 } from "@/reusables/hooks/requests";
 import { useTheme } from "@/reusables/design/ThemeProvider";
-import { SET_ALERTS } from "@/redux/types";
+import { SET_ALERTS, SET_REMOVE_IS_TYPING_LIST } from "@/redux/types";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import ConferenceRoom from "./ConferenceRoom";
 
@@ -31,6 +31,8 @@ function ConferencePage() {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  const istypinglist = useSelector((state: any) => state.istypinglist);
+
   const alerts = useSelector((state: any) => state.alerts);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -51,6 +53,21 @@ function ConferencePage() {
   const [inviteEmails, setInviteEmails] = useState("");
   const [scheduledFor, setScheduledFor] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+
+  useEffect(() => {
+    const timers = istypinglist.map((mp: any) =>
+      setTimeout(() => {
+        dispatch({
+          type: SET_REMOVE_IS_TYPING_LIST,
+          payload: { istyping: mp },
+        });
+      }, 4000),
+    );
+
+    return () => {
+      timers.forEach(clearTimeout);
+    };
+  }, [istypinglist, dispatch]);
 
   useEffect(() => {
     setJoinSlug(roomSlug);
@@ -170,7 +187,10 @@ function ConferencePage() {
 
         const inviteResponses = await Promise.allSettled(inviteRequests);
         const inviteResultPayload = inviteResponses
-          .filter((mp): mp is PromiseFulfilledResult<any> => mp.status === "fulfilled")
+          .filter(
+            (mp): mp is PromiseFulfilledResult<any> =>
+              mp.status === "fulfilled",
+          )
           .map((mp) => mp.value?.result)
           .filter(Boolean);
 
@@ -485,8 +505,8 @@ function ConferencePage() {
                             ? "tw-bg-[var(--brand-soft)] tw-border-[var(--brand)] tw-text-[var(--brand)]"
                             : "tw-bg-[var(--surface-2)] tw-border-[var(--border)] tw-text-[var(--text)]"
                         }`}
-                        >
-                          Schedule
+                      >
+                        Schedule
                       </button>
                     </div>
 
@@ -519,7 +539,8 @@ function ConferencePage() {
                         </button>
                       </div>
                       <span className="tw-text-[11px] tw-text-[var(--text-2)]">
-                        Private meetings require approved access; public ones can be joined directly.
+                        Private meetings require approved access; public ones
+                        can be joined directly.
                       </span>
                     </div>
 
@@ -552,7 +573,8 @@ function ConferencePage() {
                         />
                       </div>
                       <span className="tw-text-[11px] tw-text-[var(--text-2)]">
-                        Optional. Separate multiple emails with commas, semicolons, or line breaks.
+                        Optional. Separate multiple emails with commas,
+                        semicolons, or line breaks.
                       </span>
                     </div>
 
@@ -645,3 +667,4 @@ function ConferencePage() {
 }
 
 export default ConferencePage;
+

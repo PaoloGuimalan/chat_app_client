@@ -10,9 +10,15 @@ import {
   BsCameraVideoFill,
   BsCameraVideoOffFill,
   BsFillChatDotsFill,
+  BsThreeDots,
 } from "react-icons/bs";
 import { MdScreenShare, MdStopScreenShare } from "react-icons/md";
 import { HiPhoneMissedCall } from "react-icons/hi";
+import { IoMdClose } from "react-icons/io";
+import { FiUsers, FiCheck, FiX } from "react-icons/fi";
+import { FaCircleArrowUp, FaCircleArrowDown } from "react-icons/fa6";
+import { IoPersonRemove } from "react-icons/io5";
+import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 // import { END_CALL_LIST } from "@/redux/types";
@@ -31,17 +37,30 @@ import {
   TransportProduceRequest,
   VoiceRequest,
   GetEncodingsRequest,
+  GetRealmInviteRequest,
+  UpdateRealmInviteRequest,
+  GetRealmMembersRequest,
+  UpdateMemberRoleRequest,
+  RemoveRealmMemberRequest,
 } from "@/reusables/hooks/requests";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import RemoteVideo from "../absolutes/calls_v2/RemoteVideo";
 import envs from "@/reusables/hooks/env_configs";
 import { useNavigate } from "react-router-dom";
 import { useReconnect } from "@/reusables/hooks/useReconnect";
+import { useTheme } from "@/reusables/design";
 
-function ConferenceVoiceWindow({ data }: any) {
+function ConferenceVoiceWindow({
+  data,
+  realmId,
+  canManageRequests,
+  selfUsername,
+}: any) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+
+  const { theme: conferenceTheme } = useTheme();
 
   const navigate = useNavigate();
 
@@ -83,6 +102,19 @@ function ConferenceVoiceWindow({ data }: any) {
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const [isScreenSharing, setIsScreenSharing] = useState<boolean>(false);
   const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
+  const [isPeopleOpen, setIsPeopleOpen] = useState<boolean>(false);
+  const [pendingRequests, setPendingRequests] = useState<any[]>([]);
+  const [requestsLoading, setRequestsLoading] = useState<boolean>(false);
+  const [updatingRequestToken, setUpdatingRequestToken] = useState<
+    string | null
+  >(null);
+  // username -> { member_id, role, account_id } for realm members, used to
+  // show roles and offer promote/demote on conference participants.
+  const [memberRoleMap, setMemberRoleMap] = useState<
+    Map<string, { member_id: string; role: string; account_id: string }>
+  >(new Map());
+  const [roleMenuFor, setRoleMenuFor] = useState<string | null>(null);
+  const [updatingRoleFor, setUpdatingRoleFor] = useState<string | null>(null);
   const hasLeftRef = useRef(false);
   const hasJoinedRef = useRef(false);
   const isConsumingRef = useRef(false);
@@ -171,6 +203,281 @@ function ConferenceVoiceWindow({ data }: any) {
     }),
     [conversationID, data, members],
   );
+
+  const fetchPendingRequests = useCallback(
+    (showLoader = false) => {
+      if (!realmId || !canManageRequests) {
+        return;
+      }
+      if (showLoader) {
+        setRequestsLoading(true);
+      }
+      GetRealmInviteRequest({
+        realm_id: realmId,
+        kind: "request",
+        status: "pending",
+      })
+        .then((response) => {
+          const result = response?.result;
+          setPendingRequests(Array.isArray(result) ? result : []);
+        })
+        .catch((err) => {
+          console.log("Failed to load join requests:", err);
+        })
+        .finally(() => {
+          if (showLoader) {
+            setRequestsLoading(false);
+          }
+        });
+    },
+    [realmId, canManageRequests],
+  );
+
+  const resolveRequest = useCallback(
+    async (inviteToken: string, nextStatus: "accepted" | "declined") => {
+      if (!inviteToken || updatingRequestToken) {
+        return;
+      }
+      setUpdatingRequestToken(inviteToken);
+      try {
+        await UpdateRealmInviteRequest({
+          invite_token: inviteToken,
+          status: nextStatus,
+        });
+        setPendingRequests((prev) =>
+          prev.filter((req) => req.invite_token !== inviteToken),
+        );
+      } catch (err) {
+        console.log("Failed to update join request:", err);
+        fetchPendingRequests();
+      } finally {
+        setUpdatingRequestToken(null);
+      }
+    },
+    [updatingRequestToken, fetchPendingRequests],
+  );
+
+  // Load the current pending requests once for hosts/admins; realtime
+  // additions afterwards arrive via SSE (see the listener below).
+  useEffect(() => {
+    if (!canManageRequests || !realmId) {
+      return;
+    }
+    fetchPendingRequests(true);
+  }, [canManageRequests, realmId]);
+
+  // Realtime: a new join request for this room pushed over SSE.
+  useEffect(() => {
+    if (!canManageRequests) {
+      return;
+    }
+
+    const handler = (event: any) => {
+      if (event.detail?.event !== "conference_request") {
+        return;
+      }
+
+      let payload: any;
+      try {
+        payload = JSON.parse(event.detail.data);
+      } catch {
+        return;
+      }
+
+      if (
+        realmId &&
+        payload?.realm_id &&
+        String(payload.realm_id) !== String(realmId)
+      ) {
+        return;
+      }
+
+      const invite = payload?.invite;
+      if (!invite || (invite.status && invite.status !== "pending")) {
+        return;
+      }
+
+      setPendingRequests((prev) =>
+        prev.some((req) => req.invite_token === invite.invite_token)
+          ? prev
+          : [invite, ...prev],
+      );
+    };
+
+    document.addEventListener("room-events-relay", handler);
+    return () => {
+      document.removeEventListener("room-events-relay", handler);
+    };
+  }, [canManageRequests, realmId]);
+
+  const fetchMemberRoles = useCallback(() => {
+    if (!realmId) {
+      return;
+    }
+    GetRealmMembersRequest(realmId, 1, 200)
+      .then((response) => {
+        const results = response?.results;
+        if (!Array.isArray(results)) {
+          return;
+        }
+        setMemberRoleMap(() => {
+          const next = new Map<
+            string,
+            { member_id: string; role: string; account_id: string }
+          >();
+          results.forEach((member: any) => {
+            const username = member?.account?.username;
+            if (username) {
+              next.set(username, {
+                member_id: member.member_id,
+                role: member.role,
+                account_id: member.account.id,
+              });
+            }
+          });
+          return next;
+        });
+      })
+      .catch((err) => {
+        console.log("Failed to load realm members:", err);
+      });
+  }, [realmId]);
+
+  // Hosts/admins need member roles to render and manage promote/demote.
+  useEffect(() => {
+    if (!canManageRequests || !realmId) {
+      return;
+    }
+    fetchMemberRoles();
+  }, [canManageRequests, realmId]);
+
+  const changeMemberRole = useCallback(
+    async (username: string, nextRole: "admin" | "member") => {
+      const member = memberRoleMap.get(username);
+      if (!member || updatingRoleFor) {
+        return;
+      }
+      setRoleMenuFor(null);
+      setUpdatingRoleFor(username);
+      // Optimistic update; SSE will reconcile across all clients.
+      setMemberRoleMap((prev) => {
+        const next = new Map(prev);
+        const current = next.get(username);
+        if (current) {
+          next.set(username, { ...current, role: nextRole });
+        }
+        return next;
+      });
+      try {
+        await UpdateMemberRoleRequest(realmId, member.member_id, nextRole);
+      } catch (err) {
+        console.log("Failed to update member role:", err);
+        // Revert on failure.
+        setMemberRoleMap((prev) => {
+          const next = new Map(prev);
+          const current = next.get(username);
+          if (current) {
+            next.set(username, { ...current, role: member.role });
+          }
+          return next;
+        });
+      } finally {
+        setUpdatingRoleFor(null);
+      }
+    },
+    [memberRoleMap, updatingRoleFor, realmId],
+  );
+
+  const removeParticipant = useCallback(
+    async (username: string) => {
+      const member = memberRoleMap.get(username);
+      if (!member?.account_id || updatingRoleFor) {
+        return;
+      }
+      setRoleMenuFor(null);
+      setUpdatingRoleFor(username);
+      try {
+        // Removes realm membership and pushes a realtime removal notice to
+        // the target, whose client then leaves the call (see eject listener).
+        await RemoveRealmMemberRequest(realmId, [member.account_id]);
+        setMemberRoleMap((prev) => {
+          const next = new Map(prev);
+          next.delete(username);
+          return next;
+        });
+      } catch (err) {
+        console.log("Failed to remove participant:", err);
+      } finally {
+        setUpdatingRoleFor(null);
+      }
+    },
+    [memberRoleMap, updatingRoleFor, realmId],
+  );
+
+  // Realtime: this user was removed from the realm; leave the call.
+  useEffect(() => {
+    const eventNames = Array.from(
+      new Set([realmId, conversationID].filter(Boolean)),
+    ) as string[];
+    if (eventNames.length === 0) {
+      return;
+    }
+
+    const handler = (event: any) => {
+      if (event.detail?.event === "removed_user_notif") {
+        leaveCallProcessRef.current?.();
+      }
+    };
+
+    eventNames.forEach((name) => document.addEventListener(name, handler));
+    return () => {
+      eventNames.forEach((name) => document.removeEventListener(name, handler));
+    };
+  }, [realmId, conversationID]);
+
+  // Realtime: a member's role changed; update the local role map.
+  useEffect(() => {
+    const handler = (event: any) => {
+      if (event.detail?.event !== "conference_member_role") {
+        return;
+      }
+
+      let payload: any;
+      try {
+        payload = JSON.parse(event.detail.data);
+      } catch {
+        return;
+      }
+
+      if (
+        realmId &&
+        payload?.realm_id &&
+        String(payload.realm_id) !== String(realmId)
+      ) {
+        return;
+      }
+
+      if (!payload?.username) {
+        return;
+      }
+
+      setMemberRoleMap((prev) => {
+        const next = new Map(prev);
+        const current = next.get(payload.username);
+        next.set(payload.username, {
+          member_id: payload.member_id ?? current?.member_id ?? "",
+          role: payload.role,
+          account_id: payload.account_id ?? current?.account_id ?? "",
+        });
+        return next;
+      });
+    };
+
+    document.addEventListener("room-events-relay", handler);
+    return () => {
+      document.removeEventListener("room-events-relay", handler);
+    };
+  }, [realmId]);
 
   const dispatch = useDispatch();
 
@@ -1409,11 +1716,34 @@ function ConferenceVoiceWindow({ data }: any) {
           </button>
           <button
             onClick={() => {
-              setIsChatOpen((prev) => !prev);
+              setIsChatOpen((prev) => {
+                if (!prev) {
+                  setIsPeopleOpen(false);
+                }
+                return !prev;
+              });
             }}
             className={`btn_call_controls ${isChatOpen ? "btn_call_controls_enable" : ""}`}
           >
             <BsFillChatDotsFill />
+          </button>
+          <button
+            onClick={() => {
+              setIsPeopleOpen((prev) => {
+                if (!prev) {
+                  setIsChatOpen(false);
+                }
+                return !prev;
+              });
+            }}
+            className={`btn_call_controls tw-relative ${isPeopleOpen ? "btn_call_controls_enable" : ""}`}
+          >
+            <FiUsers />
+            {canManageRequests && pendingRequests.length > 0 && (
+              <span className="tw-absolute tw--top-[2px] tw--right-[2px] tw-min-w-[16px] tw-h-[16px] tw-px-[4px] tw-rounded-full tw-bg-[#e23b3b] tw-text-white tw-text-[10px] tw-font-semibold tw-flex tw-items-center tw-justify-center tw-leading-none">
+                {pendingRequests.length}
+              </span>
+            )}
           </button>
           <button
             onClick={() => {
@@ -1443,6 +1773,226 @@ function ConferenceVoiceWindow({ data }: any) {
               theme={{ primary: "#4994ec", lighten: "#82b6ec" }}
               setIsChatOpen={setIsChatOpen}
             />
+          </div>
+        </motion.div>
+      )}
+      {isPeopleOpen && (
+        <motion.div
+          initial={{ x: 40, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 40, opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          className={
+            isMobileView
+              ? "cl-redesign tw-absolute tw-inset-0 tw-z-20 tw-bg-[var(--surface)] tw-text-[var(--text)] tw-flex tw-flex-col"
+              : "cl-redesign tw-w-[360px] tw-h-full tw-bg-[var(--surface)] tw-text-[var(--text)] tw-border-l tw-border-[var(--border)] tw-flex tw-flex-col tw-flex-shrink-0"
+          }
+          data-theme={conferenceTheme}
+        >
+          <div className="tw-flex tw-flex-row tw-items-center tw-justify-between tw-px-[14px] tw-py-[12px] tw-border-b tw-border-[var(--border)] tw-flex-shrink-0">
+            <span className="tw-text-[15px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
+              People
+            </span>
+            <button
+              type="button"
+              aria-label="Close people panel"
+              onClick={() => setIsPeopleOpen(false)}
+              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-p-[4px] tw-rounded-full hover:tw-bg-[var(--surface-hover)] tw-flex tw-items-center tw-justify-center tw-text-[var(--text-2)]"
+            >
+              <IoMdClose style={{ fontSize: "18px" }} />
+            </button>
+          </div>
+          <div className="tw-flex-1 tw-min-h-0 tw-overflow-y-auto t-scroll tw-px-[14px] tw-py-[12px] tw-flex tw-flex-col tw-gap-[18px]">
+            {canManageRequests && (
+              <div className="tw-flex tw-flex-col tw-gap-[8px]">
+                <div className="tw-flex tw-flex-row tw-items-center tw-justify-between">
+                  <span className="tw-text-[12px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--text-2)]">
+                    Pending requests ({pendingRequests.length})
+                  </span>
+                  {requestsLoading && (
+                    <AiOutlineLoading3Quarters className="tw-animate-spin tw-text-[13px] tw-text-[var(--text-2)]" />
+                  )}
+                </div>
+                {!requestsLoading && pendingRequests.length === 0 ? (
+                  <span className="tw-text-[12px] tw-text-[var(--text-2)] tw-font-Inter">
+                    No pending join requests.
+                  </span>
+                ) : (
+                  pendingRequests.map((req) => (
+                    <div
+                      key={req.invite_token || req.id}
+                      className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-border tw-border-[#ededed] tw-bg-[var(--surface)] tw-px-[10px] tw-py-[8px]"
+                    >
+                      <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[#e3edfb] tw-text-[var(--brand)] tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
+                        {(req.target_email || "?").charAt(0).toUpperCase()}
+                      </div>
+                      <span
+                        title={req.target_email}
+                        className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate"
+                      >
+                        {req.target_email || "Unknown user"}
+                      </span>
+                      <button
+                        type="button"
+                        aria-label="Approve request"
+                        disabled={updatingRequestToken === req.invite_token}
+                        onClick={() =>
+                          resolveRequest(req.invite_token, "accepted")
+                        }
+                        className="tw-w-[30px] tw-h-[30px] tw-rounded-full tw-border-none tw-bg-[#2fae5f] tw-text-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed tw-flex-shrink-0"
+                      >
+                        {updatingRequestToken === req.invite_token ? (
+                          <AiOutlineLoading3Quarters className="tw-animate-spin tw-text-[13px]" />
+                        ) : (
+                          <FiCheck size={16} />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        aria-label="Decline request"
+                        disabled={updatingRequestToken === req.invite_token}
+                        onClick={() =>
+                          resolveRequest(req.invite_token, "declined")
+                        }
+                        className="tw-w-[30px] tw-h-[30px] tw-rounded-full tw-border-none tw-bg-[#e23b3b] tw-text-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed tw-flex-shrink-0"
+                      >
+                        <FiX size={16} />
+                      </button>
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
+            <div className="tw-flex tw-flex-col tw-gap-[8px]">
+              <span className="tw-text-[12px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--text-2)]">
+                In call ({joinedParticipants.length + 1})
+              </span>
+              <div className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] tw-bg-[var(--surface)]">
+                <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[#4994ec] tw-text-white tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
+                  {(authentication.user.username || "Y")
+                    .charAt(0)
+                    .toUpperCase()}
+                </div>
+                <span className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
+                  {authentication.user.username} (You)
+                </span>
+                {memberRoleMap.get(authentication.user.username)?.role ===
+                  "admin" && (
+                  <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[#e3edfb] tw-rounded-full tw-px-[6px] tw-py-[2px]">
+                    Admin
+                  </span>
+                )}
+                <div className="tw-flex tw-flex-row tw-items-center tw-gap-[8px] tw-text-[var(--text-2)]">
+                  {!enableMic && <BsFillMicMuteFill size={13} />}
+                  {!enableCamera && <BsCameraVideoOffFill size={13} />}
+                </div>
+              </div>
+              {joinedParticipants.map((participant) => {
+                const status = participantStatuses.get(participant.clientId);
+                const memberInfo = memberRoleMap.get(participant.username);
+                const isAdminMember = memberInfo?.role === "admin";
+                const canManageThisMember = Boolean(
+                  canManageRequests &&
+                  memberInfo?.member_id &&
+                  participant.username !== selfUsername,
+                );
+                const isMenuOpen = roleMenuFor === participant.username;
+                return (
+                  <div
+                    key={participant.clientId}
+                    className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] hover:tw-bg-[var(--surface)]"
+                  >
+                    <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[#e7e7e7] tw-text-[#555] tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
+                      {(participant.username || "?").charAt(0).toUpperCase()}
+                    </div>
+                    <span className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
+                      @{participant.username}
+                    </span>
+                    {isAdminMember && (
+                      <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[#e3edfb] tw-rounded-full tw-px-[6px] tw-py-[2px]">
+                        Admin
+                      </span>
+                    )}
+                    <div className="tw-flex tw-flex-row tw-items-center tw-gap-[8px] tw-text-[var(--text-2)]">
+                      {status?.muted && <BsFillMicMuteFill size={13} />}
+                      {status?.cameraOff && <BsCameraVideoOffFill size={13} />}
+                    </div>
+                    {canManageThisMember && (
+                      <div className="tw-relative tw-flex-shrink-0">
+                        <button
+                          type="button"
+                          aria-label="Member options"
+                          disabled={updatingRoleFor === participant.username}
+                          onClick={() =>
+                            setRoleMenuFor((prev) =>
+                              prev === participant.username
+                                ? null
+                                : participant.username,
+                            )
+                          }
+                          className="tw-w-[26px] tw-h-[26px] tw-rounded-full tw-border-none tw-bg-transparent tw-text-[#555] tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[#ececec] disabled:tw-opacity-[0.5]"
+                        >
+                          {updatingRoleFor === participant.username ? (
+                            <AiOutlineLoading3Quarters className="tw-animate-spin tw-text-[13px]" />
+                          ) : (
+                            <BsThreeDots size={15} />
+                          )}
+                        </button>
+                        {isMenuOpen && (
+                          <div
+                            className="tw-fixed tw-inset-0 tw-z-[2]"
+                            onClick={() => setRoleMenuFor(null)}
+                          />
+                        )}
+                        {isMenuOpen && (
+                          <div className="tw-absolute tw-right-0 tw-top-[30px] tw-z-[3] tw-min-w-[170px] tw-bg-[var(--surface)] tw-rounded-md tw-border tw-border-[#d2d2d2] tw-shadow-md tw-p-[6px] tw-flex tw-flex-col tw-gap-[2px]">
+                            {isAdminMember ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  changeMemberRole(
+                                    participant.username,
+                                    "member",
+                                  )
+                                }
+                                className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--text)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[#f0f0f0]"
+                              >
+                                <FaCircleArrowDown size={14} />
+                                <span>Demote to Member</span>
+                              </button>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  changeMemberRole(
+                                    participant.username,
+                                    "admin",
+                                  )
+                                }
+                                className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--text)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[#f0f0f0]"
+                              >
+                                <FaCircleArrowUp size={14} />
+                                <span>Promote to Admin</span>
+                              </button>
+                            )}
+                            <button
+                              type="button"
+                              onClick={() =>
+                                removeParticipant(participant.username)
+                              }
+                              className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[#e23b3b] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[#fdecec]"
+                            >
+                              <IoPersonRemove size={14} />
+                              <span>Remove from call</span>
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
           </div>
         </motion.div>
       )}

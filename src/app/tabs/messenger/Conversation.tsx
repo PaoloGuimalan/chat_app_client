@@ -113,6 +113,7 @@ function Conversation({
       ),
     [conversationsetup, istypinglist],
   );
+
   const conversationType = useMemo(
     () => conversationsetup.type,
     [conversationsetup],

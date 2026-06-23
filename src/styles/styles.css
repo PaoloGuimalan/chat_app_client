@@ -242,6 +242,23 @@
   padding-top: 10px;
 }
 
+.div_voice_blocks_holder {
+  scrollbar-color: rgba(255, 255, 255, 0.35) transparent;
+}
+
+.div_voice_blocks_holder::-webkit-scrollbar-track {
+  background: transparent !important;
+}
+
+.div_voice_blocks_holder::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.35) !important;
+  border: 2px solid transparent !important;
+}
+
+.div_voice_blocks_holder::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.55) !important;
+}
+
 .div_video_blocks {
   width: 100%;
   max-width: 370px;

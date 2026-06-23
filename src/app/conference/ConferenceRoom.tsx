@@ -32,7 +32,10 @@ function ConferenceRoom() {
   const { theme } = useTheme();
 
   const roomSlug = params.slug ?? "";
-  const routeInvites = (location.state as any)?.invites ?? [];
+  const routeInvites = useMemo(
+    () => (location.state as any)?.invites ?? [],
+    [location.state],
+  );
   const inviteToken = useMemo(() => {
     const query = new URLSearchParams(location.search);
     return query.get("invite_token")?.trim() ?? "";
@@ -48,6 +51,8 @@ function ConferenceRoom() {
   const [lobbyMicEnabled, setLobbyMicEnabled] = useState(true);
   const [lobbyCameraEnabled, setLobbyCameraEnabled] = useState(true);
   const [currentTime, setCurrentTime] = useState(() => Date.now());
+  const [selfIsAdmin, setSelfIsAdmin] = useState(false);
+  const [selfIsMember, setSelfIsMember] = useState(false);
 
   useEffect(() => {
     if (!roomSlug) {
@@ -105,6 +110,12 @@ function ConferenceRoom() {
   }, [authentication.auth, inviteToken]);
 
   useEffect(() => {
+    // The per-second tick only feeds the lobby's meeting-window status.
+    // Stop it once joined so it doesn't re-render the conference tree.
+    if (hasJoined) {
+      return;
+    }
+
     const interval = window.setInterval(() => {
       setCurrentTime(Date.now());
     }, 1000);
@@ -112,7 +123,7 @@ function ConferenceRoom() {
     return () => {
       window.clearInterval(interval);
     };
-  }, []);
+  }, [hasJoined]);
 
   useEffect(() => {
     if (!roomSlug || !authentication.auth) {
@@ -325,6 +336,7 @@ function ConferenceRoom() {
     meetingWindowState.canJoin &&
     (!roomIsPrivate ||
       hostIsCreator ||
+      selfIsMember ||
       effectiveInvitePending ||
       effectiveInviteAccepted);
 
@@ -394,6 +406,14 @@ function ConferenceRoom() {
         };
       }
 
+      if (selfIsMember) {
+        return {
+          title: "Private conference",
+          description:
+            "You're a member of this room, so you can join directly.",
+        };
+      }
+
       return {
         title: "Private conference",
         description:
@@ -447,6 +467,7 @@ function ConferenceRoom() {
     isInviteLoading,
     roomIsPrivate,
     normalizedUserEmail,
+    selfIsMember,
   ]);
 
   const acceptInvite = async () => {
@@ -493,12 +514,103 @@ function ConferenceRoom() {
     }
   };
 
+  const realmId = useMemo(() => {
+    return (
+      roomInfo?.contactID ??
+      roomInfo?.realm_id ??
+      roomInfo?.conversationInfo?.realm_id ??
+      roomInfo?.data?.contactID ??
+      roomInfo?.data?.conversationInfo?.realm_id ??
+      roomData?.groupdetails?.realm_id ??
+      roomData?.conversationInfo?.realm_id ??
+      null
+    );
+  }, [roomInfo, roomData]);
+
+  // Keep the local admin/member flags in sync with the loaded room info.
+  useEffect(() => {
+    setSelfIsAdmin(Boolean(roomInfo?.is_admin));
+    setSelfIsMember(
+      Boolean(roomInfo?.is_member) || Boolean(roomInfo?.is_admin),
+    );
+  }, [roomInfo]);
+
+  // Realtime: this user's realm role changed (promoted/demoted).
+  useEffect(() => {
+    const handler = (event: any) => {
+      if (event.detail?.event !== "conference_member_role") {
+        return;
+      }
+
+      let payload: any;
+      try {
+        payload = JSON.parse(event.detail.data);
+      } catch {
+        return;
+      }
+
+      if (
+        realmId &&
+        payload?.realm_id &&
+        String(payload.realm_id) !== String(realmId)
+      ) {
+        return;
+      }
+
+      if (
+        String(payload?.username) === String(authentication.user.username) ||
+        String(payload?.account_id) === String(authentication.user.userID)
+      ) {
+        setSelfIsAdmin(payload.role === "admin");
+      }
+    };
+
+    document.addEventListener("room-events-relay", handler);
+    return () => {
+      document.removeEventListener("room-events-relay", handler);
+    };
+  }, [realmId, authentication.user.username, authentication.user.userID]);
+
+  // Realtime: the host/admin approved or declined this user's join request.
+  useEffect(() => {
+    const handler = (event: any) => {
+      if (event.detail?.event !== "conference_request_status") {
+        return;
+      }
+
+      let payload: any;
+      try {
+        payload = JSON.parse(event.detail.data);
+      } catch {
+        return;
+      }
+
+      if (
+        realmId &&
+        payload?.realm_id &&
+        String(payload.realm_id) !== String(realmId)
+      ) {
+        return;
+      }
+
+      if (payload?.invite) {
+        setInviteInfo(payload.invite);
+      }
+    };
+
+    document.addEventListener("room-events-relay", handler);
+    return () => {
+      document.removeEventListener("room-events-relay", handler);
+    };
+  }, [realmId]);
+
   const canJoinNow = canProceedToConference;
   const showRequestPending =
     effectiveRequestPending && !effectiveInviteAccepted;
   const canRequestAccess =
     roomIsPrivate &&
     !hostIsCreator &&
+    !selfIsMember &&
     authentication.auth === true &&
     !showRequestPending &&
     !effectiveInviteAccepted &&
@@ -582,7 +694,9 @@ function ConferenceRoom() {
                         ? "Your access request is waiting for approval."
                         : inviteRequiresSignIn
                           ? "Sign in to verify the invite before joining."
-                          : roomIsPrivate && !effectiveInviteInfo
+                          : roomIsPrivate &&
+                              !effectiveInviteInfo &&
+                              !selfIsMember
                             ? "This conference is private. Please send a request to join."
                             : "Set your camera and microphone before joining."}
                 </span>
@@ -765,7 +879,13 @@ function ConferenceRoom() {
       data-theme={theme}
     >
       <div className="tw-flex-1 tw-min-h-0 tw-h-full">
-        <ConferenceVoiceWindow key={roomSlug} data={roomData} />
+        <ConferenceVoiceWindow
+          key={roomSlug}
+          data={roomData}
+          realmId={realmId}
+          canManageRequests={hostIsCreator || selfIsAdmin}
+          selfUsername={authentication.user.username}
+        />
       </div>
     </div>
   );

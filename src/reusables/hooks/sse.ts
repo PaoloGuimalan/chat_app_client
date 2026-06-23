@@ -487,6 +487,39 @@ const SSENotificationsTRequest = (
     );
   });
 
+  sseNtfsSource.addEventListener("conference_request", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "conference_request",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("conference_request_status", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "conference_request_status",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
+  sseNtfsSource.addEventListener("conference_member_role", (e: any) => {
+    document.dispatchEvent(
+      new CustomEvent("room-events-relay", {
+        detail: {
+          event: "conference_member_role",
+          data: e.data,
+        },
+      }),
+    );
+  });
+
   sseNtfsSource.addEventListener("removed_user_notif", (e: any) => {
     const data = JSON.parse(e.data);
 
