@@ -133,10 +133,7 @@ function ConferenceRoom() {
 
     const groupdetails = roomInfo.conversationInfo ?? roomInfo;
     const resolvedConversationID =
-      roomInfo.conversationInfo?._id ||
-      roomInfo.contactID ||
-      roomInfo.realm_id ||
-      roomSlug;
+      roomInfo.data._id || roomInfo.contactID || roomInfo.realm_id || roomSlug;
     const receivers =
       roomInfo.usersWithInfo?.map((mp: any) => mp._id) ??
       roomInfo.users?.map((mp: any) => mp._id) ??
@@ -158,7 +155,7 @@ function ConferenceRoom() {
       groupdetails: {
         ...(groupdetails || {}),
         groupName:
-          groupdetails?.groupName ??
+          groupdetails?.data.conversationInfo.groupName ??
           groupdetails?.name ??
           roomSlug ??
           "Conference",

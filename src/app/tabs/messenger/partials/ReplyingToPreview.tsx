@@ -37,7 +37,7 @@ function ReplyingToPreview({ cnvs, fromOther, yourReply, theme }: any) {
                 color: "rgb(222, 222, 222)",
                 // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
               }}
-              className="span_messages_result c1"
+              className="span_messages_result c1 cl-message-bubble cl-message-bubble--deleted tw-flex tw-flex-col tw-gap-[2px]"
             >
               Message deleted
             </motion.span>

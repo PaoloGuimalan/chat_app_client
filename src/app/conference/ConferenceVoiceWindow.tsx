@@ -9,6 +9,7 @@ import {
   BsFillMicMuteFill,
   BsCameraVideoFill,
   BsCameraVideoOffFill,
+  BsFillChatDotsFill,
 } from "react-icons/bs";
 import { MdScreenShare, MdStopScreenShare } from "react-icons/md";
 import { HiPhoneMissedCall } from "react-icons/hi";
@@ -16,6 +17,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 // import { END_CALL_LIST } from "@/redux/types";
 import UserVideoBlock from "../absolutes/calls_v2/UserVideoBlock";
+import Conversation from "../tabs/messenger/Conversation";
 import { Device } from "mediasoup-client";
 import {
   ConsumeRequest,
@@ -80,6 +82,7 @@ function ConferenceVoiceWindow({ data }: any) {
   >(new Map());
   const [screenStream, setScreenStream] = useState<MediaStream | null>(null);
   const [isScreenSharing, setIsScreenSharing] = useState<boolean>(false);
+  const [isChatOpen, setIsChatOpen] = useState<boolean>(false);
   const hasLeftRef = useRef(false);
   const hasJoinedRef = useRef(false);
   const isConsumingRef = useRef(false);
@@ -147,6 +150,27 @@ function ConferenceVoiceWindow({ data }: any) {
       );
     }
   }, [data, authentication, isGroupCall]);
+
+  const conferenceConversationSetup = useMemo(
+    () => ({
+      conversationid: conversationID,
+      type: "conference",
+      userdetails: {
+        userID: "",
+        fullname: { firstName: "", middleName: "", lastName: "" },
+        profile: "",
+      },
+      groupdetails: {
+        ...(data.groupdetails || {}),
+        groupName:
+          data.groupdetails?.groupName || data.callDisplayName || "Conference",
+        profile: data.groupdetails?.profile ?? "none",
+        receivers: data.groupdetails?.receivers || data.recepients || members,
+        serverID: null,
+      },
+    }),
+    [conversationID, data, members],
+  );
 
   const dispatch = useDispatch();
 
@@ -1227,15 +1251,17 @@ function ConferenceVoiceWindow({ data }: any) {
   );
 
   return (
-    <motion.div
-      animate={{
-        borderWidth: "0px",
-      }}
-      id="div_voice_indv"
-    >
-      <div id="div_top_nav_call_window">
-        <span id="span_call_displayname">{data.callDisplayName}</span>
-        {/* <button
+    <div className="tw-flex tw-flex-row tw-w-full tw-h-full tw-relative">
+      <motion.div
+        animate={{
+          borderWidth: "0px",
+        }}
+        id="div_conference_indv"
+        style={{ flex: 1, minWidth: 0 }}
+      >
+        <div id="div_top_nav_call_window">
+          <span id="span_call_displayname">{data.callDisplayName}</span>
+          {/* <button
           onClick={() => {
             // sendVideoData()
           }}
@@ -1243,154 +1269,184 @@ function ConferenceVoiceWindow({ data }: any) {
         >
           <RxEnterFullScreen style={{ fontSize: "20px", color: "white" }} />
         </button> */}
-      </div>
-      <div className="div_voice_blocks_holder t-scroll">
-        {mediaStream ? (
-          <UserVideoBlock
-            mediaStream={mediaStream}
-            cameraOff={!enableCamera}
-            muted={!enableMic}
-          />
-        ) : (
-          <div className="div_video_blocks">
-            <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
-              You
-              {!enableCamera ? " • camera off" : ""}
-              {!enableMic ? " • muted" : ""}
+        </div>
+        <div className="div_voice_blocks_holder t-scroll">
+          {mediaStream ? (
+            <UserVideoBlock
+              mediaStream={mediaStream}
+              cameraOff={!enableCamera}
+              muted={!enableMic}
+            />
+          ) : (
+            <div className="div_video_blocks">
+              <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
+                You
+                {!enableCamera ? " • camera off" : ""}
+                {!enableMic ? " • muted" : ""}
+              </div>
             </div>
-          </div>
-        )}
-        {screenStream && (
-          <div
-            className={
-              isMobileView ? "div_video_blocks" : "div_video_screen_blocks"
-            }
-          >
-            <div className="video_call_display tw-rounded-[5px] tw-overflow-hidden tw-bg-[#1f1f1f]">
-              <video
-                className="video_call_display"
-                autoPlay
-                playsInline
-                muted
-                ref={(node) => {
-                  if (node && screenStream) {
-                    node.srcObject = screenStream;
-                  }
-                }}
+          )}
+          {screenStream && (
+            <div
+              className={
+                isMobileView ? "div_video_blocks" : "div_video_screen_blocks"
+              }
+            >
+              <div className="video_call_display tw-rounded-[5px] tw-overflow-hidden tw-bg-[#1f1f1f]">
+                <video
+                  className="video_call_display"
+                  autoPlay
+                  playsInline
+                  muted
+                  ref={(node) => {
+                    if (node && screenStream) {
+                      node.srcObject = screenStream;
+                    }
+                  }}
+                />
+              </div>
+            </div>
+          )}
+          {waitingParticipants.map((participant) => (
+            <div
+              key={`placeholder-${participant.clientId}`}
+              className="div_video_blocks"
+            >
+              <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
+                @{participant.username}
+                {participantStatuses.get(participant.clientId)?.muted
+                  ? " • muted"
+                  : ""}
+                {participantStatuses.get(participant.clientId)?.cameraOff
+                  ? " • camera off"
+                  : ""}
+              </div>
+            </div>
+          ))}
+          {videoConsumers.map(({ id, consumer, ownerClientId, source }) => {
+            const owner = ownerClientId
+              ? participantByClientId.get(ownerClientId)
+              : null;
+            const status = ownerClientId
+              ? participantStatuses.get(ownerClientId)
+              : null;
+            return (
+              <RemoteVideo
+                key={id}
+                consumer={consumer}
+                cameraOff={Boolean(status?.cameraOff)}
+                muted={Boolean(status?.muted)}
+                label={owner ? `@${owner.username}` : "Participant"}
+                source={source || undefined}
               />
-            </div>
-          </div>
-        )}
-        {waitingParticipants.map((participant) => (
-          <div
-            key={`placeholder-${participant.clientId}`}
-            className="div_video_blocks"
+            );
+          })}
+        </div>
+        <div style={{ display: "none" }}>
+          {audioConsumers.map(({ id, consumer, ownerClientId, source }) => {
+            const owner = ownerClientId
+              ? participantByClientId.get(ownerClientId)
+              : null;
+            const status = ownerClientId
+              ? participantStatuses.get(ownerClientId)
+              : null;
+            return (
+              <RemoteVideo
+                key={id}
+                consumer={consumer}
+                cameraOff={Boolean(status?.cameraOff)}
+                muted={Boolean(status?.muted)}
+                label={owner ? `@${owner.username}` : "Participant"}
+                source={source || undefined}
+              />
+            );
+          })}
+        </div>
+        <div id="div_voice_controls">
+          <button
+            onClick={async () => {
+              const nextEnableMic = !enableMic;
+              setenableMic(nextEnableMic);
+              if (audioProducerRef.current) {
+                if (enableMic) {
+                  await audioProducerRef.current.pause();
+                } else {
+                  await audioProducerRef.current.resume();
+                }
+              }
+            }}
+            className={`btn_call_controls ${enableMic ? "" : "btn_call_controls_enable"}`}
           >
-            <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
-              @{participant.username}
-              {participantStatuses.get(participant.clientId)?.muted
-                ? " • muted"
-                : ""}
-              {participantStatuses.get(participant.clientId)?.cameraOff
-                ? " • camera off"
-                : ""}
-            </div>
+            {enableMic ? <BsFillMicFill /> : <BsFillMicMuteFill />}
+          </button>
+          <button
+            onClick={async () => {
+              const nextEnableCamera = !enableCamera;
+              setenableCamera(nextEnableCamera);
+              if (videoProducerRef.current) {
+                if (enableCamera) {
+                  await videoProducerRef.current.pause();
+                } else {
+                  await videoProducerRef.current.resume();
+                }
+              }
+            }}
+            className={`btn_call_controls ${enableCamera ? "" : "btn_call_controls_enable"}`}
+          >
+            {enableCamera ? <BsCameraVideoFill /> : <BsCameraVideoOffFill />}
+          </button>
+          <button
+            onClick={() => {
+              if (isScreenSharing) {
+                stopScreenShare();
+              } else {
+                startScreenShare();
+              }
+            }}
+            className={`btn_call_controls ${isScreenSharing ? "btn_call_controls_enable" : ""}`}
+          >
+            {isScreenSharing ? <MdStopScreenShare /> : <MdScreenShare />}
+          </button>
+          <button
+            onClick={() => {
+              setIsChatOpen((prev) => !prev);
+            }}
+            className={`btn_call_controls ${isChatOpen ? "btn_call_controls_enable" : ""}`}
+          >
+            <BsFillChatDotsFill />
+          </button>
+          <button
+            onClick={() => {
+              leaveCallProcess();
+            }}
+            className="btn_call_controls btn_call_controls_end"
+          >
+            <HiPhoneMissedCall />
+          </button>
+        </div>
+      </motion.div>
+      {isChatOpen && (
+        <motion.div
+          initial={{ x: 40, opacity: 0 }}
+          animate={{ x: 0, opacity: 1 }}
+          exit={{ x: 40, opacity: 0 }}
+          transition={{ duration: 0.18 }}
+          className={
+            isMobileView
+              ? "tw-absolute tw-inset-0 tw-z-20 tw-bg-white tw-flex tw-flex-col"
+              : "tw-w-[360px] tw-h-full tw-bg-white tw-border-l tw-border-[#dedede] tw-flex tw-flex-col tw-flex-shrink-0"
+          }
+        >
+          <div className="tw-flex-1 tw-min-h-0 tw-flex tw-bg-white">
+            <Conversation
+              conversationsetup={conferenceConversationSetup}
+              theme={{ primary: "#4994ec", lighten: "#82b6ec" }}
+              setIsChatOpen={setIsChatOpen}
+            />
           </div>
-        ))}
-        {videoConsumers.map(({ id, consumer, ownerClientId, source }) => {
-          const owner = ownerClientId
-            ? participantByClientId.get(ownerClientId)
-            : null;
-          const status = ownerClientId
-            ? participantStatuses.get(ownerClientId)
-            : null;
-          return (
-            <RemoteVideo
-              key={id}
-              consumer={consumer}
-              cameraOff={Boolean(status?.cameraOff)}
-              muted={Boolean(status?.muted)}
-              label={owner ? `@${owner.username}` : "Participant"}
-              source={source || undefined}
-            />
-          );
-        })}
-      </div>
-      <div style={{ display: "none" }}>
-        {audioConsumers.map(({ id, consumer, ownerClientId, source }) => {
-          const owner = ownerClientId
-            ? participantByClientId.get(ownerClientId)
-            : null;
-          const status = ownerClientId
-            ? participantStatuses.get(ownerClientId)
-            : null;
-          return (
-            <RemoteVideo
-              key={id}
-              consumer={consumer}
-              cameraOff={Boolean(status?.cameraOff)}
-              muted={Boolean(status?.muted)}
-              label={owner ? `@${owner.username}` : "Participant"}
-              source={source || undefined}
-            />
-          );
-        })}
-      </div>
-      <div id="div_voice_controls">
-        <button
-          onClick={async () => {
-            const nextEnableMic = !enableMic;
-            setenableMic(nextEnableMic);
-            if (audioProducerRef.current) {
-              if (enableMic) {
-                await audioProducerRef.current.pause();
-              } else {
-                await audioProducerRef.current.resume();
-              }
-            }
-          }}
-          className={`btn_call_controls ${enableMic ? "" : "btn_call_controls_enable"}`}
-        >
-          {enableMic ? <BsFillMicFill /> : <BsFillMicMuteFill />}
-        </button>
-        <button
-          onClick={async () => {
-            const nextEnableCamera = !enableCamera;
-            setenableCamera(nextEnableCamera);
-            if (videoProducerRef.current) {
-              if (enableCamera) {
-                await videoProducerRef.current.pause();
-              } else {
-                await videoProducerRef.current.resume();
-              }
-            }
-          }}
-          className={`btn_call_controls ${enableCamera ? "" : "btn_call_controls_enable"}`}
-        >
-          {enableCamera ? <BsCameraVideoFill /> : <BsCameraVideoOffFill />}
-        </button>
-        <button
-          onClick={() => {
-            if (isScreenSharing) {
-              stopScreenShare();
-            } else {
-              startScreenShare();
-            }
-          }}
-          className={`btn_call_controls ${isScreenSharing ? "btn_call_controls_enable" : ""}`}
-        >
-          {isScreenSharing ? <MdStopScreenShare /> : <MdScreenShare />}
-        </button>
-        <button
-          onClick={() => {
-            leaveCallProcess();
-          }}
-          className="btn_call_controls btn_call_controls_end"
-        >
-          <HiPhoneMissedCall />
-        </button>
-      </div>
-    </motion.div>
+        </motion.div>
+      )}
+    </div>
   );
 }
 

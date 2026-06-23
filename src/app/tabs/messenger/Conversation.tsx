@@ -66,7 +66,12 @@ import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { Avatar } from "@/reusables/design";
 
-function Conversation({ conversationsetup, theme, isMinimized }: any) {
+function Conversation({
+  conversationsetup,
+  theme,
+  isMinimized,
+  setIsChatOpen,
+}: any) {
   const authentication = useSelector((state: any) => state.authentication);
   // const mediatrackholder = useSelector((state: any) => state.mediatrackholder);
   const pendingcallalerts = useSelector(
@@ -1077,7 +1082,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
     <motion.div
       animate={{
         display:
-          pathnamelistener.includes("messages") || conversationType === "server"
+          pathnamelistener.includes("messages") ||
+          conversationType === "server" ||
+          conversationType === "conference"
             ? "flex"
             : screensizelistener.W <= 900
               ? "none"
@@ -1085,7 +1092,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         maxWidth: isMinimized
           ? "100%"
           : pathnamelistener.includes("messages") ||
-              conversationType === "server"
+              conversationType === "server" ||
+              conversationType === "conference"
             ? "100%"
             : screensizelistener.W <= 900
               ? "350px"
@@ -1093,8 +1101,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
         paddingTop: isMinimized
           ? "0px"
           : pathnamelistener.includes("messages") ||
-              conversationType === "server"
-            ? conversationType === "server"
+              conversationType === "server" ||
+              conversationType === "conference"
+            ? conversationType === "server" || conversationType === "conference"
               ? "0px"
               : "0px"
             : screensizelistener.W <= 900
@@ -1113,7 +1122,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           paddingRight: isMinimized
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                conversationType === "server" ||
+                conversationType === "conference"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "20px"
@@ -1121,7 +1131,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           paddingBottom: isMinimized
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                conversationType === "server" ||
+                conversationType === "conference"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
@@ -1129,7 +1140,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           width: isMinimized
             ? "calc(100% - 0px)"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                conversationType === "server" ||
+                conversationType === "conference"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 20px)"
@@ -1137,7 +1149,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           height: isMinimized
             ? "calc(100% - 0px)"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                conversationType === "server" ||
+                conversationType === "conference"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 10px)"
@@ -1147,7 +1160,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           paddingRight: isMinimized
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                conversationType === "server" ||
+                conversationType === "conference"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "20px"
@@ -1155,7 +1169,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           paddingBottom: isMinimized
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                conversationType === "server" ||
+                conversationType === "conference"
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
@@ -1163,7 +1178,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           width: isMinimized
             ? "calc(100% - 0px)"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                conversationType === "server" ||
+                conversationType === "conference"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 20px)"
@@ -1171,7 +1187,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           height: isMinimized
             ? "calc(100% - 0px)"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                conversationType === "server" ||
+                conversationType === "conference"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 10px)"
@@ -1186,13 +1203,14 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             paddingTop: "0px",
             borderRadius: isMinimized
               ? "18px"
-              : pathnamelistener.includes("messages")
+              : pathnamelistener.includes("messages") ||
+                  conversationType === "conference"
                 ? "0px"
                 : screensizelistener.W <= 900
                   ? "10px"
                   : "10px",
             border:
-              conversationType === "server"
+              conversationType === "server" || conversationType === "conference"
                 ? "none"
                 : "solid 1px rgb(210, 210, 210)",
           }}
@@ -1202,7 +1220,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             paddingTop: "5px",
             borderRadius: isMinimized
               ? "18px"
-              : pathnamelistener.includes("messages")
+              : pathnamelistener.includes("messages") ||
+                  conversationType === "conference"
                 ? "0px"
                 : screensizelistener.W <= 900
                   ? "10px"
@@ -1217,7 +1236,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
           <motion.div
             initial={{
               paddingLeft:
-                conversationType === "server"
+                conversationType === "server" ||
+                conversationType === "conference"
                   ? screensizelistener.W <= 900
                     ? "0px"
                     : "10px"
@@ -1225,7 +1245,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             }}
             animate={{
               paddingLeft:
-                conversationType === "server"
+                conversationType === "server" ||
+                conversationType === "conference"
                   ? screensizelistener.W <= 900
                     ? "0px"
                     : "10px"
@@ -1239,7 +1260,13 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                 <button
                   type="button"
                   aria-label="Back to messages list"
-                  onClick={goBackToConversationList}
+                  onClick={() => {
+                    if (typeof setIsChatOpen === "function") {
+                      setIsChatOpen(false);
+                      return;
+                    }
+                    goBackToConversationList();
+                  }}
                   id="div_img_cncts_container"
                   className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-p-0"
                 >
@@ -1250,52 +1277,53 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   </div>
                 </button>
               )}
-              {conversationType !== "server" && (
-                <div id="div_img_cncts_container">
-                  <div id="div_img_search_profiles_container_cncts">
-                    {conversationsetup.type == "single" ? (
-                      <Avatar
-                        id={conversationsetup.userdetails._id}
-                        name={`${conversationsetup.userdetails.fullname.firstName} ${conversationsetup.userdetails.fullname.lastName}`}
-                        src={
-                          conversationsetup.userdetails.profile == "none"
-                            ? undefined
-                            : conversationsetup.userdetails.profile
-                        }
-                        size={screensizelistener.W <= 799 ? 42 : 48}
-                      />
-                    ) : (
-                      <CachedImage
-                        src={
-                          conversationsetup.groupdetails &&
-                          conversationsetup.groupdetails?.profile &&
-                          conversationsetup.groupdetails?.profile !== "N/A"
-                            ? conversationsetup.groupdetails?.profile
-                            : GroupChatIcon
-                        }
-                        id={
-                          conversationsetup.groupdetails &&
-                          conversationsetup.groupdetails?.profile &&
-                          conversationsetup.groupdetails?.profile !== "N/A"
-                            ? "img_actual_profile_main"
-                            : ""
-                        }
-                        className={
-                          conversationsetup.groupdetails &&
-                          conversationsetup.groupdetails?.profile &&
-                          conversationsetup.groupdetails?.profile !== "N/A"
-                            ? ""
-                            : "img_gc_profiles_ntfs"
-                        }
-                      />
-                    )}
+              {conversationType !== "server" &&
+                conversationType !== "conference" && (
+                  <div id="div_img_cncts_container">
+                    <div id="div_img_search_profiles_container_cncts">
+                      {conversationsetup.type == "single" ? (
+                        <Avatar
+                          id={conversationsetup.userdetails._id}
+                          name={`${conversationsetup.userdetails.fullname.firstName} ${conversationsetup.userdetails.fullname.lastName}`}
+                          src={
+                            conversationsetup.userdetails.profile == "none"
+                              ? undefined
+                              : conversationsetup.userdetails.profile
+                          }
+                          size={screensizelistener.W <= 799 ? 42 : 48}
+                        />
+                      ) : (
+                        <CachedImage
+                          src={
+                            conversationsetup.groupdetails &&
+                            conversationsetup.groupdetails?.profile &&
+                            conversationsetup.groupdetails?.profile !== "N/A"
+                              ? conversationsetup.groupdetails?.profile
+                              : GroupChatIcon
+                          }
+                          id={
+                            conversationsetup.groupdetails &&
+                            conversationsetup.groupdetails?.profile &&
+                            conversationsetup.groupdetails?.profile !== "N/A"
+                              ? "img_actual_profile_main"
+                              : ""
+                          }
+                          className={
+                            conversationsetup.groupdetails &&
+                            conversationsetup.groupdetails?.profile &&
+                            conversationsetup.groupdetails?.profile !== "N/A"
+                              ? ""
+                              : "img_gc_profiles_ntfs"
+                          }
+                        />
+                      )}
+                    </div>
+                    {isUserOnline(
+                      activeuserslist,
+                      conversationsetup.userdetails._id,
+                    ) && <div className="div_online_indicator" />}
                   </div>
-                  {isUserOnline(
-                    activeuserslist,
-                    conversationsetup.userdetails._id,
-                  ) && <div className="div_online_indicator" />}
-                </div>
-              )}
+                )}
               <div id="div_conversation_user_name">
                 {conversationsetup.type == "single" ? (
                   <span
@@ -1321,23 +1349,29 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     {conversationsetup.groupdetails.groupName}
                   </span>
                 )}
-                {conversationsetup.type == "single" ? (
-                  activeusersmapper.includes(
-                    conversationsetup.userdetails._id,
-                  ) ? (
-                    activeuserSpecific[0].sessiondate ? (
-                      activeuserSpecific[0].sessionStatus ? (
-                        <span className="span_userdetails_name">
-                          Active Now
-                        </span>
-                      ) : activeuserSpecific[0].sessiondate.time ? (
-                        <span className="span_userdetails_name">
-                          {activeuserSpecific[0].sessiondate.time}{" "}
-                          {activeuserSpecific[0].sessiondate.date}
-                        </span>
+                {conversationType !== "conference" &&
+                  (conversationsetup.type == "single" ? (
+                    activeusersmapper.includes(
+                      conversationsetup.userdetails._id,
+                    ) ? (
+                      activeuserSpecific[0].sessiondate ? (
+                        activeuserSpecific[0].sessionStatus ? (
+                          <span className="span_userdetails_name">
+                            Active Now
+                          </span>
+                        ) : activeuserSpecific[0].sessiondate.time ? (
+                          <span className="span_userdetails_name">
+                            {activeuserSpecific[0].sessiondate.time}{" "}
+                            {activeuserSpecific[0].sessiondate.date}
+                          </span>
+                        ) : (
+                          <span className="span_userdetails_name">
+                            {timeSince(activeuserSpecific[0].sessiondate.date)}
+                          </span>
+                        )
                       ) : (
                         <span className="span_userdetails_name">
-                          {timeSince(activeuserSpecific[0].sessiondate.date)}
+                          Recently Active
                         </span>
                       )
                     ) : (
@@ -1347,14 +1381,9 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                     )
                   ) : (
                     <span className="span_userdetails_name">
-                      Recently Active
+                      Members are active
                     </span>
-                  )
-                ) : (
-                  <span className="span_userdetails_name">
-                    Members are active
-                  </span>
-                )}
+                  ))}
               </div>
             </div>
             <div id="div_conversation_header_navigations">
@@ -1405,77 +1434,111 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
               )}
               {!isMinimized && (
                 <>
-                  {conversationType !== "server" && (
-                    <motion.button
-                      // disabled={true}
-                      disabled={
-                        pendingcallalerts.filter(
-                          (fltcall: any) =>
-                            fltcall.callID == conversationsetup.conversationid,
-                        ).length > 0
-                          ? true
-                          : false
-                      }
-                      onClick={() => {
-                        // initMediaDevices("audio");
-                        initializeCall("audio");
-                      }}
-                      className="btn_conversation_header_navigation"
-                    >
-                      <BiSolidPhoneCall
-                        style={{
-                          fontSize: conversationHeaderPrimaryIconSize,
-                          color: "#4994ec",
+                  {conversationType !== "server" &&
+                    conversationType !== "conference" && (
+                      <motion.button
+                        // disabled={true}
+                        disabled={
+                          pendingcallalerts.filter(
+                            (fltcall: any) =>
+                              fltcall.callID ==
+                              conversationsetup.conversationid,
+                          ).length > 0
+                            ? true
+                            : false
+                        }
+                        onClick={() => {
+                          // initMediaDevices("audio");
+                          initializeCall("audio");
                         }}
-                      />
-                    </motion.button>
-                  )}
-                  {conversationType !== "server" && (
-                    <motion.button
-                      // disabled={true}
-                      disabled={
-                        pendingcallalerts.filter(
-                          (fltcall: any) =>
-                            fltcall.callID == conversationsetup.conversationid,
-                        ).length > 0
-                          ? true
-                          : false
-                      }
-                      onClick={() => {
-                        // initMediaDevices("video");
-                        initializeCall("video");
-                      }}
-                      className="btn_conversation_header_navigation"
-                    >
-                      <FcVideoCall
-                        style={{ fontSize: conversationHeaderPrimaryIconSize }}
-                      />
-                    </motion.button>
-                  )}
+                        className="btn_conversation_header_navigation"
+                      >
+                        <BiSolidPhoneCall
+                          style={{
+                            fontSize: conversationHeaderPrimaryIconSize,
+                            color: "#4994ec",
+                          }}
+                        />
+                      </motion.button>
+                    )}
+                  {conversationType !== "server" &&
+                    conversationType !== "conference" && (
+                      <motion.button
+                        // disabled={true}
+                        disabled={
+                          pendingcallalerts.filter(
+                            (fltcall: any) =>
+                              fltcall.callID ==
+                              conversationsetup.conversationid,
+                          ).length > 0
+                            ? true
+                            : false
+                        }
+                        onClick={() => {
+                          // initMediaDevices("video");
+                          initializeCall("video");
+                        }}
+                        className="btn_conversation_header_navigation"
+                      >
+                        <FcVideoCall
+                          style={{
+                            fontSize: conversationHeaderPrimaryIconSize,
+                          }}
+                        />
+                      </motion.button>
+                    )}
                   <div className="tw-relative">
-                    <motion.button
-                      className={`btn_conversation_header_navigation ${
-                        isServerConversation
-                          ? "cl-conversation-header-action--server"
-                          : ""
-                      }`}
-                      disabled={conversationinfo ? false : true}
-                      onClick={() => {
-                        settoggleMenu(!toggleMenu);
-                      }}
-                      // onBlur={() => {
-                      //   settoggleMenu(false);
-                      // }}
-                    >
-                      <BiSolidInfoCircle
-                        style={{
-                          fontSize: conversationMenuIconSize,
-                          color: isServerConversation
-                            ? "var(--gold)"
-                            : theme.primary,
+                    {conversationType !== "conference" ? (
+                      <motion.button
+                        className={`btn_conversation_header_navigation ${
+                          isServerConversation
+                            ? "cl-conversation-header-action--server"
+                            : ""
+                        }`}
+                        disabled={conversationinfo ? false : true}
+                        onClick={() => {
+                          settoggleMenu(!toggleMenu);
                         }}
-                      />
-                    </motion.button>
+                        // onBlur={() => {
+                        //   settoggleMenu(false);
+                        // }}
+                      >
+                        <BiSolidInfoCircle
+                          style={{
+                            fontSize: conversationMenuIconSize,
+                            color: isServerConversation
+                              ? "var(--gold)"
+                              : theme.primary,
+                          }}
+                        />
+                      </motion.button>
+                    ) : (
+                      <motion.button
+                        className={`btn_conversation_header_navigation ${
+                          isServerConversation
+                            ? "cl-conversation-header-action--server"
+                            : ""
+                        }`}
+                        disabled={conversationinfo ? false : true}
+                        onClick={() => {
+                          if (setIsChatOpen) {
+                            setIsChatOpen(false);
+                          }
+                        }}
+                        // onBlur={() => {
+                        //   settoggleMenu(false);
+                        // }}
+                      >
+                        <IoMdClose
+                          style={{
+                            fontSize: conversationMenuIconSize,
+                            color: isServerConversation
+                              ? "var(--gold)"
+                              : theme.primary,
+                          }}
+                        />
+                      </motion.button>
+                    )}
                     <motion.div
                       initial={{
                         scale: 0,
@@ -1535,7 +1598,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                         )}
                       {!isMinimized &&
                         !(screensizelistener.W <= 900) &&
-                        conversationType !== "server" && (
+                        conversationType !== "server" &&
+                        conversationType !== "conference" && (
                           <motion.button
                             className="cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                             disabled={conversationinfo ? false : true}
@@ -1566,7 +1630,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                       {conversationinfo &&
                       conversationinfo.chatHistory &&
                       conversationinfo.chatHistory.isArchived
-                        ? conversationType !== "server" && (
+                        ? conversationType !== "server" &&
+                          conversationType !== "conference" && (
                             <motion.button
                               className="cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                               disabled={conversationinfo ? false : true}
@@ -1582,7 +1647,8 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                               </span>
                             </motion.button>
                           )
-                        : conversationType !== "server" && (
+                        : conversationType !== "server" &&
+                          conversationType !== "conference" && (
                             <motion.button
                               className="cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                               disabled={conversationinfo ? false : true}
@@ -1598,22 +1664,23 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                               </span>
                             </motion.button>
                           )}
-                      {conversationType !== "server" && (
-                        <motion.button
-                          className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
-                          disabled={conversationinfo ? false : true}
-                          onClick={() => {
-                            UpdateChatHistoryProcess("clear");
-                          }}
-                        >
-                          <MdDelete
-                            style={{ fontSize: conversationMenuIconSize }}
-                          />
-                          <span className="tw-text-[11px] tw-font-Inter">
-                            Delete
-                          </span>
-                        </motion.button>
-                      )}
+                      {conversationType !== "server" &&
+                        conversationType !== "conference" && (
+                          <motion.button
+                            className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                            disabled={conversationinfo ? false : true}
+                            onClick={() => {
+                              UpdateChatHistoryProcess("clear");
+                            }}
+                          >
+                            <MdDelete
+                              style={{ fontSize: conversationMenuIconSize }}
+                            />
+                            <span className="tw-text-[11px] tw-font-Inter">
+                              Delete
+                            </span>
+                          </motion.button>
+                        )}
                       {isMinimized && (
                         <motion.button
                           className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
@@ -1854,46 +1921,47 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
                   }
                 })}
               {getChannelPreviewParticipants(conversationsetup.conversationid)
-                .length > 0 && (
-                <div className="div_messages_result tw-w-[calc(100%-20px)] tw-flex tw-justify-center tw-p-[10px]">
-                  <div className="tw-bg-[#f0f2f5] tw-w-[calc(100%-20px)] tw-max-w-[calc(400px-20px)] tw-p-[10px] tw-rounded-md">
-                    <div className="tw-w-full tw-flex tw-flex-col">
-                      <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
-                        Ongoing Call
-                      </span>
-                    </div>
-                    <div className="tw-w-full tw-flex tw-flex-col tw-h-[40px] tw-justify-center">
-                      <span className="tw-text-[12px] tw-font-Inter">
-                        {getChannelPreviewParticipants(
-                          conversationsetup.conversationid,
-                        ).length === 1
-                          ? `@${
-                              getChannelPreviewParticipants(
-                                conversationsetup.conversationid,
-                              )[0].username
-                            }`
-                          : `${
-                              getChannelPreviewParticipants(
-                                conversationsetup.conversationid,
-                              ).length
-                            } participants`}{" "}
-                        joined the call
-                      </span>
-                    </div>
-                    <div className="tw-w-full tw-flex tw-flex-col">
-                      <button
-                        style={{ backgroundColor: "#dedede" }}
-                        onClick={() => {
-                          initializeCall("audio");
-                        }}
-                        className="tw-p-[6px] tw-w-full tw-rounded-md tw-border-none tw-text-[14px] tw-text-white tw-font-semibold tw-cursor-pointer"
-                      >
-                        Join Call
-                      </button>
+                .length > 0 &&
+                conversationType !== "conference" && (
+                  <div className="div_messages_result tw-w-[calc(100%-20px)] tw-flex tw-justify-center tw-p-[10px]">
+                    <div className="tw-bg-[#f0f2f5] tw-w-[calc(100%-20px)] tw-max-w-[calc(400px-20px)] tw-p-[10px] tw-rounded-md">
+                      <div className="tw-w-full tw-flex tw-flex-col">
+                        <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                          Ongoing Call
+                        </span>
+                      </div>
+                      <div className="tw-w-full tw-flex tw-flex-col tw-h-[40px] tw-justify-center">
+                        <span className="tw-text-[12px] tw-font-Inter">
+                          {getChannelPreviewParticipants(
+                            conversationsetup.conversationid,
+                          ).length === 1
+                            ? `@${
+                                getChannelPreviewParticipants(
+                                  conversationsetup.conversationid,
+                                )[0].username
+                              }`
+                            : `${
+                                getChannelPreviewParticipants(
+                                  conversationsetup.conversationid,
+                                ).length
+                              } participants`}{" "}
+                          joined the call
+                        </span>
+                      </div>
+                      <div className="tw-w-full tw-flex tw-flex-col">
+                        <button
+                          style={{ backgroundColor: "#dedede" }}
+                          onClick={() => {
+                            initializeCall("audio");
+                          }}
+                          className="tw-p-[6px] tw-w-full tw-rounded-md tw-border-none tw-text-[14px] tw-text-white tw-font-semibold tw-cursor-pointer"
+                        >
+                          Join Call
+                        </button>
+                      </div>
                     </div>
                   </div>
-                </div>
-              )}
+                )}
               {conversationList.map((cnvs, i) => {
                 return (
                   <ContentHandler
@@ -2171,41 +2239,43 @@ function Conversation({ conversationsetup, theme, isMinimized }: any) {
             })}
           </motion.div>
           <div id="div_send_controls">
-            <div id="div_options_send">
-              <motion.button
-                whileHover={{
-                  backgroundColor: isLoading ? "transparent" : "#e6e6e6",
-                  cursor: isLoading ? "default" : "pointer",
-                }}
-                disabled={isConversationDisabled}
-                onClick={() => {
-                  sendNonImageFilesProcess();
-                }}
-                className="btn_options_send"
-              >
-                <RiAddCircleFill
-                  style={{
-                    fontSize: conversationComposerIconSize,
-                    color: "#90caf9",
+            {conversationType !== "conference" && (
+              <div id="div_options_send">
+                <motion.button
+                  whileHover={{
+                    backgroundColor: isLoading ? "transparent" : "#e6e6e6",
+                    cursor: isLoading ? "default" : "pointer",
                   }}
-                />
-              </motion.button>
-              <motion.button
-                whileHover={{
-                  backgroundColor: isLoading ? "transparent" : "#e6e6e6",
-                  cursor: isLoading ? "default" : "pointer",
-                }}
-                disabled={isConversationDisabled}
-                onClick={() => {
-                  sendImageProcess();
-                }}
-                className="btn_options_send"
-              >
-                <FcAddImage
-                  style={{ fontSize: conversationComposerIconSize }}
-                />
-              </motion.button>
-            </div>
+                  disabled={isConversationDisabled}
+                  onClick={() => {
+                    sendNonImageFilesProcess();
+                  }}
+                  className="btn_options_send"
+                >
+                  <RiAddCircleFill
+                    style={{
+                      fontSize: conversationComposerIconSize,
+                      color: "#90caf9",
+                    }}
+                  />
+                </motion.button>
+                <motion.button
+                  whileHover={{
+                    backgroundColor: isLoading ? "transparent" : "#e6e6e6",
+                    cursor: isLoading ? "default" : "pointer",
+                  }}
+                  disabled={isConversationDisabled}
+                  onClick={() => {
+                    sendImageProcess();
+                  }}
+                  className="btn_options_send"
+                >
+                  <FcAddImage
+                    style={{ fontSize: conversationComposerIconSize }}
+                  />
+                </motion.button>
+              </div>
+            )}
             <div
               id="div_input_text_content"
               className="cl-conversation-composer"
