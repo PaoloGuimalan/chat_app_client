@@ -418,7 +418,7 @@ function PostItem({
                       </div> */}
                     {!postState.is_shared && (
                       <Carousel
-                        className="tw-bg-[var(--surface-2)] tw-w-full tw-h-full tw-flex-1 tw-min-w-[350px]"
+                        className="tw-bg-black tw-w-full tw-h-full tw-flex-1 tw-min-w-[350px]"
                         showIndicators={false}
                         showThumbs={false}
                       >
@@ -427,7 +427,7 @@ function PostItem({
                             return (
                               <div
                                 key={mpr.reference_id}
-                                className="tw-h-full tw-bg-[var(--surface-2)]"
+                                className="tw-h-full tw-bg-black"
                               >
                                 <CachedImage
                                   src={mpr.reference}
@@ -441,7 +441,7 @@ function PostItem({
                             return (
                               <div
                                 key={mpr.reference_id}
-                                className="tw-h-full tw-max-h-full tw-bg-[var(--surface-2)]"
+                                className="tw-h-full tw-max-h-full tw-bg-black"
                               >
                                 <video
                                   controls
