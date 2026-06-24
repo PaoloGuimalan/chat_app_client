@@ -34,6 +34,7 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
     "date-fns": "^2.30.0",
+    "dompurify": "^3.4.11",
     "emoji-picker-react": "^4.7.12",
     "framer-motion": "^10.16.0",
     "jwt-decode": "^3.1.2",
@@ -77,6 +78,7 @@
     "web-vitals": "^2.1.4"
   },
   "devDependencies": {
+    "@types/dompurify": "^3.2.0",
     "@types/jwt-encode": "^1.0.0",
     "@types/node": "^20.5.9",
     "@types/react": "^18.2.15",

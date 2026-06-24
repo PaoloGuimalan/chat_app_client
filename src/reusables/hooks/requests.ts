@@ -2807,6 +2807,7 @@ const GetCurrentPoliciesRequest = async () => {
       ? (response.data.data as {
           document_type: string;
           version: string;
+          content: string;
           document_url: string;
           effective_date: string;
         }[])

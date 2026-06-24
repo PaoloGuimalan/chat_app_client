@@ -13,6 +13,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { monthNameToNumber } from "@/reusables/hooks/reusable";
 import { Btn, Field, Icon, SelectField, useTheme } from "@/reusables/design";
 import { BrandMark, BrandPanel } from "./Login";
+import DocumentViewerModal from "../widgets/modals/DocumentViewerModal";
 
 export type Gender = "Male" | "Female" | "Others";
 
@@ -75,18 +76,27 @@ function Register() {
   const [password, setpassword] = useState("");
   const [agreed, setagreed] = useState(false);
   const [isWaitingRequest, setisWaitingRequest] = useState(false);
-  const [termsUrl, settermsUrl] = useState<string>("/terms.html");
-  const [privacyUrl, setprivacyUrl] = useState<string>("/privacy.html");
+  const [termsUrl, settermsUrl] = useState<string>("");
+  const [privacyUrl, setprivacyUrl] = useState<string>("");
+  const [termsContent, settermsContent] = useState<string>("");
+  const [privacyContent, setprivacyContent] = useState<string>("");
+  const [activeDoc, setactiveDoc] = useState<{
+    url?: string;
+    content?: string;
+    title: string;
+  } | null>(null);
 
   useEffect(() => {
     GetCurrentPoliciesRequest().then((docs) => {
       const terms = docs.find((doc) => doc.document_type === "terms");
       if (terms) {
         settermsUrl(terms.document_url);
+        settermsContent(terms.content);
       }
       const privacy = docs.find((doc) => doc.document_type === "privacy");
       if (privacy) {
         setprivacyUrl(privacy.document_url);
+        setprivacyContent(privacy.content);
       }
     });
   }, []);
@@ -391,25 +401,37 @@ function Register() {
               }}
             />
             I agree to the{" "}
-            <a
-              href={termsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              style={{ color: "var(--brand)", fontWeight: 600 }}
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                setactiveDoc({
+                  url: termsUrl,
+                  content: termsContent,
+                  title: "Terms and Conditions",
+                });
+              }}
+              style={{ color: "var(--brand)", fontWeight: 600, cursor: "pointer" }}
             >
               Terms and Conditions
-            </a>{" "}
+            </span>{" "}
             and{" "}
-            <a
-              href={privacyUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              onClick={(e) => e.stopPropagation()}
-              style={{ color: "var(--brand)", fontWeight: 600 }}
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={(e) => {
+                e.stopPropagation();
+                setactiveDoc({
+                  url: privacyUrl,
+                  content: privacyContent,
+                  title: "Privacy Policy",
+                });
+              }}
+              style={{ color: "var(--brand)", fontWeight: 600, cursor: "pointer" }}
             >
               Privacy Policy
-            </a>
+            </span>
           </label>
 
           <Btn
@@ -451,6 +473,14 @@ function Register() {
           </div>
         </div>
       </div>
+      {activeDoc && (
+        <DocumentViewerModal
+          url={activeDoc.url}
+          content={activeDoc.content}
+          title={activeDoc.title}
+          onClose={() => setactiveDoc(null)}
+        />
+      )}
     </div>
   );
 }
