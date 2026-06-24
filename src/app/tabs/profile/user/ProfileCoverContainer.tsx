@@ -64,11 +64,9 @@ function ProfileCoverContainer({
               }}
               className="cl-profile-cover-menu tw-absolute tw-bottom-0 tw-right-0 tw-overflow-y-hidden"
             >
-              <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
+              <div className="tw-p-[10px] tw-w-[calc(100%-0px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
                 {coverphoto !== "none" && (
-                  <motion.button
-                    className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
-                  >
+                  <motion.button className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]">
                     <BsFilePerson color="var(--text-2)" size={22} />
                     <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text)]">
                       View Photo
@@ -109,9 +107,7 @@ function ProfileCoverContainer({
             >
               <div className="tw-p-[10px] tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
                 {coverphoto !== "none" && (
-                  <motion.button
-                    className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
-                  >
+                  <motion.button className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]">
                     <BsFilePerson color="var(--text-2)" size={22} />
                     <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text)]">
                       View Photo

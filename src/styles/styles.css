@@ -1454,7 +1454,12 @@
 
 /* Rich-text policy/legal document rendered inline in DocumentViewerModal */
 .cl-policy-content {
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+  font-family:
+    "Inter",
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
     sans-serif;
   line-height: 1.6;
   font-size: 14px;
@@ -5330,7 +5335,7 @@ input:checked + .slider:before {
 
 .cl-profile-cover-menu {
   background: var(--surface);
-  border: 1px solid var(--border);
+  border: 0px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-md);
 }
