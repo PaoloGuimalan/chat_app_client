@@ -27,7 +27,7 @@ function ServerConversation() {
   const serverID = useMemo(() => params.serverID, [params]);
 
   const channelType = useMemo(
-    () => conversationsetup.groupdetails.channelType,
+    () => conversationsetup.groupdetails.type,
     [conversationsetup],
   );
 
@@ -49,7 +49,7 @@ function ServerConversation() {
             ...response[0].groupdetails,
             receivers: response[0].receivers,
           },
-          type: "server",
+          type: response[0].groupdetails?.type || "channel",
         };
         dispatch({
           type: SET_CONVERSATION_SETUP,

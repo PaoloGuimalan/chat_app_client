@@ -31,7 +31,7 @@ function CreateChannelModal({
   const [gcprivacy, setgcprivacy] = useState(true);
   const [searchFilter, setsearchFilter] = useState("");
   const [markedMembers, setmarkedMembers] = useState<any[]>([]);
-  const [channelType, setchannelType] = useState<string>("group");
+  const [channelType, setchannelType] = useState<string>("channel");
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
@@ -159,7 +159,7 @@ function CreateChannelModal({
                       setchannelType(e.target.value);
                     }}
                   >
-                    <option value="group" defaultValue={"group"}>
+                    <option value="channel" defaultValue={"channel"}>
                       Text Channel
                     </option>
                     <option value="voice">Voice Channel</option>

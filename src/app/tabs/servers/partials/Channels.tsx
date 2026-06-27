@@ -354,7 +354,7 @@ function Channels() {
                         className="cl-server-channel-row tw-select-none tw-cursor-pointer tw-text-[13px] tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-p-[10px] tw-w-full tw-rounded-[12px]"
                       >
                         <div className="cl-server-channel-row__icon-shell">
-                          {mp.channelType === "voice" ? (
+                          {mp.type === "voice" ? (
                             mp.privacy ? (
                               <AiFillSound />
                             ) : (
@@ -377,13 +377,13 @@ function Channels() {
                             {mp.groupName}
                           </span>
                           <span className="tw-text-[11px] tw-text-[var(--text-2)] tw-font-Inter">
-                            {mp.channelType === "voice"
+                            {mp.type === "voice"
                               ? "Voice channel"
                               : "Text channel"}
                           </span>
                         </div>
                         <div className="tw-flex tw-items-center tw-gap-[8px]">
-                          {mp.channelType === "voice" &&
+                          {mp.type === "voice" &&
                             getChannelPreviewParticipants(mp.groupID).length >
                               0 && <MdSettingsVoice />}
                           {urllocation.pathname.includes(mp.groupID) && (

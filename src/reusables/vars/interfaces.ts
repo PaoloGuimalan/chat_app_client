@@ -242,7 +242,6 @@ export interface ChannelsListInterface {
   };
   createdBy: string;
   type: string;
-  channelType: string;
   privacy: boolean;
   messages: MessagesUnreadInterface[];
 }

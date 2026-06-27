@@ -30,6 +30,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
     () => conversationsetup.type,
     [conversationsetup],
   );
+  const isServerConversation = conversationType === "channel";
 
   const navigate = useNavigate();
 
@@ -42,8 +43,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
 
   const conversationID =
     conversationsetup.conversationid || conversationsetup.conversationID;
-  const isServerMobile =
-    conversationType === "server" && screensizelistener.W <= 900;
+  const isServerMobile = isServerConversation && screensizelistener.W <= 900;
 
   const currentParticipants = previewparticipants
     .filter((flt: IPreviewParicipants) => flt.channelID === conversationID)
@@ -55,20 +55,20 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
     <motion.div
       animate={{
         display:
-          pathnamelistener.includes("messages") || conversationType === "server"
+          pathnamelistener.includes("messages") || isServerConversation
             ? "flex"
             : screensizelistener.W <= 900
               ? "none"
               : "flex",
         maxWidth:
-          pathnamelistener.includes("messages") || conversationType === "server"
+          pathnamelistener.includes("messages") || isServerConversation
             ? "100%"
             : screensizelistener.W <= 900
               ? "350px"
               : "350px",
         paddingTop:
-          pathnamelistener.includes("messages") || conversationType === "server"
-            ? conversationType === "server"
+          pathnamelistener.includes("messages") || isServerConversation
+            ? isServerConversation
               ? "0px"
               : "10px"
             : screensizelistener.W <= 900
@@ -82,7 +82,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           paddingRight: isServerMobile
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "20px"
@@ -90,7 +90,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           paddingBottom: isServerMobile
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
@@ -98,7 +98,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           paddingTop: isServerMobile
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
@@ -106,7 +106,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           width: isServerMobile
             ? "100%"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                isServerConversation
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 20px)"
@@ -114,7 +114,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           height: isServerMobile
             ? "100%"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                isServerConversation
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 10px)"
@@ -124,7 +124,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           paddingRight: isServerMobile
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "20px"
@@ -132,7 +132,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           paddingBottom: isServerMobile
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
@@ -140,7 +140,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           paddingTop: isServerMobile
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
@@ -148,7 +148,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           width: isServerMobile
             ? "100%"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                isServerConversation
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 20px)"
@@ -156,7 +156,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           height: isServerMobile
             ? "100%"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server"
+                isServerConversation
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 10px)"
@@ -175,17 +175,17 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                   ? "10px"
                   : "10px",
             border:
-              conversationType === "server"
+              isServerConversation
                 ? "none"
                 : "solid 1px rgb(210, 210, 210)",
             paddingBottom: isServerMobile
               ? "0px"
-              : conversationType === "server" && screensizelistener.W <= 900
+              : isServerConversation && screensizelistener.W <= 900
                 ? "0px"
                 : "5px",
             paddingTop: isServerMobile
               ? "0px"
-              : conversationType === "server" && screensizelistener.W <= 900
+              : isServerConversation && screensizelistener.W <= 900
                 ? "0px"
                 : "5px",
             width: isServerMobile ? "100%" : "100%",
@@ -194,7 +194,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           animate={{
             height: isServerMobile
               ? "100%"
-              : conversationType === "server" && screensizelistener.W <= 900
+              : isServerConversation && screensizelistener.W <= 900
                 ? "100%"
                 : "calc(100% - 10px)",
             borderRadius: isServerMobile
@@ -205,17 +205,17 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                   ? "10px"
                   : "10px",
             border:
-              conversationType === "server"
+              isServerConversation
                 ? "none"
                 : "solid 1px rgb(210, 210, 210)",
             paddingBottom: isServerMobile
               ? "0px"
-              : conversationType === "server" && screensizelistener.W <= 900
+              : isServerConversation && screensizelistener.W <= 900
                 ? "0px"
                 : "5px",
             paddingTop: isServerMobile
               ? "0px"
-              : conversationType === "server" && screensizelistener.W <= 900
+              : isServerConversation && screensizelistener.W <= 900
                 ? "0px"
                 : "5px",
             width: "100%",
@@ -226,7 +226,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           <motion.div
             initial={{
               paddingLeft:
-                conversationType === "server"
+                isServerConversation
                   ? screensizelistener.W <= 900
                     ? "0px"
                     : "10px"
@@ -234,7 +234,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
             }}
             animate={{
               paddingLeft:
-                conversationType === "server"
+                isServerConversation
                   ? screensizelistener.W <= 900
                     ? "0px"
                     : "10px"

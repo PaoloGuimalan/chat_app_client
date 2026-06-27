@@ -415,11 +415,13 @@ function Messages() {
     return messageslist.filter((msgslst: any) => {
       const isDirect = msgslst.conversationType === "single";
       const isGroup = msgslst.conversationType === "group";
+      const isServerConversation = msgslst.conversationType === "channel";
 
       const matchesType =
         visibleConversationType === "all" ||
         (visibleConversationType === "direct" && isDirect) ||
-        (visibleConversationType === "groups" && isGroup);
+        (visibleConversationType === "groups" && isGroup) ||
+        (visibleConversationType === "servers" && isServerConversation);
 
       if (!matchesType) return false;
 
@@ -728,7 +730,7 @@ function Messages() {
                   ];
                 }
 
-                if (msgslst.conversationType === "server") {
+                if (msgslst.conversationType === "channel") {
                   const last = lastMessagePreview(
                     msgslst,
                     authentication.user.userID,
@@ -1091,7 +1093,7 @@ function Messages() {
               ];
             }
 
-            if (msgslst.conversationType === "server") {
+            if (msgslst.conversationType === "channel") {
               const last = lastMessagePreview(
                 msgslst,
                 authentication.user.userID,

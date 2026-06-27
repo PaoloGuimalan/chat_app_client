@@ -450,7 +450,7 @@ function ArchivedMessages() {
                     )}
                   </motion.div>
                 );
-              } else if (msgslst.conversationType === "server") {
+              } else if (msgslst.conversationType === "channel") {
                 return (
                   <motion.div
                     whileHover={{

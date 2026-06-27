@@ -147,7 +147,7 @@ function Conversation({
     () => conversationsetup.type,
     [conversationsetup],
   );
-  const isServerConversation = conversationType === "server";
+  const isServerConversation = conversationType === "channel";
   const [mentionState, setMentionState] = useState<{
     open: boolean;
     query: string;
@@ -659,12 +659,11 @@ function Conversation({
       scrollBottom,
       () => {
         const isGroup = conversationsetup.type === "group";
-        const isChannel =
-          conversationsetup.type === "server"
-            ? conversationsetup.groupdetails.serverID
-              ? true
-              : false
-            : false;
+        const isChannel = isServerConversation
+          ? conversationsetup.groupdetails.serverID
+            ? true
+            : false
+          : false;
 
         if (isGroup) {
           dispatch({
@@ -707,12 +706,11 @@ function Conversation({
       scrollBottom,
       () => {
         const isGroup = conversationsetup.type === "group";
-        const isChannel =
-          conversationsetup.type === "server"
-            ? conversationsetup.groupdetails.serverID
-              ? true
-              : false
-            : false;
+        const isChannel = isServerConversation
+          ? conversationsetup.groupdetails.serverID
+            ? true
+            : false
+          : false;
         if (isGroup) {
           dispatch({
             type: SET_CONVERSATION_SETUP,
@@ -1113,7 +1111,7 @@ function Conversation({
       animate={{
         display:
           pathnamelistener.includes("messages") ||
-          conversationType === "server" ||
+          isServerConversation ||
           conversationType === "conference"
             ? "flex"
             : screensizelistener.W <= 900
@@ -1122,7 +1120,7 @@ function Conversation({
         maxWidth: isMinimized
           ? "100%"
           : pathnamelistener.includes("messages") ||
-              conversationType === "server" ||
+              isServerConversation ||
               conversationType === "conference"
             ? "100%"
             : screensizelistener.W <= 900
@@ -1131,9 +1129,9 @@ function Conversation({
         paddingTop: isMinimized
           ? "0px"
           : pathnamelistener.includes("messages") ||
-              conversationType === "server" ||
+              isServerConversation ||
               conversationType === "conference"
-            ? conversationType === "server" || conversationType === "conference"
+            ? isServerConversation || conversationType === "conference"
               ? "0px"
               : "0px"
             : screensizelistener.W <= 900
@@ -1152,7 +1150,7 @@ function Conversation({
           paddingRight: isMinimized
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server" ||
+                isServerConversation ||
                 conversationType === "conference"
               ? "0px"
               : screensizelistener.W <= 900
@@ -1161,7 +1159,7 @@ function Conversation({
           paddingBottom: isMinimized
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server" ||
+                isServerConversation ||
                 conversationType === "conference"
               ? "0px"
               : screensizelistener.W <= 900
@@ -1170,7 +1168,7 @@ function Conversation({
           width: isMinimized
             ? "calc(100% - 0px)"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server" ||
+                isServerConversation ||
                 conversationType === "conference"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
@@ -1179,7 +1177,7 @@ function Conversation({
           height: isMinimized
             ? "calc(100% - 0px)"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server" ||
+                isServerConversation ||
                 conversationType === "conference"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
@@ -1190,7 +1188,7 @@ function Conversation({
           paddingRight: isMinimized
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server" ||
+                isServerConversation ||
                 conversationType === "conference"
               ? "0px"
               : screensizelistener.W <= 900
@@ -1199,7 +1197,7 @@ function Conversation({
           paddingBottom: isMinimized
             ? "0px"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server" ||
+                isServerConversation ||
                 conversationType === "conference"
               ? "0px"
               : screensizelistener.W <= 900
@@ -1208,7 +1206,7 @@ function Conversation({
           width: isMinimized
             ? "calc(100% - 0px)"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server" ||
+                isServerConversation ||
                 conversationType === "conference"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
@@ -1217,7 +1215,7 @@ function Conversation({
           height: isMinimized
             ? "calc(100% - 0px)"
             : pathnamelistener.includes("messages") ||
-                conversationType === "server" ||
+                isServerConversation ||
                 conversationType === "conference"
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
@@ -1240,7 +1238,7 @@ function Conversation({
                   ? "10px"
                   : "10px",
             border:
-              conversationType === "server" || conversationType === "conference"
+              isServerConversation || conversationType === "conference"
                 ? "none"
                 : "solid 1px rgb(210, 210, 210)",
           }}
@@ -1266,7 +1264,7 @@ function Conversation({
           <motion.div
             initial={{
               paddingLeft:
-                conversationType === "server" ||
+                isServerConversation ||
                 conversationType === "conference"
                   ? screensizelistener.W <= 900
                     ? "0px"
@@ -1275,7 +1273,7 @@ function Conversation({
             }}
             animate={{
               paddingLeft:
-                conversationType === "server" ||
+                isServerConversation ||
                 conversationType === "conference"
                   ? screensizelistener.W <= 900
                     ? "0px"
@@ -1307,7 +1305,7 @@ function Conversation({
                   </div>
                 </button>
               )}
-              {conversationType !== "server" &&
+              {!isServerConversation &&
                 conversationType !== "conference" && (
                   <div id="div_img_cncts_container">
                     <div id="div_img_search_profiles_container_cncts">
@@ -1370,7 +1368,7 @@ function Conversation({
                   </span>
                 ) : (
                   <span className="span_userdetails_name tw-flex tw-items-center tw-gap-[3px]">
-                    {conversationsetup.type === "server" &&
+                    {isServerConversation &&
                       (conversationsetup.groupdetails.privacy ? (
                         <FaLock style={{ fontSize: "12px" }} />
                       ) : (
@@ -1464,7 +1462,7 @@ function Conversation({
               )}
               {!isMinimized && (
                 <>
-                  {conversationType !== "server" &&
+                  {!isServerConversation &&
                     conversationType !== "conference" && (
                       <motion.button
                         // disabled={true}
@@ -1491,7 +1489,7 @@ function Conversation({
                         />
                       </motion.button>
                     )}
-                  {conversationType !== "server" &&
+                  {!isServerConversation &&
                     conversationType !== "conference" && (
                       <motion.button
                         // disabled={true}
@@ -1628,7 +1626,7 @@ function Conversation({
                         )}
                       {!isMinimized &&
                         !(screensizelistener.W <= 900) &&
-                        conversationType !== "server" &&
+                        !isServerConversation &&
                         conversationType !== "conference" && (
                           <motion.button
                             className="cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
@@ -1660,7 +1658,7 @@ function Conversation({
                       {conversationinfo &&
                       conversationinfo.chatHistory &&
                       conversationinfo.chatHistory.isArchived
-                        ? conversationType !== "server" &&
+                        ? !isServerConversation &&
                           conversationType !== "conference" && (
                             <motion.button
                               className="cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
@@ -1677,7 +1675,7 @@ function Conversation({
                               </span>
                             </motion.button>
                           )
-                        : conversationType !== "server" &&
+                        : !isServerConversation &&
                           conversationType !== "conference" && (
                             <motion.button
                               className="cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
@@ -1694,7 +1692,7 @@ function Conversation({
                               </span>
                             </motion.button>
                           )}
-                      {conversationType !== "server" &&
+                      {!isServerConversation &&
                         conversationType !== "conference" && (
                           <motion.button
                             className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
