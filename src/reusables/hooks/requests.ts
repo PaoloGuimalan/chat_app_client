@@ -1003,6 +1003,50 @@ const InitConversationListRequest = async (page: number, range: number) => {
       console.log(err);
     });
 
+  return await Axios.get(`${API}/m/conversations`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+      type,
+      page: page,
+      range: range,
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        const decodedResult: any = jwt_decode(response.data.result);
+
+        // console.log(decodedResult.conversationslist);
+        return decodedResult;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+const InitConversationListV1Request = async (page: number, range: number) => {
+  const authtoken = localStorage.getItem("authtoken");
+  const decodedtoken: any = authtoken ? jwtDecode(authtoken) : null;
+  const userID = decodedtoken ? decodedtoken.userID : null;
+  let type = "common";
+
+  await getSettings(userID)
+    .then((value) => {
+      if (value) {
+        if (value.messages && value.messages.type) {
+          type = value.messages.type;
+          return;
+        }
+
+        type = "common";
+      } else {
+        type = "common";
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+
   return await Axios.get(`${API}/u/initConversationList`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
@@ -1188,15 +1232,11 @@ const CreateConferenceRequest = async (params: any) => {
 };
 
 const CreateRealmInviteRequest = async (params: any) => {
-  return await Axios.post(
-    `${USER_SERVICE_API}/api/realm/invites`,
-    params,
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
+  return await Axios.post(`${USER_SERVICE_API}/api/realm/invites`, params, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
     },
-  )
+  })
     .then((response) => response.data)
     .catch((err) => {
       console.log(err);
@@ -1219,15 +1259,11 @@ const GetRealmInviteRequest = async (params: any) => {
 };
 
 const UpdateRealmInviteRequest = async (params: any) => {
-  return await Axios.patch(
-    `${USER_SERVICE_API}/api/realm/invites`,
-    params,
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
+  return await Axios.patch(`${USER_SERVICE_API}/api/realm/invites`, params, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
     },
-  )
+  })
     .then((response) => response.data)
     .catch((err) => {
       console.log(err);
@@ -3080,7 +3116,12 @@ const ListBlockedUsersRequest = async () => {
 };
 
 const ReportUserRequest = async (
-  params: { target_type: string; target_id: string; reason: string; description?: string },
+  params: {
+    target_type: string;
+    target_id: string;
+    reason: string;
+    description?: string;
+  },
   dispatch: Dispatch<any>,
   currentAlertState: any,
   setisWaitingRequest: any,
@@ -3311,4 +3352,5 @@ export {
   ListBlockedUsersRequest,
   ReportUserRequest,
   UpdateProfileInfoRequest,
+  InitConversationListV1Request,
 };

@@ -66,6 +66,35 @@ import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { Avatar } from "@/reusables/design";
 
+// {
+//     "conversationid": "26177616789363146166",
+//     "userdetails": {
+//         "userID": "",
+//         "fullname": {
+//             "firstName": "",
+//             "middleName": "",
+//             "lastName": ""
+//         },
+//         "profile": ""
+//     },
+//     "groupdetails": {
+//         "_id": "26177616789363146166",
+//         "serverID": null,
+//         "groupID": "26177616789363146166",
+//         "profile": "N/A",
+//         "dateCreated": {
+//             "date": "",
+//             "time": ""
+//         },
+//         "createdBy": "paologuimalan",
+//         "type": "group",
+//         "privacy": true,
+//         "groupName": "My Accounts",
+//         "receivers": []
+//     },
+//     "type": "group"
+// }
+
 function Conversation({
   conversationsetup,
   theme,
