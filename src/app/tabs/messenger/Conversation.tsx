@@ -147,6 +147,20 @@ function Conversation({
     () => conversationsetup.type,
     [conversationsetup],
   );
+  const senderEntityID = useMemo(() => {
+    return (
+      conversationsetup?.sender_entity_id ||
+      conversationsetup?.acting_entity_id ||
+      conversationsetup?.senderEntityID ||
+      conversationsetup?.joinedAsEntityID ||
+      conversationsetup?.groupdetails?.sender_entity_id ||
+      conversationsetup?.groupdetails?.acting_entity_id ||
+      conversationsetup?.groupdetails?.senderEntityID ||
+      (authentication.user?.userID
+        ? `entity:user:${authentication.user.userID}`
+        : null)
+    );
+  }, [authentication.user?.userID, conversationsetup]);
   const isServerConversation = conversationType === "channel";
   const [mentionState, setMentionState] = useState<{
     open: boolean;
@@ -517,6 +531,7 @@ function Conversation({
           replyingTo: isReplying.replyingTo,
           messageType: "text",
           conversationType: conversationType,
+          ...(senderEntityID ? { sender_entity_id: senderEntityID } : {}),
         });
       } else {
         addPendingMessage({
@@ -534,6 +549,7 @@ function Conversation({
           replyingTo: isReplying.replyingTo,
           messageType: "text",
           conversationType: conversationType,
+          ...(senderEntityID ? { sender_entity_id: senderEntityID } : {}),
         });
       }
     }
@@ -565,6 +581,7 @@ function Conversation({
           isReply: isReplying.isReply,
           replyingTo: isReplying.replyingTo,
           conversationType: conversationType,
+          ...(senderEntityID ? { sender_entity_id: senderEntityID } : {}),
         });
       } else {
         addMultiplePendingMessage([
@@ -581,6 +598,7 @@ function Conversation({
           isReply: isReplying.isReply,
           replyingTo: isReplying.replyingTo,
           conversationType: conversationType,
+          ...(senderEntityID ? { sender_entity_id: senderEntityID } : {}),
         });
       }
       setimgList([]);

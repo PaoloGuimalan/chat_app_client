@@ -12,12 +12,25 @@ function EmojiPickerHandler({
   setreactions,
 }: any) {
   const authentication = useSelector((state: any) => state.authentication);
+  const conversationsetup = useSelector((state: any) => state.conversationsetup);
+  const senderEntityID =
+    conversationsetup?.sender_entity_id ||
+    conversationsetup?.acting_entity_id ||
+    conversationsetup?.senderEntityID ||
+    conversationsetup?.joinedAsEntityID ||
+    conversationsetup?.groupdetails?.sender_entity_id ||
+    conversationsetup?.groupdetails?.acting_entity_id ||
+    conversationsetup?.groupdetails?.senderEntityID ||
+    (authentication.user?.userID
+      ? `entity:user:${authentication.user.userID}`
+      : null);
 
   const ReactToMessageProcess = (newreaction: any) => {
     ReactToMessageRequest({
       conversationID: conversationID,
       messageID: messageID,
       newreaction: newreaction,
+      ...(senderEntityID ? { sender_entity_id: senderEntityID } : {}),
     })
       .then((_) => {
         // console.log(response)

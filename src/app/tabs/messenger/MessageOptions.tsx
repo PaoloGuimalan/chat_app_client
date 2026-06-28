@@ -6,6 +6,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BsFillReplyFill } from "react-icons/bs";
 import { MdDelete } from "react-icons/md";
 import { motion } from "framer-motion";
+import { useSelector } from "react-redux";
 
 function MessageOptions({
   conversationID,
@@ -14,12 +15,26 @@ function MessageOptions({
   setisReplying,
 }: MessageOptionsProp) {
   const [isDeleting, setisDeleting] = useState<boolean>(false);
+  const authentication = useSelector((state: any) => state.authentication);
+  const conversationsetup = useSelector((state: any) => state.conversationsetup);
+  const senderEntityID =
+    conversationsetup?.sender_entity_id ||
+    conversationsetup?.acting_entity_id ||
+    conversationsetup?.senderEntityID ||
+    conversationsetup?.joinedAsEntityID ||
+    conversationsetup?.groupdetails?.sender_entity_id ||
+    conversationsetup?.groupdetails?.acting_entity_id ||
+    conversationsetup?.groupdetails?.senderEntityID ||
+    (authentication.user?.userID
+      ? `entity:user:${authentication.user.userID}`
+      : null);
 
   const DeleteMessageProcess = () => {
     setisDeleting(true);
     DeleteMessageRequest({
       conversationID: conversationID,
       messageID: messageID,
+      ...(senderEntityID ? { sender_entity_id: senderEntityID } : {}),
     })
       .then((_) => {
         setTimeout(() => {
