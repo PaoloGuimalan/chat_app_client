@@ -55,6 +55,17 @@ Axios.interceptors.request.use(async (config) => {
 
     config.headers["Device-Token"] = deviceToken;
 
+    // Attach the active acting-as entity when the user is acting as a realm.
+    // Acting as self sends no header (the backend defaults to the user entity).
+    try {
+      const activeEntity = store.getState().activeentity;
+      if (activeEntity?.entityType === "realm" && activeEntity?.entityId) {
+        config.headers["X-Acting-As"] = activeEntity.entityId;
+      }
+    } catch {
+      /* store not ready / no active entity — fall through as the user */
+    }
+
     return config;
   } catch (error) {
     return Promise.reject(error);

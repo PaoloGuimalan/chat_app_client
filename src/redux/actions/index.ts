@@ -13,6 +13,7 @@ import {
   REMOVE_PENDING_CALL_ALERTS,
   REMOVE_PREVIEW_PARTICIPANT,
   REMOVE_REJECTED_CALL_LIST,
+  SET_ACTIVE_ENTITY,
   SET_ACTIVE_USERS_LIST,
   SET_ALERTS,
   SET_APPROVED_PENDING_MESSAGES_LIST,
@@ -50,6 +51,7 @@ import {
   UPDATE_ACTIVE_USERS_LIST,
 } from "../types";
 import {
+  activeentitystate,
   authenticationstate,
   contactsliststate,
   conversationsetupstate,
@@ -65,6 +67,15 @@ import {
   IUserSettings,
 } from "@/reusables/vars/interfaces";
 import jwtDecode from "jwt-decode";
+
+export const setactiveentity = (state = activeentitystate, action: any) => {
+  switch (action.type) {
+    case SET_ACTIVE_ENTITY:
+      return action.payload.activeentity;
+    default:
+      return state;
+  }
+};
 
 export const setauthentication = (state = authenticationstate, action: any) => {
   switch (action.type) {

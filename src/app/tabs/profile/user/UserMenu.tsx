@@ -1,11 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useState } from "react";
 import AppMenu from "@/app/widgets/desktopwidgets/AppMenu";
 import { LogoutRequest } from "@/reusables/hooks/requests";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { BsPersonFill } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import { Avatar, Card } from "@/reusables/design";
+import { Avatar, Btn, Card } from "@/reusables/design";
+import IdentitySwitcher from "@/app/widgets/IdentitySwitcher";
+import type { ActiveEntityState } from "@/redux/actions/states";
 import { CloseSSENotifications } from "@/reusables/hooks/sse";
 import {
   CLEAR_PENDING_CALL_ALERTS,
@@ -26,8 +29,46 @@ function UserMenu() {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  const activeentity: ActiveEntityState = useSelector(
+    (state: any) => state.activeentity,
+  );
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const [showSwitcher, setShowSwitcher] = useState(false);
+
+  const actingAsRealm = activeentity?.entityType === "realm";
+
+  // The Profile row reflects the *active* identity, so viewing the profile
+  // views as that identity (the page when acting as a page, else the user).
+  const activeIdentity = actingAsRealm
+    ? {
+        avatarId: activeentity?.display?.realm_id ?? "realm",
+        name: activeentity?.display?.name ?? "Page",
+        sub: activeentity?.display?.realmType ?? "page",
+        profile:
+          activeentity?.display?.profile &&
+          activeentity?.display?.profile !== "none"
+            ? activeentity?.display?.profile
+            : undefined,
+        // Only the realm profile uses the slug; fall back to realm_id.
+        target: `/${
+          activeentity?.display?.slug || activeentity?.display?.realm_id
+        }`,
+      }
+    : {
+        avatarId: authentication.user.username,
+        name: `${authentication.user.fullName.firstName}${
+          authentication.user.fullName.middleName === "N/A"
+            ? ""
+            : ` ${authentication.user.fullName.middleName}`
+        } ${authentication.user.fullName.lastName}`,
+        sub: `@${authentication.user.username}`,
+        profile:
+          authentication.user.profile !== "none"
+            ? authentication.user.profile
+            : undefined,
+        target: `/${authentication.user.username}`,
+      };
 
   const clearStates = () => {
     dispatch({
@@ -74,26 +115,23 @@ function UserMenu() {
         >
           <BsPersonFill style={{ fontSize: "22px", color: "#1c7DEF" }} />
           <span className="span_contacts_label tw-text-[var(--text-2)]">
-            Profile
+            {actingAsRealm ? "Acting as" : "Profile"}
           </span>
         </div>
         <div className="tw-w-full tw-flex tw-flex-col tw-items-center">
           <button
             onClick={() => {
-              navigate(`/${authentication.user.username}`);
+              navigate(activeIdentity.target);
             }}
             className="tw-select-none tw-cursor-pointer tw-w-full tw-bg-transparent tw-border-none tw-text-left tw-p-0"
           >
             <div className="tw-w-full tw-min-h-[72px] tw-flex tw-flex-row tw-items-center tw-gap-[12px] tw-py-[10px] tw-px-[4px]">
               <Avatar
-                id={authentication.user.username}
-                name={authentication.user.fullName.firstName}
-                src={
-                  authentication.user.profile !== "none"
-                    ? authentication.user.profile
-                    : undefined
-                }
+                id={activeIdentity.avatarId}
+                name={activeIdentity.name}
+                src={activeIdentity.profile}
                 size={44}
+                ring={actingAsRealm}
               />
               <div className="tw-flex tw-flex-col tw-items-start tw-min-w-0 tw-flex-1">
                 <span
@@ -101,20 +139,24 @@ function UserMenu() {
                   className="tw-w-full tw-text-[var(--text-2)]"
                   style={{ marginBottom: 2 }}
                 >
-                  {authentication.user.fullName.firstName}
-                  {authentication.user.fullName.middleName == "N/A"
-                    ? ""
-                    : ` ${authentication.user.fullName.middleName}`}{" "}
-                  {authentication.user.fullName.lastName}
+                  {activeIdentity.name}
                 </span>
-                <span className="tw-text-[13px] tw-text-[var(--text-2)] tw-break-all tw-w-full">
-                  @{authentication.user.username}
+                <span className="tw-text-[13px] tw-text-[var(--text-2)] tw-break-all tw-w-full tw-capitalize">
+                  {activeIdentity.sub}
                 </span>
               </div>
             </div>
           </button>
         </div>
-        <div className="tw-w-full tw-flex tw-justify-end tw-pt-[8px]">
+        <div className="tw-w-full tw-flex tw-items-center tw-justify-between tw-pt-[8px]">
+          <Btn
+            variant="soft"
+            size="sm"
+            iconL="switch_account"
+            onClick={() => setShowSwitcher(true)}
+          >
+            Switch identity
+          </Btn>
           <button
             onClick={handleLogout}
             className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[12px] tw-pr-[12px] tw-rounded-[12px] tw-text-[12px]"
@@ -124,6 +166,9 @@ function UserMenu() {
         </div>
       </Card>
       <AppMenu />
+      {showSwitcher && (
+        <IdentitySwitcher onClose={() => setShowSwitcher(false)} />
+      )}
     </div>
   );
 }

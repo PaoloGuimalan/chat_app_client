@@ -31,6 +31,43 @@ export const authenticationstate: AuthenticationInterface = {
   },
 };
 
+// The identity the user is currently acting as. Default is the user themselves
+// (entityType "user", no realm). When a realm (page/group/etc.) is selected,
+// every write carries it via the X-Acting-As header. Persisted across reloads.
+export interface ActiveEntityState {
+  entityId: string | null;
+  entityType: "user" | "realm";
+  display: {
+    name: string;
+    profile: string;
+    realmType?: string | null;
+    slug?: string | null;
+    realm_id?: string | null;
+  } | null;
+}
+
+const defaultActiveEntity: ActiveEntityState = {
+  entityId: null,
+  entityType: "user",
+  display: null,
+};
+
+function readPersistedActiveEntity(): ActiveEntityState {
+  try {
+    const raw = localStorage.getItem("activeEntity");
+    if (!raw) return defaultActiveEntity;
+    const parsed = JSON.parse(raw);
+    if (parsed && (parsed.entityType === "user" || parsed.entityType === "realm")) {
+      return parsed as ActiveEntityState;
+    }
+  } catch {
+    /* ignore malformed persisted value */
+  }
+  return defaultActiveEntity;
+}
+
+export const activeentitystate: ActiveEntityState = readPersistedActiveEntity();
+
 export const conversationsetupstate = {
   conversationid: null,
   userdetails: {

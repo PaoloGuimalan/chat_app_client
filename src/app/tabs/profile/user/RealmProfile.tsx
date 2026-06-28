@@ -43,6 +43,13 @@ function RealmProfile({
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  const activeentity = useSelector((state: any) => state.activeentity);
+
+  // True when the user is currently acting as THIS realm — it's their own
+  // profile, so user-style interaction buttons (Follow) must be hidden.
+  const viewingAsSelf =
+    activeentity?.entityType === "realm" &&
+    activeentity?.display?.realm_id === realmInfo.realm_id;
 
   const navigate = useNavigate();
 
@@ -267,7 +274,8 @@ function RealmProfile({
                     Manage
                   </button>
                 )}
-                {realmInfo.is_follower ? (
+                {!viewingAsSelf &&
+                  (realmInfo.is_follower ? (
                   <button
                     onClick={UnfollowRealmProcess}
                     disabled={isConnectionButtonsLoading}
@@ -317,7 +325,7 @@ function RealmProfile({
                       <div className="tw-min-w-[80px]">Follow</div>
                     )}
                   </button>
-                )}
+                  ))}
               </div>
             )}
           </div>

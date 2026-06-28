@@ -1,5 +1,6 @@
 import { createStore, combineReducers } from "redux";
 import {
+  setactiveentity,
   setactiveuserslist,
   setalerts,
   setapprovedpendingmessageslist,
@@ -30,6 +31,7 @@ import {
 
 const combiner = combineReducers({
   authentication: setauthentication,
+  activeentity: setactiveentity,
   alerts: setalerts,
   contactslist: setcontactslist,
   notificationslist: setnotificationslist,

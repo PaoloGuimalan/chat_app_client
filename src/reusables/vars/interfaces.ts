@@ -330,6 +330,14 @@ export interface IAuthorRealm {
   slug: string;
 }
 
+// Unified actor for any interaction (post/comment/reaction/message). New
+// consumers should prefer `actor`; `user`/`author_realm` remain for back-compat.
+export interface IActor {
+  entity_id: string;
+  entity_type: "user" | "realm";
+  display: IUserContactPreview | IAuthorRealm;
+}
+
 export interface IPost {
   post_id: string;
   tagging: ITagging[];
@@ -357,6 +365,7 @@ export interface IPost {
   // activity_counts: IActivityCounts[];
   score: IPostScore;
   author_realm: IAuthorRealm | null;
+  actor?: IActor | null;
 }
 
 //POST DATA INTERFACE END
@@ -455,6 +464,7 @@ export interface IPostComment {
   parent_comment: string | null;
   post: string;
   user: IUserContactPreview;
+  actor?: IActor | null;
   deleted_by: string | null;
 }
 

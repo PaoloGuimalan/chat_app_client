@@ -87,13 +87,19 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                   }}
                   className="tw-w-[42px] tw-h-[42px] tw-border-none tw-bg-[var(--surface-2)] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-transition-colors"
                 >
-                  <IoArrowBack style={{ fontSize: "20px", color: "var(--text)" }} />
+                  <IoArrowBack
+                    style={{ fontSize: "20px", color: "var(--text)" }}
+                  />
                 </button>
                 <div className="tw-flex tw-flex-1 tw-items-center tw-gap-[10px] tw-min-w-0">
                   <Avatar
                     id={realmState.slug ?? realmState.realm_id}
                     name={realmState.name}
-                    src={realmState.profile && realmState.profile !== "N/A" ? realmState.profile : undefined}
+                    src={
+                      realmState.profile && realmState.profile !== "N/A"
+                        ? realmState.profile
+                        : undefined
+                    }
                     size={42}
                   />
                   <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-truncate tw-min-w-0">
@@ -111,9 +117,9 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               <div className="tw-flex tw-flex-col tw-flex-1 tw-min-h-0 tw-pt-[14px] tw-gap-[8px] tw-overflow-y-auto">
                 <button
                   onClick={() => {
-                    navigate(`/realms/${realm.id}/`);
+                    navigate(`/realms/${realm.realm_id}/`);
                   }}
-                  className={navButtonClass(`/realms/${realm.id}/`)}
+                  className={navButtonClass(`/realms/${realm.realm_id}/`)}
                 >
                   <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                     Dashboard
@@ -121,9 +127,11 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                 </button>
                 <button
                   onClick={() => {
-                    navigate(`/realms/${realm.id}/details`);
+                    navigate(`/realms/${realm.realm_id}/details`);
                   }}
-                  className={navButtonClass(`/realms/${realm.id}/details`)}
+                  className={navButtonClass(
+                    `/realms/${realm.realm_id}/details`,
+                  )}
                 >
                   <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                     Profile Details
@@ -131,9 +139,9 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                 </button>
                 <button
                   onClick={() => {
-                    navigate(`/realms/${realm.id}/media`);
+                    navigate(`/realms/${realm.realm_id}/media`);
                   }}
-                  className={navButtonClass(`/realms/${realm.id}/media`)}
+                  className={navButtonClass(`/realms/${realm.realm_id}/media`)}
                 >
                   <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                     Media
@@ -141,9 +149,11 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                 </button>
                 <button
                   onClick={() => {
-                    navigate(`/realms/${realm.id}/members`);
+                    navigate(`/realms/${realm.realm_id}/members`);
                   }}
-                  className={navButtonClass(`/realms/${realm.id}/members`)}
+                  className={navButtonClass(
+                    `/realms/${realm.realm_id}/members`,
+                  )}
                 >
                   <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                     Members
@@ -152,9 +162,11 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                 {realmState.type === "page" && (
                   <button
                     onClick={() => {
-                      navigate(`/realms/${realm.id}/followers`);
+                      navigate(`/realms/${realm.realm_id}/followers`);
                     }}
-                    className={navButtonClass(`/realms/${realm.id}/followers`)}
+                    className={navButtonClass(
+                      `/realms/${realm.realm_id}/followers`,
+                    )}
                   >
                     <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                       Followers
@@ -186,13 +198,19 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                 }}
                 className="tw-w-[42px] tw-h-[42px] tw-border-none tw-bg-[var(--surface-2)] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-transition-colors"
               >
-                <IoArrowBack style={{ fontSize: "20px", color: "var(--text)" }} />
+                <IoArrowBack
+                  style={{ fontSize: "20px", color: "var(--text)" }}
+                />
               </button>
               <div className="tw-flex tw-flex-1 tw-items-center tw-gap-[10px] tw-min-w-0">
                 <Avatar
                   id={realmState.slug ?? realmState.realm_id}
                   name={realmState.name}
-                  src={realmState.profile && realmState.profile !== "N/A" ? realmState.profile : undefined}
+                  src={
+                    realmState.profile && realmState.profile !== "N/A"
+                      ? realmState.profile
+                      : undefined
+                  }
                   size={42}
                 />
                 <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-truncate tw-min-w-0">
@@ -210,9 +228,9 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
             <div className="tw-flex tw-flex-col tw-items-start tw-pt-[14px] tw-gap-[8px] tw-overflow-y-auto">
               <button
                 onClick={() => {
-                  navigate(`/realms/${realm.id}/`);
+                  navigate(`/realms/${realm.realm_id}/`);
                 }}
-                className={navButtonClass(`/realms/${realm.id}/`)}
+                className={navButtonClass(`/realms/${realm.realm_id}/`)}
               >
                 <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                   Dashboard
@@ -220,9 +238,9 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               </button>
               <button
                 onClick={() => {
-                  navigate(`/realms/${realm.id}/details`);
+                  navigate(`/realms/${realm.realm_id}/details`);
                 }}
-                className={navButtonClass(`/realms/${realm.id}/details`)}
+                className={navButtonClass(`/realms/${realm.realm_id}/details`)}
               >
                 <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                   Profile Details
@@ -230,9 +248,9 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               </button>
               <button
                 onClick={() => {
-                  navigate(`/realms/${realm.id}/media`);
+                  navigate(`/realms/${realm.realm_id}/media`);
                 }}
-                className={navButtonClass(`/realms/${realm.id}/media`)}
+                className={navButtonClass(`/realms/${realm.realm_id}/media`)}
               >
                 <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                   Media
@@ -240,9 +258,9 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               </button>
               <button
                 onClick={() => {
-                  navigate(`/realms/${realm.id}/members`);
+                  navigate(`/realms/${realm.realm_id}/members`);
                 }}
-                className={navButtonClass(`/realms/${realm.id}/members`)}
+                className={navButtonClass(`/realms/${realm.realm_id}/members`)}
               >
                 <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                   Members
@@ -251,9 +269,11 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               {realmState.type === "page" && (
                 <button
                   onClick={() => {
-                    navigate(`/realms/${realm.id}/followers`);
+                    navigate(`/realms/${realm.realm_id}/followers`);
                   }}
-                  className={navButtonClass(`/realms/${realm.id}/followers`)}
+                  className={navButtonClass(
+                    `/realms/${realm.realm_id}/followers`,
+                  )}
                 >
                   <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                     Followers
@@ -275,7 +295,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                 realmState.type === "page" ? (
                   <Followers realm={realmState} />
                 ) : (
-                  <Navigate to={`/realms/${realm.id}/`} />
+                  <Navigate to={`/realms/${realm.realm_id}/`} />
                 )
               }
             />

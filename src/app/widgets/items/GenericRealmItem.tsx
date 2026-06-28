@@ -59,9 +59,7 @@ function GenericRealmItem({
     <div
       className={`cl-display-card tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col`}
     >
-      <div
-        className="cl-display-card__surface tw-w-full tw-h-full tw-min-h-[0px] tw-flex tw-flex-col tw-justify-start tw-items-center"
-      >
+      <div className="cl-display-card__surface tw-w-full tw-h-full tw-min-h-[0px] tw-flex tw-flex-col tw-justify-start tw-items-center">
         {mp.cover_photo ? (
           <img
             src={mp.cover_photo}
