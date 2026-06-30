@@ -403,8 +403,16 @@ export interface IRealmFollower {
 
 export interface IContact {
   id: string;
-  action_by: IUserContactPreview;
-  involved_user: IUserContactPreview;
+  action_by: {
+    id: string;
+    type: string;
+    details: IUserContactPreview;
+  };
+  involved_entity: {
+    id: string;
+    type: string;
+    details: IUserContactPreview;
+  };
   connection_id: string;
   nickname: string | null;
   status: boolean;

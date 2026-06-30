@@ -34,6 +34,7 @@ import {
 
 interface ContactRowData {
   id: string;
+  entityID: string;
   username: string;
   firstName: string;
   middleName: string | null;
@@ -162,12 +163,14 @@ function Contacts() {
 
   const rows: ContactRowData[] = contactslist.flatMap((cnts) => {
     if (cnts.type !== "single") return [];
-    if (!cnts.involved_user || !cnts.action_by) return [];
-    const selfActed = cnts.action_by.id === authentication.user.userID;
-    const u = selfActed ? cnts.involved_user : cnts.action_by;
+    if (!cnts.involved_entity || !cnts.action_by) return [];
+    const selfActed = cnts.action_by.details.id === authentication.user.userID;
+    const u = selfActed ? cnts.involved_entity.details : cnts.action_by.details;
+    const details_ent = selfActed ? cnts.involved_entity : cnts.action_by;
     return [
       {
         id: u.id,
+        entityID: details_ent.id,
         username: u.username,
         firstName: u.first_name,
         middleName: u.middle_name,
@@ -247,9 +250,9 @@ function Contacts() {
         ) : (
           <div ref={divcontentRef} className="cl-contacts-page__list">
             {rows.map((r, i) => {
-              const online = isUserOnline(activeuserslist, r.id);
+              const online = isUserOnline(activeuserslist, r.entityID);
               const sessionStatus = !online
-                ? userSessionStatusFromContacts(activeuserslist, r.id)
+                ? userSessionStatusFromContacts(activeuserslist, r.entityID)
                 : null;
               const fullName = `${r.firstName}${
                 r.middleName === "N/A" ? "" : ` ${r.middleName}`

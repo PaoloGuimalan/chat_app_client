@@ -243,27 +243,27 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
 function contactsToUserdetails(contact: IContact, isUserOne: boolean) {
   if (isUserOne) {
     return {
-      _id: contact.action_by.id,
-      userID: contact.action_by.username,
+      _id: contact.action_by.details.id,
+      userID: contact.action_by.details.username,
       fullname: {
-        firstName: contact.action_by.first_name,
-        middleName: contact.action_by.middle_name,
-        lastName: contact.action_by.last_name,
+        firstName: contact.action_by.details.first_name,
+        middleName: contact.action_by.details.middle_name,
+        lastName: contact.action_by.details.last_name,
       },
-      profile: contact.action_by.profile,
+      profile: contact.action_by.details.profile,
       coverphoto: "",
     };
   }
 
   return {
-    _id: contact.involved_user.id,
-    userID: contact.involved_user.username,
+    _id: contact.involved_entity.details.id,
+    userID: contact.involved_entity.details.username,
     fullname: {
-      firstName: contact.involved_user.first_name,
-      middleName: contact.involved_user.middle_name,
-      lastName: contact.involved_user.last_name,
+      firstName: contact.involved_entity.details.first_name,
+      middleName: contact.involved_entity.details.middle_name,
+      lastName: contact.involved_entity.details.last_name,
     },
-    profile: contact.involved_user.profile,
+    profile: contact.involved_entity.details.profile,
     coverphoto: "",
   };
 }
