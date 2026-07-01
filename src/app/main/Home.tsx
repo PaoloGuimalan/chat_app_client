@@ -53,7 +53,6 @@ import {
 } from "@/reusables/vars/interfaces";
 import Servers from "../tabs/servers/Servers";
 import UserMenu from "../tabs/profile/user/UserMenu";
-import Conversation from "../tabs/messenger/Conversation";
 import Settings from "../tabs/settings/Settings";
 import Modal from "../reusables/Modal";
 import ProfileContainer from "../tabs/profile/ProfileContainer";
@@ -72,6 +71,7 @@ import Pages from "../tabs/pages/Pages";
 import RealmContainer from "../tabs/realms/RealmContainer";
 import SearchPage from "../tabs/search/Search";
 import { Avatar, Icon, useTheme } from "@/reusables/design";
+import ConversationV2 from "../tabs/messenger/ConversationV2";
 
 interface RailItem {
   key: string;
@@ -588,10 +588,10 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
                   maxWidth: 330,
                   display: "flex",
                 }}
-                key={mp.conversationid}
+                key={mp.conversationID}
               >
-                <Conversation
-                  conversationsetup={mp}
+                <ConversationV2
+                  conversationID={mp.conversationID}
                   theme={{ primary: "#1c7def", lighten: "#82b7f6" }}
                   isMinimized={true}
                 />

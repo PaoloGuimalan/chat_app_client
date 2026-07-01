@@ -1092,12 +1092,7 @@ function ConversationV2({
             },
           });
         } else {
-          dispatch({
-            type: SET_CONVERSATION_SETUP,
-            payload: {
-              conversationsetup: conversationsetupstate,
-            },
-          });
+          navigate("/messages");
         }
 
         if (action !== "unarchive") {
@@ -1693,15 +1688,12 @@ function ConversationV2({
                               dispatch({
                                 type: SET_MINIMIZED_CONVERSATION,
                                 payload: {
-                                  conversation: conversationsetup,
+                                  conversation: {
+                                    conversationID,
+                                  },
                                 },
                               });
-                              dispatch({
-                                type: SET_CONVERSATION_SETUP,
-                                payload: {
-                                  conversationsetup: conversationsetupstate,
-                                },
-                              });
+                              navigate("/messages");
                               settoggleMenu(false);
                             }}
                           >

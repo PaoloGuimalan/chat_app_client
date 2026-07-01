@@ -287,7 +287,7 @@ const SSENotificationsTRequest = (
           );
         }
 
-        if (authentication.user.userID != parsedresponse.message.userID) {
+        if (authentication.user.entityID != parsedresponse.message.entityID) {
           if (parsedresponse.onseen) {
             //play ringtone
             setTimeout(() => {

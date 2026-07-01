@@ -365,7 +365,7 @@ export const setminimizedconversation = (state: any = [], action: any) => {
     case SET_MINIMIZED_CONVERSATION:
       const conversation = action.payload.conversation;
       const finalset = state.filter(
-        (flt: any) => flt.conversationid !== conversation.conversationid,
+        (flt: any) => flt.conversationID !== conversation.conversationID,
       );
 
       return [...finalset, conversation];
@@ -374,7 +374,7 @@ export const setminimizedconversation = (state: any = [], action: any) => {
     case CLOSE_MINIMIZED_CONVERSATION:
       const conversationID = action.payload.conversationID;
       const setToRemove = state.filter(
-        (flt: any) => flt.conversationid !== conversationID,
+        (flt: any) => flt.conversationID !== conversationID,
       );
 
       return setToRemove;
