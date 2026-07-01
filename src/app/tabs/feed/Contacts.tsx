@@ -21,7 +21,11 @@ import {
   userSessionStatusFromContacts,
 } from "../../../reusables/hooks/reusable";
 import { PaginationProp } from "@/reusables/vars/props";
-import { AuthenticationInterface, IContact } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  ContactRowData,
+  IContact,
+} from "@/reusables/vars/interfaces";
 import ContactItemLoader from "@/app/reusables/loaders/ContactItemLoader";
 import {
   Avatar,
@@ -31,20 +35,6 @@ import {
   IconBtn,
   useTheme,
 } from "@/reusables/design";
-
-interface ContactRowData {
-  id: string;
-  entityID: string;
-  username: string;
-  firstName: string;
-  middleName: string | null;
-  lastName: string;
-  profile: string;
-  isBadged?: boolean;
-  connectionID: string;
-  selfActed: boolean;
-  involvedUserdetails: any;
-}
 
 function Contacts() {
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
@@ -292,13 +282,7 @@ function Contacts() {
                     <IconBtn
                       n="forum"
                       title="Message"
-                      onClick={() =>
-                        navigateToConversation(
-                          "single",
-                          r.connectionID,
-                          r.involvedUserdetails,
-                        )
-                      }
+                      onClick={() => navigate(`/messages/${r.connectionID}`)}
                       style={{
                         color: "var(--brand)",
                         background: "var(--surface-2)",

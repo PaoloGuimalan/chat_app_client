@@ -41,10 +41,7 @@ const buildMentionRegex = (members: any[]) => {
     return null;
   }
 
-  return new RegExp(
-    `(^|\\s)@(${labels.join("|")})(?=(?:\\s|[.,!?;:])|$)`,
-    "g",
-  );
+  return new RegExp(`(^|\\s)@(${labels.join("|")})(?=(?:\\s|[.,!?;:])|$)`, "g");
 };
 
 const formatConversationHtml = (content: string, members: any[]) => {
@@ -117,16 +114,17 @@ function ContentHandler({
   const isCurrentUserSender = cnvs.sender === authentication.user.userID;
   const reactionPillStyle =
     isCurrentUserSender && appTheme === "dark"
-    ? {
-        backgroundColor: theme.primary,
-        color: "var(--on-brand)",
-        border: `1px solid ${theme.primary}`,
-      }
-    : {
-        backgroundColor: "color-mix(in srgb, var(--surface-2) 88%, var(--surface) 12%)",
-        color: "var(--text)",
-        border: "1px solid var(--border)",
-      };
+      ? {
+          backgroundColor: theme.primary,
+          color: "var(--on-brand)",
+          border: `1px solid ${theme.primary}`,
+        }
+      : {
+          backgroundColor:
+            "color-mix(in srgb, var(--surface-2) 88%, var(--surface) 12%)",
+          color: "var(--text)",
+          border: "1px solid var(--border)",
+        };
   const deletedBubbleStyle =
     appTheme === "dark"
       ? {
@@ -147,8 +145,8 @@ function ContentHandler({
 
   useEffect(() => {
     if (isInView) {
-      if (authentication.user.userID) {
-        if (!cnvs.seeners.includes(authentication.user.userID)) {
+      if (authentication.user.entity_id) {
+        if (!cnvs.seeners.includes(authentication.user.entity_id)) {
           setunreadmessages((prev) => {
             const prevWithoutMessageID = prev.filter(
               (flt) => flt !== cnvs.messageID,
@@ -159,7 +157,7 @@ function ContentHandler({
         }
       }
     }
-  }, [isInView, authentication.user.userID]);
+  }, [isInView, authentication.user.entity_id]);
 
   if (cnvs.isDeleted) {
     return (
@@ -405,10 +403,7 @@ function ContentHandler({
               <span
                 className="tw-whitespace-pre-line"
                 dangerouslySetInnerHTML={{
-                  __html: formatConversationHtml(
-                    cnvs.content,
-                    members ?? [],
-                  ),
+                  __html: formatConversationHtml(cnvs.content, members ?? []),
                 }}
               />
               <span

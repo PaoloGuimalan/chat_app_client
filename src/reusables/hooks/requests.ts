@@ -1025,6 +1025,22 @@ const InitConversationListRequest = async (page: number, range: number) => {
     });
 };
 
+const InitConversationInfoRequest = async (conversationID: string) => {
+  return await Axios.get(`${API}/m/conversation/${conversationID}`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        return response.data.result;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 const InitConversationListV1Request = async (page: number, range: number) => {
   const authtoken = localStorage.getItem("authtoken");
   const decodedtoken: any = authtoken ? jwtDecode(authtoken) : null;
@@ -3357,4 +3373,5 @@ export {
   ReportUserRequest,
   UpdateProfileInfoRequest,
   InitConversationListV1Request,
+  InitConversationInfoRequest,
 };

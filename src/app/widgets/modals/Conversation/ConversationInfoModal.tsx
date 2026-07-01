@@ -101,7 +101,7 @@ function ConversationInfoModal({
 
   const userInfo = useMemo(() => {
     const info = conversationinfo.usersWithInfo.filter(
-      (flt) => flt._id !== authentication.user.userID,
+      (flt) => flt.entityID !== authentication.user.entity_id,
     );
 
     if (info.length > 0) {
@@ -109,7 +109,7 @@ function ConversationInfoModal({
     }
 
     return null;
-  }, [authentication.user.userID, conversationinfo.usersWithInfo]);
+  }, [authentication.user.entity_id, conversationinfo.usersWithInfo]);
 
   const renderUserAvatar = (
     userID: string,
@@ -169,22 +169,25 @@ function ConversationInfoModal({
                   <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                     {
                       conversationinfo.usersWithInfo.filter(
-                        (flt: any) => flt.userID !== authentication.user.userID,
+                        (flt: any) =>
+                          flt.entityID !== authentication.user.entity_id,
                       )[0].fullname.firstName
                     }
                     {conversationinfo.usersWithInfo.filter(
-                      (flt: any) => flt.userID !== authentication.user.userID,
+                      (flt: any) =>
+                        flt.entityID !== authentication.user.entity_id,
                     )[0].fullname.middleName !== "N/A"
                       ? ` ${
                           conversationinfo.usersWithInfo.filter(
                             (flt: any) =>
-                              flt.userID !== authentication.user.userID,
+                              flt.entityID !== authentication.user.entity_id,
                           )[0].fullname.middleName
                         } `
                       : " "}
                     {
                       conversationinfo.usersWithInfo.filter(
-                        (flt: any) => flt.userID !== authentication.user.userID,
+                        (flt: any) =>
+                          flt.entityID !== authentication.user.entity_id,
                       )[0].fullname.lastName
                     }
                   </span>
@@ -274,7 +277,7 @@ function ConversationInfoModal({
                       settoggledfiles("audio");
                     }}
                     animate={{
-                        borderColor:
+                      borderColor:
                         toggledfiles === "audio"
                           ? "var(--brand)"
                           : "transparent",
@@ -294,7 +297,7 @@ function ConversationInfoModal({
                       settoggledfiles("files");
                     }}
                     animate={{
-                        borderColor:
+                      borderColor:
                         toggledfiles === "files"
                           ? "var(--brand)"
                           : "transparent",
@@ -316,14 +319,14 @@ function ConversationInfoModal({
                       (mp: ConversationFilesInterface, i: number) => {
                         if (mp.fileDetails.data) {
                           if (mp.fileType.includes("image")) {
-                              return (
-                                <CachedImage
-                                  key={i}
-                                  src={mp.fileDetails.data}
+                            return (
+                              <CachedImage
+                                key={i}
+                                src={mp.fileDetails.data}
                                 className="cl-conversation-info-modal-media tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black"
-                                />
-                              );
-                            } else if (mp.fileType.includes("video")) {
+                              />
+                            );
+                          } else if (mp.fileType.includes("video")) {
                             // console.log(mp.fileDetails.data.split("%%")[0])
                             return (
                               <video
@@ -673,7 +676,7 @@ function ConversationInfoModal({
                                             }}
                                             className="checkbox_selector_people"
                                           />
-                                              <div id="div_img_cncts_container">
+                                          <div id="div_img_cncts_container">
                                             <div id="div_img_search_profiles_container_cncts">
                                               {renderUserAvatar(
                                                 cnts._id,
@@ -707,7 +710,7 @@ function ConversationInfoModal({
                                     if (cnts.action_by && cnts.involved_user) {
                                       if (
                                         cnts.action_by.id ===
-                                          authentication.user.userID &&
+                                          authentication.user.entity_id &&
                                         conversationinfo.usersWithInfo.filter(
                                           (flt: any) =>
                                             flt._id === cnts.involved_user.id,
@@ -785,22 +788,20 @@ function ConversationInfoModal({
                                                 }}
                                                 className="checkbox_selector_people"
                                               />
-                                                <div id="div_img_cncts_container">
-                                                  <div id="div_img_search_profiles_container_cncts">
-                                                    {renderUserAvatar(
-                                                      cnts.involved_user.id,
-                                                      `${cnts.involved_user.first_name} ${
-                                                        cnts.involved_user
-                                                          .middle_name ===
-                                                        "N/A"
-                                                          ? ""
-                                                          : `${cnts.involved_user.middle_name} `
-                                                      }${cnts.involved_user.last_name}`,
+                                              <div id="div_img_cncts_container">
+                                                <div id="div_img_search_profiles_container_cncts">
+                                                  {renderUserAvatar(
+                                                    cnts.involved_user.id,
+                                                    `${cnts.involved_user.first_name} ${
                                                       cnts.involved_user
-                                                        .profile,
-                                                    )}
-                                                  </div>
+                                                        .middle_name === "N/A"
+                                                        ? ""
+                                                        : `${cnts.involved_user.middle_name} `
+                                                    }${cnts.involved_user.last_name}`,
+                                                    cnts.involved_user.profile,
+                                                  )}
                                                 </div>
+                                              </div>
                                               <div className="div_contact_fullname_container">
                                                 <span className="tw-flex tw-flex-1 tw-text-[13px]">
                                                   {
@@ -904,8 +905,7 @@ function ConversationInfoModal({
                                                       cnts.action_by.id,
                                                       `${cnts.action_by.first_name} ${
                                                         cnts.action_by
-                                                          .middle_name ===
-                                                        "N/A"
+                                                          .middle_name === "N/A"
                                                           ? ""
                                                           : `${cnts.action_by.middle_name} `
                                                       }${cnts.action_by.last_name}`,

@@ -164,6 +164,7 @@ export interface ConversationDetails {
 
 export interface UserWithInfoConversationInterface {
   _id: any;
+  entityID: any;
   userID: string;
   fullname: {
     firstName: string;
@@ -637,4 +638,36 @@ export interface IConversationList {
   items: IConversation[];
   total: number;
   next: boolean;
+}
+
+export interface ContactRowData {
+  id: string;
+  entityID: string;
+  username: string;
+  firstName: string;
+  middleName: string | null;
+  lastName: string;
+  profile: string;
+  isBadged?: boolean;
+  connectionID: string;
+  selfActed: boolean;
+  involvedUserdetails: any;
+}
+
+export interface IConversationSetup {
+  _id: string;
+  conversationID: string;
+  conversationType: string;
+  participant_ids: string[];
+  createdAt: string | null;
+  updatedAt: string | null;
+  details: {
+    id: string;
+    entity_id: string;
+    username: string | null;
+    display_name: string;
+    profile: string;
+    privacy: boolean;
+  };
+  voice_participants: [];
 }

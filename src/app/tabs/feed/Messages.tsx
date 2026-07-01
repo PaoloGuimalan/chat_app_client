@@ -4,7 +4,6 @@ import { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BiSolidPhoneCall } from "react-icons/bi";
 import { useDispatch, useSelector } from "react-redux";
-import Conversation from "../messenger/Conversation";
 import { InitConversationListRequest } from "../../../reusables/hooks/requests";
 import GroupChatIcon from "../../../assets/imgs/group-chat-icon.jpg";
 import ServerIcon from "../../../assets/imgs/servericon.png";
@@ -18,7 +17,7 @@ import CreateGroupChatModal from "../../widgets/modals/CreateGroupChatModal";
 import { conversationsetupstate } from "../../../redux/actions/states";
 import { isUserOnline, timeSince } from "../../../reusables/hooks/reusable";
 import CreateServerModal from "@/app/widgets/modals/CreateServerModal";
-import { useNavigate } from "react-router-dom";
+import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
 import {
   AuthenticationInterface,
@@ -41,6 +40,8 @@ import {
   SegTabs,
   useTheme,
 } from "@/reusables/design";
+import MessagesDefault from "../messenger/MessagesDefault";
+import ConversationV2 from "../messenger/ConversationV2";
 
 const TYPE_CHECKER: Record<string, string> = {
   video: "a video",
@@ -279,6 +280,8 @@ function Messages() {
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const [isNext, setisNext] = useState<boolean>(true);
+
+  const conversationPath = useLocation().pathname;
 
   useEffect(() => {
     if (authentication.user.userID) {
@@ -670,11 +673,7 @@ function Messages() {
                       showCall={callHere}
                       active={active}
                       onClick={() => {
-                        // navigateToConversation(
-                        //   "single",
-                        //   msgslst.conversationID,
-                        //   msgsurs,
-                        // );
+                        navigate(`/messages/${msgslst.conversationID}`);
                       }}
                       style={{ marginBottom: 2 }}
                     />
@@ -704,7 +703,9 @@ function Messages() {
         <div
           style={{
             display:
-              isMobile && !conversationsetup.conversationid ? "none" : "flex",
+              isMobile && conversationPath.split("/").length < 3
+                ? "none"
+                : "flex",
             flex: 1,
             minWidth: 0,
             flexDirection: "column",
@@ -714,58 +715,13 @@ function Messages() {
             alignSelf: "stretch",
           }}
         >
-          {conversationsetup.conversationid ? (
-            <Conversation
-              conversationsetup={conversationsetup}
-              theme={conversationTheme}
+          <Routes>
+            <Route path="/" element={<MessagesDefault />} />
+            <Route
+              path="/:conversationID"
+              element={<ConversationV2 theme={conversationTheme} />}
             />
-          ) : (
-            <div
-              style={{
-                flex: 1,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                padding: 24,
-              }}
-            >
-              <Card
-                pad={28}
-                style={{
-                  width: "min(420px, 100%)",
-                  textAlign: "center",
-                }}
-              >
-                <div
-                  style={{
-                    width: 64,
-                    height: 64,
-                    margin: "0 auto 14px",
-                    borderRadius: "50%",
-                    background: "var(--brand-soft)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Icon n="forum" s={30} c="var(--brand)" />
-                </div>
-                <div
-                  style={{
-                    fontSize: 18,
-                    fontWeight: 800,
-                    marginBottom: 6,
-                    letterSpacing: "-0.02em",
-                  }}
-                >
-                  Messages
-                </div>
-                <div style={{ color: "var(--text-2)", lineHeight: 1.5 }}>
-                  Select a conversation from the list to open the thread here.
-                </div>
-              </Card>
-            </div>
-          )}
+          </Routes>
         </div>
       </div>
     </>

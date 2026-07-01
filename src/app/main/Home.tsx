@@ -555,7 +555,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
                   )
                 }
               />
-              <Route path="/messages" element={<Messages />} />
+              <Route path="/messages/*" element={<Messages />} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/explore" element={<SearchPage />} />
