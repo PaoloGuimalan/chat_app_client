@@ -1081,7 +1081,7 @@ function Conversation({
             dispatch({
               type: SET_MESSAGES_LIST_OVERRIDE,
               payload: {
-                messageslist: response.conversationslist,
+                messageslist: response.items,
               },
             });
             setisLoading(false);
@@ -1264,8 +1264,7 @@ function Conversation({
           <motion.div
             initial={{
               paddingLeft:
-                isServerConversation ||
-                conversationType === "conference"
+                isServerConversation || conversationType === "conference"
                   ? screensizelistener.W <= 900
                     ? "0px"
                     : "10px"
@@ -1273,8 +1272,7 @@ function Conversation({
             }}
             animate={{
               paddingLeft:
-                isServerConversation ||
-                conversationType === "conference"
+                isServerConversation || conversationType === "conference"
                   ? screensizelistener.W <= 900
                     ? "0px"
                     : "10px"
@@ -1305,53 +1303,52 @@ function Conversation({
                   </div>
                 </button>
               )}
-              {!isServerConversation &&
-                conversationType !== "conference" && (
-                  <div id="div_img_cncts_container">
-                    <div id="div_img_search_profiles_container_cncts">
-                      {conversationsetup.type == "single" ? (
-                        <Avatar
-                          id={conversationsetup.userdetails._id}
-                          name={`${conversationsetup.userdetails.fullname.firstName} ${conversationsetup.userdetails.fullname.lastName}`}
-                          src={
-                            conversationsetup.userdetails.profile == "none"
-                              ? undefined
-                              : conversationsetup.userdetails.profile
-                          }
-                          size={screensizelistener.W <= 799 ? 42 : 48}
-                        />
-                      ) : (
-                        <CachedImage
-                          src={
-                            conversationsetup.groupdetails &&
-                            conversationsetup.groupdetails?.profile &&
-                            conversationsetup.groupdetails?.profile !== "N/A"
-                              ? conversationsetup.groupdetails?.profile
-                              : GroupChatIcon
-                          }
-                          id={
-                            conversationsetup.groupdetails &&
-                            conversationsetup.groupdetails?.profile &&
-                            conversationsetup.groupdetails?.profile !== "N/A"
-                              ? "img_actual_profile_main"
-                              : ""
-                          }
-                          className={
-                            conversationsetup.groupdetails &&
-                            conversationsetup.groupdetails?.profile &&
-                            conversationsetup.groupdetails?.profile !== "N/A"
-                              ? ""
-                              : "img_gc_profiles_ntfs"
-                          }
-                        />
-                      )}
-                    </div>
-                    {isUserOnline(
-                      activeuserslist,
-                      conversationsetup.userdetails._id,
-                    ) && <div className="div_online_indicator" />}
+              {!isServerConversation && conversationType !== "conference" && (
+                <div id="div_img_cncts_container">
+                  <div id="div_img_search_profiles_container_cncts">
+                    {conversationsetup.type == "single" ? (
+                      <Avatar
+                        id={conversationsetup.userdetails._id}
+                        name={`${conversationsetup.userdetails.fullname.firstName} ${conversationsetup.userdetails.fullname.lastName}`}
+                        src={
+                          conversationsetup.userdetails.profile == "none"
+                            ? undefined
+                            : conversationsetup.userdetails.profile
+                        }
+                        size={screensizelistener.W <= 799 ? 42 : 48}
+                      />
+                    ) : (
+                      <CachedImage
+                        src={
+                          conversationsetup.groupdetails &&
+                          conversationsetup.groupdetails?.profile &&
+                          conversationsetup.groupdetails?.profile !== "N/A"
+                            ? conversationsetup.groupdetails?.profile
+                            : GroupChatIcon
+                        }
+                        id={
+                          conversationsetup.groupdetails &&
+                          conversationsetup.groupdetails?.profile &&
+                          conversationsetup.groupdetails?.profile !== "N/A"
+                            ? "img_actual_profile_main"
+                            : ""
+                        }
+                        className={
+                          conversationsetup.groupdetails &&
+                          conversationsetup.groupdetails?.profile &&
+                          conversationsetup.groupdetails?.profile !== "N/A"
+                            ? ""
+                            : "img_gc_profiles_ntfs"
+                        }
+                      />
+                    )}
                   </div>
-                )}
+                  {isUserOnline(
+                    activeuserslist,
+                    conversationsetup.userdetails._id,
+                  ) && <div className="div_online_indicator" />}
+                </div>
+              )}
               <div id="div_conversation_user_name">
                 {conversationsetup.type == "single" ? (
                   <span

@@ -116,6 +116,7 @@ const AuthCheck = (dispatch: any) => {
                   pendingConsents: userData.pending_consents || [],
                   profile: userData.profile,
                   coverphoto: userData.coverphoto || "",
+                  entity_id: userData.entity_id,
                 },
               },
             },
@@ -186,6 +187,7 @@ const LoginRequest = (
                 isVerified: userData.isVerified,
                 isComplete: userData.isComplete,
                 pendingConsents: userData.pendingConsents,
+                entity_id: userData.entity_id,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },
@@ -270,6 +272,7 @@ const ThirdPartyAuthenticationRequest = (
                 isVerified: userData.isVerified,
                 isComplete: userData.isComplete,
                 pendingConsents: userData.pendingConsents,
+                entity_id: userData.entity_id,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },
@@ -353,6 +356,7 @@ const RegisterRequest = (
                 isVerified: false,
                 isComplete: userData.isComplete,
                 pendingConsents: userData.pendingConsents,
+                entity_id: userData.entity_id,
               },
             },
           },
@@ -1013,10 +1017,7 @@ const InitConversationListRequest = async (page: number, range: number) => {
   })
     .then((response) => {
       if (response.data.status) {
-        const decodedResult: any = jwt_decode(response.data.result);
-
-        // console.log(decodedResult.conversationslist);
-        return decodedResult;
+        return response.data.result;
       }
     })
     .catch((err) => {
@@ -2800,6 +2801,7 @@ const CompleteProfileRequest = async (
                 isVerified: userData.isVerified,
                 isComplete: userData.isComplete,
                 pendingConsents: userData.pendingConsents,
+                entity_id: userData.entity_id,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },
@@ -2891,6 +2893,7 @@ const AcceptPoliciesRequest = async (
                 isVerified: userData.isVerified,
                 isComplete: userData.isComplete,
                 pendingConsents: userData.pendingConsents,
+                entity_id: userData.entity_id,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },
@@ -3212,6 +3215,7 @@ const UpdateProfileInfoRequest = async (
                 isVerified: userData.isVerified,
                 isComplete: userData.isComplete,
                 pendingConsents: userData.pendingConsents,
+                entity_id: userData.entity_id,
                 profile: userData.profile,
                 coverphoto: userData.coverphoto || "",
               },

@@ -24,6 +24,7 @@ export interface AuthenticationInterface {
     isVerified: boolean | null;
     isComplete: boolean;
     pendingConsents: { document_type: string; version: string }[];
+    entity_id: string;
     profile: string;
     coverphoto: string;
   };
@@ -603,4 +604,37 @@ export interface ISavedPost {
   };
   saved_at: string;
   user: string;
+}
+
+export interface IConversation {
+  _id: string;
+  conversationID: string;
+  conversationType: string;
+  sortID: string;
+  messageID: string;
+  sender: string;
+  receivers: string[];
+  seeners: string[];
+  content: string;
+  messageDate: string;
+  isReply: boolean;
+  replyingTo: string;
+  reactions: any[];
+  isDeleted: boolean;
+  messageType: string;
+  unread: number;
+  details: {
+    id: string;
+    entity_id: string;
+    username: string;
+    display_name: string;
+    profile: string;
+  };
+  voice_participants: any[];
+}
+
+export interface IConversationList {
+  items: IConversation[];
+  total: number;
+  next: boolean;
 }

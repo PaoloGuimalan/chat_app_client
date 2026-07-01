@@ -234,6 +234,7 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
     isVerified: response.is_verified,
     isComplete: response.is_complete,
     pendingConsents: response.pending_consents || [],
+    entity_id: response.entity_id,
     __v: 0,
     iat: response.iat,
     exp: response.exp,

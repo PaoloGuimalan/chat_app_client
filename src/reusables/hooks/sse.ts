@@ -235,7 +235,7 @@ const SSENotificationsTRequest = (
           dispatch({
             type: SET_MESSAGES_LIST_OVERRIDE,
             payload: {
-              messageslist: response.conversationslist,
+              messageslist: response.items,
             },
           });
         });
@@ -535,7 +535,7 @@ const SSENotificationsTRequest = (
       dispatch({
         type: SET_MESSAGES_LIST_OVERRIDE,
         payload: {
-          messageslist: response.conversationslist,
+          messageslist: response.items,
         },
       });
     });

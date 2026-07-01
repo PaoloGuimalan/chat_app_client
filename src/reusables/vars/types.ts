@@ -15,6 +15,7 @@ export type OriginalResponse = {
   is_badged: boolean;
   is_complete: boolean;
   pending_consents: { document_type: string; version: string }[];
+  entity_id: string;
   exp: number;
   iat: number;
 };
@@ -45,6 +46,7 @@ export type ConvertedResponse = {
   isVerified: boolean;
   isComplete: boolean;
   pendingConsents: { document_type: string; version: string }[];
+  entity_id: string;
   coverphoto?: string;
   __v: number;
   iat: number;

@@ -22,6 +22,7 @@ import { useNavigate } from "react-router-dom";
 import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
 import {
   AuthenticationInterface,
+  IConversation,
   IPreviewParicipants,
   IUserSettings,
 } from "@/reusables/vars/interfaces";
@@ -49,7 +50,7 @@ const TYPE_CHECKER: Record<string, string> = {
 };
 
 function lastMessagePreview(
-  msgslst: any,
+  msgslst: IConversation,
   authUserID: string,
 ): { text: string; html?: boolean } {
   const senderPrefix = msgslst.sender == authUserID ? "you: " : "";
@@ -71,13 +72,7 @@ function lastMessagePreview(
   };
 }
 
-function timestampLabel(msgslst: any): string {
-  if (msgslst.messageDate?.time) {
-    return `${msgslst.messageDate.date} · ${msgslst.messageDate.time}`;
-  }
-  if (msgslst.messageDate?.date) {
-    return timeSince(msgslst.messageDate.date);
-  }
+function timestampLabel(msgslst: IConversation): string {
   return timeSince(msgslst.messageDate);
 }
 
@@ -97,7 +92,7 @@ function MessageRow({
   onClick,
   style,
 }: {
-  imgSrc: string | null;
+  imgSrc: string | null | undefined;
   title: string;
   titleColor?: string;
   titleIcon?: string;
@@ -271,7 +266,9 @@ function Messages() {
   const conversationsetup = useSelector(
     (state: any) => state.conversationsetup,
   );
-  const messageslist = useSelector((state: any) => state.messageslist);
+  const messageslist: IConversation[] = useSelector(
+    (state: any) => state.messageslist,
+  );
   const istypinglist = useSelector((state: any) => state.istypinglist);
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -321,14 +318,14 @@ function Messages() {
       dispatch({
         type: SET_PREVIEW_PARTICIPANTS_BULK,
         payload: {
-          participants: response.conversationslist
+          participants: response.items
             .map((mp: any) => mp.voice_participants)
             .flat(),
         },
       });
       dispatch({
         type: SET_MESSAGES_LIST,
-        payload: { messageslist: response.conversationslist },
+        payload: { messageslist: response.items },
       });
       setisLoading(false);
     });
@@ -386,14 +383,14 @@ function Messages() {
             dispatch({
               type: SET_PREVIEW_PARTICIPANTS_BULK,
               payload: {
-                participants: response.conversationslist
+                participants: response.items
                   .map((mp: any) => mp.voice_participants)
                   .flat(),
               },
             });
             dispatch({
               type: SET_MESSAGES_LIST_OVERRIDE,
-              payload: { messageslist: response.conversationslist },
+              payload: { messageslist: response.items },
             });
             setisLoading(false);
           });
@@ -407,12 +404,12 @@ function Messages() {
   const visibleConversationType =
     conversationTypeSet === "common" ? "all" : conversationTypeSet;
 
-  const visibleMessages = useMemo(() => {
+  const visibleMessages: IConversation[] = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
     const matchesSearch = (value: string) =>
       query === "" || value.toLowerCase().includes(query);
 
-    return messageslist.filter((msgslst: any) => {
+    return messageslist.filter((msgslst: IConversation) => {
       const isDirect = msgslst.conversationType === "single";
       const isGroup = msgslst.conversationType === "group";
       const isServerConversation = msgslst.conversationType === "channel";
@@ -425,22 +422,14 @@ function Messages() {
 
       if (!matchesType) return false;
 
-      const last = lastMessagePreview(msgslst, authentication.user.userID);
-      const title =
-        msgslst.conversationType === "single"
-          ? msgslst.users
-              .filter((u: any) => u._id !== authentication.user.userID)
-              .map((u: any) => `${u.fullname.firstName} ${u.fullname.lastName}`)
-              .join(" ")
-          : msgslst.conversationType === "group"
-            ? msgslst.groupdetails?.groupName || ""
-            : `${msgslst.serverdetails?.serverName || ""} ${msgslst.groupdetails?.groupName || ""}`;
+      const last = lastMessagePreview(msgslst, authentication.user.entity_id);
+      const title = msgslst.details.display_name;
 
       return matchesSearch(title) || matchesSearch(last.text);
     });
   }, [
     messageslist,
-    authentication.user.userID,
+    authentication.user.entity_id,
     searchQuery,
     visibleConversationType,
   ]);
@@ -485,372 +474,298 @@ function Messages() {
             zIndex: 1,
           }}
         >
-        <div
-          className="cl-messages-shell__header"
-          style={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-            padding: "18px 18px 12px",
-          }}
-        >
           <div
-            className="cl-messages-shell__title"
-            style={{ display: "flex", alignItems: "center", gap: 10 }}
-          >
-            <span
-              style={{
-                width: isMobile ? 34 : 38,
-                height: isMobile ? 34 : 38,
-                borderRadius: "var(--r-sm)",
-                background: "var(--brand-soft)",
-                display: "inline-flex",
-                alignItems: "center",
-                justifyContent: "center",
-              }}
-            >
-              <Icon n="forum" s={isMobile ? 16 : 18} c="var(--brand)" />
-            </span>
-            <h2
-              style={{
-                margin: 0,
-                fontSize: isMobile ? 18 : 22,
-                fontWeight: 800,
-                letterSpacing: "-0.03em",
-              }}
-            >
-              Messages
-            </h2>
-          </div>
-          <div className="cl-messages-shell__compose" style={{ position: "relative" }}>
-            <IconBtn
-              n="edit_square"
-              size={isMobile ? 34 : 38}
-              s={isMobile ? 18 : 20}
-              title="Create chat"
-              onClick={() => setToggleComposeMenu((prev) => !prev)}
-            />
-            {toggleComposeMenu && (
-              <Card
-                pad={8}
-                style={{
-                  position: "absolute",
-                  top: 44,
-                  right: 0,
-                  minWidth: 180,
-                  zIndex: 20,
-                }}
-              >
-                <Btn
-                  block
-                  variant="ghost"
-                  size="sm"
-                  iconL="group_add"
-                  style={{ justifyContent: "flex-start" }}
-                  onClick={() => {
-                    setToggleComposeMenu(false);
-                    setisCreateGCToggle(true);
-                  }}
-                >
-                  Create Group
-                </Btn>
-                <Btn
-                  block
-                  variant="ghost"
-                  size="sm"
-                  iconL="dns"
-                  style={{ justifyContent: "flex-start" }}
-                  onClick={() => {
-                    setToggleComposeMenu(false);
-                    setisCreateServerToggle(true);
-                  }}
-                >
-                  Create Server
-                </Btn>
-              </Card>
-            )}
-          </div>
-        </div>
-
-        <div className="cl-messages-shell__search" style={{ padding: isMobile ? "0 14px 10px" : "0 18px 12px" }}>
-          <Field
-            icon="search"
-            placeholder="Search messages"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.currentTarget.value)}
-          />
-        </div>
-
-        <div className="cl-messages-shell__tabs" style={{ padding: isMobile ? "0 14px 12px" : "0 18px 14px" }}>
-          <SegTabs
-            tabs={[
-              { key: "all", label: "All" },
-              { key: "direct", label: "Direct" },
-              { key: "groups", label: "Groups" },
-            ]}
-            value={visibleConversationType}
-            onChange={(k) => setConversationListGroups(k)}
-            style={{ width: "100%" }}
-          />
-        </div>
-
-        <div
-          ref={divcontentRef}
-          className="cl-messages-shell__list"
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-            padding: isMobile ? "0 12px 12px" : "0 14px 14px",
-            display: "flex",
-            flexDirection: "column",
-            gap: isMobile ? 6 : 8,
-          }}
-        >
-          {isLoading ? (
-            Array.from({ length: 12 }, (_, i) => <MessageItemLoader key={i} />)
-          ) : visibleMessages.length === 0 ? (
-            <div
-              style={{
-                flex: 1,
-                minHeight: 280,
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                justifyContent: "center",
-                gap: 10,
-                color: "var(--text-3)",
-                padding: 24,
-                textAlign: "center",
-              }}
-            >
-              <Icon n="forum" s={42} />
-              <span style={{ fontSize: 14, fontWeight: 600 }}>
-                No conversations found
-              </span>
-            </div>
-          ) : (
-            <>
-              {visibleMessages.flatMap((msgslst: any, i: number) => {
-                const typingHere =
-                  istypinglist.filter(
-                    (flt: any) => flt.conversationID === msgslst.conversationID,
-                  ).length > 0;
-                const callHere =
-                  getChannelPreviewParticipants(msgslst.conversationID).length >
-                  0;
-                const active =
-                  conversationsetup.conversationid === msgslst.conversationID;
-
-                if (msgslst.conversationType === "single") {
-                  return msgslst.users
-                    .filter((u: any) => u._id !== authentication.user.userID)
-                    .map((msgsurs: any, j: number) => {
-                      const name = `${msgsurs.fullname.firstName}${
-                        msgsurs.fullname.middleName === "N/A"
-                          ? ""
-                          : ` ${msgsurs.fullname.middleName}`
-                      } ${msgsurs.fullname.lastName}`;
-                      const last = lastMessagePreview(
-                        msgslst,
-                        authentication.user.userID,
-                      );
-                      return (
-                          <MessageRow
-                          key={`${i}-${j}`}
-                          imgSrc={
-                            msgsurs.profile === "none"
-                              ? undefined
-                              : msgsurs.profile
-                          }
-                          title={name}
-                          subtitle={typingHere ? "is typing…" : last.text}
-                          subtitleColor={
-                            typingHere ? "var(--brand)" : undefined
-                          }
-                          subtitleHtml={!typingHere && last.html}
-                          time={timestampLabel(msgslst)}
-                          unread={msgslst.unread || 0}
-                          showOnline={isUserOnline(
-                            activeuserslist,
-                            msgsurs._id,
-                          )}
-                          showCall={callHere}
-                          active={active}
-                          onClick={() =>
-                            navigateToConversation(
-                              "single",
-                              msgslst.conversationID,
-                              msgsurs,
-                            )
-                          }
-                          style={{ marginBottom: 2 }}
-                        />
-                      );
-                    });
-                }
-
-                if (msgslst.conversationType === "group") {
-                  const last = lastMessagePreview(
-                    msgslst,
-                    authentication.user.userID,
-                  );
-                  const img =
-                    msgslst.groupdetails?.profile &&
-                    msgslst.groupdetails.profile !== "N/A"
-                      ? msgslst.groupdetails.profile
-                      : GroupChatIcon;
-                  return [
-                    <MessageRow
-                      key={i}
-                      imgSrc={img}
-                      title={msgslst.groupdetails.groupName}
-                      titleColor="var(--brand)"
-                      titleIcon="group"
-                      subtitle={typingHere ? "someone is typing…" : last.text}
-                      subtitleColor={typingHere ? "var(--brand)" : undefined}
-                      subtitleHtml={!typingHere && last.html}
-                      time={timestampLabel(msgslst)}
-                      unread={msgslst.unread || 0}
-                      showCall={callHere}
-                      active={active}
-                      onClick={() =>
-                        navigateToConversation(
-                          "group",
-                          msgslst.conversationID,
-                          {
-                            ...msgslst.groupdetails,
-                            receivers: msgslst.receivers,
-                          },
-                        )
-                      }
-                      style={{ marginBottom: 2 }}
-                    />,
-                  ];
-                }
-
-                if (msgslst.conversationType === "channel") {
-                  const last = lastMessagePreview(
-                    msgslst,
-                    authentication.user.userID,
-                  );
-                  const img =
-                    msgslst.serverdetails?.profile &&
-                    msgslst.serverdetails.profile !== "N/A"
-                      ? msgslst.serverdetails.profile
-                      : ServerIcon;
-                  const title = `${msgslst.serverdetails?.serverName} · ${msgslst.groupdetails.groupName}`;
-                  return [
-                    <MessageRow
-                      key={i}
-                      imgSrc={img}
-                      title={title}
-                      titleColor="var(--gold)"
-                      titleIcon="dns"
-                      subtitle={typingHere ? "someone is typing…" : last.text}
-                      subtitleColor={typingHere ? "var(--brand)" : undefined}
-                      subtitleHtml={!typingHere && last.html}
-                      time={timestampLabel(msgslst)}
-                      unread={msgslst.unread || 0}
-                      active={active}
-                      onClick={() =>
-                        navigate(
-                          `/servers/${msgslst.serverdetails?.serverID}/${msgslst.groupdetails.groupID}`,
-                        )
-                      }
-                      style={{ marginBottom: 2 }}
-                    />,
-                  ];
-                }
-                return [];
-              })}
-              {isNext && (
-                <div
-                  ref={divlazyloaderRef}
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    padding: 16,
-                    color: "var(--text-3)",
-                  }}
-                >
-                  <AiOutlineLoading3Quarters
-                    className="cl-spin"
-                    style={{ fontSize: 22 }}
-                  />
-                </div>
-              )}
-            </>
-          )}
-        </div>
-      </div>
-
-      <div
-        style={{
-          display:
-            isMobile && !conversationsetup.conversationid ? "none" : "flex",
-          flex: 1,
-          minWidth: 0,
-          flexDirection: "column",
-          minHeight: 0,
-          background: "var(--surface-2)",
-          width: isMobile ? "100%" : undefined,
-          alignSelf: "stretch",
-        }}
-      >
-        {conversationsetup.conversationid ? (
-          <Conversation
-            conversationsetup={conversationsetup}
-            theme={conversationTheme}
-          />
-        ) : (
-          <div
+            className="cl-messages-shell__header"
             style={{
-              flex: 1,
               display: "flex",
               alignItems: "center",
-              justifyContent: "center",
-              padding: 24,
+              justifyContent: "space-between",
+              gap: 12,
+              padding: "18px 18px 12px",
             }}
           >
-            <Card
-              pad={28}
-              style={{
-                width: "min(420px, 100%)",
-                textAlign: "center",
-              }}
+            <div
+              className="cl-messages-shell__title"
+              style={{ display: "flex", alignItems: "center", gap: 10 }}
             >
-              <div
+              <span
                 style={{
-                  width: 64,
-                  height: 64,
-                  margin: "0 auto 14px",
-                  borderRadius: "50%",
+                  width: isMobile ? 34 : 38,
+                  height: isMobile ? 34 : 38,
+                  borderRadius: "var(--r-sm)",
                   background: "var(--brand-soft)",
-                  display: "flex",
+                  display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
                 }}
               >
-                <Icon n="forum" s={30} c="var(--brand)" />
-              </div>
-              <div
+                <Icon n="forum" s={isMobile ? 16 : 18} c="var(--brand)" />
+              </span>
+              <h2
                 style={{
-                  fontSize: 18,
+                  margin: 0,
+                  fontSize: isMobile ? 18 : 22,
                   fontWeight: 800,
-                  marginBottom: 6,
-                  letterSpacing: "-0.02em",
+                  letterSpacing: "-0.03em",
                 }}
               >
                 Messages
-              </div>
-              <div style={{ color: "var(--text-2)", lineHeight: 1.5 }}>
-                Select a conversation from the list to open the thread here.
-              </div>
-            </Card>
+              </h2>
+            </div>
+            <div
+              className="cl-messages-shell__compose"
+              style={{ position: "relative" }}
+            >
+              <IconBtn
+                n="edit_square"
+                size={isMobile ? 34 : 38}
+                s={isMobile ? 18 : 20}
+                title="Create chat"
+                onClick={() => setToggleComposeMenu((prev) => !prev)}
+              />
+              {toggleComposeMenu && (
+                <Card
+                  pad={8}
+                  style={{
+                    position: "absolute",
+                    top: 44,
+                    right: 0,
+                    minWidth: 180,
+                    zIndex: 20,
+                  }}
+                >
+                  <Btn
+                    block
+                    variant="ghost"
+                    size="sm"
+                    iconL="group_add"
+                    style={{ justifyContent: "flex-start" }}
+                    onClick={() => {
+                      setToggleComposeMenu(false);
+                      setisCreateGCToggle(true);
+                    }}
+                  >
+                    Create Group
+                  </Btn>
+                  <Btn
+                    block
+                    variant="ghost"
+                    size="sm"
+                    iconL="dns"
+                    style={{ justifyContent: "flex-start" }}
+                    onClick={() => {
+                      setToggleComposeMenu(false);
+                      setisCreateServerToggle(true);
+                    }}
+                  >
+                    Create Server
+                  </Btn>
+                </Card>
+              )}
+            </div>
           </div>
-        )}
+
+          <div
+            className="cl-messages-shell__search"
+            style={{ padding: isMobile ? "0 14px 10px" : "0 18px 12px" }}
+          >
+            <Field
+              icon="search"
+              placeholder="Search messages"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.currentTarget.value)}
+            />
+          </div>
+
+          <div
+            className="cl-messages-shell__tabs"
+            style={{ padding: isMobile ? "0 14px 12px" : "0 18px 14px" }}
+          >
+            <SegTabs
+              tabs={[
+                { key: "all", label: "All" },
+                { key: "direct", label: "Direct" },
+                { key: "groups", label: "Groups" },
+              ]}
+              value={visibleConversationType}
+              onChange={(k) => setConversationListGroups(k)}
+              style={{ width: "100%" }}
+            />
+          </div>
+
+          <div
+            ref={divcontentRef}
+            className="cl-messages-shell__list"
+            style={{
+              flex: 1,
+              minHeight: 0,
+              overflowY: "auto",
+              padding: isMobile ? "0 12px 12px" : "0 14px 14px",
+              display: "flex",
+              flexDirection: "column",
+              gap: isMobile ? 6 : 8,
+            }}
+          >
+            {isLoading ? (
+              Array.from({ length: 12 }, (_, i) => (
+                <MessageItemLoader key={i} />
+              ))
+            ) : visibleMessages.length === 0 ? (
+              <div
+                style={{
+                  flex: 1,
+                  minHeight: 280,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 10,
+                  color: "var(--text-3)",
+                  padding: 24,
+                  textAlign: "center",
+                }}
+              >
+                <Icon n="forum" s={42} />
+                <span style={{ fontSize: 14, fontWeight: 600 }}>
+                  No conversations found
+                </span>
+              </div>
+            ) : (
+              <>
+                {visibleMessages.flatMap((msgslst: IConversation) => {
+                  const typingHere =
+                    istypinglist.filter(
+                      (flt: any) =>
+                        flt.conversationID === msgslst.conversationID,
+                    ).length > 0;
+                  const callHere =
+                    getChannelPreviewParticipants(msgslst.conversationID)
+                      .length > 0;
+                  const active =
+                    conversationsetup.conversationid === msgslst.conversationID;
+
+                  const last = lastMessagePreview(
+                    msgslst,
+                    authentication.user.entity_id,
+                  );
+
+                  return (
+                    <MessageRow
+                      key={`${msgslst.conversationID}`}
+                      imgSrc={
+                        msgslst.details.profile === "none"
+                          ? undefined
+                          : msgslst.details.profile
+                      }
+                      title={msgslst.details.display_name}
+                      subtitle={typingHere ? "is typing…" : last.text}
+                      subtitleColor={typingHere ? "var(--brand)" : undefined}
+                      subtitleHtml={!typingHere && last.html}
+                      time={timestampLabel(msgslst)}
+                      unread={msgslst.unread || 0}
+                      showOnline={isUserOnline(
+                        activeuserslist,
+                        msgslst.details.entity_id,
+                      )}
+                      showCall={callHere}
+                      active={active}
+                      onClick={() => {
+                        // navigateToConversation(
+                        //   "single",
+                        //   msgslst.conversationID,
+                        //   msgsurs,
+                        // );
+                      }}
+                      style={{ marginBottom: 2 }}
+                    />
+                  );
+                })}
+                {isNext && (
+                  <div
+                    ref={divlazyloaderRef}
+                    style={{
+                      display: "flex",
+                      justifyContent: "center",
+                      padding: 16,
+                      color: "var(--text-3)",
+                    }}
+                  >
+                    <AiOutlineLoading3Quarters
+                      className="cl-spin"
+                      style={{ fontSize: 22 }}
+                    />
+                  </div>
+                )}
+              </>
+            )}
+          </div>
+        </div>
+
+        <div
+          style={{
+            display:
+              isMobile && !conversationsetup.conversationid ? "none" : "flex",
+            flex: 1,
+            minWidth: 0,
+            flexDirection: "column",
+            minHeight: 0,
+            background: "var(--surface-2)",
+            width: isMobile ? "100%" : undefined,
+            alignSelf: "stretch",
+          }}
+        >
+          {conversationsetup.conversationid ? (
+            <Conversation
+              conversationsetup={conversationsetup}
+              theme={conversationTheme}
+            />
+          ) : (
+            <div
+              style={{
+                flex: 1,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: 24,
+              }}
+            >
+              <Card
+                pad={28}
+                style={{
+                  width: "min(420px, 100%)",
+                  textAlign: "center",
+                }}
+              >
+                <div
+                  style={{
+                    width: 64,
+                    height: 64,
+                    margin: "0 auto 14px",
+                    borderRadius: "50%",
+                    background: "var(--brand-soft)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  <Icon n="forum" s={30} c="var(--brand)" />
+                </div>
+                <div
+                  style={{
+                    fontSize: 18,
+                    fontWeight: 800,
+                    marginBottom: 6,
+                    letterSpacing: "-0.02em",
+                  }}
+                >
+                  Messages
+                </div>
+                <div style={{ color: "var(--text-2)", lineHeight: 1.5 }}>
+                  Select a conversation from the list to open the thread here.
+                </div>
+              </Card>
+            </div>
+          )}
         </div>
       </div>
     </>
@@ -1036,9 +951,7 @@ function Messages() {
                     <MessageRow
                       key={`${i}-${j}`}
                       imgSrc={
-                        msgsurs.profile === "none"
-                          ? undefined
-                          : msgsurs.profile
+                        msgsurs.profile === "none" ? undefined : msgsurs.profile
                       }
                       title={name}
                       subtitle={typingHere ? "is typing…" : last.text}

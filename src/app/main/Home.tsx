@@ -189,7 +189,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     InitConversationListRequest(1, 10).then((response) => {
       dispatch({
         type: SET_MESSAGES_LIST,
-        payload: { messageslist: response.conversationslist },
+        payload: { messageslist: response.items },
       });
     });
     NotificationInitRequest(1, 10, dispatch, () => {});
