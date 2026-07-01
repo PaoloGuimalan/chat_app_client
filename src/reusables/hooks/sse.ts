@@ -242,7 +242,7 @@ const SSENotificationsTRequest = (
 
         if (parsedresponse.message.mentioner) {
           // {
-          //   userID: sender,
+          //   entityID: sender,
           //   username: `@${username}`,
           //   realmName: realmName,
           //   isSingle: decodedToken.conversationType === "single",

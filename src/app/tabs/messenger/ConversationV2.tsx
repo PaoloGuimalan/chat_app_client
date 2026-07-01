@@ -132,11 +132,13 @@ function ConversationV2({
 
   const [conversationsetup, setconversationsetup] =
     useState<IConversationSetup | null>(null);
+  const [switchingcontext, setswitchingcontext] = useState<boolean>(true);
 
   useEffect(() => {
     InitConversationInfoRequest(conversationID)
       .then((response) => {
         setconversationsetup(response);
+        setswitchingcontext(false);
       })
       .catch((err) => {
         console.log(err);
@@ -409,6 +411,10 @@ function ConversationV2({
   const ConversationInfoProcess = () => {
     if (!conversationsetup) return;
 
+    if (conversationsetup.conversationID !== conversationID) return;
+
+    if (switchingcontext) return;
+
     ConversationInfoRequest({
       conversationID: conversationID,
       type: conversationsetup.conversationType,
@@ -444,7 +450,7 @@ function ConversationV2({
 
   useEffect(() => {
     ConversationInfoProcess();
-  }, [conversationIdentityKey]);
+  }, [conversationIdentityKey, switchingcontext, conversationsetup]);
 
   const scrollBottom = () => {
     const items = document.querySelectorAll(".div_messages_result");
@@ -634,6 +640,7 @@ function ConversationV2({
     return () => {
       setunreadmessages([]);
       setconversationsetup(null);
+      setswitchingcontext(true);
     };
   }, [conversationID]);
 

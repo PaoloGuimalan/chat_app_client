@@ -42,6 +42,7 @@ function EmojiPickerHandler({
             setreactions((prev: any) => [
               ...prev,
               {
+                entityID: authentication.user.entity_id,
                 userID: authentication.user.userID,
                 fullName: authentication.user.fullName,
                 ...emoji,
@@ -49,6 +50,7 @@ function EmojiPickerHandler({
             ]);
             ReactToMessageProcess({
               userID: authentication.user.userID,
+              entityID: authentication.user.entity_id,
               ...emoji,
             });
           }}

@@ -16,13 +16,7 @@ import {
 } from "@/reusables/vars/interfaces";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { IoCheckmark, IoClose, IoDocumentOutline } from "react-icons/io5";
-import { MdOutlineGroupAdd } from "react-icons/md";
-import {
-  AddNewMemberRequest,
-  ContactsListReusableRequest,
-  GetMembersListInServer,
-} from "@/reusables/hooks/requests";
+import { IoClose, IoDocumentOutline } from "react-icons/io5";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaHashtag } from "react-icons/fa6";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
@@ -41,10 +35,10 @@ function ConversationInfoModal({
   const [toggleMemberDropper, settoggleMemberDropper] = useState<boolean>(true);
   const [toggledfiles, settoggledfiles] = useState<string>("media");
 
-  const [contactslist, setcontactslist] = useState<any[]>([]);
+  const [contactslist, __] = useState<any[]>([]);
   const [searchFilter, _] = useState("");
-  const [isLoading, setisLoading] = useState<boolean>(true);
-  const [expandcontacts, setexpandcontacts] = useState<boolean>(false);
+  const [isLoading, ___] = useState<boolean>(true);
+  const [expandcontacts, ____] = useState<boolean>(false);
   const [markedMembers, setmarkedMembers] = useState<any[]>([]);
 
   const valueToArrayChecker = (userID: any) => {
@@ -61,42 +55,6 @@ function ConversationInfoModal({
     );
 
     setmarkedMembers(userIDnotSimilar);
-  };
-
-  const GetContactsListProcess = (bool: boolean) => {
-    setexpandcontacts(bool);
-    if (bool) {
-      if (conversationinfo.type === "server") {
-        if (conversationinfo.conversationInfo?.serverID) {
-          GetMembersListInServer(
-            conversationinfo.conversationInfo.serverID,
-            setcontactslist,
-            setisLoading,
-          );
-        }
-      } else {
-        ContactsListReusableRequest(setcontactslist, setisLoading);
-      }
-    }
-  };
-
-  const AddNewMemberProcess = () => {
-    const initialpayload = {
-      conversationID: conversationinfo.conversationInfo?.groupID,
-      memberstoadd: markedMembers,
-      receivers: [...markedMembers.map((mp) => mp.id)],
-    };
-    AddNewMemberRequest(initialpayload)
-      .then((response) => {
-        if (response.data.status) {
-          setmarkedMembers([]);
-          setexpandcontacts(false);
-          // console.log(response.data);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
   };
 
   const userInfo = useMemo(() => {
@@ -512,78 +470,6 @@ function ConversationInfoModal({
                           );
                         })}
                       </motion.div>
-                    )}
-                    {conversationinfo.is_admin &&
-                      (conversationinfo.conversationInfo?.type === "server" ? (
-                        conversationinfo.conversationInfo?.privacy && (
-                          <div
-                            onClick={() => {
-                              GetContactsListProcess(!expandcontacts);
-                            }}
-                            className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
-                          >
-                            <div
-                              id="div_img_search_profiles_container_cncts"
-                              className="tw-bg-transparent tw-border-transparent"
-                            >
-                              {expandcontacts ? (
-                                <IoClose style={{ fontSize: "20px" }} />
-                              ) : (
-                                <MdOutlineGroupAdd
-                                  style={{ fontSize: "20px" }}
-                                />
-                              )}
-                            </div>
-                            <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                              <span className="tw-flex tw-flex-1 tw-text-[13px]">
-                                {expandcontacts ? "Close list" : "Add a user"}
-                              </span>
-                            </div>
-                          </div>
-                        )
-                      ) : (
-                        <div
-                          onClick={() => {
-                            GetContactsListProcess(!expandcontacts);
-                          }}
-                          className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
-                        >
-                          <div
-                            id="div_img_search_profiles_container_cncts"
-                            className="tw-bg-transparent tw-border-transparent"
-                          >
-                            {expandcontacts ? (
-                              <IoClose style={{ fontSize: "20px" }} />
-                            ) : (
-                              <MdOutlineGroupAdd style={{ fontSize: "20px" }} />
-                            )}
-                          </div>
-                          <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                            <span className="tw-flex tw-flex-1 tw-text-[13px]">
-                              {expandcontacts ? "Close list" : "Add a user"}
-                            </span>
-                          </div>
-                        </div>
-                      ))}
-                    {markedMembers.length > 0 && expandcontacts && (
-                      <div
-                        onClick={() => {
-                          AddNewMemberProcess();
-                        }}
-                        className="tw-w-[calc(100%-10px)] hover:tw-text-white hover:tw-bg-[#1c7def] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
-                      >
-                        <div
-                          id="div_img_search_profiles_container_cncts"
-                          className="tw-bg-transparent tw-border-transparent"
-                        >
-                          <IoCheckmark style={{ fontSize: "20px" }} />
-                        </div>
-                        <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                          <span className="tw-flex tw-flex-1 tw-text-[13px]">
-                            Apply
-                          </span>
-                        </div>
-                      </div>
                     )}
                     <motion.div
                       className="tw-w-full tw-flex tw-flex-col"

@@ -111,7 +111,7 @@ function ContentHandler({
     return timeSince(messageDate);
   };
 
-  const isCurrentUserSender = cnvs.sender === authentication.user.userID;
+  const isCurrentUserSender = cnvs.sender === authentication.user.entity_id;
   const reactionPillStyle =
     isCurrentUserSender && appTheme === "dark"
       ? {
@@ -165,17 +165,17 @@ function ContentHandler({
         <motion.div
           initial={{
             marginLeft:
-              cnvs.sender == authentication.user.userID ? "auto" : "0px",
+              cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
             alignItems:
-              cnvs.sender == authentication.user.userID
+              cnvs.sender == authentication.user.entity_id
                 ? "flex-end"
                 : "flex-start",
           }}
           animate={{
             marginLeft:
-              cnvs.sender == authentication.user.userID ? "auto" : "0px",
+              cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
             alignItems:
-              cnvs.sender == authentication.user.userID
+              cnvs.sender == authentication.user.entity_id
                 ? "flex-end"
                 : "flex-start",
           }}
@@ -200,7 +200,7 @@ function ContentHandler({
               cnvs={cnvs.replyedmessage[0]}
               fromOther={authentication.user.userID}
               yourReply={
-                cnvs.sender == authentication.user.userID ? true : false
+                cnvs.sender == authentication.user.entity_id ? true : false
               }
               theme={theme}
             />
@@ -215,18 +215,18 @@ function ContentHandler({
             }
             initial={{
               ...deletedBubbleStyle,
-              // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
+              // marginLeft: cnvs.sender == authentication.user.entity_id? "auto" : "0px"
             }}
             animate={{
               ...deletedBubbleStyle,
-              // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
+              // marginLeft: cnvs.sender == authentication.user.entity_id? "auto" : "0px"
             }}
             className="span_messages_result c1 cl-message-bubble cl-message-bubble--deleted tw-flex tw-flex-col tw-gap-[2px]"
           >
             <span>Message deleted</span>
             <span
               className={`cl-message-time ${
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? ""
                   : "cl-message-time--incoming"
               } cl-message-time--deleted`}
@@ -244,13 +244,13 @@ function ContentHandler({
                 <motion.div
                   initial={{
                     justifyContent:
-                      cnvs.sender == authentication.user.userID
+                      cnvs.sender == authentication.user.entity_id
                         ? "flex-end"
                         : "flex-start",
                   }}
                   animate={{
                     justifyContent:
-                      cnvs.sender == authentication.user.userID
+                      cnvs.sender == authentication.user.entity_id
                         ? "flex-end"
                         : "flex-start",
                   }}
@@ -284,13 +284,13 @@ function ContentHandler({
                 <motion.div
                   initial={{
                     justifyContent:
-                      cnvs.sender == authentication.user.userID
+                      cnvs.sender == authentication.user.entity_id
                         ? "flex-end"
                         : "flex-start",
                   }}
                   animate={{
                     justifyContent:
-                      cnvs.sender == authentication.user.userID
+                      cnvs.sender == authentication.user.entity_id
                         ? "flex-end"
                         : "flex-start",
                   }}
@@ -306,7 +306,7 @@ function ContentHandler({
     if (cnvs.messageType == "text") {
       return (
         <motion.div ref={ref} className="div_messages_result tw-items-center">
-          {cnvs.sender === authentication.user.userID && (
+          {cnvs.sender === authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
               messageID={cnvs.messageID}
@@ -319,17 +319,17 @@ function ContentHandler({
           <motion.div
             initial={{
               marginLeft:
-                cnvs.sender == authentication.user.userID ? "auto" : "0px",
+                cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
               alignItems:
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? "flex-end"
                   : "flex-start",
             }}
             animate={{
               marginLeft:
-                cnvs.sender == authentication.user.userID ? "auto" : "0px",
+                cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
               alignItems:
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? "flex-end"
                   : "flex-start",
             }}
@@ -355,7 +355,7 @@ function ContentHandler({
                 cnvs={cnvs.replyedmessage[0]}
                 fromOther={authentication.user.userID}
                 yourReply={
-                  cnvs.sender == authentication.user.userID ? true : false
+                  cnvs.sender == authentication.user.entity_id ? true : false
                 }
                 theme={theme}
               />
@@ -370,33 +370,33 @@ function ContentHandler({
               }
               initial={{
                 backgroundColor:
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? theme.primary
                     : "var(--surface)",
                 border:
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? `solid 1px ${theme.primary}`
                     : "solid 1px var(--border)",
                 color:
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? "white"
                     : "var(--text)",
-                // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
+                // marginLeft: cnvs.sender == authentication.user.entity_id? "auto" : "0px"
               }}
               animate={{
                 backgroundColor:
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? theme.primary
                     : "var(--surface)",
                 border:
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? `solid 1px ${theme.primary}`
                     : "solid 1px var(--border)",
                 color:
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? "white"
                     : "var(--text)",
-                // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
+                // marginLeft: cnvs.sender == authentication.user.entity_id? "auto" : "0px"
               }}
               className="span_messages_result c1 cl-message-bubble cl-message-bubble--text tw-mb-[7px] tw-flex tw-flex-col tw-gap-[2px]"
             >
@@ -408,7 +408,7 @@ function ContentHandler({
               />
               <span
                 className={`cl-message-time ${
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? ""
                     : "cl-message-time--incoming"
                 }`}
@@ -417,7 +417,7 @@ function ContentHandler({
               </span>
               <div
                 className={`tw-w-full tw--mb-[15px] tw-mt-[5px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? "tw-justify-end"
                     : "tw-justify-start"
                 }`}
@@ -431,7 +431,9 @@ function ContentHandler({
                       conversationID={cnvs.conversationID}
                       messageID={cnvs.messageID}
                       fromSender={
-                        cnvs.sender == authentication.user.userID ? true : false
+                        cnvs.sender == authentication.user.entity_id
+                          ? true
+                          : false
                       }
                       settoggleEmojiPicker={settoggleEmojiPicker}
                       setreactions={setreactions}
@@ -444,7 +446,7 @@ function ContentHandler({
                         onclose={settoggleReactions}
                       />
                     )}
-                    {cnvs.sender === authentication.user.userID && (
+                    {cnvs.sender === authentication.user.entity_id && (
                       <div
                         onClick={() => {
                           settoggleReactions(true);
@@ -456,7 +458,7 @@ function ContentHandler({
                         })}
                       </div>
                     )}
-                    {cnvs.sender === authentication.user.userID &&
+                    {cnvs.sender === authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
                           className="tw-text-[10px] tw-w-fit"
@@ -477,7 +479,7 @@ function ContentHandler({
                         <MdOutlineAddReaction />
                       </button>
                     )}
-                    {cnvs.sender !== authentication.user.userID &&
+                    {cnvs.sender !== authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
                           className="tw-text-[10px] tw-w-fit"
@@ -486,7 +488,7 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {cnvs.sender !== authentication.user.userID && (
+                    {cnvs.sender !== authentication.user.entity_id && (
                       <div
                         onClick={() => {
                           settoggleReactions(true);
@@ -512,13 +514,13 @@ function ContentHandler({
                   <motion.div
                     initial={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
                     animate={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
@@ -552,13 +554,13 @@ function ContentHandler({
                   <motion.div
                     initial={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
                     animate={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
@@ -568,7 +570,7 @@ function ContentHandler({
                   </motion.div>
                 )}
           </motion.div>
-          {cnvs.sender !== authentication.user.userID && (
+          {cnvs.sender !== authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
               messageID={cnvs.messageID}
@@ -586,7 +588,7 @@ function ContentHandler({
           ref={ref}
           className="div_pending_images div_messages_result"
         >
-          {cnvs.sender === authentication.user.userID && (
+          {cnvs.sender === authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
               messageID={cnvs.messageID}
@@ -599,17 +601,17 @@ function ContentHandler({
           <motion.div
             initial={{
               marginLeft:
-                cnvs.sender == authentication.user.userID ? "auto" : "0px",
+                cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
               alignItems:
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? "flex-end"
                   : "flex-start",
             }}
             animate={{
               marginLeft:
-                cnvs.sender == authentication.user.userID ? "auto" : "0px",
+                cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
               alignItems:
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? "flex-end"
                   : "flex-start",
             }}
@@ -635,7 +637,7 @@ function ContentHandler({
                 cnvs={cnvs.replyedmessage[0]}
                 fromOther={authentication.user.userID}
                 yourReply={
-                  cnvs.sender == authentication.user.userID ? true : false
+                  cnvs.sender == authentication.user.entity_id ? true : false
                 }
                 theme={theme}
               />
@@ -665,7 +667,7 @@ function ContentHandler({
               />
               <div
                 className={`tw-w-[calc(100%-14px)] tw-pl-[7px] tw-pr-[7px] tw-mb-[0px] tw--mt-[15px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? "tw-justify-end"
                     : "tw-justify-start"
                 }`}
@@ -679,7 +681,9 @@ function ContentHandler({
                       conversationID={cnvs.conversationID}
                       messageID={cnvs.messageID}
                       fromSender={
-                        cnvs.sender == authentication.user.userID ? true : false
+                        cnvs.sender == authentication.user.entity_id
+                          ? true
+                          : false
                       }
                       settoggleEmojiPicker={settoggleEmojiPicker}
                       setreactions={setreactions}
@@ -692,7 +696,7 @@ function ContentHandler({
                         onclose={settoggleReactions}
                       />
                     )}
-                    {cnvs.sender === authentication.user.userID && (
+                    {cnvs.sender === authentication.user.entity_id && (
                       <div
                         onClick={() => {
                           settoggleReactions(true);
@@ -704,7 +708,7 @@ function ContentHandler({
                         })}
                       </div>
                     )}
-                    {cnvs.sender === authentication.user.userID &&
+                    {cnvs.sender === authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
                           className="tw-text-[10px] tw-w-fit"
@@ -725,7 +729,7 @@ function ContentHandler({
                         <MdOutlineAddReaction />
                       </button>
                     )}
-                    {cnvs.sender !== authentication.user.userID &&
+                    {cnvs.sender !== authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
                           className="tw-text-[10px] tw-w-fit"
@@ -734,7 +738,7 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {cnvs.sender !== authentication.user.userID && (
+                    {cnvs.sender !== authentication.user.entity_id && (
                       <div
                         onClick={() => {
                           settoggleReactions(true);
@@ -760,13 +764,13 @@ function ContentHandler({
                   <motion.div
                     initial={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
                     animate={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
@@ -794,13 +798,13 @@ function ContentHandler({
                   <motion.div
                     initial={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
                     animate={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
@@ -810,7 +814,7 @@ function ContentHandler({
                   </motion.div>
                 )}
           </motion.div>
-          {cnvs.sender !== authentication.user.userID && (
+          {cnvs.sender !== authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
               messageID={cnvs.messageID}
@@ -828,7 +832,7 @@ function ContentHandler({
           ref={ref}
           className="div_pending_images div_messages_result"
         >
-          {cnvs.sender === authentication.user.userID && (
+          {cnvs.sender === authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
               messageID={cnvs.messageID}
@@ -841,17 +845,17 @@ function ContentHandler({
           <motion.div
             initial={{
               marginLeft:
-                cnvs.sender == authentication.user.userID ? "auto" : "0px",
+                cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
               alignItems:
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? "flex-end"
                   : "flex-start",
             }}
             animate={{
               marginLeft:
-                cnvs.sender == authentication.user.userID ? "auto" : "0px",
+                cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
               alignItems:
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? "flex-end"
                   : "flex-start",
             }}
@@ -877,7 +881,7 @@ function ContentHandler({
                 cnvs={cnvs.replyedmessage[0]}
                 fromOther={authentication.user.userID}
                 yourReply={
-                  cnvs.sender == authentication.user.userID ? true : false
+                  cnvs.sender == authentication.user.entity_id ? true : false
                 }
                 theme={theme}
               />
@@ -903,7 +907,7 @@ function ContentHandler({
               />
               <div
                 className={`tw-w-[calc(100%-14px)] tw-pl-[7px] tw-pr-[7px] tw-mb-[0px] tw--mt-[2px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? "tw-justify-end"
                     : "tw-justify-start"
                 }`}
@@ -917,7 +921,9 @@ function ContentHandler({
                       conversationID={cnvs.conversationID}
                       messageID={cnvs.messageID}
                       fromSender={
-                        cnvs.sender == authentication.user.userID ? true : false
+                        cnvs.sender == authentication.user.entity_id
+                          ? true
+                          : false
                       }
                       settoggleEmojiPicker={settoggleEmojiPicker}
                       setreactions={setreactions}
@@ -930,7 +936,7 @@ function ContentHandler({
                         onclose={settoggleReactions}
                       />
                     )}
-                    {cnvs.sender === authentication.user.userID && (
+                    {cnvs.sender === authentication.user.entity_id && (
                       <div
                         onClick={() => {
                           settoggleReactions(true);
@@ -942,7 +948,7 @@ function ContentHandler({
                         })}
                       </div>
                     )}
-                    {cnvs.sender === authentication.user.userID &&
+                    {cnvs.sender === authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
                           className="tw-text-[10px] tw-w-fit"
@@ -963,7 +969,7 @@ function ContentHandler({
                         <MdOutlineAddReaction />
                       </button>
                     )}
-                    {cnvs.sender !== authentication.user.userID &&
+                    {cnvs.sender !== authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
                           className="tw-text-[10px] tw-w-fit"
@@ -972,7 +978,7 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {cnvs.sender !== authentication.user.userID && (
+                    {cnvs.sender !== authentication.user.entity_id && (
                       <div
                         onClick={() => {
                           settoggleReactions(true);
@@ -998,13 +1004,13 @@ function ContentHandler({
                   <motion.div
                     initial={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
                     animate={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
@@ -1032,13 +1038,13 @@ function ContentHandler({
                   <motion.div
                     initial={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
                     animate={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
@@ -1048,7 +1054,7 @@ function ContentHandler({
                   </motion.div>
                 )}
           </motion.div>
-          {cnvs.sender !== authentication.user.userID && (
+          {cnvs.sender !== authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
               messageID={cnvs.messageID}
@@ -1066,7 +1072,7 @@ function ContentHandler({
           ref={ref}
           className="div_pending_audios div_messages_result"
         >
-          {cnvs.sender === authentication.user.userID && (
+          {cnvs.sender === authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
               messageID={cnvs.messageID}
@@ -1079,17 +1085,17 @@ function ContentHandler({
           <motion.div
             initial={{
               marginLeft:
-                cnvs.sender == authentication.user.userID ? "auto" : "0px",
+                cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
               alignItems:
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? "flex-end"
                   : "flex-start",
             }}
             animate={{
               marginLeft:
-                cnvs.sender == authentication.user.userID ? "auto" : "0px",
+                cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
               alignItems:
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? "flex-end"
                   : "flex-start",
             }}
@@ -1113,7 +1119,7 @@ function ContentHandler({
                 cnvs={cnvs.replyedmessage[0]}
                 fromOther={authentication.user.userID}
                 yourReply={
-                  cnvs.sender == authentication.user.userID ? true : false
+                  cnvs.sender == authentication.user.entity_id ? true : false
                 }
                 theme={theme}
               />
@@ -1140,7 +1146,7 @@ function ContentHandler({
               </div>
               <div
                 className={`tw-w-[calc(100%-14px)] tw-pl-[7px] tw-pr-[7px] tw-mb-[0px] tw--mt-[10px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? "tw-justify-end"
                     : "tw-justify-start"
                 }`}
@@ -1154,7 +1160,9 @@ function ContentHandler({
                       conversationID={cnvs.conversationID}
                       messageID={cnvs.messageID}
                       fromSender={
-                        cnvs.sender == authentication.user.userID ? true : false
+                        cnvs.sender == authentication.user.entity_id
+                          ? true
+                          : false
                       }
                       settoggleEmojiPicker={settoggleEmojiPicker}
                       setreactions={setreactions}
@@ -1167,7 +1175,7 @@ function ContentHandler({
                         onclose={settoggleReactions}
                       />
                     )}
-                    {cnvs.sender === authentication.user.userID && (
+                    {cnvs.sender === authentication.user.entity_id && (
                       <div
                         onClick={() => {
                           settoggleReactions(true);
@@ -1179,7 +1187,7 @@ function ContentHandler({
                         })}
                       </div>
                     )}
-                    {cnvs.sender === authentication.user.userID &&
+                    {cnvs.sender === authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
                           className="tw-text-[10px] tw-w-fit"
@@ -1200,7 +1208,7 @@ function ContentHandler({
                         <MdOutlineAddReaction />
                       </button>
                     )}
-                    {cnvs.sender !== authentication.user.userID &&
+                    {cnvs.sender !== authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
                           className="tw-text-[10px] tw-w-fit"
@@ -1209,7 +1217,7 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {cnvs.sender !== authentication.user.userID && (
+                    {cnvs.sender !== authentication.user.entity_id && (
                       <div
                         onClick={() => {
                           settoggleReactions(true);
@@ -1235,13 +1243,13 @@ function ContentHandler({
                   <motion.div
                     initial={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
                     animate={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
@@ -1269,13 +1277,13 @@ function ContentHandler({
                   <motion.div
                     initial={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
                     animate={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
@@ -1285,7 +1293,7 @@ function ContentHandler({
                   </motion.div>
                 )}
           </motion.div>
-          {cnvs.sender !== authentication.user.userID && (
+          {cnvs.sender !== authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
               messageID={cnvs.messageID}
@@ -1315,7 +1323,7 @@ function ContentHandler({
           ref={ref}
           className="div_pending_images div_messages_result"
         >
-          {cnvs.sender === authentication.user.userID && (
+          {cnvs.sender === authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
               messageID={cnvs.messageID}
@@ -1328,17 +1336,17 @@ function ContentHandler({
           <motion.div
             initial={{
               marginLeft:
-                cnvs.sender == authentication.user.userID ? "auto" : "0px",
+                cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
               alignItems:
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? "flex-end"
                   : "flex-start",
             }}
             animate={{
               marginLeft:
-                cnvs.sender == authentication.user.userID ? "auto" : "0px",
+                cnvs.sender == authentication.user.entity_id ? "auto" : "0px",
               alignItems:
-                cnvs.sender == authentication.user.userID
+                cnvs.sender == authentication.user.entity_id
                   ? "flex-end"
                   : "flex-start",
             }}
@@ -1364,7 +1372,7 @@ function ContentHandler({
                 cnvs={cnvs.replyedmessage[0]}
                 fromOther={authentication.user.userID}
                 yourReply={
-                  cnvs.sender == authentication.user.userID ? true : false
+                  cnvs.sender == authentication.user.entity_id ? true : false
                 }
                 theme={theme}
               />
@@ -1409,7 +1417,7 @@ function ContentHandler({
               </div>
               <div
                 className={`tw-w-[calc(100%-14px)] tw-pl-[7px] tw-pr-[7px] tw-mb-[4px] tw--mt-[7px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
-                  cnvs.sender == authentication.user.userID
+                  cnvs.sender == authentication.user.entity_id
                     ? "tw-justify-end"
                     : "tw-justify-start"
                 }`}
@@ -1423,7 +1431,9 @@ function ContentHandler({
                       conversationID={cnvs.conversationID}
                       messageID={cnvs.messageID}
                       fromSender={
-                        cnvs.sender == authentication.user.userID ? true : false
+                        cnvs.sender == authentication.user.entity_id
+                          ? true
+                          : false
                       }
                       settoggleEmojiPicker={settoggleEmojiPicker}
                       setreactions={setreactions}
@@ -1436,7 +1446,7 @@ function ContentHandler({
                         onclose={settoggleReactions}
                       />
                     )}
-                    {cnvs.sender === authentication.user.userID && (
+                    {cnvs.sender === authentication.user.entity_id && (
                       <div
                         onClick={() => {
                           settoggleReactions(true);
@@ -1448,7 +1458,7 @@ function ContentHandler({
                         })}
                       </div>
                     )}
-                    {cnvs.sender === authentication.user.userID &&
+                    {cnvs.sender === authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
                           className="tw-text-[10px] tw-w-fit"
@@ -1469,7 +1479,7 @@ function ContentHandler({
                         <MdOutlineAddReaction />
                       </button>
                     )}
-                    {cnvs.sender !== authentication.user.userID &&
+                    {cnvs.sender !== authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
                           className="tw-text-[10px] tw-w-fit"
@@ -1478,7 +1488,7 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {cnvs.sender !== authentication.user.userID && (
+                    {cnvs.sender !== authentication.user.entity_id && (
                       <div
                         onClick={() => {
                           settoggleReactions(true);
@@ -1504,13 +1514,13 @@ function ContentHandler({
                   <motion.div
                     initial={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
                     animate={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
@@ -1538,13 +1548,13 @@ function ContentHandler({
                   <motion.div
                     initial={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
                     animate={{
                       justifyContent:
-                        cnvs.sender == authentication.user.userID
+                        cnvs.sender == authentication.user.entity_id
                           ? "flex-end"
                           : "flex-start",
                     }}
@@ -1554,7 +1564,7 @@ function ContentHandler({
                   </motion.div>
                 )}
           </motion.div>
-          {cnvs.sender !== authentication.user.userID && (
+          {cnvs.sender !== authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
               messageID={cnvs.messageID}
