@@ -164,7 +164,9 @@ function Followers({ realm }: { realm: IRealmProfileInfo }) {
         <div className={`tw-w-full tw-h-full tw-flex`}>
           <div className="tw-w-full tw-h-auto tw-flex-1 tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-flex tw-overflow-hidden">
             <div className="tw-w-full tw-p-[18px] sm:tw-p-[24px] tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
-              <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text)]">Followers</span>
+              <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text)]">
+                Followers
+              </span>
               <div
                 id="div_modal_input_columns_add_people"
                 className="tw-w-full"
@@ -222,27 +224,27 @@ function Followers({ realm }: { realm: IRealmProfileInfo }) {
                             }}
                             key={cnts.follow_id}
                             className="div_realm_members_cards_col tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none"
-                            title={`${cnts.follower.first_name}${
-                              cnts.follower.middle_name == "N/A"
+                            title={`${cnts.follower.details.first_name}${
+                              cnts.follower.details.middle_name == "N/A"
                                 ? ""
-                                : ` ${cnts.follower.middle_name}`
-                            } ${cnts.follower.last_name}`}
+                                : ` ${cnts.follower.details.middle_name}`
+                            } ${cnts.follower.details.last_name}`}
                           >
                             <div id="div_img_cncts_container">
                               <div id="div_img_search_profiles_container_cncts">
                                 <CachedImage
                                   src={
-                                    cnts.follower.profile == "none"
+                                    cnts.follower.details.profile == "none"
                                       ? DefaultProfile
-                                      : cnts.follower.profile
+                                      : cnts.follower.details.profile
                                   }
                                   className={
-                                    cnts.follower.profile == "none"
+                                    cnts.follower.details.profile == "none"
                                       ? "img_search_profiles_ntfs"
                                       : ""
                                   }
                                   id={
-                                    cnts.follower.profile == "none"
+                                    cnts.follower.details.profile == "none"
                                       ? ""
                                       : "img_actual_profile"
                                   }
@@ -252,11 +254,11 @@ function Followers({ realm }: { realm: IRealmProfileInfo }) {
                             <div className="div_contact_fullname_container">
                               <div className="tw-h-full tw-flex tw-flex-col tw-justify-center tw-gap-[4px] tw-flex-1">
                                 <span className="span_cncts_fullname_label tw-text-left">
-                                  {cnts.follower.first_name}
-                                  {cnts.follower.middle_name == "N/A"
+                                  {cnts.follower.details.first_name}
+                                  {cnts.follower.details.middle_name == "N/A"
                                     ? ""
-                                    : ` ${cnts.follower.middle_name}`}{" "}
-                                  {cnts.follower.last_name}
+                                    : ` ${cnts.follower.details.middle_name}`}{" "}
+                                  {cnts.follower.details.last_name}
                                 </span>
                                 <span className="tw-text-[12px] tw-font-Inter tw-text-left tw-text-[var(--text-2)]">
                                   Started following on{" "}

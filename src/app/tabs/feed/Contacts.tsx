@@ -8,13 +8,7 @@ import {
   ContactsListInitRequest,
   // DeclineContactRequest,
 } from "../../../reusables/hooks/requests";
-import {
-  SET_CONVERSATION_SETUP,
-  SET_MINIMIZED_CONVERSATION,
-  SET_TOGGLE_RIGHT_WIDGET,
-} from "../../../redux/types";
 import { useNavigate } from "react-router-dom";
-import { conversationsetupstate } from "../../../redux/actions/states";
 import {
   contactsToUserdetails,
   isUserOnline,
@@ -63,68 +57,6 @@ function Contacts() {
   useEffect(() => {
     ContactsListInitRequest(page, range, false, dispatch, setisLoading);
   }, [page, range]);
-
-  const settogglerightwidget = (toggle: any) => {
-    dispatch({
-      type: SET_TOGGLE_RIGHT_WIDGET,
-      payload: { togglerightwidget: toggle },
-    });
-  };
-
-  // const declineRequestProcess = (connection_id: any, action: string) => {
-  //   setisDisabledByRequest(true);
-  //   DeclineContactRequest(
-  //     { connection_id, action },
-  //     dispatch,
-  //     alerts,
-  //     setisDisabledByRequest,
-  //   );
-  // };
-
-  const navigateToConversation = (
-    type: any,
-    conversationID: any,
-    userdetails: any,
-  ) => {
-    const isMobile = screensizelistener.W <= 1100;
-    const payload =
-      type === "single"
-        ? {
-            conversationid: conversationID,
-            userdetails,
-            groupdetails: conversationsetupstate.groupdetails,
-            type: "single",
-          }
-        : {
-            conversationid: conversationID,
-            userdetails: conversationsetupstate.userdetails,
-            groupdetails: userdetails,
-            type: "group",
-          };
-    dispatch({
-      type: SET_CONVERSATION_SETUP,
-      payload: { conversationsetup: payload },
-    });
-    if (isMobile) {
-      navigate("/messages");
-      return;
-    }
-    if (type === "single") {
-      dispatch({
-        type: SET_MINIMIZED_CONVERSATION,
-        payload: {
-          conversation: {
-            conversationid: conversationID,
-            userdetails,
-            groupdetails: conversationsetupstate.groupdetails,
-            type: "single",
-          },
-        },
-      });
-      return;
-    }
-    settogglerightwidget("messages");
-  };
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);

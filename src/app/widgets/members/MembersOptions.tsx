@@ -59,7 +59,7 @@ function MembersOptions({
 
   const RemoveRealmMemberProcess = () => {
     setisOptionsToggled(false);
-    RemoveRealmMemberRequest(member.realm, [member.account.id])
+    RemoveRealmMemberRequest(member.realm, [member.entity.id])
       .then((response) => {
         if (response.status) {
           setTimeout(() => {

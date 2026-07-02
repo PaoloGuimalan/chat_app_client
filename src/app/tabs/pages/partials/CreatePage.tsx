@@ -1,20 +1,36 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import OverlayLoader from "@/app/reusables/loaders/OverlayLoader";
-import { ContactsListReusableRequest, CreatePageRequest } from "@/reusables/hooks/requests";
-import { hasNullValues } from "@/reusables/hooks/reusable";
-import { AuthenticationInterface, IContact } from "@/reusables/vars/interfaces";
+import {
+  ContactsListReusableRequest,
+  CreatePageRequest,
+} from "@/reusables/hooks/requests";
+import {
+  contactsToUserdetails,
+  hasNullValues,
+} from "@/reusables/hooks/reusable";
+import {
+  AuthenticationInterface,
+  ContactRowData,
+  IContact,
+} from "@/reusables/vars/interfaces";
 import { Avatar, Card } from "@/reusables/design/primitives2";
 import { ChangeEvent, useEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { AiOutlineCheck, AiOutlineLoading3Quarters, AiOutlinePicture } from "react-icons/ai";
+import {
+  AiOutlineCheck,
+  AiOutlineLoading3Quarters,
+  AiOutlinePicture,
+} from "react-icons/ai";
 import { IoClose } from "react-icons/io5";
 import { IoIosArrowForward } from "react-icons/io";
 
 type PageModeratorCandidate = {
   id: string;
+  entityID: string;
   userID: string;
   fullName: string;
   profile: string | null | undefined;
@@ -96,7 +112,7 @@ function CreatePage() {
       pageDescription,
       email,
       slug,
-      otherUsers: markedMembers.map((member) => member.id),
+      otherUsers: markedMembers.map((member) => member.entityID),
       profile: selectedProfile,
       cover_photo: selectedCover,
     }),
@@ -113,53 +129,57 @@ function CreatePage() {
 
   const payloadValid = useMemo(() => !hasNullValues(finalData), [finalData]);
 
-  const getContactPerson = (contact: IContact): PageModeratorCandidate | null => {
-    if (contact.type !== "single" || !contact.action_by || !contact.involved_user) {
-      return null;
-    }
+  const rows: ContactRowData[] = Array.from(
+    contactslist
+      .flatMap((cnts) => {
+        if (cnts.type !== "single") return [];
+        if (!cnts.involved_entity || !cnts.action_by) return [];
+        const selfActed =
+          cnts.action_by.details.id === authentication.user.userID;
+        const u = selfActed
+          ? cnts.involved_entity.details
+          : cnts.action_by.details;
+        const details_ent = selfActed ? cnts.involved_entity : cnts.action_by;
+        return [
+          {
+            id: u.id,
+            entityID: details_ent.id,
+            username: u.username,
+            firstName: u.first_name,
+            middleName: u.middle_name,
+            lastName: u.last_name,
+            profile: u.profile,
+            isBadged: u.is_badged,
+            connectionID: cnts.connection_id,
+            selfActed,
+            involvedUserdetails: contactsToUserdetails(cnts, !selfActed),
+          },
+        ];
+      })
+      .reduce(
+        (map, item) => map.set(item.id, item),
+        new Map<string, ContactRowData>(),
+      )
+      .values(),
+  );
 
-    const person =
-      contact.action_by.id === authentication.user.userID
-        ? contact.involved_user
-        : contact.action_by;
-
-    return {
-      id: person.id,
-      userID: person.username,
-      fullName: `${person.first_name}${
-        person.middle_name === "N/A" ? "" : ` ${person.middle_name}`
-      } ${person.last_name}`,
-      profile: person.profile,
-    };
-  };
-
-  const contactCandidates = useMemo(() => {
-    const normalizedFilter = searchFilter.trim().toLowerCase();
-
-    return contactslist
-      .map((contact) => getContactPerson(contact))
-      .filter((person): person is PageModeratorCandidate => Boolean(person))
-      .filter((person) =>
-        normalizedFilter === ""
-          ? true
-          : person.fullName.toLowerCase().includes(normalizedFilter),
-      );
-  }, [contactslist, searchFilter, authentication.user.userID]);
-
-  const selectedMemberExists = (userID: any) =>
-    markedMembers.some((member) => member.id == userID);
+  const selectedMemberExists = (entityID: any) =>
+    markedMembers.some((member) => member.entityID == entityID);
 
   const toggleMember = (candidate: PageModeratorCandidate) => {
     setmarkedMembers((prev) => {
-      const currentMember = prev.some((member) => member.id == candidate.id);
+      const currentMember = prev.some(
+        (member) => member.entityID == candidate.entityID,
+      );
       if (currentMember) {
-        return prev.filter((member) => member.id != candidate.id);
+        return prev.filter((member) => member.entityID != candidate.entityID);
       }
 
       return [
         ...prev,
         {
           id: candidate.id,
+          entityID: candidate.entityID,
           userID: candidate.userID,
           fullName: candidate.fullName,
         },
@@ -231,12 +251,12 @@ function CreatePage() {
         />
         <div className="tw-flex tw-flex-col tw-gap-[14px] tw-items-start tw-border-b tw-border-[var(--border)] tw-bg-[var(--surface)] tw-px-[18px] tw-py-[18px] sm:tw-px-[28px] sm:tw-py-[24px]">
           <div className="tw-flex tw-flex-col tw-gap-[6px] tw-max-w-[760px]">
-            <span className="cl-pages-page__eyebrow">Pages</span>
-            <span className="tw-font-Inter tw-font-semibold tw-text-[22px] sm:tw-text-[28px] tw-leading-[1.05] tw-text-[var(--text)]">
+            <span className="tw-font-Inter tw-font-semibold tw-text-[22px] tw-text-left sm:tw-text-[28px] tw-leading-[1.05] tw-text-[var(--text)]">
               Create page
             </span>
             <span className="tw-font-Inter tw-text-[12px] sm:tw-text-[13px] tw-text-[var(--text-2)]">
-              Build a page identity with a cover, profile, description, and moderators.
+              Build a page identity with a cover, profile, description, and
+              moderators.
             </span>
           </div>
 
@@ -244,7 +264,9 @@ function CreatePage() {
             <div className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--text-2)]">
               <span>My Pages</span>
               <IoIosArrowForward size={16} />
-              <span className="tw-font-semibold tw-text-[var(--text)]">Create</span>
+              <span className="tw-font-semibold tw-text-[var(--text)]">
+                Create
+              </span>
             </div>
             <div className="tw-flex tw-flex-wrap tw-gap-[8px] tw-ml-auto">
               <button
@@ -254,9 +276,7 @@ function CreatePage() {
                 }}
                 className="cl-pages-accent-button--ghost tw-border-none tw-px-[14px] tw-py-[8px] tw-min-w-[90px] disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
               >
-                <span className="tw-font-Inter">
-                  Cancel
-                </span>
+                <span className="tw-font-Inter">Cancel</span>
               </button>
               <button
                 disabled={isSaving || !payloadValid}
@@ -265,9 +285,7 @@ function CreatePage() {
                 }}
                 className="cl-pages-accent-button tw-border-none tw-px-[14px] tw-py-[8px] tw-min-w-[90px] disabled:tw-opacity-50 disabled:tw-cursor-not-allowed"
               >
-                <span className="tw-font-Inter">
-                  Save
-                </span>
+                <span className="tw-font-Inter">Save</span>
               </button>
             </div>
           </div>
@@ -310,11 +328,11 @@ function CreatePage() {
               <div className="tw-p-[16px] sm:tw-p-[24px] tw-pt-[18px]">
                 <div className="tw-flex tw-flex-col lg:tw-flex-row tw-gap-[18px] tw-items-start">
                   <button
-                  type="button"
-                  onClick={() => {
-                    profileInputRef.current?.click();
-                  }}
-                  disabled={isSaving}
+                    type="button"
+                    onClick={() => {
+                      profileInputRef.current?.click();
+                    }}
+                    disabled={isSaving}
                     className="cl-pages-create-profile-shell tw-shrink-0 tw-mt-[-72px] sm:tw-mt-[-84px] tw-cursor-pointer tw-border-[5px] tw-border-[var(--surface)] tw-bg-[var(--surface-2)] tw-overflow-hidden"
                   >
                     <Avatar
@@ -471,28 +489,37 @@ function CreatePage() {
                     ) : (
                       <div className="tw-w-full tw-max-h-[460px] tw-overflow-y-auto x-scroll tw-pr-[4px]">
                         <div className="tw-grid tw-grid-cols-1 sm:tw-grid-cols-2 xl:tw-grid-cols-1 tw-gap-[10px]">
-                          {contactCandidates.map((candidate) => {
-                            const isSelected = selectedMemberExists(candidate.id);
+                          {rows.flatMap((candidate: ContactRowData) => {
+                            const isSelected = selectedMemberExists(
+                              candidate.entityID,
+                            );
 
                             return (
                               <button
                                 type="button"
                                 key={candidate.id}
                                 onClick={() => {
-                                  toggleMember(candidate);
+                                  toggleMember({
+                                    id: candidate.id,
+                                    entityID: candidate.entityID,
+                                    userID: candidate.id,
+                                    fullName: `${candidate.firstName} ${candidate.lastName}`,
+                                    profile: candidate.profile,
+                                  });
                                 }}
                                 disabled={isSaving}
-                              className={`tw-group tw-flex tw-items-center tw-gap-[12px] tw-rounded-[16px] tw-border tw-p-[10px] tw-text-left tw-transition ${
-                                isSelected
+                                className={`tw-group tw-flex tw-items-center tw-gap-[12px] tw-rounded-[16px] tw-border tw-p-[10px] tw-text-left tw-transition ${
+                                  isSelected
                                     ? "tw-border-transparent cl-pages-create-member-chip--selected"
                                     : "tw-border-transparent tw-bg-[var(--surface-2)] hover:tw-bg-[var(--surface-hover)]"
                                 }`}
                               >
                                 <Avatar
                                   id={candidate.id}
-                                  name={candidate.fullName}
+                                  name={`${candidate.firstName} ${candidate.lastName}`}
                                   src={
-                                    candidate.profile && candidate.profile !== "none"
+                                    candidate.profile &&
+                                    candidate.profile !== "none"
                                       ? candidate.profile
                                       : null
                                   }
@@ -500,7 +527,7 @@ function CreatePage() {
                                   ring
                                 />
                                 <span className="tw-min-w-0 tw-flex-1 tw-truncate tw-font-Inter tw-text-[14px] tw-font-semibold tw-text-[var(--text)]">
-                                  {candidate.fullName}
+                                  {`${candidate.firstName} ${candidate.lastName}`}
                                 </span>
                                 <span
                                   className={`tw-flex tw-h-[24px] tw-w-[24px] tw-items-center tw-justify-center tw-rounded-full tw-border tw-transition ${
@@ -509,7 +536,9 @@ function CreatePage() {
                                       : "tw-border-transparent tw-bg-[var(--surface)] tw-text-[var(--text-2)] group-hover:tw-bg-[var(--surface)]"
                                   }`}
                                 >
-                                  {isSelected ? <AiOutlineCheck size={14} /> : null}
+                                  {isSelected ? (
+                                    <AiOutlineCheck size={14} />
+                                  ) : null}
                                 </span>
                               </button>
                             );
@@ -533,3 +562,4 @@ function CreatePage() {
 }
 
 export default CreatePage;
+

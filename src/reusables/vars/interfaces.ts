@@ -387,8 +387,16 @@ export interface IUserContactPreview {
 }
 
 export interface IRealmMember {
-  account: IUserContactPreview;
-  added_by: IUserContactPreview;
+  entity: {
+    id: string;
+    type: string;
+    details: IUserContactPreview;
+  };
+  added_by: {
+    id: string;
+    type: string;
+    details: IUserContactPreview;
+  };
   date_joined: string;
   member_id: string;
   nickname: string | null;
@@ -397,7 +405,11 @@ export interface IRealmMember {
 }
 
 export interface IRealmFollower {
-  follower: IUserContactPreview;
+  follower: {
+    id: string;
+    type: string;
+    details: IUserContactPreview;
+  };
   realm_id: string;
   follow_id: string;
   created_at: string;

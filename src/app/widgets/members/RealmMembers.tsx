@@ -62,7 +62,7 @@ function RealmMembers({
                   new Date(b.date_joined).getTime() -
                   new Date(a.date_joined).getTime(),
               );
-            onList(uniqueById.map((mp) => mp.account.id));
+            onList(uniqueById.map((mp) => mp.entity.id));
             return {
               ...response,
               results: uniqueById,
@@ -191,27 +191,27 @@ function RealmMembers({
                       }}
                       key={cnts.member_id}
                       className="div_realm_members_cards_col tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none"
-                      title={`${cnts.account.first_name}${
-                        cnts.account.middle_name == "N/A"
+                      title={`${cnts.entity.details.first_name}${
+                        cnts.entity.details.middle_name == "N/A"
                           ? ""
-                          : ` ${cnts.account.middle_name}`
-                      } ${cnts.account.last_name}`}
+                          : ` ${cnts.entity.details.middle_name}`
+                      } ${cnts.entity.details.last_name}`}
                     >
                       <div id="div_img_cncts_container">
                         <div id="div_img_search_profiles_container_cncts">
                           <CachedImage
                             src={
-                              cnts.account.profile == "none"
+                              cnts.entity.details.profile == "none"
                                 ? DefaultProfile
-                                : cnts.account.profile
+                                : cnts.entity.details.profile
                             }
                             className={
-                              cnts.account.profile == "none"
+                              cnts.entity.details.profile == "none"
                                 ? "img_search_profiles_ntfs"
                                 : ""
                             }
                             id={
-                              cnts.account.profile == "none"
+                              cnts.entity.details.profile == "none"
                                 ? ""
                                 : "img_actual_profile"
                             }
@@ -221,11 +221,11 @@ function RealmMembers({
                       <div className="div_contact_fullname_container">
                         <div className="tw-h-full tw-flex tw-flex-col tw-justify-center tw-gap-[4px] tw-flex-1">
                           <span className="span_cncts_fullname_label tw-text-left">
-                            {cnts.account.first_name}
-                            {cnts.account.middle_name == "N/A"
+                            {cnts.entity.details.first_name}
+                            {cnts.entity.details.middle_name == "N/A"
                               ? ""
-                              : ` ${cnts.account.middle_name}`}{" "}
-                            {cnts.account.last_name}
+                              : ` ${cnts.entity.details.middle_name}`}{" "}
+                            {cnts.entity.details.last_name}
                           </span>
                           <span className="tw-text-[12px] tw-font-Inter tw-text-left tw-text-[var(--text-2)]">
                             {capitalizeFirstLetter(cnts.role)}

@@ -827,12 +827,13 @@ function ConversationV2({
           break;
         case "removed_user_notif":
           if (data.result.type === "group") {
-            dispatch({
-              type: SET_CONVERSATION_SETUP,
-              payload: {
-                conversationsetup: conversationsetupstate,
-              },
-            });
+            // dispatch({
+            //   type: SET_CONVERSATION_SETUP,
+            //   payload: {
+            //     conversationsetup: conversationsetupstate,
+            //   },
+            // });
+            navigate("/messages");
 
             return;
           }
