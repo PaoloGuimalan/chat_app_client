@@ -34,6 +34,7 @@ function PublicServerItem({
       memberstoadd: [
         {
           userID: authentication.user.userID,
+          entityID: authentication.user.entity_id,
           fullName: `${authentication.user.fullName.firstName}${
             authentication.user.fullName.middleName == "N/A"
               ? ""
@@ -41,7 +42,7 @@ function PublicServerItem({
           } ${authentication.user.fullName.lastName}`,
         },
       ],
-      receivers: [authentication.user.userID],
+      receivers: [authentication.user.entity_id],
     };
     AddNewMemberToServer(initialpayload)
       .then((response) => {
@@ -144,3 +145,4 @@ function PublicServerItem({
 }
 
 export default PublicServerItem;
+

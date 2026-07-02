@@ -6,10 +6,10 @@ import { InitServerConversationRequest } from "@/reusables/hooks/requests";
 import { useEffect, useMemo, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
-import Conversation from "../../messenger/Conversation";
 import { motion } from "framer-motion";
 import VoiceChannel from "./VoiceChannel";
 import { IUserInterface } from "@/reusables/vars/interfaces";
+import ConversationV2 from "../../messenger/ConversationV2";
 
 function ServerConversation() {
   const screensizelistener = useSelector(
@@ -99,8 +99,8 @@ function ServerConversation() {
               isMinimized={false}
             />
           ) : (
-            <Conversation
-              conversationsetup={conversationsetup}
+            <ConversationV2
+              conversationID={conversationsetup.conversationID}
               theme={{ primary: "#e69500", lighten: "#ffc965" }}
             />
           )

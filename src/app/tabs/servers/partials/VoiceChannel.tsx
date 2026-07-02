@@ -30,7 +30,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
     () => conversationsetup.type,
     [conversationsetup],
   );
-  const isServerConversation = conversationType === "channel";
+  const isServerConversation = conversationType === "voice";
 
   const navigate = useNavigate();
 
@@ -81,40 +81,35 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
         initial={{
           paddingRight: isServerMobile
             ? "0px"
-            : pathnamelistener.includes("messages") ||
-                isServerConversation
+            : pathnamelistener.includes("messages") || isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "20px"
                 : "20px",
           paddingBottom: isServerMobile
             ? "0px"
-            : pathnamelistener.includes("messages") ||
-                isServerConversation
+            : pathnamelistener.includes("messages") || isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
                 : "10px",
           paddingTop: isServerMobile
             ? "0px"
-            : pathnamelistener.includes("messages") ||
-                isServerConversation
+            : pathnamelistener.includes("messages") || isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
                 : "10px",
           width: isServerMobile
             ? "100%"
-            : pathnamelistener.includes("messages") ||
-                isServerConversation
+            : pathnamelistener.includes("messages") || isServerConversation
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 20px)"
                 : "calc(100% - 20px)",
           height: isServerMobile
             ? "100%"
-            : pathnamelistener.includes("messages") ||
-                isServerConversation
+            : pathnamelistener.includes("messages") || isServerConversation
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 10px)"
@@ -123,40 +118,35 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
         animate={{
           paddingRight: isServerMobile
             ? "0px"
-            : pathnamelistener.includes("messages") ||
-                isServerConversation
+            : pathnamelistener.includes("messages") || isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "20px"
                 : "20px",
           paddingBottom: isServerMobile
             ? "0px"
-            : pathnamelistener.includes("messages") ||
-                isServerConversation
+            : pathnamelistener.includes("messages") || isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
                 : "10px",
           paddingTop: isServerMobile
             ? "0px"
-            : pathnamelistener.includes("messages") ||
-                isServerConversation
+            : pathnamelistener.includes("messages") || isServerConversation
               ? "0px"
               : screensizelistener.W <= 900
                 ? "10px"
                 : "10px",
           width: isServerMobile
             ? "100%"
-            : pathnamelistener.includes("messages") ||
-                isServerConversation
+            : pathnamelistener.includes("messages") || isServerConversation
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 20px)"
                 : "calc(100% - 20px)",
           height: isServerMobile
             ? "100%"
-            : pathnamelistener.includes("messages") ||
-                isServerConversation
+            : pathnamelistener.includes("messages") || isServerConversation
               ? "calc(100% - 0px)"
               : screensizelistener.W <= 900
                 ? "calc(100% - 10px)"
@@ -174,10 +164,9 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                 : screensizelistener.W <= 900
                   ? "10px"
                   : "10px",
-            border:
-              isServerConversation
-                ? "none"
-                : "solid 1px rgb(210, 210, 210)",
+            border: isServerConversation
+              ? "none"
+              : "solid 1px rgb(210, 210, 210)",
             paddingBottom: isServerMobile
               ? "0px"
               : isServerConversation && screensizelistener.W <= 900
@@ -204,10 +193,9 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                 : screensizelistener.W <= 900
                   ? "10px"
                   : "10px",
-            border:
-              isServerConversation
-                ? "none"
-                : "solid 1px rgb(210, 210, 210)",
+            border: isServerConversation
+              ? "none"
+              : "solid 1px rgb(210, 210, 210)",
             paddingBottom: isServerMobile
               ? "0px"
               : isServerConversation && screensizelistener.W <= 900
@@ -225,20 +213,18 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
         >
           <motion.div
             initial={{
-              paddingLeft:
-                isServerConversation
-                  ? screensizelistener.W <= 900
-                    ? "0px"
-                    : "10px"
-                  : "10px",
+              paddingLeft: isServerConversation
+                ? screensizelistener.W <= 900
+                  ? "0px"
+                  : "10px"
+                : "10px",
             }}
             animate={{
-              paddingLeft:
-                isServerConversation
-                  ? screensizelistener.W <= 900
-                    ? "0px"
-                    : "10px"
-                  : "10px",
+              paddingLeft: isServerConversation
+                ? screensizelistener.W <= 900
+                  ? "0px"
+                  : "10px"
+                : "10px",
             }}
             id="div_conversation_header"
           >
@@ -290,7 +276,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                 callType: "audio",
                 caller: {
                   name: authentication.user.fullName.firstName,
-                  userID: authentication.user.userID,
+                  entityID: authentication.user.entity_id,
                 },
                 recepients,
                 instance: instance,

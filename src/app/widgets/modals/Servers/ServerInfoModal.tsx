@@ -5,52 +5,19 @@ import { ServerInfoModalProp } from "@/reusables/vars/props";
 import { motion } from "framer-motion";
 import { IoMdClose } from "react-icons/io";
 import { useState } from "react";
-import { IoCheckmark, IoClose } from "react-icons/io5";
-import { MdOutlineGroupAdd } from "react-icons/md";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import {
-  AddNewMemberToServer,
-  ContactsListReusableRequest,
-} from "@/reusables/hooks/requests";
-import {
-  AuthenticationInterface,
-  // ChannelMembersInterface,
-  IContact,
-  ServerUsersWithInfo,
-} from "@/reusables/vars/interfaces";
-import { useSelector } from "react-redux";
+import { IoClose } from "react-icons/io5";
+import { ServerUsersWithInfo } from "@/reusables/vars/interfaces";
 import { useNavigate } from "react-router-dom";
 import ServerAvatar from "@/reusables/design/ServerAvatar";
 import { Avatar } from "@/reusables/design";
 
 function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
-  const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication,
-  );
   const navigate = useNavigate();
 
   const [toggleMemberDropper, settoggleMemberDropper] = useState<boolean>(true);
-  const [expandcontacts, setexpandcontacts] = useState<boolean>(false);
-  const [isLoading, setisLoading] = useState<boolean>(true);
-  const [searchFilter, _] = useState("");
+  const [expandcontacts, _] = useState<boolean>(false);
 
   const [markedMembers, setmarkedMembers] = useState<any[]>([]);
-  const [contactslist, setcontactslist] = useState<any[]>([]);
-
-  const valueToArrayChecker = (userID: any) => {
-    const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.id == userID,
-    );
-
-    return userIDExistInArray.length > 0 ? true : false;
-  };
-
-  const GetContactsListProcess = (bool: boolean) => {
-    setexpandcontacts(bool);
-    if (bool) {
-      ContactsListReusableRequest(setcontactslist, setisLoading);
-    }
-  };
 
   const removeFromList = (userID: any) => {
     const userIDnotSimilar = markedMembers.filter(
@@ -58,25 +25,6 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
     );
 
     setmarkedMembers(userIDnotSimilar);
-  };
-
-  const AddNewMemberProcess = () => {
-    const initialpayload = {
-      serverID: serverdetails.serverID,
-      memberstoadd: markedMembers,
-      receivers: [...markedMembers.map((mp) => mp.id)],
-    };
-    AddNewMemberToServer(initialpayload)
-      .then((response) => {
-        if (response.data.status) {
-          setmarkedMembers([]);
-          setexpandcontacts(false);
-          // console.log(response.data);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-      });
   };
 
   return (
@@ -87,14 +35,14 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
             <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">
               Server
             </span>
-              <button
-                onClick={() => {
-                  onclose(false);
-                }}
-                className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--text)]"
-              >
-                <IoMdClose style={{ fontSize: "17px" }} />
-              </button>
+            <button
+              onClick={() => {
+                onclose(false);
+              }}
+              className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--text)]"
+            >
+              <IoMdClose style={{ fontSize: "17px" }} />
+            </button>
           </div>
           <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-flex tw-h-[calc(100%-70px)] tw-flex-col tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-y-scroll lg:tw-overflow-y-none thinscroller">
             <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-items-center tw-overflow-y-none thinscroller">
@@ -130,15 +78,15 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                 )}
               </div>
               <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start">
-                  <button
-                    onClick={() => {
-                      settoggleMemberDropper(!toggleMemberDropper);
-                    }}
-                    className="cl-server-info-members-label tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
-                    style={{ color: "var(--text)" }}
-                  >
-                    Members
-                  </button>
+                <button
+                  onClick={() => {
+                    settoggleMemberDropper(!toggleMemberDropper);
+                  }}
+                  className="cl-server-info-members-label tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                  style={{ color: "var(--text)" }}
+                >
+                  Members
+                </button>
                 <motion.div
                   initial={{
                     height: "0px",
@@ -178,293 +126,6 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                       })}
                     </motion.div>
                   )}
-                  {serverdetails.is_admin && (
-                    <div
-                      onClick={() => {
-                        GetContactsListProcess(!expandcontacts);
-                      }}
-                      className="tw-w-[calc(100%-10px)] hover:tw-bg-[var(--surface-hover)] tw-rounded-[8px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
-                    >
-                      <div
-                        id="div_img_search_profiles_container_cncts"
-                        className="tw-bg-transparent tw-border-transparent"
-                      >
-                        {expandcontacts ? (
-                          <IoClose style={{ fontSize: "20px" }} />
-                        ) : (
-                          <MdOutlineGroupAdd style={{ fontSize: "20px" }} />
-                        )}
-                      </div>
-                      <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                        <span className="tw-flex tw-flex-1 tw-text-[13px]">
-                          {expandcontacts ? "Close list" : "Add a user"}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  {markedMembers.length > 0 && expandcontacts && (
-                    <div
-                      onClick={() => {
-                        AddNewMemberProcess();
-                      }}
-                      className="cl-server-accent-button cl-server-accent-button--ghost tw-w-[calc(100%-10px)] tw-rounded-[8px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
-                    >
-                      <div
-                        id="div_img_search_profiles_container_cncts"
-                        className="tw-bg-transparent tw-border-transparent"
-                      >
-                        <IoCheckmark style={{ fontSize: "20px" }} />
-                      </div>
-                      <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                        <span className="tw-flex tw-flex-1 tw-text-[13px]">
-                          Apply
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                  <motion.div
-                    className="tw-w-full tw-flex tw-flex-col"
-                    initial={{
-                      height: "0px",
-                    }}
-                    animate={{
-                      height: expandcontacts ? "400px" : "0px",
-                    }}
-                  >
-                    {isLoading ? (
-                      <div className="tw-w-full tw-flex tw-overflow-y-hidden tw-h-[400px] tw-items-center tw-justify-center">
-                        <motion.div
-                          animate={{
-                            rotate: -360,
-                          }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                          }}
-                          id="div_loader_request"
-                        >
-                          <AiOutlineLoading3Quarters
-                            style={{ fontSize: "28px" }}
-                          />
-                        </motion.div>
-                      </div>
-                    ) : (
-                      <motion.div
-                        id="div_contacts_select_container"
-                        className="scroller tw-h-[400px]"
-                        // animate={{
-                        //     maxHeight: markedMembers.length > 0 ? "calc(100% - 520px)" : "calc(100% - 440px)"
-                        // }}
-                      >
-                        <div className="tw-w-full tw-flex tw-flex-col tw-h-auto">
-                          {contactslist.map((cnts: IContact, i: number) => {
-                            if (cnts.type == "single") {
-                              if (cnts.action_by && cnts.involved_user) {
-                                if (
-                                  cnts.action_by.id ===
-                                    authentication.user.userID &&
-                                  serverdetails.usersWithInfo.filter(
-                                    (flt: ServerUsersWithInfo) =>
-                                      flt._id === cnts.involved_user.id,
-                                  ).length === 0
-                                ) {
-                                  const fullNameFilter = `${
-                                    cnts.involved_user.first_name
-                                  }${
-                                    cnts.involved_user.middle_name == "N/A"
-                                      ? ""
-                                      : ` ${cnts.involved_user.middle_name}`
-                                  } ${cnts.involved_user.last_name}`;
-                                  if (fullNameFilter.includes(searchFilter)) {
-                                    return (
-                                      <motion.div
-                                        whileHover={{
-                                          backgroundColor: "var(--surface-hover)",
-                                        }}
-                                        key={i}
-                                        className="div_cncts_cards"
-                                      >
-                                        <input
-                                          type="checkbox"
-                                          checked={valueToArrayChecker(
-                                            cnts.involved_user.id,
-                                          )}
-                                          onChange={() => {
-                                            if (
-                                              !valueToArrayChecker(
-                                                cnts.involved_user.id,
-                                              )
-                                            ) {
-                                              setmarkedMembers([
-                                                ...markedMembers,
-                                                {
-                                                  id: cnts.involved_user.id,
-                                                  userID:
-                                                    cnts.involved_user.username,
-                                                  fullName: `${
-                                                    cnts.involved_user
-                                                      .first_name
-                                                  }${
-                                                    cnts.involved_user
-                                                      .middle_name == "N/A"
-                                                      ? ""
-                                                      : ` ${cnts.involved_user.middle_name}`
-                                                  } ${
-                                                    cnts.involved_user.last_name
-                                                  }`,
-                                                },
-                                              ]);
-                                            } else {
-                                              removeFromList(
-                                                cnts.involved_user.id,
-                                              );
-                                            }
-                                          }}
-                                          className="checkbox_selector_people"
-                                        />
-                                        <div id="div_img_cncts_container">
-                                          <div id="div_img_search_profiles_container_cncts">
-                                            <Avatar
-                                              id={cnts.involved_user.id}
-                                              name={`${cnts.involved_user.first_name} ${cnts.involved_user.last_name}`}
-                                              src={
-                                                cnts.involved_user.profile &&
-                                                cnts.involved_user.profile !==
-                                                  "none"
-                                                  ? cnts.involved_user.profile
-                                                  : null
-                                              }
-                                              size={40}
-                                              style={{
-                                                width: 40,
-                                                height: 40,
-                                              }}
-                                            />
-                                          </div>
-                                        </div>
-                                        <div className="div_contact_fullname_container">
-                                          <span className="tw-flex tw-flex-1 tw-text-[13px]">
-                                            {cnts.involved_user.first_name}
-                                            {cnts.involved_user.middle_name ==
-                                            "N/A"
-                                              ? ""
-                                              : ` ${cnts.involved_user.middle_name}`}{" "}
-                                            {cnts.involved_user.last_name}
-                                          </span>
-                                        </div>
-                                      </motion.div>
-                                    );
-                                  } else {
-                                    return null;
-                                  }
-                                } else {
-                                  if (
-                                    serverdetails.usersWithInfo.filter(
-                                      (flt: ServerUsersWithInfo) =>
-                                        flt._id === cnts.action_by.id,
-                                    ).length === 0
-                                  ) {
-                                    const fullNameFilter = `${
-                                      cnts.action_by.first_name
-                                    }${
-                                      cnts.action_by.middle_name == "N/A"
-                                        ? ""
-                                        : ` ${cnts.action_by.middle_name}`
-                                    } ${cnts.action_by.last_name}`;
-                                    if (fullNameFilter.includes(searchFilter)) {
-                                      return (
-                                        <motion.div
-                                          whileHover={{
-                                            backgroundColor: "var(--surface-hover)",
-                                          }}
-                                          key={i}
-                                          className="div_cncts_cards"
-                                        >
-                                          <input
-                                            type="checkbox"
-                                            checked={valueToArrayChecker(
-                                              cnts.action_by.id,
-                                            )}
-                                            onChange={() => {
-                                              if (
-                                                !valueToArrayChecker(
-                                                  cnts.action_by.id,
-                                                )
-                                              ) {
-                                                setmarkedMembers([
-                                                  ...markedMembers,
-                                                  {
-                                                    id: cnts.action_by.id,
-                                                    userID:
-                                                      cnts.action_by.username,
-                                                    fullName: `${
-                                                      cnts.action_by.first_name
-                                                    }${
-                                                      cnts.action_by
-                                                        .middle_name == "N/A"
-                                                        ? ""
-                                                        : ` ${cnts.action_by.middle_name}`
-                                                    } ${
-                                                      cnts.action_by.last_name
-                                                    }`,
-                                                  },
-                                                ]);
-                                              } else {
-                                                removeFromList(
-                                                  cnts.action_by.id,
-                                                );
-                                              }
-                                            }}
-                                            className="checkbox_selector_people"
-                                          />
-                                          <div id="div_img_cncts_container">
-                                            <div id="div_img_search_profiles_container_cncts">
-                                              <Avatar
-                                                id={cnts.action_by.id}
-                                                name={`${cnts.action_by.first_name} ${cnts.action_by.last_name}`}
-                                                src={
-                                                  cnts.action_by.profile &&
-                                                  cnts.action_by.profile !==
-                                                    "none"
-                                                    ? cnts.action_by.profile
-                                                    : null
-                                                }
-                                                size={40}
-                                                style={{
-                                                  width: 40,
-                                                  height: 40,
-                                                }}
-                                              />
-                                            </div>
-                                          </div>
-                                          <div className="div_contact_fullname_container">
-                                            <span className="tw-flex tw-flex-1 tw-text-[13px]">
-                                              {cnts.action_by.first_name}
-                                              {cnts.action_by.middle_name ==
-                                              "N/A"
-                                                ? ""
-                                                : ` ${cnts.action_by.middle_name}`}{" "}
-                                              {cnts.action_by.last_name}
-                                            </span>
-                                          </div>
-                                        </motion.div>
-                                      );
-                                    } else {
-                                      return null;
-                                    }
-                                  }
-                                }
-                              } else {
-                                return null;
-                              }
-                            } else {
-                              return null;
-                            }
-                          })}
-                        </div>
-                      </motion.div>
-                    )}
-                  </motion.div>
                   {serverdetails.usersWithInfo.map(
                     (mp: ServerUsersWithInfo, i: number) => {
                       return (
@@ -473,7 +134,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                           onClick={() => {
                             navigate(`/${mp.userID}`);
                           }}
-                                          className="tw-w-[calc(100%-10px)] hover:tw-bg-[var(--surface-hover)] tw-rounded-[8px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
+                          className="tw-w-[calc(100%-10px)] hover:tw-bg-[var(--surface-hover)] tw-rounded-[8px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
                         >
                           <div id="div_img_search_profiles_container_cncts">
                             <Avatar

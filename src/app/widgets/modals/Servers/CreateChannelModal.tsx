@@ -41,16 +41,16 @@ function CreateChannelModal({
     return userIDExistInArray.length > 0 ? true : false;
   };
 
-  const removeFromList = (userID: any) => {
-    const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.id != userID,
+  const removeFromList = (entityID: any) => {
+    const entityIDnotSimilar = markedMembers.filter(
+      (flt: any) => flt.entityID != entityID,
     );
 
-    setmarkedMembers(userIDnotSimilar);
+    setmarkedMembers(entityIDnotSimilar);
   };
 
   const processCreateGroupChat = () => {
-    const markedMembersFinal = markedMembers.map((mrkd: any) => mrkd.id);
+    const markedMembersFinal = markedMembers.map((mrkd: any) => mrkd.entityID);
     setisSaving(true);
     CreateChannelRequest(
       {
@@ -242,12 +242,12 @@ function CreateChannelModal({
                             if (cnts._id !== authentication.user.userID) {
                               return (
                                 <motion.div
-                                whileHover={{
-                                  backgroundColor: "var(--surface-hover)",
-                                }}
-                                key={i}
-                                className="div_cncts_cards"
-                              >
+                                  whileHover={{
+                                    backgroundColor: "var(--surface-hover)",
+                                  }}
+                                  key={i}
+                                  className="div_cncts_cards"
+                                >
                                   <input
                                     type="checkbox"
                                     checked={valueToArrayChecker(cnts._id)}
@@ -258,6 +258,7 @@ function CreateChannelModal({
                                           {
                                             id: cnts._id,
                                             userID: cnts.userID,
+                                            entityID: cnts.entityID,
                                             fullName: `${
                                               cnts.fullname.firstName
                                             }${
@@ -279,7 +280,8 @@ function CreateChannelModal({
                                         id={cnts._id}
                                         name={`${cnts.fullname.firstName} ${cnts.fullname.lastName}`}
                                         src={
-                                          cnts.profile && cnts.profile !== "none"
+                                          cnts.profile &&
+                                          cnts.profile !== "none"
                                             ? cnts.profile
                                             : null
                                         }
