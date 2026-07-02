@@ -575,6 +575,7 @@ export interface IUserSettings {
 
 export interface IPreviewParicipants {
   userID: string;
+  entityID: string;
   username: string;
   profile: string | null;
   clientID: string;

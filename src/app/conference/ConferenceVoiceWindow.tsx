@@ -177,17 +177,17 @@ function ConferenceVoiceWindow({
   const members = useMemo(() => {
     if (!isGroupCall) {
       const candidateMembers = [
-        data.userdetails?.userID,
-        data.caller?.userID,
+        data.userdetails?.entityID,
+        data.caller?.entityID,
         ...(Array.isArray(data.recepients) ? data.recepients : []),
       ].filter(Boolean) as string[];
 
       return Array.from(new Set(candidateMembers)).filter(
-        (flt: string) => flt !== authentication.user.userID,
+        (flt: string) => flt !== authentication.user.entity_id,
       );
     } else {
       return (data.groupdetails?.receivers || data.recepients || []).filter(
-        (flt: string) => flt !== authentication.user.userID,
+        (flt: string) => flt !== authentication.user.entity_id,
       );
     }
   }, [data, authentication, isGroupCall]);

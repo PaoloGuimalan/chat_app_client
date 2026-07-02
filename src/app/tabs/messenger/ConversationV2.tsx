@@ -989,10 +989,10 @@ function ConversationV2({
 
     const callRecipients =
       conversationsetup.conversationType == "single"
-        ? [conversationsetup?.details.id]
+        ? [conversationsetup?.details.entity_id]
         : conversationinfo?.users
             ?.map((mp: any) => mp._id)
-            .filter((flt: any) => flt != authentication.user.userID) ||
+            .filter((flt: any) => flt != authentication.user.entity_id) ||
           conversationsetup?.participant_ids.filter(
             (flt: any) => flt != authentication.user.entity_id,
           ) ||
@@ -1010,8 +1010,9 @@ function ConversationV2({
             conversationType: conversationsetup.conversationType,
             callType: type,
             caller: {
-              name: getChannelPreviewParticipants(conversationID)[0].userID,
-              userID: getChannelPreviewParticipants(conversationID)[0].userID,
+              name: getChannelPreviewParticipants(conversationID)[0].entityID,
+              entityID:
+                getChannelPreviewParticipants(conversationID)[0].entityID,
             },
             recepients: callRecipients,
             instance: getChannelPreviewParticipants(conversationID)[0].instance,
@@ -1023,7 +1024,7 @@ function ConversationV2({
 
     const caller = {
       name: authentication.user.fullName.firstName,
-      userID: authentication.user.userID,
+      entityID: authentication.user.entity_id,
     };
     const callKey = `${conversationID}-${type}`;
     const hasPendingAlert =
