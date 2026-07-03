@@ -24,7 +24,7 @@ function MapFeedSettings() {
       type: SET_USER_SETTINGS,
       payload: { usersettings: newSettings },
     });
-    persistSettings(authentication.user.userID, newSettings);
+    persistSettings(authentication.user.entity_id, newSettings);
   };
 
   return (

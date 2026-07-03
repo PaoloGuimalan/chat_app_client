@@ -256,15 +256,18 @@ function Profile({
       return;
     }
     setisBlockLoading(true);
-    BlockUserRequest(profileInfo.id, dispatch, alerts, setisBlockLoading).then(
-      (success) => {
-        if (success) {
-          navigate("/");
-        } else {
-          setconfirmBlock(false);
-        }
-      },
-    );
+    BlockUserRequest(
+      profileInfo.entityID,
+      dispatch,
+      alerts,
+      setisBlockLoading,
+    ).then((success) => {
+      if (success) {
+        navigate("/");
+      } else {
+        setconfirmBlock(false);
+      }
+    });
   };
 
   const submitReportProcess = () => {
@@ -272,7 +275,7 @@ function Profile({
     ReportUserRequest(
       {
         target_type: "user",
-        target_id: profileInfo.id,
+        target_id: profileInfo.entityID,
         reason: reportReason,
         description: reportDescription,
       },

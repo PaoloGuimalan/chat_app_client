@@ -9,11 +9,7 @@ import { TbServer2 } from "react-icons/tb";
 import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import {
-  SET_CONVERSATION_SETUP,
-  SET_MINIMIZED_CONVERSATION,
-  SET_TOGGLE_RIGHT_WIDGET,
-} from "@/redux/types";
+import { SET_MINIMIZED_CONVERSATION } from "@/redux/types";
 import {
   AuthenticationInterface,
   IPreviewParicipants,
@@ -21,7 +17,6 @@ import {
 import DefaultProfile from "../../../../assets/imgs/default.png";
 import GroupChatIcon from "../../../../assets/imgs/group-chat-icon.jpg";
 import ServerIcon from "../../../../assets/imgs/servericon.png";
-import { conversationsetupstate } from "@/redux/actions/states";
 
 function ArchivedMessages() {
   const authentication: AuthenticationInterface = useSelector(
@@ -60,59 +55,16 @@ function ArchivedMessages() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
 
-  const settogglerightwidget = (toggle: any) => {
-    navigate("/");
-    dispatch({
-      type: SET_TOGGLE_RIGHT_WIDGET,
-      payload: {
-        togglerightwidget: toggle,
-      },
-    });
-  };
-
-  const navigateToConversation = (
-    type: any,
-    conversationID: any,
-    userdetails: any,
-  ) => {
+  const navigateToConversation = (type: any, conversationID: any) => {
     if (screensizelistener.W <= 1100) {
-      if (type == "single") {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: userdetails,
-              groupdetails: conversationsetupstate.groupdetails,
-              type: "single",
-            },
-          },
-        });
-        navigate("/messages");
-      } else {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: conversationsetupstate.userdetails,
-              groupdetails: userdetails,
-              type: "group",
-            },
-          },
-        });
-        navigate("/messages");
-      }
+      navigate(`/messages/${conversationID}`);
     } else {
       if (type == "single") {
         dispatch({
           type: SET_MINIMIZED_CONVERSATION,
           payload: {
             conversation: {
-              conversationid: conversationID,
-              userdetails: userdetails,
-              groupdetails: conversationsetupstate.groupdetails,
-              type: "single",
+              conversationID: conversationID,
             },
           },
         });
@@ -121,14 +73,10 @@ function ArchivedMessages() {
           type: SET_MINIMIZED_CONVERSATION,
           payload: {
             conversation: {
-              conversationid: conversationID,
-              userdetails: conversationsetupstate.userdetails,
-              groupdetails: userdetails,
-              type: "group",
+              conversationID: conversationID,
             },
           },
         });
-        settogglerightwidget("messages");
       }
     }
   };
@@ -204,7 +152,7 @@ function ArchivedMessages() {
             {archives.list.map((msgslst: any, i: number) => {
               if (msgslst.conversationType == "single") {
                 return msgslst.users.map((msgsurs: any, i: number) => {
-                  if (msgsurs._id != authentication.user.userID) {
+                  if (msgsurs.entityID != authentication.user.entity_id) {
                     return (
                       <motion.div
                         whileHover={{
@@ -214,7 +162,6 @@ function ArchivedMessages() {
                           navigateToConversation(
                             "single",
                             msgslst.conversationID,
-                            msgsurs,
                           );
                         }}
                         key={i}
@@ -240,7 +187,7 @@ function ArchivedMessages() {
                               }
                             />
                           </div>
-                          {isUserOnline(activeuserslist, msgsurs._id) && (
+                          {isUserOnline(activeuserslist, msgsurs.entityID) && (
                             <div className="div_online_indicator" />
                           )}
                         </div>
@@ -261,14 +208,14 @@ function ArchivedMessages() {
                             </span>
                           ) : msgslst.isDeleted ? (
                             <span className="span_messages_list_name">
-                              {msgslst.sender == authentication.user.userID
+                              {msgslst.sender == authentication.user.entity_id
                                 ? "you: "
                                 : ""}
                               [Deleted message]
                             </span>
                           ) : (
                             <span className="span_messages_list_name">
-                              {msgslst.sender == authentication.user.userID
+                              {msgslst.sender == authentication.user.entity_id
                                 ? "you: "
                                 : ""}
                               {msgslst.messageType === "text" ||
@@ -335,10 +282,7 @@ function ArchivedMessages() {
                       backgroundColor: "rgb(200, 200, 200)",
                     }}
                     onClick={() => {
-                      navigateToConversation("group", msgslst.conversationID, {
-                        ...msgslst.groupdetails,
-                        receivers: msgslst.receivers,
-                      });
+                      navigateToConversation("group", msgslst.conversationID);
                     }}
                     key={i}
                     className="div_messages_list_cards tw-border-[0px]"
@@ -386,14 +330,14 @@ function ArchivedMessages() {
                         </span>
                       ) : msgslst.isDeleted ? (
                         <span className="span_messages_list_name">
-                          {msgslst.sender == authentication.user.userID
+                          {msgslst.sender == authentication.user.entity_id
                             ? "you: "
                             : ""}
                           [Deleted message]
                         </span>
                       ) : (
                         <span className="span_messages_list_name">
-                          {msgslst.sender == authentication.user.userID
+                          {msgslst.sender == authentication.user.entity_id
                             ? "you: "
                             : ""}
                           {msgslst.messageType === "text" ||
@@ -514,14 +458,14 @@ function ArchivedMessages() {
                         </span>
                       ) : msgslst.isDeleted ? (
                         <span className="span_messages_list_name">
-                          {msgslst.sender == authentication.user.userID
+                          {msgslst.sender == authentication.user.entity_id
                             ? "you: "
                             : ""}
                           [Deleted message]
                         </span>
                       ) : (
                         <span className="span_messages_list_name">
-                          {msgslst.sender == authentication.user.userID
+                          {msgslst.sender == authentication.user.entity_id
                             ? "you: "
                             : ""}
                           {msgslst.messageType === "text" ||

@@ -47,6 +47,7 @@ export interface IUserInterface {
 
 export interface ProfileUserInfoInterface {
   id: string;
+  entityID: string;
   userID: string;
   username: string;
   fullname: {

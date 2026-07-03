@@ -122,7 +122,7 @@ function MapFeed() {
       },
     };
 
-    persistSettings(authentication.user.userID, newSettings);
+    persistSettings(authentication.user.entity_id, newSettings);
 
     dispatch({
       type: SET_USER_SETTINGS,
@@ -149,7 +149,7 @@ function MapFeed() {
       },
     };
 
-    persistSettings(authentication.user.userID, newSettings);
+    persistSettings(authentication.user.entity_id, newSettings);
 
     dispatch({
       type: SET_USER_SETTINGS,
@@ -279,7 +279,7 @@ function MapFeed() {
       },
     };
 
-    persistSettings(authentication.user.userID, newSettings);
+    persistSettings(authentication.user.entity_id, newSettings);
 
     dispatch({
       type: SET_USER_SETTINGS,
@@ -344,7 +344,7 @@ function MapFeed() {
         type: SET_USER_SETTINGS,
         payload: { usersettings: newSettings },
       });
-      persistSettings(authentication.user.userID, newSettings);
+      persistSettings(authentication.user.entity_id, newSettings);
     }
   };
 

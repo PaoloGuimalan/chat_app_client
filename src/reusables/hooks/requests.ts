@@ -987,10 +987,10 @@ const ManualInitConversationListRequest = async (
 const InitConversationListRequest = async (page: number, range: number) => {
   const authtoken = localStorage.getItem("authtoken");
   const decodedtoken: any = authtoken ? jwtDecode(authtoken) : null;
-  const userID = decodedtoken ? decodedtoken.userID : null;
+  const entityID = decodedtoken ? decodedtoken.entity : null;
   let type = "common";
 
-  await getSettings(userID)
+  await getSettings(entityID)
     .then((value) => {
       if (value) {
         if (value.messages && value.messages.type) {
@@ -1044,10 +1044,10 @@ const InitConversationInfoRequest = async (conversationID: string) => {
 const InitConversationListV1Request = async (page: number, range: number) => {
   const authtoken = localStorage.getItem("authtoken");
   const decodedtoken: any = authtoken ? jwtDecode(authtoken) : null;
-  const userID = decodedtoken ? decodedtoken.userID : null;
+  const entityID = decodedtoken ? decodedtoken.entity : null;
   let type = "common";
 
-  await getSettings(userID)
+  await getSettings(entityID)
     .then((value) => {
       if (value) {
         if (value.messages && value.messages.type) {
@@ -3040,14 +3040,14 @@ const DeleteAccountRequest = async (
 };
 
 const BlockUserRequest = async (
-  userId: string,
+  entityID: string,
   dispatch: Dispatch<any>,
   currentAlertState: any,
   setisWaitingRequest: any,
 ) => {
   return Axios.post(
     `${USER_SERVICE_API}/api/user/blocks`,
-    { user_id: userId },
+    { entityID },
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken") || "",
@@ -3085,13 +3085,13 @@ const BlockUserRequest = async (
 };
 
 const UnblockUserRequest = async (
-  userId: string,
+  entityID: string,
   dispatch: Dispatch<any>,
   currentAlertState: any,
   setisWaitingRequest: any,
 ) => {
   return Axios.delete(`${USER_SERVICE_API}/api/user/blocks`, {
-    data: { user_id: userId },
+    data: { entityID },
     headers: {
       "x-access-token": localStorage.getItem("authtoken") || "",
     },

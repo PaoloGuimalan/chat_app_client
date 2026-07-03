@@ -284,8 +284,8 @@ function Messages() {
   const conversationPath = useLocation().pathname;
 
   useEffect(() => {
-    if (authentication.user.userID) {
-      getSettings(authentication.user.userID)
+    if (authentication.user.entity_id) {
+      getSettings(authentication.user.entity_id)
         .then((value) => {
           if (value?.messages?.type) {
             setconversationTypeSet(
@@ -367,9 +367,9 @@ function Messages() {
   };
 
   const setConversationListGroups = (type: string) => {
-    if (authentication.user.userID) {
+    if (authentication.user.entity_id) {
       const storedType = type === "all" ? "common" : type;
-      persistSettings(authentication.user.userID, {
+      persistSettings(authentication.user.entity_id, {
         ...usersettings,
         messages: { ...usersettings.messages, type: storedType },
       })

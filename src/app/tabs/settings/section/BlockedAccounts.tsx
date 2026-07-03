@@ -9,6 +9,7 @@ import { Avatar } from "@/reusables/design";
 
 interface IBlockedAccount {
   id: string;
+  entityID: string;
   username: string;
   first_name: string;
   last_name: string;
@@ -38,13 +39,15 @@ function BlockedAccounts() {
     loadBlockedAccounts();
   }, []);
 
-  const unblockProcess = (id: string) => {
-    setunblockingId(id);
-    UnblockUserRequest(id, dispatch, alerts, () => {
+  const unblockProcess = (entityID: string) => {
+    setunblockingId(entityID);
+    UnblockUserRequest(entityID, dispatch, alerts, () => {
       setunblockingId(null);
     }).then((success) => {
       if (success) {
-        setblockedAccounts((prev) => prev.filter((acc) => acc.id !== id));
+        setblockedAccounts((prev) =>
+          prev.filter((acc) => acc.entityID !== entityID),
+        );
       }
     });
   };
@@ -89,11 +92,11 @@ function BlockedAccounts() {
                   </span>
                 </div>
                 <button
-                  disabled={unblockingId === acc.id}
-                  onClick={() => unblockProcess(acc.id)}
+                  disabled={unblockingId === acc.entityID}
+                  onClick={() => unblockProcess(acc.entityID)}
                   className="tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[12px] tw-py-[8px] tw-bg-[var(--surface)] tw-text-[var(--text)] tw-rounded-[var(--r-md)] tw-text-[12px] hover:tw-bg-[var(--surface-hover)] tw-transition-colors disabled:tw-opacity-[0.65]"
                 >
-                  {unblockingId === acc.id ? "Unblocking…" : "Unblock"}
+                  {unblockingId === acc.entityID ? "Unblocking…" : "Unblock"}
                 </button>
               </div>
             ))}

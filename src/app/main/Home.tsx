@@ -230,8 +230,8 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   };
 
   useEffect(() => {
-    if (authentication.user.userID) {
-      getSettings(authentication.user.userID).then((res) => {
+    if (authentication.user.entity_id) {
+      getSettings(authentication.user.entity_id).then((res) => {
         if (res) {
           if (isUserSettingsComplete(res)) {
             dispatch({
@@ -239,14 +239,14 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
               payload: { usersettings: res },
             });
           } else {
-            persistSettings(authentication.user.userID, usersettingsstate);
+            persistSettings(authentication.user.entity_id, usersettingsstate);
           }
         } else {
-          persistSettings(authentication.user.userID, usersettingsstate);
+          persistSettings(authentication.user.entity_id, usersettingsstate);
         }
       });
     }
-  }, [authentication.user.userID]);
+  }, [authentication.user.entity_id]);
 
   const shareLocationProcess = useCallback(
     (myLocation: ICoordinatesAnchor) => {

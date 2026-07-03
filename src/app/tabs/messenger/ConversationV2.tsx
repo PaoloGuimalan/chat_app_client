@@ -1420,7 +1420,7 @@ function ConversationV2({
                   <span
                     className="span_userdetails_name tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
                     onClick={() => {
-                      navigate(`/${conversationsetup.details.id}`);
+                      navigate(`/${conversationsetup.details.username}`);
                     }}
                   >
                     {conversationsetup.details.display_name}
