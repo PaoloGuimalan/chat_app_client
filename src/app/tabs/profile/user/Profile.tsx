@@ -21,6 +21,7 @@ import {
   GetDiaryTotalRequest,
   BlockUserRequest,
   ReportUserRequest,
+  CreateInitialConversation,
 } from "@/reusables/hooks/requests";
 // import jwtDecode from "jwt-decode";
 import { FaBook } from "react-icons/fa6";
@@ -33,11 +34,7 @@ import {
   formattedDateToWords,
   ordinal_suffix_of,
 } from "@/reusables/hooks/reusable";
-import {
-  SET_CONVERSATION_SETUP,
-  SET_MINIMIZED_CONVERSATION,
-  SET_TOGGLE_RIGHT_WIDGET,
-} from "@/redux/types";
+import { SET_MINIMIZED_CONVERSATION } from "@/redux/types";
 import { BiCalendarEdit } from "react-icons/bi";
 import { HiOutlinePencil } from "react-icons/hi";
 import ProfilePicContainer from "./ProfilePicContainer";
@@ -299,89 +296,31 @@ function Profile({
     ),
   };
 
-  const settogglerightwidget = (toggle: any) => {
-    navigate("/");
-    dispatch({
-      type: SET_TOGGLE_RIGHT_WIDGET,
-      payload: {
-        togglerightwidget: toggle,
-      },
-    });
+  const navigateToConversation = (conversationID: any) => {
+    if (screensizelistener.W <= 1100) {
+      navigate(`/messages/${conversationID}`);
+    } else {
+      dispatch({
+        type: SET_MINIMIZED_CONVERSATION,
+        payload: {
+          conversation: {
+            conversationID: conversationID,
+          },
+        },
+      });
+    }
   };
 
-  const navigateToConversation = (
-    type: any,
-    conversationID: any,
-    userdetails: any,
-  ) => {
-    if (screensizelistener.W <= 1100) {
-      if (type == "single") {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: userdetails,
-              groupdetails: null,
-              type: "single",
-            },
-          },
-        });
-        navigate("/messages");
-      } else {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: null,
-              groupdetails: userdetails,
-              type: "group",
-            },
-          },
-        });
-        navigate("/messages");
-      }
-    } else {
-      if (type == "single") {
-        // dispatch({
-        //   type: SET_CONVERSATION_SETUP,
-        //   payload: {
-        //     conversationsetup: {
-        //       conversationid: conversationID,
-        //       userdetails: userdetails,
-        //       groupdetails: null,
-        //       type: "single",
-        //     },
-        //   },
-        // });
-        // settogglerightwidget("messages");
-        dispatch({
-          type: SET_MINIMIZED_CONVERSATION,
-          payload: {
-            conversation: {
-              conversationid: conversationID,
-              userdetails: userdetails,
-              groupdetails: null,
-              type: "single",
-            },
-          },
-        });
-      } else {
-        dispatch({
-          type: SET_CONVERSATION_SETUP,
-          payload: {
-            conversationsetup: {
-              conversationid: conversationID,
-              userdetails: null,
-              groupdetails: userdetails,
-              type: "group",
-            },
-          },
-        });
-        settogglerightwidget("messages");
-      }
-    }
+  const CreateConversationProcess = () => {
+    CreateInitialConversation(profileInfo.entityID)
+      .then((response) => {
+        if (response) {
+          navigateToConversation(response);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   return profileInfo ? (
@@ -543,18 +482,6 @@ function Profile({
                           "Connected"
                         )}
                       </button>
-                      <button
-                        onClick={() => {
-                          navigateToConversation(
-                            "single",
-                            profileInfo.connection.connection_id,
-                            { ...profileInfo, _id: profileInfo.id },
-                          );
-                        }}
-                        className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
-                      >
-                        Message
-                      </button>
                     </div>
                   ) : profileInfo.connection.is_user_connection_initiator ? (
                     <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
@@ -641,6 +568,24 @@ function Profile({
                   )}
                 </div>
               )}
+            {profileInfo.entityID !== authentication.user.entity_id && (
+              <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                <button
+                  onClick={() => {
+                    if (profileInfo.connection.is_connection_handshaked) {
+                      navigateToConversation(
+                        profileInfo.connection.connection_id,
+                      );
+                    } else {
+                      CreateConversationProcess();
+                    }
+                  }}
+                  className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                >
+                  Message
+                </button>
+              </div>
+            )}
             {authentication.auth &&
               authentication.user.username !== params.userID && (
                 <div

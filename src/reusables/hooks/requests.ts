@@ -3268,6 +3268,26 @@ const UpdateProfileInfoRequest = async (
     });
 };
 
+const CreateInitialConversation = async (otherEntityID: string) => {
+  return await Axios.post(
+    `${API}/m/crtc`,
+    { otherEntityID },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data.conversationID;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 export {
   JoinRoomRequest,
   CreateTransportRequest,
@@ -3374,4 +3394,5 @@ export {
   UpdateProfileInfoRequest,
   InitConversationListV1Request,
   InitConversationInfoRequest,
+  CreateInitialConversation,
 };
