@@ -111,7 +111,10 @@ function ConferenceVoiceWindow({
   // username -> { member_id, role, account_id } for realm members, used to
   // show roles and offer promote/demote on conference participants.
   const [memberRoleMap, setMemberRoleMap] = useState<
-    Map<string, { member_id: string; role: string; account_id: string }>
+    Map<
+      string,
+      { member_id: string; role: string; account_id: string; entityID: string }
+    >
   >(new Map());
   const [roleMenuFor, setRoleMenuFor] = useState<string | null>(null);
   const [updatingRoleFor, setUpdatingRoleFor] = useState<string | null>(null);
@@ -324,15 +327,21 @@ function ConferenceVoiceWindow({
         setMemberRoleMap(() => {
           const next = new Map<
             string,
-            { member_id: string; role: string; account_id: string }
+            {
+              member_id: string;
+              role: string;
+              account_id: string;
+              entityID: string;
+            }
           >();
           results.forEach((member: any) => {
-            const username = member?.account?.username;
+            const username = member?.entity.details?.username;
             if (username) {
               next.set(username, {
                 member_id: member.member_id,
                 role: member.role,
-                account_id: member.account.id,
+                account_id: member.entity.details.id,
+                entityID: member.entity.id,
               });
             }
           });
@@ -393,7 +402,7 @@ function ConferenceVoiceWindow({
   const removeParticipant = useCallback(
     async (username: string) => {
       const member = memberRoleMap.get(username);
-      if (!member?.account_id || updatingRoleFor) {
+      if (!member?.entityID || updatingRoleFor) {
         return;
       }
       setRoleMenuFor(null);
@@ -401,7 +410,7 @@ function ConferenceVoiceWindow({
       try {
         // Removes realm membership and pushes a realtime removal notice to
         // the target, whose client then leaves the call (see eject listener).
-        await RemoveRealmMemberRequest(realmId, [member.account_id]);
+        await RemoveRealmMemberRequest(realmId, [member.entityID]);
         setMemberRoleMap((prev) => {
           const next = new Map(prev);
           next.delete(username);
