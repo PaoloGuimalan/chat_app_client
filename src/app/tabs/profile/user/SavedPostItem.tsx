@@ -123,7 +123,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
       });
   };
 
-  const postOwnerUserID = savedPost.post.user.username;
+  const postOwnerUserID = savedPost.post.entity.id;
 
   const navigate = useNavigate();
 
@@ -206,9 +206,10 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
           withImage={toggleNewPostModal.withImage}
           profileInfo={{
             id: authentication.user.userID,
+            entityID: authentication.user.entity_id,
             username: authentication.user.username,
           }}
-          realmInfo={null}
+          otherEntityID={null}
           setcreateposttext={() => {}}
           getpostprocess={() => {}}
           onclose={settoggleNewPostModal}
@@ -293,20 +294,20 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                   <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
                     <Avatar
                       id={
-                        previewPost.author_realm?.slug ??
-                        previewPost.user.username
+                        previewPost.entity.details?.slug ??
+                        previewPost.entity.details.username
                       }
                       name={
-                        previewPost.author_realm?.name ??
-                        `${previewPost.user.first_name} ${previewPost.user.last_name}`
+                        previewPost.entity.details?.name ??
+                        `${previewPost.entity.details.first_name} ${previewPost.entity.details.last_name}`
                       }
                       src={
-                        previewPost.author_realm
-                          ? previewPost.author_realm.profile !== "none"
-                            ? previewPost.author_realm.profile
+                        previewPost.entity.details.profile
+                          ? previewPost.entity.details.profile !== "none"
+                            ? previewPost.entity.details.profile
                             : undefined
-                          : previewPost.user.profile !== "none"
-                            ? previewPost.user.profile
+                          : previewPost.entity.details.profile !== "none"
+                            ? previewPost.entity.details.profile
                             : undefined
                       }
                       size={35}
@@ -316,18 +317,18 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                         <span
                           className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                           onClick={() => {
-                            if (previewPost.author_realm) {
-                              navigate(`/${previewPost.author_realm.slug}`);
+                            if (previewPost.entity.type !== "user") {
+                              navigate(`/${previewPost.entity.details.slug}`);
                               return;
                             }
 
-                            navigate(`/${previewPost.user.username}`);
+                            navigate(`/${previewPost.entity.details.username}`);
                           }}
                         >
-                          {previewPost.author_realm ? (
+                          {previewPost.entity.type !== "user" ? (
                             <div className="tw-flex tw-items-center tw-gap-[4px]">
-                              <span>{previewPost.author_realm.name}</span>
-                              {previewPost.author_realm.is_verified && (
+                              <span>{previewPost.entity.details.name}</span>
+                              {previewPost.entity.details.is_verified && (
                                 <RiVerifiedBadgeFill
                                   size={16}
                                   color="var(--brand)"
@@ -337,13 +338,13 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                           ) : (
                             <div className="tw-flex tw-items-center tw-gap-[4px]">
                               <span>
-                                {previewPost.user.first_name}
-                                {previewPost.user.middle_name == "N/A"
+                                {previewPost.entity.details.first_name}
+                                {previewPost.entity.details.middle_name == "N/A"
                                   ? ""
-                                  : ` ${previewPost.user.middle_name}`}{" "}
-                                {previewPost.user.last_name}
+                                  : ` ${previewPost.entity.details.middle_name}`}{" "}
+                                {previewPost.entity.details.last_name}
                               </span>
-                              {previewPost.user.is_badged && (
+                              {previewPost.entity.details.is_badged && (
                                 <RiVerifiedBadgeFill
                                   size={16}
                                   color="var(--brand)"
@@ -364,19 +365,21 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                                 <span
                                   className="cl-feed-card__title tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                   onClick={() => {
-                                    navigate(`/${mptg.user.username}`);
+                                    navigate(
+                                      `/${mptg.entity.details.username}`,
+                                    );
                                   }}
                                   key={i}
                                 >
                                   <div className="tw-flex tw-items-center tw-gap-[4px]">
                                     <span>
-                                      {mptg.user.first_name}
-                                      {mptg.user.middle_name == "N/A"
+                                      {mptg.entity.details.first_name}
+                                      {mptg.entity.details.middle_name == "N/A"
                                         ? ""
-                                        : ` ${mptg.user.middle_name}`}{" "}
-                                      {mptg.user.last_name}
+                                        : ` ${mptg.entity.details.middle_name}`}{" "}
+                                      {mptg.entity.details.last_name}
                                     </span>
-                                    {mptg.user.is_badged && (
+                                    {mptg.entity.details.is_badged && (
                                       <RiVerifiedBadgeFill
                                         size={16}
                                         color="var(--brand)"
@@ -570,17 +573,17 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                         >
                           <PostEmojis
                             post_id={previewPost.post_id}
-                            reaction={previewPost.user_reaction}
+                            reaction={previewPost.entity_reaction}
                             onProcessEmojiSelection={onProcessEmojiSelection}
                             onSuccessEmojiSelection={onSuccessEmojiSelection}
                           />
                         </motion.div>
-                        {previewPost.user_reaction ? (
+                        {previewPost.entity_reaction ? (
                           <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
                             {emojilist.length > 0 &&
                               (emojilist.filter(
                                 (flt: Emoji) =>
-                                  flt.emoji_id === previewPost.user_reaction,
+                                  flt.emoji_id === previewPost.entity_reaction,
                               )[0].emoji_content ??
                                 "...")}
                           </div>
@@ -612,7 +615,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                           style={{ fontSize: "25px", color: "var(--text-2)" }}
                         />
                       </button>
-                      {postOwnerUserID === authentication.user.userID && (
+                      {postOwnerUserID === authentication.user.entity_id && (
                         <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
                           <BsPinMap
                             style={{
@@ -647,20 +650,23 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
         className="cl-display-card tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[14px] tw-flex tw-flex-row tw-gap-[10px]"
       >
         <Avatar
-          id={savedPost.post.author_realm?.slug ?? savedPost.post.user.username}
+          id={
+            savedPost.post.entity.details?.slug ??
+            savedPost.post.entity.details.username
+          }
           name={
-            savedPost.post.author_realm?.name ??
-            `${savedPost.post.user.first_name} ${savedPost.post.user.last_name}`
+            savedPost.post.entity.details?.name ??
+            `${savedPost.post.entity.details.first_name} ${savedPost.post.entity.details.last_name}`
           }
           src={
-            savedPost.post.author_realm
-              ? savedPost.post.author_realm.profile &&
-                savedPost.post.author_realm.profile !== "N/A"
-                ? savedPost.post.author_realm.profile
+            savedPost.post.entity.details.profile
+              ? savedPost.post.entity.details.profile &&
+                savedPost.post.entity.details.profile !== "N/A"
+                ? savedPost.post.entity.details.profile
                 : undefined
-              : savedPost.post.user.profile &&
-                  savedPost.post.user.profile !== "none"
-                ? savedPost.post.user.profile
+              : savedPost.post.entity.details.profile &&
+                  savedPost.post.entity.details.profile !== "none"
+                ? savedPost.post.entity.details.profile
                 : undefined
           }
           size={isMobileView ? 85 : 120}
@@ -669,8 +675,8 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
           <div className="tw-flex tw-flex-col tw-gap-[6px] tw-p-[5px] tw-items-start tw-flex-1">
             {savedPost.post.caption.trim() === "" ? (
               <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
-                {savedPost.post.author_realm?.name ??
-                  savedPost.post.user.first_name}
+                {savedPost.post.entity.details?.name ??
+                  savedPost.post.entity.details.first_name}
                 {"'s"} Post
               </span>
             ) : (
@@ -687,17 +693,17 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                   .join(" ")}
               </span>
               &bull;
-              {savedPost.post.author_realm ? (
+              {savedPost.post.entity.type !== "user" ? (
                 <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text-2)]">
-                  {savedPost.post.author_realm.name}
+                  {savedPost.post.entity.details.name}
                 </span>
               ) : (
                 <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text-2)]">
-                  {savedPost.post.user.first_name}
-                  {savedPost.post.user.middle_name == "N/A"
+                  {savedPost.post.entity.details.first_name}
+                  {savedPost.post.entity.details.middle_name == "N/A"
                     ? ""
-                    : ` ${savedPost.post.user.middle_name}`}{" "}
-                  {savedPost.post.user.last_name}
+                    : ` ${savedPost.post.entity.details.middle_name}`}{" "}
+                  {savedPost.post.entity.details.last_name}
                 </span>
               )}
             </div>

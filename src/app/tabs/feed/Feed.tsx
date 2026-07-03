@@ -133,9 +133,10 @@ function Feed() {
             withImage={toggleNewPostModal.withImage}
             profileInfo={{
               id: authentication.user.userID,
+              entityID: authentication.user.entity_id,
               username: authentication.user.username,
             }}
-            realmInfo={null}
+            otherEntityID={null}
             setcreateposttext={setcreateposttext}
             getpostprocess={() => {}}
             onclose={settoggleNewPostModal}

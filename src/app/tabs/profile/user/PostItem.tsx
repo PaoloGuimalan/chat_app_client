@@ -70,14 +70,14 @@ function PostItem({
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const postAuthorAvatar = (size = 35) => {
-    if (postState.author_realm) {
+    if (postState.entity.type !== "user") {
       return (
         <Avatar
-          id={postState.author_realm.slug}
-          name={postState.author_realm.name}
+          id={postState.entity.details.slug}
+          name={postState.entity.details.name}
           src={
-            postState.author_realm.profile !== "none"
-              ? postState.author_realm.profile
+            postState.entity.details.profile !== "none"
+              ? postState.entity.details.profile
               : undefined
           }
           size={size}
@@ -87,17 +87,19 @@ function PostItem({
 
     return (
       <Avatar
-        id={postState.user.username}
-        name={`${postState.user.first_name} ${postState.user.last_name}`}
+        id={postState.entity.details.username}
+        name={`${postState.entity.details.first_name} ${postState.entity.details.last_name}`}
         src={
-          postState.user.profile !== "none" ? postState.user.profile : undefined
+          postState.entity.details.profile !== "none"
+            ? postState.entity.details.profile
+            : undefined
         }
         size={size}
       />
     );
   };
 
-  const postOwnerUserID = postState.user.username;
+  const postOwnerUserID = postState.entity.details.username;
 
   const toggleActivityCounts = useMemo(() => {
     const reactionsCount = postState.preview.reduce(
@@ -168,13 +170,14 @@ function PostItem({
   });
 
   useEffect(() => {
-    if (authentication.user.userID !== postState.user.username) {
+    if (authentication.user.userID !== postState.entity.details.username) {
       if (isInView) {
         const viewedDate = new Date().toISOString();
         sessionStartTimeRef.current = Date.now();
         persistViewPosts(postState.post_id, {
           user_id: authentication.user.userID,
-          post_owner_id: postState.author_realm?.id ?? postState.user.id,
+          post_owner_id:
+            postState.entity.details?.id ?? postState.entity.details.id,
           duration: 0.5,
           created_at: viewedDate,
         });
@@ -185,7 +188,8 @@ function PostItem({
         sessionStartTimeRef.current = null;
         persistViewPosts(postState.post_id, {
           user_id: authentication.user.userID,
-          post_owner_id: postState.author_realm?.id ?? postState.user.id,
+          post_owner_id:
+            postState.entity.details?.id ?? postState.entity.details.id,
           duration: duration,
           created_at: viewedDate,
         });
@@ -237,31 +241,29 @@ function PostItem({
                 <span
                   className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                   onClick={() => {
-                    if (postState.author_realm) {
-                      navigate(`/${postState.author_realm.slug}`);
+                    if (postState.entity.details) {
+                      navigate(`/${postState.entity.details.slug}`);
                       return;
                     }
-
-                    navigate(`/${postState.user.username}`);
                   }}
                 >
-                  {postState.author_realm ? (
+                  {postState.entity.type !== "user" ? (
                     <div className="tw-flex tw-items-center tw-gap-[4px]">
-                      <span>{postState.author_realm.name}</span>
-                      {postState.author_realm.is_verified && (
+                      <span>{postState.entity.details.name}</span>
+                      {postState.entity.details.is_verified && (
                         <RiVerifiedBadgeFill size={16} color="var(--brand)" />
                       )}
                     </div>
                   ) : (
                     <div className="tw-flex tw-items-center tw-gap-[4px]">
                       <span>
-                        {postState.user.first_name}
-                        {postState.user.middle_name == "N/A"
+                        {postState.entity.details.first_name}
+                        {postState.entity.details.middle_name == "N/A"
                           ? ""
-                          : ` ${postState.user.middle_name}`}{" "}
-                        {postState.user.last_name}
+                          : ` ${postState.entity.details.middle_name}`}{" "}
+                        {postState.entity.details.last_name}
                       </span>
-                      {postState.user.is_badged && (
+                      {postState.entity.details.is_badged && (
                         <RiVerifiedBadgeFill size={16} color="var(--brand)" />
                       )}
                     </div>
@@ -287,19 +289,19 @@ function PostItem({
                       <span
                         className="cl-feed-card__title tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                         onClick={() => {
-                          navigate(`/${mptg.user.username}`);
+                          navigate(`/${mptg.entity.details.username}`);
                         }}
                         key={i}
                       >
                         <div className="tw-flex tw-items-center tw-gap-[4px]">
                           <span>
-                            {mptg.user.first_name}
-                            {mptg.user.middle_name == "N/A"
+                            {mptg.entity.details.first_name}
+                            {mptg.entity.details.middle_name == "N/A"
                               ? ""
-                              : ` ${mptg.user.middle_name}`}{" "}
-                            {mptg.user.last_name}
+                              : ` ${mptg.entity.details.middle_name}`}{" "}
+                            {mptg.entity.details.last_name}
                           </span>
-                          {mptg.user.is_badged && (
+                          {mptg.entity.details.is_badged && (
                             <RiVerifiedBadgeFill
                               size={16}
                               color="var(--brand)"
@@ -477,18 +479,18 @@ function PostItem({
                               <span
                                 className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                 onClick={() => {
-                                  if (postState.author_realm) {
-                                    navigate(`/${postState.author_realm.slug}`);
+                                  if (postState.entity.details) {
+                                    navigate(
+                                      `/${postState.entity.details.username}`,
+                                    );
                                     return;
                                   }
-
-                                  navigate(`/${postState.user.username}`);
                                 }}
                               >
-                                {postState.author_realm ? (
+                                {postState.entity.type !== "user" ? (
                                   <div className="tw-flex tw-items-center tw-gap-[4px]">
-                                    <span>{postState.author_realm.name}</span>
-                                    {postState.author_realm.is_verified && (
+                                    <span>{postState.entity.details.name}</span>
+                                    {postState.entity.details.is_verified && (
                                       <RiVerifiedBadgeFill
                                         size={16}
                                         color="var(--brand)"
@@ -498,13 +500,14 @@ function PostItem({
                                 ) : (
                                   <div className="tw-flex tw-items-center tw-gap-[4px]">
                                     <span>
-                                      {postState.user.first_name}
-                                      {postState.user.middle_name == "N/A"
+                                      {postState.entity.details.first_name}
+                                      {postState.entity.details.middle_name ==
+                                      "N/A"
                                         ? ""
-                                        : ` ${postState.user.middle_name}`}{" "}
-                                      {postState.user.last_name}
+                                        : ` ${postState.entity.details.middle_name}`}{" "}
+                                      {postState.entity.details.last_name}
                                     </span>
-                                    {postState.user.is_badged && (
+                                    {postState.entity.details.is_badged && (
                                       <RiVerifiedBadgeFill
                                         size={16}
                                         color="var(--brand)"
@@ -525,19 +528,22 @@ function PostItem({
                                       <span
                                         className="cl-feed-card__title tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                         onClick={() => {
-                                          navigate(`/${mptg.user.username}`);
+                                          navigate(
+                                            `/${mptg.entity.details.username}`,
+                                          );
                                         }}
                                         key={i}
                                       >
                                         <div className="tw-flex tw-items-center tw-gap-[4px]">
                                           <span>
-                                            {mptg.user.first_name}
-                                            {mptg.user.middle_name == "N/A"
+                                            {mptg.entity.details.first_name}
+                                            {mptg.entity.details.middle_name ==
+                                            "N/A"
                                               ? ""
-                                              : ` ${mptg.user.middle_name}`}{" "}
-                                            {mptg.user.last_name}
+                                              : ` ${mptg.entity.details.middle_name}`}{" "}
+                                            {mptg.entity.details.last_name}
                                           </span>
-                                          {mptg.user.is_badged && (
+                                          {mptg.entity.details.is_badged && (
                                             <RiVerifiedBadgeFill
                                               size={16}
                                               color="var(--brand)"
@@ -737,7 +743,7 @@ function PostItem({
                                 >
                                   <PostEmojis
                                     post_id={postState.post_id}
-                                    reaction={postState.user_reaction}
+                                    reaction={postState.entity_reaction}
                                     onProcessEmojiSelection={
                                       onProcessEmojiSelection
                                     }
@@ -746,13 +752,13 @@ function PostItem({
                                     }
                                   />
                                 </motion.div>
-                                {postState.user_reaction ? (
+                                {postState.entity_reaction ? (
                                   <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
                                     {emojilist.length > 0 &&
                                       (emojilist.filter(
                                         (flt: Emoji) =>
                                           flt.emoji_id ===
-                                          postState.user_reaction,
+                                          postState.entity_reaction,
                                       )[0].emoji_content ??
                                         "...")}
                                   </div>
@@ -922,9 +928,10 @@ function PostItem({
                 withImage={toggleNewPostModal.withImage}
                 profileInfo={{
                   id: authentication.user.userID,
+                  entityID: authentication.user.entity_id,
                   username: authentication.user.username,
                 }}
-                realmInfo={null}
+                otherEntityID={null}
                 setcreateposttext={() => {}}
                 getpostprocess={() => {}}
                 onclose={settoggleNewPostModal}
@@ -1013,17 +1020,17 @@ function PostItem({
                     >
                       <PostEmojis
                         post_id={postState.post_id}
-                        reaction={postState.user_reaction}
+                        reaction={postState.entity_reaction}
                         onProcessEmojiSelection={onProcessEmojiSelection}
                         onSuccessEmojiSelection={onSuccessEmojiSelection}
                       />
                     </motion.div>
-                    {postState.user_reaction ? (
+                    {postState.entity_reaction ? (
                       <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
                         {emojilist.length > 0 &&
                           (emojilist.filter(
                             (flt: Emoji) =>
-                              flt.emoji_id === postState.user_reaction,
+                              flt.emoji_id === postState.entity_reaction,
                           )[0].emoji_content ??
                             "...")}
                       </div>

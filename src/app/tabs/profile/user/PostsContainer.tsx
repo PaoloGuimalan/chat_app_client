@@ -150,9 +150,10 @@ function PostsContainer({
               withImage={toggleNewPostModal.withImage}
               profileInfo={{
                 id: profileInfo.id,
+                entityID: profileInfo.entityID,
                 username: profileInfo.userID,
               }}
-              realmInfo={null}
+              otherEntityID={null}
               setcreateposttext={setcreateposttext}
               getpostprocess={GetPostProcess}
               onclose={settoggleNewPostModal}

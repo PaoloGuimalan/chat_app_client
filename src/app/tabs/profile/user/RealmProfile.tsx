@@ -361,9 +361,10 @@ function RealmProfile({
               withImage={toggleNewPostModal.withImage}
               profileInfo={{
                 id: authentication.user.userID,
+                entityID: authentication.user.entity_id,
                 username: authentication.user.username,
               }}
-              realmInfo={realmInfo}
+              otherEntityID={authentication.user.entity_id}
               setcreateposttext={setcreateposttext}
               getpostprocess={GetPostProcess}
               onclose={settoggleNewPostModal}
@@ -379,9 +380,10 @@ function RealmProfile({
                     withImage={toggleNewPostModal.withImage}
                     profileInfo={{
                       id: authentication.user.userID,
+                      entityID: authentication.user.entity_id,
                       username: authentication.user.username,
                     }}
-                    realmInfo={realmInfo}
+                    otherEntityID={authentication.user.entity_id}
                     setcreateposttext={setcreateposttext}
                     getpostprocess={GetPostProcess}
                     onclose={settoggleNewPostModal}

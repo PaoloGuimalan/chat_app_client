@@ -22,7 +22,7 @@ export function NewPostModal({
   sharePreviewData,
   withImage,
   profileInfo,
-  realmInfo,
+  otherEntityID,
   setcreateposttext,
   getpostprocess,
   onclose,
@@ -125,11 +125,11 @@ export function NewPostModal({
     if (toShare || mainpostcaption.trim() !== "" || medialist.length > 0) {
       setisuploadingpost(true);
       const validatedTaggedList =
-        authentication.user.userID == profileInfo?.id
+        authentication.user.entity_id == profileInfo?.entityID
           ? []
-          : realmInfo
+          : otherEntityID
             ? [...taggedList]
-            : [profileInfo?.username, ...taggedList]; //this taggedlist needs to be in username format, not id
+            : [profileInfo?.entityID, ...taggedList]; //this taggedlist needs to be in username format, not id
 
       // console.log(validatedTaggedList);
 
@@ -170,7 +170,7 @@ export function NewPostModal({
           users: [], //userID for filteration depending on status
         }, //public, friends, filtered
         onfeed: "feed",
-        realm_id: realmInfo ? realmInfo.realm_id : null,
+        otherEntityID: otherEntityID,
       })
         .then((response: any) => {
           if (response.data.status) {

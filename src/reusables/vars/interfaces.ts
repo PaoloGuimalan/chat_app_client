@@ -102,6 +102,7 @@ export interface IRealmProfileInfo {
   description: string | null;
   email: string | null;
   id: string;
+  entity: string;
   is_active: boolean;
   is_private: boolean;
   is_verified: boolean;
@@ -281,8 +282,8 @@ export interface ServerChannelsListInterface {
 
 export interface ITagging {
   post_tag_id: string;
-  post: string;
-  user: IUserContactPreview;
+  entity: IFlexibleEntity; // Reuses the flexible, type-agnostic entity structure
+  post: string; // The post ID string reference
 }
 
 export interface IReference {
@@ -336,12 +337,14 @@ export interface IAuthorRealm {
 export interface IPost {
   post_id: string;
   tagging: ITagging[];
-  privacy_users: any[]; // you can replace 'any' with specific type if known
   references: IReference[];
-  map_info: IMapInfo;
-  user: IUserContactPreview;
-  is_shared: boolean;
+  map_info: IMapInfo | null;
+  preview: IPreviewCount[];
+  entity_reaction: string | null;
+  entity: IFlexibleEntity; // Use the single unified type
+  score: IPostScore;
   is_saved: boolean;
+  is_shared: boolean;
   file_type: string;
   caption: string;
   content_type: string;
@@ -350,17 +353,69 @@ export interface IPost {
   is_sponsored: boolean;
   is_live: boolean;
   is_archived: boolean;
-  deleted_at: string | boolean | null;
-  deleted_by: string | boolean | null;
   on_feed: string;
-  date_posted: string; // ISO string, or Date if preferred
+  date_posted: string;
   from_system: boolean;
-  preview: IPreviewCount[];
-  user_reaction: string | null;
-  // activity_counts: IActivityCounts[];
-  score: IPostScore;
-  author_realm: IAuthorRealm | null;
+  deleted_at: string | null | boolean;
+  deleted_by: string | null | boolean;
 }
+
+export interface IFlexibleEntity {
+  id: string;
+  type: string; // "user", "realm", "group", etc.
+  details: IFlexibleEntityDetails;
+}
+
+// Unified, completely flat and flexible signature
+export interface IFlexibleEntityDetails {
+  id: string;
+  profile: string;
+  is_active: boolean;
+
+  // User specific fields (optional)
+  username?: string;
+  first_name?: string;
+  last_name?: string;
+  middle_name?: string;
+  gender?: string;
+  is_badged?: boolean;
+
+  // Realm specific fields (optional)
+  realm_id?: string;
+  name?: string;
+
+  // Index signature: Allows ANY future backend field string without crashing!
+  [key: string]: any;
+}
+
+// ==========================================
+// SUPPORTING DATA SUB-INTERFACES
+// ==========================================
+
+export interface IReference {
+  reference_id: string;
+  reference: string;
+  caption: string;
+  reference_media_type: string;
+  reference_name: string | null;
+  post: string;
+}
+
+export interface IPostScore {
+  id: number;
+  affinity_score: number;
+  content_type_weight: number;
+  recent_update_boost: number;
+  likes_count: number;
+  comments_count: number;
+  shares_count: number;
+  ranking_score: number;
+  post: string;
+}
+
+// Placeholder placeholders to prevent import issues
+export interface IMapInfo {}
+export interface IPreviewCount {}
 
 //POST DATA INTERFACE END
 
@@ -472,12 +527,12 @@ export interface IPostComment {
   comment_id: string;
   text: string;
   attachment: string | null;
-  created_at: string;
+  created_at: string; // ISO DateTime string
   updated_at: string | null;
   deleted_at: string | null;
   parent_comment: string | null;
   post: string;
-  user: IUserContactPreview;
+  entity: IFlexibleEntity; // Unifies both user and realm data profiles safely
   deleted_by: string | null;
 }
 
@@ -613,8 +668,7 @@ export interface ISavedPost {
     date_posted: string;
     from_system: boolean;
     deleted_at: string | null;
-    user: IUserContactPreview;
-    author_realm: IAuthorRealm | null;
+    entity: IFlexibleEntity;
     deleted_by: string | null;
   };
   saved_at: string;

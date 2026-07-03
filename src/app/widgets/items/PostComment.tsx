@@ -105,10 +105,17 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
           <Avatar
             id={authentication.user.userID}
             name={authentication.user.fullName?.firstName}
-            src={authentication.user.profile === "none" ? undefined : authentication.user.profile}
+            src={
+              authentication.user.profile === "none"
+                ? undefined
+                : authentication.user.profile
+            }
             size={48}
           />
-          <div id="div_input_feed_flex" className="cl-comment-section__field-shell">
+          <div
+            id="div_input_feed_flex"
+            className="cl-comment-section__field-shell"
+          >
             <textarea
               placeholder="Write a comment..."
               id="textarea_feed_box"
@@ -175,43 +182,33 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                   className="cl-comment-section__row tw-flex tw-gap-[12px] tw-w-full tw-items-start"
                 >
                   <Avatar
-                    id={mp.user.id}
-                    name={`${mp.user.first_name} ${mp.user.last_name}`}
-                    src={mp.user.profile == "none" ? undefined : mp.user.profile}
+                    id={mp.entity.details.id}
+                    name={`${mp.entity.details.first_name} ${mp.entity.details.last_name}`}
+                    src={
+                      mp.entity.details.profile == "none"
+                        ? undefined
+                        : mp.entity.details.profile
+                    }
                     size={46}
                   />
                   <div className="tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-text-left tw-flex-1 tw-min-w-0">
-                    {/* <span
-                      className="tw-break-keep tw-text-[12px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
-                      onClick={() => {
-                        navigate(`/${mp.user.username}`);
-                      }}
-                    >
-                      {mp.user.first_name}
-                      {mp.user.middle_name == "N/A"
-                        ? ""
-                        : ` ${mp.user.middle_name}`}{" "}
-                      {mp.user.last_name}
-                    </span> */}
-                    <div
-                      className="cl-comment-section__bubble tw-w-full tw-rounded-[14px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-p-[12px] tw-text-left tw-shadow-sm"
-                    >
+                    <div className="cl-comment-section__bubble tw-w-full tw-rounded-[14px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-p-[12px] tw-text-left tw-shadow-sm">
                       <div className="tw-w-full tw-flex tw-items-start tw-justify-between tw-gap-[10px]">
                         <span
                           className="cl-comment-section__name tw-break-keep tw-text-[12px] tw-w-fit tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[var(--text-2)] tw-text-[var(--text)]"
                           onClick={() => {
-                            navigate(`/${mp.user.username}`);
+                            navigate(`/${mp.entity.details.username}`);
                           }}
                         >
                           <div className="tw-flex tw-items-center tw-gap-[4px] tw-flex-wrap tw-text-left">
                             <span>
-                              {mp.user.first_name}
-                              {mp.user.middle_name == "N/A"
+                              {mp.entity.details.first_name}
+                              {mp.entity.details.middle_name == "N/A"
                                 ? ""
-                                : ` ${mp.user.middle_name}`}{" "}
-                              {mp.user.last_name}
+                                : ` ${mp.entity.details.middle_name}`}{" "}
+                              {mp.entity.details.last_name}
                             </span>
-                            {mp.user.is_badged && (
+                            {mp.entity.details.is_badged && (
                               <RiVerifiedBadgeFill size={16} color="#1c7def" />
                             )}
                           </div>
@@ -250,10 +247,17 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
           <Avatar
             id={authentication.user.userID}
             name={authentication.user.fullName?.firstName}
-            src={authentication.user.profile === "none" ? undefined : authentication.user.profile}
+            src={
+              authentication.user.profile === "none"
+                ? undefined
+                : authentication.user.profile
+            }
             size={48}
           />
-          <div id="div_input_feed_flex" className="cl-comment-section__field-shell">
+          <div
+            id="div_input_feed_flex"
+            className="cl-comment-section__field-shell"
+          >
             <input
               type="text"
               placeholder="Write a comment..."

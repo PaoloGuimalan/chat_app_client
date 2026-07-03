@@ -141,7 +141,7 @@ function PostOptions({
                 <span>Unsave</span>
               </button>
             ))}
-          {post.user.id === authentication.user.userID &&
+          {post.entity.id === authentication.user.entity_id &&
             (post.is_archived ? (
               <button
                 onClick={() => {
@@ -166,7 +166,7 @@ function PostOptions({
                 <span>Archive</span>
               </button>
             ))}
-          {post.user.id === authentication.user.userID && (
+          {post.entity.id === authentication.user.entity_id && (
             <button
               onClick={DeletePostProcess}
               className="cl-post-options-button cl-post-options-button--danger tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
