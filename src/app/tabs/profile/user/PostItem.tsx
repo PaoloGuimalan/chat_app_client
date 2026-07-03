@@ -138,7 +138,7 @@ function PostItem({
     setemojiLoading(true);
     setpostState((prev: IPost) => ({
       ...prev,
-      user_reaction: emoji_id,
+      entity_reaction: emoji_id,
     }));
   };
 

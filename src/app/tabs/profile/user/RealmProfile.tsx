@@ -21,15 +21,17 @@ import { FaFileAlt } from "react-icons/fa";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Btn, Card, Icon } from "@/reusables/design";
 import {
+  CreateInitialConversation,
   FollowRealmRequest,
   GetPostRequest,
   UnfollowRealmRequest,
 } from "@/reusables/hooks/requests";
 import { MdPerson } from "react-icons/md";
 import { PiShareFat } from "react-icons/pi";
+import { SET_MINIMIZED_CONVERSATION } from "@/redux/types";
 
 function RealmProfile({
   realmInfo,
@@ -44,7 +46,12 @@ function RealmProfile({
     (state: any) => state.authentication,
   );
 
+  const screensizelistener = useSelector(
+    (state: any) => state.screensizelistener,
+  );
+
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);
@@ -162,20 +169,39 @@ function RealmProfile({
     GetPostProcess();
   }, [params.userID, page, realmInfo]);
 
+  const navigateToConversation = (conversationID: any) => {
+    if (screensizelistener.W <= 1100) {
+      navigate(`/messages/${conversationID}`);
+    } else {
+      dispatch({
+        type: SET_MINIMIZED_CONVERSATION,
+        payload: {
+          conversation: {
+            conversationID: conversationID,
+          },
+        },
+      });
+    }
+  };
+
+  const CreateConversationProcess = () => {
+    CreateInitialConversation(realmInfo.entity)
+      .then((response) => {
+        if (response) {
+          navigateToConversation(response);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   return (
     <div
       ref={divcontentRef}
       className="cl-profile-page__shell tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[6px] tw-overflow-y-scroll x-scroll"
       data-share-page={isSharePage ? "true" : "false"}
     >
-      {/* <button
-        onClick={() => {
-          navigate("/");
-        }}
-        className="tw-z-[10] tw-shadow-lg tw-bg-[var(--surface)] tw-fixed tw-top-[10px] tw-left-[10px] sm:tw-left-[20px] tw-h-full tw-max-h-[50px] tw-w-full tw-max-w-[50px] tw-rounded-full tw-border tw-border-[var(--border)] tw-flex tw-items-center tw-justify-center tw-text-[var(--text)] tw-cursor-pointer"
-      >
-        <IoArrowBack style={{ fontSize: "20px" }} />
-      </button> */}
       {isSharePage && (
         <Card
           pad={12}
@@ -318,6 +344,18 @@ function RealmProfile({
                     )}
                   </button>
                 )}
+              </div>
+            )}
+            {realmInfo.entity !== authentication.user.entity_id && (
+              <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                <button
+                  onClick={() => {
+                    CreateConversationProcess();
+                  }}
+                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                >
+                  Message
+                </button>
               </div>
             )}
           </div>
