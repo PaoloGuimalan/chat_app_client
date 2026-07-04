@@ -467,7 +467,9 @@ function Messages() {
         <div
           style={{
             display:
-              isMobile && conversationsetup.conversationid ? "none" : "flex",
+              isMobile && conversationPath.split("/").length >= 3
+                ? "none"
+                : "flex",
             width: isMobile ? "100%" : "clamp(320px, 34vw, 390px)",
             flexDirection: "column",
             minHeight: 0,
@@ -702,10 +704,7 @@ function Messages() {
 
         <div
           style={{
-            display:
-              isMobile && conversationPath.split("/").length < 3
-                ? "none"
-                : "flex",
+            display: "flex",
             flex: 1,
             minWidth: 0,
             flexDirection: "column",
@@ -716,7 +715,7 @@ function Messages() {
           }}
         >
           <Routes>
-            <Route path="/" element={<MessagesDefault />} />
+            {!isMobile && <Route path="/" element={<MessagesDefault />} />}
             <Route
               path="/:conversationID"
               element={<ConversationV2 theme={conversationTheme} />}

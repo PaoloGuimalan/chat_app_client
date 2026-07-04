@@ -1130,16 +1130,13 @@ function ConversationV2({
   };
 
   const goBackToConversationList = () => {
-    dispatch({
-      type: SET_CONVERSATION_SETUP,
-      payload: {
-        conversationsetup: conversationsetupstate,
-      },
-    });
+    if (isServerConversation && conversationinfo?.conversationInfo?.serverID) {
+      navigate(`/servers/${conversationinfo?.conversationInfo?.serverID}`);
 
-    if (isServerConversation && conversationsetup?.details?.id) {
-      navigate(`/servers/${conversationsetup.details.id}`);
+      return;
     }
+
+    navigate("/messages");
   };
 
   if (!conversationsetup) {
