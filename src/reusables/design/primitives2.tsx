@@ -42,9 +42,22 @@ export interface AvatarProps {
   name?: string;
   src?: string | null;
   size?: number;
+  shape?: "circle" | "rounded";
   online?: boolean;
-  ring?: boolean;
+  ring?: "none" | "unviewed" | "viewed";
+  className?: string;
   style?: CSSProperties;
+  onClick?: () => void;
+}
+
+function ringShadow(ring?: AvatarProps["ring"]) {
+  if (ring === "unviewed") {
+    return "0 0 0 2px var(--surface), 0 0 0 4px var(--brand)";
+  }
+  if (ring === "viewed") {
+    return "0 0 0 2px var(--surface), 0 0 0 4px var(--text-2)";
+  }
+  return "none";
 }
 
 export function Avatar({
@@ -52,9 +65,12 @@ export function Avatar({
   name,
   src,
   size = 38,
+  shape = "circle",
   online,
   ring,
+  className,
   style,
+  onClick,
 }: AvatarProps) {
   const [resolvedSrc, setResolvedSrc] = useState<string | null | undefined>(
     src,
@@ -67,17 +83,22 @@ export function Avatar({
   const key = id || name || "x";
   const [a, b] = AV_GRADS[avHash(key) % AV_GRADS.length];
   const shouldShowImage = !!resolvedSrc;
+  const borderRadius =
+    shape === "circle" ? "50%" : size >= 60 ? "22px" : "16px";
   return (
     <span
+      className={className}
+      onClick={onClick}
       style={{
         position: "relative",
         display: "inline-flex",
         flex: "none",
         width: size,
         height: size,
+        cursor: onClick ? "pointer" : undefined,
         ...style,
       }}
-      >
+    >
       {shouldShowImage ? (
         <img
           src={resolvedSrc || ""}
@@ -85,11 +106,9 @@ export function Avatar({
           style={{
             width: size,
             height: size,
-            borderRadius: "50%",
+            borderRadius,
             objectFit: "cover",
-            boxShadow: ring
-              ? "0 0 0 2px var(--surface), 0 0 0 4px var(--brand)"
-              : "none",
+            boxShadow: ringShadow(ring),
           }}
           onError={() => {
             setResolvedSrc(null);
@@ -100,7 +119,7 @@ export function Avatar({
           style={{
             width: size,
             height: size,
-            borderRadius: "50%",
+            borderRadius,
             background: `linear-gradient(135deg, ${a}, ${b})`,
             color: "#fff",
             display: "flex",
@@ -109,9 +128,7 @@ export function Avatar({
             fontWeight: 700,
             fontSize: size * 0.38,
             letterSpacing: "0.02em",
-            boxShadow: ring
-              ? "0 0 0 2px var(--surface), 0 0 0 4px var(--brand)"
-              : "none",
+            boxShadow: ringShadow(ring),
           }}
         >
           {initials(name)}
@@ -135,7 +152,10 @@ export function Avatar({
   );
 }
 
-export interface CardProps extends Omit<HTMLAttributes<HTMLDivElement>, "children"> {
+export interface CardProps extends Omit<
+  HTMLAttributes<HTMLDivElement>,
+  "children"
+> {
   children?: ReactNode;
   pad?: number | string;
   hover?: boolean;
@@ -382,3 +402,4 @@ export function SectionTitle({ children, action }: SectionTitleProps) {
     </div>
   );
 }
+

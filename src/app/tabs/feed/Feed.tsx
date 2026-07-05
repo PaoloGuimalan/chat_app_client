@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import DefaultProfile from "../../../assets/imgs/default.png";
 import { Fragment, useEffect, useRef, useState } from "react";
 import { GetFeedRequest } from "@/reusables/hooks/requests";
 import PostItem from "../profile/user/PostItem";
@@ -14,6 +13,7 @@ import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 import ServerBanner from "./banners/ServerBanner";
 import PagesBanner from "./banners/PagesBanner";
 import { Btn, Card, Icon, useTheme } from "@/reusables/design";
+import { Avatar } from "@/reusables/design/primitives2";
 
 function Feed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -103,7 +103,7 @@ function Feed() {
   const profileSrc =
     authentication.user.profile !== "none"
       ? authentication.user.profile
-      : DefaultProfile;
+      : undefined;
 
   return (
     <div
@@ -145,16 +145,11 @@ function Feed() {
 
         <Card pad={14} style={{ marginBottom: 8 }}>
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <img
+            <Avatar
+              id={authentication.user.userID}
+              name={`${authentication.user.fullName.firstName} ${authentication.user.fullName.lastName}`}
               src={profileSrc}
-              alt=""
-              style={{
-                width: 42,
-                height: 42,
-                borderRadius: "50%",
-                objectFit: "cover",
-                flex: "none",
-              }}
+              size={42}
             />
             <input
               type="text"

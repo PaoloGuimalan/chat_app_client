@@ -3500,8 +3500,6 @@ input:checked + .slider:before {
   gap: 14px;
   align-items: center;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
   min-width: 0;
 }
 
@@ -5401,7 +5399,6 @@ input:checked + .slider:before {
 
 .cl-pages-create-profile-shell {
   border-radius: 999px;
-  overflow: hidden;
   box-shadow: var(--shadow-md);
 }
 

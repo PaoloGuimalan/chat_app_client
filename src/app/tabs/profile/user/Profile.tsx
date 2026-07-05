@@ -382,6 +382,7 @@ function Profile({
             userID={profileInfo.id}
             realm_id={null}
             profile={profileInfo.profile}
+            name={`${profileInfo.fullname.firstName} ${profileInfo.fullname.lastName}`}
             type="profile"
             isAllowed={true}
             getpostprocess={() => {}} // GetPostProcess

@@ -247,6 +247,7 @@ function RealmProfile({
             userID={realmInfo.id}
             realm_id={realmInfo.realm_id}
             profile={realmInfo.profile}
+            name={realmInfo.name}
             type="realm"
             isAllowed={realmInfo.is_admin}
             getpostprocess={() => {}}

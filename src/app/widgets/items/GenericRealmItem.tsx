@@ -9,7 +9,7 @@ import {
 } from "@/reusables/hooks/requests";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
-import ServerAvatar from "@/reusables/design/ServerAvatar";
+import { Avatar } from "@/reusables/design/primitives2";
 
 function GenericRealmItem({
   mp,
@@ -71,7 +71,7 @@ function GenericRealmItem({
           <div className="cl-display-card__cover tw-w-full tw-flex tw-max-w-[1500px] tw-h-[120px]" />
         )}
         <div className="cl-display-card__body tw-w-[calc(100%-30px)] tw-pl-[15px] tw-pr-[15px] tw-flex tw-flex-col tw-items-start tw-gap-[8px] tw-flex-1">
-          <ServerAvatar
+          <Avatar
             name={mp.name}
             src={mp.profile && mp.profile !== "none" ? mp.profile : null}
             size={50}

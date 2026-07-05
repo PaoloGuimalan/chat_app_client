@@ -4,7 +4,6 @@
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../../../styles/styles.css";
 import { motion } from "framer-motion";
-import GroupChatIcon from "../../../assets/imgs/group-chat-icon.jpg";
 import { FcVideoCall, FcAddImage } from "react-icons/fc"; //FcInfo
 import { BiSolidInfoCircle, BiSolidPhoneCall, BiWindows } from "react-icons/bi";
 import {
@@ -1368,44 +1367,17 @@ function ConversationV2({
               )}
               {!isServerConversation && conversationType !== "conference" && (
                 <div id="div_img_cncts_container">
-                  <div id="div_img_search_profiles_container_cncts">
-                    {conversationsetup.conversationType == "single" ? (
-                      <Avatar
-                        id={conversationsetup.details.id}
-                        name={`${conversationsetup.details.display_name}`}
-                        src={
-                          conversationsetup.details.profile == "none"
-                            ? undefined
-                            : conversationsetup.details.profile
-                        }
-                        size={screensizelistener.W <= 799 ? 42 : 48}
-                      />
-                    ) : (
-                      <CachedImage
-                        src={
-                          conversationsetup.details &&
-                          conversationsetup.details?.profile &&
-                          conversationsetup.details?.profile !== "N/A"
-                            ? conversationsetup.details?.profile
-                            : GroupChatIcon
-                        }
-                        id={
-                          conversationsetup.details &&
-                          conversationsetup.details?.profile &&
-                          conversationsetup.details?.profile !== "N/A"
-                            ? "img_actual_profile_main"
-                            : ""
-                        }
-                        className={
-                          conversationsetup.details &&
-                          conversationsetup.details?.profile &&
-                          conversationsetup.details?.profile !== "N/A"
-                            ? ""
-                            : "img_gc_profiles_ntfs"
-                        }
-                      />
-                    )}
-                  </div>
+                  <Avatar
+                    id={conversationsetup.details.id}
+                    name={`${conversationsetup.details.display_name}`}
+                    src={
+                      conversationsetup.details.profile == "none"
+                        ? undefined
+                        : conversationsetup.details.profile
+                    }
+                    size={screensizelistener.W <= 799 ? 42 : 48}
+                    // ring="unviewed"
+                  />
                   {isUserOnline(
                     activeuserslist,
                     conversationsetup.details.id,

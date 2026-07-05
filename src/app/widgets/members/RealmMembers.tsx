@@ -1,10 +1,9 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { Avatar } from "@/reusables/design/primitives2";
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import DefaultProfile from "../../../assets/imgs/default.png";
 import { genericpaginationstate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
 import { IRealmMember } from "@/reusables/vars/interfaces";
@@ -199,22 +198,15 @@ function RealmMembers({
                     >
                       <div id="div_img_cncts_container">
                         <div id="div_img_search_profiles_container_cncts">
-                          <CachedImage
+                          <Avatar
+                            id={cnts.entity.details.id}
+                            name={`${cnts.entity.details.first_name} ${cnts.entity.details.last_name}`}
                             src={
                               cnts.entity.details.profile == "none"
-                                ? DefaultProfile
+                                ? undefined
                                 : cnts.entity.details.profile
                             }
-                            className={
-                              cnts.entity.details.profile == "none"
-                                ? "img_search_profiles_ntfs"
-                                : ""
-                            }
-                            id={
-                              cnts.entity.details.profile == "none"
-                                ? ""
-                                : "img_actual_profile"
-                            }
+                            size={40}
                           />
                         </div>
                       </div>

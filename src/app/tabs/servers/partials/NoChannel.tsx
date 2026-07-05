@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { useNavigate } from "react-router-dom";
-import ServerAvatar from "@/reusables/design/ServerAvatar";
+import { Avatar } from "@/reusables/design/primitives2";
 
 function NoChannel({ server }: any) {
   const navigate = useNavigate();
@@ -43,7 +43,7 @@ function NoChannel({ server }: any) {
           <div className="tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1500px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[40px] tw-pr-[40px]">
               <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center">
                 <div className="tw-cursor-pointer tw-bg-[var(--surface)] tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[140px] sm:tw-h-[140px] tw-border-solid tw-border-[5px] tw-border-[var(--surface)] tw-flex tw-items-center tw-justify-center tw-rounded-[20px] tw-relative tw--mt-[80px]">
-                  <ServerAvatar
+                  <Avatar
                     name={server.serverName}
                     src={server.profile && server.profile !== "N/A" ? server.profile : null}
                     size={server.profile && server.profile !== "N/A" ? 120 : 108}

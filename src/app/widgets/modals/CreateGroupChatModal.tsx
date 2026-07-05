@@ -8,7 +8,7 @@ import {
   useSelector,
 } from "react-redux";
 import { motion } from "framer-motion";
-import DefaultProfile from "../../../assets/imgs/default.png";
+import { Avatar } from "@/reusables/design/primitives2";
 import {
   ContactsListReusableRequest,
   CreateGroupChatRequest,
@@ -20,7 +20,6 @@ import {
   ContactRowData,
   IContact,
 } from "@/reusables/vars/interfaces";
-import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { contactsToUserdetails } from "@/reusables/hooks/reusable";
 // import { SET_MUTATE_ALERTS } from "@/redux/types";
 
@@ -285,22 +284,15 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                               />
                               <div id="div_img_cncts_container">
                                 <div id="div_img_search_profiles_container_cncts">
-                                  <CachedImage
+                                  <Avatar
+                                    id={cnts.entityID}
+                                    name={`${cnts.firstName} ${cnts.lastName}`}
                                     src={
                                       cnts.profile == "none"
-                                        ? DefaultProfile
+                                        ? undefined
                                         : cnts.profile
                                     }
-                                    className={
-                                      cnts.profile == "none"
-                                        ? "img_search_profiles_ntfs"
-                                        : ""
-                                    }
-                                    id={
-                                      cnts.profile == "none"
-                                        ? ""
-                                        : "img_actual_profile"
-                                    }
+                                    size={40}
                                   />
                                 </div>
                               </div>

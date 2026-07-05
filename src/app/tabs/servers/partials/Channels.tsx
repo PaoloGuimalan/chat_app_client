@@ -31,7 +31,7 @@ import CreateChannelModal from "@/app/widgets/modals/Servers/CreateChannelModal"
 import { BiSolidInfoCircle } from "react-icons/bi";
 import { AiFillSound, AiOutlineSound } from "react-icons/ai";
 import { MdSettingsVoice } from "react-icons/md";
-import ServerAvatar from "@/reusables/design/ServerAvatar";
+import { Avatar } from "@/reusables/design/primitives2";
 
 function Channels() {
   // serverlist
@@ -202,7 +202,7 @@ function Channels() {
             {isLoaded ? (
               <div id="div_img_cncts_container">
                 <div id="div_img_search_profiles_container_cncts">
-                  <ServerAvatar
+                  <Avatar
                     name={serverdetails?.serverName}
                     src={
                       serverdetails &&

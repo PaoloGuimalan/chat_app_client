@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import CachedImage from "@/app/reusables/cachers/CachedImage";
-import DefaultProfile from "../../../../assets/imgs/default.png";
+import { Avatar } from "@/reusables/design/primitives2";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
@@ -13,6 +12,7 @@ function ProfilePicContainer({
   userID,
   realm_id,
   profile,
+  name,
   type,
   isAllowed,
   getpostprocess,
@@ -20,6 +20,7 @@ function ProfilePicContainer({
   userID: string;
   realm_id: string | null;
   profile: string | null;
+  name?: string;
   type: string;
   isAllowed: boolean;
   getpostprocess: () => void;
@@ -27,9 +28,17 @@ function ProfilePicContainer({
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  const screensizelistener = useSelector(
+    (state: any) => state.screensizelistener,
+  );
 
   const [toggleSelection, settoggleSelection] = useState<boolean>(false);
   const [toggleUploadModal, settoggleUploadModal] = useState<boolean>(false);
+
+  const avatarSize = useMemo(
+    () => (screensizelistener.W < 650 ? 120 : 160),
+    [screensizelistener],
+  );
 
   const isUserProfile = useMemo(() => {
     if (type === "profile") {
@@ -41,25 +50,20 @@ function ProfilePicContainer({
 
   return (
     <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center tw-relative">
-      {profile && profile !== "none" ? (
-        <div
-          onClick={() => {
-            settoggleSelection(!toggleSelection);
-          }}
-          className="cl-profile-avatar-shell tw-cursor-pointer tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]"
-        >
-          <CachedImage src={profile} id="img_actual_profile_main" />
-        </div>
-      ) : (
-        <div
-          onClick={() => {
-            settoggleSelection(!toggleSelection);
-          }}
-          className="cl-profile-avatar-shell tw-cursor-pointer tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]"
-        >
-          <CachedImage src={DefaultProfile} id="img_default_profile" />
-        </div>
-      )}
+      <div
+        onClick={() => {
+          settoggleSelection(!toggleSelection);
+        }}
+        className="cl-profile-avatar-shell tw-cursor-pointer tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]"
+      >
+        <Avatar
+          id={userID}
+          name={name}
+          src={profile && profile !== "none" ? profile : undefined}
+          size={avatarSize}
+          // ring="unviewed"
+        />
+      </div>
       {isUserProfile && (
         <motion.div
           initial={{

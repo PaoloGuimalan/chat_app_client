@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { Avatar } from "@/reusables/design/primitives2";
 import { ManualInitConversationListRequest } from "@/reusables/hooks/requests";
 import { isUserOnline, timeSince } from "@/reusables/hooks/reusable";
 import { useEffect, useRef, useState } from "react";
@@ -14,7 +15,6 @@ import {
   AuthenticationInterface,
   IPreviewParicipants,
 } from "@/reusables/vars/interfaces";
-import DefaultProfile from "../../../../assets/imgs/default.png";
 import GroupChatIcon from "../../../../assets/imgs/group-chat-icon.jpg";
 import ServerIcon from "../../../../assets/imgs/servericon.png";
 
@@ -169,22 +169,15 @@ function ArchivedMessages() {
                       >
                         <div id="div_img_cncts_container">
                           <div id="div_img_search_profiles_container_cncts">
-                            <CachedImage
+                            <Avatar
+                              id={msgsurs.entityID}
+                              name={`${msgsurs.fullname.firstName} ${msgsurs.fullname.lastName}`}
                               src={
                                 msgsurs.profile == "none"
-                                  ? DefaultProfile
+                                  ? undefined
                                   : msgsurs.profile
                               }
-                              className={
-                                msgsurs.profile == "none"
-                                  ? "img_search_profiles_ntfs"
-                                  : ""
-                              }
-                              id={
-                                msgsurs.profile == "none"
-                                  ? ""
-                                  : "img_actual_profile"
-                              }
+                              size={40}
                             />
                           </div>
                           {isUserOnline(activeuserslist, msgsurs.entityID) && (

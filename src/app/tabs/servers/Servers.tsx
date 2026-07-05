@@ -5,8 +5,7 @@ import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import Default from "./partials/Default";
 import Channels from "./partials/Channels";
 import { useSelector } from "react-redux";
-import { Icon, useTheme } from "@/reusables/design";
-import ServerAvatar from "@/reusables/design/ServerAvatar";
+import { Avatar, Icon, useTheme } from "@/reusables/design";
 
 function Servers() {
   const screensizelistener = useSelector(
@@ -131,7 +130,7 @@ function Servers() {
                         e.currentTarget.style.background = "transparent";
                     }}
                   >
-                    <ServerAvatar
+                    <Avatar
                       name={mp.serverName}
                       src={mp.profile && mp.profile !== "N/A" ? mp.profile : null}
                       size={42}

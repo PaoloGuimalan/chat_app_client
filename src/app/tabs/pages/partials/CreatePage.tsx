@@ -333,14 +333,14 @@ function CreatePage() {
                       profileInputRef.current?.click();
                     }}
                     disabled={isSaving}
-                    className="cl-pages-create-profile-shell tw-shrink-0 tw-mt-[-72px] sm:tw-mt-[-84px] tw-cursor-pointer tw-border-[5px] tw-border-[var(--surface)] tw-bg-[var(--surface-2)] tw-overflow-hidden"
+                    className="cl-pages-create-profile-shell tw-shrink-0 tw-mt-[-72px] sm:tw-mt-[-84px] tw-cursor-pointer tw-border-[5px] tw-border-[var(--surface)] tw-bg-[var(--surface-2)]"
                   >
                     <Avatar
                       id={pageName || "page"}
                       name={pageName || "Page"}
                       src={selectedProfilePreview}
                       size={isMobileView ? 112 : 144}
-                      ring
+                      ring="unviewed"
                     />
                   </button>
 
@@ -524,7 +524,7 @@ function CreatePage() {
                                       : null
                                   }
                                   size={40}
-                                  ring
+                                  // ring="unviewed"
                                 />
                                 <span className="tw-min-w-0 tw-flex-1 tw-truncate tw-font-Inter tw-text-[14px] tw-font-semibold tw-text-[var(--text)]">
                                   {`${candidate.firstName} ${candidate.lastName}`}

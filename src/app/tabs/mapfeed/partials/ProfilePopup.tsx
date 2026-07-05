@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Popup } from "@vis.gl/react-maplibre";
-import DefaultProfile from "../../../../assets/imgs/default.png";
 import { ProfilePopupProp } from "@/reusables/vars/props";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { Avatar } from "@/reusables/design/primitives2";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
 
@@ -41,23 +41,26 @@ function ProfilePopup({ coordinates, user }: ProfilePopupProp) {
       </div>
       <div className="tw-p-[2px] tw-flex tw-w-full tw-gap-[10px]">
         <div className="tw-bg-transparent tw-w-full tw-max-w-[50px] tw-flex tw-justify-center">
-          <div className="tw--mt-[25px] tw-cursor-pointer tw-bg-[#d2d2d2] tw-min-w-[50px] tw-max-w-[50px] tw-h-[50px] sm:tw-max-w-[50px] sm:tw-h-[50px] tw-border-solid tw-border-[3px] tw-border-white tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative">
-            {user.userID === authentication.user.userID &&
-              (authentication.user.profile !== "none" ? (
-                <CachedImage
-                  src={authentication.user.profile}
-                  id="img_actual_profile"
-                />
-              ) : (
-                <CachedImage src={DefaultProfile} id="img_default_profile" />
-              ))}
-
-            {user.userID !== authentication.user.userID &&
-              (user.profile !== "none" ? (
-                <CachedImage src={user.profile} id="img_actual_profile" />
-              ) : (
-                <CachedImage src={DefaultProfile} id="img_default_profile" />
-              ))}
+          <div className="tw--mt-[25px] tw-cursor-pointer tw-bg-[#d2d2d2] tw-min-w-[50px] tw-max-w-[50px] tw-h-[50px] sm:tw-max-w-[50px] sm:tw-h-[50px] tw-border-solid tw-border-[3px] tw-border-white tw-flex tw-items-center tw-justify-center tw-overflow-hidden tw-rounded-[160px] tw-relative">
+            {user.userID === authentication.user.userID ? (
+              <Avatar
+                id={authentication.user.userID}
+                name={`${authentication.user.fullName.firstName} ${authentication.user.fullName.lastName}`}
+                src={
+                  authentication.user.profile !== "none"
+                    ? authentication.user.profile
+                    : undefined
+                }
+                size={50}
+              />
+            ) : (
+              <Avatar
+                id={user.userID}
+                name={`${user.fullName.firstName} ${user.fullName.lastName}`}
+                src={user.profile !== "none" ? user.profile : undefined}
+                size={50}
+              />
+            )}
           </div>
         </div>
         <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-font-Inter tw--mt-[7px]">

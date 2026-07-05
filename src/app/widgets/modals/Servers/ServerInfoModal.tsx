@@ -8,7 +8,6 @@ import { useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { ServerUsersWithInfo } from "@/reusables/vars/interfaces";
 import { useNavigate } from "react-router-dom";
-import ServerAvatar from "@/reusables/design/ServerAvatar";
 import { Avatar } from "@/reusables/design";
 
 function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
@@ -49,7 +48,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
               <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-flex-col tw-items-center tw-gap-[10px]">
                 <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
                   <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
-                    <ServerAvatar
+                    <Avatar
                       name={serverdetails.serverName}
                       src={
                         serverdetails &&

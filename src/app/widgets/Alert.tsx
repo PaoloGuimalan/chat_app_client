@@ -2,8 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import "../../App.css";
-import DefaultProfile from "../../assets/imgs/default.png";
 import GroupChatIcon from "../../assets/imgs/group-chat-icon.jpg";
+import { Avatar } from "../../reusables/design/primitives2";
 import { motion } from "framer-motion";
 import {
   AiFillCheckCircle,
@@ -275,14 +275,14 @@ function Alert({ al }: any) {
       <div id="div_alert_content_container_ic">
         <div id="div_img_alert_container">
           {al.callmetadata.conversationType == "single" ? (
-            <CachedImage
+            <Avatar
+              id={al.callmetadata.caller}
               src={
                 al.callmetadata.displayImage == "none"
-                  ? DefaultProfile
+                  ? undefined
                   : al.callmetadata.displayImage
               }
-              id="img_actual_profile_ntfs"
-              className="img_search_profiles_ntfs"
+              size={50}
             />
           ) : (
             <CachedImage src={GroupChatIcon} className="img_gc_profiles_ntfs" />
