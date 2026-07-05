@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { BiSolidImageAdd } from "react-icons/bi";
 import { PiShareFat } from "react-icons/pi";
 import PostItem from "@/app/tabs/profile/user/PostItem";
+import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 
 export function NewPostModal({
   toShare,
@@ -27,7 +28,9 @@ export function NewPostModal({
   getpostprocess,
   onclose,
 }: any) {
-  const authentication = useSelector((state: any) => state.authentication);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
 
   const [isuploadingpost, setisuploadingpost] = useState<boolean>(false);
   const [iswithImage, setiswithImage] = useState<boolean>(

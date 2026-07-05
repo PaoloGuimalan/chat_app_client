@@ -56,6 +56,7 @@ import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
 import ConversationInfoModal from "@/app/widgets/modals/Conversation/ConversationInfoModal";
 import {
+  AuthenticationInterface,
   ConversationInfoInterface,
   IConversationSetup,
   IPreviewParicipants,
@@ -106,7 +107,9 @@ function ConversationV2({
 
   const conversationID = conversationIDHolder ?? conversationIDPath;
 
-  const authentication = useSelector((state: any) => state.authentication);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
   // const mediatrackholder = useSelector((state: any) => state.mediatrackholder);
   const pendingcallalerts = useSelector(
     (state: any) => state.pendingcallalerts,

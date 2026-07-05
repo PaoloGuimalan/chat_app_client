@@ -15,12 +15,18 @@ import {
 } from "../../../reusables/hooks/requests";
 import Modal from "../../reusables/Modal";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
-import { ContactRowData, IContact } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  ContactRowData,
+  IContact,
+} from "@/reusables/vars/interfaces";
 import { contactsToUserdetails } from "@/reusables/hooks/reusable";
 // import { SET_MUTATE_ALERTS } from "@/redux/types";
 
 function CreateServerModal({ setisCreateServerToggle }: any) {
-  const authentication = useSelector((state: any) => state.authentication);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
   //   const contactslist = useSelector((state: any) => state.contactslist)
   // const dispatch = useDispatch();
 

@@ -56,6 +56,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
 import ConversationInfoModal from "@/app/widgets/modals/Conversation/ConversationInfoModal";
 import {
+  AuthenticationInterface,
   ConversationInfoInterface,
   IPreviewParicipants,
 } from "@/reusables/vars/interfaces";
@@ -101,7 +102,9 @@ function Conversation({
   isMinimized,
   setIsChatOpen,
 }: any) {
-  const authentication = useSelector((state: any) => state.authentication);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
   // const mediatrackholder = useSelector((state: any) => state.mediatrackholder);
   const pendingcallalerts = useSelector(
     (state: any) => state.pendingcallalerts,

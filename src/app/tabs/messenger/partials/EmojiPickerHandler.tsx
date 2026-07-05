@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { ReactToMessageRequest } from "@/reusables/hooks/requests";
+import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import EmojiPicker from "emoji-picker-react";
 import { useSelector } from "react-redux";
 
@@ -11,7 +12,9 @@ function EmojiPickerHandler({
   settoggleEmojiPicker,
   setreactions,
 }: any) {
-  const authentication = useSelector((state: any) => state.authentication);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
 
   const ReactToMessageProcess = (newreaction: any) => {
     ReactToMessageRequest({

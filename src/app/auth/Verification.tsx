@@ -10,9 +10,12 @@ import { SET_ALERTS } from "../../redux/types";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { Btn, Icon, useTheme } from "@/reusables/design";
 import { BrandMark, BrandPanel } from "./Login";
+import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 
 function Verification() {
-  const authentication = useSelector((state: any) => state.authentication);
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
   const alerts = useSelector((state: any) => state.alerts);
 
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
@@ -248,11 +251,7 @@ function Verification() {
             >
               Resend Code
             </span>
-            <span
-              style={{ margin: "0 8px", color: "var(--border-2)" }}
-            >
-              ·
-            </span>
+            <span style={{ margin: "0 8px", color: "var(--border-2)" }}>·</span>
             <span
               onClick={logoutProcess}
               style={{
@@ -271,3 +270,4 @@ function Verification() {
 }
 
 export default Verification;
+
