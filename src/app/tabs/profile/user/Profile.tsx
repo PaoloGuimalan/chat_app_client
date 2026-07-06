@@ -485,6 +485,33 @@ function Profile({
                       </button>
                     </div>
                   ) : profileInfo.connection.is_user_connection_initiator ? (
+                    <button
+                      disabled={isConnectionButtonsLoading}
+                      onClick={() => {
+                        initiateConnectionProcess("cancel");
+                      }}
+                      className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    >
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        "Cancel Request"
+                      )}
+                    </button>
+                  ) : (
                     <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
                       <button
                         disabled={isConnectionButtonsLoading}
@@ -539,33 +566,6 @@ function Profile({
                         )}
                       </button>
                     </div>
-                  ) : (
-                    <button
-                      disabled={isConnectionButtonsLoading}
-                      onClick={() => {
-                        initiateConnectionProcess("cancel");
-                      }}
-                      className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
-                    >
-                      {isConnectionButtonsLoading ? (
-                        <motion.div
-                          animate={{
-                            rotate: -360,
-                          }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                          }}
-                          id="div_loader_request_nano_light"
-                        >
-                          <AiOutlineLoading3Quarters
-                            style={{ fontSize: "15px" }}
-                          />
-                        </motion.div>
-                      ) : (
-                        "Cancel Request"
-                      )}
-                    </button>
                   )}
                 </div>
               )}
