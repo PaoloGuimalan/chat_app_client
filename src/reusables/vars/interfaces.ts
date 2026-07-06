@@ -379,6 +379,7 @@ export interface IFlexibleEntityDetails {
   middle_name?: string;
   gender?: string;
   is_badged?: boolean;
+  is_verified?: boolean;
 
   // Realm specific fields (optional)
   realm_id?: string;

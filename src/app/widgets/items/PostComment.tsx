@@ -197,21 +197,41 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                         <span
                           className="cl-comment-section__name tw-break-keep tw-text-[12px] tw-w-fit tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[var(--text-2)] tw-text-[var(--text)]"
                           onClick={() => {
-                            navigate(`/${mp.entity.details.username}`);
+                            if (mp.entity.type === "user") {
+                              navigate(`/${mp.entity.details.username}`);
+                              return;
+                            }
+
+                            navigate(`/${mp.entity.details.slug}`);
                           }}
                         >
-                          <div className="tw-flex tw-items-center tw-gap-[4px] tw-flex-wrap tw-text-left">
-                            <span>
-                              {mp.entity.details.first_name}
-                              {mp.entity.details.middle_name == "N/A"
-                                ? ""
-                                : ` ${mp.entity.details.middle_name}`}{" "}
-                              {mp.entity.details.last_name}
-                            </span>
-                            {mp.entity.details.is_badged && (
-                              <RiVerifiedBadgeFill size={16} color="#1c7def" />
-                            )}
-                          </div>
+                          {mp.entity.type === "user" ? (
+                            <div className="tw-flex tw-items-center tw-gap-[4px] tw-flex-wrap tw-text-left">
+                              <span>
+                                {mp.entity.details.first_name}
+                                {mp.entity.details.middle_name == "N/A"
+                                  ? ""
+                                  : ` ${mp.entity.details.middle_name}`}{" "}
+                                {mp.entity.details.last_name}
+                              </span>
+                              {mp.entity.details.is_badged && (
+                                <RiVerifiedBadgeFill
+                                  size={16}
+                                  color="#1c7def"
+                                />
+                              )}
+                            </div>
+                          ) : (
+                            <div className="tw-flex tw-items-center tw-gap-[4px] tw-flex-wrap tw-text-left">
+                              <span>{mp.entity.details.name}</span>
+                              {mp.entity.details.is_verified && (
+                                <RiVerifiedBadgeFill
+                                  size={16}
+                                  color="#1c7def"
+                                />
+                              )}
+                            </div>
+                          )}
                         </span>
                         <span className="tw-text-[11px] tw-text-[var(--text-3)] tw-flex-none tw-whitespace-nowrap tw-text-right">
                           {timeSince(mp.created_at)}
