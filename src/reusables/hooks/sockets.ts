@@ -8,7 +8,9 @@ let socket: any | null;
 
 const socketInit = async () => {
   if (!socket) {
-    socket = connect(`${API}/call`);
+    socket = connect(`${API}/call`, {
+      auth: { token: localStorage.getItem("authtoken") || "" },
+    });
     return true;
   } else {
     return true;
