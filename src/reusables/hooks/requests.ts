@@ -3084,6 +3084,51 @@ const BlockUserRequest = async (
     });
 };
 
+const PokeUserRequest = async (
+  target_id: string,
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  return Axios.post(
+    `${USER_SERVICE_API}/api/user/poke`,
+    { target_id },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken") || "",
+      },
+    },
+  )
+    .then((response) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: response.data.status ? "success" : "warning",
+            content: response.data.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return response.data.status as boolean;
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return false;
+    });
+};
+
 const UnblockUserRequest = async (
   entityID: string,
   dispatch: Dispatch<any>,
@@ -3388,6 +3433,7 @@ export {
   ExportAccountDataRequest,
   DeleteAccountRequest,
   BlockUserRequest,
+  PokeUserRequest,
   UnblockUserRequest,
   ListBlockedUsersRequest,
   ReportUserRequest,

@@ -20,6 +20,7 @@ import {
   DeclineContactRequest,
   GetDiaryTotalRequest,
   BlockUserRequest,
+  PokeUserRequest,
   ReportUserRequest,
   CreateInitialConversation,
 } from "@/reusables/hooks/requests";
@@ -75,6 +76,7 @@ function Profile({
     useState<boolean>(false);
   const [feedmode, setfeedmode] = useState<string>("posts");
 
+  const [isPokeLoading, setisPokeLoading] = useState<boolean>(false);
   const [isBlockLoading, setisBlockLoading] = useState<boolean>(false);
   const [confirmBlock, setconfirmBlock] = useState<boolean>(false);
   const [isReportOpen, setisReportOpen] = useState<boolean>(false);
@@ -245,6 +247,11 @@ function Profile({
         setisConnectionButtonsLoading(false);
         break;
     }
+  };
+
+  const pokeUserProcess = () => {
+    setisPokeLoading(true);
+    PokeUserRequest(profileInfo.id, dispatch, alerts, setisPokeLoading);
   };
 
   const blockUserProcess = () => {
@@ -481,6 +488,32 @@ function Profile({
                           </motion.div>
                         ) : (
                           "Connected"
+                        )}
+                      </button>
+                      <button
+                        disabled={isPokeLoading}
+                        onClick={() => {
+                          pokeUserProcess();
+                        }}
+                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                      >
+                        {isPokeLoading ? (
+                          <motion.div
+                            animate={{
+                              rotate: -360,
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                            }}
+                            id="div_loader_request_nano_light"
+                          >
+                            <AiOutlineLoading3Quarters
+                              style={{ fontSize: "15px" }}
+                            />
+                          </motion.div>
+                        ) : (
+                          "Poke"
                         )}
                       </button>
                     </div>
