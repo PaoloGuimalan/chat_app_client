@@ -1,5 +1,9 @@
 import { usersettingsstate } from "@/redux/actions/states";
-import { IContact, IUserSettings } from "../vars/interfaces";
+import {
+  AuthenticationInterface,
+  IContact,
+  IUserSettings,
+} from "../vars/interfaces";
 import { ConvertedResponse, OriginalResponse } from "../vars/types";
 import envs from "./env_configs";
 
@@ -545,6 +549,34 @@ function is13YearsOldOrAbove(dateStr: string) {
   return yearsDiff >= 13;
 }
 
+// Own-avatar call sites (rail/top bar, post composer, comment composer, etc.)
+// should show whichever entity is currently acting - the personal user's own
+// photo, or the page's own photo while switched - rather than always the
+// personal account's. Realm's "no photo" sentinel is "N/A"; Account's is
+// "none" - both handled here so callers don't need to know the difference.
+function getActiveAvatar(authentication: AuthenticationInterface): {
+  src?: string;
+  name?: string;
+} {
+  const activeEntity = authentication.active_entity_context;
+  if (activeEntity?.is_switched) {
+    return {
+      src:
+        activeEntity.profile && activeEntity.profile !== "N/A"
+          ? activeEntity.profile
+          : undefined,
+      name: activeEntity.name || undefined,
+    };
+  }
+  return {
+    src:
+      authentication.user.profile && authentication.user.profile !== "none"
+        ? authentication.user.profile
+        : undefined,
+    name: authentication.user.fullName?.firstName,
+  };
+}
+
 export {
   importData,
   importNonImageData,
@@ -570,4 +602,5 @@ export {
   generateUUID,
   getFormattedDate,
   is13YearsOldOrAbove,
+  getActiveAvatar,
 };

@@ -30,6 +30,18 @@ export const authenticationstate: AuthenticationInterface = {
     entity_id: "",
     pendingConsents: [],
   },
+  active_entity_context: {
+    id: "",
+    is_switched: false,
+    personal_entity_id: "",
+    entity_type: "user",
+    realm_type: null,
+    realm_id: null,
+    name: null,
+    slug: null,
+    profile: null,
+  },
+  allowed_modules: [],
 };
 
 export const conversationsetupstate = {

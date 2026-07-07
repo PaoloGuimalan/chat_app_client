@@ -83,45 +83,86 @@ Axios.interceptors.response.use(
   },
 );
 
+// Shape shared by GetAllowedModulesRequest and AuthCheck below - the active
+// entity's real type/name/slug/profile can only be resolved server-side
+// (the JWT's `entity` claim is an opaque id with no type flag), so both
+// call sites need to merge the same fields into the authentication object.
+const buildActiveEntityFields = (result: any) => {
+  const { allowed_modules, active_entity, personal_entity_id } = result;
+  return {
+    allowed_modules,
+    active_entity_context: {
+      id: active_entity.id,
+      is_switched: active_entity.type !== "user",
+      personal_entity_id,
+      entity_type: active_entity.type,
+      realm_type: active_entity.realm_type,
+      realm_id: active_entity.realm_id,
+      name: active_entity.name,
+      slug: active_entity.slug,
+      profile: active_entity.profile,
+    },
+  };
+};
+
 const AuthCheck = (dispatch: any) => {
+  const authtoken = localStorage.getItem("authtoken");
+
+  // Fired in parallel with jwtchecker rather than after it - the modules
+  // lookup only needs the same authtoken, not anything jwtchecker resolves,
+  // so sequencing them was adding a full extra round trip (on top of the
+  // splash delay below) before the app knew whether it was acting as a page.
+  const modulesPromise = Axios.get(
+    `${USER_SERVICE_API}/api/entity/me/modules`,
+    { headers: { "x-access-token": authtoken } },
+  ).catch((err) => {
+    console.log(err);
+    return null;
+  });
+
   Axios.get(`${API}/auth/jwtchecker`, {
     headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+      "x-access-token": authtoken,
     },
   })
     .then((response) => {
       if (response.data.status) {
         const userData: any = jwt_decode(response.data.result.usertoken);
         // console.log(userData)
-        setTimeout(() => {
-          dispatch({
-            type: SET_AUTHENTICATION,
-            payload: {
-              authentication: {
-                auth: true,
-                user: {
-                  userID: userData._id,
-                  username: userData.userID,
-                  fullName: {
-                    firstName: userData.fullname.firstName,
-                    middleName: userData.fullname.middleName,
-                    lastName: userData.fullname.lastName,
-                  },
-                  email: userData.email,
-                  birthdate: userData.birthdate,
-                  gender: userData.gender,
-                  isActivated: userData.isActivated,
-                  isVerified: userData.isVerified,
-                  isComplete: userData.isComplete,
-                  pendingConsents: userData.pending_consents || [],
-                  profile: userData.profile,
-                  coverphoto: userData.coverphoto || "",
-                  entity_id: userData.entity_id,
+        modulesPromise.then((modulesResponse) => {
+          setTimeout(() => {
+            const restoredAuthentication = {
+              ...authenticationstate,
+              auth: true,
+              user: {
+                userID: userData._id,
+                username: userData.userID,
+                fullName: {
+                  firstName: userData.fullname.firstName,
+                  middleName: userData.fullname.middleName,
+                  lastName: userData.fullname.lastName,
                 },
+                email: userData.email,
+                birthdate: userData.birthdate,
+                gender: userData.gender,
+                isActivated: userData.isActivated,
+                isVerified: userData.isVerified,
+                isComplete: userData.isComplete,
+                pendingConsents: userData.pending_consents || [],
+                profile: userData.profile,
+                coverphoto: userData.coverphoto || "",
+                entity_id: userData.entity_id,
               },
-            },
-          });
-        }, 2000);
+              ...(modulesResponse?.data?.status
+                ? buildActiveEntityFields(modulesResponse.data.result)
+                : {}),
+            };
+            dispatch({
+              type: SET_AUTHENTICATION,
+              payload: { authentication: restoredAuthentication },
+            });
+          }, 2000);
+        });
       } else {
         setTimeout(() => {
           dispatch({
@@ -167,33 +208,37 @@ const LoginRequest = (
         const userDataRaw: any = jwt_decode(response.data.result.usertoken);
         const userData: ConvertedResponse = convertLoginResponse(userDataRaw);
 
+        const loggedInAuthentication = {
+          ...authenticationstate,
+          auth: true,
+          user: {
+            userID: userData.id,
+            username: userData.username,
+            fullName: {
+              firstName: userData.fullname.firstName,
+              middleName: userData.fullname.middleName,
+              lastName: userData.fullname.lastName,
+            },
+            birthdate: userData.birthdate,
+            gender: userData.gender,
+            email: userData.email,
+            isActivated: userData.isActivated,
+            isVerified: userData.isVerified,
+            isComplete: userData.isComplete,
+            pendingConsents: userData.pendingConsents,
+            entity_id: userData.entity_id,
+            profile: userData.profile,
+            coverphoto: userData.coverphoto || "",
+          },
+        };
         dispatch({
           type: SET_AUTHENTICATION,
-          payload: {
-            authentication: {
-              auth: true,
-              user: {
-                userID: userData.id,
-                username: userData.username,
-                fullName: {
-                  firstName: userData.fullname.firstName,
-                  middleName: userData.fullname.middleName,
-                  lastName: userData.fullname.lastName,
-                },
-                birthdate: userData.birthdate,
-                gender: userData.gender,
-                email: userData.email,
-                isActivated: userData.isActivated,
-                isVerified: userData.isVerified,
-                isComplete: userData.isComplete,
-                pendingConsents: userData.pendingConsents,
-                entity_id: userData.entity_id,
-                profile: userData.profile,
-                coverphoto: userData.coverphoto || "",
-              },
-            },
-          },
+          payload: { authentication: loggedInAuthentication },
         });
+        // A fresh login is always the personal entity server-side (see
+        // UserAuthentication.post()), but fetch anyway to keep
+        // allowed_modules populated from the start rather than empty.
+        GetAllowedModulesRequest(dispatch, loggedInAuthentication);
         dispatch({
           type: SET_ALERTS,
           payload: {
@@ -232,6 +277,149 @@ const LoginRequest = (
       });
       setisWaitingRequest(false);
       // console.log(err)
+    });
+};
+
+// Single source of truth for both allowed_modules and active_entity_context -
+// MyAllowedModules (Django) resolves the active entity's real type/name/slug
+// server-side, since the JWT's `entity` claim is an opaque id with no type
+// flag: the frontend cannot tell "am I acting as myself or a page" from the
+// token alone, especially after a page reload. Call this after login,
+// session restore, and every switch.
+const GetAllowedModulesRequest = (
+  dispatch: Dispatch<any>,
+  currentAuthentication: any,
+) => {
+  Axios.get(`${USER_SERVICE_API}/api/entity/me/modules`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data.status) {
+        dispatch({
+          type: SET_AUTHENTICATION,
+          payload: {
+            authentication: {
+              ...currentAuthentication,
+              ...buildActiveEntityFields(response.data.result),
+            },
+          },
+        });
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
+// Switches the account's active entity from itself to a page it
+// administers (or, via SwitchBackToSelfRequest below, back again) -
+// re-issues the authtoken with a different `entity` claim server-side, so
+// everything downstream (post authorship, permission checks) attributes to
+// the page instead of the personal user. Direct page-to-page switching is
+// allowed; the backend validates membership against the account's own
+// entity regardless of which entity is currently active.
+const SwitchEntityRequest = (
+  realmId: string,
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+) => {
+  return Axios.post(
+    `${USER_SERVICE_API}/api/user/entity/switch`,
+    { realm_id: realmId },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        localStorage.setItem("authtoken", response.data.result.authtoken);
+        // A switch changes almost everything downstream (post authorship,
+        // module gating, permission checks, socket rooms), so an in-place
+        // redux patch risks leaving stale state (messages, notifications,
+        // call state, cached lists) built for the old identity. Reloading
+        // re-runs the whole boot sequence (AuthCheck -> GetAllowedModulesRequest)
+        // against the new token instead, so everything settles clean.
+        window.location.reload();
+        return true;
+      }
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "warning",
+            content: response.data.message,
+          },
+        },
+      });
+      return false;
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      return false;
+    });
+};
+
+const SwitchBackToSelfRequest = (
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+) => {
+  return Axios.post(
+    `${USER_SERVICE_API}/api/user/entity/switch-back`,
+    {},
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        localStorage.setItem("authtoken", response.data.result.authtoken);
+        // Same reasoning as SwitchEntityRequest above - reload rather than
+        // patch redux in place, so nothing built for the page identity
+        // (messages, notifications, call state, cached lists) lingers once
+        // switched back to the personal user.
+        window.location.reload();
+        return true;
+      }
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "warning",
+            content: response.data.message,
+          },
+        },
+      });
+      return false;
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      return false;
     });
 };
 
@@ -3334,6 +3522,9 @@ const CreateInitialConversation = async (otherEntityID: string) => {
 };
 
 export {
+  GetAllowedModulesRequest,
+  SwitchEntityRequest,
+  SwitchBackToSelfRequest,
   JoinRoomRequest,
   CreateTransportRequest,
   TransportConnectRequest,

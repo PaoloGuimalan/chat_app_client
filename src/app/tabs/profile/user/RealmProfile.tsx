@@ -77,6 +77,10 @@ function RealmProfile({
     realmInfo.profile != null && realmInfo.profile !== "none"
       ? realmInfo.profile
       : undefined;
+  // Whether the currently *acting* entity (which may be a different page
+  // than the personal account, or the page itself) is this exact page -
+  // not just "do I administer it". A page can't follow or message itself.
+  const isSelf = authentication.active_entity_context.id === realmInfo.entity;
 
   useEffect(() => {
     let currentView = false;
@@ -294,7 +298,8 @@ function RealmProfile({
                     Manage
                   </button>
                 )}
-                {realmInfo.is_follower ? (
+                {!isSelf &&
+                (realmInfo.is_follower ? (
                   <button
                     onClick={UnfollowRealmProcess}
                     disabled={isConnectionButtonsLoading}
@@ -344,10 +349,10 @@ function RealmProfile({
                       <div className="tw-min-w-[80px]">Follow</div>
                     )}
                   </button>
-                )}
+                ))}
               </div>
             )}
-            {realmInfo.entity !== authentication.user.entity_id && (
+            {!isSelf && (
               <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
                 <button
                   onClick={() => {

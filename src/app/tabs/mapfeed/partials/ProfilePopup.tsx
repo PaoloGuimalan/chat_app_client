@@ -4,12 +4,14 @@ import { ProfilePopupProp } from "@/reusables/vars/props";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { Avatar } from "@/reusables/design/primitives2";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import { getActiveAvatar } from "@/reusables/hooks/reusable";
 import { useSelector } from "react-redux";
 
 function ProfilePopup({ coordinates, user }: ProfilePopupProp) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  const activeAvatar = getActiveAvatar(authentication);
 
   return (
     <Popup
@@ -45,12 +47,8 @@ function ProfilePopup({ coordinates, user }: ProfilePopupProp) {
             {user.userID === authentication.user.userID ? (
               <Avatar
                 id={authentication.user.userID}
-                name={`${authentication.user.fullName.firstName} ${authentication.user.fullName.lastName}`}
-                src={
-                  authentication.user.profile !== "none"
-                    ? authentication.user.profile
-                    : undefined
-                }
+                name={activeAvatar.name}
+                src={activeAvatar.src}
                 size={50}
               />
             ) : (

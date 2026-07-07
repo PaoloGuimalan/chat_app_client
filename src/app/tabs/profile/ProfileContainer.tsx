@@ -134,7 +134,19 @@ function ProfileContainer() {
       />
       <Route
         path="/diary"
-        element={authentication.auth ? <Diary /> : <Navigate to="/login" />}
+        element={
+          !authentication.auth ? (
+            <Navigate to="/login" />
+          ) : authentication.allowed_modules.includes(
+              "module.diary.access",
+            ) ? (
+            <Diary />
+          ) : (
+            // Diary isn't available while acting as a page - not a
+            // permission failure, just not a module this context has.
+            <Navigate to="/" />
+          )
+        }
       />
     </Routes>
   );

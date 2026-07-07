@@ -60,7 +60,10 @@ import {
   getSettings,
   persistSettings,
 } from "@/reusables/hooks/localforagehelper";
-import { isUserSettingsComplete } from "@/reusables/hooks/reusable";
+import {
+  getActiveAvatar,
+  isUserSettingsComplete,
+} from "@/reusables/hooks/reusable";
 import {
   endMapSocket,
   socketMapConnect,
@@ -68,6 +71,7 @@ import {
 } from "@/reusables/hooks/mapsocket";
 import CallContainer from "../absolutes/calls_v2/CallContainer";
 import Pages from "../tabs/pages/Pages";
+import EntitySwitcher from "../reusables/EntitySwitcher";
 import RealmContainer from "../tabs/realms/RealmContainer";
 import SearchPage from "../tabs/search/Search";
 import { Avatar, Icon, useTheme } from "@/reusables/design";
@@ -374,13 +378,47 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
   }, [messageslist]);
 
   const totalUnreadNotifs = notificationslist.totalunread || 0;
+  const activeEntityContext = authentication.active_entity_context;
+  const isActingAsPage = Boolean(activeEntityContext?.is_switched);
+  const activeAvatar = getActiveAvatar(authentication);
+
   const onProfileClick = () => {
     if (screensizelistener.W <= 1100) {
+      // Mobile has no persistent rail switcher - the switch-back control
+      // only lives inside the User Menu page, so the profile tap must always
+      // land there regardless of switch state. Landing directly on the
+      // realm's public profile instead (as the desktop branch below does)
+      // would strand a switched-in mobile user with no way back.
       navigate("/user");
-    } else {
-      navigate(`/${authentication.user.username}`);
+      return;
     }
+    if (isActingAsPage) {
+      // "My Profile" while acting as a page means the page's own public
+      // profile, not your personal one - RealmProfile via ProfileContainer's
+      // existing type-based branching (same /:userID/* route, no new route
+      // needed). Desktop's rail switcher is always visible independently of
+      // this button, so there's no equivalent access concern here.
+      navigate(`/${activeEntityContext.slug || activeEntityContext.realm_id}`);
+      return;
+    }
+    navigate(`/${authentication.user.username}`);
   };
+
+  const onSettingsClick = () => {
+    if (isActingAsPage) {
+      // Settings has no meaning for a page - swap to the existing
+      // ManageRealm flow (RealmContainer already gates its own admin view
+      // per-visit, so this is just navigating to a realm the active page
+      // entity already administers).
+      navigate(`/realms/${activeEntityContext.realm_id}`);
+      return;
+    }
+    navigate("/settings");
+  };
+
+  const isSettingsActive = isActingAsPage
+    ? location.pathname.startsWith(`/realms/${activeEntityContext.realm_id}`)
+    : location.pathname.startsWith("/settings");
 
   const railItems: RailItem[] = [
     {
@@ -453,7 +491,6 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
 
   const showRail = !isMobileView && !isMapFeedMobileView;
   const showMobileNav = isMobileView && !isMapFeedMobileView;
-  const isSettings = location.pathname.startsWith("/settings");
 
   return (
     <div
@@ -475,16 +512,13 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           items={railItems}
           theme={theme}
           toggleTheme={toggleTheme}
-          isSettings={isSettings}
-          onSettings={() => navigate("/settings")}
+          isSettings={isSettingsActive}
+          settingsLabel={isActingAsPage ? "Manage Realm" : "Settings"}
+          onSettings={onSettingsClick}
           onLogout={logoutProcess}
           onProfile={onProfileClick}
-          profileSrc={
-            authentication.user.profile !== "none"
-              ? authentication.user.profile
-              : undefined
-          }
-          profileName={authentication.user.fullName?.firstName}
+          profileSrc={activeAvatar.src}
+          profileName={activeAvatar.name}
         />
       )}
 
@@ -504,12 +538,8 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             onExplore={() => navigate("/explore")}
             onMessages={() => navigate("/messages")}
             onNotifications={() => navigate("/notifications")}
-            profileSrc={
-              authentication.user.profile !== "none"
-                ? authentication.user.profile
-                : undefined
-            }
-            profileName={authentication.user.fullName?.firstName}
+            profileSrc={activeAvatar.src}
+            profileName={activeAvatar.name}
             theme={theme}
             toggleTheme={toggleTheme}
             messagesBadge={
@@ -621,6 +651,7 @@ function Rail({
   theme,
   toggleTheme,
   isSettings,
+  settingsLabel,
   onSettings,
   onLogout,
   onProfile,
@@ -631,6 +662,7 @@ function Rail({
   theme: string;
   toggleTheme: () => void;
   isSettings: boolean;
+  settingsLabel: string;
   onSettings: () => void;
   onLogout: () => void;
   onProfile: () => void;
@@ -763,7 +795,7 @@ function Rail({
       </button>
       <button
         className="cl-main-rail__action"
-        title="Settings"
+        title={settingsLabel}
         onClick={onSettings}
         style={{
           ...railBtnStyle,
@@ -781,26 +813,11 @@ function Rail({
       >
         <Icon n="logout" s={22} />
       </button>
-      <button
-        className="cl-main-rail__profile"
-        title="Profile"
-        onClick={onProfile}
-        style={{
-          marginTop: 4,
-          border: "none",
-          background: "transparent",
-          cursor: "pointer",
-          padding: 0,
-          borderRadius: "50%",
-        }}
-      >
-        <Avatar
-          id={profileName}
-          name={profileName}
-          src={profileSrc}
-          size={38}
-        />
-      </button>
+      <EntitySwitcher
+        onProfileClick={onProfile}
+        profileSrc={profileSrc}
+        profileName={profileName}
+      />
     </nav>
   );
 }

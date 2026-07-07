@@ -14,6 +14,7 @@ import ServerBanner from "./banners/ServerBanner";
 import PagesBanner from "./banners/PagesBanner";
 import { Btn, Card, Icon, useTheme } from "@/reusables/design";
 import { Avatar } from "@/reusables/design/primitives2";
+import { getActiveAvatar } from "@/reusables/hooks/reusable";
 
 function Feed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -100,10 +101,7 @@ function Feed() {
     };
   }, []);
 
-  const profileSrc =
-    authentication.user.profile !== "none"
-      ? authentication.user.profile
-      : undefined;
+  const activeAvatar = getActiveAvatar(authentication);
 
   return (
     <div
@@ -147,8 +145,8 @@ function Feed() {
           <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
             <Avatar
               id={authentication.user.userID}
-              name={`${authentication.user.fullName.firstName} ${authentication.user.fullName.lastName}`}
-              src={profileSrc}
+              name={activeAvatar.name}
+              src={activeAvatar.src}
               size={42}
             />
             <input

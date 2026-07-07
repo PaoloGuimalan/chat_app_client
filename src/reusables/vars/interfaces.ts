@@ -28,6 +28,18 @@ export interface AuthenticationInterface {
     profile: string;
     coverphoto: string;
   };
+  active_entity_context: {
+    id: string;
+    is_switched: boolean;
+    personal_entity_id: string;
+    entity_type: "user" | "realm";
+    realm_type: string | null;
+    realm_id: string | null;
+    name: string | null;
+    slug: string | null;
+    profile: string | null;
+  };
+  allowed_modules: string[];
 }
 
 export interface IUserInterface {

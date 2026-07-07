@@ -14,7 +14,7 @@ import { IoSend } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUniqueItemsOfObjects } from "@/reusables/hooks/validatevariables";
-import { timeSince } from "@/reusables/hooks/reusable";
+import { getActiveAvatar, timeSince } from "@/reusables/hooks/reusable";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { FaFileAlt } from "react-icons/fa";
@@ -27,6 +27,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  const activeAvatar = getActiveAvatar(authentication);
 
   const [comments, setComments] =
     useState<PaginationProp<IPostComment>>(commentsliststate);
@@ -104,12 +105,8 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
         <div className="cl-comment-section__composer tw-min-h-[60px] tw-flex tw-items-center tw-gap-[12px] tw-pb-[10px] tw-w-full">
           <Avatar
             id={authentication.user.userID}
-            name={authentication.user.fullName?.firstName}
-            src={
-              authentication.user.profile === "none"
-                ? undefined
-                : authentication.user.profile
-            }
+            name={activeAvatar.name}
+            src={activeAvatar.src}
             size={48}
           />
           <div
@@ -266,12 +263,8 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
         <div className="cl-comment-section__composer cl-comment-section__composer--reply tw-min-h-[60px] tw-flex tw-items-center tw-gap-[12px] tw-pb-[0px] tw-pt-[10px] tw-w-full">
           <Avatar
             id={authentication.user.userID}
-            name={authentication.user.fullName?.firstName}
-            src={
-              authentication.user.profile === "none"
-                ? undefined
-                : authentication.user.profile
-            }
+            name={activeAvatar.name}
+            src={activeAvatar.src}
             size={48}
           />
           <div
