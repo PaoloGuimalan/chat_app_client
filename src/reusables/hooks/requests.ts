@@ -440,33 +440,38 @@ const ThirdPartyAuthenticationRequest = (
         const userDataRaw: any = jwt_decode(response.data.result.usertoken);
         const userData: ConvertedResponse = convertLoginResponse(userDataRaw);
 
+        const loggedInAuthentication = {
+          ...authenticationstate,
+          auth: true,
+          user: {
+            userID: userData.userID,
+            username: userData.username,
+            fullName: {
+              firstName: userData.fullname.firstName,
+              middleName: userData.fullname.middleName,
+              lastName: userData.fullname.lastName,
+            },
+            birthdate: userData.birthdate,
+            gender: userData.gender,
+            email: userData.email,
+            isActivated: userData.isActivated,
+            isVerified: userData.isVerified,
+            isComplete: userData.isComplete,
+            pendingConsents: userData.pendingConsents,
+            entity_id: userData.entity_id,
+            profile: userData.profile,
+            coverphoto: userData.coverphoto || "",
+          },
+        };
         dispatch({
           type: SET_AUTHENTICATION,
-          payload: {
-            authentication: {
-              auth: true,
-              user: {
-                userID: userData.userID,
-                username: userData.username,
-                fullName: {
-                  firstName: userData.fullname.firstName,
-                  middleName: userData.fullname.middleName,
-                  lastName: userData.fullname.lastName,
-                },
-                birthdate: userData.birthdate,
-                gender: userData.gender,
-                email: userData.email,
-                isActivated: userData.isActivated,
-                isVerified: userData.isVerified,
-                isComplete: userData.isComplete,
-                pendingConsents: userData.pendingConsents,
-                entity_id: userData.entity_id,
-                profile: userData.profile,
-                coverphoto: userData.coverphoto || "",
-              },
-            },
-          },
+          payload: { authentication: loggedInAuthentication },
         });
+        // Same as LoginRequest - without this, active_entity_context stays
+        // undefined and any component reading it without optional chaining
+        // (e.g. RealmProfile.tsx, GenericRealmItem.tsx) throws on render,
+        // white-screening the app right after a third-party login.
+        GetAllowedModulesRequest(dispatch, loggedInAuthentication);
         dispatch({
           type: SET_ALERTS,
           payload: {
@@ -526,29 +531,33 @@ const RegisterRequest = (
         const userDataRaw: any = jwt_decode(response.data.usertoken);
         const userData: ConvertedResponse = convertLoginResponse(userDataRaw);
 
+        const registeredAuthentication = {
+          ...authenticationstate,
+          auth: true,
+          user: {
+            userID: response.data.userID,
+            username: response.data.username,
+            fullName: {
+              firstName: payload.firstName,
+              middleName: payload.middleName,
+              lastName: payload.lastName,
+            },
+            email: payload.email,
+            isActivated: true,
+            isVerified: false,
+            isComplete: userData.isComplete,
+            pendingConsents: userData.pendingConsents,
+            entity_id: userData.entity_id,
+          },
+        };
         dispatch({
           type: SET_AUTHENTICATION,
-          payload: {
-            authentication: {
-              auth: true,
-              user: {
-                userID: response.data.userID,
-                username: response.data.username,
-                fullName: {
-                  firstName: payload.firstName,
-                  middleName: payload.middleName,
-                  lastName: payload.lastName,
-                },
-                email: payload.email,
-                isActivated: true,
-                isVerified: false,
-                isComplete: userData.isComplete,
-                pendingConsents: userData.pendingConsents,
-                entity_id: userData.entity_id,
-              },
-            },
-          },
+          payload: { authentication: registeredAuthentication },
         });
+        // Same as LoginRequest/ThirdPartyAuthenticationRequest - without this
+        // active_entity_context stays undefined and the app white-screens on
+        // any component reading it without optional chaining.
+        GetAllowedModulesRequest(dispatch, registeredAuthentication);
         dispatch({
           type: SET_ALERTS,
           payload: {
@@ -623,6 +632,11 @@ const VerifyCodeRequest = (
           type: SET_AUTHENTICATION,
           payload: {
             authentication: {
+              // Spreading currentState (not just currentState.user) matters -
+              // this reducer fully replaces the authentication object, so
+              // omitting it would silently drop active_entity_context/
+              // allowed_modules and white-screen the app.
+              ...currentState,
               auth: true,
               user: {
                 ...currentState.user,
@@ -2989,6 +3003,11 @@ const CompleteProfileRequest = async (
           type: SET_AUTHENTICATION,
           payload: {
             authentication: {
+              // Spread the current store state (not just a flat object) -
+              // this reducer fully replaces authentication, so omitting
+              // this would silently drop active_entity_context/
+              // allowed_modules and white-screen the app.
+              ...store.getState().authentication,
               auth: true,
               user: {
                 userID: userData.id,
@@ -3081,6 +3100,11 @@ const AcceptPoliciesRequest = async (
           type: SET_AUTHENTICATION,
           payload: {
             authentication: {
+              // Spread the current store state (not just a flat object) -
+              // this reducer fully replaces authentication, so omitting
+              // this would silently drop active_entity_context/
+              // allowed_modules and white-screen the app.
+              ...store.getState().authentication,
               auth: true,
               user: {
                 userID: userData.id,
@@ -3498,6 +3522,11 @@ const UpdateProfileInfoRequest = async (
           type: SET_AUTHENTICATION,
           payload: {
             authentication: {
+              // Spread the current store state (not just a flat object) -
+              // this reducer fully replaces authentication, so omitting
+              // this would silently drop active_entity_context/
+              // allowed_modules and white-screen the app.
+              ...store.getState().authentication,
               auth: true,
               user: {
                 userID: userData.id,
