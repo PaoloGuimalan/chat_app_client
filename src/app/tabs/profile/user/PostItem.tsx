@@ -298,21 +298,33 @@ function PostItem({
                         }}
                         key={i}
                       >
-                        <div className="tw-flex tw-items-center tw-gap-[4px]">
-                          <span>
-                            {mptg.entity.details.first_name}
-                            {mptg.entity.details.middle_name == "N/A"
-                              ? ""
-                              : ` ${mptg.entity.details.middle_name}`}{" "}
-                            {mptg.entity.details.last_name}
-                          </span>
-                          {mptg.entity.details.is_badged && (
-                            <RiVerifiedBadgeFill
-                              size={16}
-                              color="var(--brand)"
-                            />
-                          )}
-                        </div>
+                        {mptg.entity.type === "realm" ? (
+                          <div className="tw-flex tw-items-center tw-gap-[4px]">
+                            <span>{mptg.entity.details.name}</span>
+                            {mptg.entity.details.is_verified && (
+                              <RiVerifiedBadgeFill
+                                size={16}
+                                color="var(--brand)"
+                              />
+                            )}
+                          </div>
+                        ) : (
+                          <div className="tw-flex tw-items-center tw-gap-[4px]">
+                            <span>
+                              {mptg.entity.details.first_name}
+                              {mptg.entity.details.middle_name == "N/A"
+                                ? ""
+                                : ` ${mptg.entity.details.middle_name}`}{" "}
+                              {mptg.entity.details.last_name}
+                            </span>
+                            {mptg.entity.details.is_badged && (
+                              <RiVerifiedBadgeFill
+                                size={16}
+                                color="var(--brand)"
+                              />
+                            )}
+                          </div>
+                        )}
                       </span>
                     );
                   })}
@@ -484,12 +496,15 @@ function PostItem({
                               <span
                                 className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                 onClick={() => {
-                                  if (postState.entity.details) {
+                                  if (postState.entity.type === "realm") {
                                     navigate(
-                                      `/${postState.entity.details.username}`,
+                                      `/${postState.entity.details.slug}`,
                                     );
                                     return;
                                   }
+                                  navigate(
+                                    `/${postState.entity.details.username}`,
+                                  );
                                 }}
                               >
                                 {postState.entity.type !== "user" ? (
@@ -533,28 +548,49 @@ function PostItem({
                                       <span
                                         className="cl-feed-card__title tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                         onClick={() => {
+                                          if (mptg.entity.type === "realm") {
+                                            navigate(
+                                              `/${mptg.entity.details.slug}`,
+                                            );
+                                            return;
+                                          }
                                           navigate(
                                             `/${mptg.entity.details.username}`,
                                           );
                                         }}
                                         key={i}
                                       >
-                                        <div className="tw-flex tw-items-center tw-gap-[4px]">
-                                          <span>
-                                            {mptg.entity.details.first_name}
-                                            {mptg.entity.details.middle_name ==
-                                            "N/A"
-                                              ? ""
-                                              : ` ${mptg.entity.details.middle_name}`}{" "}
-                                            {mptg.entity.details.last_name}
-                                          </span>
-                                          {mptg.entity.details.is_badged && (
-                                            <RiVerifiedBadgeFill
-                                              size={16}
-                                              color="var(--brand)"
-                                            />
-                                          )}
-                                        </div>
+                                        {mptg.entity.type === "realm" ? (
+                                          <div className="tw-flex tw-items-center tw-gap-[4px]">
+                                            <span>
+                                              {mptg.entity.details.name}
+                                            </span>
+                                            {mptg.entity.details
+                                              .is_verified && (
+                                              <RiVerifiedBadgeFill
+                                                size={16}
+                                                color="var(--brand)"
+                                              />
+                                            )}
+                                          </div>
+                                        ) : (
+                                          <div className="tw-flex tw-items-center tw-gap-[4px]">
+                                            <span>
+                                              {mptg.entity.details.first_name}
+                                              {mptg.entity.details
+                                                .middle_name == "N/A"
+                                                ? ""
+                                                : ` ${mptg.entity.details.middle_name}`}{" "}
+                                              {mptg.entity.details.last_name}
+                                            </span>
+                                            {mptg.entity.details.is_badged && (
+                                              <RiVerifiedBadgeFill
+                                                size={16}
+                                                color="var(--brand)"
+                                              />
+                                            )}
+                                          </div>
+                                        )}
                                       </span>
                                     );
                                   },
