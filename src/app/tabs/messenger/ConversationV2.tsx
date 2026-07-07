@@ -1411,7 +1411,7 @@ function ConversationV2({
                 {conversationType !== "conference" &&
                   (conversationsetup.conversationType == "single" ? (
                     activeusersmapper.includes(
-                      conversationsetup?.details.id,
+                      conversationsetup?.details.entity_id,
                     ) ? (
                       activeuserSpecific[0].sessiondate ? (
                         activeuserSpecific[0].sessionStatus ? (
