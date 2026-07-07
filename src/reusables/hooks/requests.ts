@@ -1228,19 +1228,22 @@ const InitConversationListRequest = async (page: number, range: number) => {
 };
 
 const InitConversationInfoRequest = async (conversationID: string) => {
-  return await Axios.get(`${API}/m/conversation/${conversationID}`, {
+  // No internal catch - the caller needs to know when this fails (e.g. a
+  // 403 for a conversation it isn't a participant of) instead of silently
+  // resolving to undefined, which previously left ConversationV2 stuck on
+  // its loading spinner forever with no error surfaced.
+  return Axios.get(`${API}/m/conversation/${conversationID}`, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
     },
-  })
-    .then((response) => {
-      if (response.data.status) {
-        return response.data.result;
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });
+  }).then((response) => {
+    if (response.data.status) {
+      return response.data.result;
+    }
+    return Promise.reject(
+      new Error(response.data.message || "Failed to load conversation"),
+    );
+  });
 };
 
 const InitConversationListV1Request = async (page: number, range: number) => {

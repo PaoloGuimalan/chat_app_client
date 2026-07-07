@@ -135,8 +135,12 @@ function ConversationV2({
   const [conversationsetup, setconversationsetup] =
     useState<IConversationSetup | null>(null);
   const [switchingcontext, setswitchingcontext] = useState<boolean>(true);
+  const [conversationLoadError, setconversationLoadError] = useState<
+    string | null
+  >(null);
 
   useEffect(() => {
+    setconversationLoadError(null);
     InitConversationInfoRequest(conversationID)
       .then((response) => {
         setconversationsetup(response);
@@ -144,6 +148,16 @@ function ConversationV2({
       })
       .catch((err) => {
         console.log(err);
+        // Without this, conversationsetup never gets populated, the
+        // effect that fetches messages (gated on conversationsetup being
+        // truthy) never runs, and isLoading - set true whenever
+        // conversationIdentityKey changes - never gets flipped back off,
+        // leaving the spinner spinning forever with no explanation.
+        setconversationLoadError(
+          err?.response?.data?.message ||
+            "This conversation could not be loaded.",
+        );
+        setswitchingcontext(false);
       });
   }, [conversationID]);
 
@@ -1152,20 +1166,38 @@ function ConversationV2({
         }
       >
         <div id="div_conversation_content_loader">
-          <motion.div
-            animate={{
-              rotate: -360,
-            }}
-            transition={{
-              duration: 1,
-              repeat: Infinity,
-            }}
-            id="div_loader_request_conv"
-          >
-            <AiOutlineLoading3Quarters
-              style={{ fontSize: conversationLoadingIconSize }}
-            />
-          </motion.div>
+          {conversationLoadError ? (
+            <>
+              <BiSolidInfoCircle
+                style={{ fontSize: "32px", color: "var(--text-2)" }}
+              />
+              <span
+                style={{
+                  fontSize: "13px",
+                  color: "var(--text-2)",
+                  textAlign: "center",
+                  maxWidth: 280,
+                }}
+              >
+                {conversationLoadError}
+              </span>
+            </>
+          ) : (
+            <motion.div
+              animate={{
+                rotate: -360,
+              }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+              }}
+              id="div_loader_request_conv"
+            >
+              <AiOutlineLoading3Quarters
+                style={{ fontSize: conversationLoadingIconSize }}
+              />
+            </motion.div>
+          )}
         </div>
       </div>
     );
