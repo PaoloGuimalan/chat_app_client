@@ -10,6 +10,7 @@ import PersonalInformation from "./section/PersonalInformation";
 import Credentials from "./section/Credentials";
 import DataPrivacy from "./section/DataPrivacy";
 import BlockedAccounts from "./section/BlockedAccounts";
+import DeviceSessions from "./section/DeviceSessions";
 
 interface SettingsItem {
   key: string;
@@ -71,14 +72,6 @@ function Settings({ isModal }: { isModal: boolean }) {
             component: <Credentials />,
           },
           {
-            key: "privacy",
-            icon: "lock",
-            name: "Privacy",
-            description: "Configure your account privacy settings.",
-            isDisabled: true,
-            component: null,
-          },
-          {
             key: "data-privacy",
             icon: "shield",
             name: "Data & Privacy",
@@ -86,6 +79,15 @@ function Settings({ isModal }: { isModal: boolean }) {
               "Export a copy of your data or permanently delete your account.",
             isDisabled: false,
             component: <DataPrivacy />,
+          },
+          {
+            key: "device-sessions",
+            icon: "devices",
+            name: "Device Sessions",
+            description:
+              "See where you're logged in and sign out of other devices.",
+            isDisabled: false,
+            component: <DeviceSessions />,
           },
           {
             key: "blocked-accounts",
@@ -361,4 +363,3 @@ function Settings({ isModal }: { isModal: boolean }) {
 }
 
 export default Settings;
-

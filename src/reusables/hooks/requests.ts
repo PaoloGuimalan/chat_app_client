@@ -3367,6 +3367,56 @@ const ListBlockedUsersRequest = async () => {
   }).then((response) => (response.data.status ? response.data.data : []));
 };
 
+const ListDeviceSessionsRequest = async () => {
+  return Axios.get(`${USER_SERVICE_API}/api/user/devices`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken") || "",
+    },
+  }).then((response) => (response.data.status ? response.data.data : []));
+};
+
+const RevokeDeviceSessionRequest = async (
+  sessionID: string,
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  return Axios.delete(`${USER_SERVICE_API}/api/user/devices`, {
+    data: { sessionID },
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken") || "",
+    },
+  })
+    .then((response) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: response.data.status ? "success" : "warning",
+            content: response.data.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return response.data.status as boolean;
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return false;
+    });
+};
+
 const ReportUserRequest = async (
   params: {
     target_type: string;
@@ -3627,6 +3677,8 @@ export {
   PokeUserRequest,
   UnblockUserRequest,
   ListBlockedUsersRequest,
+  ListDeviceSessionsRequest,
+  RevokeDeviceSessionRequest,
   ReportUserRequest,
   UpdateProfileInfoRequest,
   InitConversationListV1Request,
