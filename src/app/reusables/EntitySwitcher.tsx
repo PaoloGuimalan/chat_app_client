@@ -42,9 +42,10 @@ function EntitySwitcher({
   const [isLoadingPages, setIsLoadingPages] = useState(false);
   const [pages, setPages] = useState<any[]>([]);
   const [isSwitching, setIsSwitching] = useState(false);
-  const [menuPos, setMenuPos] = useState<{ left: number; bottom: number } | null>(
-    null,
-  );
+  const [menuPos, setMenuPos] = useState<{
+    left: number;
+    bottom: number;
+  } | null>(null);
   const wrapperRef = useRef<HTMLDivElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
@@ -92,9 +93,7 @@ function EntitySwitcher({
       setIsLoadingPages(true);
       GetMyRealmsRequest(1, 20, "page")
         .then((response: any) => {
-          setPages(
-            (response?.results || []).filter((mp: any) => mp.is_admin),
-          );
+          setPages((response?.results || []).filter((mp: any) => mp.is_admin));
           setIsLoadingPages(false);
         })
         .catch(() => setIsLoadingPages(false));
@@ -122,10 +121,7 @@ function EntitySwitcher({
   const activeEntity = authentication.active_entity_context;
 
   return (
-    <div
-      ref={wrapperRef}
-      style={{ position: "relative", marginTop: 4 }}
-    >
+    <div ref={wrapperRef} style={{ position: "relative", marginTop: 4 }}>
       <button
         className="cl-main-rail__profile"
         title="Profile"
@@ -138,7 +134,12 @@ function EntitySwitcher({
           borderRadius: "50%",
         }}
       >
-        <Avatar id={profileName} name={profileName} src={profileSrc} size={size} />
+        <Avatar
+          id={profileName}
+          name={profileName}
+          src={profileSrc}
+          size={size}
+        />
       </button>
 
       <button
@@ -189,92 +190,96 @@ function EntitySwitcher({
               gap: 4,
             }}
           >
-          <div
-            style={{
-              fontSize: 11,
-              fontWeight: 600,
-              color: "var(--text-2)",
-              padding: "4px 8px",
-            }}
-          >
-            Switch account
-          </div>
-
-          <button
-            onClick={handleSwitchToSelf}
-            disabled={isSwitching || !activeEntity.is_switched}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 8,
-              padding: 8,
-              borderRadius: 8,
-              border: "none",
-              background: !activeEntity.is_switched
-                ? "var(--brand-soft)"
-                : "transparent",
-              color: !activeEntity.is_switched ? "var(--brand)" : "var(--text)",
-              cursor: isSwitching ? "default" : "pointer",
-              textAlign: "left",
-              fontSize: 13,
-              fontWeight: 600,
-            }}
-          >
-            {authentication.user.fullName?.firstName}{" "}
-            {authentication.user.fullName?.lastName}
-          </button>
-
-          {isLoadingPages ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-              {[0, 1, 2].map((i) => (
-                <Skeleton
-                  key={i}
-                  height={34}
-                  borderRadius={8}
-                  baseColor="var(--surface-3)"
-                  highlightColor="var(--surface-hover)"
-                />
-              ))}
-            </div>
-          ) : pages.length === 0 ? (
             <div
               style={{
-                fontSize: 12,
+                fontSize: 11,
+                fontWeight: 600,
                 color: "var(--text-2)",
                 padding: "4px 8px",
               }}
             >
-              No pages to manage
+              Switch account
             </div>
-          ) : (
-            pages.map((mp: any) => {
-              const isActive =
-                activeEntity.is_switched && activeEntity.realm_id === mp.id;
-              return (
-                <button
-                  key={mp.id}
-                  onClick={() => handleSwitchToPage(mp.id)}
-                  disabled={isSwitching || isActive}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 8,
-                    padding: 8,
-                    borderRadius: 8,
-                    border: "none",
-                    background: isActive ? "var(--brand-soft)" : "transparent",
-                    color: isActive ? "var(--brand)" : "var(--text)",
-                    cursor: isSwitching ? "default" : "pointer",
-                    textAlign: "left",
-                    fontSize: 13,
-                    fontWeight: 600,
-                  }}
-                >
-                  {mp.name}
-                </button>
-              );
-            })
-          )}
+
+            <button
+              onClick={handleSwitchToSelf}
+              disabled={isSwitching || !activeEntity.is_switched}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: 8,
+                borderRadius: 8,
+                border: "none",
+                background: !activeEntity.is_switched
+                  ? "var(--brand-soft)"
+                  : "transparent",
+                color: !activeEntity.is_switched
+                  ? "var(--brand)"
+                  : "var(--text)",
+                cursor: isSwitching ? "default" : "pointer",
+                textAlign: "left",
+                fontSize: 13,
+                fontWeight: 600,
+              }}
+            >
+              {authentication.user.fullName?.firstName}{" "}
+              {authentication.user.fullName?.lastName}
+            </button>
+
+            {isLoadingPages ? (
+              <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+                {[0, 1].map((i) => (
+                  <Skeleton
+                    key={i}
+                    height={34}
+                    borderRadius={8}
+                    baseColor="var(--surface-3)"
+                    highlightColor="var(--surface-hover)"
+                  />
+                ))}
+              </div>
+            ) : pages.length === 0 ? (
+              <div
+                style={{
+                  fontSize: 12,
+                  color: "var(--text-2)",
+                  padding: "4px 8px",
+                }}
+              >
+                No pages to manage
+              </div>
+            ) : (
+              pages.map((mp: any) => {
+                const isActive =
+                  activeEntity.is_switched && activeEntity.realm_id === mp.id;
+                return (
+                  <button
+                    key={mp.id}
+                    onClick={() => handleSwitchToPage(mp.id)}
+                    disabled={isSwitching || isActive}
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      padding: 8,
+                      borderRadius: 8,
+                      border: "none",
+                      background: isActive
+                        ? "var(--brand-soft)"
+                        : "transparent",
+                      color: isActive ? "var(--brand)" : "var(--text)",
+                      cursor: isSwitching ? "default" : "pointer",
+                      textAlign: "left",
+                      fontSize: 13,
+                      fontWeight: 600,
+                    }}
+                  >
+                    {mp.name}
+                  </button>
+                );
+              })
+            )}
           </div>,
           document.body,
         )}
@@ -341,3 +346,4 @@ function EntitySwitcher({
 }
 
 export default EntitySwitcher;
+

@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
+import { AuthenticationInterface, IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { RiUserFollowLine, RiVerifiedBadgeFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { useSelector } from "react-redux";
 import {
   FollowRealmRequest,
   UnfollowRealmRequest,
@@ -21,6 +22,12 @@ function GenericRealmItem({
   flexed: boolean;
 }) {
   const navigate = useNavigate();
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
+  // The acting entity (which may be a different page, or this exact one)
+  // can't follow itself - only relevant once switched into acting as mp.
+  const isSelf = authentication.active_entity_context.id === mp.entity;
 
   const [isConnectionButtonsLoading, setisConnectionButtonsLoading] =
     useState<boolean>(false);
@@ -109,6 +116,7 @@ function GenericRealmItem({
                     </button>
                   )}
                   {mp.type === "page" &&
+                    !isSelf &&
                     (mp.is_follower ? (
                       <button
                         onClick={UnfollowRealmProcess}

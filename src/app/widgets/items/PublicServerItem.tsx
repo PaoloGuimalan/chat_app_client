@@ -26,6 +26,10 @@ function PublicServerItem({
   const [isJoined, setisJoined] = useState<boolean>(mp.is_member ?? false);
 
   const navigate = useNavigate();
+  // The acting entity can't join itself - not reachable today (switching is
+  // page-only, so a server can never be the active entity), but kept
+  // consistent with GenericRealmItem/RealmProfile in case that changes.
+  const isSelf = authentication.active_entity_context.id === mp.entity;
 
   const joinServerProcess = () => {
     setisJoining(true);
@@ -128,14 +132,14 @@ function PublicServerItem({
                     </motion.div>
                   </div>
                 </button>
-              ) : (
+              ) : !isSelf ? (
                 <button
                   onClick={joinServerProcess}
                   className="cl-display-card__button cl-display-card__button--primary tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none tw-cursor-pointer"
                 >
                   Join
                 </button>
-              )}
+              ) : null}
             </div>
           </div>
         </div>
