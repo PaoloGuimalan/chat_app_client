@@ -241,10 +241,11 @@ function PostItem({
                 <span
                   className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                   onClick={() => {
-                    if (postState.entity.details) {
+                    if (postState.entity.type === "realm") {
                       navigate(`/${postState.entity.details.slug}`);
                       return;
                     }
+                    navigate(`/${postState.entity.details.username}`);
                   }}
                 >
                   {postState.entity.type !== "user" ? (
@@ -289,6 +290,10 @@ function PostItem({
                       <span
                         className="cl-feed-card__title tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                         onClick={() => {
+                          if (mptg.entity.type === "realm") {
+                            navigate(`/${mptg.entity.details.slug}`);
+                            return;
+                          }
                           navigate(`/${mptg.entity.details.username}`);
                         }}
                         key={i}
