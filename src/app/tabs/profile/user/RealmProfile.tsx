@@ -1,6 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 // import CachedImage from "@/app/reusables/cachers/CachedImage";
 import {
   AuthenticationInterface,
@@ -241,6 +240,7 @@ function RealmProfile({
         <ProfileCoverContainer
           userID={realmInfo.id}
           realm_id={realmInfo.realm_id}
+          realm_type={realmInfo.type}
           coverphoto={realmInfo.cover_photo}
           type="realm"
           isAllowed={realmInfo.is_admin}
@@ -250,6 +250,7 @@ function RealmProfile({
           <ProfilePicContainer
             userID={realmInfo.id}
             realm_id={realmInfo.realm_id}
+            realm_type={realmInfo.type}
             profile={realmInfo.profile}
             name={realmInfo.name}
             type="realm"

@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 function ProfileCoverContainer({
   userID,
   realm_id,
+  realm_type,
   coverphoto,
   type,
   isAllowed,
@@ -18,6 +19,7 @@ function ProfileCoverContainer({
 }: {
   userID: string;
   realm_id: string | null;
+  realm_type?: string | null;
   coverphoto: string | null;
   type: string;
   isAllowed: boolean;
@@ -133,6 +135,7 @@ function ProfileCoverContainer({
       {toggleUploadModal && (
         <UploadProfileMedia
           realm_id={realm_id}
+          realm_type={realm_type}
           type="cover_photo"
           onclose={settoggleUploadModal}
           getpostprocess={getpostprocess}

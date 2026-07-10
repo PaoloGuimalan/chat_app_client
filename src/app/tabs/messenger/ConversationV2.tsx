@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -30,13 +29,13 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
-  importData,
-  importNonImageData,
   isUserOnline,
   makeid,
   sanitizeForStorage,
   timeSince,
 } from "../../../reusables/hooks/reusable";
+import { pickFiles } from "../../../reusables/hooks/pickFiles";
+import { useDragAndDrop } from "../../../reusables/hooks/useDragAndDrop";
 import {
   CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
   CLOSE_MINIMIZED_CONVERSATION,
@@ -232,10 +231,10 @@ function ConversationV2({
     replyingTo: "",
   });
   const [isalreadytyping, setisalreadytyping] = useState<boolean>(false);
+  // base holds an object URL (from URL.createObjectURL(file)) for preview;
+  // file is the real File sent to the server. Revoke base on removal/send.
   const [imgList, setimgList] = useState<any[]>([]);
-  const [rawFilesList, setrawFilesList] = useState<any[]>([]);
   const [nonImgList, setnonImgList] = useState<any[]>([]);
-  const [nonImageRawFilesList, setnonImageRawFilesList] = useState<any[]>([]);
 
   const [page, setpage] = useState<number>(1);
   const [range, setrange] = useState<number>(20);
@@ -581,54 +580,36 @@ function ConversationV2({
     }
 
     if (imgList.length > 0 || nonImgList.length > 0) {
-      const pendingArrImages = [...imgList, ...nonImgList].map(
-        (mp: any, i: number) => ({
-          conversationID: conversationID,
-          pendingID: `${pendingID}_${i}`,
-          reference: mp.base,
-          referenceMediaType: mp.type,
-          type: mp.type,
-          name: mp.name,
-        }),
-      );
+      const combinedFiles = [...imgList, ...nonImgList];
+      const pendingArrImages = combinedFiles.map((mp: any, i: number) => ({
+        conversationID: conversationID,
+        pendingID: `${pendingID}_${i}`,
+        reference: mp.base,
+        referenceMediaType: mp.type,
+        type: mp.type,
+        name: mp.name,
+      }));
 
-      if (conversationsetup.conversationType == "single") {
-        addMultiplePendingMessage([
-          ...pendingArrImages.map((mp) => ({
-            ...mp,
-            content: mp.reference,
-            reference: null,
-          })),
-        ]);
-        SendFilesRequest({
-          conversationID: conversationID,
-          receivers: conversationinfo?.users.map((mp: any) => mp._id),
-          files: pendingArrImages,
-          isReply: isReplying.isReply,
-          replyingTo: isReplying.replyingTo,
-          conversationType: conversationType,
-        });
-      } else {
-        addMultiplePendingMessage([
-          ...pendingArrImages.map((mp) => ({
-            ...mp,
-            content: mp.reference,
-            reference: null,
-          })),
-        ]);
-        SendFilesRequest({
-          conversationID: conversationID,
-          receivers: conversationinfo?.users.map((mp: any) => mp._id),
-          files: pendingArrImages,
-          isReply: isReplying.isReply,
-          replyingTo: isReplying.replyingTo,
-          conversationType: conversationType,
-        });
-      }
+      addMultiplePendingMessage([
+        ...pendingArrImages.map((mp) => ({
+          ...mp,
+          content: mp.reference,
+          reference: null,
+        })),
+      ]);
+      SendFilesRequest({
+        conversationID: conversationID,
+        isReply: isReplying.isReply,
+        replyingTo: isReplying.replyingTo,
+        conversationType: conversationType,
+        files: combinedFiles.map((mp: any, i: number) => ({
+          file: mp.file,
+          pendingID: `${pendingID}_${i}`,
+        })),
+      });
+
       setimgList([]);
       setnonImgList([]);
-      setrawFilesList([]);
-      setnonImageRawFilesList([]);
     }
 
     setmessageValue("");
@@ -883,113 +864,67 @@ function ConversationV2({
     navigate,
   ]);
 
-  const sendImageProcess = () => {
-    importData(
-      (arr: any) => {
-        setimgList((prev: any) => [
-          ...prev,
-          {
-            id: prev.length + 1,
-            name: arr.name,
-            base: arr.data,
-            type: "image",
+  const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
+
+  const addFilesToComposer = (files: File[]) => {
+    const oversized = files.some((file) => file.size > MAX_ATTACHMENT_SIZE);
+    if (oversized) {
+      dispatch({
+        type: SET_MUTATE_ALERTS,
+        payload: {
+          alerts: {
+            type: "warning",
+            content: "Cannot upload files greater than 25mb",
           },
-        ]);
-      },
-      (rawFiles: any) => {
-        setrawFilesList((prev) => [
-          ...prev,
-          {
-            id: prev.length + 1,
-            name: rawFiles.name,
-            base: rawFiles.data,
-            type: "image",
-          },
-        ]);
-      },
-    );
+        },
+      });
+    }
+
+    files
+      .filter((file) => file.size <= MAX_ATTACHMENT_SIZE)
+      .forEach((file) => {
+        const entry = {
+          id: `${Date.now()}_${makeid(6)}`,
+          name: file.name,
+          base: URL.createObjectURL(file),
+          type: file.type.includes("image") ? "image" : file.type,
+          file,
+        };
+
+        if (file.type.includes("image")) {
+          setimgList((prev: any) => [...prev, entry]);
+        } else {
+          setnonImgList((prev: any) => [...prev, entry]);
+        }
+      });
   };
 
+  const sendImageProcess = async () => {
+    const files = await pickFiles({ accept: "image/*" });
+    addFilesToComposer(files);
+  };
+
+  const sendNonImageFilesProcess = async () => {
+    const files = await pickFiles({});
+    addFilesToComposer(files);
+  };
+
+  const { isDragging: isDraggingFiles, dragHandlers: composerDragHandlers } =
+    useDragAndDrop({
+      onFiles: addFilesToComposer,
+      disabled: isConversationDisabled,
+    });
+
   const removeSelectedPreview = (prevID: any) => {
-    const mutatedPrevArr = imgList.filter((flt) => flt.id != prevID);
-    const mutatedPrevRaw = rawFilesList.filter((flt) => flt.id != prevID);
-    setimgList(mutatedPrevArr);
-    setrawFilesList(mutatedPrevRaw);
+    const removed = imgList.find((flt) => flt.id == prevID);
+    if (removed?.base) URL.revokeObjectURL(removed.base);
+    setimgList(imgList.filter((flt) => flt.id != prevID));
   };
 
   const removeSelectedPreviewNonImg = (prevID: any) => {
-    const mutatedPrevArr = nonImgList.filter((flt) => flt.id != prevID);
-    const mutatedPrevRaw = nonImageRawFilesList.filter(
-      (flt) => flt.id != prevID,
-    );
-    setnonImgList(mutatedPrevArr);
-    setnonImageRawFilesList(mutatedPrevRaw);
-  };
-
-  const sendNonImageFilesProcess = () => {
-    importNonImageData(
-      (arr: any) => {
-        if (arr) {
-          if (arr.type.includes("image")) {
-            setimgList((prev: any) => [
-              ...prev,
-              {
-                id: prev.length + 1,
-                name: arr.name,
-                base: arr.data,
-                type: "image",
-              },
-            ]);
-          } else {
-            setnonImgList((prev: any) => [
-              ...prev,
-              {
-                id: prev.length + 1,
-                base: arr.data,
-                type: arr.type,
-                name: arr.name,
-              },
-            ]);
-          }
-        } else {
-          dispatch({
-            type: SET_MUTATE_ALERTS,
-            payload: {
-              alerts: {
-                type: "warning",
-                content: "Cannot upload files greater than 25mb",
-              },
-            },
-          });
-        }
-      },
-      (rawFiles: any) => {
-        if (rawFiles) {
-          if (rawFiles.type.includes("image")) {
-            setrawFilesList((prev) => [
-              ...prev,
-              {
-                id: prev.length + 1,
-                name: rawFiles.name,
-                base: rawFiles.data,
-                type: "image",
-              },
-            ]);
-          } else {
-            // console.log(rawFiles)
-            setnonImageRawFilesList((prev: any) => [
-              ...prev,
-              {
-                id: prev.length + 1,
-                base: rawFiles.data,
-                type: rawFiles.type,
-                name: rawFiles.name,
-              },
-            ]);
-          }
-        }
-      },
-    );
+    const removed = nonImgList.find((flt) => flt.id == prevID);
+    if (removed?.base) URL.revokeObjectURL(removed.base);
+    setnonImgList(nonImgList.filter((flt) => flt.id != prevID));
   };
 
   const messageTypeChecker: any = {
@@ -1353,11 +1288,26 @@ function ConversationV2({
                   : "10px",
           }}
           id="div_conversation_content_handler"
-          className={`tw-border-[0px] ${
+          className={`tw-border-[0px] tw-relative ${
             isMinimized &&
             "cl-conversation-window-shell tw-shadow-md tw-border-[1px] tw-border-[#dedede]"
           }`}
+          {...composerDragHandlers}
         >
+          {isDraggingFiles && (
+            <div
+              className="tw-absolute tw-inset-0 tw-z-50 tw-flex tw-items-center tw-justify-center tw-pointer-events-none"
+              style={{
+                background: "rgba(0,0,0,0.35)",
+                border: "2px dashed var(--text-2, #fff)",
+                borderRadius: "inherit",
+              }}
+            >
+              <span className="tw-text-white tw-text-[14px] tw-font-medium">
+                Drop files to attach
+              </span>
+            </div>
+          )}
           <motion.div
             initial={{
               paddingLeft:

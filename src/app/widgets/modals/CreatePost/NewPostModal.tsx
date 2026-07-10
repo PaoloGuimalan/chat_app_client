@@ -2,7 +2,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Modal from "@/app/reusables/Modal";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
-import { importNonImageData } from "@/reusables/hooks/reusable";
+import { pickFiles } from "@/reusables/hooks/pickFiles";
+import { useDragAndDrop } from "@/reusables/hooks/useDragAndDrop";
 import { useState } from "react";
 import { BsFileEarmarkPost, BsPinMapFill } from "react-icons/bs";
 import { FaGlobeAsia } from "react-icons/fa";
@@ -10,7 +11,7 @@ import { FaUserTag } from "react-icons/fa6";
 import { MdAddToPhotos } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import PostMediaPreview from "./PostMediaPreview";
-import { CreatePostRequest } from "@/reusables/hooks/requests";
+import { CreatePostRequest, UploadMediaRequest } from "@/reusables/hooks/requests";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { BiSolidImageAdd } from "react-icons/bi";
@@ -39,92 +40,77 @@ export function NewPostModal({
 
   const [mainpostcaption, setmainpostcaption] = useState<string>("");
   const [_, setcurrenttab] = useState<string>("content"); //currenttab
-  const [__, setrawmedialist] = useState<any[]>([]); //rawmedialist
   const [medialist, setmedialist] = useState<any[]>([]);
   const [taggedList, ___] = useState<string[]>([]);
   const dispatch = useDispatch();
 
-  const sendNonImageFilesProcess = () => {
-    importNonImageData(
-      (arr: any) => {
-        if (arr) {
-          if (arr.type.includes("image")) {
-            setmedialist((prev: any) => [
-              ...prev,
-              {
-                id: prev.length + 1,
-                name: arr.name,
-                reference: arr.data,
-                caption: "",
-                referenceMediaType: "image",
-              },
-            ]);
-          } else if (arr.type.includes("video")) {
-            setmedialist((prev: any) => [
-              ...prev,
-              {
-                id: prev.length + 1,
-                name: arr.name,
-                reference: arr.data,
-                caption: "",
-                referenceMediaType: "video",
-              },
-            ]);
-          } else {
-            dispatch({
-              type: SET_MUTATE_ALERTS,
-              payload: {
-                alerts: {
-                  type: "warning",
-                  content: "Photos and Videos are only allowed",
-                },
-              },
-            });
-          }
-        } else {
-          dispatch({
-            type: SET_MUTATE_ALERTS,
-            payload: {
-              alerts: {
-                type: "warning",
-                content: "Cannot upload files greater than 25mb",
-              },
-            },
-          });
-        }
-      },
-      (rawFiles: any) => {
-        if (rawFiles) {
-          if (rawFiles.type.includes("image")) {
-            setrawmedialist((prev) => [
-              ...prev,
-              {
-                id: prev.length + 1,
-                name: rawFiles.name,
-                reference: rawFiles.data,
-                caption: "",
-                referenceMediaType: "image",
-              },
-            ]);
-          } else if (rawFiles.type.includes("video")) {
-            // console.log(rawFiles)
-            setrawmedialist((prev: any) => [
-              ...prev,
-              {
-                id: prev.length + 1,
-                name: rawFiles.name,
-                reference: rawFiles.data,
-                caption: "",
-                referenceMediaType: "video",
-              },
-            ]);
-          }
-        }
-      },
+  const MAX_MEDIA_SIZE = 25 * 1024 * 1024;
+
+  const addMediaFiles = (files: File[]) => {
+    const rejected = files.filter(
+      (file) => !file.type.includes("image") && !file.type.includes("video"),
     );
+    if (rejected.length > 0) {
+      dispatch({
+        type: SET_MUTATE_ALERTS,
+        payload: {
+          alerts: {
+            type: "warning",
+            content: "Photos and Videos are only allowed",
+          },
+        },
+      });
+    }
+
+    const oversized = files.some((file) => file.size > MAX_MEDIA_SIZE);
+    if (oversized) {
+      dispatch({
+        type: SET_MUTATE_ALERTS,
+        payload: {
+          alerts: {
+            type: "warning",
+            content: "Cannot upload files greater than 25mb",
+          },
+        },
+      });
+    }
+
+    files
+      .filter(
+        (file) =>
+          (file.type.includes("image") || file.type.includes("video")) &&
+          file.size <= MAX_MEDIA_SIZE,
+      )
+      .forEach((file) => {
+        setmedialist((prev: any) => [
+          ...prev,
+          {
+            id: prev.length + 1,
+            name: file.name,
+            reference: URL.createObjectURL(file),
+            caption: "",
+            referenceMediaType: file.type.includes("image")
+              ? "image"
+              : "video",
+            file,
+          },
+        ]);
+      });
   };
 
-  const CreatePostProcess = () => {
+  const sendNonImageFilesProcess = async () => {
+    const files = await pickFiles({ accept: "image/*,video/*" });
+    addMediaFiles(files);
+  };
+
+  const { isDragging: isDraggingMedia, dragHandlers: mediaDragHandlers } =
+    useDragAndDrop({
+      onFiles: addMediaFiles,
+      accept: "image/*,video/*",
+      disabled: isuploadingpost,
+    });
+
+  const CreatePostProcess = async () => {
     if (toShare || mainpostcaption.trim() !== "" || medialist.length > 0) {
       setisuploadingpost(true);
       const validatedTaggedList =
@@ -134,68 +120,100 @@ export function NewPostModal({
             ? [...taggedList]
             : [profileInfo?.entityID, ...taggedList]; //this taggedlist needs to be in username format, not id
 
-      // console.log(validatedTaggedList);
+      try {
+        let uploadedReferences: any[] = [];
 
-      CreatePostRequest({
-        content: {
-          isShared: toShare,
-          references: toShare
-            ? [
-                {
-                  id: 1,
-                  name: null,
-                  reference: sharePreviewData.post_id,
-                  caption: "",
-                  referenceMediaType: "shared_post",
-                },
-              ]
-            : medialist,
-          data: mainpostcaption,
-        },
-        type: {
-          fileType: toShare
-            ? "shared_post"
-            : medialist.length > 0
-              ? "media"
-              : "text", //text, image, video, file
-          contentType: toShare
-            ? "shared_post"
-            : medialist.length > 0
-              ? "media"
-              : "text", //text, image, video
-        },
-        tagging: {
-          isTagged: validatedTaggedList.length > 0 ? true : false,
-          users: validatedTaggedList,
-        },
-        privacy: {
-          status: "public",
-          users: [], //userID for filteration depending on status
-        }, //public, friends, filtered
-        onfeed: "feed",
-        otherEntityID: otherEntityID,
-      })
-        .then((response: any) => {
-          if (response.data.status) {
-            // console.log(response.data);
-            onclose(false);
-            setisuploadingpost(false);
-            setcreateposttext("");
-            dispatch({
-              type: SET_MUTATE_ALERTS,
-              payload: {
-                alerts: {
-                  type: "success",
-                  content: "Your post has been saved",
-                },
-              },
-            });
-            getpostprocess();
-          }
-        })
-        .catch((err: any) => {
-          console.log(err);
+        if (!toShare && medialist.length > 0) {
+          const uploadResponse: any = await UploadMediaRequest(
+            medialist.map((mp) => ({
+              file: mp.file,
+              caption: mp.caption,
+              referenceMediaType: mp.referenceMediaType,
+            })),
+          );
+
+          uploadedReferences = uploadResponse.data.result.map(
+            (mp: any, i: number) => ({
+              id: i + 1,
+              name: mp.fileName,
+              reference: mp.fileDetails.data,
+              caption: medialist[i]?.caption || "",
+              referenceMediaType: mp.fileType,
+            }),
+          );
+        }
+
+        const response: any = await CreatePostRequest({
+          content: {
+            isShared: toShare,
+            references: toShare
+              ? [
+                  {
+                    id: 1,
+                    name: null,
+                    reference: sharePreviewData.post_id,
+                    caption: "",
+                    referenceMediaType: "shared_post",
+                  },
+                ]
+              : uploadedReferences,
+            data: mainpostcaption,
+          },
+          type: {
+            fileType: toShare
+              ? "shared_post"
+              : medialist.length > 0
+                ? "media"
+                : "text", //text, image, video, file
+            contentType: toShare
+              ? "shared_post"
+              : medialist.length > 0
+                ? "media"
+                : "text", //text, image, video
+          },
+          tagging: {
+            isTagged: validatedTaggedList.length > 0 ? true : false,
+            users: validatedTaggedList,
+          },
+          privacy: {
+            status: "public",
+            users: [], //userID for filteration depending on status
+          }, //public, friends, filtered
+          onfeed: "feed",
+          otherEntityID: otherEntityID,
         });
+
+        if (response.data.status) {
+          medialist.forEach((mp) => URL.revokeObjectURL(mp.reference));
+          onclose(false);
+          setisuploadingpost(false);
+          setcreateposttext("");
+          dispatch({
+            type: SET_MUTATE_ALERTS,
+            payload: {
+              alerts: {
+                type: "success",
+                content: "Your post has been saved",
+              },
+            },
+          });
+          getpostprocess();
+        } else {
+          setisuploadingpost(false);
+        }
+      } catch (err: any) {
+        console.log(err);
+        setisuploadingpost(false);
+        dispatch({
+          type: SET_MUTATE_ALERTS,
+          payload: {
+            alerts: {
+              type: "warning",
+              content: "Failed to create post, please try again",
+            },
+          },
+        });
+      }
     } else {
       dispatch({
         type: SET_MUTATE_ALERTS,
@@ -290,7 +308,6 @@ export function NewPostModal({
                             <PostMediaPreview
                               key={mp.id}
                               mp={mp}
-                              setrawmedialist={setrawmedialist}
                               setmedialist={setmedialist}
                             />
                           );
@@ -299,13 +316,18 @@ export function NewPostModal({
                         onClick={() => {
                           sendNonImageFilesProcess();
                         }}
-                        className="cl-create-post-dropzone tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-border-dashed tw-items-center tw-justify-center"
+                        {...mediaDragHandlers}
+                        className={`cl-create-post-dropzone tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-border-dashed tw-items-center tw-justify-center ${
+                          isDraggingMedia ? "tw-border-[var(--brand)]" : ""
+                        }`}
                       >
                         <MdAddToPhotos
                           style={{ fontSize: "20px", color: "var(--text-2)" }}
                         />
                         <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text-2)]">
-                          Add a Photo or Video
+                          {isDraggingMedia
+                            ? "Drop to attach"
+                            : "Drag & drop a Photo or Video, or click to browse"}
                         </span>
                       </div>
                     </div>
@@ -314,14 +336,24 @@ export function NewPostModal({
                       onClick={() => {
                         sendNonImageFilesProcess();
                       }}
-                      className="cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-border-dashed tw-items-center tw-justify-center"
+                      {...mediaDragHandlers}
+                      className={`cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-border-dashed tw-items-center tw-justify-center ${
+                        isDraggingMedia ? "tw-border-[var(--brand)]" : ""
+                      }`}
                     >
                       <MdAddToPhotos
                         style={{ fontSize: "60px", color: "var(--text-2)" }}
                       />
                       <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text-2)]">
-                        Add a Photo or Video
+                        {isDraggingMedia
+                          ? "Drop to attach"
+                          : "Drag & drop photos or videos here"}
                       </span>
+                      {!isDraggingMedia && (
+                        <span className="tw-text-[12px] tw-font-normal tw-text-[var(--text-2)]">
+                          or click to browse
+                        </span>
+                      )}
                     </div>
                   )}
                 </div>

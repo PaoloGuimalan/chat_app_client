@@ -575,9 +575,12 @@ export interface IPageModal {
 export interface IPendingEntryAttachment {
   id: number;
   name: string | null;
+  /** Object URL (URL.createObjectURL(file)) used for local preview only. */
   reference: any;
   caption: string;
   referenceMediaType: string;
+  /** Real File sent to the server on save. */
+  file: File;
 }
 
 export interface IEntryAttachment {

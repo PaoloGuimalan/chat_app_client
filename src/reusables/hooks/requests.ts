@@ -1137,31 +1137,33 @@ const SendMessageRequest = (params: any) => {
     });
 };
 
-const SendFilesRequest = (params: any) => {
-  const payload = params;
-  const encodedPayload = sign(payload, SECRET);
+const SendFilesRequest = async (params: {
+  conversationID: string;
+  isReply: boolean;
+  replyingTo: string | null;
+  conversationType: string | undefined;
+  files: { file: File; pendingID: string }[];
+}) => {
+  const formData = new FormData();
+  formData.append("conversationID", params.conversationID);
+  formData.append("isReply", String(!!params.isReply));
+  formData.append("replyingTo", params.replyingTo || "");
+  formData.append("conversationType", params.conversationType || "");
+  formData.append(
+    "pendingIDs",
+    JSON.stringify(params.files.map((f) => f.pendingID)),
+  );
+  params.files.forEach((f) => formData.append("files", f.file, f.file.name));
 
-  Axios.post(
-    `${API}/u/sendFiles`,
-    {
-      token: encodedPayload,
+  return await Axios.post(`${API}/u/sendFiles`, formData, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
     },
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
-    },
-  )
-    .then((response) => {
-      if (response.data.status) {
-        // console.log(response.data)
-      } else {
-        // console.log(response.data.message)
-      }
-      // setmessageValue("")
-    })
+  })
+    .then((response) => response)
     .catch((err) => {
       console.log(err);
+      throw new Error(err);
     });
 };
 
@@ -1652,18 +1654,25 @@ const CreatePostRequest = async (payload: any) => {
     });
 };
 
-const UploadMediaRequest = async (payload: any) => {
-  const rawpayload = payload;
+const UploadMediaRequest = async (
+  files: { file: File; caption?: string; referenceMediaType?: string }[],
+) => {
+  const formData = new FormData();
+  files.forEach((f) => formData.append("media", f.file, f.file.name));
+  formData.append(
+    "captions",
+    JSON.stringify(files.map((f) => f.caption || "")),
+  );
+  formData.append(
+    "referenceMediaTypes",
+    JSON.stringify(files.map((f) => f.referenceMediaType || f.file.type)),
+  );
 
-  return await Axios.post(
-    `${API}/posts/upload`,
-    { references: rawpayload },
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
+  return await Axios.post(`${API}/posts/upload`, formData, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
     },
-  )
+  })
     .then((response) => {
       return response;
     })

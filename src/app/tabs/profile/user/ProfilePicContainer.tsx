@@ -11,6 +11,7 @@ import { useSelector } from "react-redux";
 function ProfilePicContainer({
   userID,
   realm_id,
+  realm_type,
   profile,
   name,
   type,
@@ -19,6 +20,7 @@ function ProfilePicContainer({
 }: {
   userID: string;
   realm_id: string | null;
+  realm_type?: string | null;
   profile: string | null;
   name?: string;
   type: string;
@@ -100,6 +102,7 @@ function ProfilePicContainer({
       {toggleUploadModal && (
         <UploadProfileMedia
           realm_id={realm_id}
+          realm_type={realm_type}
           type="profile"
           onclose={settoggleUploadModal}
           getpostprocess={getpostprocess}

@@ -8,19 +8,26 @@ import { useState } from "react";
 import { MdAddToPhotos } from "react-icons/md";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { useDispatch } from "react-redux/es/hooks/useDispatch";
-import { importNonImageData } from "@/reusables/hooks/reusable";
+import { pickFiles } from "@/reusables/hooks/pickFiles";
+import { useDragAndDrop } from "@/reusables/hooks/useDragAndDrop";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { FaGlobeAsia } from "react-icons/fa";
-import { CreatePostRequest } from "@/reusables/hooks/requests";
+import {
+  CreatePostRequest,
+  UpdateRealmMediaRequest,
+  UploadMediaRequest,
+} from "@/reusables/hooks/requests";
 
 function UploadProfileMedia({
   realm_id,
+  realm_type,
   type,
   getpostprocess,
   onclose,
 }: {
   realm_id: string | null;
-  type: string;
+  realm_type?: string | null;
+  type: "profile" | "cover_photo";
   onclose: (state: boolean) => void;
   getpostprocess: () => void;
 }) {
@@ -29,108 +36,166 @@ function UploadProfileMedia({
 
   const [_, setcurrenttab] = useState<string>("content"); //currenttab
   const [medialist, setmedialist] = useState<any>(null);
-  const [__, setrawmedialist] = useState<any>(null);
   const dispatch = useDispatch();
 
-  const sendNonImageFilesProcess = () => {
-    importNonImageData(
-      (arr: any) => {
-        if (arr) {
-          if (arr.type.includes("image")) {
-            setmedialist({
-              id: 1,
-              name: arr.name,
-              reference: arr.data,
-              caption: "",
-              referenceMediaType: "image",
-            });
-          } else {
-            dispatch({
-              type: SET_MUTATE_ALERTS,
-              payload: {
-                alerts: {
-                  type: "warning",
-                  content: "Photos are only allowed",
-                },
-              },
-            });
-          }
-        } else {
-          dispatch({
-            type: SET_MUTATE_ALERTS,
-            payload: {
-              alerts: {
-                type: "warning",
-                content: "Cannot upload files greater than 25mb",
-              },
-            },
-          });
-        }
-      },
-      (rawFiles: any) => {
-        if (rawFiles) {
-          if (rawFiles.type.includes("image")) {
-            setrawmedialist({
-              id: 1,
-              name: rawFiles.name,
-              reference: rawFiles.data,
-              caption: "",
-              referenceMediaType: "image",
-            });
-          }
-        }
-      },
-    );
+  const addMediaFile = (files: File[]) => {
+    const file = files[0];
+    if (!file) return;
+
+    if (!file.type.includes("image")) {
+      dispatch({
+        type: SET_MUTATE_ALERTS,
+        payload: {
+          alerts: { type: "warning", content: "Photos are only allowed" },
+        },
+      });
+      return;
+    }
+
+    if (file.size > 25 * 1024 * 1024) {
+      dispatch({
+        type: SET_MUTATE_ALERTS,
+        payload: {
+          alerts: {
+            type: "warning",
+            content: "Cannot upload files greater than 25mb",
+          },
+        },
+      });
+      return;
+    }
+
+    if (medialist?.reference) URL.revokeObjectURL(medialist.reference);
+
+    setmedialist({
+      id: 1,
+      name: file.name,
+      reference: URL.createObjectURL(file),
+      caption: "",
+      referenceMediaType: "image",
+      file,
+    });
   };
 
-  const CreatePostProcess = () => {
+  const sendNonImageFilesProcess = async () => {
+    const files = await pickFiles({ accept: "image/*", multiple: false });
+    addMediaFile(files);
+  };
+
+  const { isDragging: isDraggingMedia, dragHandlers: mediaDragHandlers } =
+    useDragAndDrop({
+      onFiles: addMediaFile,
+      accept: "image/*",
+      disabled: isuploadingpost,
+    });
+
+  const CreatePostProcess = async () => {
     if (medialist) {
       setisuploadingpost(true);
-      const validatedTaggedList: any[] = [];
 
-      // console.log(validatedTaggedList);
+      try {
+        if (realm_id) {
+          // Page/Group/Server media: already on the multipart pattern,
+          // untouched by this migration.
+          const response: any = await UpdateRealmMediaRequest({
+            realm_id,
+            realm_type: realm_type || "",
+            media_type: type,
+            image: medialist.file,
+          });
 
-      CreatePostRequest({
-        content: {
-          isShared: false,
-          references: [medialist],
-          data: mainpostcaption,
-        },
-        type: {
-          fileType: "media", //text, image, video, file
-          contentType: type, //text, image, video
-        },
-        tagging: {
-          isTagged: validatedTaggedList.length > 0 ? true : false,
-          users: validatedTaggedList,
-        },
-        privacy: {
-          status: "public",
-          users: [], //userID for filteration depending on status
-        }, //public, friends, filtered
-        onfeed: "feed",
-        realm_id: realm_id ? realm_id : null,
-      })
-        .then((response: any) => {
-          if (response.data.status) {
-            // console.log(response.data);
+          if (response && response.status) {
+            URL.revokeObjectURL(medialist.reference);
             onclose(false);
             setisuploadingpost(false);
             dispatch({
               type: SET_MUTATE_ALERTS,
               payload: {
-                alerts: {
-                  type: "success",
-                  content: "Your post has been saved",
-                },
+                alerts: { type: "success", content: "Upload successful" },
               },
             });
             getpostprocess();
+          } else {
+            setisuploadingpost(false);
           }
-        })
-        .catch((err: any) => {
-          console.log(err);
+          return;
+        }
+
+        // Personal profile/cover photo: upload the file first (multipart),
+        // then create the post via the existing content_type
+        // "profile"|"cover_photo" path, which already updates
+        // user_account.profile/coverphoto AND creates the feed post - same
+        // two-step pattern Create Post uses.
+        const uploadResponse: any = await UploadMediaRequest([
+          {
+            file: medialist.file,
+            caption: mainpostcaption,
+            referenceMediaType: medialist.referenceMediaType,
+          },
+        ]);
+
+        const uploaded = uploadResponse.data.result[0];
+
+        const response: any = await CreatePostRequest({
+          content: {
+            isShared: false,
+            references: [
+              {
+                id: 1,
+                name: uploaded.fileName,
+                reference: uploaded.fileDetails.data,
+                caption: "",
+                referenceMediaType: uploaded.fileType,
+              },
+            ],
+            data: mainpostcaption,
+          },
+          type: {
+            fileType: "media", //text, image, video, file
+            contentType: type, //text, image, video
+          },
+          tagging: {
+            isTagged: false,
+            users: [],
+          },
+          privacy: {
+            status: "public",
+            users: [], //userID for filteration depending on status
+          }, //public, friends, filtered
+          onfeed: "feed",
+          realm_id: null,
         });
+
+        if (response.data.status) {
+          URL.revokeObjectURL(medialist.reference);
+          onclose(false);
+          setisuploadingpost(false);
+          dispatch({
+            type: SET_MUTATE_ALERTS,
+            payload: {
+              alerts: {
+                type: "success",
+                content: "Your post has been saved",
+              },
+            },
+          });
+          getpostprocess();
+        } else {
+          setisuploadingpost(false);
+        }
+      } catch (err: any) {
+        console.log(err);
+        setisuploadingpost(false);
+        dispatch({
+          type: SET_MUTATE_ALERTS,
+          payload: {
+            alerts: {
+              type: "warning",
+              content: "Failed to upload, please try again",
+            },
+          },
+        });
+      }
     } else {
       dispatch({
         type: SET_MUTATE_ALERTS,
@@ -196,20 +261,30 @@ function UploadProfileMedia({
                     onClick={() => {
                       sendNonImageFilesProcess();
                     }}
-                    className="cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-border-dashed tw-items-center tw-justify-center"
+                    {...mediaDragHandlers}
+                    className={`cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-border-dashed tw-items-center tw-justify-center ${
+                      isDraggingMedia ? "tw-border-[var(--brand)]" : ""
+                    }`}
                   >
                     <MdAddToPhotos
                       style={{ fontSize: "60px", color: "var(--text-2)" }}
                     />
                     <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text-2)]">
-                      Select a Photo
+                      {isDraggingMedia
+                        ? "Drop to select"
+                        : "Drag & drop a Photo here"}
                     </span>
+                    {!isDraggingMedia && (
+                      <span className="tw-text-[12px] tw-font-normal tw-text-[var(--text-2)]">
+                        or click to browse
+                      </span>
+                    )}
                   </div>
                 ) : (
                   <div className="cl-create-post-media-card tw-w-full">
                     <button
                       onClick={() => {
-                        setrawmedialist(null);
+                        URL.revokeObjectURL(medialist.reference);
                         setmedialist(null);
                       }}
                       className="btn_remove_preview tw-relative tw--mb-[32px] tw-w-[22px] tw-h-[22px]"
