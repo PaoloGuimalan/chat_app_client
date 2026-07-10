@@ -36,6 +36,8 @@ import {
 } from "../../../reusables/hooks/reusable";
 import { pickFiles } from "../../../reusables/hooks/pickFiles";
 import { useDragAndDrop } from "../../../reusables/hooks/useDragAndDrop";
+import { useLinkPreview } from "../../../reusables/hooks/useLinkPreview";
+import LinkPreviewCard from "../../reusables/LinkPreviewCard";
 import {
   CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
   CLOSE_MINIMIZED_CONVERSATION,
@@ -574,6 +576,7 @@ function Conversation({
     }
 
     setmessageValue("");
+    linkPreview.dismiss();
     setisReplying({
       isReply: false,
       replyingTo: "",
@@ -863,6 +866,11 @@ function Conversation({
       onFiles: addFilesToComposer,
       disabled: isConversationDisabled,
     });
+
+  const linkPreview = useLinkPreview({
+    text: messageValue,
+    enabled: !isConversationDisabled,
+  });
 
   const removeSelectedPreview = (prevID: any) => {
     const removed = imgList.find((flt) => flt.id == prevID);
@@ -2216,6 +2224,36 @@ function Conversation({
                 </div>
               );
             })}
+          </motion.div>
+          <motion.div
+            initial={{
+              height: "0px",
+              paddingTop: "0px",
+              paddingBottom: "0px",
+            }}
+            animate={{
+              height:
+                linkPreview.status === "ok" && linkPreview.preview
+                  ? "auto"
+                  : "0px",
+              paddingTop:
+                linkPreview.status === "ok" && linkPreview.preview
+                  ? "10px"
+                  : "0px",
+              paddingBottom:
+                linkPreview.status === "ok" && linkPreview.preview
+                  ? "10px"
+                  : "0px",
+            }}
+            className="tw-w-full tw-overflow-hidden tw-px-[10px]"
+          >
+            {linkPreview.status === "ok" && linkPreview.preview && (
+              <LinkPreviewCard
+                preview={linkPreview.preview}
+                variant="composer"
+                onRemove={linkPreview.dismiss}
+              />
+            )}
           </motion.div>
           <div id="div_send_controls">
             {conversationType !== "conference" && (

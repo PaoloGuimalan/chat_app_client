@@ -26,6 +26,7 @@ import PostEmojis from "@/app/reusables/PostEmojis";
 import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
 import PostComment from "@/app/widgets/items/PostComment";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { timeSince } from "@/reusables/hooks/reusable";
 import { persistViewPosts } from "@/reusables/hooks/localforagehelper";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
@@ -378,6 +379,9 @@ function PostItem({
                 {postState.caption}
               </span>
             </div>
+            {postState.link_preview && (
+              <LinkPreviewCard preview={postState.link_preview} variant="display" />
+            )}
             {minimizedCaption && (
               <button
                 onClick={() => {
@@ -667,6 +671,12 @@ function PostItem({
                             {postState.caption}
                           </span>
                         </div>
+                        {postState.link_preview && (
+                          <LinkPreviewCard
+                            preview={postState.link_preview}
+                            variant="display"
+                          />
+                        )}
                         {minimizedCaption && (
                           <button
                             onClick={() => {

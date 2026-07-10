@@ -12,8 +12,10 @@ import EmojiPickerHandler from "./EmojiPickerHandler";
 import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal";
 import { timeSince, urlify } from "@/reusables/hooks/reusable";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useTheme } from "@/reusables/design";
+import DOMPurify from "dompurify";
 
 const escapeHtml = (value: string) =>
   value
@@ -56,7 +58,7 @@ const formatConversationHtml = (content: string, members: any[]) => {
     );
   }
 
-  return urlify(formatted);
+  return DOMPurify.sanitize(urlify(formatted));
 };
 
 function ContentHandler({
@@ -398,6 +400,11 @@ function ContentHandler({
                     : "var(--text)",
                 // marginLeft: cnvs.sender == authentication.user.entity_id? "auto" : "0px"
               }}
+              style={
+                cnvs.linkPreview?.embed_layout === "portrait"
+                  ? { width: "380px" }
+                  : undefined
+              }
               className="span_messages_result c1 cl-message-bubble cl-message-bubble--text tw-mb-[7px] tw-flex tw-flex-col tw-gap-[2px]"
             >
               <span
@@ -406,6 +413,9 @@ function ContentHandler({
                   __html: formatConversationHtml(cnvs.content, members ?? []),
                 }}
               />
+              {cnvs.linkPreview && (
+                <LinkPreviewCard preview={cnvs.linkPreview} variant="display" />
+              )}
               <span
                 className={`cl-message-time ${
                   cnvs.sender == authentication.user.entity_id

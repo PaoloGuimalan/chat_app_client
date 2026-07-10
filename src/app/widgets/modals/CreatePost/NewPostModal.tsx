@@ -4,6 +4,8 @@ import Modal from "@/app/reusables/Modal";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { pickFiles } from "@/reusables/hooks/pickFiles";
 import { useDragAndDrop } from "@/reusables/hooks/useDragAndDrop";
+import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
+import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { useState } from "react";
 import { BsFileEarmarkPost, BsPinMapFill } from "react-icons/bs";
 import { FaGlobeAsia } from "react-icons/fa";
@@ -110,6 +112,11 @@ export function NewPostModal({
       disabled: isuploadingpost,
     });
 
+  const linkPreview = useLinkPreview({
+    text: mainpostcaption,
+    enabled: !toShare && !isuploadingpost,
+  });
+
   const CreatePostProcess = async () => {
     if (toShare || mainpostcaption.trim() !== "" || medialist.length > 0) {
       setisuploadingpost(true);
@@ -185,6 +192,7 @@ export function NewPostModal({
 
         if (response.data.status) {
           medialist.forEach((mp) => URL.revokeObjectURL(mp.reference));
+          linkPreview.dismiss();
           onclose(false);
           setisuploadingpost(false);
           setcreateposttext("");
@@ -295,6 +303,13 @@ export function NewPostModal({
                 className="cl-create-post-textarea tw-font-inter thinscroller tw-font-Inter"
                 placeholder="Type your caption"
               />
+              {!toShare && linkPreview.status === "ok" && linkPreview.preview && (
+                <LinkPreviewCard
+                  preview={linkPreview.preview}
+                  variant="composer"
+                  onRemove={linkPreview.dismiss}
+                />
+              )}
               {iswithImage && (
                 <div className="cl-create-post-attachments">
                   {medialist.length > 0 ? (

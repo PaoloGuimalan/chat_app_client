@@ -370,6 +370,8 @@ export interface IPost {
   from_system: boolean;
   deleted_at: string | null | boolean;
   deleted_by: string | null | boolean;
+  /** SerializerMethodField from newsfeed/serializers.py, see useLinkPreview's LinkPreviewData */
+  link_preview?: any | null;
 }
 
 export interface IFlexibleEntity {
@@ -540,6 +542,8 @@ export interface IPostComment {
   comment_id: string;
   text: string;
   attachment: string | null;
+  /** SerializerMethodField from newsfeed/serializers.py, see useLinkPreview's LinkPreviewData */
+  link_preview?: any | null;
   created_at: string; // ISO DateTime string
   updated_at: string | null;
   deleted_at: string | null;
@@ -640,6 +644,8 @@ export interface IEntry {
   tag_objects: IEntryTag[];
   attachments: IEntryViewAttachment[];
   entry_map_info: null;
+  /** SerializerMethodField from diary/serializers.py, see useLinkPreview's LinkPreviewData */
+  link_preview?: any | null;
   created_at: string;
   updated_at: string;
 }

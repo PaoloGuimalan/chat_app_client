@@ -1,5 +1,4 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { GetEntryRequest } from "@/reusables/hooks/requests";
 import {
@@ -16,6 +15,8 @@ import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { formattedDateToWords } from "@/reusables/hooks/reusable";
 import UploadedAttachment from "./UploadedAttachment";
+import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
+import DOMPurify from "dompurify";
 
 function EntryView() {
   const screensizelistener = useSelector(
@@ -114,11 +115,19 @@ function EntryView() {
                   </div>
                 </div>
               )}
-              <div className="tw-min-h-[300px] tw-w-full tw-flex-1 tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[12px] tw-pt-[0px] tw-rounded-[var(--r-md)]">
+              <div className="tw-min-h-[300px] tw-w-full tw-flex-1 tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[12px] tw-pt-[0px] tw-rounded-[var(--r-md)] tw-flex tw-flex-col tw-gap-[12px]">
                 <div
                   className="tw-text-[14px] tw-text-left tw-text-[var(--text)]"
-                  dangerouslySetInnerHTML={{ __html: currentEntry.content }}
+                  dangerouslySetInnerHTML={{
+                    __html: DOMPurify.sanitize(currentEntry.content),
+                  }}
                 />
+                {currentEntry.link_preview && (
+                  <LinkPreviewCard
+                    preview={currentEntry.link_preview}
+                    variant="display"
+                  />
+                )}
               </div>
               <motion.div
                 initial={{

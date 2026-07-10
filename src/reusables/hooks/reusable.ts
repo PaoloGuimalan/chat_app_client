@@ -159,9 +159,10 @@ function formattedDateToWords(formattedDate: string, format?: string) {
   return finalDateToWords;
 }
 
+const URL_REGEX = /(https?:\/\/[^\s]+)/g;
+
 function urlify(text: string) {
-  const urlRegex = /(https?:\/\/[^\s]+)/g;
-  return text.replace(urlRegex, function (url) {
+  return text.replace(URL_REGEX, function (url) {
     return (
       '<a href="' +
       url +
@@ -172,6 +173,54 @@ function urlify(text: string) {
   });
   // or alternatively
   // return text.replace(urlRegex, '<a href="$1">$1</a>')
+}
+
+// Strips sentence-ending punctuation a regex match commonly drags in from
+// surrounding prose (e.g. "check this out: https://example.com."). A
+// trailing ')' is only stripped when unbalanced - URLs legitimately
+// contain parens (e.g. Wikipedia's .../Python_(programming_language)), so
+// an equal-or-more count of '(' means the ')' belongs to the URL. Mirrors
+// newsfeed/services/link_preview.py's _trim_trailing_punctuation on the
+// Django side - keep both in sync.
+function trimTrailingUrlPunctuation(url: string): string {
+  let trimmed = url.replace(/[.,!?;:"']+$/, "");
+  while (
+    trimmed.endsWith(")") &&
+    (trimmed.match(/\(/g) || []).length < (trimmed.match(/\)/g) || []).length
+  ) {
+    trimmed = trimmed.slice(0, -1).replace(/[.,!?;:"']+$/, "");
+  }
+  return trimmed;
+}
+
+// v1 scope: first URL only per message/caption/comment/entry - mirrors
+// newsfeed/services/link_preview.py's extract_first_url on the Django side.
+function extractFirstUrl(text: string): string | null {
+  if (!text) return null;
+  const match = text.match(URL_REGEX);
+  if (!match) return null;
+  return trimTrailingUrlPunctuation(match[0]);
+}
+
+// Same v1 scope, but for HTML content (diary's Quill-generated entries)
+// rather than plain text - mirrors extract_first_url_from_html on the
+// Django side. Prefers an anchor's href (Quill auto-links pasted URLs into
+// <a href="...">display text</a>, and the href is authoritative even when
+// the visible text differs), falling back to scanning the stripped text
+// for anything typed but never auto-linked.
+function extractFirstUrlFromHtml(html: string): string | null {
+  if (!html) return null;
+
+  const doc = new DOMParser().parseFromString(html, "text/html");
+  const anchor = Array.from(doc.querySelectorAll("a[href]")).find((a) =>
+    /^https?:\/\//.test(a.getAttribute("href") || ""),
+  );
+
+  if (anchor) {
+    return trimTrailingUrlPunctuation(anchor.getAttribute("href") as string);
+  }
+
+  return extractFirstUrl(doc.body.textContent || "");
 }
 
 function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
@@ -586,6 +635,8 @@ export {
   formattedDateToWords,
   ordinal_suffix_of,
   urlify,
+  extractFirstUrl,
+  extractFirstUrlFromHtml,
   convertLoginResponse,
   contactsToUserdetails,
   monthNameToNumber,

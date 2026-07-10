@@ -24,9 +24,15 @@ import { AsyncPaginate } from "react-select-async-paginate";
 import DatePicker from "react-datepicker";
 import "react-datepicker/dist/react-datepicker.css";
 import CustomTagItem from "./CustomTagItem";
-import { formatToDjangoDate, parseDjangoDate } from "@/reusables/hooks/reusable";
+import {
+  formatToDjangoDate,
+  parseDjangoDate,
+  extractFirstUrlFromHtml,
+} from "@/reusables/hooks/reusable";
 import { pickFiles } from "@/reusables/hooks/pickFiles";
 import { useDragAndDrop } from "@/reusables/hooks/useDragAndDrop";
+import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
+import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
@@ -87,6 +93,16 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
   });
 
   const [isSaving, setisSaving] = useState<boolean>(false);
+
+  const linkPreviewComposerText = useMemo(
+    () => extractFirstUrlFromHtml(newEntryData.content) || "",
+    [newEntryData.content],
+  );
+
+  const linkPreview = useLinkPreview({
+    text: linkPreviewComposerText,
+    enabled: !isSaving,
+  });
 
   const isNewEntryDataComplete = useMemo(() => {
     if (
@@ -508,6 +524,15 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
           />
         </div>
       </div>
+      {linkPreview.status === "ok" && linkPreview.preview && (
+        <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-px-[20px]">
+          <LinkPreviewCard
+            preview={linkPreview.preview}
+            variant="composer"
+            onRemove={linkPreview.dismiss}
+          />
+        </div>
+      )}
       <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-flex-row tw-px-[20px] tw-gap-[12px]">
         <div className="tw-flex tw-flex-1">
           <DatePicker

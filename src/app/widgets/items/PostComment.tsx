@@ -22,6 +22,8 @@ import PostCommentLoader from "@/app/reusables/loaders/PostCommentLoader";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { useSelector } from "react-redux";
 import { Avatar } from "@/reusables/design";
+import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
+import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 
 function PostComment({ post_id, parent_id }: PostCommentProp) {
   const authentication: AuthenticationInterface = useSelector(
@@ -38,6 +40,11 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
 
   const [writeComment, setwriteComment] = useState<string>("");
   const [isCommentSaving, setisCommentSaving] = useState<boolean>(false);
+
+  const linkPreview = useLinkPreview({
+    text: writeComment,
+    enabled: !isCommentSaving,
+  });
 
   const navigate = useNavigate();
 
@@ -90,6 +97,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
     SaveCommentRequest(post_id, parent_id, writeComment, null)
       .then(() => {
         setwriteComment("");
+        linkPreview.dismiss();
         setisCommentSaving(false);
         GetPostCommentOnLoadProcess();
       })
@@ -102,58 +110,67 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
   return (
     <div className="cl-comment-section tw-p-[25px] tw-pt-[5px] tw-w-full tw-min-h-[250px] tw-flex tw-flex-1 tw-flex-col tw-gap-[16px]">
       {authentication.auth && !parent_id && (
-        <div className="cl-comment-section__composer tw-min-h-[60px] tw-flex tw-items-center tw-gap-[12px] tw-pb-[10px] tw-w-full">
-          <Avatar
-            id={authentication.user.userID}
-            name={activeAvatar.name}
-            src={activeAvatar.src}
-            size={48}
-          />
-          <div
-            id="div_input_feed_flex"
-            className="cl-comment-section__field-shell"
-          >
-            <textarea
-              placeholder="Write a comment..."
-              id="textarea_feed_box"
-              className="cl-comment-section__field tw-font-Inter"
-              value={writeComment}
-              onChange={(e) => {
-                setwriteComment(e.target.value);
-              }}
-              disabled={isCommentSaving}
+        <div className="tw-w-full tw-flex tw-flex-col tw-gap-[8px] tw-pb-[10px]">
+          <div className="cl-comment-section__composer tw-min-h-[60px] tw-flex tw-items-center tw-gap-[12px] tw-w-full">
+            <Avatar
+              id={authentication.user.userID}
+              name={activeAvatar.name}
+              src={activeAvatar.src}
+              size={48}
             />
-          </div>
-          <div id="div_confirm_send" className="cl-comment-section__send-shell">
-            <button
-              onClick={() => {
-                SaveCommentProcess();
-              }}
-              id="btn_image_feed"
-              className="cl-comment-section__send"
-              disabled={isCommentSaving}
+            <div
+              id="div_input_feed_flex"
+              className="cl-comment-section__field-shell"
             >
-              {isCommentSaving ? (
-                <div id="div_conversation_content_loader">
-                  <motion.div
-                    animate={{
-                      rotate: -360,
-                    }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                    }}
-                    // id="div_loader_share_conv"
-                    className="tw-w-[20px] tw-h-[20px] tw-flex tw-items-center tw-justify-center"
-                  >
-                    <AiOutlineLoading3Quarters style={{ fontSize: "18px" }} />
-                  </motion.div>
-                </div>
-              ) : (
-                <IoSend style={{ fontSize: "20px", color: "#3d4551" }} />
-              )}
-            </button>
+              <textarea
+                placeholder="Write a comment..."
+                id="textarea_feed_box"
+                className="cl-comment-section__field tw-font-Inter"
+                value={writeComment}
+                onChange={(e) => {
+                  setwriteComment(e.target.value);
+                }}
+                disabled={isCommentSaving}
+              />
+            </div>
+            <div id="div_confirm_send" className="cl-comment-section__send-shell">
+              <button
+                onClick={() => {
+                  SaveCommentProcess();
+                }}
+                id="btn_image_feed"
+                className="cl-comment-section__send"
+                disabled={isCommentSaving}
+              >
+                {isCommentSaving ? (
+                  <div id="div_conversation_content_loader">
+                    <motion.div
+                      animate={{
+                        rotate: -360,
+                      }}
+                      transition={{
+                        duration: 1,
+                        repeat: Infinity,
+                      }}
+                      // id="div_loader_share_conv"
+                      className="tw-w-[20px] tw-h-[20px] tw-flex tw-items-center tw-justify-center"
+                    >
+                      <AiOutlineLoading3Quarters style={{ fontSize: "18px" }} />
+                    </motion.div>
+                  </div>
+                ) : (
+                  <IoSend style={{ fontSize: "20px", color: "#3d4551" }} />
+                )}
+              </button>
+            </div>
           </div>
+          {linkPreview.status === "ok" && linkPreview.preview && (
+            <LinkPreviewCard
+              preview={linkPreview.preview}
+              variant="composer"
+              onRemove={linkPreview.dismiss}
+            />
+          )}
         </div>
       )}
       <div className="cl-comment-section__list tw-flex tw-flex-col tw-gap-[14px] tw-w-full">
@@ -238,6 +255,12 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                         <span className="cl-comment-section__text tw-text-[14px] tw-leading-[1.5] tw-break-words tw-text-[var(--text)]">
                           {mp.text}
                         </span>
+                        {mp.link_preview && (
+                          <LinkPreviewCard
+                            preview={mp.link_preview}
+                            variant="display"
+                          />
+                        )}
                       </div>
                       {/* <span className="tw-text-[14px]">{mp.text}</span> */}
                     </div>

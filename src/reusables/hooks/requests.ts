@@ -2130,6 +2130,26 @@ const SaveCommentRequest = async (
     });
 };
 
+const GetLinkPreviewRequest = async (
+  payload: { url?: string; text?: string; force_refresh?: boolean },
+  signal?: AbortSignal,
+) => {
+  return await Axios.post(
+    `${USER_SERVICE_API}/api/newsfeed/link-preview`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+      signal,
+    },
+  )
+    .then((response) => response.data)
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 const PublicServersListRequest = async () => {
   return await Axios.get(`${API}/s/publicservers`, {
     headers: {
@@ -3675,6 +3695,7 @@ export {
   GetReactionTotalRequest,
   GetCommentsRequest,
   SaveCommentRequest,
+  GetLinkPreviewRequest,
   PublicServersListRequest,
   LottieJSONRequest,
   GetDiaryTotalRequest,
