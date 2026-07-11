@@ -55,6 +55,8 @@ import {
 } from "../../../redux/types";
 import { useLocation, useNavigate } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
+import TabAudioVisualizerCanvas from "./partials/TabAudioVisualizerCanvas";
+import TabAudioVisualizerControl from "./partials/TabAudioVisualizerControl";
 import ConversationInfoModal from "@/app/widgets/modals/Conversation/ConversationInfoModal";
 import {
   AuthenticationInterface,
@@ -1697,6 +1699,17 @@ function Conversation({
               )}
             </div>
           </motion.div>
+          <div
+            id="div_conversation_body"
+            style={{
+              position: "relative",
+              flex: 1,
+              minHeight: 0,
+              display: "flex",
+              width: "100%",
+              zIndex: 0,
+            }}
+          >
           {isLoading ? (
             <div id="div_conversation_content_loader">
               <motion.div
@@ -1728,6 +1741,7 @@ function Conversation({
                 }
               }}
             >
+              {isServerConversation && <TabAudioVisualizerCanvas />}
               {filteredistypinglist.length > 0 && <IsTypingLoader />}
               {pendingmessageslist
                 .filter(
@@ -1991,6 +2005,8 @@ function Conversation({
               )}
             </div>
           )}
+          {isServerConversation && <TabAudioVisualizerControl />}
+          </div>
           {fullImageScreen.toggle && (
             <div id="div_fullscreen_image_preview">
               <button

@@ -4026,6 +4026,8 @@ input:checked + .slider:before {
   overflow-y: auto;
   gap: 10px;
   padding: 16px 16px 8px;
+  position: relative;
+  z-index: 1;
 }
 
 .div_messages_result {
@@ -4036,6 +4038,8 @@ input:checked + .slider:before {
   display: flex;
   flex-direction: row;
   gap: 6px;
+  position: relative;
+  z-index: 2;
 }
 
 .div_messages_result_reply {
@@ -4602,6 +4606,27 @@ input:checked + .slider:before {
 .cl-conversation-send-button--server:hover {
   background: color-mix(in srgb, var(--gold) 88%, white 12%) !important;
   border-color: color-mix(in srgb, var(--gold) 90%, var(--border) 10%);
+}
+
+.cl-tab-audio-visualizer-btn {
+  background: var(--gold) !important;
+  color: var(--on-brand) !important;
+  border: 1px solid color-mix(in srgb, var(--gold) 78%, var(--border) 22%) !important;
+}
+
+.cl-tab-audio-visualizer-btn:hover {
+  background: color-mix(in srgb, var(--gold) 88%, white 12%) !important;
+  border-color: color-mix(in srgb, var(--gold) 90%, var(--border) 10%) !important;
+}
+
+.cl-tab-audio-visualizer-btn--active {
+  background: color-mix(in srgb, var(--gold) 55%, black 20%) !important;
+  color: var(--on-brand) !important;
+  border: 1px solid color-mix(in srgb, var(--gold) 78%, var(--border) 22%) !important;
+}
+
+.cl-tab-audio-visualizer-btn--active:hover {
+  background: color-mix(in srgb, var(--gold) 65%, black 15%) !important;
 }
 
 .cl-conversation-window-action svg,
