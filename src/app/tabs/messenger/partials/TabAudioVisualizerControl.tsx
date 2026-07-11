@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
 import { MdGraphicEq } from "react-icons/md";
 import {
   startTabAudioCapture,
@@ -6,7 +7,16 @@ import {
   subscribeCapturing,
 } from "@/reusables/hooks/mediaVisualizerBus";
 
-const TabAudioVisualizerControl = () => {
+interface TabAudioVisualizerControlProp {
+  iconSize?: number | string;
+}
+
+// Rendered as a plain row inside the conversation's options menu, next to
+// the visualizer style picker, so both sound-related controls live in one
+// place instead of one floating over the chat and one buried in the menu.
+const TabAudioVisualizerControl = ({
+  iconSize,
+}: TabAudioVisualizerControlProp) => {
   const [capturing, setCapturing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -30,27 +40,26 @@ const TabAudioVisualizerControl = () => {
   };
 
   return (
-    <div
-      id="div_tab_audio_visualizer_control"
-      className="tw-absolute tw-top-[8px] tw-right-[8px] tw-z-10 tw-flex tw-flex-col tw-items-end tw-gap-[4px]"
-    >
-      <button
-        onClick={capturing ? handleStop : handleStart}
-        className={`tw-flex tw-items-center tw-gap-[5px] tw-rounded-[20px] tw-px-[10px] tw-py-[5px] tw-text-[11px] tw-font-Inter tw-cursor-pointer tw-border-none ${
+    <>
+      <motion.button
+        className={`cl-conversation-menu-action tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer ${
           capturing
-            ? "cl-tab-audio-visualizer-btn--active"
-            : "cl-tab-audio-visualizer-btn"
+            ? "cl-conversation-menu-action--danger"
+            : "cl-conversation-menu-action--accent cl-conversation-menu-action--server"
         }`}
+        onClick={capturing ? handleStop : handleStart}
       >
-        <MdGraphicEq />
-        {capturing ? "Stop tab audio visualizer" : "Capture tab audio"}
-      </button>
+        <MdGraphicEq style={{ fontSize: iconSize }} />
+        <span className="tw-text-[11px] tw-font-Inter">
+          {capturing ? "Stop Capturing Audio" : "Capture Tab Audio"}
+        </span>
+      </motion.button>
       {error && (
-        <span className="tw-text-[10px] tw-text-red-500 tw-bg-white tw-px-[6px] tw-py-[2px] tw-rounded-[4px]">
+        <span className="tw-text-[10px] tw-text-red-500 tw-px-[5px] tw-pb-[3px] tw-block">
           {error}
         </span>
       )}
-    </div>
+    </>
   );
 };
 

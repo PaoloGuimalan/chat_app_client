@@ -12,7 +12,7 @@ import {
   RiInboxUnarchiveFill,
 } from "react-icons/ri";
 import { IoArrowBack, IoDocumentOutline, IoSend } from "react-icons/io5";
-import { MdAudiotrack, MdDelete } from "react-icons/md";
+import { MdAudiotrack, MdDelete, MdGraphicEq } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai"; //AiFillInfoCircle
 import { checkIfValid } from "../../../reusables/hooks/validatevariables";
 import {
@@ -57,6 +57,12 @@ import { useLocation, useNavigate } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
 import TabAudioVisualizerCanvas from "./partials/TabAudioVisualizerCanvas";
 import TabAudioVisualizerControl from "./partials/TabAudioVisualizerControl";
+import {
+  cycleVisualizerStyle,
+  getVisualizerStyle,
+  subscribeVisualizerStyle,
+  VisualizerStyle,
+} from "@/reusables/hooks/mediaVisualizerBus";
 import ConversationInfoModal from "@/app/widgets/modals/Conversation/ConversationInfoModal";
 import {
   AuthenticationInterface,
@@ -218,6 +224,10 @@ function Conversation({
   const [conversationinfo, setconversationinfo] =
     useState<ConversationInfoInterface | null>(null);
   const [toggleMenu, settoggleMenu] = useState<boolean>(false);
+  const [visualizerStyle, setvisualizerStyle] = useState<VisualizerStyle>(
+    getVisualizerStyle(),
+  );
+  useEffect(() => subscribeVisualizerStyle(setvisualizerStyle), []);
   const callRequestInFlightRef = useRef<Set<string>>(new Set());
   const normalizeNamePart = (value: any) => {
     if (!value || value === "N/A") {
@@ -1653,6 +1663,27 @@ function Conversation({
                               </span>
                             </motion.button>
                           )}
+                      {isServerConversation && (
+                        <TabAudioVisualizerControl
+                          iconSize={conversationMenuIconSize}
+                        />
+                      )}
+                      {isServerConversation && (
+                        <motion.button
+                          className="cl-conversation-menu-action cl-conversation-menu-action--accent cl-conversation-menu-action--server tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                          disabled={conversationinfo ? false : true}
+                          onClick={() => {
+                            cycleVisualizerStyle();
+                          }}
+                        >
+                          <MdGraphicEq
+                            style={{ fontSize: conversationMenuIconSize }}
+                          />
+                          <span className="tw-text-[11px] tw-font-Inter tw-capitalize">
+                            Visualizer: {visualizerStyle}
+                          </span>
+                        </motion.button>
+                      )}
                       {!isServerConversation &&
                         conversationType !== "conference" && (
                           <motion.button
@@ -2005,7 +2036,6 @@ function Conversation({
               )}
             </div>
           )}
-          {isServerConversation && <TabAudioVisualizerControl />}
           </div>
           {fullImageScreen.toggle && (
             <div id="div_fullscreen_image_preview">

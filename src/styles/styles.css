@@ -4608,27 +4608,6 @@ input:checked + .slider:before {
   border-color: color-mix(in srgb, var(--gold) 90%, var(--border) 10%);
 }
 
-.cl-tab-audio-visualizer-btn {
-  background: var(--gold) !important;
-  color: var(--on-brand) !important;
-  border: 1px solid color-mix(in srgb, var(--gold) 78%, var(--border) 22%) !important;
-}
-
-.cl-tab-audio-visualizer-btn:hover {
-  background: color-mix(in srgb, var(--gold) 88%, white 12%) !important;
-  border-color: color-mix(in srgb, var(--gold) 90%, var(--border) 10%) !important;
-}
-
-.cl-tab-audio-visualizer-btn--active {
-  background: color-mix(in srgb, var(--gold) 55%, black 20%) !important;
-  color: var(--on-brand) !important;
-  border: 1px solid color-mix(in srgb, var(--gold) 78%, var(--border) 22%) !important;
-}
-
-.cl-tab-audio-visualizer-btn--active:hover {
-  background: color-mix(in srgb, var(--gold) 65%, black 15%) !important;
-}
-
 .cl-conversation-window-action svg,
 .cl-conversation-window-action--close svg {
   color: currentColor;

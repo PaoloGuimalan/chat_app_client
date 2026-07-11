@@ -25,6 +25,87 @@ const subscribeCapturing = (listener: CapturingListener) => {
   };
 };
 
+type VisualizerStyle =
+  | "bars"
+  | "wave"
+  | "mirror"
+  | "pulse"
+  | "dots"
+  | "area"
+  | "leds"
+  | "radial"
+  | "rings"
+  | "spectrogram"
+  | "fireflies"
+  | "blob"
+  | "starburst"
+  | "vu";
+const VISUALIZER_STYLE_ORDER: VisualizerStyle[] = [
+  "bars",
+  "wave",
+  "mirror",
+  "pulse",
+  "dots",
+  "area",
+  "leds",
+  "radial",
+  "rings",
+  "spectrogram",
+  "fireflies",
+  "blob",
+  "starburst",
+  "vu",
+];
+const VISUALIZER_STYLE_STORAGE_KEY = "cl_tab_audio_visualizer_style";
+
+const readStoredStyle = (): VisualizerStyle => {
+  try {
+    const stored = localStorage.getItem(VISUALIZER_STYLE_STORAGE_KEY);
+    if (stored && (VISUALIZER_STYLE_ORDER as string[]).includes(stored)) {
+      return stored as VisualizerStyle;
+    }
+  } catch {
+    // localStorage unavailable (private mode, etc.) - fall back to default.
+  }
+  return "bars";
+};
+
+let visualizerStyle: VisualizerStyle = readStoredStyle();
+
+type StyleListener = (style: VisualizerStyle) => void;
+let styleListeners: StyleListener[] = [];
+
+const setVisualizerStyle = (style: VisualizerStyle) => {
+  visualizerStyle = style;
+  try {
+    localStorage.setItem(VISUALIZER_STYLE_STORAGE_KEY, style);
+  } catch {
+    // Ignore write failures - the choice just won't persist this session.
+  }
+  styleListeners.forEach((listener) => listener(style));
+};
+
+// Cycles bars -> wave -> mirror -> bars, so a single menu button click can
+// step through styles without needing a dropdown component.
+const cycleVisualizerStyle = (): VisualizerStyle => {
+  const nextIndex =
+    (VISUALIZER_STYLE_ORDER.indexOf(visualizerStyle) + 1) %
+    VISUALIZER_STYLE_ORDER.length;
+  const next = VISUALIZER_STYLE_ORDER[nextIndex];
+  setVisualizerStyle(next);
+  return next;
+};
+
+const getVisualizerStyle = (): VisualizerStyle => visualizerStyle;
+
+const subscribeVisualizerStyle = (listener: StyleListener) => {
+  styleListeners.push(listener);
+  listener(visualizerStyle);
+  return () => {
+    styleListeners = styleListeners.filter((l) => l !== listener);
+  };
+};
+
 const ensureContext = () => {
   if (!audioCtx) {
     const Ctor: typeof AudioContext =
@@ -95,10 +176,15 @@ const isCapturing = () => captureStream !== null;
 
 const getAnalyser = (): AnalyserNode | null => analyser;
 
+export type { VisualizerStyle };
 export {
   startTabAudioCapture,
   stopTabAudioCapture,
   subscribeCapturing,
   isCapturing,
   getAnalyser,
+  getVisualizerStyle,
+  setVisualizerStyle,
+  cycleVisualizerStyle,
+  subscribeVisualizerStyle,
 };

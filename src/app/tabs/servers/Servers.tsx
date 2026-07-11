@@ -6,6 +6,7 @@ import Default from "./partials/Default";
 import Channels from "./partials/Channels";
 import { useSelector } from "react-redux";
 import { Avatar, Icon, useTheme } from "@/reusables/design";
+import { useWakeLock } from "react-screen-wake-lock";
 
 function Servers() {
   const screensizelistener = useSelector(
@@ -26,6 +27,31 @@ function Servers() {
       })
       .catch((err) => console.log(err));
   }, []);
+
+  // Keeps the screen from sleeping anywhere in the servers page, so a
+  // running visualizer/audio capture doesn't get interrupted by the device
+  // dimming or locking.
+  const {
+    isSupported: isWakeLockSupported,
+    released: isWakeLockReleased,
+    request: requestWakeLock,
+    release: releaseWakeLock,
+  } = useWakeLock({
+    onRequest: () => {},
+    onError: () => {},
+    onRelease: () => {},
+  });
+  useEffect(() => {
+    if (isWakeLockSupported) {
+      requestWakeLock();
+    }
+
+    return () => {
+      if (!isWakeLockReleased) {
+        releaseWakeLock();
+      }
+    };
+  }, [isWakeLockSupported, requestWakeLock, releaseWakeLock, isWakeLockReleased]);
 
   const isMobile = screensizelistener.W <= 900;
   const isInsideServer = urllocation.pathname.split("/").length >= 4;
