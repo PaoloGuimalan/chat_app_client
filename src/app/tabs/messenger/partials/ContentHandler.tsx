@@ -88,7 +88,9 @@ function ContentHandler({
     () =>
       reactions.map((t1) => ({
         ...t1,
-        ...cnvs.reactionsWithInfo.find((t2: any) => t2.userID === t1.userID),
+        ...cnvs.reactionsWithInfo
+          .filter((item: any) => item !== null)
+          .find((t2: any) => t2.userID === t1.userID),
       })),
     [reactions, cnvs.reactions],
   );
