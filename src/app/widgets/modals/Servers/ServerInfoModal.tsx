@@ -6,12 +6,41 @@ import { motion } from "framer-motion";
 import { IoMdClose } from "react-icons/io";
 import { useState } from "react";
 import { IoClose } from "react-icons/io5";
-import { ServerUsersWithInfo } from "@/reusables/vars/interfaces";
+import { BiLogOut } from "react-icons/bi";
+import {
+  AuthenticationInterface,
+  ServerUsersWithInfo,
+} from "@/reusables/vars/interfaces";
 import { useNavigate } from "react-router-dom";
+import { useSelector } from "react-redux";
 import { Avatar } from "@/reusables/design";
+import { RemoveRealmMemberRequest } from "@/reusables/hooks/requests";
 
 function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   const navigate = useNavigate();
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
+
+  const [isLeaving, setisLeaving] = useState<boolean>(false);
+
+  const LeaveServerProcess = () => {
+    setisLeaving(true);
+    RemoveRealmMemberRequest(serverdetails.serverID, [
+      authentication.active_entity_context.id,
+    ])
+      .then((response) => {
+        setisLeaving(false);
+        if (response.status) {
+          onclose(false);
+          navigate("/servers");
+        }
+      })
+      .catch((err) => {
+        setisLeaving(false);
+        console.log(err);
+      });
+  };
 
   const [toggleMemberDropper, settoggleMemberDropper] = useState<boolean>(true);
   const [expandcontacts, _] = useState<boolean>(false);
@@ -65,16 +94,26 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                 <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
                   {serverdetails.serverName}
                 </span>
-                {serverdetails.is_admin && (
+                <div className="tw-flex tw-gap-[6px]">
+                  {serverdetails.is_admin && (
+                    <button
+                      onClick={() => {
+                        navigate(`/realms/${serverdetails.serverID}`);
+                      }}
+                      className="cl-server-accent-button tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] tw-text-[12px]"
+                    >
+                      Manage
+                    </button>
+                  )}
                   <button
-                    onClick={() => {
-                      navigate(`/realms/${serverdetails.serverID}`);
-                    }}
-                    className="cl-server-accent-button tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] tw-text-[12px]"
+                    onClick={LeaveServerProcess}
+                    disabled={isLeaving}
+                    className="cl-server-accent-button--danger tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] tw-text-[12px] tw-flex tw-items-center tw-justify-center tw-gap-[5px]"
                   >
-                    Manage
+                    <BiLogOut style={{ fontSize: "14px" }} />
+                    {isLeaving ? "Leaving..." : "Leave Server"}
                   </button>
-                )}
+                </div>
               </div>
               <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start">
                 <button

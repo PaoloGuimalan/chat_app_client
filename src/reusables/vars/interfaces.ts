@@ -173,6 +173,7 @@ export interface ConversationDetails {
   createdBy: string;
   type: string;
   privacy?: boolean;
+  is_admin?: boolean;
   __v: number;
 }
 
@@ -458,11 +459,7 @@ export interface IUserContactPreview {
 }
 
 export interface IRealmMember {
-  entity: {
-    id: string;
-    type: string;
-    details: IUserContactPreview;
-  };
+  entity: IFlexibleEntity;
   added_by: {
     id: string;
     type: string;

@@ -2,7 +2,10 @@
 import { useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
-import { AddNewMemberToServer } from "@/reusables/hooks/requests";
+import {
+  AddNewMemberToServer,
+  RemoveRealmMemberRequest,
+} from "@/reusables/hooks/requests";
 import { useSelector } from "react-redux";
 import {
   AuthenticationInterface,
@@ -31,22 +34,36 @@ function PublicServerItem({
   // consistent with GenericRealmItem/RealmProfile in case that changes.
   const isSelf = authentication.active_entity_context.id === mp.entity;
 
+  const [isLeaving, setisLeaving] = useState<boolean>(false);
+
   const joinServerProcess = () => {
     setisJoining(true);
+    // Join as whichever entity is currently active - the personal account,
+    // or a page it's switched into acting as. A switched page has no
+    // fullName, so fall back to its display name/slug for the notification
+    // text (userID/fullName here are cosmetic - only entityID is used for
+    // the actual community_member row).
+    const activeEntity = authentication.active_entity_context;
     const initialpayload = {
       serverID: mp.id,
       memberstoadd: [
         {
-          userID: authentication.user.userID,
-          entityID: authentication.user.entity_id,
-          fullName: `${authentication.user.fullName.firstName}${
-            authentication.user.fullName.middleName == "N/A"
-              ? ""
-              : ` ${authentication.user.fullName.middleName}`
-          } ${authentication.user.fullName.lastName}`,
+          userID:
+            activeEntity.entity_type === "user"
+              ? authentication.user.userID
+              : (activeEntity.slug ?? activeEntity.name),
+          entityID: activeEntity.id,
+          fullName:
+            activeEntity.entity_type === "user"
+              ? `${authentication.user.fullName.firstName}${
+                  authentication.user.fullName.middleName == "N/A"
+                    ? ""
+                    : ` ${authentication.user.fullName.middleName}`
+                } ${authentication.user.fullName.lastName}`
+              : activeEntity.name,
         },
       ],
-      receivers: [authentication.user.entity_id],
+      receivers: [activeEntity.id],
     };
     AddNewMemberToServer(initialpayload)
       .then((response) => {
@@ -57,6 +74,23 @@ function PublicServerItem({
       })
       .catch((err) => {
         setisJoining(false);
+        console.log(err);
+      });
+  };
+
+  const leaveServerProcess = () => {
+    setisLeaving(true);
+    RemoveRealmMemberRequest(mp.realm_id, [
+      authentication.active_entity_context.id,
+    ])
+      .then((response) => {
+        setisLeaving(false);
+        if (response.status) {
+          setisJoined(false);
+        }
+      })
+      .catch((err) => {
+        setisLeaving(false);
         console.log(err);
       });
   };
@@ -105,7 +139,38 @@ function PublicServerItem({
               <span className="cl-display-card__meta tw-text-[12px] tw-mb-[5px]">
                 {mp.members} member/s
               </span>
-              {isJoined ? (
+              {isJoined && !isSelf ? (
+                isLeaving ? (
+                  <button
+                    disabled
+                    className="cl-display-card__button cl-display-card__button--muted tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none"
+                  >
+                    <div className="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center">
+                      <motion.div
+                        animate={{
+                          rotate: -360,
+                        }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                        }}
+                        id="div_loader_request_nano"
+                      >
+                        <AiOutlineLoading3Quarters
+                          style={{ fontSize: "15px" }}
+                        />
+                      </motion.div>
+                    </div>
+                  </button>
+                ) : (
+                  <button
+                    onClick={leaveServerProcess}
+                    className="cl-display-card__button cl-display-card__button--outline tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-[1px] tw-border-solid tw-cursor-pointer"
+                  >
+                    Leave
+                  </button>
+                )
+              ) : isJoined ? (
                 <button
                   disabled
                   className="cl-display-card__button cl-display-card__button--muted tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none"

@@ -4,7 +4,12 @@ import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import "../../../styles/styles.css";
 import { motion } from "framer-motion";
 import { FcVideoCall, FcAddImage } from "react-icons/fc"; //FcInfo
-import { BiSolidInfoCircle, BiSolidPhoneCall, BiWindows } from "react-icons/bi";
+import {
+  BiSolidInfoCircle,
+  BiSolidPhoneCall,
+  BiWindows,
+  BiLogOut,
+} from "react-icons/bi";
 import {
   RiAddCircleFill,
   RiInboxArchiveFill,
@@ -21,6 +26,7 @@ import {
   InitConversationListRequest,
   InitConversationRequest,
   IsTypingBroadcastRequest,
+  RemoveRealmMemberRequest,
   SeenMessageRequest,
   SendFilesRequest,
   SendMessageRequest,
@@ -1050,6 +1056,39 @@ function ConversationV2({
     });
   };
 
+  const LeaveConversationProcess = () => {
+    if (!conversationinfo) return;
+
+    settoggleMenu(false);
+    RemoveRealmMemberRequest(conversationinfo.contactID, [
+      authentication.active_entity_context.id,
+    ])
+      .then((response) => {
+        if (response.status) {
+          if (isMinimized) {
+            dispatch({
+              type: CLOSE_MINIMIZED_CONVERSATION,
+              payload: {
+                conversationID: conversationID,
+              },
+            });
+          } else {
+            navigate("/messages");
+          }
+
+          dispatch({
+            type: REMOVE_CONVERSATION,
+            payload: {
+              conversationID: conversationID,
+            },
+          });
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
+  };
+
   const UpdateChatHistoryProcess = (action: string) => {
     settoggleMenu(false);
     UpdateChatHistoryRequest({
@@ -1778,6 +1817,37 @@ function ConversationV2({
                           </span>
                         </motion.button>
                       )}
+                      {conversationinfo?.type !== "single" &&
+                        conversationinfo?.type !== "conference" &&
+                        // Public server/channel membership is just a
+                        // side-effect of server membership (joining a server
+                        // auto-adds you to all its channels) - not an
+                        // independently leavable relationship. Only a
+                        // privately-joined channel, or a group, is.
+                        (conversationinfo?.type === "server" ||
+                        conversationinfo?.type === "channel"
+                          ? conversationinfo?.conversationInfo?.privacy ===
+                            true
+                          : true) && (
+                          <motion.button
+                            className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                            disabled={conversationinfo ? false : true}
+                            onClick={() => {
+                              LeaveConversationProcess();
+                            }}
+                          >
+                            <BiLogOut
+                              style={{ fontSize: conversationMenuIconSize }}
+                            />
+                            <span className="tw-text-[11px] tw-font-Inter">
+                              Leave{" "}
+                              {conversationinfo?.type === "server" ||
+                              conversationinfo?.type === "channel"
+                                ? "Channel"
+                                : "Group"}
+                            </span>
+                          </motion.button>
+                        )}
                     </motion.div>
                   </div>
                 </>

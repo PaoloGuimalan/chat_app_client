@@ -7,6 +7,8 @@ import { useSelector } from "react-redux";
 import {
   FollowRealmRequest,
   UnfollowRealmRequest,
+  AddNewMemberToServer,
+  RemoveRealmMemberRequest,
 } from "@/reusables/hooks/requests";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
@@ -62,6 +64,74 @@ function GenericRealmItem({
       });
   };
 
+  const [isMembershipButtonLoading, setisMembershipButtonLoading] =
+    useState<boolean>(false);
+
+  const JoinRealmProcess = () => {
+    setisMembershipButtonLoading(true);
+    // Join as whichever entity is currently active - the personal account,
+    // or a page it's switched into acting as. A switched page has no
+    // fullName, so fall back to its display name/slug for the notification
+    // text (userID/fullName here are cosmetic - only entityID is used for
+    // the actual community_member row).
+    const activeEntity = authentication.active_entity_context;
+    const payload = {
+      serverID: mp.id,
+      memberstoadd: [
+        {
+          userID:
+            activeEntity.entity_type === "user"
+              ? authentication.user.userID
+              : (activeEntity.slug ?? activeEntity.name),
+          entityID: activeEntity.id,
+          fullName:
+            activeEntity.entity_type === "user"
+              ? `${authentication.user.fullName.firstName}${
+                  authentication.user.fullName.middleName == "N/A"
+                    ? ""
+                    : ` ${authentication.user.fullName.middleName}`
+                } ${authentication.user.fullName.lastName}`
+              : activeEntity.name,
+        },
+      ],
+      receivers: [activeEntity.id],
+    };
+    AddNewMemberToServer(payload)
+      .then((response) => {
+        if (response.data.status) {
+          refresh(() => {
+            setisMembershipButtonLoading(false);
+          });
+        } else {
+          setisMembershipButtonLoading(false);
+        }
+      })
+      .catch((err) => {
+        setisMembershipButtonLoading(false);
+        console.log(err);
+      });
+  };
+
+  const LeaveRealmProcess = () => {
+    setisMembershipButtonLoading(true);
+    RemoveRealmMemberRequest(mp.realm_id, [
+      authentication.active_entity_context.id,
+    ])
+      .then((response) => {
+        if (response.status) {
+          refresh(() => {
+            setisMembershipButtonLoading(false);
+          });
+        } else {
+          setisMembershipButtonLoading(false);
+        }
+      })
+      .catch((err) => {
+        setisMembershipButtonLoading(false);
+        console.log(err);
+      });
+  };
+
   return (
     <div
       className={`cl-display-card tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col`}
@@ -103,73 +173,125 @@ function GenericRealmItem({
               {mp.description}
             </span>
             <div className="tw-w-full tw-flex tw-flex-row tw-flex-1 tw-justify-between tw-items-end tw-gap-[10px] tw-pb-[15px]">
-              {mp.type === "page" && (
-                <div className="tw-flex tw-gap-[4px]">
-                  {mp.type === "page" && mp.is_admin && (
+              <div className="tw-flex tw-gap-[4px]">
+                {mp.type === "page" && mp.is_admin && (
+                  <button
+                    onClick={() => {
+                      navigate(`/realms/${mp.realm_id}`);
+                    }}
+                    className="cl-display-card__button cl-display-card__button--primary tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
+                  >
+                    Manage
+                  </button>
+                )}
+                {mp.type === "page" &&
+                  !isSelf &&
+                  (mp.is_follower ? (
                     <button
-                      onClick={() => {
-                        navigate(`/realms/${mp.realm_id}`);
-                      }}
-                      className="cl-display-card__button cl-display-card__button--primary tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
+                      onClick={UnfollowRealmProcess}
+                      disabled={isConnectionButtonsLoading}
+                      className="cl-display-card__button cl-display-card__button--outline tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
                     >
-                      Manage
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px", color: "#1c7def" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div className="tw-min-w-[60px]">Unfollow</div>
+                      )}
                     </button>
-                  )}
-                  {mp.type === "page" &&
-                    !isSelf &&
-                    (mp.is_follower ? (
-                      <button
-                        onClick={UnfollowRealmProcess}
-                        disabled={isConnectionButtonsLoading}
-                        className="cl-display-card__button cl-display-card__button--outline tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
-                      >
-                        {isConnectionButtonsLoading ? (
-                          <motion.div
-                            animate={{
-                              rotate: -360,
-                            }}
-                            transition={{
-                              duration: 1,
-                              repeat: Infinity,
-                            }}
-                            id="div_loader_request_nano_light"
-                          >
-                            <AiOutlineLoading3Quarters
-                              style={{ fontSize: "15px", color: "#1c7def" }}
-                            />
-                          </motion.div>
-                        ) : (
-                          <div className="tw-min-w-[60px]">Unfollow</div>
-                        )}
-                      </button>
-                    ) : (
-                      <button
-                        onClick={FollowRealmProcess}
-                        disabled={isConnectionButtonsLoading}
-                        className="cl-display-card__button cl-display-card__button--primary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
-                      >
-                        {isConnectionButtonsLoading ? (
-                          <motion.div
-                            animate={{
-                              rotate: -360,
-                            }}
-                            transition={{
-                              duration: 1,
-                              repeat: Infinity,
-                            }}
-                            id="div_loader_request_nano_light"
-                          >
-                            <AiOutlineLoading3Quarters
-                              style={{ fontSize: "15px" }}
-                            />
-                          </motion.div>
-                        ) : (
-                          <div className="tw-min-w-[60px]">Follow</div>
-                        )}
-                      </button>
-                    ))}
-                </div>
-              )}
+                  ) : (
+                    <button
+                      onClick={FollowRealmProcess}
+                      disabled={isConnectionButtonsLoading}
+                      className="cl-display-card__button cl-display-card__button--primary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
+                    >
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div className="tw-min-w-[60px]">Follow</div>
+                      )}
+                    </button>
+                  ))}
+                {mp.type !== "page" &&
+                  !isSelf &&
+                  !mp.is_private &&
+                  (mp.is_member ? (
+                    <button
+                      onClick={LeaveRealmProcess}
+                      disabled={isMembershipButtonLoading}
+                      className="cl-display-card__button cl-display-card__button--outline tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
+                    >
+                      {isMembershipButtonLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px", color: "#1c7def" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div className="tw-min-w-[60px]">Leave</div>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={JoinRealmProcess}
+                      disabled={isMembershipButtonLoading}
+                      className="cl-display-card__button cl-display-card__button--primary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
+                    >
+                      {isMembershipButtonLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div className="tw-min-w-[60px]">Join</div>
+                      )}
+                    </button>
+                  ))}
+              </div>
               <span className="cl-display-card__meta tw-text-[12px] tw-mb-[5px] tw-inline-flex tw-items-center tw-gap-[4px]">
                 <span>{mp.followers_count}</span>
                 <RiUserFollowLine size={14} />

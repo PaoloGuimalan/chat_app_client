@@ -212,13 +212,19 @@ function RealmMembers({
                       </div>
                       <div className="div_contact_fullname_container">
                         <div className="tw-h-full tw-flex tw-flex-col tw-justify-center tw-gap-[4px] tw-flex-1">
-                          <span className="span_cncts_fullname_label tw-text-left">
-                            {cnts.entity.details.first_name}
-                            {cnts.entity.details.middle_name == "N/A"
-                              ? ""
-                              : ` ${cnts.entity.details.middle_name}`}{" "}
-                            {cnts.entity.details.last_name}
-                          </span>
+                          {cnts.entity.type === "realm" ? (
+                            <span className="span_cncts_fullname_label tw-text-left">
+                              {cnts.entity.details.name}
+                            </span>
+                          ) : (
+                            <span className="span_cncts_fullname_label tw-text-left">
+                              {cnts.entity.details.first_name}
+                              {cnts.entity.details.middle_name == "N/A"
+                                ? ""
+                                : ` ${cnts.entity.details.middle_name}`}{" "}
+                              {cnts.entity.details.last_name}
+                            </span>
+                          )}
                           <span className="tw-text-[12px] tw-font-Inter tw-text-left tw-text-[var(--text-2)]">
                             {capitalizeFirstLetter(cnts.role)}
                           </span>

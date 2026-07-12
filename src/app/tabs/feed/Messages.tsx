@@ -16,7 +16,6 @@ import {
 import CreateGroupChatModal from "../../widgets/modals/CreateGroupChatModal";
 import { conversationsetupstate } from "../../../redux/actions/states";
 import { isUserOnline, timeSince } from "../../../reusables/hooks/reusable";
-import CreateServerModal from "@/app/widgets/modals/CreateServerModal";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
 import {
@@ -240,8 +239,6 @@ function MessageRow({
 function Messages() {
   const [isLoading, setisLoading] = useState<boolean>(true);
   const [isCreateGCToggle, setisCreateGCToggle] = useState<boolean>(false);
-  const [isCreateServerToggle, setisCreateServerToggle] =
-    useState<boolean>(false);
   const [conversationTypeSet, setconversationTypeSet] = useState<string>("all");
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [toggleComposeMenu, setToggleComposeMenu] = useState<boolean>(false);
@@ -447,9 +444,6 @@ function Messages() {
       {isCreateGCToggle && (
         <CreateGroupChatModal setisCreateGCToggle={setisCreateGCToggle} />
       )}
-      {isCreateServerToggle && (
-        <CreateServerModal setisCreateServerToggle={setisCreateServerToggle} />
-      )}
       <div
         className="cl-redesign"
         data-theme={theme}
@@ -551,19 +545,6 @@ function Messages() {
                     }}
                   >
                     Create Group
-                  </Btn>
-                  <Btn
-                    block
-                    variant="ghost"
-                    size="sm"
-                    iconL="dns"
-                    style={{ justifyContent: "flex-start" }}
-                    onClick={() => {
-                      setToggleComposeMenu(false);
-                      setisCreateServerToggle(true);
-                    }}
-                  >
-                    Create Server
                   </Btn>
                 </Card>
               )}
@@ -748,9 +729,6 @@ function Messages() {
       {isCreateGCToggle && (
         <CreateGroupChatModal setisCreateGCToggle={setisCreateGCToggle} />
       )}
-      {isCreateServerToggle && (
-        <CreateServerModal setisCreateServerToggle={setisCreateServerToggle} />
-      )}
 
       <div
         style={{
@@ -795,20 +773,6 @@ function Messages() {
           style={{ flex: 1, justifyContent: "center" }}
         >
           Create Group
-        </Btn>
-        <Btn
-          size="sm"
-          variant="soft"
-          iconL="dns"
-          onClick={() => setisCreateServerToggle(true)}
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            background: "var(--gold-soft)",
-            color: "var(--gold)",
-          }}
-        >
-          Create Server
         </Btn>
       </div>
 

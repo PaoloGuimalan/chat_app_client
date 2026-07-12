@@ -3,8 +3,10 @@
 import { GetTopRealmsRequest } from "@/reusables/hooks/requests";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
+import { IoMdAdd } from "react-icons/io";
 import ServerItemLoader from "@/app/reusables/loaders/ServerItemLoader";
 import PublicServerItem from "@/app/widgets/items/PublicServerItem";
+import CreateServerModal from "@/app/widgets/modals/CreateServerModal";
 import { useSelector } from "react-redux";
 import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { RiPagesLine } from "react-icons/ri";
@@ -28,6 +30,8 @@ function Default() {
   const [isPaginating, setisPaginating] = useState<boolean>(false);
   const [currentPage, setcurrentPage] = useState<number>(1);
   const [searchbox, setsearchbox] = useState<string>("");
+  const [isCreateServerToggle, setisCreateServerToggle] =
+    useState<boolean>(false);
 
   const GetTopRealmsProcess = (callback?: () => void) => {
     GetTopRealmsRequest(
@@ -97,6 +101,9 @@ function Default() {
 
   return (
     <div className="tw-w-full tw-h-full tw-flex tw-justify-center tw-items-stretch">
+      {isCreateServerToggle && (
+        <CreateServerModal setisCreateServerToggle={setisCreateServerToggle} />
+      )}
       <div className="tw-w-full tw-h-full tw-min-h-0 tw-flex tw-flex-col tw-overflow-hidden tw-bg-[var(--surface)]">
         <div className="cl-server-page__hero tw-w-full tw-bg-[var(--surface)] tw-px-[18px] tw-py-[18px] sm:tw-px-[28px] sm:tw-py-[26px]">
           <div className="cl-server-page__hero-copy">
@@ -136,6 +143,13 @@ function Default() {
               </div>
             </div>
           </div>
+          <button
+            onClick={() => setisCreateServerToggle(true)}
+            className="cl-server-accent-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[10px] tw-pl-[16px] tw-pr-[16px] tw-rounded-[8px] tw-text-[13px] tw-flex tw-items-center tw-gap-[6px]"
+          >
+            <IoMdAdd style={{ fontSize: "16px" }} />
+            Create Server
+          </button>
         </div>
         <div className="tw-flex-1 tw-min-h-0 tw-overflow-y-auto x-scroll tw-bg-[var(--surface-2)]">
           <div className="tw-w-full tw-flex tw-flex-col tw-gap-[18px] tw-p-[18px] sm:tw-p-[24px]">

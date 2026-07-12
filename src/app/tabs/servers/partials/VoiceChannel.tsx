@@ -6,11 +6,14 @@ import {
   IUserInterface,
 } from "@/reusables/vars/interfaces";
 import { motion } from "framer-motion";
-import { useMemo } from "react";
+import { useMemo, useState } from "react";
 import { AiFillSound, AiOutlineSound } from "react-icons/ai";
 import { IoArrowBack } from "react-icons/io5";
+import { IoMdSettings } from "react-icons/io";
+import { BiSolidInfoCircle, BiLogOut } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
+import { RemoveRealmMemberRequest } from "@/reusables/hooks/requests";
 
 function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
   const authentication: AuthenticationInterface = useSelector(
@@ -35,6 +38,36 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
   const navigate = useNavigate();
 
   const urllocation = useLocation();
+
+  const [toggleMenu, settoggleMenu] = useState<boolean>(false);
+  const [isLeaving, setisLeaving] = useState<boolean>(false);
+
+  const backPath = useMemo(
+    () =>
+      urllocation.pathname
+        .split("/")
+        .slice(0, urllocation.pathname.split("/").length - 1)
+        .join("/"),
+    [urllocation.pathname],
+  );
+
+  const LeaveVoiceChannelProcess = () => {
+    setisLeaving(true);
+    settoggleMenu(false);
+    RemoveRealmMemberRequest(conversationsetup.groupdetails.groupID, [
+      authentication.active_entity_context.id,
+    ])
+      .then((response) => {
+        setisLeaving(false);
+        if (response.status) {
+          navigate(backPath);
+        }
+      })
+      .catch((err) => {
+        setisLeaving(false);
+        console.log(err);
+      });
+  };
 
   const recepients = useMemo(
     () => users.map((mp: IUserInterface) => mp.userID),
@@ -166,7 +199,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                   : "10px",
             border: isServerConversation
               ? "none"
-              : "solid 1px rgb(210, 210, 210)",
+              : "solid 1px var(--border)",
             paddingBottom: isServerMobile
               ? "0px"
               : isServerConversation && screensizelistener.W <= 900
@@ -195,7 +228,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                   : "10px",
             border: isServerConversation
               ? "none"
-              : "solid 1px rgb(210, 210, 210)",
+              : "solid 1px var(--border)",
             paddingBottom: isServerMobile
               ? "0px"
               : isServerConversation && screensizelistener.W <= 900
@@ -209,7 +242,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
             width: "100%",
           }}
           id="div_conversation_content_handler"
-          className={`tw-border-[0px] ${isMinimized && "tw-shadow-md tw-border-[1px] tw-border-[#dedede]"}`}
+          className={`tw-border-[0px] ${isMinimized && "tw-shadow-md tw-border-[1px] tw-border-[var(--border)]"}`}
         >
           <motion.div
             initial={{
@@ -262,6 +295,54 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                   Members are active
                 </span>
               </div>
+            </div>
+            <div className="tw-relative">
+              <motion.button
+                className="btn_conversation_header_navigation cl-conversation-header-action--server"
+                onClick={() => {
+                  settoggleMenu(!toggleMenu);
+                }}
+              >
+                <BiSolidInfoCircle style={{ fontSize: "20px" }} />
+              </motion.button>
+              <motion.div
+                initial={{
+                  scale: 0,
+                }}
+                animate={{
+                  scale: toggleMenu ? 1 : 0,
+                }}
+                className="cl-conversation-menu cl-conversation-menu--server tw-flex-col tw-absolute tw-top-[30px] tw-min-w-[80px] tw-right-0 tw-rounded-md tw-p-[5px] tw-shadow-md tw-z-50"
+              >
+                {conversationsetup.groupdetails.is_admin && (
+                  <motion.button
+                    className="cl-conversation-menu-action cl-conversation-menu-action--accent cl-conversation-menu-action--server tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                    onClick={() => {
+                      settoggleMenu(false);
+                      navigate(
+                        `/realms/${conversationsetup.groupdetails.groupID}`,
+                      );
+                    }}
+                  >
+                    <IoMdSettings style={{ fontSize: "18px" }} />
+                    <span className="tw-text-[11px] tw-font-Inter">Manage</span>
+                  </motion.button>
+                )}
+                {conversationsetup.groupdetails.privacy && (
+                  <motion.button
+                    className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                    disabled={isLeaving}
+                    onClick={() => {
+                      LeaveVoiceChannelProcess();
+                    }}
+                  >
+                    <BiLogOut style={{ fontSize: "18px" }} />
+                    <span className="tw-text-[11px] tw-font-Inter">
+                      Leave Channel
+                    </span>
+                  </motion.button>
+                )}
+              </motion.div>
             </div>
           </motion.div>
           <div className="tw-h-full tw-w-full">

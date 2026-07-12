@@ -2025,6 +2025,16 @@
   background: color-mix(in srgb, var(--gold) 8%, var(--surface-hover) 92%);
 }
 
+.cl-server-accent-button--danger {
+  background: color-mix(in srgb, var(--pink) 18%, var(--surface) 82%);
+  color: var(--pink);
+  border: 1px solid color-mix(in srgb, var(--pink) 28%, var(--border) 72%);
+}
+
+.cl-server-accent-button--danger:hover {
+  background: color-mix(in srgb, var(--pink) 12%, var(--surface-hover) 88%);
+}
+
 .scroller::-webkit-scrollbar {
   width: 10px;
 }
@@ -4393,6 +4403,7 @@ input:checked + .slider:before {
 .cl-conversation-menu {
   display: flex;
   flex-direction: column;
+  width: max-content;
   background: var(--surface) !important;
   border: 1px solid var(--border);
   border-radius: 16px;
@@ -4406,6 +4417,7 @@ input:checked + .slider:before {
   background: transparent !important;
   color: var(--text) !important;
   border-radius: 12px !important;
+  white-space: nowrap;
   transition:
     background-color 0.14s ease,
     transform 0.14s ease;

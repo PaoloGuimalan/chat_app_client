@@ -9,13 +9,16 @@ import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { PaginationProp } from "@/reusables/vars/props";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
+import { IoMdAdd } from "react-icons/io";
 import { RiPagesLine } from "react-icons/ri";
 import { useSelector } from "react-redux";
+import { useNavigate } from "react-router-dom";
 
 function Default() {
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
   );
+  const navigate = useNavigate();
 
   const isMobileView = useMemo(
     () => screensizelistener.W < 800,
@@ -140,6 +143,13 @@ function Default() {
               </div>
             </div>
           </div>
+          <button
+            onClick={() => navigate("/pages/my-pages/create")}
+            className="cl-pages-accent-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[10px] tw-pl-[16px] tw-pr-[16px] tw-rounded-[8px] tw-text-[13px] tw-flex tw-items-center tw-gap-[6px]"
+          >
+            <IoMdAdd style={{ fontSize: "16px" }} />
+            Create Page
+          </button>
         </div>
         <div className="tw-flex-1 tw-min-h-0 tw-overflow-y-auto x-scroll tw-bg-[var(--surface-2)]">
           <div className="tw-w-full tw-flex tw-flex-col tw-gap-[18px] tw-p-[18px] sm:tw-p-[24px]">
