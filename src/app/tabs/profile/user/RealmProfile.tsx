@@ -206,35 +206,10 @@ function RealmProfile({
       data-share-page={isSharePage ? "true" : "false"}
     >
       {isSharePage && (
-        <Card
-          pad={12}
-          style={{ width: "min(100%, 1200px)", marginTop: 8, marginBottom: 4 }}
-        >
-          <div className="tw-flex tw-items-center tw-gap-[10px] tw-w-full">
-            <div
-              style={{
-                width: 38,
-                height: 38,
-                borderRadius: 999,
-                background: "var(--brand-soft)",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                flex: "none",
-              }}
-            >
-              <PiShareFat style={{ fontSize: 18, color: "var(--brand)" }} />
-            </div>
-            <div className="tw-flex tw-flex-col tw-min-w-0">
-              <span className="tw-font-semibold tw-text-[14px] tw-text-[var(--text)]">
-                Shared page
-              </span>
-              <span className="tw-text-[12px] tw-text-[var(--text-2)]">
-                View-only preview of this page.
-              </span>
-            </div>
-          </div>
-        </Card>
+        <div className="cl-shared-profile-badge">
+          <PiShareFat />
+          <span>Shared page</span>
+        </div>
       )}
       <div className="cl-profile-page__hero tw-mb-[6px] tw-w-full tw-h-auto tw-min-h-[auto] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-start sm:tw-justify-center tw-items-center tw-py-[0px] sm:tw-py-[0px]">
         <ProfileCoverContainer
@@ -353,7 +328,7 @@ function RealmProfile({
                 ))}
               </div>
             )}
-            {!isSelf && (
+            {authentication.auth && !isSelf && (
               <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
                 <button
                   onClick={() => {

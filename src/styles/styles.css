@@ -4787,6 +4787,33 @@ input:checked + .slider:before {
     color 0.14s ease;
 }
 
+.cl-shared-profile-badge {
+  position: fixed;
+  top: 14px;
+  right: 14px;
+  z-index: 40;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 88%, transparent);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  color: var(--text-2);
+  font-size: 12px;
+  font-weight: 600;
+  pointer-events: none;
+}
+
+.cl-shared-profile-badge svg {
+  flex: none;
+  font-size: 14px;
+  color: var(--brand);
+}
+
 .cl-conversation-info-modal-member:hover {
   background: var(--surface-hover);
 }

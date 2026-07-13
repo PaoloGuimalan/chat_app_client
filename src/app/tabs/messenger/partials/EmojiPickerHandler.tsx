@@ -8,6 +8,7 @@ import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import EmojiPicker, { Theme } from "emoji-picker-react";
 import { useSelector } from "react-redux";
 import { useTheme } from "@/reusables/design";
+import { useScopedPortalRoot } from "@/reusables/hooks/useScopedPortalRoot";
 
 const POPOVER_TRANSITION = { duration: 0.16, ease: "easeOut" as const };
 
@@ -32,6 +33,7 @@ function EmojiPickerHandler({
   const { theme: appTheme } = useTheme();
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
+  const portalRoot = useScopedPortalRoot(anchorRef);
   const [showFullPicker, setShowFullPicker] = useState(false);
   const [position, setPosition] = useState<{
     top: number;
@@ -121,6 +123,7 @@ function EmojiPickerHandler({
   return (
     <div ref={anchorRef} className="tw-relative">
       {position &&
+        portalRoot &&
         createPortal(
           <AnimatePresence mode="wait">
             {showFullPicker ? (
@@ -187,7 +190,7 @@ function EmojiPickerHandler({
               </motion.div>
             )}
           </AnimatePresence>,
-          document.body,
+          portalRoot,
         )}
     </div>
   );

@@ -22,6 +22,7 @@ import PageLoader from "@/app/reusables/loaders/PageLoader";
 import BrokenLink from "@/app/reusables/catchers/BrokenLink";
 import RealmProfile from "./user/RealmProfile";
 import { useSelector } from "react-redux";
+import { useTheme } from "@/reusables/design";
 
 function ProfileContainer() {
   const authentication: AuthenticationInterface = useSelector(
@@ -38,6 +39,8 @@ function ProfileContainer() {
 
   const location = useLocation();
   const isSharePath = location.pathname.startsWith("/share");
+
+  const { theme } = useTheme();
 
   const navigate = useNavigate();
 
@@ -87,7 +90,7 @@ function ProfileContainer() {
     GetProfileInfoProcess();
   }, [params.userID]);
 
-  return (
+  const content = (
     <Routes>
       <Route
         path="/"
@@ -149,6 +152,24 @@ function ProfileContainer() {
         }
       />
     </Routes>
+  );
+
+  // The /share/:userID/* route renders this standalone (see App.tsx),
+  // bypassing Home.tsx - which is normally what applies the ".cl-redesign"
+  // scope (font-size rescaling, scrollbar styling, theme overrides) that
+  // Profile/RealmProfile's styling assumes is present. When nested inside
+  // Home.tsx instead, that scope already exists higher up, so this only
+  // needs to add it for the standalone share path.
+  return isSharePath ? (
+    <div
+      className="cl-redesign"
+      data-theme={theme}
+      style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}
+    >
+      {content}
+    </div>
+  ) : (
+    content
   );
 }
 
