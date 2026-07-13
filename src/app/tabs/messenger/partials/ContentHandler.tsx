@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { motion, useInView } from "framer-motion";
+import { AnimatePresence, motion, useInView } from "framer-motion";
 import { useSelector } from "react-redux";
 import ReplyingToPreview from "./ReplyingToPreview";
 import MessageOptions from "../MessageOptions";
@@ -12,6 +12,7 @@ import EmojiPickerHandler from "./EmojiPickerHandler";
 import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal";
 import { timeSince, urlify } from "@/reusables/hooks/reusable";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import VoiceMessagePlayer from "./VoiceMessagePlayer";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useTheme } from "@/reusables/design";
@@ -438,19 +439,22 @@ function ContentHandler({
                   className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
                   style={reactionPillStyle}
                 >
-                  {toggleEmojiPicker && (
-                    <EmojiPickerHandler
-                      conversationID={cnvs.conversationID}
-                      messageID={cnvs.messageID}
-                      fromSender={
-                        cnvs.sender == authentication.user.entity_id
-                          ? true
-                          : false
-                      }
-                      settoggleEmojiPicker={settoggleEmojiPicker}
-                      setreactions={setreactions}
-                    />
-                  )}
+                  <AnimatePresence>
+                    {toggleEmojiPicker && (
+                      <EmojiPickerHandler
+                        key="emoji-picker"
+                        conversationID={cnvs.conversationID}
+                        messageID={cnvs.messageID}
+                        fromSender={
+                          cnvs.sender == authentication.user.entity_id
+                            ? true
+                            : false
+                        }
+                        settoggleEmojiPicker={settoggleEmojiPicker}
+                        setreactions={setreactions}
+                      />
+                    )}
+                  </AnimatePresence>
                   <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
                     {toggleReactions && (
                       <ReactionsModal
@@ -688,19 +692,22 @@ function ContentHandler({
                   className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
                   style={reactionPillStyle}
                 >
-                  {toggleEmojiPicker && (
-                    <EmojiPickerHandler
-                      conversationID={cnvs.conversationID}
-                      messageID={cnvs.messageID}
-                      fromSender={
-                        cnvs.sender == authentication.user.entity_id
-                          ? true
-                          : false
-                      }
-                      settoggleEmojiPicker={settoggleEmojiPicker}
-                      setreactions={setreactions}
-                    />
-                  )}
+                  <AnimatePresence>
+                    {toggleEmojiPicker && (
+                      <EmojiPickerHandler
+                        key="emoji-picker"
+                        conversationID={cnvs.conversationID}
+                        messageID={cnvs.messageID}
+                        fromSender={
+                          cnvs.sender == authentication.user.entity_id
+                            ? true
+                            : false
+                        }
+                        settoggleEmojiPicker={settoggleEmojiPicker}
+                        setreactions={setreactions}
+                      />
+                    )}
+                  </AnimatePresence>
                   <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
                     {toggleReactions && (
                       <ReactionsModal
@@ -928,19 +935,22 @@ function ContentHandler({
                   className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
                   style={reactionPillStyle}
                 >
-                  {toggleEmojiPicker && (
-                    <EmojiPickerHandler
-                      conversationID={cnvs.conversationID}
-                      messageID={cnvs.messageID}
-                      fromSender={
-                        cnvs.sender == authentication.user.entity_id
-                          ? true
-                          : false
-                      }
-                      settoggleEmojiPicker={settoggleEmojiPicker}
-                      setreactions={setreactions}
-                    />
-                  )}
+                  <AnimatePresence>
+                    {toggleEmojiPicker && (
+                      <EmojiPickerHandler
+                        key="emoji-picker"
+                        conversationID={cnvs.conversationID}
+                        messageID={cnvs.messageID}
+                        fromSender={
+                          cnvs.sender == authentication.user.entity_id
+                            ? true
+                            : false
+                        }
+                        settoggleEmojiPicker={settoggleEmojiPicker}
+                        setreactions={setreactions}
+                      />
+                    )}
+                  </AnimatePresence>
                   <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
                     {toggleReactions && (
                       <ReactionsModal
@@ -1111,7 +1121,7 @@ function ContentHandler({
                   ? "flex-end"
                   : "flex-start",
             }}
-            className="tw-flex tw-flex-col tw-w-full tw-max-w-[70%]"
+            className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
           >
             {cnvs.isReply && (
               <span className="span_sender_reply_label">
@@ -1146,16 +1156,12 @@ function ContentHandler({
                     : timeSince(cnvs.messageDate)
               }
             >
-              <div className="tw-w-full tw-bg-[#f1f3f4] tw-pb-[5px] tw-rounded-[7px]">
-                <audio
-                  src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
-                  controls
-                  className="tw-w-full tw-border-[7px]"
-                  onLoad={() => {
-                    scrollBottom();
-                  }}
-                />
-              </div>
+              <VoiceMessagePlayer
+                src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
+                isSender={isCurrentUserSender}
+                accentColor={theme.primary}
+                onReady={scrollBottom}
+              />
               <div
                 className={`tw-w-[calc(100%-14px)] tw-pl-[7px] tw-pr-[7px] tw-mb-[0px] tw--mt-[10px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
                   cnvs.sender == authentication.user.entity_id
@@ -1167,19 +1173,22 @@ function ContentHandler({
                   className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
                   style={reactionPillStyle}
                 >
-                  {toggleEmojiPicker && (
-                    <EmojiPickerHandler
-                      conversationID={cnvs.conversationID}
-                      messageID={cnvs.messageID}
-                      fromSender={
-                        cnvs.sender == authentication.user.entity_id
-                          ? true
-                          : false
-                      }
-                      settoggleEmojiPicker={settoggleEmojiPicker}
-                      setreactions={setreactions}
-                    />
-                  )}
+                  <AnimatePresence>
+                    {toggleEmojiPicker && (
+                      <EmojiPickerHandler
+                        key="emoji-picker"
+                        conversationID={cnvs.conversationID}
+                        messageID={cnvs.messageID}
+                        fromSender={
+                          cnvs.sender == authentication.user.entity_id
+                            ? true
+                            : false
+                        }
+                        settoggleEmojiPicker={settoggleEmojiPicker}
+                        setreactions={setreactions}
+                      />
+                    )}
+                  </AnimatePresence>
                   <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
                     {toggleReactions && (
                       <ReactionsModal
@@ -1438,19 +1447,22 @@ function ContentHandler({
                   className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
                   style={reactionPillStyle}
                 >
-                  {toggleEmojiPicker && (
-                    <EmojiPickerHandler
-                      conversationID={cnvs.conversationID}
-                      messageID={cnvs.messageID}
-                      fromSender={
-                        cnvs.sender == authentication.user.entity_id
-                          ? true
-                          : false
-                      }
-                      settoggleEmojiPicker={settoggleEmojiPicker}
-                      setreactions={setreactions}
-                    />
-                  )}
+                  <AnimatePresence>
+                    {toggleEmojiPicker && (
+                      <EmojiPickerHandler
+                        key="emoji-picker"
+                        conversationID={cnvs.conversationID}
+                        messageID={cnvs.messageID}
+                        fromSender={
+                          cnvs.sender == authentication.user.entity_id
+                            ? true
+                            : false
+                        }
+                        settoggleEmojiPicker={settoggleEmojiPicker}
+                        setreactions={setreactions}
+                      />
+                    )}
+                  </AnimatePresence>
                   <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
                     {toggleReactions && (
                       <ReactionsModal

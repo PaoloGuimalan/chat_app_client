@@ -755,6 +755,7 @@ export interface IConversationSetup {
     display_name: string;
     profile: string;
     privacy: boolean;
+    type?: string | null;
   };
   voice_participants: [];
 }

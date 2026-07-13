@@ -1452,6 +1452,56 @@
   background: var(--scrim);
 }
 
+.cl-emoji-picker-popover {
+  position: fixed;
+  z-index: 9998;
+  width: 250px;
+}
+
+.cl-quick-reaction-bar {
+  position: fixed;
+  z-index: 9998;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 6px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  box-shadow: var(--shadow-lg);
+}
+
+.cl-quick-reaction-bar__item {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+  transition: background-color 0.12s ease;
+}
+
+.cl-quick-reaction-bar__item:hover {
+  background: var(--surface-hover);
+}
+
+.cl-quick-reaction-bar__more {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--text-2);
+  background: var(--surface-2);
+}
+
+.cl-quick-reaction-bar__more:hover {
+  color: var(--text);
+}
+
 /* Rich-text policy/legal document rendered inline in DocumentViewerModal */
 .cl-policy-content {
   font-family:
@@ -4321,6 +4371,76 @@ input:checked + .slider:before {
 
 .cl-message-bubble--text {
   min-width: 72px;
+}
+
+.cl-voice-message {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: fit-content;
+  max-width: 100%;
+  box-sizing: border-box;
+  padding: 8px 12px;
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+}
+
+.cl-voice-message__toggle {
+  flex: 0 0 auto;
+  width: 34px;
+  height: 34px;
+  border-radius: 999px;
+  border: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 15px;
+  transition:
+    transform 0.14s ease,
+    opacity 0.14s ease;
+}
+
+.cl-voice-message__toggle:hover {
+  transform: scale(1.05);
+}
+
+.cl-voice-message__toggle:active {
+  transform: scale(0.96);
+}
+
+.cl-voice-message__body {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.cl-voice-message__waveform {
+  flex: 0 1 auto;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+  min-width: 0;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.cl-voice-message__bar {
+  flex: 0 0 auto;
+  width: 3px;
+  border-radius: 999px;
+  transition: background-color 0.12s ease;
+  pointer-events: none;
+}
+
+.cl-voice-message__time {
+  flex: 0 0 auto;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  opacity: 0.85;
 }
 
 .cl-message-actions button {

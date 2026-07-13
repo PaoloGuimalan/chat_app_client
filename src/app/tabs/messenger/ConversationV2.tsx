@@ -16,7 +16,7 @@ import {
   RiInboxUnarchiveFill,
 } from "react-icons/ri";
 import { IoArrowBack, IoDocumentOutline, IoSend } from "react-icons/io5";
-import { MdAudiotrack, MdDelete, MdGraphicEq } from "react-icons/md";
+import { MdAudiotrack, MdDelete, MdGraphicEq, MdMic, MdStop } from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai"; //AiFillInfoCircle
 import { checkIfValid } from "../../../reusables/hooks/validatevariables";
 import {
@@ -61,6 +61,7 @@ import {
 } from "../../../redux/types";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
+import VoiceMessagePlayer from "./partials/VoiceMessagePlayer";
 import TabAudioVisualizerCanvas from "./partials/TabAudioVisualizerCanvas";
 import TabAudioVisualizerControl from "./partials/TabAudioVisualizerControl";
 import {
@@ -198,6 +199,13 @@ function ConversationV2({
     [conversationsetup],
   );
   const isServerConversation = conversationType === "channel";
+  // A single conversation whose other participant is a realm-type entity
+  // (e.g. a Page/business account) rather than a regular user or bot.
+  const isRealmDM =
+    conversationType === "single" && conversationsetup?.details?.type === "realm";
+  const canSendVoiceMessage =
+    (conversationType === "single" || conversationType === "group") &&
+    !isRealmDM;
   const [mentionState, setMentionState] = useState<{
     open: boolean;
     query: string;
@@ -930,6 +938,84 @@ function ConversationV2({
     addFilesToComposer(files);
   };
 
+  const [isRecordingVoice, setIsRecordingVoice] = useState(false);
+  const voiceRecorderRef = useRef<MediaRecorder | null>(null);
+  const voiceChunksRef = useRef<Blob[]>([]);
+  const voiceStreamRef = useRef<MediaStream | null>(null);
+
+  const sendVoiceMessage = (blob: Blob) => {
+    if (!conversationsetup || blob.size === 0) return;
+
+    const pendingID = `${authentication.user.userID}_${conversationID}_${
+      pendingmessageslist.length + 1
+    }_${makeid(10)}`;
+    const file = new File([blob], `voice_${Date.now()}.webm`, {
+      type: "audio/webm",
+    });
+
+    addPendingMessage({
+      conversationID: conversationID,
+      pendingID: pendingID,
+      content: URL.createObjectURL(blob),
+      type: "audio/webm",
+    });
+
+    SendFilesRequest({
+      conversationID: conversationID,
+      isReply: isReplying.isReply,
+      replyingTo: isReplying.replyingTo,
+      conversationType: conversationType,
+      files: [{ file, pendingID }],
+    });
+  };
+
+  const startVoiceRecording = async () => {
+    if (!canSendVoiceMessage || isConversationDisabled || isRecordingVoice) {
+      return;
+    }
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        audio: true,
+      });
+      voiceStreamRef.current = stream;
+      voiceChunksRef.current = [];
+
+      const recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = (e) => {
+        if (e.data.size > 0) voiceChunksRef.current.push(e.data);
+      };
+      recorder.onstop = () => {
+        voiceStreamRef.current?.getTracks().forEach((track) => track.stop());
+        voiceStreamRef.current = null;
+        const blob = new Blob(voiceChunksRef.current, { type: "audio/webm" });
+        voiceChunksRef.current = [];
+        sendVoiceMessage(blob);
+      };
+
+      voiceRecorderRef.current = recorder;
+      recorder.start();
+      setIsRecordingVoice(true);
+    } catch (err) {
+      console.log(err);
+      dispatch({
+        type: SET_MUTATE_ALERTS,
+        payload: {
+          alerts: {
+            type: "warning",
+            content: "Microphone access is required to send a voice message",
+          },
+        },
+      });
+    }
+  };
+
+  const stopVoiceRecording = () => {
+    voiceRecorderRef.current?.stop();
+    voiceRecorderRef.current = null;
+    setIsRecordingVoice(false);
+  };
+
   const { isDragging: isDraggingFiles, dragHandlers: composerDragHandlers } =
     useDragAndDrop({
       onFiles: addFilesToComposer,
@@ -964,6 +1050,7 @@ function ConversationV2({
 
   const initializeCall = (type: string) => {
     if (!conversationsetup) return;
+    if (isRealmDM) return;
 
     const callRecipients =
       conversationsetup.conversationType == "single"
@@ -1535,7 +1622,8 @@ function ConversationV2({
               {!isMinimized && (
                 <>
                   {!isServerConversation &&
-                    conversationType !== "conference" && (
+                    conversationType !== "conference" &&
+                    !isRealmDM && (
                       <motion.button
                         // disabled={true}
                         disabled={
@@ -1560,7 +1648,8 @@ function ConversationV2({
                       </motion.button>
                     )}
                   {!isServerConversation &&
-                    conversationType !== "conference" && (
+                    conversationType !== "conference" &&
+                    !isRealmDM && (
                       <motion.button
                         // disabled={true}
                         disabled={
@@ -2027,18 +2116,14 @@ function ConversationV2({
                             marginLeft: "auto",
                             alignItems: "flex-end",
                           }}
-                          className="tw-flex tw-flex-col tw-w-full tw-max-w-[70%]"
+                          className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
                         >
-                          <div className="div_pending_audio_content_container_sending">
-                            <audio
-                              src={cnvs.content}
-                              controls
-                              className="tw-w-full tw-border-[7px]"
-                              onLoad={() => {
-                                scrollBottom();
-                              }}
-                            />
-                          </div>
+                          <VoiceMessagePlayer
+                            src={cnvs.content}
+                            isSender={true}
+                            accentColor={theme.primary}
+                            onReady={scrollBottom}
+                          />
                           <span className="span_sending_label">...Sending</span>
                         </motion.div>
                       </motion.div>
@@ -2077,7 +2162,8 @@ function ConversationV2({
                   }
                 })}
               {getChannelPreviewParticipants(conversationID).length > 0 &&
-                conversationType !== "conference" && (
+                conversationType !== "conference" &&
+                !isRealmDM && (
                   <div className="div_messages_result tw-w-[calc(100%-20px)] tw-flex tw-justify-center tw-p-[10px]">
                     <div className="tw-bg-[#f0f2f5] tw-w-[calc(100%-20px)] tw-max-w-[calc(400px-20px)] tw-p-[10px] tw-rounded-md">
                       <div className="tw-w-full tw-flex tw-flex-col">
@@ -2457,6 +2543,39 @@ function ConversationV2({
                     style={{ fontSize: conversationComposerIconSize }}
                   />
                 </motion.button>
+                {canSendVoiceMessage && (
+                  <motion.button
+                    whileHover={{
+                      backgroundColor: isLoading ? "transparent" : "#e6e6e6",
+                      cursor: isLoading ? "default" : "pointer",
+                    }}
+                    disabled={isConversationDisabled}
+                    onClick={() => {
+                      if (isRecordingVoice) {
+                        stopVoiceRecording();
+                      } else {
+                        startVoiceRecording();
+                      }
+                    }}
+                    className="btn_options_send"
+                  >
+                    {isRecordingVoice ? (
+                      <MdStop
+                        style={{
+                          fontSize: conversationComposerIconSize,
+                          color: "#e53935",
+                        }}
+                      />
+                    ) : (
+                      <MdMic
+                        style={{
+                          fontSize: conversationComposerIconSize,
+                          color: "#90caf9",
+                        }}
+                      />
+                    )}
+                  </motion.button>
+                )}
               </div>
             )}
             <div
