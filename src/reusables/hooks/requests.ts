@@ -108,18 +108,10 @@ const buildActiveEntityFields = (result: any) => {
 const AuthCheck = (dispatch: any) => {
   const authtoken = localStorage.getItem("authtoken");
 
-  // Fired in parallel with jwtchecker rather than after it - the modules
-  // lookup only needs the same authtoken, not anything jwtchecker resolves,
-  // so sequencing them was adding a full extra round trip (on top of the
-  // splash delay below) before the app knew whether it was acting as a page.
-  const modulesPromise = Axios.get(
-    `${USER_SERVICE_API}/api/entity/me/modules`,
-    { headers: { "x-access-token": authtoken } },
-  ).catch((err) => {
-    console.log(err);
-    return null;
-  });
-
+  // /auth/jwtchecker (Node) now merges allowed_modules/active_entity/
+  // personal_entity_id directly into its own response (see
+  // resolveAllowedModulesAndContext in the server repo's permissionChecker.js)
+  // - no more separate parallel call to Django's /api/entity/me/modules.
   Axios.get(`${API}/auth/jwtchecker`, {
     headers: {
       "x-access-token": authtoken,
@@ -129,40 +121,36 @@ const AuthCheck = (dispatch: any) => {
       if (response.data.status) {
         const userData: any = jwt_decode(response.data.result.usertoken);
         // console.log(userData)
-        modulesPromise.then((modulesResponse) => {
-          setTimeout(() => {
-            const restoredAuthentication = {
-              ...authenticationstate,
-              auth: true,
-              user: {
-                userID: userData._id,
-                username: userData.userID,
-                fullName: {
-                  firstName: userData.fullname.firstName,
-                  middleName: userData.fullname.middleName,
-                  lastName: userData.fullname.lastName,
-                },
-                email: userData.email,
-                birthdate: userData.birthdate,
-                gender: userData.gender,
-                isActivated: userData.isActivated,
-                isVerified: userData.isVerified,
-                isComplete: userData.isComplete,
-                pendingConsents: userData.pending_consents || [],
-                profile: userData.profile,
-                coverphoto: userData.coverphoto || "",
-                entity_id: userData.entity_id,
+        setTimeout(() => {
+          const restoredAuthentication = {
+            ...authenticationstate,
+            auth: true,
+            user: {
+              userID: userData._id,
+              username: userData.userID,
+              fullName: {
+                firstName: userData.fullname.firstName,
+                middleName: userData.fullname.middleName,
+                lastName: userData.fullname.lastName,
               },
-              ...(modulesResponse?.data?.status
-                ? buildActiveEntityFields(modulesResponse.data.result)
-                : {}),
-            };
-            dispatch({
-              type: SET_AUTHENTICATION,
-              payload: { authentication: restoredAuthentication },
-            });
-          }, 2000);
-        });
+              email: userData.email,
+              birthdate: userData.birthdate,
+              gender: userData.gender,
+              isActivated: userData.isActivated,
+              isVerified: userData.isVerified,
+              isComplete: userData.isComplete,
+              pendingConsents: userData.pending_consents || [],
+              profile: userData.profile,
+              coverphoto: userData.coverphoto || "",
+              entity_id: userData.entity_id,
+            },
+            ...buildActiveEntityFields(response.data.result),
+          };
+          dispatch({
+            type: SET_AUTHENTICATION,
+            payload: { authentication: restoredAuthentication },
+          });
+        }, 2000);
       } else {
         setTimeout(() => {
           dispatch({
@@ -230,15 +218,15 @@ const LoginRequest = (
             profile: userData.profile,
             coverphoto: userData.coverphoto || "",
           },
+          // UserAuthentication.post() now merges allowed_modules/
+          // active_entity/personal_entity_id into the same response - no
+          // separate GetAllowedModulesRequest follow-up call needed.
+          ...buildActiveEntityFields(response.data.result),
         };
         dispatch({
           type: SET_AUTHENTICATION,
           payload: { authentication: loggedInAuthentication },
         });
-        // A fresh login is always the personal entity server-side (see
-        // UserAuthentication.post()), but fetch anyway to keep
-        // allowed_modules populated from the start rather than empty.
-        GetAllowedModulesRequest(dispatch, loggedInAuthentication);
         dispatch({
           type: SET_ALERTS,
           payload: {
@@ -341,8 +329,10 @@ const SwitchEntityRequest = (
         // module gating, permission checks, socket rooms), so an in-place
         // redux patch risks leaving stale state (messages, notifications,
         // call state, cached lists) built for the old identity. Reloading
-        // re-runs the whole boot sequence (AuthCheck -> GetAllowedModulesRequest)
-        // against the new token instead, so everything settles clean.
+        // re-runs the whole boot sequence (AuthCheck, which now gets
+        // allowed_modules/active_entity merged into its own jwtchecker
+        // response) against the new token instead, so everything settles
+        // clean.
         window.location.reload();
         return true;
       }
@@ -462,16 +452,15 @@ const ThirdPartyAuthenticationRequest = (
             profile: userData.profile,
             coverphoto: userData.coverphoto || "",
           },
+          // ThirdPartyAuthentication.post() now merges allowed_modules/
+          // active_entity/personal_entity_id into the same response - no
+          // separate GetAllowedModulesRequest follow-up call needed.
+          ...buildActiveEntityFields(response.data.result),
         };
         dispatch({
           type: SET_AUTHENTICATION,
           payload: { authentication: loggedInAuthentication },
         });
-        // Same as LoginRequest - without this, active_entity_context stays
-        // undefined and any component reading it without optional chaining
-        // (e.g. RealmProfile.tsx, GenericRealmItem.tsx) throws on render,
-        // white-screening the app right after a third-party login.
-        GetAllowedModulesRequest(dispatch, loggedInAuthentication);
         dispatch({
           type: SET_ALERTS,
           payload: {
@@ -549,15 +538,17 @@ const RegisterRequest = (
             pendingConsents: userData.pendingConsents,
             entity_id: userData.entity_id,
           },
+          // UserAccountManagement.post() (register) now merges
+          // allowed_modules/active_entity/personal_entity_id into the same
+          // response (top-level, not nested under .result, matching this
+          // endpoint's existing flat response shape) - no separate
+          // GetAllowedModulesRequest follow-up call needed.
+          ...buildActiveEntityFields(response.data),
         };
         dispatch({
           type: SET_AUTHENTICATION,
           payload: { authentication: registeredAuthentication },
         });
-        // Same as LoginRequest/ThirdPartyAuthenticationRequest - without this
-        // active_entity_context stays undefined and the app white-screens on
-        // any component reading it without optional chaining.
-        GetAllowedModulesRequest(dispatch, registeredAuthentication);
         dispatch({
           type: SET_ALERTS,
           payload: {
