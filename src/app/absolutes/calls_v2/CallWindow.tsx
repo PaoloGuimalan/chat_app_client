@@ -259,9 +259,17 @@ function CallWindow({ data, lineNum }: any) {
         recipients: endCallRecepients,
       };
 
-      const localUserID = authentication.user.userID;
-      const callerUserID = data?.caller?.userID || null;
-      const isCaller = callerUserID === localUserID;
+      // entityID, not userID - matches how identity is compared everywhere
+      // else in this file (lines 138/142 above) and how `caller` is
+      // actually built in ConversationV2.tsx's initializeCall
+      // ({name, entityID}, no userID field) - comparing on userID here
+      // meant callerEntityID was always undefined and isCaller was always
+      // false, so a caller's own hangup/cancel never sent EndCallRequest at
+      // all (a callee hanging up was unaffected, since that path relies on
+      // the ordinary mediasoup participant-left event instead).
+      const localEntityID = authentication.user.entity_id;
+      const callerEntityID = data?.caller?.entityID || null;
+      const isCaller = callerEntityID === localEntityID;
 
       if (!keepalive && isCaller && endCallRecepients.length > 0) {
         EndCallRequest({
