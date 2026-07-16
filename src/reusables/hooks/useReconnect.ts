@@ -146,8 +146,22 @@ export function useReconnect({
     const handler = (state: string) =>
       handleStateChange(state, "sendTransport");
     sendTransport.on("connectionstatechange", handler);
+    // mediasoup-client's Transport extends EnhancedEventEmitter, which DOES
+    // expose off()/removeListener() (confirmed against node_modules/
+    // mediasoup-client/lib/enhancedEvents.js) - the previous no-op cleanup
+    // here was simply wrong, not a real platform limitation. Without this,
+    // every re-run of this effect (sendTransport or handleStateChange
+    // changing identity - e.g. on every roster/participant re-render, which
+    // happens a lot during a call's setup) stacked ANOTHER listener on the
+    // same transport instead of replacing it, so a single real state change
+    // could fire handleStateChange - and therefore triggerRejoin - multiple
+    // times concurrently. That reproduces exactly as observed: repeated
+    // "sendTransport connectionstatechange: connecting/connected" cycles
+    // with fresh producers recreated each time, which in turn corrupted
+    // consume attempts on both ends (mobile calling app testing surfaced
+    // this via "no a=setup found"/"Failed to setup RTCP mux" errors).
     return () => {
-      // mediasoup-client transports don't expose .off() — clear on unmount via hasLeft
+      sendTransport.off("connectionstatechange", handler);
     };
   }, [sendTransport, handleStateChange]);
 
@@ -158,7 +172,7 @@ export function useReconnect({
       handleStateChange(state, "recvTransport");
     recvTransport.on("connectionstatechange", handler);
     return () => {
-      // same note as above
+      recvTransport.off("connectionstatechange", handler);
     };
   }, [recvTransport, handleStateChange]);
 
