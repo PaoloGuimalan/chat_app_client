@@ -16,7 +16,13 @@ import {
   RiInboxUnarchiveFill,
 } from "react-icons/ri";
 import { IoArrowBack, IoDocumentOutline, IoSend } from "react-icons/io5";
-import { MdAudiotrack, MdDelete, MdGraphicEq, MdMic, MdStop } from "react-icons/md";
+import {
+  MdAudiotrack,
+  MdDelete,
+  MdGraphicEq,
+  MdMic,
+  MdStop,
+} from "react-icons/md";
 import { AiOutlineClose } from "react-icons/ai"; //AiFillInfoCircle
 import { checkIfValid } from "../../../reusables/hooks/validatevariables";
 import {
@@ -202,7 +208,8 @@ function ConversationV2({
   // A single conversation whose other participant is a realm-type entity
   // (e.g. a Page/business account) rather than a regular user or bot.
   const isRealmDM =
-    conversationType === "single" && conversationsetup?.details?.type === "realm";
+    conversationType === "single" &&
+    conversationsetup?.details?.type === "realm";
   const canSendVoiceMessage =
     (conversationType === "single" || conversationType === "group") &&
     !isRealmDM;
@@ -269,9 +276,8 @@ function ConversationV2({
   const [conversationinfo, setconversationinfo] =
     useState<ConversationInfoInterface | null>(null);
   const [toggleMenu, settoggleMenu] = useState<boolean>(false);
-  const [visualizerStyle, setvisualizerStyle] = useState<VisualizerStyle>(
-    getVisualizerStyle(),
-  );
+  const [visualizerStyle, setvisualizerStyle] =
+    useState<VisualizerStyle>(getVisualizerStyle());
   useEffect(() => subscribeVisualizerStyle(setvisualizerStyle), []);
   const callRequestInFlightRef = useRef<Set<string>>(new Set());
   const normalizeNamePart = (value: any) => {
@@ -1915,8 +1921,7 @@ function ConversationV2({
                         // privately-joined channel, or a group, is.
                         (conversationinfo?.type === "server" ||
                         conversationinfo?.type === "channel"
-                          ? conversationinfo?.conversationInfo?.privacy ===
-                            true
+                          ? conversationinfo?.conversationInfo?.privacy === true
                           : true) && (
                           <motion.button
                             className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
@@ -1954,294 +1959,308 @@ function ConversationV2({
               zIndex: 0,
             }}
           >
-          {isLoading ? (
-            <div id="div_conversation_content_loader">
-              <motion.div
-                animate={{
-                  rotate: -360,
+            {isLoading ? (
+              <div id="div_conversation_content_loader">
+                <motion.div
+                  animate={{
+                    rotate: -360,
+                  }}
+                  transition={{
+                    duration: 1,
+                    repeat: Infinity,
+                  }}
+                  id="div_loader_request_conv"
+                >
+                  <AiOutlineLoading3Quarters
+                    style={{ fontSize: conversationLoadingIconSize }}
+                  />
+                </motion.div>
+              </div>
+            ) : (
+              <div
+                id="div_conversation_content"
+                ref={divcontentRef}
+                onScroll={(e) => {
+                  // console.log((e.currentTarget.scrollHeight - e.currentTarget.offsetHeight) - 100, e.currentTarget.scrollTop) OLD
+                  // console.log(0 - 100, e.currentTarget.scrollTop) NEW
+                  if (0 - 100 > e.currentTarget.scrollTop) {
+                    setautoScroll(false);
+                  } else {
+                    setautoScroll(true);
+                  }
                 }}
-                transition={{
-                  duration: 1,
-                  repeat: Infinity,
-                }}
-                id="div_loader_request_conv"
               >
-                <AiOutlineLoading3Quarters
-                  style={{ fontSize: conversationLoadingIconSize }}
-                />
-              </motion.div>
-            </div>
-          ) : (
-            <div
-              id="div_conversation_content"
-              ref={divcontentRef}
-              onScroll={(e) => {
-                // console.log((e.currentTarget.scrollHeight - e.currentTarget.offsetHeight) - 100, e.currentTarget.scrollTop) OLD
-                // console.log(0 - 100, e.currentTarget.scrollTop) NEW
-                if (0 - 100 > e.currentTarget.scrollTop) {
-                  setautoScroll(false);
-                } else {
-                  setautoScroll(true);
-                }
-              }}
-            >
-              {isServerConversation && <TabAudioVisualizerCanvas />}
-              {filteredistypinglist.length > 0 && <IsTypingLoader />}
-              {pendingmessageslist
-                .filter(
-                  (flt: any) =>
-                    flt.conversationID == conversationID &&
-                    !flt.status &&
-                    !conversationList
-                      .map((mp) => mp.pendingID)
-                      .includes(flt.pendingID),
-                )
-                .map((cnvs: any, i: number) => {
-                  if (cnvs.type == "text") {
-                    return (
-                      <motion.div
-                        key={i}
-                        className="div_messages_result tw-items-center"
-                      >
+                {isServerConversation && <TabAudioVisualizerCanvas />}
+                {filteredistypinglist.length > 0 && <IsTypingLoader />}
+                {pendingmessageslist
+                  .filter(
+                    (flt: any) =>
+                      flt.conversationID == conversationID &&
+                      !flt.status &&
+                      !conversationList
+                        .map((mp) => mp.pendingID)
+                        .includes(flt.pendingID),
+                  )
+                  .map((cnvs: any, i: number) => {
+                    if (cnvs.type == "text") {
+                      return (
                         <motion.div
-                          initial={{
-                            marginLeft: "auto",
-                            alignItems: "flex-end",
-                          }}
-                          animate={{
-                            marginLeft: "auto",
-                            alignItems: "flex-end",
-                          }}
-                          className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
+                          key={i}
+                          className="div_messages_result tw-items-center"
                         >
-                          <motion.span
+                          <motion.div
                             initial={{
-                              backgroundColor: theme.lighten,
-                              border: `solid 1px ${theme.lighten}`,
-                              color: "white",
-                              // marginLeft: "auto" : "0px"
+                              marginLeft: "auto",
+                              alignItems: "flex-end",
                             }}
                             animate={{
-                              backgroundColor: theme.lighten,
-                              border: `solid 1px ${theme.lighten}`,
-                              color: "white",
-                              // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
+                              marginLeft: "auto",
+                              alignItems: "flex-end",
                             }}
-                            className="span_messages_result c1"
+                            className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
                           >
-                            <span
-                              className="tw-whitespace-pre-line"
-                              dangerouslySetInnerHTML={{
-                                __html: sanitizeForStorage(cnvs.content),
+                            <motion.span
+                              initial={{
+                                backgroundColor: theme.lighten,
+                                border: `solid 1px ${theme.lighten}`,
+                                color: "white",
+                                // marginLeft: "auto" : "0px"
                               }}
-                            />
-                          </motion.span>
-                          <span className="span_sending_label">Sending...</span>
-                        </motion.div>
-                      </motion.div>
-                    );
-                  } else if (cnvs.type == "image") {
-                    return (
-                      <motion.div
-                        key={i}
-                        className="div_messages_result tw-items-center"
-                      >
-                        <motion.div
-                          initial={{
-                            marginLeft: "auto",
-                            alignItems: "flex-end",
-                          }}
-                          animate={{
-                            marginLeft: "auto",
-                            alignItems: "flex-end",
-                          }}
-                          className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
-                        >
-                          <div className="div_pending_content_container_sending">
-                            <CachedImage
-                              src={cnvs.content}
-                              className="img_pending_images"
-                              onLoad={() => {
-                                scrollBottom();
+                              animate={{
+                                backgroundColor: theme.lighten,
+                                border: `solid 1px ${theme.lighten}`,
+                                color: "white",
+                                // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
                               }}
-                            />
-                          </div>
-                          <span className="span_sending_label">...Sending</span>
+                              className="span_messages_result c1"
+                            >
+                              <span
+                                className="tw-whitespace-pre-line"
+                                dangerouslySetInnerHTML={{
+                                  __html: sanitizeForStorage(cnvs.content),
+                                }}
+                              />
+                            </motion.span>
+                            <span className="span_sending_label">
+                              Sending...
+                            </span>
+                          </motion.div>
                         </motion.div>
-                      </motion.div>
-                    );
-                  } else if (cnvs.type.includes("video")) {
-                    return (
-                      <motion.div
-                        key={i}
-                        className="div_messages_result tw-items-center"
-                      >
+                      );
+                    } else if (cnvs.type == "image") {
+                      return (
                         <motion.div
-                          initial={{
-                            marginLeft: "auto",
-                            alignItems: "flex-end",
-                          }}
-                          animate={{
-                            marginLeft: "auto",
-                            alignItems: "flex-end",
-                          }}
-                          className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
+                          key={i}
+                          className="div_messages_result tw-items-center"
                         >
-                          <div className="div_pending_content_container_sending">
-                            <video
-                              src={cnvs.content}
-                              controls
-                              className="tw-w-full tw-h-[300px] tw-border-[7px]"
-                              onLoad={() => {
-                                scrollBottom();
-                              }}
-                            />
-                          </div>
-                          <span className="span_sending_label">...Sending</span>
-                        </motion.div>
-                      </motion.div>
-                    );
-                  } else if (cnvs.type.includes("audio")) {
-                    return (
-                      <motion.div
-                        key={i}
-                        className="div_messages_result tw-items-center"
-                      >
-                        <motion.div
-                          initial={{
-                            marginLeft: "auto",
-                            alignItems: "flex-end",
-                          }}
-                          animate={{
-                            marginLeft: "auto",
-                            alignItems: "flex-end",
-                          }}
-                          className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
-                        >
-                          <VoiceMessagePlayer
-                            src={cnvs.content}
-                            isSender={true}
-                            accentColor={theme.primary}
-                            onReady={scrollBottom}
-                          />
-                          <span className="span_sending_label">...Sending</span>
-                        </motion.div>
-                      </motion.div>
-                    );
-                  } else {
-                    return (
-                      <motion.div
-                        key={i}
-                        className="div_messages_result tw-items-center"
-                      >
-                        <motion.div
-                          initial={{
-                            marginLeft: "auto",
-                            alignItems: "flex-end",
-                          }}
-                          animate={{
-                            marginLeft: "auto",
-                            alignItems: "flex-end",
-                          }}
-                          className="tw-flex tw-flex-col tw-w-full tw-max-w-[70%]"
-                        >
-                          <div className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]">
-                            <div className="tw-w-full tw-max-w-[40px]">
-                              <IoDocumentOutline
-                                style={{ fontSize: conversationFileIconSize }}
+                          <motion.div
+                            initial={{
+                              marginLeft: "auto",
+                              alignItems: "flex-end",
+                            }}
+                            animate={{
+                              marginLeft: "auto",
+                              alignItems: "flex-end",
+                            }}
+                            className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
+                          >
+                            <div className="div_pending_content_container_sending">
+                              <CachedImage
+                                src={cnvs.content}
+                                className="img_pending_images"
+                                onLoad={() => {
+                                  scrollBottom();
+                                }}
                               />
                             </div>
-                            <span className="tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold">
-                              {cnvs.name}
+                            <span className="span_sending_label">
+                              ...Sending
                             </span>
-                          </div>
-                          <span className="span_sending_label">...Sending</span>
+                          </motion.div>
                         </motion.div>
-                      </motion.div>
-                    );
-                  }
-                })}
-              {getChannelPreviewParticipants(conversationID).length > 0 &&
-                conversationType !== "conference" &&
-                !isRealmDM && (
-                  <div className="div_messages_result tw-w-[calc(100%-20px)] tw-flex tw-justify-center tw-p-[10px]">
-                    <div className="tw-bg-[#f0f2f5] tw-w-[calc(100%-20px)] tw-max-w-[calc(400px-20px)] tw-p-[10px] tw-rounded-md">
-                      <div className="tw-w-full tw-flex tw-flex-col">
-                        <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
-                          Ongoing Call
-                        </span>
-                      </div>
-                      <div className="tw-w-full tw-flex tw-flex-col tw-h-[40px] tw-justify-center">
-                        <span className="tw-text-[12px] tw-font-Inter">
-                          {getChannelPreviewParticipants(conversationID)
-                            .length === 1
-                            ? `@${
-                                getChannelPreviewParticipants(conversationID)[0]
-                                  .username
-                              }`
-                            : `${
-                                getChannelPreviewParticipants(conversationID)
-                                  .length
-                              } participants`}{" "}
-                          joined the call
-                        </span>
-                      </div>
-                      <div className="tw-w-full tw-flex tw-flex-col">
-                        <button
-                          style={{ backgroundColor: "#dedede" }}
-                          onClick={() => {
-                            initializeCall("audio");
-                          }}
-                          className="tw-p-[6px] tw-w-full tw-rounded-md tw-border-none tw-text-[14px] tw-text-white tw-font-semibold tw-cursor-pointer"
+                      );
+                    } else if (cnvs.type.includes("video")) {
+                      return (
+                        <motion.div
+                          key={i}
+                          className="div_messages_result tw-items-center"
                         >
-                          Join Call
-                        </button>
+                          <motion.div
+                            initial={{
+                              marginLeft: "auto",
+                              alignItems: "flex-end",
+                            }}
+                            animate={{
+                              marginLeft: "auto",
+                              alignItems: "flex-end",
+                            }}
+                            className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
+                          >
+                            <div className="div_pending_content_container_sending">
+                              <video
+                                src={cnvs.content}
+                                controls
+                                className="tw-w-full tw-h-[300px] tw-border-[7px]"
+                                onLoad={() => {
+                                  scrollBottom();
+                                }}
+                              />
+                            </div>
+                            <span className="span_sending_label">
+                              ...Sending
+                            </span>
+                          </motion.div>
+                        </motion.div>
+                      );
+                    } else if (cnvs.type.includes("audio")) {
+                      return (
+                        <motion.div
+                          key={i}
+                          className="div_messages_result tw-items-center"
+                        >
+                          <motion.div
+                            initial={{
+                              marginLeft: "auto",
+                              alignItems: "flex-end",
+                            }}
+                            animate={{
+                              marginLeft: "auto",
+                              alignItems: "flex-end",
+                            }}
+                            className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
+                          >
+                            <VoiceMessagePlayer
+                              src={cnvs.content}
+                              isSender={true}
+                              accentColor={theme.primary}
+                              onReady={scrollBottom}
+                            />
+                            <span className="span_sending_label">
+                              ...Sending
+                            </span>
+                          </motion.div>
+                        </motion.div>
+                      );
+                    } else {
+                      return (
+                        <motion.div
+                          key={i}
+                          className="div_messages_result tw-items-center"
+                        >
+                          <motion.div
+                            initial={{
+                              marginLeft: "auto",
+                              alignItems: "flex-end",
+                            }}
+                            animate={{
+                              marginLeft: "auto",
+                              alignItems: "flex-end",
+                            }}
+                            className="tw-flex tw-flex-col tw-w-full tw-max-w-[70%]"
+                          >
+                            <div className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]">
+                              <div className="tw-w-full tw-max-w-[40px]">
+                                <IoDocumentOutline
+                                  style={{ fontSize: conversationFileIconSize }}
+                                />
+                              </div>
+                              <span className="tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold">
+                                {cnvs.name}
+                              </span>
+                            </div>
+                            <span className="span_sending_label">
+                              ...Sending
+                            </span>
+                          </motion.div>
+                        </motion.div>
+                      );
+                    }
+                  })}
+                {getChannelPreviewParticipants(conversationID).length > 0 &&
+                  conversationType !== "conference" &&
+                  !isRealmDM && (
+                    <div className="div_messages_result tw-w-[calc(100%-20px)] tw-flex tw-justify-center tw-p-[10px]">
+                      <div className="tw-bg-[var(--surface)] tw-w-[calc(100%-20px)] tw-max-w-[calc(400px-20px)] tw-p-[10px] tw-rounded-xl tw-shadow-lg">
+                        <div className="tw-w-full tw-flex tw-flex-col">
+                          <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                            Ongoing Call
+                          </span>
+                        </div>
+                        <div className="tw-w-full tw-flex tw-flex-col tw-h-[40px] tw-justify-center">
+                          <span className="tw-text-[12px] tw-font-Inter">
+                            {getChannelPreviewParticipants(conversationID)
+                              .length === 1
+                              ? `@${
+                                  getChannelPreviewParticipants(
+                                    conversationID,
+                                  )[0].username
+                                }`
+                              : `${
+                                  getChannelPreviewParticipants(conversationID)
+                                    .length
+                                } participants`}{" "}
+                            joined the call
+                          </span>
+                        </div>
+                        <div className="tw-w-full tw-flex tw-flex-col">
+                          <button
+                            onClick={() => {
+                              initializeCall("audio");
+                            }}
+                            style={{
+                              border: "1px solid var(--border-2)",
+                            }}
+                            className="tw-bg-[var(--surface-2)] tw-p-[6px] tw-w-full tw-rounded-md tw-text-[14px] tw-text-[var(--text)] tw-font-semibold tw-cursor-pointer"
+                          >
+                            Join Call
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                )}
-              {conversationList.map((cnvs, i) => {
-                return (
-                  <ContentHandler
-                    key={cnvs.messageID}
-                    i={i}
-                    cnvs={cnvs}
-                    conversationsetup={conversationsetup}
-                    members={conversationinfo?.usersWithInfo ?? []}
-                    setisReplying={setisReplyingTrigger}
-                    setfullImageScreen={setfullImageScreen}
-                    scrollBottom={scrollBottom}
-                    setunreadmessages={setunreadmessages}
-                    theme={theme}
-                  />
-                );
-              })}
-              {conversationList.length > 0 && totalMessages > page * range && (
-                <div
-                  ref={divlazyloaderRef}
-                  id="divlazyloader"
-                  className="tw-flex tw-items-center tw-justify-center tw--mt-[15px] tw-mb-[5px]"
-                >
-                  <div className="tw-h-[50px] tw-flex tw-items-center tw-justify-center">
-                    <motion.div
-                      animate={{
-                        rotate: -360,
-                      }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                      }}
-                      id="div_loader_request_conv"
+                  )}
+                {conversationList.map((cnvs, i) => {
+                  return (
+                    <ContentHandler
+                      key={cnvs.messageID}
+                      i={i}
+                      cnvs={cnvs}
+                      conversationsetup={conversationsetup}
+                      members={conversationinfo?.usersWithInfo ?? []}
+                      setisReplying={setisReplyingTrigger}
+                      setfullImageScreen={setfullImageScreen}
+                      scrollBottom={scrollBottom}
+                      setunreadmessages={setunreadmessages}
+                      theme={theme}
+                    />
+                  );
+                })}
+                {conversationList.length > 0 &&
+                  totalMessages > page * range && (
+                    <div
+                      ref={divlazyloaderRef}
+                      id="divlazyloader"
+                      className="tw-flex tw-items-center tw-justify-center tw--mt-[15px] tw-mb-[5px]"
                     >
-                      <AiOutlineLoading3Quarters
-                        style={{ fontSize: conversationLoadingIconSize }}
-                      />
-                    </motion.div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
+                      <div className="tw-h-[50px] tw-flex tw-items-center tw-justify-center">
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_conv"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: conversationLoadingIconSize }}
+                          />
+                        </motion.div>
+                      </div>
+                    </div>
+                  )}
+              </div>
+            )}
           </div>
           {fullImageScreen.toggle && (
             <div id="div_fullscreen_image_preview">
