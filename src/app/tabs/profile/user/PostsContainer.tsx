@@ -152,6 +152,11 @@ function PostsContainer({
                 id: profileInfo.id,
                 entityID: profileInfo.entityID,
                 username: profileInfo.userID,
+                firstName: profileInfo.fullname?.firstName,
+                middleName: profileInfo.fullname?.middleName,
+                lastName: profileInfo.fullname?.lastName,
+                profile: profileInfo.profile,
+                isBadged: profileInfo.isBadged,
               }}
               otherEntityID={null}
               setcreateposttext={setcreateposttext}

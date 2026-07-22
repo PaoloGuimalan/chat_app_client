@@ -502,8 +502,22 @@ export interface IContact {
   type: string;
 }
 
+// Search v2 - normalized result from /api/entity/search, unifying users and
+// realms/pages. entity_id is what post tagging submits; display_name/handle
+// are precomputed server-side so the UI renders both kinds identically.
+export interface EntitySearchResult {
+  entity_id: string;
+  type: "user" | "realm";
+  display_name: string;
+  handle: string;
+  profile: string | null;
+  is_verified: boolean;
+  realm_type: string | null;
+}
+
 export interface UserSearchResult {
   id: string;
+  entity_id: string;
   username: string;
   first_name: string;
   middle_name: string;

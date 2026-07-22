@@ -11,7 +11,6 @@ import {
   // IActivityCounts,
   IPost,
   IReference,
-  ITagging,
 } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -34,6 +33,7 @@ import PostOptions from "./PostOptions";
 import OverlayLoader from "@/app/reusables/loaders/OverlayLoader";
 import OverlayMessage from "@/app/reusables/catchers/OverlayMessage";
 import { Avatar } from "@/reusables/design";
+import TaggingSummary from "@/app/reusables/TaggingSummary";
 
 function PostItem({
   isSharePreview,
@@ -238,7 +238,7 @@ function PostItem({
               {postAuthorAvatar(35)}
             </div>
             <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px]">
-              <div className="tw-text-left tw-flex">
+              <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
                 <span
                   className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                   onClick={() => {
@@ -282,53 +282,8 @@ function PostItem({
                 )}
                 &nbsp;
                 {postState.tagging.length > 0 && (
-                  <span className="tw-text-[14px]">is with</span>
+                  <TaggingSummary tagging={postState.tagging} />
                 )}
-                &nbsp;
-                {postState.tagging.length > 0 &&
-                  postState.tagging.map((mptg: ITagging, i: number) => {
-                    return (
-                      <span
-                        className="cl-feed-card__title tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
-                        onClick={() => {
-                          if (mptg.entity.type === "realm") {
-                            navigate(`/${mptg.entity.details.slug}`);
-                            return;
-                          }
-                          navigate(`/${mptg.entity.details.username}`);
-                        }}
-                        key={i}
-                      >
-                        {mptg.entity.type === "realm" ? (
-                          <div className="tw-flex tw-items-center tw-gap-[4px]">
-                            <span>{mptg.entity.details.name}</span>
-                            {mptg.entity.details.is_verified && (
-                              <RiVerifiedBadgeFill
-                                size={16}
-                                color="var(--brand)"
-                              />
-                            )}
-                          </div>
-                        ) : (
-                          <div className="tw-flex tw-items-center tw-gap-[4px]">
-                            <span>
-                              {mptg.entity.details.first_name}
-                              {mptg.entity.details.middle_name == "N/A"
-                                ? ""
-                                : ` ${mptg.entity.details.middle_name}`}{" "}
-                              {mptg.entity.details.last_name}
-                            </span>
-                            {mptg.entity.details.is_badged && (
-                              <RiVerifiedBadgeFill
-                                size={16}
-                                color="var(--brand)"
-                              />
-                            )}
-                          </div>
-                        )}
-                      </span>
-                    );
-                  })}
               </div>
               <span className="tw-text-[12px]">{dateposted}</span>
             </div>
@@ -380,7 +335,10 @@ function PostItem({
               </span>
             </div>
             {postState.link_preview && (
-              <LinkPreviewCard preview={postState.link_preview} variant="display" />
+              <LinkPreviewCard
+                preview={postState.link_preview}
+                variant="display"
+              />
             )}
             {minimizedCaption && (
               <button
@@ -496,7 +454,7 @@ function PostItem({
                         <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
                           {postAuthorAvatar(35)}
                           <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
-                            <div className="tw-text-left tw-flex tw-flex-wrap">
+                            <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
                               <span
                                 className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                 onClick={() => {
@@ -542,63 +500,8 @@ function PostItem({
                               </span>
                               &nbsp;
                               {postState.tagging.length > 0 && (
-                                <span className="tw-text-[14px]">is with</span>
+                                <TaggingSummary tagging={postState.tagging} />
                               )}
-                              &nbsp;
-                              {postState.tagging.length > 0 &&
-                                postState.tagging.map(
-                                  (mptg: ITagging, i: number) => {
-                                    return (
-                                      <span
-                                        className="cl-feed-card__title tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
-                                        onClick={() => {
-                                          if (mptg.entity.type === "realm") {
-                                            navigate(
-                                              `/${mptg.entity.details.slug}`,
-                                            );
-                                            return;
-                                          }
-                                          navigate(
-                                            `/${mptg.entity.details.username}`,
-                                          );
-                                        }}
-                                        key={i}
-                                      >
-                                        {mptg.entity.type === "realm" ? (
-                                          <div className="tw-flex tw-items-center tw-gap-[4px]">
-                                            <span>
-                                              {mptg.entity.details.name}
-                                            </span>
-                                            {mptg.entity.details
-                                              .is_verified && (
-                                              <RiVerifiedBadgeFill
-                                                size={16}
-                                                color="var(--brand)"
-                                              />
-                                            )}
-                                          </div>
-                                        ) : (
-                                          <div className="tw-flex tw-items-center tw-gap-[4px]">
-                                            <span>
-                                              {mptg.entity.details.first_name}
-                                              {mptg.entity.details
-                                                .middle_name == "N/A"
-                                                ? ""
-                                                : ` ${mptg.entity.details.middle_name}`}{" "}
-                                              {mptg.entity.details.last_name}
-                                            </span>
-                                            {mptg.entity.details.is_badged && (
-                                              <RiVerifiedBadgeFill
-                                                size={16}
-                                                color="var(--brand)"
-                                              />
-                                            )}
-                                          </div>
-                                        )}
-                                      </span>
-                                    );
-                                  },
-                                )}
                             </div>
                             <span className="tw-text-[12px]">{dateposted}</span>
                           </div>

@@ -5054,6 +5054,7 @@ input:checked + .slider:before {
 .cl-create-post-textarea {
   width: 100%;
   min-height: 85px;
+  flex-shrink: 0;
   resize: none;
   border: 1px solid var(--border);
   border-radius: 14px;
@@ -5073,6 +5074,7 @@ input:checked + .slider:before {
   gap: 12px;
   width: 100%;
   min-height: 0;
+  flex-shrink: 0;
   max-height: 300px;
   overflow: auto;
   padding-right: 2px;
@@ -5180,10 +5182,218 @@ input:checked + .slider:before {
   border: none;
   border-radius: 0;
   overflow: auto;
+  flex-shrink: 0;
 }
 
 .cl-create-post-loading {
   background: var(--scrim);
+}
+
+/* ---- Post tagging (multi-select people) ---- */
+.cl-tag-toolbar-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-toolbar-btn--active {
+  background: var(--surface-hover) !important;
+  border-color: var(--brand) !important;
+}
+
+.cl-tag-count {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 15px;
+  height: 15px;
+  padding: 0 3px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: var(--brand);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 1;
+}
+
+.cl-tag-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  width: 100%;
+}
+
+.cl-tag-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 6px 3px 4px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--text);
+  font-size: 12px;
+  font-weight: 600;
+  max-width: 190px;
+}
+
+.cl-tag-chip__name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cl-tag-chip button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--text-3);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.cl-tag-chip button:hover {
+  color: var(--text);
+  background: var(--surface-hover);
+}
+
+.cl-create-post-tagging {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  min-height: 0;
+  flex-shrink: 0;
+  padding: 10px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface-2);
+}
+
+.cl-tag-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--input);
+  color: var(--text-3);
+}
+
+.cl-tag-search input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: 14px;
+}
+
+.cl-tag-search input::placeholder {
+  color: var(--text-3);
+}
+
+.cl-tag-results {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 120px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.cl-tag-result {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 6px 8px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+  transition:
+    background-color 0.14s ease,
+    border-color 0.14s ease;
+}
+
+.cl-tag-result:hover {
+  background: var(--surface-hover);
+}
+
+.cl-tag-result--active {
+  border-color: var(--brand);
+  background: var(--surface-hover);
+}
+
+.cl-tag-result__meta {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+}
+
+.cl-tag-result__title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cl-tag-result__name {
+  min-width: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cl-tag-result__handle {
+  font-size: 12px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cl-tag-result__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  color: var(--text-2);
+  flex-shrink: 0;
+}
+
+.cl-tag-result--active .cl-tag-result__action {
+  color: var(--brand);
+}
+
+.cl-tag-empty,
+.cl-tag-loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 64px;
+  padding: 8px;
+  color: var(--text-3);
+  font-size: 13px;
+  text-align: center;
 }
 
 .cl-display-card {

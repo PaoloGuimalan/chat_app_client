@@ -6,20 +6,35 @@ import { pickFiles } from "@/reusables/hooks/pickFiles";
 import { useDragAndDrop } from "@/reusables/hooks/useDragAndDrop";
 import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { BsFileEarmarkPost, BsPinMapFill } from "react-icons/bs";
 import { FaGlobeAsia } from "react-icons/fa";
-import { FaUserTag } from "react-icons/fa6";
+import {
+  FaUserTag,
+  FaMagnifyingGlass,
+  FaPlus,
+  FaCheck,
+  FaXmark,
+} from "react-icons/fa6";
 import { MdAddToPhotos } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
 import PostMediaPreview from "./PostMediaPreview";
-import { CreatePostRequest, UploadMediaRequest } from "@/reusables/hooks/requests";
+import {
+  CreatePostRequest,
+  EntitySearchRequest,
+  UploadMediaRequest,
+} from "@/reusables/hooks/requests";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { BiSolidImageAdd } from "react-icons/bi";
 import { PiShareFat } from "react-icons/pi";
 import PostItem from "@/app/tabs/profile/user/PostItem";
-import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  EntitySearchResult,
+} from "@/reusables/vars/interfaces";
+import { Avatar } from "@/reusables/design";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 
 export function NewPostModal({
   toShare,
@@ -34,6 +49,7 @@ export function NewPostModal({
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  const alerts = useSelector((state: any) => state.alerts);
 
   const [isuploadingpost, setisuploadingpost] = useState<boolean>(false);
   const [iswithImage, setiswithImage] = useState<boolean>(
@@ -43,10 +59,98 @@ export function NewPostModal({
   const [mainpostcaption, setmainpostcaption] = useState<string>("");
   const [_, setcurrenttab] = useState<string>("content"); //currenttab
   const [medialist, setmedialist] = useState<any[]>([]);
-  const [taggedList, ___] = useState<string[]>([]);
+
+  // Entities selected to tag - users OR realms/pages. We keep the normalized
+  // search objects (not just ids) so chips and results render avatars, names
+  // and verified badges; entity_id is what gets submitted, since the backend
+  // resolves tagging.users against entity_id.
+  //
+  // Posting on another user's profile pre-tags that profile owner as a
+  // removable chip. Skipped on your own feed and when posting as a page/realm.
+  const isViewingOtherProfile =
+    !!profileInfo?.entityID &&
+    authentication?.user?.entity_id != profileInfo?.entityID &&
+    !otherEntityID;
+
+  const profileDisplayName = [
+    profileInfo?.firstName,
+    profileInfo?.middleName && profileInfo?.middleName !== "N/A"
+      ? profileInfo?.middleName
+      : "",
+    profileInfo?.lastName,
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .trim();
+
+  const [taggedEntities, settaggedEntities] = useState<EntitySearchResult[]>(
+    isViewingOtherProfile
+      ? [
+          {
+            entity_id: profileInfo.entityID,
+            type: "user",
+            display_name: profileDisplayName || profileInfo.username || "",
+            handle: profileInfo.username || "",
+            profile:
+              !profileInfo.profile || profileInfo.profile === "none"
+                ? null
+                : profileInfo.profile,
+            is_verified: !!profileInfo.isBadged,
+            realm_type: null,
+          },
+        ]
+      : [],
+  );
+  const [showTagging, setshowTagging] = useState<boolean>(false);
+  const [tagsearch, settagsearch] = useState<string>("");
+  const [tagresults, settagresults] = useState<EntitySearchResult[]>([]);
+  const [istagsearching, setistagsearching] = useState<boolean>(false);
   const dispatch = useDispatch();
 
   const MAX_MEDIA_SIZE = 25 * 1024 * 1024;
+
+  const isTagged = (entity: EntitySearchResult) =>
+    taggedEntities.some((tagged) => tagged.entity_id === entity.entity_id);
+
+  const toggleTag = (entity: EntitySearchResult) => {
+    settaggedEntities((prev) =>
+      prev.some((tagged) => tagged.entity_id === entity.entity_id)
+        ? prev.filter((tagged) => tagged.entity_id !== entity.entity_id)
+        : [...prev, entity],
+    );
+  };
+
+  const removeTag = (entity: EntitySearchResult) => {
+    settaggedEntities((prev) =>
+      prev.filter((tagged) => tagged.entity_id !== entity.entity_id),
+    );
+  };
+
+  // Debounced people search for the tagging panel. Mirrors SearchMiniDrawer:
+  // only fires once the query is non-empty (and not a bare trailing "@").
+  useEffect(() => {
+    if (!showTagging) return;
+
+    const timeoutRequest = setTimeout(() => {
+      if (tagsearch.trim() !== "" && tagsearch.split("@")[1] !== "") {
+        EntitySearchRequest(
+          { searchdata: tagsearch, types: "user,realm", realmTypes: "page" },
+          dispatch,
+          setistagsearching,
+          alerts,
+          settagresults,
+        );
+      } else {
+        setistagsearching(false);
+        settagresults([]);
+      }
+    }, 600);
+
+    setistagsearching(tagsearch.trim() !== "");
+
+    return () => clearTimeout(timeoutRequest);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tagsearch, showTagging]);
 
   const addMediaFiles = (files: File[]) => {
     const rejected = files.filter(
@@ -91,9 +195,7 @@ export function NewPostModal({
             name: file.name,
             reference: URL.createObjectURL(file),
             caption: "",
-            referenceMediaType: file.type.includes("image")
-              ? "image"
-              : "video",
+            referenceMediaType: file.type.includes("image") ? "image" : "video",
             file,
           },
         ]);
@@ -120,12 +222,15 @@ export function NewPostModal({
   const CreatePostProcess = async () => {
     if (toShare || mainpostcaption.trim() !== "" || medialist.length > 0) {
       setisuploadingpost(true);
-      const validatedTaggedList =
-        authentication.user.entity_id == profileInfo?.entityID
-          ? []
-          : otherEntityID
-            ? [...taggedList]
-            : [profileInfo?.entityID, ...taggedList]; //this taggedlist needs to be in username format, not id
+
+      // taggedEntities already includes the auto-tagged profile owner (when
+      // posting on someone else's profile), so the submitted list is just their
+      // entity_ids, deduped - that's what the backend matches tagging.users on.
+      const validatedTaggedList = Array.from(
+        new Set(
+          taggedEntities.map((entity) => entity.entity_id).filter(Boolean),
+        ),
+      );
 
       try {
         let uploadedReferences: any[] = [];
@@ -248,7 +353,7 @@ export function NewPostModal({
           } ${
             toShare
               ? "tw-max-h-[600px]"
-              : iswithImage
+              : iswithImage || showTagging
                 ? "tw-max-h-[600px]"
                 : "tw-max-h-[250px]"
           }`}
@@ -258,7 +363,7 @@ export function NewPostModal({
               className={`cl-create-post-loading tw-absolute tw-inset-0 tw-h-full tw-w-full ${
                 toShare
                   ? "tw-max-h-[600px]"
-                  : iswithImage
+                  : iswithImage || showTagging
                     ? "tw-max-h-[520px]"
                     : "tw-max-h-[220px]"
               } tw-flex tw-items-center tw-justify-center`}
@@ -292,7 +397,7 @@ export function NewPostModal({
             </div>
           </div>
           <div className="cl-create-post-body scroller tw-w-full tw-items-stretch tw-justify-start">
-            <div className="tw-w-full tw-h-full tw-bg-transparent tw-flex tw-flex-col tw-gap-[12px] tw-min-h-0 tw-items-stretch">
+            <div className="tw-w-full tw-flex-1 tw-min-h-0 tw-overflow-y-auto thinscroller tw-bg-transparent tw-flex tw-flex-col tw-gap-[12px] tw-items-stretch">
               <textarea
                 disabled={isuploadingpost}
                 value={mainpostcaption}
@@ -303,12 +408,137 @@ export function NewPostModal({
                 className="cl-create-post-textarea tw-font-inter thinscroller tw-font-Inter"
                 placeholder="Type your caption"
               />
-              {!toShare && linkPreview.status === "ok" && linkPreview.preview && (
-                <LinkPreviewCard
-                  preview={linkPreview.preview}
-                  variant="composer"
-                  onRemove={linkPreview.dismiss}
-                />
+              {!toShare &&
+                linkPreview.status === "ok" &&
+                linkPreview.preview && (
+                  <LinkPreviewCard
+                    preview={linkPreview.preview}
+                    variant="composer"
+                    onRemove={linkPreview.dismiss}
+                  />
+                )}
+              {taggedEntities.length > 0 && (
+                <div className="cl-tag-chips">
+                  {taggedEntities.map((entity) => (
+                    <span className="cl-tag-chip" key={entity.entity_id}>
+                      <Avatar
+                        id={entity.entity_id}
+                        name={entity.display_name}
+                        src={entity.profile ?? undefined}
+                        size={20}
+                        shape={entity.type === "realm" ? "rounded" : "circle"}
+                      />
+                      <span className="cl-tag-chip__name">
+                        {entity.display_name}
+                      </span>
+                      {entity.is_verified && (
+                        <RiVerifiedBadgeFill
+                          size={13}
+                          color="var(--brand)"
+                          style={{ flexShrink: 0 }}
+                        />
+                      )}
+                      <button
+                        type="button"
+                        disabled={isuploadingpost}
+                        onClick={() => removeTag(entity)}
+                        title="Remove tag"
+                      >
+                        <FaXmark style={{ fontSize: "12px" }} />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              )}
+              {showTagging && (
+                <div className="cl-create-post-tagging">
+                  <div className="cl-tag-search">
+                    <FaMagnifyingGlass style={{ fontSize: "14px" }} />
+                    <input
+                      autoFocus
+                      disabled={isuploadingpost}
+                      value={tagsearch}
+                      onChange={(e) => settagsearch(e.target.value)}
+                      placeholder="Search people or pages to tag"
+                    />
+                  </div>
+                  <div className="cl-tag-results thinscroller">
+                    {istagsearching ? (
+                      <div className="cl-tag-loading">
+                        <motion.div
+                          animate={{ rotate: -360 }}
+                          transition={{ duration: 1, repeat: Infinity }}
+                          id="div_loader_tag_search"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "20px" }}
+                          />
+                        </motion.div>
+                      </div>
+                    ) : tagresults.length > 0 ? (
+                      tagresults.map((entity) => {
+                        const selected = isTagged(entity);
+                        return (
+                          <button
+                            type="button"
+                            key={entity.entity_id}
+                            disabled={isuploadingpost}
+                            onClick={() => toggleTag(entity)}
+                            className={`cl-tag-result ${
+                              selected ? "cl-tag-result--active" : ""
+                            }`}
+                          >
+                            <Avatar
+                              id={entity.entity_id}
+                              name={entity.display_name}
+                              src={entity.profile ?? undefined}
+                              size={34}
+                              shape={
+                                entity.type === "realm" ? "rounded" : "circle"
+                              }
+                            />
+                            <div className="cl-tag-result__meta">
+                              <span className="cl-tag-result__title">
+                                <span className="cl-tag-result__name">
+                                  {entity.display_name}
+                                </span>
+                                {entity.is_verified && (
+                                  <RiVerifiedBadgeFill
+                                    size={14}
+                                    color="var(--brand)"
+                                    style={{ flexShrink: 0 }}
+                                  />
+                                )}
+                              </span>
+                              <span className="cl-tag-result__handle">
+                                {entity.type === "realm"
+                                  ? `${entity.handle}${
+                                      entity.realm_type
+                                        ? ` · ${entity.realm_type}`
+                                        : " · page"
+                                    }`
+                                  : `@${entity.handle}`}
+                              </span>
+                            </div>
+                            <span className="cl-tag-result__action">
+                              {selected ? (
+                                <FaCheck style={{ fontSize: "13px" }} />
+                              ) : (
+                                <FaPlus style={{ fontSize: "13px" }} />
+                              )}
+                            </span>
+                          </button>
+                        );
+                      })
+                    ) : (
+                      <div className="cl-tag-empty">
+                        {tagsearch.trim() === ""
+                          ? "Search for people or pages to tag in this post"
+                          : "No results found"}
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
               {iswithImage && (
                 <div className="cl-create-post-attachments">
@@ -352,7 +582,7 @@ export function NewPostModal({
                         sendNonImageFilesProcess();
                       }}
                       {...mediaDragHandlers}
-                      className={`cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-h-full tw-border-dashed tw-items-center tw-justify-center ${
+                      className={`cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-min-h-[220px] tw-border-dashed tw-items-center tw-justify-center ${
                         isDraggingMedia ? "tw-border-[var(--brand)]" : ""
                       }`}
                     >
@@ -410,10 +640,17 @@ export function NewPostModal({
             <button
               onClick={() => {
                 setcurrenttab("tagging");
+                setshowTagging((prev) => !prev);
               }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--green)]"
+              title="Tag people or pages"
+              className={`cl-tag-toolbar-btn tw-relative tw-cursor-pointer tw-text-[var(--green)] ${
+                showTagging ? "cl-toolbar-btn--active" : ""
+              }`}
             >
               <FaUserTag style={{ fontSize: "20px" }} />
+              {taggedEntities.length > 0 && (
+                <span className="cl-tag-count">{taggedEntities.length}</span>
+              )}
             </button>
             <button
               onClick={() => {

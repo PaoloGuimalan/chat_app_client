@@ -714,6 +714,50 @@ const SearchRequest = (
     });
 };
 
+// Search v2 - unified entity search (users + realms/pages), used by post
+// tagging. Same callback signature as SearchRequest so it's a drop-in, plus
+// optional `types` / `realmTypes` (comma lists) to scope which kinds come back.
+const EntitySearchRequest = (
+  params: any,
+  dispatch: Dispatch<any>,
+  setisLoading: any,
+  currentAlertState: any,
+  setsearchresults: any,
+) => {
+  const searchdata = params.searchdata;
+  const types = params.types || "user,realm";
+  const realmTypes = params.realmTypes || "page";
+
+  Axios.get(
+    `${USER_SERVICE_API}/api/entity/search/${encodeURIComponent(
+      searchdata,
+    )}/?page=1&page_size=15&types=${types}&realm_types=${realmTypes}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      setisLoading(false);
+      setsearchresults(response.data.results);
+    })
+    .catch((err) => {
+      setisLoading(false);
+      setsearchresults([]);
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+    });
+};
+
 const ContactRequest = (
   params: any,
   dispatch: Dispatch<any>,
@@ -3642,6 +3686,7 @@ export {
   LogoutRequest,
   VerifyCodeRequest,
   SearchRequest,
+  EntitySearchRequest,
   ContactRequest,
   NotificationInitRequest,
   ReadNotificationsRequest,
