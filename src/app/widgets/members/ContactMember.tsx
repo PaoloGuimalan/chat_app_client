@@ -190,6 +190,13 @@ function ContactMember({
     [],
   );
 
+  // Whoever is currently ACTING - the personal entity normally, or a page
+  // while switched. Matches what /contacts filters on server-side
+  // (request.entity), so it is the only correct thing to orient a row
+  // against. See the same helper in tabs/feed/Contacts.tsx.
+  const actingEntityID =
+    authentication.active_entity_context?.id || authentication.user.entity_id;
+
   const rows: ContactRowData[] = Array.from(
     new Map(
       contactslist
@@ -197,8 +204,10 @@ function ContactMember({
           if (cnts.type !== "single") return [];
           if (!cnts.involved_entity || !cnts.action_by) return [];
 
-          const selfActed =
-            cnts.action_by.details.id === authentication.user.userID;
+          // Orient on the ENTITY id, not the account id - a counterpart can
+          // now be a page, whose details.id is a realm pk that would never
+          // match a user id. See the same fix in tabs/feed/Contacts.tsx.
+          const selfActed = cnts.action_by.id === actingEntityID;
           const u = selfActed
             ? cnts.involved_entity.details
             : cnts.action_by.details;
@@ -217,6 +226,7 @@ function ContactMember({
               connectionID: cnts.connection_id,
               selfActed,
               involvedUserdetails: contactsToUserdetails(cnts, !selfActed),
+              entityType: details_ent.type as "user" | "realm",
             },
           ];
         })

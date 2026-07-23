@@ -8,9 +8,9 @@ import {
   AcceptContactRequest,
   ContactRequest,
   DeclineContactRequest,
-  SearchRequest,
+  EntitySearchRequest,
 } from "@/reusables/hooks/requests";
-import { UserSearchResult } from "@/reusables/vars/interfaces";
+import { EntitySearchResult } from "@/reusables/vars/interfaces";
 import { Avatar, Badge, Btn, Card, Icon, useTheme } from "@/reusables/design";
 import Skeleton from "react-loading-skeleton";
 
@@ -23,7 +23,7 @@ function SearchPage() {
   const [query, setQuery] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isDisabledByRequest, setIsDisabledByRequest] = useState(false);
-  const [results, setResults] = useState<UserSearchResult[]>([]);
+  const [results, setResults] = useState<EntitySearchResult[]>([]);
 
   const normalizedQuery = useMemo(() => query.trim(), [query]);
 
@@ -36,8 +36,11 @@ function SearchPage() {
       }
 
       setIsLoading(true);
-      SearchRequest(
-        { searchdata: normalizedQuery },
+      // Entity search (v2): returns users AND pages in one normalized shape.
+      // realmTypes "page" keeps Explore to profile-like pages - widen here if
+      // groups/servers should become discoverable too.
+      EntitySearchRequest(
+        { searchdata: normalizedQuery, types: "user,realm", realmTypes: "page" },
         dispatch,
         setIsLoading,
         alerts,
@@ -48,37 +51,34 @@ function SearchPage() {
     return () => clearTimeout(timeout);
   }, [normalizedQuery]);
 
+  // All three send entity_id - the canonical key the contacts endpoints key
+  // on, so the backend never translates an account id into an entity.
   const acceptContactRequestProcess = (
     connection_id: string,
-    to_user_id: string,
+    entity_id: string,
   ) => {
     setIsDisabledByRequest(true);
     AcceptContactRequest(
-      { connection_id, to_user_id },
+      { connection_id, entity_id },
       dispatch,
       alerts,
       setIsDisabledByRequest,
     );
   };
 
-  const contactRequestProcess = (addUserID: string) => {
+  const contactRequestProcess = (entity_id: string) => {
     setIsDisabledByRequest(true);
-    ContactRequest(
-      { addUsername: addUserID },
-      dispatch,
-      alerts,
-      setIsDisabledByRequest,
-    );
+    ContactRequest({ entity_id }, dispatch, alerts, setIsDisabledByRequest);
   };
 
   const declineRequestProcess = (
     connection_id: string,
-    to_user_id: string,
+    entity_id: string,
     action: string,
   ) => {
     setIsDisabledByRequest(true);
     DeclineContactRequest(
-      { connection_id, to_user_id, action },
+      { connection_id, entity_id, action },
       dispatch,
       alerts,
       setIsDisabledByRequest,
@@ -151,7 +151,7 @@ function SearchPage() {
                 color: "var(--text)",
               }}
             >
-              Search people
+              Search people and pages
             </h1>
             <p
               style={{
@@ -160,7 +160,8 @@ function SearchPage() {
                 fontSize: 14,
               }}
             >
-              Find users, start connections, and open profiles from one place.
+              Find people and pages, start connections, and open profiles from
+              one place.
             </p>
           </div>
 
@@ -179,7 +180,7 @@ function SearchPage() {
                 type="text"
                 value={query}
                 onChange={(e) => setQuery(e.target.value)}
-                placeholder="Search users by name or username"
+                placeholder="Search people and pages by name or handle"
                 autoComplete="off"
                 className="tw-border-none tw-outline-none"
               />
@@ -226,10 +227,10 @@ function SearchPage() {
                     color: "var(--text)",
                   }}
                 >
-                  Search users only
+                  Search people and pages
                 </span>
                 <span style={{ fontSize: 14, color: "var(--text-2)" }}>
-                  Start typing a name or username to find people.
+                  Start typing a name or handle to find people and pages.
                 </span>
               </div>
             </Card>
@@ -288,18 +289,29 @@ function SearchPage() {
           ) : results.length > 0 ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
               {results.map((result) => {
-                const fullName =
-                  `${result.first_name} ${result.middle_name === "N/A" ? "" : `${result.middle_name} `}${result.last_name}`.trim();
-                const connectionId = result.connection_id ?? result.id;
-                const statusTone = result.has_connection
-                  ? result.connection_accomplished
-                    ? "green"
-                    : "gold"
-                  : "grey";
+                const isRealm = result.type === "realm";
+                // v2 gives one display_name for both kinds, so Explore no
+                // longer composes first/middle/last itself.
+                const fullName = result.display_name;
+                // Contact actions are keyed on the ENTITY id for both kinds,
+                // so the backend never has to translate an account id.
+                const targetEntityID = result.entity_id;
+                const connectionId = result.connection_id ?? targetEntityID;
+                // Must be one of Badge's supported tones - Badge destructures
+                // its tone map, so an unknown value throws rather than
+                // falling back. Left untyped-cast-free on purpose so tsc
+                // catches any future typo here.
+                const statusTone = isRealm
+                  ? "brand"
+                  : result.has_connection
+                    ? result.connection_accomplished
+                      ? "green"
+                      : "gold"
+                    : "grey";
 
                 return (
                   <Card
-                    key={result.id}
+                    key={result.entity_id}
                     pad={14}
                     hover
                     style={{ width: "100%" }}
@@ -315,7 +327,7 @@ function SearchPage() {
                     >
                       <button
                         type="button"
-                        onClick={() => navigate(`/${result.username}`)}
+                        onClick={() => navigate(`/${result.handle}`)}
                         style={{
                           background: "transparent",
                           border: "none",
@@ -325,13 +337,10 @@ function SearchPage() {
                         }}
                       >
                         <Avatar
-                          id={result.id}
+                          id={result.entity_id}
                           name={fullName}
-                          src={
-                            result.profile === "none"
-                              ? undefined
-                              : result.profile
-                          }
+                          // v2 normalizes both "none" and "N/A" to null.
+                          src={result.profile ?? undefined}
                           size={52}
                           style={{
                             boxShadow: "0 0 0 1px var(--border)",
@@ -361,7 +370,7 @@ function SearchPage() {
                         >
                           <button
                             type="button"
-                            onClick={() => navigate(`/${result.username}`)}
+                            onClick={() => navigate(`/${result.handle}`)}
                             style={{
                               background: "transparent",
                               border: "none",
@@ -388,14 +397,19 @@ function SearchPage() {
                               {fullName}
                             </span>
                           </button>
-                          <Badge tone={statusTone as any}>
-                            {result.has_connection
-                              ? result.connection_accomplished
-                                ? "Connected"
-                                : result.is_action_by_user
-                                  ? "Request sent"
-                                  : "Request received"
-                              : "New"}
+                          {result.is_verified && (
+                            <Icon n="verified" s={16} c="var(--brand)" />
+                          )}
+                          <Badge tone={statusTone}>
+                            {isRealm
+                              ? "Page"
+                              : result.has_connection
+                                ? result.connection_accomplished
+                                  ? "Connected"
+                                  : result.is_action_by_entity
+                                    ? "Request sent"
+                                    : "Request received"
+                                : "New"}
                           </Badge>
                         </div>
                         <span
@@ -409,7 +423,7 @@ function SearchPage() {
                             textAlign: "left",
                           }}
                         >
-                          @{result.username}
+                          @{result.handle}
                         </span>
                       </div>
 
@@ -420,50 +434,57 @@ function SearchPage() {
                           gap: 8,
                         }}
                       >
-                        {result.has_connection ? (
-                          !result.is_action_by_user ? (
-                            result.connection_accomplished ? (
-                              <Btn
-                                variant="outline"
-                                size="sm"
-                                onClick={() => navigate(`/${result.username}`)}
-                              >
-                                Profile
-                              </Btn>
-                            ) : (
-                              <Btn
-                                variant="outline"
-                                size="sm"
-                                disabled={isDisabledByRequest}
-                                onClick={() =>
-                                  declineRequestProcess(
-                                    connectionId,
-                                    result.id,
-                                    "remove",
-                                  )
-                                }
-                              >
-                                <BiUserMinus />
-                              </Btn>
-                            )
-                          ) : result.connection_accomplished ? (
+                        {isRealm ? (
+                          // Pages are not connection targets - open the page
+                          // and follow from there.
+                          <Btn
+                            variant="outline"
+                            size="sm"
+                            onClick={() => navigate(`/${result.handle}`)}
+                          >
+                            View page
+                          </Btn>
+                        ) : result.has_connection ? (
+                          // Order matters: settled first, then WHO asked.
+                          // is_action_by_entity true = I sent the request, so
+                          // I withdraw it; false = they sent it, so I answer
+                          // it. These were previously inverted, which showed
+                          // Accept/Decline to the requester.
+                          result.connection_accomplished ? (
                             <Btn
                               variant="outline"
                               size="sm"
-                              onClick={() => navigate(`/${result.username}`)}
+                              onClick={() => navigate(`/${result.handle}`)}
                             >
                               Profile
+                            </Btn>
+                          ) : result.is_action_by_entity ? (
+                            <Btn
+                              variant="outline"
+                              size="sm"
+                              title="Cancel request"
+                              disabled={isDisabledByRequest}
+                              onClick={() =>
+                                declineRequestProcess(
+                                  connectionId,
+                                  targetEntityID,
+                                  "remove",
+                                )
+                              }
+                            >
+                              <BiUserMinus />
                             </Btn>
                           ) : (
                             <>
                               <Btn
                                 variant="outline"
                                 size="sm"
+                                title="Accept request"
                                 disabled={isDisabledByRequest}
                                 onClick={() =>
                                   acceptContactRequestProcess(
                                     connectionId,
-                                    result.id,
+                                    targetEntityID,
                                   )
                                 }
                               >
@@ -472,11 +493,12 @@ function SearchPage() {
                               <Btn
                                 variant="outline"
                                 size="sm"
+                                title="Decline request"
                                 disabled={isDisabledByRequest}
                                 onClick={() =>
                                   declineRequestProcess(
                                     connectionId,
-                                    result.id,
+                                    targetEntityID,
                                     "decline",
                                   )
                                 }
@@ -490,7 +512,7 @@ function SearchPage() {
                             variant="soft"
                             size="sm"
                             disabled={isDisabledByRequest}
-                            onClick={() => contactRequestProcess(result.id)}
+                            onClick={() => contactRequestProcess(targetEntityID)}
                             iconL="person_add"
                           >
                             Add
@@ -543,10 +565,10 @@ function SearchPage() {
                     color: "var(--text)",
                   }}
                 >
-                  No users found
+                  No results found
                 </span>
                 <span style={{ fontSize: 14, color: "var(--text-2)" }}>
-                  Try a different name or username.
+                  Try a different name or handle.
                 </span>
               </div>
             </Card>

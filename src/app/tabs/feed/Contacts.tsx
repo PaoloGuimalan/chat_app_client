@@ -83,10 +83,23 @@ function Contacts() {
     return null;
   }
 
+  // Whoever is currently ACTING - the personal entity normally, or a page
+  // while switched. This is the same value /contacts filters on server-side
+  // (request.entity, read off the JWT's `entity` claim), so it is the only
+  // correct thing to orient each row against: using the human's entity_id
+  // would mis-resolve the counterpart on page<->page connections, where
+  // neither side is the human.
+  const actingEntityID =
+    authentication.active_entity_context?.id || authentication.user.entity_id;
+
   const rows: ContactRowData[] = contactslist.flatMap((cnts) => {
     if (cnts.type !== "single") return [];
     if (!cnts.involved_entity || !cnts.action_by) return [];
-    const selfActed = cnts.action_by.details.id === authentication.user.userID;
+    // Orient on the ENTITY id, not the account id. A contact's counterpart can
+    // now be a page, whose details.id is a realm pk and would never match a
+    // user id - comparing entity ids is the only check valid for both kinds.
+    // (EntitySerializer emits `id` = entity id, `details.id` = account/realm pk.)
+    const selfActed = cnts.action_by.id === actingEntityID;
     const u = selfActed ? cnts.involved_entity.details : cnts.action_by.details;
     const details_ent = selfActed ? cnts.involved_entity : cnts.action_by;
     return [
@@ -102,6 +115,7 @@ function Contacts() {
         connectionID: cnts.connection_id,
         selfActed,
         involvedUserdetails: contactsToUserdetails(cnts, !selfActed),
+        entityType: details_ent.type as "user" | "realm",
       },
     ];
   });
@@ -172,18 +186,25 @@ function Contacts() {
         ) : (
           <div ref={divcontentRef} className="cl-contacts-page__list">
             {rows.map((r, i) => {
-              const online = isUserOnline(activeuserslist, r.entityID);
-              const sessionStatus = !online
-                ? userSessionStatusFromContacts(activeuserslist, r.entityID)
-                : null;
+              const isRealm = r.entityType === "realm";
+              // Presence is a human concept - a page is never "active now",
+              // so skip the online lookup entirely for realm contacts.
+              const online =
+                !isRealm && isUserOnline(activeuserslist, r.entityID);
+              const sessionStatus =
+                !isRealm && !online
+                  ? userSessionStatusFromContacts(activeuserslist, r.entityID)
+                  : null;
+              // A realm's whole name arrives in firstName (middleName is the
+              // "N/A" sentinel, lastName empty), so this trims to just it.
               const fullName = `${r.firstName}${
                 r.middleName === "N/A" ? "" : ` ${r.middleName}`
-              } ${r.lastName}`;
+              } ${r.lastName}`.trim();
               return (
                 <div key={i} className="cl-contact-row">
                   <div className="cl-contact-row__avatar">
                     <Avatar
-                      id={r.id}
+                      id={r.entityID}
                       name={fullName}
                       src={r.profile === "none" ? undefined : r.profile}
                       size={46}
@@ -201,13 +222,20 @@ function Contacts() {
                       {r.isBadged && (
                         <Icon n="verified" s={15} c="var(--brand)" />
                       )}
+                      {isRealm && (
+                        <span title="Page" style={{ display: "inline-flex" }}>
+                          <Icon n="flag" s={14} c="var(--text-3)" />
+                        </span>
+                      )}
                     </button>
                     <div className="cl-contact-row__status cl-contact-row__status--active">
-                      {online
-                        ? "Active now"
-                        : sessionStatus
-                          ? sessionStatus
-                          : null}
+                      {isRealm
+                        ? `@${r.username}`
+                        : online
+                          ? "Active now"
+                          : sessionStatus
+                            ? sessionStatus
+                            : null}
                     </div>
                   </div>
                   <div className="cl-contact-row__actions">

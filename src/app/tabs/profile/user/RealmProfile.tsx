@@ -23,7 +23,10 @@ import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Btn, Card, Icon } from "@/reusables/design";
 import {
+  AcceptContactRequest,
+  ContactRequest,
   CreateInitialConversation,
+  DeclineContactRequest,
   FollowRealmRequest,
   GetPostRequest,
   UnfollowRealmRequest,
@@ -51,6 +54,7 @@ function RealmProfile({
 
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const alerts = useSelector((state: any) => state.alerts);
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);
@@ -138,9 +142,56 @@ function RealmProfile({
       });
   };
 
+  // A Connection is entity<->entity, so a page can be added as a contact the
+  // same way a person can. The endpoint resolves the target generically, so
+  // entity_id is the canonical target the backend keys on.
+  const AddRealmContactProcess = () => {
+    setisConnectionButtonsLoading(true);
+    ContactRequest(
+      { entity_id: realmInfo.entity },
+      dispatch,
+      alerts,
+      (loading: boolean) => {
+        setisConnectionButtonsLoading(loading);
+        if (!loading) GetProfileInfoProcess(() => {});
+      },
+    );
+  };
+
+  // Acting on an existing connection with this page: cancel my own outgoing
+  // request, or accept/decline one the page sent me. Mirrors the user
+  // profile's initiateConnectionProcess ("cancel" maps to action "remove").
+  const realmConnectionProcess = (
+    mode: "cancel" | "accept" | "decline" | "remove",
+  ) => {
+    const connection_id = realmInfo.connection?.connection_id;
+    if (!connection_id) return;
+
+    setisConnectionButtonsLoading(true);
+    const done = () => {
+      GetProfileInfoProcess(() => setisConnectionButtonsLoading(false));
+    };
+
+    // entity_id only routes the SSE notification - the backend derives the
+    // real participants from the connection rows themselves. The entity id is
+    // the correct channel key for a page.
+    const payload = { connection_id, entity_id: realmInfo.entity };
+
+    if (mode === "accept") {
+      AcceptContactRequest(payload, dispatch, alerts, done);
+    } else {
+      DeclineContactRequest(
+        { ...payload, action: mode === "cancel" ? "remove" : "decline" },
+        dispatch,
+        alerts,
+        done,
+      );
+    }
+  };
+
   const FollowRealmProcess = () => {
     setisConnectionButtonsLoading(true);
-    FollowRealmRequest({ realm_id: realmInfo.id })
+    FollowRealmRequest({ entity_id: realmInfo.entity })
       .then((response) => {
         GetProfileInfoProcess(() => {
           setisConnectionButtonsLoading(false);
@@ -155,7 +206,7 @@ function RealmProfile({
 
   const UnfollowRealmProcess = () => {
     setisConnectionButtonsLoading(true);
-    UnfollowRealmRequest({ realm_id: realmInfo.id })
+    UnfollowRealmRequest({ entity_id: realmInfo.entity })
       .then((response) => {
         GetProfileInfoProcess(() => {
           setisConnectionButtonsLoading(false);
@@ -275,34 +326,64 @@ function RealmProfile({
                   </button>
                 )}
                 {!isSelf &&
-                (realmInfo.is_follower ? (
+                  (realmInfo.is_follower ? (
+                    <button
+                      onClick={UnfollowRealmProcess}
+                      disabled={isConnectionButtonsLoading}
+                      className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    >
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px", color: "var(--brand)" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div className="tw-min-w-[80px]">Unfollow</div>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={FollowRealmProcess}
+                      disabled={isConnectionButtonsLoading}
+                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    >
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div className="tw-min-w-[80px]">Follow</div>
+                      )}
+                    </button>
+                  ))}
+              </div>
+            )}
+            {authentication.auth && !isSelf && (
+              <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                {!realmInfo.connection?.is_connection_present ? (
                   <button
-                    onClick={UnfollowRealmProcess}
-                    disabled={isConnectionButtonsLoading}
-                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
-                  >
-                    {isConnectionButtonsLoading ? (
-                      <motion.div
-                        animate={{
-                          rotate: -360,
-                        }}
-                        transition={{
-                          duration: 1,
-                          repeat: Infinity,
-                        }}
-                        id="div_loader_request_nano_light"
-                      >
-                        <AiOutlineLoading3Quarters
-                          style={{ fontSize: "15px", color: "var(--brand)" }}
-                        />
-                      </motion.div>
-                    ) : (
-                      <div className="tw-min-w-[80px]">Unfollow</div>
-                    )}
-                  </button>
-                ) : (
-                  <button
-                    onClick={FollowRealmProcess}
+                    onClick={AddRealmContactProcess}
                     disabled={isConnectionButtonsLoading}
                     className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
                   >
@@ -322,14 +403,110 @@ function RealmProfile({
                         />
                       </motion.div>
                     ) : (
-                      <div className="tw-min-w-[80px]">Follow</div>
+                      <div className="tw-min-w-[80px]">Add Contact</div>
                     )}
                   </button>
-                ))}
-              </div>
-            )}
-            {authentication.auth && !isSelf && (
-              <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                ) : realmInfo.connection?.is_connection_handshaked ? (
+                  <button
+                    onClick={() => {
+                      realmConnectionProcess("remove");
+                    }}
+                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                  >
+                    {isConnectionButtonsLoading ? (
+                      <motion.div
+                        animate={{
+                          rotate: -360,
+                        }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                        }}
+                        id="div_loader_request_nano_light"
+                      >
+                        <AiOutlineLoading3Quarters
+                          style={{ fontSize: "15px" }}
+                        />
+                      </motion.div>
+                    ) : (
+                      "Connected"
+                    )}
+                  </button>
+                ) : realmInfo.connection?.is_user_connection_initiator ? (
+                  // My own outgoing request - withdrawable, not just a status.
+                  <button
+                    onClick={() => realmConnectionProcess("cancel")}
+                    disabled={isConnectionButtonsLoading}
+                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                  >
+                    {isConnectionButtonsLoading ? (
+                      <motion.div
+                        animate={{ rotate: -360 }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                        id="div_loader_request_nano_light"
+                      >
+                        <AiOutlineLoading3Quarters
+                          style={{ fontSize: "15px", color: "var(--brand)" }}
+                        />
+                      </motion.div>
+                    ) : (
+                      <div className="tw-min-w-[80px]">Cancel Request</div>
+                    )}
+                  </button>
+                ) : (
+                  // The page requested me - same accept/decline pair the user
+                  // profile offers.
+                  <Fragment>
+                    <button
+                      onClick={() => realmConnectionProcess("accept")}
+                      disabled={isConnectionButtonsLoading}
+                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    >
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div className="tw-min-w-[80px]">Accept</div>
+                      )}
+                    </button>
+                    <button
+                      onClick={() => realmConnectionProcess("decline")}
+                      disabled={isConnectionButtonsLoading}
+                      className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    >
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div className="tw-min-w-[80px]">Decline</div>
+                      )}
+                    </button>
+                  </Fragment>
+                )}
                 <button
                   onClick={() => {
                     CreateConversationProcess();
@@ -574,3 +751,4 @@ function RealmProfile({
 }
 
 export default RealmProfile;
+

@@ -10,10 +10,10 @@ import {
   AcceptContactRequest,
   ContactRequest,
   DeclineContactRequest,
-  SearchRequest,
+  EntitySearchRequest,
 } from "../../reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
-import { UserSearchResult } from "@/reusables/vars/interfaces";
+import { EntitySearchResult } from "@/reusables/vars/interfaces";
 // import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { useNavigate } from "react-router-dom";
 import { Avatar } from "@/reusables/design";
@@ -26,7 +26,7 @@ function SearchMiniDrawer({
   setsearchBoxFocus: any;
 }) {
   const [isLoading, setisLoading] = useState(false);
-  const [searchresults, setsearchresults] = useState<UserSearchResult[]>([]);
+  const [searchresults, setsearchresults] = useState<EntitySearchResult[]>([]);
   const [isDisabledByRequest, setisDisabledByRequest] = useState(false);
 
   const alerts = useSelector((state: any) => state.alerts);
@@ -37,9 +37,12 @@ function SearchMiniDrawer({
     const timeoutRequest = setTimeout(() => {
       if (searchbox.trim() != "") {
         if (searchbox.split("@")[1] != "") {
-          SearchRequest(
+          // Entity search (v2): people AND pages in one normalized shape.
+          EntitySearchRequest(
             {
               searchdata: searchbox,
+              types: "user,realm",
+              realmTypes: "page",
             },
             dispatch,
             setisLoading,
@@ -65,13 +68,13 @@ function SearchMiniDrawer({
 
   const acceptContactRequestProcess = (
     connection_id: string,
-    to_user_id: string,
+    entity_id: string,
   ) => {
     setisDisabledByRequest(true);
     AcceptContactRequest(
       {
         connection_id,
-        to_user_id,
+        entity_id,
       },
       dispatch,
       alerts,
@@ -79,48 +82,23 @@ function SearchMiniDrawer({
     );
   };
 
-  const contactRequestProcess = (addUserID: any) => {
+  // All three send entity_id - the canonical key the contacts endpoints key
+  // on, so the backend never translates an account id into an entity.
+  const contactRequestProcess = (entity_id: string) => {
     setisDisabledByRequest(true);
-    // console.log(addUserID);
-    // dispatch({
-    //   type: SET_MUTATE_ALERTS,
-    //   payload: {
-    //     alerts: {
-    //       type: "warning",
-    //       content: "Add Connection is temporary disabled",
-    //     },
-    //   },
-    // });
-    ContactRequest(
-      {
-        addUsername: addUserID,
-      },
-      dispatch,
-      alerts,
-      setisDisabledByRequest,
-    );
+    ContactRequest({ entity_id }, dispatch, alerts, setisDisabledByRequest);
   };
 
   const declineRequestProcess = (
     connection_id: any,
-    to_user_id: string,
+    entity_id: string,
     action: string,
   ) => {
     setisDisabledByRequest(true);
-    // console.log(addUserID);
-    // dispatch({
-    //   type: SET_MUTATE_ALERTS,
-    //   payload: {
-    //     alerts: {
-    //       type: "warning",
-    //       content: "Add Connection is temporary disabled",
-    //     },
-    //   },
-    // });
     DeclineContactRequest(
       {
         connection_id,
-        to_user_id,
+        entity_id,
         action,
       },
       dispatch,
@@ -154,10 +132,13 @@ function SearchMiniDrawer({
         </div>
       ) : searchresults.length > 0 ? (
         <div id="div_searchminidrawer_content">
-          {searchresults.map((srch: UserSearchResult) => {
+          {searchresults.map((srch: EntitySearchResult) => {
+            const isRealm = srch.type === "realm";
+            // Contact actions key on the entity id, present for both kinds.
+            const targetEntityID = srch.entity_id;
             return (
               <motion.div
-                key={srch.id}
+                key={srch.entity_id}
                 initial={{
                   rotate: 0,
                 }}
@@ -174,55 +155,55 @@ function SearchMiniDrawer({
               >
                 <div id="div_img_search_profiles_container">
                   <Avatar
-                    id={srch.id}
-                    name={`${srch.first_name} ${
-                      srch.middle_name === "N/A" ? "" : `${srch.middle_name} `
-                    }${srch.last_name}`}
-                    src={srch.profile === "none" ? undefined : srch.profile}
+                    id={srch.entity_id}
+                    name={srch.display_name}
+                    // v2 normalizes both "none" and "N/A" to null.
+                    src={srch.profile ?? undefined}
                     size={40}
                   />
                 </div>
                 <div
                   onClick={() => {
                     setsearchBoxFocus(false);
-                    navigate(`/${srch.username}`);
+                    navigate(`/${srch.handle}`);
                   }}
                   id="div_fullname_container"
                 >
-                  <span className="span_fullname">
-                    {srch.first_name}
-                    {srch.middle_name == "N/A"
-                      ? ""
-                      : ` ${srch.middle_name}`}{" "}
-                    {srch.last_name}
+                  <span className="span_fullname">{srch.display_name}</span>
+                  <span className="span_userID">
+                    @{srch.handle}
+                    {isRealm ? " · Page" : ""}
                   </span>
-                  <span className="span_userID">@{srch.username}</span>
                 </div>
                 <div id="div_add_button">
-                  {srch.has_connection ? (
-                    !srch.is_action_by_user ? (
-                      srch.connection_accomplished ? null : (
-                        <motion.button
-                          whileHover={{
-                            backgroundColor: "#909090",
-                            color: "white",
-                          }}
-                          onClick={() => {
-                            declineRequestProcess(
-                              srch.connection_id,
-                              srch.id,
-                              "remove",
-                            );
-                            // console.log(srch.userID)
-                          }}
-                          disabled={isDisabledByRequest}
-                          title="Cancel Request"
-                          id="btn_add_user"
-                        >
-                          <BiUserMinus style={{ fontSize: "23px" }} />
-                        </motion.button>
-                      )
-                    ) : srch.connection_accomplished ? null : (
+                  {/* Pages are not connection targets - open the page and
+                      follow from there, so no action button here. */}
+                  {/* Order matters: settled first, then WHO asked.
+                      is_action_by_entity true = I sent the request, so I
+                      withdraw it; false = they sent it, so I answer it.
+                      These were previously inverted, which showed
+                      Accept/Decline to the requester. */}
+                  {isRealm ? null : srch.has_connection ? (
+                    srch.connection_accomplished ? null : srch.is_action_by_entity ? (
+                      <motion.button
+                        whileHover={{
+                          backgroundColor: "#909090",
+                          color: "white",
+                        }}
+                        onClick={() => {
+                          declineRequestProcess(
+                            srch.connection_id,
+                            targetEntityID,
+                            "remove",
+                          );
+                        }}
+                        disabled={isDisabledByRequest}
+                        title="Cancel Request"
+                        id="btn_add_user"
+                      >
+                        <BiUserMinus style={{ fontSize: "23px" }} />
+                      </motion.button>
+                    ) : (
                       <>
                         <motion.button
                           whileHover={{
@@ -233,10 +214,9 @@ function SearchMiniDrawer({
                             if (srch.connection_id) {
                               acceptContactRequestProcess(
                                 srch.connection_id,
-                                srch.id,
+                                targetEntityID,
                               );
                             }
-                            // console.log(srch.userID)
                           }}
                           disabled={isDisabledByRequest}
                           title="Accept Request"
@@ -252,10 +232,9 @@ function SearchMiniDrawer({
                           onClick={() => {
                             declineRequestProcess(
                               srch.connection_id,
-                              srch.id,
+                              targetEntityID,
                               "decline",
                             );
-                            // console.log(srch.userID)
                           }}
                           disabled={isDisabledByRequest}
                           title="Decline Request"
@@ -272,8 +251,7 @@ function SearchMiniDrawer({
                         color: "white",
                       }}
                       onClick={() => {
-                        contactRequestProcess(srch.id);
-                        // console.log(srch.userID)
+                        contactRequestProcess(targetEntityID);
                       }}
                       disabled={isDisabledByRequest}
                       title="Add Contact"

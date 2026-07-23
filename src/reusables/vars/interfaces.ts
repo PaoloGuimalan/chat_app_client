@@ -78,6 +78,8 @@ export interface ProfileUserInfoInterface {
     is_connection_handshaked: boolean | null;
     is_user_connection_initiator: boolean | null;
   };
+  // Following is entity->entity, so a person can be followed like a page.
+  is_follower?: boolean;
   profile: string;
   coverphoto: string;
   gender: string | null;
@@ -129,6 +131,14 @@ export interface IRealmProfileInfo {
   followers_count: number;
   members: number;
   is_follower: boolean;
+  // A Connection is entity<->entity, so a page can be a contact too. Mirrors
+  // the `connection` block the user profile returns.
+  connection?: {
+    connection_id: string | null;
+    is_connection_present: boolean | null;
+    is_connection_handshaked: boolean | null;
+    is_user_connection_initiator: boolean | null;
+  };
 }
 
 export type CommunityInviteKind = "invite" | "request";
@@ -513,6 +523,19 @@ export interface EntitySearchResult {
   profile: string | null;
   is_verified: boolean;
   realm_type: string | null;
+  // Connection state. Only meaningful for `type === "user"` - realms are not
+  // connection targets from search, so `id` is null and the flags are false.
+  // `id` is the Account id, which is what the contact request endpoints
+  // address (they take an account id, not an entity_id).
+  //
+  // Optional because callers that synthesize an entry locally (e.g. post
+  // tagging auto-tagging the profile owner) have no connection context; only
+  // the search endpoint populates them.
+  id?: string | null;
+  has_connection?: boolean;
+  connection_accomplished?: boolean;
+  connection_id?: string | null;
+  is_action_by_entity?: boolean;
 }
 
 export interface UserSearchResult {
@@ -753,6 +776,10 @@ export interface ContactRowData {
   connectionID: string;
   selfActed: boolean;
   involvedUserdetails: any;
+  // Contacts are entity<->entity, so a counterpart can be a page. Optional
+  // because other producers of this shape (e.g. CreatePage's member picker)
+  // only ever deal with users; treat a missing value as "user".
+  entityType?: "user" | "realm";
 }
 
 export interface IConversationSetup {

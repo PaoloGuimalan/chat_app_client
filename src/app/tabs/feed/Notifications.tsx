@@ -40,22 +40,22 @@ function Notifications() {
 
   const declineRequestProcess = (
     connection_id: any,
-    to_user_id: string,
+    entity_id: string,
     action: string,
   ) => {
     setisDisabledByRequest(true);
     DeclineContactRequest(
-      { connection_id, to_user_id, action },
+      { connection_id, entity_id, action },
       dispatch,
       alerts,
       setisDisabledByRequest,
     );
   };
 
-  const acceptRequestProcess = (connection_id: string, to_user_id: string) => {
+  const acceptRequestProcess = (connection_id: string, entity_id: string) => {
     setisDisabledByRequest(true);
     AcceptContactRequest(
-      { connection_id, to_user_id },
+      { connection_id, entity_id },
       dispatch,
       alerts,
       setisDisabledByRequest,

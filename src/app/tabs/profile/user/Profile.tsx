@@ -23,6 +23,8 @@ import {
   PokeUserRequest,
   ReportUserRequest,
   CreateInitialConversation,
+  FollowRealmRequest,
+  UnfollowRealmRequest,
 } from "@/reusables/hooks/requests";
 // import jwtDecode from "jwt-decode";
 import { FaBook } from "react-icons/fa6";
@@ -74,6 +76,11 @@ function Profile({
   const [isConnectionButtonsLoading, setisConnectionButtonsLoading] =
     useState<boolean>(false);
   const [feedmode, setfeedmode] = useState<string>("posts");
+
+  // Follow is entity->entity now, so a person can be followed exactly like a
+  // page. Mirrored into local state so the button flips without a refetch.
+  const [isFollowLoading, setisFollowLoading] = useState<boolean>(false);
+  const [isFollowing, setisFollowing] = useState<boolean>(false);
 
   const [isPokeLoading, setisPokeLoading] = useState<boolean>(false);
   const [isBlockLoading, setisBlockLoading] = useState<boolean>(false);
@@ -167,13 +174,31 @@ function Profile({
   //     GetProfileInfoProcess()
   //   },[])
 
+  useEffect(() => {
+    setisFollowing(Boolean(profileInfo?.is_follower));
+  }, [profileInfo?.is_follower]);
+
+  const toggleFollowProcess = () => {
+    if (!profileInfo?.entityID) return;
+    setisFollowLoading(true);
+    // The follow endpoint takes any entity target; entity_id is the general
+    // alias (realm_id remains for pages).
+    const request = isFollowing ? UnfollowRealmRequest : FollowRealmRequest;
+    request({ entity_id: profileInfo.entityID })
+      .then((response) => {
+        if (response) setisFollowing((prev) => !prev);
+      })
+      .catch((err) => console.log(err))
+      .finally(() => setisFollowLoading(false));
+  };
+
   const initiateConnectionProcess = (mode: string) => {
     setisConnectionButtonsLoading(true);
     switch (mode) {
       case "add":
         ContactRequest(
           {
-            addUsername: profileInfo?.id,
+            entity_id: profileInfo?.entityID,
           },
           dispatch,
           alerts,
@@ -187,7 +212,7 @@ function Profile({
         DeclineContactRequest(
           {
             connection_id: profileInfo?.connection.connection_id,
-            to_user_id: profileInfo?.id,
+            entity_id: profileInfo?.entityID,
             action: "remove",
           },
           dispatch,
@@ -202,7 +227,7 @@ function Profile({
         AcceptContactRequest(
           {
             connection_id: profileInfo?.connection.connection_id,
-            to_user_id: profileInfo?.id,
+            entity_id: profileInfo?.entityID,
           },
           dispatch,
           alerts,
@@ -216,7 +241,7 @@ function Profile({
         DeclineContactRequest(
           {
             connection_id: profileInfo?.connection.connection_id,
-            to_user_id: profileInfo?.id,
+            entity_id: profileInfo?.entityID,
             action: "decline",
           },
           dispatch,
@@ -231,7 +256,7 @@ function Profile({
         DeclineContactRequest(
           {
             connection_id: profileInfo?.connection.connection_id,
-            to_user_id: profileInfo?.id,
+            entity_id: profileInfo?.entityID,
             action: "remove",
           },
           dispatch,
@@ -404,6 +429,36 @@ function Profile({
                 </button>
               </div>
             )}
+            {authentication.auth &&
+              authentication.user.username !== params.userID && (
+                <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] sm:tw-pr-[5px] tw-pr-[0px]">
+                  <button
+                    disabled={isFollowLoading}
+                    onClick={toggleFollowProcess}
+                    className={`${
+                      isFollowing
+                        ? "cl-profile-action-button--secondary"
+                        : "cl-profile-action-button"
+                    } tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]`}
+                  >
+                    {isFollowLoading ? (
+                      <motion.div
+                        animate={{ rotate: -360 }}
+                        transition={{ duration: 1, repeat: Infinity }}
+                        id="div_loader_request_nano_light"
+                      >
+                        <AiOutlineLoading3Quarters
+                          style={{ fontSize: "15px" }}
+                        />
+                      </motion.div>
+                    ) : isFollowing ? (
+                      "Following"
+                    ) : (
+                      "Follow"
+                    )}
+                  </button>
+                </div>
+              )}
             {authentication.auth &&
               authentication.user.username !== params.userID &&
               profileInfo.connection.is_connection_present !== null && (
@@ -578,23 +633,23 @@ function Profile({
               )}
             {authentication.auth &&
               profileInfo.entityID !== authentication.user.entity_id && (
-              <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
-                <button
-                  onClick={() => {
-                    if (profileInfo.connection.is_connection_handshaked) {
-                      navigateToConversation(
-                        profileInfo.connection.connection_id,
-                      );
-                    } else {
-                      CreateConversationProcess();
-                    }
-                  }}
-                  className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
-                >
-                  Message
-                </button>
-              </div>
-            )}
+                <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                  <button
+                    onClick={() => {
+                      if (profileInfo.connection.is_connection_handshaked) {
+                        navigateToConversation(
+                          profileInfo.connection.connection_id,
+                        );
+                      } else {
+                        CreateConversationProcess();
+                      }
+                    }}
+                    className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                  >
+                    Message
+                  </button>
+                </div>
+              )}
             {authentication.auth &&
               authentication.user.username !== params.userID && (
                 <div
