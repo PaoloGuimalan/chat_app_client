@@ -1033,6 +1033,45 @@ const NotificationOverrideRequest = (
     });
 };
 
+// --- Notifications v2 (redesigned Notifications page) --------------------
+// Sectioned endpoints: one overview call settles all three column previews;
+// each section has its OWN paginated route for the per-column / detail
+// infinite scrolls. All NEW Node routes - /u/getNotifications and
+// /u/readnotifications stay untouched for the live mobile app (and keep
+// serving the topbar badge + SSE flow here too). Responses are jwt-signed
+// like v1, hence the jwt_decode.
+
+const NotificationsOverviewV2Request = async (previewRange: number = 8) => {
+  return await Axios.get(`${API}/u/v2/notifications/overview`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+      range: previewRange,
+    },
+  }).then((response) => {
+    if (!response.data.status) return null;
+    const decoded: any = jwt_decode(response.data.result);
+    return decoded;
+  });
+};
+
+const NotificationsSectionV2Request = async (
+  section: "activity" | "connections" | "system",
+  page: number,
+  range: number,
+) => {
+  return await Axios.get(`${API}/u/v2/notifications/${section}`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+      page,
+      range,
+    },
+  }).then((response) => {
+    if (!response.data.status) return null;
+    const decoded: any = jwt_decode(response.data.result);
+    return decoded;
+  });
+};
+
 const ReadNotificationsRequest = () => {
   Axios.post(
     `${API}/u/readnotifications`,
@@ -3793,6 +3832,8 @@ export {
   JoinRealmGroupRequest,
   ContactRequest,
   NotificationInitRequest,
+  NotificationsOverviewV2Request,
+  NotificationsSectionV2Request,
   ReadNotificationsRequest,
   DeclineContactRequest,
   AcceptContactRequest,

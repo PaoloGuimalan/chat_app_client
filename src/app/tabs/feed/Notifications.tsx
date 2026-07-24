@@ -1,362 +1,622 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useRef, useState } from "react";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { UIEvent, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AcceptContactRequest,
   DeclineContactRequest,
-  NotificationInitRequest,
+  NotificationsOverviewV2Request,
+  NotificationsSectionV2Request,
   ReadNotificationsRequest,
 } from "../../../reusables/hooks/requests";
-import NotificationItemLoader from "@/app/reusables/loaders/NotificationItemLoader";
-import { timeSince } from "@/reusables/hooks/reusable";
-import { Avatar, Btn, Card, Icon, useTheme } from "@/reusables/design";
+import {
+  INotificationV2,
+  NotificationSectionKey,
+} from "@/reusables/vars/interfaces";
+import { Card, Icon, IconBtn, useTheme } from "@/reusables/design";
+import NotificationRow from "./partials/NotificationRow";
+import { NotificationRowSkeleton } from "./partials/NotificationSkeletons";
+
+// Redesigned Notifications page ("ChatterLoop Upgrade" -
+// Notification Page.dc.html). Three sections - Activity / Connections /
+// System - fed by the sectioned v2 Node endpoints: one overview call
+// settles all three on load, then each section pages its OWN endpoint.
+// Desktop: side-by-side screen-height columns, each with its own infinite
+// scroll. Mobile: stacked 3-item previews + a See-all detail view.
+// The v1 flow (/getNotifications + redux notificationslist) still serves
+// the topbar badge and SSE - untouched.
+
+const SECTION_DEFS: {
+  key: NotificationSectionKey;
+  title: string;
+  icon: string;
+  color: string;
+  emptyText: string;
+}[] = [
+  {
+    key: "activity",
+    title: "Activity",
+    icon: "bolt",
+    color: "var(--brand)",
+    emptyText: "New reactions, comments and shares land here.",
+  },
+  {
+    key: "connections",
+    title: "Connections",
+    icon: "person",
+    color: "var(--green)",
+    emptyText: "Contact requests and new followers land here.",
+  },
+  {
+    key: "system",
+    title: "System",
+    icon: "campaign",
+    color: "#8b5cf6",
+    emptyText: "Updates from ChatterLoop land here.",
+  },
+];
+
+// One value for the overview preview AND the per-page size so the Mongo
+// $skip arithmetic stays aligned across loads (page 2 starts at item 11).
+const RANGE = 10;
+const MOBILE_PREVIEW = 3;
+
+interface SectionState {
+  items: INotificationV2[];
+  total: number;
+  unread: number;
+  page: number;
+  next: boolean;
+  loadingMore: boolean;
+}
+
+const EMPTY_SECTION: SectionState = {
+  items: [],
+  total: 0,
+  unread: 0,
+  page: 1,
+  next: false,
+  loadingMore: false,
+};
+
+type SectionsState = Record<NotificationSectionKey, SectionState>;
+
+const INITIAL_SECTIONS: SectionsState = {
+  activity: EMPTY_SECTION,
+  connections: EMPTY_SECTION,
+  system: EMPTY_SECTION,
+};
+
+function SectionEmptyState({
+  icon,
+  emptyText,
+}: {
+  icon: string;
+  emptyText: string;
+}) {
+  return (
+    <div
+      style={{
+        flex: 1,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 6,
+        padding: "24px 12px",
+        textAlign: "center",
+      }}
+    >
+      <Icon n={icon} s={34} c="var(--text-3)" />
+      <div style={{ fontWeight: 700, fontSize: 13.5, color: "var(--text)" }}>
+        You&rsquo;re all caught up!
+      </div>
+      <div style={{ fontSize: 12, color: "var(--text-3)" }}>{emptyText}</div>
+    </div>
+  );
+}
+
+function UnreadPill({ count }: { count: number }) {
+  if (count <= 0) return null;
+  return (
+    <span
+      style={{
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        minWidth: 19,
+        height: 19,
+        padding: "0 5px",
+        background: "var(--pink)",
+        color: "#fff",
+        fontSize: 10.5,
+        fontWeight: 700,
+        borderRadius: 999,
+        flex: "none",
+      }}
+    >
+      {count}
+    </span>
+  );
+}
 
 function Notifications() {
-  const [isLoading, setisLoading] = useState(true);
-  const [page, setpage] = useState(1);
-  const [range] = useState(10);
-  const [isDisabledByRequest, setisDisabledByRequest] = useState(false);
-
   const notificationslist = useSelector(
     (state: any) => state.notificationslist,
   );
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
   );
-  const pathnamelistener = useSelector((state: any) => state.pathnamelistener);
   const alerts = useSelector((state: any) => state.alerts);
   const dispatch = useDispatch();
   const { theme } = useTheme();
 
-  useEffect(() => {
-    NotificationInitRequest(page, range, dispatch, setisLoading);
-  }, [page, range]);
+  const [sections, setSections] = useState<SectionsState>(INITIAL_SECTIONS);
+  const [isLoading, setIsLoading] = useState(true);
+  const [detail, setDetail] = useState<NotificationSectionKey | null>(null);
+  const [isDisabledByRequest, setIsDisabledByRequest] = useState(false);
 
-  useEffect(() => {
-    if (!isLoading) ReadNotificationsRequest();
-  }, [isLoading]);
+  // Auto-read on open is kept behavior (user decision) - fire once per
+  // visit, after the first successful overview load. The topbar badge
+  // re-syncs by itself: /readnotifications triggers the notifications_reload
+  // SSE, which refreshes redux notificationslist.
+  const hasAutoReadRef = useRef(false);
+  const scrollRef = useRef<HTMLDivElement | null>(null);
 
-  const declineRequestProcess = (
-    connection_id: any,
-    entity_id: string,
-    action: string,
-  ) => {
-    setisDisabledByRequest(true);
-    DeclineContactRequest(
-      { connection_id, entity_id, action },
-      dispatch,
-      alerts,
-      setisDisabledByRequest,
-    );
-  };
+  const isMobile = screensizelistener.W < 760;
 
-  const acceptRequestProcess = (connection_id: string, entity_id: string) => {
-    setisDisabledByRequest(true);
-    AcceptContactRequest(
-      { connection_id, entity_id },
-      dispatch,
-      alerts,
-      setisDisabledByRequest,
-    );
-  };
-
-  const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
-  const divcontentRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    let currentView = false;
-    if (divcontentRef.current) {
-      divcontentRef.current.onscroll = () => {
-        if (divlazyloaderRef.current) {
-          const top = divlazyloaderRef.current.getBoundingClientRect().top;
-          const isVisible = top >= 0 && top <= window.innerHeight;
-          if (currentView != isVisible) {
-            currentView = isVisible;
-            if (currentView) setpage((prev) => prev + 1);
+  const fetchOverview = () => {
+    NotificationsOverviewV2Request(RANGE)
+      .then((result) => {
+        if (result) {
+          const toState = (s: any): SectionState => ({
+            items: s.items,
+            total: s.total,
+            unread: s.unread,
+            page: 1,
+            next: !!s.next,
+            loadingMore: false,
+          });
+          setSections({
+            activity: toState(result.activity),
+            connections: toState(result.connections),
+            system: toState(result.system),
+          });
+          if (!hasAutoReadRef.current) {
+            hasAutoReadRef.current = true;
+            ReadNotificationsRequest();
           }
         }
+        setIsLoading(false);
+      })
+      .catch((err) => {
+        console.log(err);
+        setIsLoading(false);
+      });
+  };
+
+  // Initial load + live updates with zero SSE plumbing: a NEW notification
+  // bumps redux notificationslist.total (SSE already refreshes it via
+  // NotificationOverrideRequest), which re-settles the sections. Deliberately
+  // NOT keyed on totalunread - the auto-read above zeroes it a moment after
+  // load, and refetching then would instantly wipe the unread highlights.
+  useEffect(() => {
+    fetchOverview();
+  }, [notificationslist.total]);
+
+  const loadMore = (key: NotificationSectionKey) => {
+    const current = sections[key];
+    if (current.loadingMore || !current.next) return;
+    setSections((prev) => ({
+      ...prev,
+      [key]: { ...prev[key], loadingMore: true },
+    }));
+    NotificationsSectionV2Request(key, current.page + 1, RANGE)
+      .then((result) => {
+        setSections((prev) => ({
+          ...prev,
+          [key]: result
+            ? {
+                items: [...prev[key].items, ...result.items],
+                total: result.total,
+                // Keep the locally-known unread count - after the auto-read
+                // the server already reports 0, which would blank the badge
+                // mid-visit.
+                unread: prev[key].unread,
+                page: current.page + 1,
+                next: !!result.next,
+                loadingMore: false,
+              }
+            : { ...prev[key], loadingMore: false },
+        }));
+      })
+      .catch((err) => {
+        console.log(err);
+        setSections((prev) => ({
+          ...prev,
+          [key]: { ...prev[key], loadingMore: false },
+        }));
+      });
+  };
+
+  const markAllRead = () => {
+    ReadNotificationsRequest();
+    setSections((prev) => {
+      const zero = (s: SectionState): SectionState => ({
+        ...s,
+        unread: 0,
+        items: s.items.map((n) => ({ ...n, isRead: true })),
+      });
+      return {
+        activity: zero(prev.activity),
+        connections: zero(prev.connections),
+        system: zero(prev.system),
       };
+    });
+  };
+
+  // Accept/decline reuse the SAME contact endpoints as everywhere else;
+  // referenceStatus flips locally so the buttons disappear immediately.
+  const setReferenceHandled = (referenceID: string) => {
+    setSections((prev) => {
+      const flip = (s: SectionState): SectionState => ({
+        ...s,
+        items: s.items.map((n) =>
+          n.referenceID === referenceID ? { ...n, referenceStatus: true } : n,
+        ),
+      });
+      return {
+        activity: flip(prev.activity),
+        connections: flip(prev.connections),
+        system: flip(prev.system),
+      };
+    });
+  };
+
+  const acceptRequestProcess = (n: INotificationV2) => {
+    setIsDisabledByRequest(true);
+    setReferenceHandled(n.referenceID);
+    AcceptContactRequest(
+      { connection_id: n.referenceID, entity_id: n.fromUserID },
+      dispatch,
+      alerts,
+      setIsDisabledByRequest,
+    );
+  };
+
+  const declineRequestProcess = (n: INotificationV2) => {
+    setIsDisabledByRequest(true);
+    setReferenceHandled(n.referenceID);
+    DeclineContactRequest(
+      { connection_id: n.referenceID, entity_id: n.fromUserID, action: "decline" },
+      dispatch,
+      alerts,
+      setIsDisabledByRequest,
+    );
+  };
+
+  const openDetail = (key: NotificationSectionKey) => {
+    setDetail(key);
+    scrollRef.current?.scrollTo({ top: 0 });
+  };
+
+  // Mobile See-all detail pages the shared section list through the page's
+  // own scroll container; desktop columns page through their own onScroll.
+  const handlePageScroll = (e: UIEvent<HTMLDivElement>) => {
+    if (!detail) return;
+    const el = e.currentTarget;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 250) {
+      loadMore(detail);
     }
-  }, [isLoading]);
+  };
 
-  const isStandalone = pathnamelistener.includes("notifications");
-  const isMobile = screensizelistener.W <= 900;
-  if (!isStandalone && isMobile) {
-    return null;
-  }
+  const handleColumnScroll =
+    (key: NotificationSectionKey) => (e: UIEvent<HTMLDivElement>) => {
+      const el = e.currentTarget;
+      if (el.scrollTop + el.clientHeight >= el.scrollHeight - 60) {
+        loadMore(key);
+      }
+    };
 
-  const columnWidth = isStandalone
-    ? "min(640px, calc(100% - 22px))"
-    : "100%";
+  const detailDef = detail
+    ? SECTION_DEFS.find((d) => d.key === detail) || null
+    : null;
+
+  const renderRows = (
+    key: NotificationSectionKey,
+    size: "column" | "detail",
+    limit?: number,
+  ) => {
+    const s = sections[key];
+    const items = limit ? s.items.slice(0, limit) : s.items;
+    return items.map((n) => (
+      <NotificationRow
+        key={n.notificationID}
+        notification={n}
+        size={size}
+        actionBusy={isDisabledByRequest}
+        onAccept={acceptRequestProcess}
+        onDecline={declineRequestProcess}
+      />
+    ));
+  };
+
+  const renderMainView = () => (
+    <>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 20,
+        }}
+      >
+        <h1
+          style={{
+            margin: 0,
+            fontSize: 25,
+            fontWeight: 800,
+            letterSpacing: "-0.02em",
+            color: "var(--text)",
+          }}
+        >
+          Notifications
+        </h1>
+        <button
+          type="button"
+          onClick={markAllRead}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 6,
+            height: 34,
+            padding: "0 14px",
+            borderRadius: "var(--r-sm)",
+            border: "none",
+            background: "transparent",
+            color: "var(--brand)",
+            fontSize: 13,
+            fontWeight: 650,
+            cursor: "pointer",
+          }}
+        >
+          <Icon n="done_all" s={18} c="var(--brand)" />
+          Mark all read
+        </button>
+      </div>
+
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 16,
+          alignItems: "stretch",
+        }}
+      >
+        {SECTION_DEFS.map((def) => {
+          const s = sections[def.key];
+          return (
+            <Card
+              key={def.key}
+              pad={14}
+              hover
+              style={{
+                flex: "1 1 260px",
+                minWidth: 260,
+                height: isMobile ? "auto" : "calc(100vh - 170px)",
+                minHeight: isMobile ? 0 : 380,
+                display: "flex",
+                flexDirection: "column",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 8,
+                  marginBottom: 12,
+                }}
+              >
+                <Icon n={def.icon} s={19} c={def.color} />
+                <h3
+                  style={{
+                    margin: 0,
+                    fontSize: 15,
+                    fontWeight: 750,
+                    letterSpacing: "-0.01em",
+                    color: "var(--text)",
+                  }}
+                >
+                  {def.title}
+                </h3>
+                <UnreadPill count={s.unread} />
+              </div>
+
+              <div
+                className="cl-scroll"
+                onScroll={
+                  isMobile ? undefined : handleColumnScroll(def.key)
+                }
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: 8,
+                  flex: 1,
+                  minHeight: 0,
+                  overflowY: isMobile ? "visible" : "auto",
+                }}
+              >
+                {isLoading ? (
+                  Array.from(
+                    { length: isMobile ? MOBILE_PREVIEW : 6 },
+                    (_, i) => <NotificationRowSkeleton key={i} />,
+                  )
+                ) : s.items.length === 0 ? (
+                  <SectionEmptyState
+                    icon={def.icon}
+                    emptyText={def.emptyText}
+                  />
+                ) : (
+                  <>
+                    {renderRows(
+                      def.key,
+                      "column",
+                      isMobile ? MOBILE_PREVIEW : undefined,
+                    )}
+                    {!isMobile &&
+                      s.loadingMore &&
+                      Array.from({ length: 2 }, (_, i) => (
+                        <NotificationRowSkeleton key={`more-${i}`} />
+                      ))}
+                  </>
+                )}
+              </div>
+
+              {isMobile && !isLoading && s.total > MOBILE_PREVIEW && (
+                <button
+                  type="button"
+                  onClick={() => openDetail(def.key)}
+                  style={{
+                    marginTop: 12,
+                    alignSelf: "flex-start",
+                    fontSize: 12.5,
+                    fontWeight: 650,
+                    color: "var(--brand)",
+                    background: "none",
+                    border: "none",
+                    cursor: "pointer",
+                    padding: 0,
+                  }}
+                >
+                  See all {s.total} →
+                </button>
+              )}
+            </Card>
+          );
+        })}
+      </div>
+    </>
+  );
+
+  const renderDetailView = () =>
+    detailDef && (
+      <>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            marginBottom: 20,
+          }}
+        >
+          <IconBtn
+            n="arrow_back"
+            title="Back"
+            onClick={() => setDetail(null)}
+            style={{
+              border: "1px solid var(--border)",
+              background: "var(--surface)",
+              color: "var(--text)",
+            }}
+          />
+          <Icon n={detailDef.icon} s={22} c={detailDef.color} />
+          <h1
+            style={{
+              margin: 0,
+              fontSize: 22,
+              fontWeight: 800,
+              letterSpacing: "-0.02em",
+              color: "var(--text)",
+            }}
+          >
+            {detailDef.title}
+          </h1>
+        </div>
+
+        <div
+          style={{
+            display: "flex",
+            flexDirection: "column",
+            gap: 10,
+            maxWidth: 640,
+            margin: "0 auto",
+            width: "100%",
+          }}
+        >
+          {sections[detailDef.key].items.length === 0 && !isLoading ? (
+            <div
+              style={{
+                width: "100%",
+                padding: "30px 14px",
+                textAlign: "center",
+                background: "var(--surface)",
+                border: "1px dashed var(--border-2)",
+                borderRadius: "var(--r-md)",
+              }}
+            >
+              <Icon n={detailDef.icon} s={34} c="var(--text-3)" />
+              <div
+                style={{
+                  fontWeight: 700,
+                  fontSize: 13.5,
+                  marginTop: 6,
+                  color: "var(--text)",
+                }}
+              >
+                You&rsquo;re all caught up!
+              </div>
+              <div style={{ fontSize: 12, color: "var(--text-3)" }}>
+                {detailDef.emptyText}
+              </div>
+            </div>
+          ) : (
+            <>
+              {renderRows(detailDef.key, "detail")}
+              {sections[detailDef.key].loadingMore &&
+                Array.from({ length: 3 }, (_, i) => (
+                  <NotificationRowSkeleton key={`more-${i}`} size="detail" />
+                ))}
+            </>
+          )}
+        </div>
+      </>
+    );
 
   return (
     <div
-      className="cl-redesign"
+      ref={scrollRef}
+      onScroll={handlePageScroll}
+      className="cl-redesign cl-scroll"
       data-theme={theme}
       style={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "stretch",
-        flex: 1,
-        minHeight: 0,
         width: "100%",
-        maxWidth: "100%",
-        margin: 0,
-        padding: isStandalone ? "16px 0 16px 22px" : "16px 12px",
-        gap: 12,
-        background: "transparent",
+        height: "100%",
+        minHeight: 0,
+        overflow: "auto",
+        background: "var(--background)",
       }}
     >
-      <div style={{ width: "100%", display: "flex", justifyContent: "center" }}>
+      <div
+        style={{
+          width: "100%",
+          minHeight: "100%",
+          display: "flex",
+          justifyContent: "center",
+          padding: "22px 18px 28px",
+        }}
+      >
         <div
           style={{
-            width: columnWidth,
+            width: "100%",
+            maxWidth: 1180,
             display: "flex",
-            alignItems: "center",
-            gap: 10,
-            padding: isStandalone ? 0 : "0 4px",
+            flexDirection: "column",
           }}
         >
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "var(--r-sm)",
-              background: "var(--gold-soft)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flex: "none",
-            }}
-          >
-            <Icon n="notifications" s={18} c="var(--gold)" />
-          </span>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: isStandalone ? 22 : 17,
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
-            }}
-          >
-            {isStandalone ? "Activity" : "Notifications"}
-          </h2>
+          {detail ? renderDetailView() : renderMainView()}
         </div>
       </div>
-
-      {isLoading ? (
-        <div
-          ref={divcontentRef}
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            width: "100%",
-            alignItems: "center",
-          }}
-        >
-          <div
-            style={{
-              width: columnWidth,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-          >
-            {Array.from({ length: 10 }, (_, i) => (
-              <NotificationItemLoader key={i} />
-            ))}
-          </div>
-        </div>
-      ) : notificationslist.list.length === 0 ? (
-        <div
-          style={{
-            flex: 1,
-            width: "100%",
-            display: "flex",
-            flexDirection: "column",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 8,
-            color: "var(--text-3)",
-          }}
-        >
-          <Icon n="notifications_none" s={42} />
-          <span style={{ fontSize: 14, fontWeight: 600 }}>
-            No notifications
-          </span>
-        </div>
-      ) : (
-        <div
-          ref={divcontentRef}
-          style={{
-            flex: 1,
-            minHeight: 0,
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            gap: 8,
-            width: "100%",
-            alignItems: "center",
-            paddingRight: isStandalone ? 0 : 4,
-          }}
-        >
-          <div
-            style={{
-              width: columnWidth,
-              display: "flex",
-              flexDirection: "column",
-              gap: 8,
-            }}
-          >
-            {notificationslist.list.map((ntfs: any, i: number) => {
-              const isContactRequest = ntfs.type === "contact_request";
-              const showActions = isContactRequest && !ntfs.referenceStatus;
-              return (
-                <Card
-                  key={i}
-                  pad={12}
-                  hover
-                  style={{
-                    width: "100%",
-                    minHeight: 84,
-                    display: "flex",
-                    gap: 12,
-                    alignItems: "flex-start",
-                    borderColor: "var(--border)",
-                  }}
-                >
-                  <Avatar
-                    id={ntfs.fromUserID || ntfs.fromUser?.userID || ntfs.fromUser?.name}
-                    name={
-                      ntfs.content?.headline ||
-                      ntfs.fromUser?.fullName?.firstName ||
-                      "Notification"
-                    }
-                    src={
-                      ntfs.fromUser?.profile && ntfs.fromUser.profile !== "none"
-                        ? ntfs.fromUser.profile
-                        : undefined
-                    }
-                    size={44}
-                  />
-                  <div style={{ flex: 1, minWidth: 0 }}>
-                    <div
-                      style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "flex-start",
-                        gap: 10,
-                      }}
-                    >
-                      <div
-                        style={{
-                          fontSize: 13.5,
-                          fontWeight: 700,
-                          color: "var(--text)",
-                          minWidth: 0,
-                          overflow: "hidden",
-                          textOverflow: "ellipsis",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {ntfs.content.headline}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 11.5,
-                          color: "var(--text-3)",
-                          flex: "none",
-                          textAlign: "right",
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {ntfs.date.time ? (
-                          <>
-                            <span>{ntfs.date.date}</span>
-                            <span> · </span>
-                            <span>{ntfs.date.time}</span>
-                          </>
-                        ) : (
-                          <span>{timeSince(ntfs.date.date)}</span>
-                        )}
-                      </div>
-                    </div>
-                    <div
-                      style={{
-                        fontSize: 12.5,
-                        color: "var(--text-2)",
-                        marginTop: 2,
-                        textAlign: "left",
-                      }}
-                    >
-                      {ntfs.content.details}
-                    </div>
-                    {showActions && (
-                      <div
-                        style={{
-                          display: "flex",
-                          gap: 8,
-                          marginTop: 10,
-                          flexWrap: "wrap",
-                        }}
-                      >
-                        <Btn
-                          size="sm"
-                          disabled={isDisabledByRequest}
-                          onClick={() =>
-                            acceptRequestProcess(
-                              ntfs.referenceID,
-                              ntfs.fromUserID,
-                            )
-                          }
-                        >
-                          Confirm
-                        </Btn>
-                        <Btn
-                          size="sm"
-                          variant="outline"
-                          disabled={isDisabledByRequest}
-                          onClick={() =>
-                            declineRequestProcess(
-                              ntfs.referenceID,
-                              ntfs.fromUserID,
-                              "decline",
-                            )
-                          }
-                        >
-                          Decline
-                        </Btn>
-                      </div>
-                    )}
-                  </div>
-                </Card>
-              );
-            })}
-          </div>
-          {notificationslist.next && (
-            <div
-              ref={divlazyloaderRef}
-              style={{
-                display: "flex",
-                justifyContent: "center",
-                padding: 16,
-                color: "var(--text-3)",
-              }}
-            >
-              <AiOutlineLoading3Quarters
-                className="cl-spin"
-                style={{ fontSize: 22 }}
-              />
-            </div>
-          )}
-        </div>
-      )}
     </div>
   );
 }

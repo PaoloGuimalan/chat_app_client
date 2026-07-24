@@ -604,6 +604,46 @@ export interface SearchOverview {
   posts: SearchOverviewSection<SearchPostResult>;
 }
 
+// Notifications v2 - sectioned Notifications page. Shapes mirror the Node
+// /u/v2/notifications/* routes exactly (items enriched with a normalized
+// fromUser that works for BOTH user and page senders).
+export interface INotificationSender {
+  entity_id: string;
+  type: "user" | "realm";
+  display_name: string;
+  handle: string;
+  profile: string | null;
+  is_verified: boolean;
+}
+
+export interface INotificationV2 {
+  notificationID: string;
+  referenceID: string;
+  referenceStatus: boolean | null;
+  toUserID: string;
+  fromUserID: string;
+  fromUser: INotificationSender | null;
+  content: { headline: string; details: string };
+  date: { date: string; time: string | null };
+  type: string;
+  isRead: boolean;
+}
+
+export interface NotificationSectionData {
+  items: INotificationV2[];
+  total: number;
+  unread: number;
+  next: boolean;
+}
+
+export type NotificationSectionKey = "activity" | "connections" | "system";
+
+export interface NotificationsOverviewV2 {
+  activity: NotificationSectionData;
+  connections: NotificationSectionData;
+  system: NotificationSectionData;
+}
+
 export interface UserSearchResult {
   id: string;
   entity_id: string;
