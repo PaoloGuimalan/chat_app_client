@@ -201,7 +201,9 @@ function CreateChannelModal({
                             <button
                               className="btn_remove_selected"
                               onClick={() => {
-                                removeFromList(mrkm.userID);
+                                // Same fix as the checkbox below:
+                                // removeFromList matches on entityID.
+                                removeFromList(mrkm.entityID);
                               }}
                             >
                               <IoClose
@@ -239,7 +241,16 @@ function CreateChannelModal({
                       >
                         <div className="tw-w-full tw-flex tw-flex-col tw-h-auto">
                           {contactslist.map((cnts: any, i: number) => {
-                            if (cnts._id !== authentication.user.userID) {
+                            // Exclude the ACTING entity, compared on entity
+                            // ids. Server members can be pages now, and a
+                            // page's _id is a realm pk that never equals a
+                            // user id - so while acting as a page you saw
+                            // yourself in your own member picker.
+                            if (
+                              cnts.entityID !==
+                              (authentication.active_entity_context?.id ||
+                                authentication.user.entity_id)
+                            ) {
                               return (
                                 <motion.div
                                   whileHover={{
@@ -269,7 +280,12 @@ function CreateChannelModal({
                                           },
                                         ]);
                                       } else {
-                                        removeFromList(cnts._id);
+                                        // removeFromList filters on
+                                        // flt.entityID, so it has to be given
+                                        // an entityID - passing _id here meant
+                                        // unchecking a member silently did
+                                        // nothing.
+                                        removeFromList(cnts.entityID);
                                       }
                                     }}
                                     className="checkbox_selector_people_server"

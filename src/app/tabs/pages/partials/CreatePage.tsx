@@ -134,8 +134,13 @@ function CreatePage() {
       .flatMap((cnts) => {
         if (cnts.type !== "single") return [];
         if (!cnts.involved_entity || !cnts.action_by) return [];
+        // Orient on the ACTING entity id, not the account id - see
+        // tabs/feed/Contacts.tsx. A page counterpart's details.id is a realm
+        // pk and can never equal a user id.
         const selfActed =
-          cnts.action_by.details.id === authentication.user.userID;
+          cnts.action_by.id ===
+          (authentication.active_entity_context?.id ||
+            authentication.user.entity_id);
         const u = selfActed
           ? cnts.involved_entity.details
           : cnts.action_by.details;

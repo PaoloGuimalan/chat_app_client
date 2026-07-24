@@ -92,8 +92,14 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
           if (cnts.type !== "single") return [];
           if (!cnts.involved_entity || !cnts.action_by) return [];
 
+          // Orient on the ACTING entity id, not the account id. A contact's
+          // counterpart can be a page, whose details.id is a realm pk that can
+          // never equal a user id - so this resolved the wrong side and pages
+          // never showed up in the picker. Same fix as tabs/feed/Contacts.tsx.
           const selfActed =
-            cnts.action_by.details.id === authentication.user.userID;
+            cnts.action_by.id ===
+            (authentication.active_entity_context?.id ||
+              authentication.user.entity_id);
           const u = selfActed
             ? cnts.involved_entity.details
             : cnts.action_by.details;
