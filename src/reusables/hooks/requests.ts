@@ -758,6 +758,105 @@ const EntitySearchRequest = (
     });
 };
 
+// --- Search v2 (redesigned Search page) ---------------------------------
+// Each section has its OWN paginated endpoint (people / realms / posts) for
+// the "See all" infinite scrolls; the overview endpoint settles all three
+// section previews in one round-trip on query change. All four are NEW
+// routes - nothing the live mobile app calls is touched. Promise-based like
+// GetFollowRealmRequest; callers own loading state and error alerts.
+
+const SearchOverviewRequest = async (searchdata: string) => {
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/entity/search/v2/overview/${encodeURIComponent(
+      searchdata,
+    )}/`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  ).then((response) => {
+    // { status, result: { people: {has_more, results}, realms: {...}, posts: {...} } }
+    return response.data.status ? response.data.result : null;
+  });
+};
+
+const SearchPeopleRequest = async (
+  searchdata: string,
+  page: number,
+  pageSize: number,
+) => {
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/entity/search/v2/people/${encodeURIComponent(
+      searchdata,
+    )}/`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+      params: { page, page_size: pageSize },
+    },
+  ).then((response) => {
+    // DRF pagination: { count, next, previous, results }
+    return response.data;
+  });
+};
+
+const SearchRealmsRequest = async (
+  searchdata: string,
+  page: number,
+  pageSize: number,
+  realmTypes: string = "all",
+) => {
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/entity/search/v2/realms/${encodeURIComponent(
+      searchdata,
+    )}/`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+      params: { page, page_size: pageSize, realm_types: realmTypes },
+    },
+  ).then((response) => {
+    return response.data;
+  });
+};
+
+const SearchPostsRequest = async (
+  searchdata: string,
+  page: number,
+  pageSize: number,
+) => {
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/newsfeed/search/v2/posts/${encodeURIComponent(
+      searchdata,
+    )}/`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+      params: { page, page_size: pageSize },
+    },
+  ).then((response) => {
+    return response.data;
+  });
+};
+
+// One-click join for a PUBLIC GROUP realm (search redesign). Returns
+// { already_member, conversation_id, realm_id } - conversation_id feeds
+// straight into /messages/<id> since a group's conversationID is its
+// realm_id.
+const JoinRealmGroupRequest = async (payload: { realm_id: string }) => {
+  return await Axios.post(`${USER_SERVICE_API}/api/realm/join/v2`, payload, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  }).then((response) => {
+    return response.data.status ? response.data.result : null;
+  });
+};
+
 const ContactRequest = (
   params: any,
   dispatch: Dispatch<any>,
@@ -3687,6 +3786,11 @@ export {
   VerifyCodeRequest,
   SearchRequest,
   EntitySearchRequest,
+  SearchOverviewRequest,
+  SearchPeopleRequest,
+  SearchRealmsRequest,
+  SearchPostsRequest,
+  JoinRealmGroupRequest,
   ContactRequest,
   NotificationInitRequest,
   ReadNotificationsRequest,

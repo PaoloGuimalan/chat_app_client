@@ -158,6 +158,37 @@
   }
 }
 
+/* Polished scroll areas (rails, chip rows, page scroll). Thin, rounded,
+ * theme-aware thumbs in both axes; track stays invisible so rails don't
+ * grow visual chrome. Apply via className="cl-scroll" inside .cl-redesign. */
+.cl-redesign .cl-scroll,
+.cl-redesign.cl-scroll {
+  scrollbar-width: thin; /* Firefox */
+  scrollbar-color: var(--border-2) transparent;
+}
+.cl-redesign .cl-scroll::-webkit-scrollbar,
+.cl-redesign.cl-scroll::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+.cl-redesign .cl-scroll::-webkit-scrollbar-track,
+.cl-redesign.cl-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
+.cl-redesign .cl-scroll::-webkit-scrollbar-thumb,
+.cl-redesign.cl-scroll::-webkit-scrollbar-thumb {
+  background: var(--border-2);
+  border-radius: 8px;
+}
+.cl-redesign .cl-scroll::-webkit-scrollbar-thumb:hover,
+.cl-redesign.cl-scroll::-webkit-scrollbar-thumb:hover {
+  background: var(--text-3);
+}
+.cl-redesign .cl-scroll::-webkit-scrollbar-corner,
+.cl-redesign.cl-scroll::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .cl-redesign *,
   .cl-redesign *::before,

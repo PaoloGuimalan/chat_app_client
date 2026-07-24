@@ -538,6 +538,72 @@ export interface EntitySearchResult {
   is_action_by_entity?: boolean;
 }
 
+// Search v2 section endpoints (redesigned Search page). Each section has
+// its own paginated endpoint; the overview endpoint settles all three
+// previews in one call. Shapes mirror entity/search_views.py +
+// newsfeed/services/post_search.py exactly.
+export interface SearchPersonResult {
+  entity_id: string;
+  type: "user";
+  display_name: string;
+  handle: string;
+  profile: string | null;
+  is_verified: boolean;
+  mutual_count: number;
+  is_followed: boolean;
+  // Connection-state keys kept for parity with EntitySearchResult so the
+  // cards can deep-link into contact flows later.
+  id: string | null;
+  has_connection: boolean;
+  connection_accomplished: boolean;
+  connection_id: string | null;
+  is_action_by_entity: boolean;
+}
+
+export interface SearchRealmResult {
+  entity_id: string;
+  type: "realm";
+  display_name: string;
+  handle: string;
+  profile: string | null;
+  is_verified: boolean;
+  realm_type: string; // "page" | "server" | "group" | ...
+  members_count: number;
+  followers_count: number;
+  is_follower: boolean;
+  is_member: boolean;
+  id: string;
+}
+
+export interface SearchPostResult {
+  post_id: string;
+  caption: string;
+  content_type: string;
+  file_type: string;
+  date_posted: string | null;
+  likes_count: number;
+  comments_count: number;
+  author: {
+    entity_id: string;
+    type: "user" | "realm";
+    display_name: string;
+    handle: string;
+    profile: string | null;
+    is_verified: boolean;
+  };
+}
+
+export interface SearchOverviewSection<T> {
+  has_more: boolean;
+  results: T[];
+}
+
+export interface SearchOverview {
+  people: SearchOverviewSection<SearchPersonResult>;
+  realms: SearchOverviewSection<SearchRealmResult>;
+  posts: SearchOverviewSection<SearchPostResult>;
+}
+
 export interface UserSearchResult {
   id: string;
   entity_id: string;
