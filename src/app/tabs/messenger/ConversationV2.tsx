@@ -33,6 +33,7 @@ import {
   InitConversationRequest,
   IsTypingBroadcastRequest,
   RemoveRealmMemberRequest,
+  ReplyAssistRequest,
   SeenMessageRequest,
   SendFilesRequest,
   SendMessageRequest,
@@ -670,6 +671,10 @@ function ConversationV2({
 
   useEffect(() => {
     return () => {
+      setisReplying({
+        isReply: false,
+        replyingTo: "",
+      });
       setunreadmessages([]);
       setconversationsetup(null);
       setswitchingcontext(true);
@@ -1240,6 +1245,18 @@ function ConversationV2({
     }
 
     navigate("/messages");
+  };
+
+  const ReplyAssistProcess = () => {
+    ReplyAssistRequest(conversationID, isReplying.replyingTo)
+      .then((response) => {
+        if (response.status) {
+          setmessageValue(response.message);
+        }
+      })
+      .catch((err) => {
+        console.log(err);
+      });
   };
 
   if (!conversationsetup) {
@@ -2304,18 +2321,18 @@ function ConversationV2({
               height: isReplying.isReply ? "auto" : "0px",
               paddingTop: isReplying.isReply ? "10px" : "0px",
               paddingBottom: isReplying.isReply ? "10px" : "0px",
-              borderRadius: "10px",
+              borderRadius: "0px",
               backgroundColor: isReplying.isReply
                 ? conversationList.filter(
                     (flt: any) => flt.messageID == isReplying.replyingTo,
-                  )[0].sender === authentication.user.userID
+                  )[0].sender === authentication.user.entity_id
                   ? theme.primary
-                  : "#dedede"
+                  : "white"
                 : "white",
               color: isReplying.isReply
                 ? conversationList.filter(
                     (flt: any) => flt.messageID == isReplying.replyingTo,
-                  )[0].sender === authentication.user.userID
+                  )[0].sender === authentication.user.entity_id
                   ? "white"
                   : "black"
                 : "white",
@@ -2329,7 +2346,7 @@ function ConversationV2({
                   {isReplying.isReply &&
                     (conversationList.filter(
                       (flt: any) => flt.messageID == isReplying.replyingTo,
-                    )[0].sender === authentication.user.userID
+                    )[0].sender === authentication.user.entity_id
                       ? "Replying to your message"
                       : `Replying to ${getMemberInfo(
                           conversationList.filter(
@@ -2374,6 +2391,54 @@ function ConversationV2({
               >
                 <AiOutlineClose />
               </button>
+            </div>
+          </motion.div>
+          <motion.div
+            initial={{
+              height: "0px",
+              paddingTop: "0px",
+              paddingBottom: "0px",
+              backgroundColor: "white",
+              color: "white",
+              borderRadius: "10px",
+            }}
+            animate={{
+              height: isReplying.isReply ? "auto" : "0px",
+              paddingTop: isReplying.isReply ? "10px" : "0px",
+              paddingBottom: isReplying.isReply ? "10px" : "0px",
+              borderRadius: "0px",
+              backgroundColor: isReplying.isReply
+                ? conversationList.filter(
+                    (flt: any) => flt.messageID == isReplying.replyingTo,
+                  )[0].sender === authentication.user.entity_id
+                  ? theme.primary
+                  : "white"
+                : "white",
+              color: isReplying.isReply
+                ? conversationList.filter(
+                    (flt: any) => flt.messageID == isReplying.replyingTo,
+                  )[0].sender === authentication.user.entity_id
+                  ? "white"
+                  : "black"
+                : "white",
+            }}
+            id="div_selected_images_container"
+            className="theme_scroller"
+          >
+            <div className="tw-w-full tw-flex tw-flex-row">
+              <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px] ellipsis-3-lines">
+                <span className="tw-text-[12px] tw-font-semibold tw-font-inter ellipsis-1-line">
+                  Use AI Reply Assist
+                </span>
+              </div>
+              <div>
+                <button
+                  onClick={ReplyAssistProcess}
+                  className="tw-border-none tw-p-[6px] tw-min-w-[80px] tw-rounded-lg tw-font-Inter tw-text-[12px] tw-cursor-pointer"
+                >
+                  Generate
+                </button>
+              </div>
             </div>
           </motion.div>
           <motion.div

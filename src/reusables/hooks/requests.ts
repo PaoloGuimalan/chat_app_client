@@ -3805,6 +3805,29 @@ const CreateInitialConversation = async (otherEntityID: string) => {
     });
 };
 
+const ReplyAssistRequest = async (
+  conversationID: string,
+  messageID: string,
+) => {
+  return await Axios.post(
+    `${API}/prompt/reply-assist`,
+    { conversationID, messageID },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        return response.data;
+      }
+    })
+    .catch((err) => {
+      console.log(err);
+    });
+};
+
 export {
   GetAllowedModulesRequest,
   SwitchEntityRequest,
@@ -3927,4 +3950,5 @@ export {
   InitConversationListV1Request,
   InitConversationInfoRequest,
   CreateInitialConversation,
+  ReplyAssistRequest,
 };
