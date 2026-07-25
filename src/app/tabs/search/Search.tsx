@@ -743,7 +743,7 @@ function SearchPage() {
         <h1
           style={{
             margin: 0,
-            fontSize: 22,
+            fontSize: isMobile ? 18 : 22,
             fontWeight: 800,
             letterSpacing: "-0.02em",
             color: "var(--text)",
