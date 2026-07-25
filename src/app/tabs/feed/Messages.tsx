@@ -503,7 +503,7 @@ function Messages() {
               <h2
                 style={{
                   margin: 0,
-                  fontSize: isMobile ? 18 : 22,
+                  fontSize: isMobile ? 16 : 18,
                   fontWeight: 800,
                   letterSpacing: "-0.03em",
                 }}

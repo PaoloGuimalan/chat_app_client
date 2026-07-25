@@ -5919,9 +5919,9 @@ input:checked + .slider:before {
     gap: 10px !important;
   }
 
-  .cl-messages-shell__header h2 {
-    font-size: 18px !important;
-  }
+  /* .cl-messages-shell__header h2 {
+    font-size: 16px !important;
+  } */
 
   .cl-messages-shell__search,
   .cl-messages-shell__tabs {

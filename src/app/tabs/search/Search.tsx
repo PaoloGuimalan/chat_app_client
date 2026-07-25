@@ -163,6 +163,8 @@ function SearchPage() {
     withImage: false,
   });
 
+  const isMobile = screensizelistener.W <= 900;
+
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const normalizedQuery = useMemo(() => query.trim(), [query]);
   const isNarrow = screensizelistener.W < 860;
@@ -488,17 +490,17 @@ function SearchPage() {
 
   const renderMainView = () => (
     <>
-      <h1
+      <h2
         style={{
           margin: "0 0 16px",
-          fontSize: 25,
+          fontSize: isMobile ? 18 : 22,
           fontWeight: 800,
           letterSpacing: "-0.02em",
           color: "var(--text)",
         }}
       >
         Search
-      </h1>
+      </h2>
 
       <Card
         pad={0}

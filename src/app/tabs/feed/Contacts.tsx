@@ -142,7 +142,16 @@ function Contacts() {
           <Icon n="contacts" s={18} c="var(--green)" />
         </span>
         <div className="cl-contacts-page__title-block">
-          <h2 className="cl-contacts-page__title">Contacts</h2>
+          <h2
+            style={{
+              margin: 0,
+              fontSize: isMobile ? 18 : 22,
+              fontWeight: 800,
+              letterSpacing: "-0.03em",
+            }}
+          >
+            Contacts
+          </h2>
           <span className="cl-contacts-page__subtitle">
             Manage your connections and jump into conversations.
           </span>

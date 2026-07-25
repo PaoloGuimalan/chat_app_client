@@ -288,7 +288,11 @@ function Notifications() {
     setIsDisabledByRequest(true);
     setReferenceHandled(n.referenceID);
     DeclineContactRequest(
-      { connection_id: n.referenceID, entity_id: n.fromUserID, action: "decline" },
+      {
+        connection_id: n.referenceID,
+        entity_id: n.fromUserID,
+        action: "decline",
+      },
       dispatch,
       alerts,
       setIsDisabledByRequest,
@@ -354,7 +358,7 @@ function Notifications() {
         <h1
           style={{
             margin: 0,
-            fontSize: 25,
+            fontSize: isMobile ? 18 : 22,
             fontWeight: 800,
             letterSpacing: "-0.02em",
             color: "var(--text)",
@@ -435,9 +439,7 @@ function Notifications() {
 
               <div
                 className="cl-scroll"
-                onScroll={
-                  isMobile ? undefined : handleColumnScroll(def.key)
-                }
+                onScroll={isMobile ? undefined : handleColumnScroll(def.key)}
                 style={{
                   display: "flex",
                   flexDirection: "column",
@@ -520,18 +522,20 @@ function Notifications() {
               color: "var(--text)",
             }}
           />
-          <Icon n={detailDef.icon} s={22} c={detailDef.color} />
-          <h1
-            style={{
-              margin: 0,
-              fontSize: 22,
-              fontWeight: 800,
-              letterSpacing: "-0.02em",
-              color: "var(--text)",
-            }}
-          >
-            {detailDef.title}
-          </h1>
+          <div className="tw-flex tw-items-center tw-gap-[5px]">
+            <Icon n={detailDef.icon} s={22} c={detailDef.color} />
+            <h1
+              style={{
+                margin: 0,
+                fontSize: isMobile ? 16 : 22,
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                color: "var(--text)",
+              }}
+            >
+              {detailDef.title}
+            </h1>
+          </div>
         </div>
 
         <div
@@ -622,3 +626,4 @@ function Notifications() {
 }
 
 export default Notifications;
+
