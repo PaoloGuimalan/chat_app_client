@@ -604,6 +604,70 @@ export interface SearchOverview {
   posts: SearchOverviewSection<SearchPostResult>;
 }
 
+// Network v2 - sectioned Contacts page. One normalized row shape for BOTH
+// kinds of counterpart (people and pages), mirroring what
+// entity/network_views.normalize_network_entity() emits, plus per-section
+// extras that are only populated by their own section.
+export interface NetworkEntityResult {
+  entity_id: string;
+  type: "user" | "realm";
+  display_name: string;
+  handle: string;
+  profile: string | null;
+  is_verified: boolean;
+  /** Account pk for users, Realm pk for realms. */
+  id: string;
+  /** Realms only. */
+  realm_type?: string;
+  /**
+   * Realms only. A group's conversationID IS its realm_id, so this is what
+   * the groups rail routes to for /messages/<id>.
+   */
+  realm_id?: string;
+  // --- connections only ---
+  /** What the message button routes to: /messages/<connection_id>. */
+  connection_id?: string;
+  mutual_count?: number;
+  // --- followers only: drives Follow back / Following ---
+  is_followed_back?: boolean;
+  // --- following only: always true, so the button is always Unfollow ---
+  is_followed?: boolean;
+}
+
+export interface NetworkOverviewSection<T> {
+  has_more: boolean;
+  total: number;
+  results: T[];
+}
+
+/** The graph sections served by /api/entity/network/* (Django). */
+export type NetworkSectionKey = "connections" | "followers" | "following";
+
+/** Those three plus the group rail, which comes from Node instead. */
+export type ContactsSectionKey = NetworkSectionKey | "groups";
+
+export interface NetworkOverview {
+  connections: NetworkOverviewSection<NetworkEntityResult>;
+  followers: NetworkOverviewSection<NetworkEntityResult>;
+  following: NetworkOverviewSection<NetworkEntityResult>;
+}
+
+// Group chat shortcut from GET /m/v2/group-shortcuts (Node/Mongo). These are
+// conversations the entity is actually in - strictly conversationType
+// "group", ordered by most recent activity.
+export interface GroupShortcut {
+  kind: "group";
+  /** Opens /messages/<target_id>. */
+  target_id: string;
+  realm_id: string;
+  id: string;
+  display_name: string;
+  handle: string;
+  profile: string | null;
+  is_verified: boolean;
+  last_activity: string;
+}
+
 // Notifications v2 - sectioned Notifications page. Shapes mirror the Node
 // /u/v2/notifications/* routes exactly (items enriched with a normalized
 // fromUser that works for BOTH user and page senders).

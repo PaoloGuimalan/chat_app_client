@@ -13,6 +13,7 @@ import {
   INotificationV2,
   NotificationSectionKey,
 } from "@/reusables/vars/interfaces";
+import { needsMoreToFill } from "@/reusables/hooks/reusable";
 import { Card, Icon, IconBtn, useTheme } from "@/reusables/design";
 import NotificationRow from "./partials/NotificationRow";
 import { NotificationRowSkeleton } from "./partials/NotificationSkeletons";
@@ -162,6 +163,11 @@ function Notifications() {
   // SSE, which refreshes redux notificationslist.
   const hasAutoReadRef = useRef(false);
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // Each desktop column scrolls on its own, so the fill check below needs
+  // each element, not just the page container.
+  const columnRefs = useRef<
+    Partial<Record<NotificationSectionKey, HTMLDivElement | null>>
+  >({});
 
   const isMobile = screensizelistener.W < 760;
 
@@ -322,6 +328,40 @@ function Notifications() {
       }
     };
 
+  // Keep pulling pages until each view actually overflows. Without this a
+  // column (or a See-all on a tall screen) stalls at page 1: its first page
+  // doesn't fill the available height, so no scroll event can ever fire to
+  // request the next one.
+  useEffect(() => {
+    if (isLoading) return;
+
+    if (detail) {
+      const section = sections[detail];
+      if (
+        section.next &&
+        !section.loadingMore &&
+        needsMoreToFill(scrollRef.current)
+      ) {
+        loadMore(detail);
+      }
+      return;
+    }
+
+    // Desktop columns scroll independently, so each one is checked against
+    // its own element. Mobile previews are capped at 3 items and never page.
+    if (isMobile) return;
+    SECTION_DEFS.forEach((def) => {
+      const section = sections[def.key];
+      if (
+        section.next &&
+        !section.loadingMore &&
+        needsMoreToFill(columnRefs.current[def.key])
+      ) {
+        loadMore(def.key);
+      }
+    });
+  }, [sections, detail, isLoading, isMobile]);
+
   const detailDef = detail
     ? SECTION_DEFS.find((d) => d.key === detail) || null
     : null;
@@ -438,6 +478,9 @@ function Notifications() {
               </div>
 
               <div
+                ref={(el) => {
+                  columnRefs.current[def.key] = el;
+                }}
                 className="cl-scroll"
                 onScroll={isMobile ? undefined : handleColumnScroll(def.key)}
                 style={{

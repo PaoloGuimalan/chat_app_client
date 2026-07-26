@@ -781,6 +781,62 @@ const SearchOverviewRequest = async (searchdata: string) => {
   });
 };
 
+// --- Network v2 (redesigned Contacts page) -------------------------------
+// Sectioned endpoints: one overview call settles all four section previews
+// on page init, then each section pages its OWN route for the "See all"
+// infinite scrolls. All NEW routes - /api/user/contacts stays untouched for
+// the live mobile app. Follow back / Unfollow reuse the existing
+// FollowRealmRequest / UnfollowRealmRequest below (already entity-generic).
+
+const NetworkOverviewRequest = async () => {
+  return await Axios.get(`${USER_SERVICE_API}/api/entity/network/overview`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  }).then((response) => {
+    // { connections: {has_more,total,results}, followers, following, groups }
+    return response.data;
+  });
+};
+
+const NetworkSectionRequest = async (
+  section: "connections" | "followers" | "following",
+  page: number,
+  pageSize: number,
+) => {
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/entity/network/${section}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+      params: { page, page_size: pageSize },
+    },
+  ).then((response) => {
+    // DRF pagination: { count, next, previous, results }
+    return response.data;
+  });
+};
+
+// Group chat shortcuts for the Contacts page's rail. Separate service from
+// the sections above: conversations live in Mongo on the NODE side, and
+// these are shortcuts into threads you're actually in - not a realm list.
+// jwt-signed like the rest of the Node routes.
+const GroupShortcutsRequest = async (page: number, range: number) => {
+  return await Axios.get(`${API}/m/v2/group-shortcuts`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+      page,
+      range,
+    },
+  }).then((response) => {
+    if (!response.data.status) return null;
+    // { items, total, next }
+    const decoded: any = jwt_decode(response.data.result);
+    return decoded;
+  });
+};
+
 const SearchPeopleRequest = async (
   searchdata: string,
   page: number,
@@ -3852,6 +3908,9 @@ export {
   SearchPeopleRequest,
   SearchRealmsRequest,
   SearchPostsRequest,
+  NetworkOverviewRequest,
+  NetworkSectionRequest,
+  GroupShortcutsRequest,
   JoinRealmGroupRequest,
   ContactRequest,
   NotificationInitRequest,

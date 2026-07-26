@@ -213,7 +213,8 @@ function ConversationV2({
     conversationsetup?.details?.type === "realm";
   const canSendVoiceMessage =
     (conversationType === "single" || conversationType === "group") &&
-    !isRealmDM;
+    !isRealmDM &&
+    !isMinimized;
   const [mentionState, setMentionState] = useState<{
     open: boolean;
     query: string;

@@ -189,7 +189,36 @@
   background: transparent;
 }
 
+/* Spinner for every loading indicator that renders a react-icons
+ * AiOutlineLoading3Quarters. The class was referenced in ~10 components
+ * (auth screens, feed, messages, the search post preview) but had never
+ * actually been defined anywhere, so none of those spinners moved.
+ *
+ * Deliberately NOT scoped under .cl-redesign - most of its users are legacy
+ * screens - and it lives here rather than styles.css because this file is
+ * imported from main.tsx, so it is guaranteed loaded on every route. */
+@keyframes clSpin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.cl-spin {
+  animation: clSpin 0.9s linear infinite;
+  transform-origin: 50% 50%;
+}
+
 @media (prefers-reduced-motion: reduce) {
+  /* A loading indicator still has to read as "working", so it slows down
+   * rather than stopping the way decorative motion below does. */
+  .cl-spin,
+  .cl-redesign .cl-spin {
+    animation: clSpin 2.4s linear infinite !important;
+  }
+
   .cl-redesign *,
   .cl-redesign *::before,
   .cl-redesign *::after {

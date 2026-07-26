@@ -83,8 +83,10 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
           alignItems: "center",
         }}
       >
+        {/* Muted like the comment counter - a filled pink heart here reads as
+            "you reacted to this", which is not what a search result means. */}
         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
-          <Icon n="favorite" s={14} c="var(--pink)" />
+          <Icon n="favorite_border" s={14} c="var(--text-3)" />
           {post.likes_count}
         </span>
         <span style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>

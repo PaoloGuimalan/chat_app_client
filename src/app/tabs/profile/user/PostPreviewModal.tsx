@@ -18,6 +18,7 @@ import {
 } from "react";
 import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
 import PostComment from "@/app/widgets/items/PostComment";
+import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import Modal from "@/app/reusables/Modal";
 import { Carousel } from "react-responsive-carousel";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
@@ -350,6 +351,11 @@ function PostPreviewModal({
                   {post.caption}
                 </span>
               </div>
+              {/* Same renderer the profile feed uses, so a link in a post
+                  shows its preview card here instead of a bare URL. */}
+              {post.link_preview && (
+                <LinkPreviewCard preview={post.link_preview} variant="display" />
+              )}
               {minimizedCaption && (
                 <button
                   onClick={() => {

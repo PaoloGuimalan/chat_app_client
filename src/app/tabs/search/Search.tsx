@@ -29,7 +29,7 @@ import {
   SearchPostResult,
   SearchRealmResult,
 } from "@/reusables/vars/interfaces";
-import { isUserOnline } from "@/reusables/hooks/reusable";
+import { isUserOnline, needsMoreToFill } from "@/reusables/hooks/reusable";
 import {
   Card,
   Chip,
@@ -49,6 +49,7 @@ import {
   PersonCardSkeleton,
   RealmCardSkeleton,
 } from "./partials/SearchSkeletons";
+import { useRailFillCount } from "@/reusables/hooks/useRailFillCount";
 
 // Redesigned Search page ("ChatterLoop Upgrade" - Search Page.dc.html).
 // One overview call settles all three section previews per query; each
@@ -69,6 +70,12 @@ const DETAIL_TITLES: Record<DetailKind, string> = {
   realms: "Realms",
   posts: "Content",
 };
+
+// Rail card width from PersonCard/PersonCardSkeleton, and the server-side
+// SearchOverview.PEOPLE_PREVIEW cap - never shimmer more slots than the
+// overview can actually fill.
+const PEOPLE_RAIL_CARD_W = 168;
+const PEOPLE_PREVIEW_MAX = 8;
 
 const PEOPLE_PAGE_SIZE = 12;
 const REALMS_PAGE_SIZE = 12;
@@ -166,6 +173,12 @@ function SearchPage() {
   const isMobile = screensizelistener.W <= 900;
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
+  // People is a horizontal rail in the overview, so its skeleton count has
+  // to be measured rather than fixed or it under-fills wide screens.
+  const [peopleRailRef, peopleSkeletonCount] = useRailFillCount(
+    PEOPLE_RAIL_CARD_W,
+    { max: PEOPLE_PREVIEW_MAX },
+  );
   const normalizedQuery = useMemo(() => query.trim(), [query]);
   const isNarrow = screensizelistener.W < 860;
 
@@ -251,15 +264,34 @@ function SearchPage() {
     setDetailHasNext(false);
   };
 
+  const canLoadMore =
+    !!detail && detailHasNext && !isDetailLoading && !isDetailLoadingMore;
+
   const handleScroll = (e: UIEvent<HTMLDivElement>) => {
-    if (!detail || isDetailLoading || isDetailLoadingMore || !detailHasNext) {
-      return;
-    }
+    if (!canLoadMore) return;
     const el = e.currentTarget;
     if (el.scrollTop + el.clientHeight >= el.scrollHeight - 250) {
-      fetchDetailPage(detail, detailPage + 1);
+      fetchDetailPage(detail!, detailPage + 1);
     }
   };
+
+  // Keep pulling pages until the view actually overflows. Without this a
+  // "See all" opened on a tall screen stalls at page 1: one page of results
+  // doesn't fill the viewport, so no scroll event can ever fire to request
+  // the next one.
+  useEffect(() => {
+    if (!canLoadMore) return;
+    if (needsMoreToFill(scrollRef.current)) {
+      fetchDetailPage(detail!, detailPage + 1);
+    }
+  }, [
+    canLoadMore,
+    detail,
+    detailPage,
+    detailPeople.length,
+    detailRealms.length,
+    detailPosts.length,
+  ]);
 
   // Follow state lives in FOUR lists (overview people/realms + both detail
   // lists); one applier keeps them consistent for optimistic flips/reverts.
@@ -412,6 +444,7 @@ function SearchPage() {
         People
       </SectionTitle>
       <div
+        ref={peopleRailRef}
         className="cl-scroll"
         style={{
           display: "flex",
@@ -421,7 +454,7 @@ function SearchPage() {
         }}
       >
         {isOverviewLoading ? (
-          Array.from({ length: 4 }, (_, i) => (
+          Array.from({ length: peopleSkeletonCount }, (_, i) => (
             <PersonCardSkeleton key={i} rail />
           ))
         ) : peopleResults.length === 0 ? (

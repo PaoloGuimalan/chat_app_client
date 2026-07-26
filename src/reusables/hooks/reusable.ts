@@ -72,6 +72,24 @@ function makeid(length: number) {
   return result;
 }
 
+/**
+ * True when a scroll container has nothing to scroll yet - i.e. its content
+ * does not overflow.
+ *
+ * An onScroll-driven infinite list has a dead spot: if the first page does
+ * not fill the container, no scroll event can ever fire, so the list stalls
+ * on page 1 forever. That is exactly what happens on a tall screen or in a
+ * short column. Callers use this after each load to keep fetching until
+ * there IS something to scroll.
+ *
+ * The small tolerance covers sub-pixel layouts where scrollHeight lands a
+ * hair above clientHeight without being genuinely scrollable.
+ */
+function needsMoreToFill(el: HTMLElement | null | undefined) {
+  if (!el) return false;
+  return el.scrollHeight <= el.clientHeight + 4;
+}
+
 function isUserOnline(state: any, userID: string) {
   const filteractiveusers = state.filter(
     (flt: any) => flt.sessionStatus == true,
@@ -632,6 +650,7 @@ export {
   getBase64,
   makeid,
   isUserOnline,
+  needsMoreToFill,
   formattedDateToWords,
   ordinal_suffix_of,
   urlify,
