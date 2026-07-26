@@ -189,6 +189,17 @@
   background: transparent;
 }
 
+/* Rails driven by HScrollRail's arrow buttons hide their scrollbar but stay
+ * natively scrollable, so touch swipe / trackpad / keyboard still work. Not
+ * scoped under .cl-redesign so the component is usable anywhere. */
+.cl-rail-track {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge */
+}
+.cl-rail-track::-webkit-scrollbar {
+  display: none;
+}
+
 /* Spinner for every loading indicator that renders a react-icons
  * AiOutlineLoading3Quarters. The class was referenced in ~10 components
  * (auth screens, feed, messages, the search post preview) but had never

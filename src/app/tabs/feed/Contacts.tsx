@@ -22,7 +22,14 @@ import {
   needsMoreToFill,
   userSessionStatusFromContacts,
 } from "@/reusables/hooks/reusable";
-import { Chip, Icon, IconBtn, SectionTitle, useTheme } from "@/reusables/design";
+import {
+  Chip,
+  HScrollRail,
+  Icon,
+  IconBtn,
+  SectionTitle,
+  useTheme,
+} from "@/reusables/design";
 import { useRailFillCount } from "@/reusables/hooks/useRailFillCount";
 import NetworkRow, { NetworkRowKind } from "./partials/NetworkRow";
 import GroupTile from "./partials/GroupTile";
@@ -423,60 +430,63 @@ function Contacts() {
 
     return (
       <>
+        {/* Title and counts share one column beside the icon, so the counts
+            line starts flush with the title instead of under the icon. */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
+            justifyContent: "center",
             gap: 10,
-            marginBottom: 6,
-          }}
-        >
-          <span
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: "var(--r-sm)",
-              background: "var(--green-soft)",
-              display: "inline-flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flex: "none",
-            }}
-          >
-            <Icon n="contacts" s={18} c="var(--green)" />
-          </span>
-          <h2
-            style={{
-              margin: 0,
-              fontSize: isMobile ? 18 : 22,
-              fontWeight: 800,
-              letterSpacing: "-0.03em",
-              color: "var(--text)",
-            }}
-          >
-            Contacts
-          </h2>
-        </div>
-        <div
-          style={{
-            fontSize: 13.5,
-            color: "var(--text-3)",
             marginBottom: 18,
           }}
         >
-          {counts.connections} connections · {counts.followers} followers ·{" "}
-          {counts.following} following
+          <div style={{ minWidth: 0 }}>
+            <div className="tw-flex tw-gap-[10px] tw-mb-[10px] tw-justify-center">
+              <span
+                style={{
+                  width: 32,
+                  height: 32,
+                  borderRadius: "var(--r-sm)",
+                  background: "var(--green-soft)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flex: "none",
+                }}
+              >
+                <Icon n="contacts" s={18} c="var(--green)" />
+              </span>
+              <h2
+                style={{
+                  margin: 0,
+                  fontSize: isMobile ? 18 : 22,
+                  fontWeight: 800,
+                  letterSpacing: "-0.03em",
+                  color: "var(--text)",
+                }}
+              >
+                Contacts
+              </h2>
+            </div>
+            <div
+              style={{
+                fontSize: 13.5,
+                color: "var(--text-3)",
+                marginTop: 2,
+              }}
+            >
+              {counts.connections} connections · {counts.followers} followers ·{" "}
+              {counts.following} following
+            </div>
+          </div>
         </div>
 
-        <div
-          className="cl-scroll"
-          style={{
-            display: "flex",
-            gap: 8,
-            marginBottom: 26,
-            overflowX: "auto",
-            paddingBottom: 2,
-          }}
+        <HScrollRail
+          gap={8}
+          label="Sections"
+          style={{ marginBottom: 26 }}
+          trackStyle={{ paddingBottom: 2 }}
         >
           {(
             [
@@ -498,7 +508,7 @@ function Contacts() {
               {SECTION_TITLES[chip.key]} · {counts[chip.key]}
             </Chip>
           ))}
-        </div>
+        </HScrollRail>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
           <div id="groups">
@@ -514,16 +524,7 @@ function Contacts() {
             >
               {SECTION_TITLES.groups}
             </SectionTitle>
-            <div
-              ref={groupsRailRef}
-              className="cl-scroll"
-              style={{
-                display: "flex",
-                gap: 12,
-                overflowX: "auto",
-                paddingBottom: 6,
-              }}
-            >
+            <HScrollRail trackRef={groupsRailRef} label="Group chats">
               {isGroupsLoading ? (
                 Array.from({ length: groupSkeletonCount }, (_, i) => (
                   <GroupTileSkeleton key={i} />
@@ -539,7 +540,7 @@ function Contacts() {
                   />
                 ))
               )}
-            </div>
+            </HScrollRail>
           </div>
 
           {renderPeopleSection("connections")}
@@ -678,3 +679,4 @@ function Contacts() {
 }
 
 export default Contacts;
+

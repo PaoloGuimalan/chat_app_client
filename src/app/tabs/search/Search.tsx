@@ -33,6 +33,7 @@ import { isUserOnline, needsMoreToFill } from "@/reusables/hooks/reusable";
 import {
   Card,
   Chip,
+  HScrollRail,
   Icon,
   IconBtn,
   SectionTitle,
@@ -443,16 +444,7 @@ function SearchPage() {
       >
         People
       </SectionTitle>
-      <div
-        ref={peopleRailRef}
-        className="cl-scroll"
-        style={{
-          display: "flex",
-          gap: 12,
-          overflowX: "auto",
-          paddingBottom: 6,
-        }}
-      >
+      <HScrollRail trackRef={peopleRailRef} label="People">
         {isOverviewLoading ? (
           Array.from({ length: peopleSkeletonCount }, (_, i) => (
             <PersonCardSkeleton key={i} rail />
@@ -476,7 +468,7 @@ function SearchPage() {
             />
           ))
         )}
-      </div>
+      </HScrollRail>
     </div>
   );
 
@@ -532,7 +524,7 @@ function SearchPage() {
           color: "var(--text)",
         }}
       >
-        Search
+        Explore
       </h2>
 
       <Card
@@ -574,15 +566,11 @@ function SearchPage() {
         )}
       </Card>
 
-      <div
-        className="cl-scroll"
-        style={{
-          display: "flex",
-          gap: 8,
-          marginBottom: 22,
-          overflowX: "auto",
-          paddingBottom: 2,
-        }}
+      <HScrollRail
+        gap={8}
+        label="Filters"
+        style={{ marginBottom: 22 }}
+        trackStyle={{ paddingBottom: 2 }}
       >
         {FILTERS.map((filter) => (
           <Chip
@@ -595,7 +583,7 @@ function SearchPage() {
             {filter.key}
           </Chip>
         ))}
-      </div>
+      </HScrollRail>
 
       {!normalizedQuery ? (
         <Card
@@ -657,17 +645,9 @@ function SearchPage() {
                   >
                     Realms
                   </SectionTitle>
-                  <div
-                    className="cl-scroll"
-                    style={{
-                      display: "flex",
-                      gap: 12,
-                      overflowX: "auto",
-                      paddingBottom: 6,
-                    }}
-                  >
+                  <HScrollRail label="Realms">
                     {renderRealmCards(true)}
-                  </div>
+                  </HScrollRail>
                 </div>
               )}
               {showPosts && (

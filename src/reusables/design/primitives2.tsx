@@ -10,22 +10,7 @@ import {
 } from "react";
 import { Icon } from "./primitives";
 
-const AV_GRADS: [string, string][] = [
-  ["#1c7def", "#5aa9ff"],
-  ["#20bd7c", "#5be0a8"],
-  ["#e69500", "#ffc24d"],
-  ["#ff5b6b", "#ff97a1"],
-  ["#8b5cf6", "#b794ff"],
-  ["#0ea5b7", "#4fd6e6"],
-  ["#f0518c", "#ff8fbf"],
-  ["#3b6fe0", "#6fa0ff"],
-];
-
-function avHash(id = "") {
-  let h = 0;
-  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
-  return h;
-}
+import { AV_GRADS, avHash } from "./gradients";
 
 function initials(name = "") {
   return name

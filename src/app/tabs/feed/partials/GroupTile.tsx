@@ -1,4 +1,4 @@
-import { Avatar, Icon } from "@/reusables/design";
+import { Avatar, entityGradient, Icon } from "@/reusables/design";
 import { GroupShortcut } from "@/reusables/vars/interfaces";
 
 interface GroupTileProps {
@@ -10,6 +10,10 @@ interface GroupTileProps {
 // shortcuts into conversations, so the fallback badge is the group-chat
 // icon rather than a generic realm glyph.
 function GroupTile({ group, onOpen }: GroupTileProps) {
+  // Saturated gradient + white glyph, matching the avatars beside it. A soft
+  // tint here washed out badly against the light-mode background.
+  const [gradA, gradB] = entityGradient(group.realm_id);
+
   return (
     <button
       type="button"
@@ -43,13 +47,13 @@ function GroupTile({ group, onOpen }: GroupTileProps) {
               width: 60,
               height: 60,
               borderRadius: 18,
-              background: "var(--brand-soft)",
+              background: `linear-gradient(135deg, ${gradA}, ${gradB})`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Icon n="groups" s={28} c="var(--brand)" />
+            <Icon n="groups" s={28} c="#fff" />
           </div>
         )}
         {/* Kind marker - reads as "this is a group chat" at a glance. */}
