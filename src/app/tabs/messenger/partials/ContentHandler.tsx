@@ -11,7 +11,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import EmojiPickerHandler from "./EmojiPickerHandler";
 import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal";
 import { timeSince, urlify } from "@/reusables/hooks/reusable";
-import { RemoveMessageReactionRequest } from "@/reusables/hooks/requests";
+import { SetMessageReactionRequest } from "@/reusables/hooks/requests";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
@@ -152,19 +152,40 @@ function ContentHandler({
     (flt: any) => flt.entityID === selfEntityID,
   );
 
-  const removeMyReaction = () => {
-    if (isRemovingReaction || !myReaction) return;
+  /**
+   * Single entry point for add / change / remove. `emoji: null` removes.
+   * The server pulls the previous reaction before pushing, so selecting a
+   * different emoji replaces rather than stacks.
+   */
+  const setMyReaction = (emoji: string | null) => {
+    if (isRemovingReaction) return;
     setIsRemovingReaction(true);
+    settoggleEmojiPicker(false);
 
     const previous = reactions;
     // Optimistic: the pill updates instantly, and restores if the call fails.
-    setreactions((prev: any[]) =>
-      prev.filter((flt: any) => flt.entityID !== selfEntityID),
-    );
+    setreactions((prev: any[]) => {
+      const withoutMine = prev.filter(
+        (flt: any) => flt.entityID !== selfEntityID,
+      );
+      return emoji
+        ? [
+            ...withoutMine,
+            {
+              entityID: selfEntityID,
+              userID: authentication.user.userID,
+              fullName: authentication.user.fullName,
+              emoji,
+            },
+          ]
+        : withoutMine;
+    });
 
-    RemoveMessageReactionRequest({
+    SetMessageReactionRequest({
       conversationID: cnvs.conversationID,
       messageID: cnvs.messageID,
+      userID: authentication.user.userID,
+      emoji,
     })
       .catch((err) => {
         console.log(err);
@@ -172,6 +193,11 @@ function ContentHandler({
       })
       .finally(() => setIsRemovingReaction(false));
   };
+
+  // Picking the emoji you already have undoes it; picking a different one
+  // swaps it.
+  const toggleMyReaction = (emoji: string) =>
+    setMyReaction(myReaction?.emoji === emoji ? null : emoji);
 
   const formatMessageClock = (messageDate: any) => {
     if (messageDate?.time) return messageDate.time;
@@ -492,7 +518,8 @@ function ContentHandler({
                             : false
                         }
                         settoggleEmojiPicker={settoggleEmojiPicker}
-                        setreactions={setreactions}
+                        myReactionEmoji={myReaction?.emoji ?? null}
+                        onSelect={toggleMyReaction}
                       />
                     )}
                   </AnimatePresence>
@@ -500,6 +527,11 @@ function ContentHandler({
                     {toggleReactions && (
                       <ReactionsModal
                         reactions={reactionsWithInfoVar}
+                        selfEntityID={selfEntityID}
+                        onRemoveOwn={() => {
+                          settoggleReactions(false);
+                          setMyReaction(null);
+                        }}
                         onclose={settoggleReactions}
                       />
                     )}
@@ -524,28 +556,18 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {myReaction ? (
-                      <button
-                        title="Remove your reaction"
-                        disabled={isRemovingReaction}
-                        onClick={removeMyReaction}
-                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
-                      >
-                        <MdOutlineAddReaction
-                          style={{ color: "var(--brand)" }}
-                        />
-                      </button>
-                    ) : (
-                      <button
-                        title="Add a reaction"
-                        onClick={() => {
-                          settoggleEmojiPicker(!toggleEmojiPicker);
-                        }}
-                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
-                      >
-                        <MdOutlineAddReaction />
-                      </button>
-                    )}
+                    <button
+                      title={myReaction ? "Change your reaction" : "Add a reaction"}
+                      disabled={isRemovingReaction}
+                      onClick={() => {
+                        settoggleEmojiPicker(!toggleEmojiPicker);
+                      }}
+                      className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
+                    >
+                      <MdOutlineAddReaction
+                        style={myReaction ? { color: "var(--brand)" } : undefined}
+                      />
+                    </button>
                     {cnvs.sender !== authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
@@ -734,7 +756,8 @@ function ContentHandler({
                             : false
                         }
                         settoggleEmojiPicker={settoggleEmojiPicker}
-                        setreactions={setreactions}
+                        myReactionEmoji={myReaction?.emoji ?? null}
+                        onSelect={toggleMyReaction}
                       />
                     )}
                   </AnimatePresence>
@@ -742,6 +765,11 @@ function ContentHandler({
                     {toggleReactions && (
                       <ReactionsModal
                         reactions={reactionsWithInfoVar}
+                        selfEntityID={selfEntityID}
+                        onRemoveOwn={() => {
+                          settoggleReactions(false);
+                          setMyReaction(null);
+                        }}
                         onclose={settoggleReactions}
                       />
                     )}
@@ -766,28 +794,18 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {myReaction ? (
-                      <button
-                        title="Remove your reaction"
-                        disabled={isRemovingReaction}
-                        onClick={removeMyReaction}
-                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
-                      >
-                        <MdOutlineAddReaction
-                          style={{ color: "var(--brand)" }}
-                        />
-                      </button>
-                    ) : (
-                      <button
-                        title="Add a reaction"
-                        onClick={() => {
-                          settoggleEmojiPicker(!toggleEmojiPicker);
-                        }}
-                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
-                      >
-                        <MdOutlineAddReaction />
-                      </button>
-                    )}
+                    <button
+                      title={myReaction ? "Change your reaction" : "Add a reaction"}
+                      disabled={isRemovingReaction}
+                      onClick={() => {
+                        settoggleEmojiPicker(!toggleEmojiPicker);
+                      }}
+                      className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
+                    >
+                      <MdOutlineAddReaction
+                        style={myReaction ? { color: "var(--brand)" } : undefined}
+                      />
+                    </button>
                     {cnvs.sender !== authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
@@ -972,7 +990,8 @@ function ContentHandler({
                             : false
                         }
                         settoggleEmojiPicker={settoggleEmojiPicker}
-                        setreactions={setreactions}
+                        myReactionEmoji={myReaction?.emoji ?? null}
+                        onSelect={toggleMyReaction}
                       />
                     )}
                   </AnimatePresence>
@@ -980,6 +999,11 @@ function ContentHandler({
                     {toggleReactions && (
                       <ReactionsModal
                         reactions={reactionsWithInfoVar}
+                        selfEntityID={selfEntityID}
+                        onRemoveOwn={() => {
+                          settoggleReactions(false);
+                          setMyReaction(null);
+                        }}
                         onclose={settoggleReactions}
                       />
                     )}
@@ -1004,28 +1028,18 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {myReaction ? (
-                      <button
-                        title="Remove your reaction"
-                        disabled={isRemovingReaction}
-                        onClick={removeMyReaction}
-                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
-                      >
-                        <MdOutlineAddReaction
-                          style={{ color: "var(--brand)" }}
-                        />
-                      </button>
-                    ) : (
-                      <button
-                        title="Add a reaction"
-                        onClick={() => {
-                          settoggleEmojiPicker(!toggleEmojiPicker);
-                        }}
-                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
-                      >
-                        <MdOutlineAddReaction />
-                      </button>
-                    )}
+                    <button
+                      title={myReaction ? "Change your reaction" : "Add a reaction"}
+                      disabled={isRemovingReaction}
+                      onClick={() => {
+                        settoggleEmojiPicker(!toggleEmojiPicker);
+                      }}
+                      className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
+                    >
+                      <MdOutlineAddReaction
+                        style={myReaction ? { color: "var(--brand)" } : undefined}
+                      />
+                    </button>
                     {cnvs.sender !== authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
@@ -1205,7 +1219,8 @@ function ContentHandler({
                             : false
                         }
                         settoggleEmojiPicker={settoggleEmojiPicker}
-                        setreactions={setreactions}
+                        myReactionEmoji={myReaction?.emoji ?? null}
+                        onSelect={toggleMyReaction}
                       />
                     )}
                   </AnimatePresence>
@@ -1213,6 +1228,11 @@ function ContentHandler({
                     {toggleReactions && (
                       <ReactionsModal
                         reactions={reactionsWithInfoVar}
+                        selfEntityID={selfEntityID}
+                        onRemoveOwn={() => {
+                          settoggleReactions(false);
+                          setMyReaction(null);
+                        }}
                         onclose={settoggleReactions}
                       />
                     )}
@@ -1237,28 +1257,18 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {myReaction ? (
-                      <button
-                        title="Remove your reaction"
-                        disabled={isRemovingReaction}
-                        onClick={removeMyReaction}
-                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
-                      >
-                        <MdOutlineAddReaction
-                          style={{ color: "var(--brand)" }}
-                        />
-                      </button>
-                    ) : (
-                      <button
-                        title="Add a reaction"
-                        onClick={() => {
-                          settoggleEmojiPicker(!toggleEmojiPicker);
-                        }}
-                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
-                      >
-                        <MdOutlineAddReaction />
-                      </button>
-                    )}
+                    <button
+                      title={myReaction ? "Change your reaction" : "Add a reaction"}
+                      disabled={isRemovingReaction}
+                      onClick={() => {
+                        settoggleEmojiPicker(!toggleEmojiPicker);
+                      }}
+                      className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
+                    >
+                      <MdOutlineAddReaction
+                        style={myReaction ? { color: "var(--brand)" } : undefined}
+                      />
+                    </button>
                     {cnvs.sender !== authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span
@@ -1474,7 +1484,8 @@ function ContentHandler({
                             : false
                         }
                         settoggleEmojiPicker={settoggleEmojiPicker}
-                        setreactions={setreactions}
+                        myReactionEmoji={myReaction?.emoji ?? null}
+                        onSelect={toggleMyReaction}
                       />
                     )}
                   </AnimatePresence>
@@ -1482,6 +1493,11 @@ function ContentHandler({
                     {toggleReactions && (
                       <ReactionsModal
                         reactions={reactionsWithInfoVar}
+                        selfEntityID={selfEntityID}
+                        onRemoveOwn={() => {
+                          settoggleReactions(false);
+                          setMyReaction(null);
+                        }}
                         onclose={settoggleReactions}
                       />
                     )}
@@ -1506,28 +1522,18 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {myReaction ? (
-                      <button
-                        title="Remove your reaction"
-                        disabled={isRemovingReaction}
-                        onClick={removeMyReaction}
-                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
-                      >
-                        <MdOutlineAddReaction
-                          style={{ color: "var(--brand)" }}
-                        />
-                      </button>
-                    ) : (
-                      <button
-                        title="Add a reaction"
-                        onClick={() => {
-                          settoggleEmojiPicker(!toggleEmojiPicker);
-                        }}
-                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
-                      >
-                        <MdOutlineAddReaction />
-                      </button>
-                    )}
+                    <button
+                      title={myReaction ? "Change your reaction" : "Add a reaction"}
+                      disabled={isRemovingReaction}
+                      onClick={() => {
+                        settoggleEmojiPicker(!toggleEmojiPicker);
+                      }}
+                      className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
+                    >
+                      <MdOutlineAddReaction
+                        style={myReaction ? { color: "var(--brand)" } : undefined}
+                      />
+                    </button>
                     {cnvs.sender !== authentication.user.entity_id &&
                       reactions.length > 4 && (
                         <span

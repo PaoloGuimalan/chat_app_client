@@ -3,10 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { AnimatePresence, motion } from "framer-motion";
-import { ReactToMessageRequest } from "@/reusables/hooks/requests";
-import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import EmojiPicker, { Theme } from "emoji-picker-react";
-import { useSelector } from "react-redux";
 import { useTheme } from "@/reusables/design";
 import { useScopedPortalRoot } from "@/reusables/hooks/useScopedPortalRoot";
 
@@ -21,15 +18,13 @@ const FULL_PICKER_HEIGHT = 380;
 const VIEWPORT_MARGIN = 8;
 
 function EmojiPickerHandler({
-  conversationID,
-  messageID,
   fromSender,
   settoggleEmojiPicker,
-  setreactions,
+  /** The emoji this entity currently has on the message, or null. */
+  myReactionEmoji = null,
+  /** Add / change / remove is decided by the owner (ContentHandler). */
+  onSelect,
 }: any) {
-  const authentication: AuthenticationInterface = useSelector(
-    (state: any) => state.authentication,
-  );
   const { theme: appTheme } = useTheme();
   const anchorRef = useRef<HTMLDivElement | null>(null);
   const popoverRef = useRef<HTMLDivElement | null>(null);
@@ -88,36 +83,11 @@ function EmojiPickerHandler({
     };
   }, [fromSender, showFullPicker]);
 
-  const ReactToMessageProcess = (newreaction: any) => {
-    ReactToMessageRequest({
-      conversationID: conversationID,
-      messageID: messageID,
-      newreaction: newreaction,
-    })
-      .then((_) => {
-        // console.log(response)
-      })
-      .catch((err) => {
-        console.log(err);
-      });
-  };
-
+  // Selection is handled upstream so add / change / undo all follow one rule
+  // (re-picking the current emoji removes it).
   const applyReaction = (emoji: string) => {
     settoggleEmojiPicker(false);
-    setreactions((prev: any) => [
-      ...prev,
-      {
-        entityID: authentication.user.entity_id,
-        userID: authentication.user.userID,
-        fullName: authentication.user.fullName,
-        emoji,
-      },
-    ]);
-    ReactToMessageProcess({
-      userID: authentication.user.userID,
-      entityID: authentication.user.entity_id,
-      emoji,
-    });
+    onSelect?.(emoji);
   };
 
   return (
@@ -155,22 +125,48 @@ function EmojiPickerHandler({
                 exit={{ opacity: 0, scale: 0.85, y: -6 }}
                 transition={POPOVER_TRANSITION}
               >
-                {QUICK_REACTIONS.map((emoji, index) => (
-                  <motion.button
-                    key={emoji}
-                    type="button"
-                    className="cl-quick-reaction-bar__item"
-                    onClick={() => applyReaction(emoji)}
-                    aria-label={`React with ${emoji}`}
-                    initial={{ opacity: 0, y: 4 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.12, delay: index * 0.02 }}
-                    whileHover={{ scale: 1.15 }}
-                    whileTap={{ scale: 0.9 }}
-                  >
-                    {emoji}
-                  </motion.button>
-                ))}
+                {QUICK_REACTIONS.map((emoji, index) => {
+                  const isSelected = myReactionEmoji === emoji;
+                  return (
+                    <motion.button
+                      key={emoji}
+                      type="button"
+                      className="cl-quick-reaction-bar__item"
+                      onClick={() => applyReaction(emoji)}
+                      aria-pressed={isSelected}
+                      aria-label={
+                        isSelected
+                          ? `Remove your ${emoji} reaction`
+                          : `React with ${emoji}`
+                      }
+                      title={
+                        isSelected ? "Tap again to undo" : `React with ${emoji}`
+                      }
+                      // The one you already picked is ringed so it reads as
+                      // the current selection - tapping it undoes it.
+                      style={
+                        isSelected
+                          ? {
+                              background: "var(--brand-soft)",
+                              boxShadow: "inset 0 0 0 2px var(--brand)",
+                              borderRadius: 999,
+                            }
+                          : undefined
+                      }
+                      initial={{ opacity: 0, y: 4 }}
+                      animate={{
+                        opacity: 1,
+                        y: 0,
+                        scale: isSelected ? 1.12 : 1,
+                      }}
+                      transition={{ duration: 0.12, delay: index * 0.02 }}
+                      whileHover={{ scale: isSelected ? 1.2 : 1.15 }}
+                      whileTap={{ scale: 0.9 }}
+                    >
+                      {emoji}
+                    </motion.button>
+                  );
+                })}
                 <motion.button
                   type="button"
                   className="cl-quick-reaction-bar__item cl-quick-reaction-bar__more"

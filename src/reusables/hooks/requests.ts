@@ -1985,14 +1985,15 @@ const ReactToMessageRequest = async (params: any) => {
     });
 };
 
-// Removes the acting entity's own reaction from a message. The server pulls
-// by the entity id on the JWT, so no id is sent (and none could be honoured
-// anyway) - you can only ever remove your own.
-const RemoveMessageReactionRequest = async (params: any) => {
+// Sets the acting entity's reaction on a message: pass an emoji to add or
+// change it, or `emoji: null` to remove. The server pulls the existing one
+// first, so changing never leaves two. Keyed on the JWT's entity id, so no
+// id is sent and you can only ever affect your own reaction.
+const SetMessageReactionRequest = async (params: any) => {
   const encodedParams = sign(params, SECRET);
 
   return await Axios.post(
-    `${API}/m/v2/removereaction`,
+    `${API}/m/v2/setreaction`,
     {
       token: encodedParams,
     },
@@ -3976,7 +3977,7 @@ export {
   GetPostRequest,
   DeleteMessageRequest,
   ReactToMessageRequest,
-  RemoveMessageReactionRequest,
+  SetMessageReactionRequest,
   ConversationInfoRequest,
   IsTypingBroadcastRequest,
   AddNewMemberRequest,

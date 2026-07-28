@@ -179,9 +179,13 @@ function ConversationInfoModal({
                             onClick={() => {
                               navigate(`/${mp.userID}`);
                             }}
-                            className="cl-conversation-info-modal-member tw-w-[calc(100%-10px)] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
+                            className="cl-conversation-info-modal-member tw-w-full tw-rounded-[6px] tw-flex tw-flex-none tw-items-center tw-gap-[10px] tw-select-none tw-cursor-pointer"
+                            style={{ padding: "8px 10px", minHeight: 52 }}
                           >
-                            <div id="div_img_search_profiles_container_cncts">
+                            <div
+                              id="div_img_search_profiles_container_cncts"
+                              className="tw-flex-none"
+                            >
                               {renderUserAvatar(
                                 mp.userID,
                                 `${mp.fullname.firstName} ${
@@ -190,10 +194,11 @@ function ConversationInfoModal({
                                     : `${mp.fullname.middleName} `
                                 }${mp.fullname.lastName}`,
                                 mp.profile,
+                                36,
                               )}
                             </div>
-                            <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                              <span className="tw-flex tw-flex-1 tw-text-[13px]">
+                            <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis">
+                              <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate tw-text-[13px] tw-text-left">
                                 {mp.fullname.firstName}
                                 {mp.fullname.middleName == "N/A"
                                   ? ""
@@ -439,7 +444,7 @@ function ConversationInfoModal({
                     animate={{
                       height: toggleMemberDropper ? "auto" : "0px",
                     }}
-                    className="tw-w-[calc(100%-40px)] tw-flex tw-gap-[5px] tw-flex-col tw-overflow-y-hidden tw-bg-transparent tw-items-start tw-pl-[20px] tw-pr-[20px]"
+                    className="tw-w-[calc(100%-40px)] tw-flex tw-gap-[0px] tw-flex-col tw-overflow-y-hidden tw-bg-transparent tw-items-start tw-pl-[20px] tw-pr-[20px]"
                   >
                     {expandcontacts && (
                       <motion.div
@@ -563,7 +568,10 @@ function ConversationInfoModal({
                                             className="checkbox_selector_people"
                                           />
                                           <div id="div_img_cncts_container">
-                                            <div id="div_img_search_profiles_container_cncts">
+                                            <div
+                                              id="div_img_search_profiles_container_cncts"
+                                              className="tw-flex-none"
+                                            >
                                               {renderUserAvatar(
                                                 cnts._id,
                                                 `${cnts.fullname.firstName} ${
@@ -675,7 +683,10 @@ function ConversationInfoModal({
                                                 className="checkbox_selector_people"
                                               />
                                               <div id="div_img_cncts_container">
-                                                <div id="div_img_search_profiles_container_cncts">
+                                                <div
+                                                  id="div_img_search_profiles_container_cncts"
+                                                  className="tw-flex-none"
+                                                >
                                                   {renderUserAvatar(
                                                     cnts.involved_user.id,
                                                     `${cnts.involved_user.first_name} ${
@@ -786,7 +797,10 @@ function ConversationInfoModal({
                                                   className="checkbox_selector_people"
                                                 />
                                                 <div id="div_img_cncts_container">
-                                                  <div id="div_img_search_profiles_container_cncts">
+                                                  <div
+                                                    id="div_img_search_profiles_container_cncts"
+                                                    className="tw-flex-none"
+                                                  >
                                                     {renderUserAvatar(
                                                       cnts.action_by.id,
                                                       `${cnts.action_by.first_name} ${
@@ -837,9 +851,13 @@ function ConversationInfoModal({
                             onClick={() => {
                               navigate(`/${mp.userID}`);
                             }}
-                            className="tw-w-[calc(100%-10px)] hover:tw-bg-[#f0f0f0] tw-rounded-[4px] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px] tw-select-none tw-cursor-pointer"
+                            className="tw-w-full hover:tw-bg-[var(--surface-hover)] tw-rounded-[6px] tw-flex tw-flex-none tw-items-center tw-gap-[10px] tw-select-none tw-cursor-pointer"
+                            style={{ padding: "4px 10px", minHeight: 52 }}
                           >
-                            <div id="div_img_search_profiles_container_cncts">
+                            <div
+                              id="div_img_search_profiles_container_cncts"
+                              className="tw-flex-none"
+                            >
                               {renderUserAvatar(
                                 mp.userID,
                                 `${mp.fullname.firstName} ${
@@ -848,10 +866,11 @@ function ConversationInfoModal({
                                     : `${mp.fullname.middleName} `
                                 }${mp.fullname.lastName}`,
                                 mp.profile,
+                                36,
                               )}
                             </div>
-                            <div className="tw-flex tw-flex-1 span_userdetails_ellipsis">
-                              <span className="tw-flex tw-flex-1 tw-text-[13px]">
+                            <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis">
+                              <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate tw-text-[13px] tw-text-left">
                                 {mp.fullname.firstName}
                                 {mp.fullname.middleName == "N/A"
                                   ? ""
@@ -1045,3 +1064,4 @@ function ConversationInfoModal({
 }
 
 export default ConversationInfoModal;
+

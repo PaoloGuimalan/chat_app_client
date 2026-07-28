@@ -21,12 +21,23 @@ const reactorName = (mp: any) => {
   return name || mp.username || "Someone";
 };
 
-function ReactionsModal({ reactions, onclose }: any) {
+function ReactionsModal({
+  reactions,
+  onclose,
+  selfEntityID,
+  onRemoveOwn,
+}: any) {
   return (
     <Modal
       component={
-        <div className="div_modal_container cl-reactions-modal tw-max-w-[400px] tw-max-h-[300px] tw-items-center">
-          <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-pl-[10px] tw-pr-[10px] tw-pt-[7px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
+        <div className="div_modal_container cl-reactions-modal tw-max-w-[400px] tw-max-h-[340px] tw-items-center">
+          <div
+            className="tw-w-full tw-flex tw-items-center tw-justify-start tw-bg-transparent"
+            style={{
+              padding: "12px 14px 10px",
+              borderBottom: "1px solid var(--border)",
+            }}
+          >
             <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">
               Reactions
             </span>
@@ -39,17 +50,56 @@ function ReactionsModal({ reactions, onclose }: any) {
               <IoMdClose style={{ fontSize: "17px" }} />
             </button>
           </div>
-          <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-flex-1 tw-overflow-y-auto thinscroller">
+          {/* Rows were flush against each other: the column had no gap and
+              each row was a fixed 40px with 5px of padding. */}
+          <div
+            className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-flex-1 tw-overflow-y-auto thinscroller"
+            style={{ gap: 0, padding: "8px 10px 12px" }}
+          >
             {reactions.map((mp: any, i: number) => {
               const isRealm = mp.entityType === "realm";
               const name = reactorName(mp);
+              // Your own row is the undo affordance: tap it to take the
+              // reaction back.
+              const isMine =
+                !!selfEntityID &&
+                String(mp.entityID) === String(selfEntityID) &&
+                !!onRemoveOwn;
 
               return (
                 <div
                   key={i}
-                  className="tw-w-[calc(100%-10px)] tw-flex tw-p-[5px] tw-h-[40px] tw-items-center tw-gap-[8px]"
+                  role={isMine ? "button" : undefined}
+                  tabIndex={isMine ? 0 : undefined}
+                  title={isMine ? "Tap to remove your reaction" : undefined}
+                  onClick={isMine ? () => onRemoveOwn() : undefined}
+                  onKeyDown={
+                    isMine
+                      ? (e) => {
+                          if (e.key === "Enter" || e.key === " ") {
+                            e.preventDefault();
+                            onRemoveOwn();
+                          }
+                        }
+                      : undefined
+                  }
+                  style={{
+                    padding: "8px 10px",
+                    minHeight: 52,
+                    borderRadius: "var(--r-sm)",
+                    ...(isMine
+                      ? {
+                          cursor: "pointer",
+                          background: "var(--surface-2)",
+                        }
+                      : {}),
+                  }}
+                  className="tw-w-full tw-flex tw-items-center tw-gap-[10px] tw-flex-none"
                 >
-                  <div id="div_img_search_profiles_container_cncts">
+                  <div
+                    id="div_img_search_profiles_container_cncts"
+                    className="tw-flex-none"
+                  >
                     <Avatar
                       // Keyed on the entity so a page's fallback gradient is
                       // stable and distinct from its owner's.
@@ -60,18 +110,33 @@ function ReactionsModal({ reactions, onclose }: any) {
                           ? mp.profile
                           : undefined
                       }
+                      size={36}
                     />
                   </div>
-                  <div className="tw-flex tw-flex-1 span_userdetails_ellipsis tw-items-center tw-gap-[4px]">
-                    <span className="tw-flex tw-flex-1 tw-text-[14px] tw-font-Inter tw-items-center tw-gap-[4px]">
-                      {name}
+                  <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis tw-items-center tw-gap-[8px]">
+                    <span className="tw-flex tw-flex-1 tw-min-w-0 tw-text-[14px] tw-font-Inter tw-items-center tw-gap-[4px] tw-text-left">
+                      <span className="tw-truncate">{name}</span>
                       {isRealm && (
-                        <span title="Page" style={{ display: "inline-flex" }}>
+                        <span
+                          title="Page"
+                          className="tw-flex-none"
+                          style={{ display: "inline-flex" }}
+                        >
                           <Icon n="flag" s={13} c="var(--text-3)" />
                         </span>
                       )}
                     </span>
-                    <span className="tw-text-[18px]">{mp.emoji}</span>
+                    {isMine && (
+                      <span
+                        className="tw-text-[10px] tw-flex-none"
+                        style={{ color: "var(--brand)", whiteSpace: "nowrap" }}
+                      >
+                        Tap to undo
+                      </span>
+                    )}
+                    <span className="tw-text-[18px] tw-flex-none tw-leading-none">
+                      {mp.emoji}
+                    </span>
                   </div>
                 </div>
               );
@@ -84,3 +149,4 @@ function ReactionsModal({ reactions, onclose }: any) {
 }
 
 export default ReactionsModal;
+

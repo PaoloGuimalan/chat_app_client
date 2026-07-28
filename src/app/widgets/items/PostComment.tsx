@@ -11,7 +11,7 @@ import {
   IPostComment,
 } from "@/reusables/vars/interfaces";
 import { PaginationProp, PostCommentProp } from "@/reusables/vars/props";
-import { IoSend, IoTrashOutline } from "react-icons/io5";
+import { IoSend } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUniqueItemsOfObjects } from "@/reusables/hooks/validatevariables";
@@ -20,6 +20,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { FaFileAlt } from "react-icons/fa";
 import PostCommentLoader from "@/app/reusables/loaders/PostCommentLoader";
+import CommentOptions from "./CommentOptions";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { useSelector } from "react-redux";
 import { Avatar } from "@/reusables/design";
@@ -284,23 +285,12 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                             {timeSince(mp.created_at)}
                           </span>
                           {isMyComment(mp) && (
-                            <button
-                              type="button"
-                              title="Delete comment"
-                              aria-label="Delete comment"
-                              disabled={deletingCommentID === mp.comment_id}
-                              onClick={() =>
+                            <CommentOptions
+                              isBusy={deletingCommentID === mp.comment_id}
+                              onDelete={() =>
                                 DeleteCommentProcess(mp.comment_id)
                               }
-                              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-p-0 tw-flex tw-items-center tw-justify-center"
-                              style={{
-                                color: "var(--text-3)",
-                                opacity:
-                                  deletingCommentID === mp.comment_id ? 0.5 : 1,
-                              }}
-                            >
-                              <IoTrashOutline size={14} />
-                            </button>
+                            />
                           )}
                         </span>
                       </div>

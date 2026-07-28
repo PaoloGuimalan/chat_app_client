@@ -108,15 +108,24 @@ function NotificationRow({
           textAlign: "left",
         }}
       >
+        {/* The badge belongs to the NAME, so it sits immediately after it -
+            trailing the whole sentence read as if it applied to the action.
+            Nudged down a hair to sit on the text baseline. */}
         <span style={{ fontWeight: 700, color: "var(--text)" }}>
           {senderName}
-        </span>{" "}
-        <span style={{ color: "var(--text-2)" }}>{details}</span>
+        </span>
         {n.fromUser?.is_verified && (
-          <span style={{ display: "inline-flex", marginLeft: 4 }}>
+          <span
+            style={{
+              display: "inline-flex",
+              verticalAlign: "text-bottom",
+              margin: "0 1px 0 3px",
+            }}
+          >
             <Icon n="verified" s={13} c="var(--brand)" />
           </span>
-        )}
+        )}{" "}
+        <span style={{ color: "var(--text-2)" }}>{details}</span>
         <div
           style={{
             fontSize: isDetail ? 11.5 : 11,

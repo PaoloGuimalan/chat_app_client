@@ -4851,6 +4851,11 @@ input:checked + .slider:before {
 
 .cl-reactions-modal {
   color: var(--text);
+  /* Spacing is owned by the header and list inside, so the shared
+   * .div_modal_container padding is dropped here - it would otherwise stack
+   * with the inner padding and inset the header's divider from both edges. */
+  padding: 0;
+  overflow: hidden;
 }
 
 .cl-reactions-modal-close {
