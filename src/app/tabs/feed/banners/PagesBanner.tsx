@@ -44,11 +44,11 @@ function PagesBanner() {
       <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[4px]">
         <div className="tw-flex tw-w-full tw-items-center tw-gap-[4px]">
           <RiPagesFill style={{ fontSize: "25px", color: "var(--text-2)" }} />
-          <span className="tw-text-[16px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
+          <span className="cl-text-section tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
             Pages
           </span>
         </div>
-        <span className="tw-text-[12px] tw-text-left tw-text-[var(--text-2)]">
+        <span className="cl-text-caption tw-text-left tw-text-[var(--text-2)]">
           Browse the top pages and follow to be updated.
         </span>
       </div>
@@ -63,10 +63,10 @@ function PagesBanner() {
                 }}
               />
               <div className="tw-flex tw-flex-col tw-gap-[5px]">
-                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text-2)]">
+                <span className="cl-text-body tw-font-semibold tw-font-Inter tw-text-[var(--text-2)]">
                   No servers yet
                 </span>
-                <span className="tw-text-[14px] tw-font-Inter tw-text-[var(--text-2)]">
+                <span className="cl-text-body tw-font-Inter tw-text-[var(--text-2)]">
                   Create your server and start building a community.
                 </span>
               </div>
@@ -94,7 +94,7 @@ function PagesBanner() {
         )}
       </div>
       <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[4px]">
-        <span className="tw-text-[12px]">
+        <span className="cl-text-caption">
           Explore the pages realm <a href={`/pages`}>here</a>
         </span>
       </div>

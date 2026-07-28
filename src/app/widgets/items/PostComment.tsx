@@ -214,7 +214,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
             <div className="cl-comment-section__empty tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[40px] tw-text-[var(--text-2)]">
               <FaFileAlt style={{ fontSize: "40px", color: "var(--text-2)" }} />
               <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[var(--text-2)]">
-                <span className="tw-font-semibold tw-text-[12px] tw-text-[var(--text)]">
+                <span className="tw-font-semibold cl-text-caption tw-text-[var(--text)]">
                   No Comments yet
                 </span>
               </div>
@@ -242,7 +242,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                     <div className="cl-comment-section__bubble tw-w-full tw-rounded-[14px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-p-[12px] tw-text-left tw-shadow-sm">
                       <div className="tw-w-full tw-flex tw-items-start tw-justify-between tw-gap-[10px]">
                         <span
-                          className="cl-comment-section__name tw-break-keep tw-text-[12px] tw-w-fit tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[var(--text-2)] tw-text-[var(--text)]"
+                          className="cl-comment-section__name tw-break-keep cl-text-caption tw-w-fit tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[var(--text-2)] tw-text-[var(--text)]"
                           onClick={() => {
                             if (mp.entity.type === "user") {
                               navigate(`/${mp.entity.details.username}`);
@@ -281,7 +281,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                           )}
                         </span>
                         <span className="tw-flex tw-items-center tw-gap-[6px] tw-flex-none">
-                          <span className="tw-text-[11px] tw-text-[var(--text-3)] tw-whitespace-nowrap tw-text-right">
+                          <span className="cl-text-meta tw-text-[var(--text-3)] tw-whitespace-nowrap tw-text-right">
                             {timeSince(mp.created_at)}
                           </span>
                           {isMyComment(mp) && (
@@ -295,7 +295,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                         </span>
                       </div>
                       <div className="tw-w-full tw-flex tw-flex-col tw-gap-[4px] tw-mt-[4px]">
-                        <span className="cl-comment-section__text tw-text-[14px] tw-leading-[1.5] tw-break-words tw-text-[var(--text)]">
+                        <span className="cl-comment-section__text cl-text-body tw-leading-[1.5] tw-break-words tw-text-[var(--text)]">
                           {mp.text}
                         </span>
                         {mp.link_preview && (
@@ -305,7 +305,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                           />
                         )}
                       </div>
-                      {/* <span className="tw-text-[14px]">{mp.text}</span> */}
+                      {/* <span className="cl-text-body">{mp.text}</span> */}
                     </div>
                   </div>
                 </div>
@@ -313,7 +313,7 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
             })}
             {comments.next && isLoaded && (
               <button
-                className="cl-comment-section__more tw-text-[12px] tw-text-[var(--brand)] hover:tw-text-[var(--brand-hover)]"
+                className="cl-comment-section__more cl-text-caption tw-text-[var(--brand)] hover:tw-text-[var(--brand-hover)]"
                 onClick={() => {
                   setPage((prev) => prev + 1);
                 }}

@@ -98,7 +98,7 @@ function RealmCard({
           <span
             style={{
               fontWeight: 700,
-              fontSize: 13.5,
+              fontSize: "var(--fs-title)",
               color: "var(--text)",
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -118,7 +118,7 @@ function RealmCard({
         </button>
         <div
           style={{
-            fontSize: 12,
+            fontSize: "var(--fs-caption)",
             color: "var(--text-3)",
             margin: "2px 0 8px",
             whiteSpace: "nowrap",

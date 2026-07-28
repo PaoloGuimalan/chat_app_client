@@ -207,7 +207,7 @@ export function Badge({ children, tone = "brand", style }: BadgeProps) {
         padding: "0 8px",
         background: bg,
         color: fg,
-        fontSize: 11.5,
+        fontSize: "var(--fs-meta)",
         fontWeight: 650,
         borderRadius: "var(--r-pill)",
         ...style,
@@ -240,7 +240,7 @@ export function Chip({ children, icon, active, onClick, style }: ChipProps) {
         border: "1px solid " + (active ? "transparent" : "var(--border-2)"),
         background: active ? "var(--brand)" : "var(--surface)",
         color: active ? "#fff" : "var(--text-2)",
-        fontSize: 11.5,
+        fontSize: "var(--fs-meta)",
         fontWeight: 600,
         cursor: "pointer",
         transition: "all .14s",
@@ -340,7 +340,7 @@ export function SegTabs({ tabs, value, onChange, style }: SegTabsProps) {
               border: "none",
               borderRadius: "var(--r-xs)",
               cursor: "pointer",
-              fontSize: 11.5,
+              fontSize: "var(--fs-meta)",
               fontWeight: 650,
               background: on ? "var(--surface)" : "transparent",
               color: on ? "var(--text)" : "var(--text-2)",
@@ -376,7 +376,7 @@ export function SectionTitle({ children, action }: SectionTitleProps) {
       <h3
         style={{
           margin: 0,
-          fontSize: 14,
+          fontSize: "var(--fs-body)",
           fontWeight: 750,
           letterSpacing: "-0.01em",
         }}

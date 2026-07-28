@@ -60,7 +60,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
       component={
         <div className="div_modal_container tw-max-w-[600px] tw-max-h-[550px] tw-items-center">
           <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-pl-[10px] tw-pr-[10px] tw-pt-[7px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
-            <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">
+            <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1">
               Server
             </span>
             <button
@@ -91,7 +91,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                     />
                   </div>
                 </div>
-                <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+                <span className="cl-text-body tw-font-Inter tw-font-semibold">
                   {serverdetails.serverName}
                 </span>
                 <div className="tw-flex tw-gap-[6px]">
@@ -100,7 +100,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                       onClick={() => {
                         navigate(`/realms/${serverdetails.serverID}`);
                       }}
-                      className="cl-server-accent-button tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] tw-text-[12px]"
+                      className="cl-server-accent-button tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] cl-text-caption"
                     >
                       Manage
                     </button>
@@ -108,7 +108,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                   <button
                     onClick={LeaveServerProcess}
                     disabled={isLeaving}
-                    className="cl-server-accent-button--danger tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] tw-text-[12px] tw-flex tw-items-center tw-justify-center tw-gap-[5px]"
+                    className="cl-server-accent-button--danger tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] cl-text-caption tw-flex tw-items-center tw-justify-center tw-gap-[5px]"
                   >
                     <BiLogOut style={{ fontSize: "14px" }} />
                     {isLeaving ? "Leaving..." : "Leave Server"}
@@ -120,7 +120,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                   onClick={() => {
                     settoggleMemberDropper(!toggleMemberDropper);
                   }}
-                  className="cl-server-info-members-label tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                  className="cl-server-info-members-label tw-font-Inter tw-border-[0px] tw-h-[35px] cl-text-body tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
                   style={{ color: "var(--text)" }}
                 >
                   Members
@@ -191,7 +191,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                             />
                           </div>
                           <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis">
-                            <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate tw-text-[13px] tw-text-left">
+                            <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
                               {mp.fullname.firstName}
                               {mp.fullname.middleName == "N/A"
                                 ? ""

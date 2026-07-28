@@ -80,7 +80,7 @@ function ProfilePicContainer({
             {profile !== "none" && (
               <motion.button className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]">
                 <BsFilePerson color="var(--text-2)" size={22} />
-                <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text)]">
+                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text)]">
                   View Photo
                 </span>
               </motion.button>
@@ -92,7 +92,7 @@ function ProfilePicContainer({
               className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
             >
               <BiSolidImageAdd color="var(--text-2)" size={25} />
-              <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text)]">
+              <span className="tw-font-Inter cl-text-caption tw-text-[var(--text)]">
                 Upload New Photo
               </span>
             </motion.button>

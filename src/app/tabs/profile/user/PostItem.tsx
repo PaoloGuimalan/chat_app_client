@@ -204,7 +204,7 @@ function PostItem({
         <BsFileEarmarkExcel
           style={{ fontSize: "55px", color: "var(--text-2)" }}
         />
-        <div className="tw-flex tw-w-full tw-max-w-[200px] tw-items-center tw-justify-center tw-text-[13px] tw-text-[var(--text-2)] ">
+        <div className="tw-flex tw-w-full tw-max-w-[200px] tw-items-center tw-justify-center cl-text-body-sm tw-text-[var(--text-2)] ">
           <span>This post is unavailable</span>
         </div>
       </div>
@@ -240,7 +240,7 @@ function PostItem({
             <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px]">
               <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
                 <span
-                  className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
+                  className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                   onClick={() => {
                     if (postState.entity.type === "realm") {
                       navigate(`/${postState.entity.details.slug}`);
@@ -273,19 +273,19 @@ function PostItem({
                 </span>
                 &nbsp;
                 {postState.content_type === "profile" && (
-                  <span className="tw-text-[14px]">
+                  <span className="cl-text-body">
                     changed profile picture
                   </span>
                 )}
                 {postState.content_type === "cover_photo" && (
-                  <span className="tw-text-[14px]">changed cover photo</span>
+                  <span className="cl-text-body">changed cover photo</span>
                 )}
                 &nbsp;
                 {postState.tagging.length > 0 && (
                   <TaggingSummary tagging={postState.tagging} />
                 )}
               </div>
-              <span className="tw-text-[12px]">{dateposted}</span>
+              <span className="cl-text-caption">{dateposted}</span>
             </div>
             {authentication.auth && (
               <PostOptions
@@ -330,7 +330,7 @@ function PostItem({
                 minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
               } tw-overflow-y-hidden`}
             >
-              <span ref={textRef} className={`tw-text-[14px] tw-text-left c1`}>
+              <span ref={textRef} className={`cl-text-body tw-text-left c1`}>
                 {postState.caption}
               </span>
             </div>
@@ -345,7 +345,7 @@ function PostItem({
                 onClick={() => {
                   setminimizedCaption(false);
                 }}
-                className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
+                className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
               >
                 Expand
               </button>
@@ -355,7 +355,7 @@ function PostItem({
                 onClick={() => {
                   setminimizedCaption(true);
                 }}
-                className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
+                className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
               >
                 See less
               </button>
@@ -385,7 +385,7 @@ function PostItem({
                     }`}
                   >
                     {/* <div className="tw-w-[calc(100%-22px)] tw-p-[10px] tw-pl-[12px] tw-pr-[10px] tw-pt-[10px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
-                        <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1 tw-font-Inter">
+                        <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1 tw-font-Inter">
                           Post
                         </span>
                         <button
@@ -456,7 +456,7 @@ function PostItem({
                           <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
                             <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
                               <span
-                                className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
+                                className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                 onClick={() => {
                                   if (postState.entity.type === "realm") {
                                     navigate(
@@ -503,7 +503,7 @@ function PostItem({
                                 <TaggingSummary tagging={postState.tagging} />
                               )}
                             </div>
-                            <span className="tw-text-[12px]">{dateposted}</span>
+                            <span className="cl-text-caption">{dateposted}</span>
                           </div>
                         </div>
                         {authentication.auth && (
@@ -569,7 +569,7 @@ function PostItem({
                         >
                           <span
                             ref={textRef}
-                            className={`tw-text-[14px] tw-text-left c1`}
+                            className={`cl-text-body tw-text-left c1`}
                           >
                             {postState.caption}
                           </span>
@@ -585,7 +585,7 @@ function PostItem({
                             onClick={() => {
                               setminimizedCaption(false);
                             }}
-                            className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
+                            className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
                           >
                             Expand
                           </button>
@@ -596,7 +596,7 @@ function PostItem({
                               onClick={() => {
                                 setminimizedCaption(true);
                               }}
-                              className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
+                              className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
                             >
                               See less
                             </button>
@@ -642,7 +642,7 @@ function PostItem({
                             </div>
                             <div className="tw-w-full tw-flex tw-justify-between tw-items-center">
                               {total_reactions > 0 && (
-                                <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                                <span className="cl-text-caption tw-text-[var(--text-2)]">
                                   {total_reactions}{" "}
                                   {total_reactions === 1
                                     ? " reaction"
@@ -651,7 +651,7 @@ function PostItem({
                               )}
                               <div className="tw-flex tw-gap-[10px] tw-items-center">
                                 {commentsCount > 0 && (
-                                  <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                                  <span className="cl-text-caption tw-text-[var(--text-2)]">
                                     {commentsCount}{" "}
                                     {commentsCount === 1
                                       ? " comment"
@@ -659,7 +659,7 @@ function PostItem({
                                   </span>
                                 )}
                                 {shareCount > 0 && (
-                                  <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                                  <span className="cl-text-caption tw-text-[var(--text-2)]">
                                     {shareCount}{" "}
                                     {shareCount === 1 ? " share" : " shares"}
                                   </span>
@@ -850,7 +850,7 @@ function PostItem({
                   >
                     <div className="tw-cursor-pointer tw-select-none tw-relative tw-h-full tw-w-full tw-bg-[var(--surface-2)] tw-opacity-[0.85] tw-top-0 tw-left-0 tw-z-[1] tw-flex tw-items-center tw-justify-center">
                       <div>
-                        <span className="tw-text-[var(--text)] tw-font-Inter tw-font-semibold tw-text-[40px]">
+                        <span className="tw-text-[var(--text)] tw-font-Inter tw-font-semibold cl-text-display-xl">
                           + {postState.references.length - 4}
                         </span>
                       </div>
@@ -924,20 +924,20 @@ function PostItem({
                 </div>
                 <div className="tw-w-full tw-flex tw-justify-between tw-items-center">
                   {total_reactions > 0 && (
-                    <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                    <span className="cl-text-caption tw-text-[var(--text-2)]">
                       {total_reactions}{" "}
                       {total_reactions === 1 ? " reaction" : " reactions"}
                     </span>
                   )}
                   <div className="tw-flex tw-gap-[10px] tw-items-center">
                     {commentsCount > 0 && (
-                      <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                      <span className="cl-text-caption tw-text-[var(--text-2)]">
                         {commentsCount}{" "}
                         {commentsCount === 1 ? " comment" : " comments"}
                       </span>
                     )}
                     {shareCount > 0 && (
-                      <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                      <span className="cl-text-caption tw-text-[var(--text-2)]">
                         {shareCount} {shareCount === 1 ? " share" : " shares"}
                       </span>
                     )}

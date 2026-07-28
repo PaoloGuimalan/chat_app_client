@@ -285,29 +285,29 @@ function RealmProfile({
           />
           <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
             <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[16px] tw-sm:p-[0px]">
-              <span className="tw-text-[25px] tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
+              <span className="cl-text-hero tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
                 <span>{realmInfo.name}</span>
                 {realmInfo.is_verified && (
                   <RiVerifiedBadgeFill size={18} color="var(--brand)" />
                 )}
               </span>
-              <span className="tw-text-[14px] tw-break-all tw-mb-[14px]">
+              <span className="cl-text-body tw-break-all tw-mb-[14px]">
                 {realmInfo.email}
               </span>
-              <span className="tw-text-[14px] tw-break-all">
+              <span className="cl-text-body tw-break-all">
                 @{realmInfo.slug}
               </span>
             </div>
             {!authentication.auth && (
               <div className="tw-flex tw-flex-wrap tw-flex-col sm:tw-flex-row tw-items-center sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[10px]">
-                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                <span className="cl-text-body tw-font-semibold tw-font-Inter">
                   You are not logged in
                 </span>
                 <button
                   onClick={() => {
                     navigate("/login");
                   }}
-                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                 >
                   Login
                 </button>
@@ -320,7 +320,7 @@ function RealmProfile({
                     onClick={() => {
                       navigate(`/realms/${realmInfo.realm_id}`);
                     }}
-                    className="cl-profile-action-button--secondary tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    className="cl-profile-action-button--secondary tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                   >
                     Manage
                   </button>
@@ -330,7 +330,7 @@ function RealmProfile({
                     <button
                       onClick={UnfollowRealmProcess}
                       disabled={isConnectionButtonsLoading}
-                      className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                      className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                     >
                       {isConnectionButtonsLoading ? (
                         <motion.div
@@ -355,7 +355,7 @@ function RealmProfile({
                     <button
                       onClick={FollowRealmProcess}
                       disabled={isConnectionButtonsLoading}
-                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                     >
                       {isConnectionButtonsLoading ? (
                         <motion.div
@@ -385,7 +385,7 @@ function RealmProfile({
                   <button
                     onClick={AddRealmContactProcess}
                     disabled={isConnectionButtonsLoading}
-                    className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                   >
                     {isConnectionButtonsLoading ? (
                       <motion.div
@@ -411,7 +411,7 @@ function RealmProfile({
                     onClick={() => {
                       realmConnectionProcess("remove");
                     }}
-                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                   >
                     {isConnectionButtonsLoading ? (
                       <motion.div
@@ -437,7 +437,7 @@ function RealmProfile({
                   <button
                     onClick={() => realmConnectionProcess("cancel")}
                     disabled={isConnectionButtonsLoading}
-                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                   >
                     {isConnectionButtonsLoading ? (
                       <motion.div
@@ -460,7 +460,7 @@ function RealmProfile({
                     <button
                       onClick={() => realmConnectionProcess("accept")}
                       disabled={isConnectionButtonsLoading}
-                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                     >
                       {isConnectionButtonsLoading ? (
                         <motion.div
@@ -484,7 +484,7 @@ function RealmProfile({
                     <button
                       onClick={() => realmConnectionProcess("decline")}
                       disabled={isConnectionButtonsLoading}
-                      className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                      className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                     >
                       {isConnectionButtonsLoading ? (
                         <motion.div
@@ -511,7 +511,7 @@ function RealmProfile({
                   onClick={() => {
                     CreateConversationProcess();
                   }}
-                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                 >
                   Message
                 </button>
@@ -526,11 +526,11 @@ function RealmProfile({
             <div
               className={`tw-w-[calc(100%-40px)] tw-p-[18px] tw-flex tw-flex-col ${realmInfo.description && realmInfo.description.length >= 600 ? "tw-items-start" : "tw-items-center"} tw-gap-[12px]`}
             >
-              <span className="tw-text-[14px]">{realmInfo.description}</span>
+              <span className="cl-text-body">{realmInfo.description}</span>
             </div>
             <hr className="tw-w-[calc(100%-40px)] tw-border-[var(--border)] tw-opacity-[0.7] tw-mb-[0px] tw-z-[0]" />
             <div className="tw-w-full tw-p-[18px] tw-flex tw-flex-col tw-items-start tw-gap-[12px]">
-              <span className="tw-text-[14px] tw-flex tw-items-center">
+              <span className="cl-text-body tw-flex tw-items-center">
                 <MdPerson
                   size={22}
                   color="var(--text-2)"
@@ -621,7 +621,7 @@ function RealmProfile({
                       padding: "0 16px",
                       borderRadius: 21,
                       color: "var(--text)",
-                      fontSize: 14,
+                      fontSize: "var(--fs-body)",
                     }}
                   />
                 </div>
@@ -650,7 +650,7 @@ function RealmProfile({
                       borderRadius: "var(--r-sm)",
                       cursor: "pointer",
                       color: "var(--text-2)",
-                      fontSize: 13,
+                      fontSize: "var(--fs-body-sm)",
                       fontWeight: 600,
                     }}
                     onMouseEnter={(e) =>
@@ -721,7 +721,7 @@ function RealmProfile({
             <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
               <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
               <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
-                <span className="tw-font-semibold tw-text-[14px]">
+                <span className="tw-font-semibold cl-text-body">
                   No Posts yet
                 </span>
               </div>

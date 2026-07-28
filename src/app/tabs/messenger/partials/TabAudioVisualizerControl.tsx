@@ -50,12 +50,12 @@ const TabAudioVisualizerControl = ({
         onClick={capturing ? handleStop : handleStart}
       >
         <MdGraphicEq style={{ fontSize: iconSize }} />
-        <span className="tw-text-[11px] tw-font-Inter">
+        <span className="cl-text-meta tw-font-Inter">
           {capturing ? "Stop Capturing Audio" : "Capture Tab Audio"}
         </span>
       </motion.button>
       {error && (
-        <span className="tw-text-[10px] tw-text-red-500 tw-px-[5px] tw-pb-[3px] tw-block">
+        <span className="cl-text-micro tw-text-red-500 tw-px-[5px] tw-pb-[3px] tw-block">
           {error}
         </span>
       )}

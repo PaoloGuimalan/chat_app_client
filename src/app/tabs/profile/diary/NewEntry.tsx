@@ -397,7 +397,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
             <IoArrowBack style={{ fontSize: "20px", color: "var(--text)" }} />
           </button>
         )}
-        <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
+        <span className="cl-text-body tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
           Create New Entry
         </span>
         <div className="tw-flex tw-flex-1 tw-justify-end">
@@ -408,7 +408,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
               className="tw-cursor-pointer tw-h-[38px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-rounded-[var(--r-md)] tw-pl-[12px] tw-pr-[12px] tw-items-center tw-flex tw-gap-[6px] tw-text-[var(--text)]"
             >
               <FaSave size={18} color="var(--text)" />
-              <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
+              <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
                 Save
               </span>
             </button>
@@ -452,7 +452,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
             isClearable={true}
             placeholder="Select Mood"
             styles={customStyles}
-            className="tw-w-[200px] tw-text-[12px] tw-font-Inter tw-text-left t-scroll"
+            className="tw-w-[200px] cl-text-caption tw-font-Inter tw-text-left t-scroll"
           />
         )}
       </div>
@@ -477,7 +477,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
             isClearable={true}
             placeholder="Select Mood"
             styles={customStyles}
-            className="tw-text-[12px] tw-font-Inter tw-text-left t-scroll tw-flex-1"
+            className="cl-text-caption tw-font-Inter tw-text-left t-scroll tw-flex-1"
           />
         )}
         <AsyncPaginate
@@ -503,7 +503,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
           isClearable={true}
           placeholder="Select Tags"
           styles={customStyles}
-          className="tw-text-[12px] tw-font-Inter tw-text-left t-scroll tw-flex-1"
+          className="cl-text-caption tw-font-Inter tw-text-left t-scroll tw-flex-1"
         />
       </div>
       <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-px-[20px]">
@@ -595,13 +595,13 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
             isClearable={false}
             placeholder="Select Privacy"
             styles={customStyles}
-            className="tw-text-[12px] tw-font-Inter tw-text-left t-scroll tw-flex-1"
+            className="cl-text-caption tw-font-Inter tw-text-left t-scroll tw-flex-1"
           />
         </div>
       </div>
       <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-flex-col tw-px-[20px] tw-py-[10px] tw-gap-[12px]">
         <div className="tw-w-full tw-flex tw-items-center tw-justify-between">
-          <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
+          <span className="cl-text-body tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
             Attachments
           </span>
           <button
@@ -610,7 +610,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
             className="tw-cursor-pointer tw-h-[38px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-rounded-[var(--r-md)] tw-pl-[12px] tw-pr-[12px] tw-items-center tw-flex tw-gap-[6px] tw-text-[var(--text)]"
           >
             <BiSolidImageAdd size={18} color="var(--text)" />
-            <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
+            <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
               Add Attachments
             </span>
           </button>
@@ -626,17 +626,17 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
           {isDraggingAttachments ? (
             <div className="tw-flex tw-gap-[10px] tw-flex-col tw-items-center">
               <MdImageNotSupported size={70} color="var(--text-2)" />
-              <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[var(--text-2)]">
+              <span className="cl-text-caption tw-font-Inter tw-font-normal tw-text-[var(--text-2)]">
                 Drop files to attach
               </span>
             </div>
           ) : medialist.length === 0 ? (
             <div className="tw-flex tw-gap-[10px] tw-flex-col tw-items-center">
               <MdImageNotSupported size={70} color="var(--text-2)" />
-              <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text-2)]">
+              <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--text-2)]">
                 Drag & drop files here
               </span>
-              <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[var(--text-2)]">
+              <span className="cl-text-caption tw-font-Inter tw-font-normal tw-text-[var(--text-2)]">
                 or click Add Attachments above
               </span>
             </div>

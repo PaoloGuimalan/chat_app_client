@@ -86,7 +86,7 @@ function EntryView() {
                 <IoArrowBack style={{ fontSize: "20px", color: "var(--text)" }} />
               </button>
             )}
-            <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
+            <span className="cl-text-body tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
               {currentEntry.title}
             </span>
           </div>
@@ -102,7 +102,7 @@ function EntryView() {
             >
               {isPreMobileView && (
                 <div className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)] tw-p-[12px]">
-                  <div className="tw-flex tw-font-Inter tw-text-[14px] tw-gap-[4px] tw-items-center tw-text-[var(--text)]">
+                  <div className="tw-flex tw-font-Inter cl-text-body tw-gap-[4px] tw-items-center tw-text-[var(--text)]">
                     <span className="tw-text-left tw-text-[var(--text)]">
                       Entry dated on{" "}
                       <span className="tw-font-semibold">
@@ -117,7 +117,7 @@ function EntryView() {
               )}
               <div className="tw-min-h-[300px] tw-w-full tw-flex-1 tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[12px] tw-pt-[0px] tw-rounded-[var(--r-md)] tw-flex tw-flex-col tw-gap-[12px]">
                 <div
-                  className="tw-text-[14px] tw-text-left tw-text-[var(--text)]"
+                  className="cl-text-body tw-text-left tw-text-[var(--text)]"
                   dangerouslySetInnerHTML={{
                     __html: DOMPurify.sanitize(currentEntry.content),
                   }}
@@ -140,7 +140,7 @@ function EntryView() {
               >
                 {currentEntry.mood && (
                   <div className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)] tw-p-[12px]">
-                    <div className="tw-flex tw-font-Inter tw-text-[14px] tw-gap-[4px] tw-items-center tw-text-[var(--text)]">
+                    <div className="tw-flex tw-font-Inter cl-text-body tw-gap-[4px] tw-items-center tw-text-[var(--text)]">
                       <span className="tw-text-left tw-text-[var(--text)]">You were feeling</span>
                       <span className="tw-font-semibold tw-text-left">
                         {currentEntry.mood.emoji} {currentEntry.mood.name}
@@ -161,7 +161,7 @@ function EntryView() {
                         alignItems: isPreMobileView ? "center" : "start",
                         flexWrap: isPreMobileView ? "wrap" : "nowrap",
                       }}
-                      className="tw-flex tw-font-Inter tw-text-[14px] tw-gap-[6px] tw-text-[var(--text)]"
+                      className="tw-flex tw-font-Inter cl-text-body tw-gap-[6px] tw-text-[var(--text)]"
                     >
                       <span className="tw-text-left tw-text-[var(--text)]">
                         You were talking about
@@ -173,7 +173,7 @@ function EntryView() {
                               key={mp.id}
                               className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
                             >
-                              <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
+                              <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
                                 {mp.name}
                               </span>
                             </div>
@@ -187,7 +187,7 @@ function EntryView() {
                                 key={mp.id}
                                 className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
                               >
-                                <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
+                                <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
                                   {mp.name}
                                 </span>
                               </div>
@@ -217,7 +217,7 @@ function EntryView() {
           {currentEntry.attachments.length > 0 && (
             <div className="tw-w-full tw-max-w-[1200px] tw-flex tw-flex-col tw-px-[20px] tw-py-[10px] tw-gap-[10px]">
               <div className="tw-w-full tw-flex tw-items-center tw-justify-between">
-                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
+                <span className="cl-text-body tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
                   Attachments
                 </span>
               </div>

@@ -105,6 +105,92 @@
   --glass: rgba(21, 26, 35, 0.72);
 }
 
+/* ---------------------------------------------------------------------------
+ * Type scale.
+ *
+ * The app had ~657 hardcoded font sizes across 101 files spanning 20 distinct
+ * values, most of them half a point from a neighbour. These are the only
+ * steps - taken from the Notifications page, which is the reference the rest
+ * of the app matches.
+ *
+ * DON'T add a new px literal: pick a step. If none fits, the step list is
+ * what should change, not the call site.
+ *
+ * `--fs-body` (14) is the read-at-length size - prose, message bubbles, post
+ * captions, inputs - and equals .cl-redesign's base font-size below. It is
+ * deliberately NOT one of Notifications' own sizes: that page has no
+ * long-form text, so collapsing 14 into its 13.5 would have shrunk body copy
+ * across every other screen.
+ *
+ * Sizes are declared on :root (not .cl-redesign) so legacy screens outside
+ * the redesign shell can adopt the same steps.
+ * ------------------------------------------------------------------------ */
+:root {
+  --fs-micro: 10.5px; /* badges, unread pills */
+  --fs-meta: 11px; /* timestamps, counters */
+  --fs-caption: 12px; /* secondary + empty-state text */
+  --fs-label: 12.5px; /* links, "See all", small buttons */
+  --fs-body-sm: 13px; /* compact row primary text */
+  --fs-title: 13.5px; /* row primary text */
+  --fs-body: 14px; /* prose, bubbles, captions, inputs */
+  --fs-section-title: 15px; /* section headers */
+  --fs-screen-title: 22px; /* page + detail headings (see media query) */
+  --fs-hero-sm: 20px; /* stat figures */
+  --fs-hero: 24px; /* banner headings */
+  --fs-display: 28px; /* splash / empty-state display */
+  --fs-display-xl: 40px; /* splash mark */
+}
+
+/* Page headings step down on small screens. Holding this here replaces the
+ * per-file `fontSize: isMobile ? 18 : 22` ternaries the pages used to carry,
+ * so every header shares one breakpoint instead of each picking its own
+ * (Notifications' detail header was 16 where its main header was 18). */
+@media (max-width: 900px) {
+  :root {
+    --fs-screen-title: 18px;
+  }
+}
+
+.cl-text-micro {
+  font-size: var(--fs-micro);
+}
+.cl-text-meta {
+  font-size: var(--fs-meta);
+}
+.cl-text-caption {
+  font-size: var(--fs-caption);
+}
+.cl-text-label {
+  font-size: var(--fs-label);
+}
+.cl-text-body-sm {
+  font-size: var(--fs-body-sm);
+}
+.cl-text-title {
+  font-size: var(--fs-title);
+}
+.cl-text-body {
+  font-size: var(--fs-body);
+}
+.cl-text-section {
+  font-size: var(--fs-section-title);
+}
+.cl-text-screen {
+  font-size: var(--fs-screen-title);
+}
+.cl-text-hero-sm {
+  font-size: var(--fs-hero-sm);
+}
+.cl-text-hero {
+  font-size: var(--fs-hero);
+}
+.cl-text-display {
+  font-size: var(--fs-display);
+}
+.cl-text-display-xl {
+  font-size: var(--fs-display-xl);
+}
+
 .cl-redesign,
 .cl-redesign * {
   box-sizing: border-box;
@@ -114,7 +200,7 @@
   font-family: var(--font);
   color: var(--text);
   -webkit-font-smoothing: antialiased;
-  font-size: 14px;
+  font-size: var(--fs-body);
   line-height: 1.45;
 }
 

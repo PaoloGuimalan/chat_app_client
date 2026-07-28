@@ -88,7 +88,7 @@ function SeeAllButton({ onClick }: { onClick: () => void }) {
       type="button"
       onClick={onClick}
       style={{
-        fontSize: 13,
+        fontSize: "var(--fs-body-sm)",
         fontWeight: 650,
         color: "var(--brand)",
         background: "none",
@@ -124,10 +124,10 @@ function EmptySection({
       }}
     >
       <Icon n={icon} s={32} c="var(--text-3)" />
-      <div style={{ fontWeight: 700, fontSize: 13.5, marginTop: 6 }}>
+      <div style={{ fontWeight: 700, fontSize: "var(--fs-title)", marginTop: 6 }}>
         {title}
       </div>
-      <div style={{ fontSize: 12, color: "var(--text-3)" }}>{subtitle}</div>
+      <div style={{ fontSize: "var(--fs-caption)", color: "var(--text-3)" }}>{subtitle}</div>
     </div>
   );
 }
@@ -171,7 +171,7 @@ function SearchPage() {
     withImage: false,
   });
 
-  const isMobile = screensizelistener.W <= 900;
+  // Header sizing lives in CSS now (--fs-screen-title), not a JS breakpoint.
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   // People is a horizontal rail in the overview, so its skeleton count has
@@ -518,7 +518,7 @@ function SearchPage() {
       <h2
         style={{
           margin: "0 0 16px",
-          fontSize: isMobile ? 18 : 22,
+          fontSize: "var(--fs-screen-title)",
           fontWeight: 800,
           letterSpacing: "-0.02em",
           color: "var(--text)",
@@ -553,7 +553,7 @@ function SearchPage() {
             minWidth: 0,
             background: "transparent",
             color: "var(--text)",
-            fontSize: 15,
+            fontSize: "var(--fs-section-title)",
           }}
         />
         {query.length > 0 && (
@@ -578,7 +578,7 @@ function SearchPage() {
             icon={filter.icon}
             active={activeFilter === filter.key}
             onClick={() => setActiveFilter(filter.key)}
-            style={{ height: 34, padding: "0 14px", fontSize: 13 }}
+            style={{ height: 34, padding: "0 14px", fontSize: "var(--fs-body-sm)" }}
           >
             {filter.key}
           </Chip>
@@ -619,11 +619,11 @@ function SearchPage() {
               <Icon n="manage_search" s={34} c="var(--brand)" />
             </div>
             <span
-              style={{ fontSize: 18, fontWeight: 800, color: "var(--text)" }}
+              style={{ fontSize: "var(--fs-screen-title)", fontWeight: 800, color: "var(--text)" }}
             >
               Search people, realms and posts
             </span>
-            <span style={{ fontSize: 14, color: "var(--text-2)" }}>
+            <span style={{ fontSize: "var(--fs-body)", color: "var(--text-2)" }}>
               Start typing a name, handle or keyword.
             </span>
           </div>
@@ -756,7 +756,7 @@ function SearchPage() {
         <h1
           style={{
             margin: 0,
-            fontSize: isMobile ? 18 : 22,
+            fontSize: "var(--fs-screen-title)",
             fontWeight: 800,
             letterSpacing: "-0.02em",
             color: "var(--text)",
@@ -929,7 +929,7 @@ function SearchPage() {
         >
           <AiOutlineLoading3Quarters
             className="cl-spin"
-            style={{ fontSize: 28, color: "#fff" }}
+            style={{ fontSize: "var(--fs-display)", color: "#fff" }}
           />
         </div>
       )}

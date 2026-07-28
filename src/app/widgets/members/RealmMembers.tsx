@@ -141,7 +141,7 @@ function RealmMembers({
   return (
     <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-transparent tw-flex">
       <div className="tw-w-full tw-p-[18px] sm:tw-p-[24px] tw-flex tw-flex-col tw-items-start tw-gap-[15px] tw-bg-transparent tw-min-h-0">
-        <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text)]">
+        <span className="cl-text-body tw-font-semibold tw-text-[var(--text)]">
           Members
         </span>
         <div id="div_modal_input_columns_add_people" className="tw-w-full">
@@ -225,7 +225,7 @@ function RealmMembers({
                               {cnts.entity.details.last_name}
                             </span>
                           )}
-                          <span className="tw-text-[12px] tw-font-Inter tw-text-left tw-text-[var(--text-2)]">
+                          <span className="cl-text-caption tw-font-Inter tw-text-left tw-text-[var(--text-2)]">
                             {capitalizeFirstLetter(cnts.role)}
                           </span>
                         </div>

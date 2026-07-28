@@ -35,7 +35,7 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
         <span
           style={{
             fontWeight: 700,
-            fontSize: 13.5,
+            fontSize: "var(--fs-title)",
             color: "var(--text)",
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -50,7 +50,7 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
         )}
         <span
           style={{
-            fontSize: 12,
+            fontSize: "var(--fs-caption)",
             color: "var(--text-3)",
             marginLeft: "auto",
             flex: "none",
@@ -61,7 +61,7 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
       </div>
       <div
         style={{
-          fontSize: 14,
+          fontSize: "var(--fs-body)",
           color: "var(--text-2)",
           lineHeight: 1.45,
           marginBottom: 8,
@@ -78,7 +78,7 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
         style={{
           display: "flex",
           gap: 16,
-          fontSize: 12.5,
+          fontSize: "var(--fs-label)",
           color: "var(--text-3)",
           alignItems: "center",
         }}

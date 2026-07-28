@@ -331,7 +331,7 @@ function CreateChannelModal({
                 )}
                 {isSaving ? (
                   <div className="tw-flex tw-items-center tw-justify-end tw-w-full">
-                    <span className="tw-text-[12px]">Saving...</span>
+                    <span className="cl-text-caption">Saving...</span>
                     <motion.div
                       animate={{
                         rotate: -360,

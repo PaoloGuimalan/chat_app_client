@@ -258,7 +258,7 @@ function Diary() {
             ref={divcontentRef}
           >
             <div className="tw-w-full tw-flex tw-py-[14px] tw-px-[18px] tw-min-h-[30px] tw-items-center tw-justify-between tw-border-b tw-border-[var(--border)]">
-              {/* <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-whitespace-nowrap tw-text-[var(--text)]">
+              {/* <span className="cl-text-body tw-font-Inter tw-font-semibold tw-whitespace-nowrap tw-text-[var(--text)]">
                 Your Entries
               </span> */}
               <TypeAnimation
@@ -295,7 +295,7 @@ function Diary() {
                   className="tw-h-[35px] tw-border-none tw-rounded-[var(--r-md)] tw-pl-[10px] tw-pr-[10px] tw-items-center tw-flex tw-gap-[6px] tw-bg-[var(--surface-2)] tw-text-[var(--text)]"
                 >
                   <FaPen color="var(--text)" />
-                  <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-cursor-pointer tw-text-[var(--text)]">
+                  <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-cursor-pointer tw-text-[var(--text)]">
                     Write an Entry
                   </span>
                 </button>
@@ -338,11 +338,11 @@ function Diary() {
                             className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none tw-w-full tw-rounded-[var(--r-md)] tw-p-[12px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[4px] tw-select-none tw-cursor-pointer"
                           >
                             <div className="tw-w-full tw-flex tw-justify-between tw-items-start tw-gap-[8px]">
-                              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left tw-text-[var(--text)]">
+                              <span className="cl-text-body tw-font-Inter tw-font-semibold tw-text-left tw-text-[var(--text)]">
                                 {mp.title}
                               </span>
                               {mp.mood && (
-                                <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap">
+                                <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap">
                                   {mp.mood.emoji} {mp.mood.name}
                                 </span>
                               )}
@@ -355,7 +355,7 @@ function Diary() {
                                       key={mp.id}
                                       className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
                                     >
-                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
+                                      <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
                                         {mp.name}
                                       </span>
                                     </div>
@@ -364,11 +364,11 @@ function Diary() {
                               </div>
                             )}
                             <span
-                              className="tw-text-[12px] tw-font-Inter tw-text-left tw-overflow-hidden tw-text-ellipsis"
+                              className="cl-text-caption tw-font-Inter tw-text-left tw-overflow-hidden tw-text-ellipsis"
                               dangerouslySetInnerHTML={{ __html: mp.content }}
                             ></span>
                             <div className="tw-w-full tw-flex tw-pt-[8px] tw-pb-[2px]">
-                              <span className="tw-text-[11px] span_messages_list_name tw-text-[var(--text-2)]">
+                              <span className="cl-text-meta span_messages_list_name tw-text-[var(--text-2)]">
                                 {formattedDateToWords(
                                   mp.entry_date,
                                   "YYYY-MM-DD",
@@ -391,7 +391,7 @@ function Diary() {
                             className="tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none tw-w-full tw-rounded-[var(--r-md)] tw-p-[12px] tw-flex tw-flex-col tw-items-start tw-min-h-[185px] tw-gap-[4px] tw-select-none tw-cursor-pointer"
                           >
                             <div className="tw-w-full tw-flex tw-justify-between tw-items-start tw-gap-[8px]">
-                              <span className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left tw-text-[var(--text)]">
+                              <span className="cl-text-body tw-font-Inter tw-font-semibold tw-text-left tw-text-[var(--text)]">
                                 {formattedDateToWords(
                                   mp_grouped.date,
                                   "YYYY-MM-DD",
@@ -406,7 +406,7 @@ function Diary() {
                                       key={mp.id}
                                       className="tw-p-[4px] tw-pl-[7px] tw-pr-[7px] tw-bg-[var(--brand-soft)] tw-rounded-[7px]"
                                     >
-                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
+                                      <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--brand)]">
                                         {mp.name}
                                       </span>
                                     </div>
@@ -430,11 +430,11 @@ function Diary() {
                                     className="tw-min-h-[0px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-w-full tw-rounded-[var(--r-md)] tw-p-[12px] tw-flex tw-flex-col tw-items-start tw-max-h-[185px] tw-gap-[4px] tw-select-none tw-cursor-pointer"
                                   >
                                     <div className="tw-w-full tw-flex tw-justify-between tw-items-start tw-gap-[8px]">
-                                      <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-left tw-text-[var(--text)]">
+                                      <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-left tw-text-[var(--text)]">
                                         {mp.title}
                                       </span>
                                       {mp.mood && (
-                                        <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap">
+                                        <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap">
                                           {mp.mood.emoji} {mp.mood.name}
                                         </span>
                                       )}
@@ -444,7 +444,7 @@ function Diary() {
                               })}
                             </div>
                             <div className="tw-w-full tw-flex tw-pt-[8px] tw-pb-[2px]">
-                              <span className="tw-text-[11px] span_messages_list_name tw-text-[var(--text-2)]">
+                              <span className="cl-text-meta span_messages_list_name tw-text-[var(--text-2)]">
                                 {mp_grouped.entries.length} entries
                               </span>
                             </div>
@@ -457,7 +457,7 @@ function Diary() {
               ) : (
                 <div className="tw-flex tw-flex-col tw-gap-[10px] tw-items-center tw-pt-[50px]">
                   <TbBookOff size={70} color="var(--text-2)" />
-                  <span className="tw-text-[12px] tw-font-Inter tw-font-normal tw-text-[var(--text-2)]">
+                  <span className="cl-text-caption tw-font-Inter tw-font-normal tw-text-[var(--text-2)]">
                     No Entries Made Yet
                   </span>
                 </div>
@@ -474,14 +474,14 @@ function Diary() {
                         <Skeleton
                           containerClassName="tw-w-full tw-max-w-[150px]"
                           height={"22px"}
-                          className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left tw-w-full"
+                          className="cl-text-body tw-font-Inter tw-font-semibold tw-text-left tw-w-full"
                           baseColor="var(--surface-3)"
                           highlightColor="var(--surface-hover)"
                         />
                         <Skeleton
                           width="80px"
                           height={"22px"}
-                          className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap"
+                          className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap"
                           baseColor="var(--surface-3)"
                           highlightColor="var(--surface-hover)"
                         />
@@ -519,7 +519,7 @@ function Diary() {
                         <Skeleton
                           height={"12px"}
                           width={"100px"}
-                          className="tw-text-[11px] span_messages_list_name tw-text-[var(--text-2)]"
+                          className="cl-text-meta span_messages_list_name tw-text-[var(--text-2)]"
                           baseColor="var(--surface-3)"
                           highlightColor="var(--surface-hover)"
                         />
@@ -544,14 +544,14 @@ function Diary() {
                         <Skeleton
                           containerClassName="tw-w-full tw-max-w-[150px]"
                           height={"22px"}
-                          className="tw-text-[14px] tw-font-Inter tw-font-semibold tw-text-left tw-w-full"
+                          className="cl-text-body tw-font-Inter tw-font-semibold tw-text-left tw-w-full"
                           baseColor="var(--surface-3)"
                           highlightColor="var(--surface-hover)"
                         />
                         <Skeleton
                           width="80px"
                           height={"22px"}
-                          className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap"
+                          className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--text-2)] tw-whitespace-nowrap"
                           baseColor="var(--surface-3)"
                           highlightColor="var(--surface-hover)"
                         />
@@ -589,7 +589,7 @@ function Diary() {
                         <Skeleton
                           height={"12px"}
                           width={"100px"}
-                          className="tw-text-[11px] span_messages_list_name tw-text-[var(--text-2)]"
+                          className="cl-text-meta span_messages_list_name tw-text-[var(--text-2)]"
                           baseColor="var(--surface-3)"
                           highlightColor="var(--surface-hover)"
                         />

@@ -77,7 +77,7 @@ function GroupTile({ group, onOpen }: GroupTileProps) {
       </div>
       <div
         style={{
-          fontSize: 12.5,
+          fontSize: "var(--fs-label)",
           fontWeight: 650,
           textAlign: "center",
           color: "var(--text)",

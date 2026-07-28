@@ -234,7 +234,7 @@ function PostPreviewModal({
                 <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
                   <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
                     <span
-                      className="cl-feed-card__title tw-break-keep tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
+                      className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                       onClick={() => {
                         if (post.entity.type !== "user") {
                           navigate(`/${post.entity.details.slug}`);
@@ -277,7 +277,7 @@ function PostPreviewModal({
                       <TaggingSummary tagging={post.tagging} />
                     )}
                   </div>
-                  <span className="tw-text-[12px]">{dateposted}</span>
+                  <span className="cl-text-caption">{dateposted}</span>
                 </div>
               </div>
               {authentication.auth && (
@@ -347,7 +347,7 @@ function PostPreviewModal({
                   minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
                 } tw-overflow-y-hidden`}
               >
-                <span ref={textRef} className={`tw-text-[14px] tw-text-left c1`}>
+                <span ref={textRef} className={`cl-text-body tw-text-left c1`}>
                   {post.caption}
                 </span>
               </div>
@@ -361,7 +361,7 @@ function PostPreviewModal({
                   onClick={() => {
                     setminimizedCaption(false);
                   }}
-                  className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
+                  className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
                 >
                   Expand
                 </button>
@@ -371,7 +371,7 @@ function PostPreviewModal({
                   onClick={() => {
                     setminimizedCaption(true);
                   }}
-                  className={`cl-feed-card__toggle tw-text-[12px] tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
+                  className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
                 >
                   See less
                 </button>
@@ -413,20 +413,20 @@ function PostPreviewModal({
                   </div>
                   <div className="tw-w-full tw-flex tw-justify-between tw-items-center">
                     {total_reactions > 0 && (
-                      <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                      <span className="cl-text-caption tw-text-[var(--text-2)]">
                         {total_reactions}{" "}
                         {total_reactions === 1 ? " reaction" : " reactions"}
                       </span>
                     )}
                     <div className="tw-flex tw-gap-[10px] tw-items-center">
                       {commentsCount > 0 && (
-                        <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                        <span className="cl-text-caption tw-text-[var(--text-2)]">
                           {commentsCount}{" "}
                           {commentsCount === 1 ? " comment" : " comments"}
                         </span>
                       )}
                       {shareCount > 0 && (
-                        <span className="tw-text-[12px] tw-text-[var(--text-2)]">
+                        <span className="cl-text-caption tw-text-[var(--text-2)]">
                           {shareCount} {shareCount === 1 ? " share" : " shares"}
                         </span>
                       )}

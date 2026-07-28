@@ -38,7 +38,7 @@ function ReactionsModal({
               borderBottom: "1px solid var(--border)",
             }}
           >
-            <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">
+            <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1">
               Reactions
             </span>
             <button
@@ -114,7 +114,7 @@ function ReactionsModal({
                     />
                   </div>
                   <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis tw-items-center tw-gap-[8px]">
-                    <span className="tw-flex tw-flex-1 tw-min-w-0 tw-text-[14px] tw-font-Inter tw-items-center tw-gap-[4px] tw-text-left">
+                    <span className="tw-flex tw-flex-1 tw-min-w-0 cl-text-body tw-font-Inter tw-items-center tw-gap-[4px] tw-text-left">
                       <span className="tw-truncate">{name}</span>
                       {isRealm && (
                         <span
@@ -128,12 +128,14 @@ function ReactionsModal({
                     </span>
                     {isMine && (
                       <span
-                        className="tw-text-[10px] tw-flex-none"
+                        className="cl-text-micro tw-flex-none"
                         style={{ color: "var(--brand)", whiteSpace: "nowrap" }}
                       >
                         Tap to undo
                       </span>
                     )}
+                    {/* Not a type step: the emoji is content sized to the
+                        row, not text in the hierarchy. */}
                     <span className="tw-text-[18px] tw-flex-none tw-leading-none">
                       {mp.emoji}
                     </span>

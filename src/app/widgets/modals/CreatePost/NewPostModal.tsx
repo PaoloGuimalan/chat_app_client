@@ -569,7 +569,7 @@ export function NewPostModal({
                         <MdAddToPhotos
                           style={{ fontSize: "20px", color: "var(--text-2)" }}
                         />
-                        <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text-2)]">
+                        <span className="cl-text-body tw-font-semibold tw-text-[var(--text-2)]">
                           {isDraggingMedia
                             ? "Drop to attach"
                             : "Drag & drop a Photo or Video, or click to browse"}
@@ -589,13 +589,13 @@ export function NewPostModal({
                       <MdAddToPhotos
                         style={{ fontSize: "60px", color: "var(--text-2)" }}
                       />
-                      <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text-2)]">
+                      <span className="cl-text-body tw-font-semibold tw-text-[var(--text-2)]">
                         {isDraggingMedia
                           ? "Drop to attach"
                           : "Drag & drop photos or videos here"}
                       </span>
                       {!isDraggingMedia && (
-                        <span className="tw-text-[12px] tw-font-normal tw-text-[var(--text-2)]">
+                        <span className="cl-text-caption tw-font-normal tw-text-[var(--text-2)]">
                           or click to browse
                         </span>
                       )}

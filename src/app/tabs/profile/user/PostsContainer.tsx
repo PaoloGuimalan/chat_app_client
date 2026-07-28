@@ -205,7 +205,7 @@ function PostsContainer({
                 padding: "0 14px",
                 borderRadius: 21,
                 color: "var(--text)",
-                fontSize: 14,
+                fontSize: "var(--fs-body)",
               }}
             />
           </div>
@@ -234,7 +234,7 @@ function PostsContainer({
                 borderRadius: "var(--r-sm)",
                 cursor: "pointer",
                 color: "var(--text-2)",
-                fontSize: 13,
+                fontSize: "var(--fs-body-sm)",
                 fontWeight: 600,
               }}
               onMouseEnter={(e) =>
@@ -307,7 +307,7 @@ function PostsContainer({
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
           <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
           <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
-            <span className="tw-font-semibold tw-text-[14px]">
+            <span className="tw-font-semibold cl-text-body">
               No Posts yet
             </span>
           </div>

@@ -1473,7 +1473,7 @@ function ConversationV2({
                 borderRadius: "inherit",
               }}
             >
-              <span className="tw-text-white tw-text-[14px] tw-font-medium">
+              <span className="tw-text-white cl-text-body tw-font-medium">
                 Drop files to attach
               </span>
             </div>
@@ -1778,7 +1778,7 @@ function ConversationV2({
                         <BiSolidInfoCircle
                           style={{ fontSize: conversationMenuIconSize }}
                         />
-                        <span className="tw-text-[11px] tw-font-Inter">
+                        <span className="cl-text-meta tw-font-Inter">
                           Info
                         </span>
                       </motion.button>
@@ -1800,7 +1800,7 @@ function ConversationV2({
                             <IoMdSettings
                               style={{ fontSize: conversationMenuIconSize }}
                             />
-                            <span className="tw-text-[11px] tw-font-Inter">
+                            <span className="cl-text-meta tw-font-Inter">
                               Manage
                             </span>
                           </motion.button>
@@ -1828,7 +1828,7 @@ function ConversationV2({
                             <BiWindows
                               style={{ fontSize: conversationMenuIconSize }}
                             />
-                            <span className="tw-text-[11px] tw-font-Inter">
+                            <span className="cl-text-meta tw-font-Inter">
                               Minimize
                             </span>
                           </motion.button>
@@ -1848,7 +1848,7 @@ function ConversationV2({
                               <RiInboxUnarchiveFill
                                 style={{ fontSize: conversationMenuIconSize }}
                               />
-                              <span className="tw-text-[11px] tw-font-Inter">
+                              <span className="cl-text-meta tw-font-Inter">
                                 Unarchive
                               </span>
                             </motion.button>
@@ -1865,7 +1865,7 @@ function ConversationV2({
                               <RiInboxArchiveFill
                                 style={{ fontSize: conversationMenuIconSize }}
                               />
-                              <span className="tw-text-[11px] tw-font-Inter">
+                              <span className="cl-text-meta tw-font-Inter">
                                 Archive
                               </span>
                             </motion.button>
@@ -1886,7 +1886,7 @@ function ConversationV2({
                           <MdGraphicEq
                             style={{ fontSize: conversationMenuIconSize }}
                           />
-                          <span className="tw-text-[11px] tw-font-Inter tw-capitalize">
+                          <span className="cl-text-meta tw-font-Inter tw-capitalize">
                             Visualizer: {visualizerStyle}
                           </span>
                         </motion.button>
@@ -1903,7 +1903,7 @@ function ConversationV2({
                             <MdDelete
                               style={{ fontSize: conversationMenuIconSize }}
                             />
-                            <span className="tw-text-[11px] tw-font-Inter">
+                            <span className="cl-text-meta tw-font-Inter">
                               Delete
                             </span>
                           </motion.button>
@@ -1925,7 +1925,7 @@ function ConversationV2({
                           <IoMdClose
                             style={{ fontSize: conversationMenuIconSize }}
                           />
-                          <span className="tw-text-[11px] tw-font-Inter">
+                          <span className="cl-text-meta tw-font-Inter">
                             Close
                           </span>
                         </motion.button>
@@ -1951,7 +1951,7 @@ function ConversationV2({
                             <BiLogOut
                               style={{ fontSize: conversationMenuIconSize }}
                             />
-                            <span className="tw-text-[11px] tw-font-Inter">
+                            <span className="cl-text-meta tw-font-Inter">
                               Leave{" "}
                               {conversationinfo?.type === "server" ||
                               conversationinfo?.type === "channel"
@@ -2182,7 +2182,7 @@ function ConversationV2({
                                   style={{ fontSize: conversationFileIconSize }}
                                 />
                               </div>
-                              <span className="tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold">
+                              <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold">
                                 {cnvs.name}
                               </span>
                             </div>
@@ -2200,12 +2200,12 @@ function ConversationV2({
                     <div className="div_messages_result tw-w-[calc(100%-20px)] tw-flex tw-justify-center tw-p-[10px]">
                       <div className="tw-bg-[var(--surface)] tw-w-[calc(100%-20px)] tw-max-w-[calc(400px-20px)] tw-p-[10px] tw-rounded-xl tw-shadow-lg">
                         <div className="tw-w-full tw-flex tw-flex-col">
-                          <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                          <span className="cl-text-body tw-font-semibold tw-font-Inter">
                             Ongoing Call
                           </span>
                         </div>
                         <div className="tw-w-full tw-flex tw-flex-col tw-h-[40px] tw-justify-center">
-                          <span className="tw-text-[12px] tw-font-Inter">
+                          <span className="cl-text-caption tw-font-Inter">
                             {getChannelPreviewParticipants(conversationID)
                               .length === 1
                               ? `@${
@@ -2228,7 +2228,7 @@ function ConversationV2({
                             style={{
                               border: "1px solid var(--border-2)",
                             }}
-                            className="tw-bg-[var(--surface-2)] tw-p-[6px] tw-w-full tw-rounded-md tw-text-[14px] tw-text-[var(--text)] tw-font-semibold tw-cursor-pointer"
+                            className="tw-bg-[var(--surface-2)] tw-p-[6px] tw-w-full tw-rounded-md cl-text-body tw-text-[var(--text)] tw-font-semibold tw-cursor-pointer"
                           >
                             Join Call
                           </button>
@@ -2343,7 +2343,7 @@ function ConversationV2({
           >
             <div className="tw-w-full tw-flex tw-flex-row">
               <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px] ellipsis-3-lines">
-                <span className="tw-text-[12px] tw-font-semibold tw-font-inter ellipsis-1-line">
+                <span className="cl-text-caption tw-font-semibold tw-font-inter ellipsis-1-line">
                   {isReplying.isReply &&
                     (conversationList.filter(
                       (flt: any) => flt.messageID == isReplying.replyingTo,
@@ -2356,7 +2356,7 @@ function ConversationV2({
                           )[0].sender,
                         )}`)}
                 </span>
-                <span className="tw-text-[12px] tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
+                <span className="cl-text-caption tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
                   {isReplying.isReply &&
                     (conversationList.filter(
                       (flt: any) => flt.messageID == isReplying.replyingTo,
@@ -2428,14 +2428,14 @@ function ConversationV2({
           >
             <div className="tw-w-full tw-flex tw-flex-row">
               <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px] ellipsis-3-lines">
-                <span className="tw-text-[12px] tw-font-semibold tw-font-inter ellipsis-1-line">
+                <span className="cl-text-caption tw-font-semibold tw-font-inter ellipsis-1-line">
                   Use AI Reply Assist
                 </span>
               </div>
               <div>
                 <button
                   onClick={ReplyAssistProcess}
-                  className="tw-border-none tw-p-[6px] tw-min-w-[80px] tw-rounded-lg tw-font-Inter tw-text-[12px] tw-cursor-pointer"
+                  className="tw-border-none tw-p-[6px] tw-min-w-[80px] tw-rounded-lg tw-font-Inter cl-text-caption tw-cursor-pointer"
                 >
                   Generate
                 </button>
@@ -2506,7 +2506,7 @@ function ConversationV2({
                       <MdAudiotrack
                         style={{ fontSize: conversationFileIconSize }}
                       />
-                      <span className="tw-w-[calc(100%-20px)] tw-text-[10px] tw-truncate">
+                      <span className="tw-w-[calc(100%-20px)] cl-text-micro tw-truncate">
                         {nonimgl.name}
                       </span>
                     </div>
@@ -2533,7 +2533,7 @@ function ConversationV2({
                       <IoDocumentOutline
                         style={{ fontSize: conversationFileIconSize }}
                       />
-                      <span className="tw-w-[calc(100%-20px)] tw-text-[10px] tw-truncate">
+                      <span className="tw-w-[calc(100%-20px)] cl-text-micro tw-truncate">
                         {nonimgl.name}
                       </span>
                     </div>

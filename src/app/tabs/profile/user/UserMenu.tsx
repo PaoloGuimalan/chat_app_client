@@ -114,7 +114,7 @@ function UserMenu() {
                   >
                     {activeEntityContext.name}
                   </span>
-                  <span className="tw-text-[13px] tw-text-[var(--text-2)] tw-break-all tw-w-full">
+                  <span className="cl-text-body-sm tw-text-[var(--text-2)] tw-break-all tw-w-full">
                     @{activeEntityContext.slug || activeEntityContext.realm_id}
                   </span>
                 </>
@@ -131,7 +131,7 @@ function UserMenu() {
                       : ` ${authentication.user.fullName.middleName}`}{" "}
                     {authentication.user.fullName.lastName}
                   </span>
-                  <span className="tw-text-[13px] tw-text-[var(--text-2)] tw-break-all tw-w-full">
+                  <span className="cl-text-body-sm tw-text-[var(--text-2)] tw-break-all tw-w-full">
                     @{authentication.user.username}
                   </span>
                 </>
@@ -142,7 +142,7 @@ function UserMenu() {
         <div className="tw-w-full tw-flex tw-justify-end tw-pt-[8px]">
           <button
             onClick={handleLogout}
-            className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[12px] tw-pr-[12px] tw-rounded-[12px] tw-text-[12px]"
+            className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[12px] tw-pr-[12px] tw-rounded-[12px] cl-text-caption"
           >
             Logout
           </button>

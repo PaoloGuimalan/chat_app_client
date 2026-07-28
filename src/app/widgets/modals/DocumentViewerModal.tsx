@@ -72,7 +72,7 @@ function DocumentViewerModal({
           style={{ borderBottom: "1px solid var(--border)" }}
         >
           <span
-            className="tw-text-[15px] tw-font-Inter tw-font-semibold tw-truncate"
+            className="cl-text-section tw-font-Inter tw-font-semibold tw-truncate"
             style={{ color: "var(--text)" }}
           >
             {title}
@@ -138,7 +138,7 @@ function DocumentViewerModal({
             className="tw-flex-1 tw-w-full tw-flex tw-items-center tw-justify-center tw-px-[24px] tw-text-center"
             style={{ color: "var(--text-2)" }}
           >
-            <span className="tw-text-[14px]">
+            <span className="cl-text-body">
               This document is currently unavailable. Please try again later.
             </span>
           </div>

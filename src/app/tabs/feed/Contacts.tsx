@@ -113,10 +113,10 @@ function EmptySection({
       }}
     >
       <Icon n={icon} s={32} c="var(--text-3)" />
-      <div style={{ fontWeight: 700, fontSize: 13.5, marginTop: 6 }}>
+      <div style={{ fontWeight: 700, fontSize: "var(--fs-title)", marginTop: 6 }}>
         {title}
       </div>
-      <div style={{ fontSize: 12, color: "var(--text-3)" }}>{subtitle}</div>
+      <div style={{ fontSize: "var(--fs-caption)", color: "var(--text-3)" }}>{subtitle}</div>
     </div>
   );
 }
@@ -133,7 +133,7 @@ function SeeAllButton({
       type="button"
       onClick={onClick}
       style={{
-        fontSize: 12.5,
+        fontSize: "var(--fs-label)",
         fontWeight: 650,
         color: "var(--brand)",
         background: "none",
@@ -149,9 +149,6 @@ function SeeAllButton({
 
 function Contacts() {
   const activeuserslist = useSelector((state: any) => state.activeuserslist);
-  const screensizelistener = useSelector(
-    (state: any) => state.screensizelistener,
-  );
   const navigate = useNavigate();
   const { theme } = useTheme();
 
@@ -179,8 +176,8 @@ function Contacts() {
     max: 10,
   });
 
-  // Adaptive header sizing - same convention as the other main pages.
-  const isMobile = screensizelistener.W <= 900;
+  // Header sizing is no longer computed here - --fs-screen-title carries the
+  // breakpoint in theme.css, so every page header steps down together.
 
   useEffect(() => {
     setIsLoading(true);
@@ -460,7 +457,7 @@ function Contacts() {
               <h2
                 style={{
                   margin: 0,
-                  fontSize: isMobile ? 18 : 22,
+                  fontSize: "var(--fs-screen-title)",
                   fontWeight: 800,
                   letterSpacing: "-0.03em",
                   color: "var(--text)",
@@ -471,7 +468,7 @@ function Contacts() {
             </div>
             <div
               style={{
-                fontSize: 13.5,
+                fontSize: "var(--fs-title)",
                 color: "var(--text-3)",
                 marginTop: 2,
               }}
@@ -579,7 +576,7 @@ function Contacts() {
           <h1
             style={{
               margin: 0,
-              fontSize: isMobile ? 18 : 22,
+              fontSize: "var(--fs-screen-title)",
               fontWeight: 800,
               letterSpacing: "-0.03em",
               color: "var(--text)",

@@ -168,7 +168,7 @@ function MessageRow({
               gap: 5,
               color: titleColor || "var(--text)",
               fontWeight: 700,
-              fontSize: 14,
+              fontSize: "var(--fs-body)",
               minWidth: 0,
             }}
           >
@@ -184,13 +184,13 @@ function MessageRow({
             </span>
             {titleIcon && <Icon n={titleIcon} s={15} c={titleColor} />}
           </div>
-          <div style={{ fontSize: 11, color: "var(--text-3)", flex: "none" }}>
+          <div style={{ fontSize: "var(--fs-meta)", color: "var(--text-3)", flex: "none" }}>
             {time}
           </div>
         </div>
         <div
           style={{
-            fontSize: 12.5,
+            fontSize: "var(--fs-label)",
             color: subtitleColor || "var(--text-2)",
             overflow: "hidden",
             textOverflow: "ellipsis",
@@ -219,7 +219,7 @@ function MessageRow({
               padding: "0 5px",
               background: "var(--brand)",
               color: "#fff",
-              fontSize: 11,
+              fontSize: "var(--fs-meta)",
               fontWeight: 700,
               borderRadius: 999,
               display: "flex",
@@ -503,7 +503,7 @@ function Messages() {
               <h2
                 style={{
                   margin: 0,
-                  fontSize: isMobile ? 16 : 18,
+                  fontSize: "var(--fs-screen-title)",
                   fontWeight: 800,
                   letterSpacing: "-0.03em",
                 }}
@@ -612,7 +612,7 @@ function Messages() {
                 }}
               >
                 <Icon n="forum" s={42} />
-                <span style={{ fontSize: 14, fontWeight: 600 }}>
+                <span style={{ fontSize: "var(--fs-body)", fontWeight: 600 }}>
                   No conversations found
                 </span>
               </div>
@@ -674,7 +674,7 @@ function Messages() {
                   >
                     <AiOutlineLoading3Quarters
                       className="cl-spin"
-                      style={{ fontSize: 22 }}
+                      style={{ fontSize: "var(--fs-screen-title)" }}
                     />
                   </div>
                 )}
@@ -831,7 +831,7 @@ function Messages() {
           }}
         >
           <Icon n="chat_bubble_outline" s={42} />
-          <span style={{ fontSize: 14, fontWeight: 600 }}>No messages</span>
+          <span style={{ fontSize: "var(--fs-body)", fontWeight: 600 }}>No messages</span>
         </div>
       ) : (
         <div
@@ -970,7 +970,7 @@ function Messages() {
             >
               <AiOutlineLoading3Quarters
                 className="cl-spin"
-                style={{ fontSize: 22 }}
+                style={{ fontSize: "var(--fs-screen-title)" }}
               />
             </div>
           )}

@@ -237,7 +237,7 @@ function ContactMember({
   return (
     <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-transparent tw-flex">
       <div className="tw-w-full tw-p-[18px] sm:tw-p-[24px] tw-flex tw-flex-col tw-items-start tw-gap-[15px] tw-bg-transparent tw-min-h-0">
-        <span className="tw-text-[14px] tw-font-semibold tw-text-[var(--text)]">
+        <span className="cl-text-body tw-font-semibold tw-text-[var(--text)]">
           {label}
         </span>
         <div id="div_modal_input_columns_add_people" className="tw-w-full">

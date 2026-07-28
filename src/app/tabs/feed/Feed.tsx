@@ -166,7 +166,7 @@ function Feed() {
                 padding: "0 16px",
                 borderRadius: 21,
                 color: "var(--text)",
-                fontSize: 14,
+                fontSize: "var(--fs-body)",
               }}
             />
           </div>
@@ -195,7 +195,7 @@ function Feed() {
                 borderRadius: "var(--r-sm)",
                 cursor: "pointer",
                 color: "var(--text-2)",
-                fontSize: 13,
+                fontSize: "var(--fs-body-sm)",
                 fontWeight: 600,
               }}
               onMouseEnter={(e) =>
@@ -228,7 +228,7 @@ function Feed() {
             <Card pad={20} style={{ marginBottom: 8, textAlign: "center" }}>
               <div
                 style={{
-                  fontSize: 20,
+                  fontSize: "var(--fs-hero-sm)",
                   fontWeight: 800,
                   color: "var(--text)",
                   marginBottom: 6,
@@ -238,7 +238,7 @@ function Feed() {
               </div>
               <div
                 style={{
-                  fontSize: 13,
+                  fontSize: "var(--fs-body-sm)",
                   color: "var(--brand)",
                   fontWeight: 700,
                   letterSpacing: "0.02em",
@@ -249,7 +249,7 @@ function Feed() {
               </div>
               <div
                 style={{
-                  fontSize: 13,
+                  fontSize: "var(--fs-body-sm)",
                   color: "var(--text-2)",
                   lineHeight: 1.55,
                 }}
@@ -273,7 +273,7 @@ function Feed() {
               <div
                 style={{
                   textAlign: "center",
-                  fontSize: 12.5,
+                  fontSize: "var(--fs-label)",
                   color: "var(--text-2)",
                   marginTop: 12,
                 }}
@@ -313,7 +313,7 @@ function Feed() {
               <div
                 style={{
                   textAlign: "center",
-                  fontSize: 12.5,
+                  fontSize: "var(--fs-label)",
                   color: "var(--text-2)",
                   marginTop: 12,
                 }}
@@ -392,7 +392,7 @@ function Feed() {
           >
             <AiOutlineLoading3Quarters
               className="cl-spin"
-              style={{ fontSize: 22 }}
+              style={{ fontSize: "var(--fs-screen-title)" }}
             />
           </div>
         )}
@@ -423,7 +423,7 @@ function FeatureCardHeader({
         <Icon n={icon} s={20} c="var(--text-2)" />
         <span
           style={{
-            fontSize: 16,
+            fontSize: "var(--fs-section-title)",
             fontWeight: 750,
             color: "var(--text)",
             letterSpacing: "-0.01em",
@@ -432,7 +432,7 @@ function FeatureCardHeader({
           {title}
         </span>
       </div>
-      <div style={{ fontSize: 12.5, color: "var(--text-2)", lineHeight: 1.5 }}>
+      <div style={{ fontSize: "var(--fs-label)", color: "var(--text-2)", lineHeight: 1.5 }}>
         {children}
       </div>
     </div>
@@ -464,7 +464,7 @@ function FeatureRow({ items }: { items: [string, string][] }) {
           <Icon n={icon} s={44} c="var(--text-2)" />
           <span
             style={{
-              fontSize: 12,
+              fontSize: "var(--fs-caption)",
               color: "var(--text-2)",
               textAlign: "center",
               lineHeight: 1.35,

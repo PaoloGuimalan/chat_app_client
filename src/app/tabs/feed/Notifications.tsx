@@ -109,10 +109,10 @@ function SectionEmptyState({
       }}
     >
       <Icon n={icon} s={34} c="var(--text-3)" />
-      <div style={{ fontWeight: 700, fontSize: 13.5, color: "var(--text)" }}>
+      <div style={{ fontWeight: 700, fontSize: "var(--fs-title)", color: "var(--text)" }}>
         You&rsquo;re all caught up!
       </div>
-      <div style={{ fontSize: 12, color: "var(--text-3)" }}>{emptyText}</div>
+      <div style={{ fontSize: "var(--fs-caption)", color: "var(--text-3)" }}>{emptyText}</div>
     </div>
   );
 }
@@ -130,7 +130,7 @@ function UnreadPill({ count }: { count: number }) {
         padding: "0 5px",
         background: "var(--pink)",
         color: "#fff",
-        fontSize: 10.5,
+        fontSize: "var(--fs-micro)",
         fontWeight: 700,
         borderRadius: 999,
         flex: "none",
@@ -398,7 +398,7 @@ function Notifications() {
         <h1
           style={{
             margin: 0,
-            fontSize: isMobile ? 18 : 22,
+            fontSize: "var(--fs-screen-title)",
             fontWeight: 800,
             letterSpacing: "-0.02em",
             color: "var(--text)",
@@ -419,7 +419,7 @@ function Notifications() {
             border: "none",
             background: "transparent",
             color: "var(--brand)",
-            fontSize: 13,
+            fontSize: "var(--fs-body-sm)",
             fontWeight: 650,
             cursor: "pointer",
           }}
@@ -466,7 +466,7 @@ function Notifications() {
                 <h3
                   style={{
                     margin: 0,
-                    fontSize: 15,
+                    fontSize: "var(--fs-section-title)",
                     fontWeight: 750,
                     letterSpacing: "-0.01em",
                     color: "var(--text)",
@@ -525,7 +525,7 @@ function Notifications() {
                   style={{
                     marginTop: 12,
                     alignSelf: "flex-start",
-                    fontSize: 12.5,
+                    fontSize: "var(--fs-label)",
                     fontWeight: 650,
                     color: "var(--brand)",
                     background: "none",
@@ -570,7 +570,7 @@ function Notifications() {
             <h1
               style={{
                 margin: 0,
-                fontSize: isMobile ? 16 : 22,
+                fontSize: "var(--fs-screen-title)",
                 fontWeight: 800,
                 letterSpacing: "-0.02em",
                 color: "var(--text)",
@@ -606,14 +606,14 @@ function Notifications() {
               <div
                 style={{
                   fontWeight: 700,
-                  fontSize: 13.5,
+                  fontSize: "var(--fs-title)",
                   marginTop: 6,
                   color: "var(--text)",
                 }}
               >
                 You&rsquo;re all caught up!
               </div>
-              <div style={{ fontSize: 12, color: "var(--text-3)" }}>
+              <div style={{ fontSize: "var(--fs-caption)", color: "var(--text-3)" }}>
                 {detailDef.emptyText}
               </div>
             </div>

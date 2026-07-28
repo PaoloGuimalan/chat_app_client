@@ -395,7 +395,7 @@ function Profile({
           />
           <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
             <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[16px] tw-sm:p-[0px]">
-              <span className="tw-text-[25px] tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
+              <span className="cl-text-hero tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
                 <span>
                   {profileInfo.fullname.firstName}
                   {profileInfo.fullname.middleName == "N/A"
@@ -407,23 +407,23 @@ function Profile({
                   <RiVerifiedBadgeFill size={18} color="var(--brand)" />
                 )}
               </span>
-              <span className="tw-text-[14px] tw-break-all tw-mb-[14px]">
+              <span className="cl-text-body tw-break-all tw-mb-[14px]">
                 {profileInfo.email}
               </span>
-              <span className="tw-text-[14px] tw-break-all">
+              <span className="cl-text-body tw-break-all">
                 @{profileInfo.userID}
               </span>
             </div>
             {!authentication.auth && (
               <div className="tw-flex tw-flex-wrap tw-flex-col sm:tw-flex-row tw-items-center sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[10px]">
-                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                <span className="cl-text-body tw-font-semibold tw-font-Inter">
                   You are not logged in
                 </span>
                 <button
                   onClick={() => {
                     navigate("/login");
                   }}
-                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                 >
                   Login
                 </button>
@@ -439,7 +439,7 @@ function Profile({
                       isFollowing
                         ? "cl-profile-action-button--secondary"
                         : "cl-profile-action-button"
-                    } tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]`}
+                    } tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption`}
                   >
                     {isFollowLoading ? (
                       <motion.div
@@ -470,7 +470,7 @@ function Profile({
                       onClick={() => {
                         initiateConnectionProcess("add");
                       }}
-                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                     >
                       {isConnectionButtonsLoading ? (
                         <motion.div
@@ -498,7 +498,7 @@ function Profile({
                         onClick={() => {
                           initiateConnectionProcess("remove");
                         }}
-                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                       >
                         {isConnectionButtonsLoading ? (
                           <motion.div
@@ -524,7 +524,7 @@ function Profile({
                         onClick={() => {
                           pokeUserProcess();
                         }}
-                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                       >
                         {isPokeLoading ? (
                           <motion.div
@@ -552,7 +552,7 @@ function Profile({
                       onClick={() => {
                         initiateConnectionProcess("cancel");
                       }}
-                      className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                      className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                     >
                       {isConnectionButtonsLoading ? (
                         <motion.div
@@ -580,7 +580,7 @@ function Profile({
                         onClick={() => {
                           initiateConnectionProcess("accept");
                         }}
-                        className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                        className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                       >
                         {isConnectionButtonsLoading ? (
                           <motion.div
@@ -606,7 +606,7 @@ function Profile({
                         onClick={() => {
                           initiateConnectionProcess("decline");
                         }}
-                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                       >
                         {isConnectionButtonsLoading ? (
                           <motion.div
@@ -644,7 +644,7 @@ function Profile({
                         CreateConversationProcess();
                       }
                     }}
-                    className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                    className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                   >
                     Message
                   </button>
@@ -674,7 +674,7 @@ function Profile({
                         onClick={() => {
                           blockUserProcess();
                         }}
-                        className="cl-post-options-button cl-post-options-button--danger tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                        className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
                       >
                         <MdBlock
                           size={15}
@@ -691,7 +691,7 @@ function Profile({
                       {confirmBlock && !isBlockLoading && (
                         <button
                           onClick={() => setconfirmBlock(false)}
-                          className="cl-post-options-button tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                          className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
                         >
                           <IoClose
                             size={15}
@@ -705,7 +705,7 @@ function Profile({
                           setisOptionsToggled(false);
                           setisReportOpen(true);
                         }}
-                        className="cl-post-options-button tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                        className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
                       >
                         <MdReport
                           size={15}
@@ -726,7 +726,7 @@ function Profile({
             <div className="cl-profile-surface tw-w-[calc(100%-24px)] tw-max-w-[460px] tw-p-[18px] tw-flex tw-flex-col tw-gap-[10px] tw-items-start tw-rounded-[12px]">
               <div className="tw-w-full tw-flex tw-items-center tw-gap-[8px]">
                 <MdReport style={{ fontSize: "20px", color: "var(--text)" }} />
-                <span className="tw-flex-1 tw-text-[14px] tw-font-semibold">
+                <span className="tw-flex-1 cl-text-body tw-font-semibold">
                   Report this account
                 </span>
                 <button
@@ -740,7 +740,7 @@ function Profile({
               <select
                 value={reportReason}
                 onChange={(e) => setreportReason(e.target.value)}
-                className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] tw-text-[13px]"
+                className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] cl-text-body-sm"
               >
                 {reportReasons.map((r) => (
                   <option key={r.value} value={r.value}>
@@ -753,19 +753,19 @@ function Profile({
                 onChange={(e) => setreportDescription(e.target.value)}
                 placeholder="Additional details (optional)"
                 rows={4}
-                className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] tw-text-[13px] tw-resize-none"
+                className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] cl-text-body-sm tw-resize-none"
               />
               <div className="tw-w-full tw-flex tw-gap-[6px] tw-justify-end">
                 <button
                   onClick={() => setisReportOpen(false)}
-                  className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                  className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                 >
                   Cancel
                 </button>
                 <button
                   disabled={isReportSubmitting}
                   onClick={submitReportProcess}
-                  className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] tw-text-[12px]"
+                  className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                 >
                   {isReportSubmitting ? "Submitting…" : "Submit report"}
                 </button>
@@ -781,15 +781,15 @@ function Profile({
               {profileInfo.gender && (
                 <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
                   {genderIcons[profileInfo.gender]}
-                  <span className="tw-text-[14px] tw-font-semibold">
+                  <span className="cl-text-body tw-font-semibold">
                     {profileInfo.gender}
                   </span>
                 </div>
               )}
               <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
                 <IoTime style={{ fontSize: "20px", color: "var(--text-2)" }} />
-                <span className="tw-text-[14px]">Joined </span>
-                <span className="tw-text-[14px] tw-font-semibold tw-text-left">
+                <span className="cl-text-body">Joined </span>
+                <span className="cl-text-body tw-font-semibold tw-text-left">
                   {formattedDateToWords(profileInfo.dateCreated.date)}
                 </span>
               </div>
@@ -801,8 +801,8 @@ function Profile({
                     marginTop: "-4px",
                   }}
                 />
-                <span className="tw-text-[14px]">Born in </span>
-                <span className="tw-text-[14px] tw-font-semibold tw-text-left">
+                <span className="cl-text-body">Born in </span>
+                <span className="cl-text-body tw-font-semibold tw-text-left">
                   {profileInfo.birthdate
                     ? `${ordinal_suffix_of(
                         parseInt(profileInfo.birthdate.day),
@@ -822,12 +822,12 @@ function Profile({
                   <FaBook
                     style={{ fontSize: "17px", color: "var(--text-2)" }}
                   />
-                  <span className="tw-text-[14px] tw-font-semibold">Diary</span>
+                  <span className="cl-text-body tw-font-semibold">Diary</span>
                 </div>
                 {params.userID === authentication.user.username && (
                   <Link
                     to={`/${params.userID}/diary`}
-                    className="tw-text-[12px] tw-text-[var(--brand)]"
+                    className="cl-text-caption tw-text-[var(--brand)]"
                   >
                     View
                   </Link>
@@ -843,9 +843,9 @@ function Profile({
                 />
                 {diaryPreview.isLoaded ? (
                   diaryPreview.latest_entry ? (
-                    <span className="tw-text-[14px]">
+                    <span className="cl-text-body">
                       Latest entry on{" "}
-                      <span className="tw-text-[14px] tw-font-semibold tw-text-left">
+                      <span className="cl-text-body tw-font-semibold tw-text-left">
                         {formattedDateToWords(
                           diaryPreview.latest_entry,
                           "YYYY-MM-DD",
@@ -853,11 +853,11 @@ function Profile({
                       </span>
                     </span>
                   ) : params.userID === authentication.user.username ? (
-                    <span className="tw-text-[14px]">
+                    <span className="cl-text-body">
                       Write your first entry
                     </span>
                   ) : (
-                    <span className="tw-text-[14px]">
+                    <span className="cl-text-body">
                       {profileInfo.fullname.firstName} has no entries
                     </span>
                   )
@@ -878,7 +878,7 @@ function Profile({
                     style={{ fontSize: "20px", color: "var(--text-2)" }}
                   />
                   {diaryPreview.isLoaded ? (
-                    <span className="tw-text-[14px]">
+                    <span className="cl-text-body">
                       {diaryPreview.total_entries}{" "}
                       {diaryPreview.total_entries > 1 ? "entries" : "entry"}{" "}
                       made{" "}
@@ -906,7 +906,7 @@ function Profile({
                       }}
                     />
                     {diaryPreview.isLoaded ? (
-                      <span className="tw-text-[14px]">
+                      <span className="cl-text-body">
                         {params.userID === authentication.user.username
                           ? "You've"
                           : `${profileInfo.fullname.firstName} has`}{" "}
@@ -938,7 +938,7 @@ function Profile({
                           key={mp.id}
                           className="tw-p-[6px] tw-pl-[10px] tw-pr-[10px] tw-bg-[var(--surface-2)] tw-rounded-[12px] tw-border tw-border-[var(--border)]"
                         >
-                          <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
+                          <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
                             {mp.name}
                           </span>
                         </div>
@@ -984,7 +984,7 @@ function Profile({
                   }}
                   className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
                 >
-                  <span className="tw-text-[12px] tw-font-semibold">Posts</span>
+                  <span className="cl-text-caption tw-font-semibold">Posts</span>
                 </motion.button>
                 <motion.button
                   initial={{
@@ -1008,7 +1008,7 @@ function Profile({
                   }}
                   className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
                 >
-                  <span className="tw-text-[12px] tw-font-semibold">Saves</span>
+                  <span className="cl-text-caption tw-font-semibold">Saves</span>
                 </motion.button>
                 <motion.button
                   initial={{
@@ -1036,7 +1036,7 @@ function Profile({
                   }}
                   className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
                 >
-                  <span className="tw-text-[12px] tw-font-semibold">
+                  <span className="cl-text-caption tw-font-semibold">
                     Archives
                   </span>
                 </motion.button>

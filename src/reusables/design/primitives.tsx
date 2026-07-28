@@ -184,7 +184,7 @@ export function Field({ icon, label, ...rest }: FieldProps) {
         <span
           style={{
             display: "block",
-            fontSize: 11.5,
+            fontSize: "var(--fs-meta)",
             fontWeight: 600,
             color: "var(--text-2)",
             marginBottom: 6,
@@ -222,7 +222,7 @@ export function Field({ icon, label, ...rest }: FieldProps) {
             outline: "none",
             background: "transparent",
             color: "var(--text)",
-            fontSize: 12.5,
+            fontSize: "var(--fs-label)",
           }}
         />
       </span>
@@ -253,7 +253,7 @@ export function SelectField({
         <span
           style={{
             display: "block",
-            fontSize: 11.5,
+            fontSize: "var(--fs-meta)",
             fontWeight: 600,
             color: "var(--text-2)",
             marginBottom: 6,
@@ -285,7 +285,7 @@ export function SelectField({
             outline: "none",
             background: "var(--surface-4)",
             color: "var(--text)",
-            fontSize: 12.5,
+            fontSize: "var(--fs-label)",
             appearance: "none",
             WebkitAppearance: "none",
             MozAppearance: "none",

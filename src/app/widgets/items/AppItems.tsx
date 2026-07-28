@@ -22,7 +22,7 @@ function AppItems({ mp }: AppItemProp) {
       <div className="tw-w-full tw-transparent tw-h-[40px] tw-flex tw-justify-center tw-items-center">
         {mp.icon}
       </div>
-      <span className="tw-text-[12px] tw-font-Inter">{mp.appname}</span>
+      <span className="cl-text-caption tw-font-Inter">{mp.appname}</span>
     </div>
   );
 }

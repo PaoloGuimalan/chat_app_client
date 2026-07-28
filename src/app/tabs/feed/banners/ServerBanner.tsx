@@ -45,11 +45,11 @@ function ServerBanner() {
       <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[4px]">
         <div className="tw-flex tw-w-full tw-items-center tw-gap-[4px]">
           <TbServer2 style={{ fontSize: "25px", color: "var(--text-2)" }} />
-          <span className="tw-text-[16px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
+          <span className="cl-text-section tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
             Servers
           </span>
         </div>
-        <span className="tw-text-[12px] tw-text-left tw-text-[var(--text-2)]">
+        <span className="cl-text-caption tw-text-left tw-text-[var(--text-2)]">
           Check out some of these servers, or start your own realm.
         </span>
       </div>
@@ -64,10 +64,10 @@ function ServerBanner() {
                 }}
               />
               <div className="tw-flex tw-flex-col tw-gap-[5px]">
-                <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text-2)]">
+                <span className="cl-text-body tw-font-semibold tw-font-Inter tw-text-[var(--text-2)]">
                   No servers yet
                 </span>
-                <span className="tw-text-[14px] tw-font-Inter tw-text-[var(--text-2)]">
+                <span className="cl-text-body tw-font-Inter tw-text-[var(--text-2)]">
                   Create your server and start building a community.
                 </span>
               </div>
@@ -88,7 +88,7 @@ function ServerBanner() {
         )}
       </div>
       <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[4px]">
-        <span className="tw-text-[12px]">
+        <span className="cl-text-caption">
           Explore the servers realm <a href={`/servers`}>here</a>
         </span>
       </div>

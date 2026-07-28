@@ -89,11 +89,11 @@ function ConversationInfoModal({
         <div className="div_modal_container cl-conversation-info-modal tw-max-w-[800px] tw-max-h-[550px] tw-items-center">
           <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-pl-[10px] tw-pr-[10px] tw-pt-[7px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
             {conversationinfo.type == "single" ? (
-              <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">
+              <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1">
                 Conversation
               </span>
             ) : (
-              <span className="tw-text-[14px] tw-font-semibold tw-flex tw-flex-1">
+              <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1">
                 {conversationinfo.type === "server" ? "Channel" : "Group Chat"}
               </span>
             )}
@@ -124,7 +124,7 @@ function ConversationInfoModal({
                       120,
                     )}
                   </div>
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+                  <span className="cl-text-body tw-font-Inter tw-font-semibold">
                     {
                       conversationinfo.usersWithInfo.filter(
                         (flt: any) =>
@@ -155,7 +155,7 @@ function ConversationInfoModal({
                     onClick={() => {
                       settoggleMemberDropper(!toggleMemberDropper);
                     }}
-                    className="cl-conversation-info-modal-members tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                    className="cl-conversation-info-modal-members tw-font-Inter tw-border-[0px] tw-h-[35px] cl-text-body tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
                     style={{ color: "var(--text)" }}
                   >
                     <span className="cl-conversation-info-modal-members__label">
@@ -198,7 +198,7 @@ function ConversationInfoModal({
                               )}
                             </div>
                             <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis">
-                              <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate tw-text-[13px] tw-text-left">
+                              <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
                                 {mp.fullname.firstName}
                                 {mp.fullname.middleName == "N/A"
                                   ? ""
@@ -371,7 +371,7 @@ function ConversationInfoModal({
                                     style={{ fontSize: "40px" }}
                                   />
                                 </div>
-                                <span className="tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left">
+                                <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left">
                                   {mp.fileDetails.data.split("%%%")[1]}
                                 </span>
                               </div>
@@ -421,7 +421,7 @@ function ConversationInfoModal({
                       </div>
                     </div>
                   )}
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+                  <span className="cl-text-body tw-font-Inter tw-font-semibold">
                     {conversationinfo.conversationInfo?.groupName}
                   </span>
                 </div>
@@ -430,7 +430,7 @@ function ConversationInfoModal({
                     onClick={() => {
                       settoggleMemberDropper(!toggleMemberDropper);
                     }}
-                    className="cl-conversation-info-modal-members tw-font-Inter tw-border-[0px] tw-h-[35px] tw-text-[14px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                    className="cl-conversation-info-modal-members tw-font-Inter tw-border-[0px] tw-h-[35px] cl-text-body tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
                     style={{ color: "var(--text)" }}
                   >
                     <span className="cl-conversation-info-modal-members__label">
@@ -585,7 +585,7 @@ function ConversationInfoModal({
                                             </div>
                                           </div>
                                           <div className="div_contact_fullname_container">
-                                            <span className="tw-flex tw-flex-1 tw-text-[13px]">
+                                            <span className="tw-flex tw-flex-1 cl-text-body-sm">
                                               {cnts.fullname.firstName}
                                               {cnts.fullname.middleName == "N/A"
                                                 ? ""
@@ -700,7 +700,7 @@ function ConversationInfoModal({
                                                 </div>
                                               </div>
                                               <div className="div_contact_fullname_container">
-                                                <span className="tw-flex tw-flex-1 tw-text-[13px]">
+                                                <span className="tw-flex tw-flex-1 cl-text-body-sm">
                                                   {
                                                     cnts.involved_user
                                                       .first_name
@@ -814,7 +814,7 @@ function ConversationInfoModal({
                                                   </div>
                                                 </div>
                                                 <div className="div_contact_fullname_container">
-                                                  <span className="tw-flex tw-flex-1 tw-text-[13px]">
+                                                  <span className="tw-flex tw-flex-1 cl-text-body-sm">
                                                     {cnts.action_by.first_name}
                                                     {cnts.action_by
                                                       .middle_name == "N/A"
@@ -870,7 +870,7 @@ function ConversationInfoModal({
                               )}
                             </div>
                             <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis">
-                              <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate tw-text-[13px] tw-text-left">
+                              <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
                                 {mp.fullname.firstName}
                                 {mp.fullname.middleName == "N/A"
                                   ? ""
@@ -1043,7 +1043,7 @@ function ConversationInfoModal({
                                     style={{ fontSize: "40px" }}
                                   />
                                 </div>
-                                <span className="tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left">
+                                <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left">
                                   {mp.fileDetails.data.split("%%%")[1]}
                                 </span>
                               </div>

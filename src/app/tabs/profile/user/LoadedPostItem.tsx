@@ -35,7 +35,7 @@ function LoadedPostItem({ postID }: { postID: string }) {
   return isPostDataError ? (
     <div className="cl-feed-card cl-feed-card--unavailable tw-flex tw-flex-col tw-gap-[15px] tw-w-full tw-h-auto tw-min-h-[200px] tw-items-center tw-justify-center tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)]">
       <BsFileEarmarkExcel style={{ fontSize: "55px", color: "var(--text-2)" }} />
-      <div className="tw-flex tw-w-full tw-max-w-[200px] tw-items-center tw-justify-center tw-text-[13px] tw-text-[var(--text-2)] ">
+      <div className="tw-flex tw-w-full tw-max-w-[200px] tw-items-center tw-justify-center cl-text-body-sm tw-text-[var(--text-2)] ">
         <span>This post is unavailable</span>
       </div>
     </div>

@@ -34,7 +34,7 @@ function MessagesDefault() {
         </div>
         <div
           style={{
-            fontSize: 18,
+            fontSize: "var(--fs-screen-title)",
             fontWeight: 800,
             marginBottom: 6,
             letterSpacing: "-0.02em",

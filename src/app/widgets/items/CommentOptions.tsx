@@ -40,7 +40,7 @@ function CommentOptions({ onDelete, isBusy }: CommentOptionsProps) {
           <button
             disabled
             title="Editing comments isn't available yet"
-            className="cl-post-options-button tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+            className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
             style={{ opacity: 0.45, cursor: "not-allowed" }}
           >
             <MdEdit
@@ -55,7 +55,7 @@ function CommentOptions({ onDelete, isBusy }: CommentOptionsProps) {
               setisOptionsToggled(false);
               onDelete();
             }}
-            className="cl-post-options-button tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+            className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
           >
             <MdDelete
               size={15}

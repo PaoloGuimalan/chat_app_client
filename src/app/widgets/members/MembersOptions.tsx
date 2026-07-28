@@ -91,7 +91,7 @@ function MembersOptions({
               onClick={() => {
                 UpdateMemberRoleProcess("member");
               }}
-              className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
             >
               <FaCircleArrowDown
                 size={15}
@@ -104,7 +104,7 @@ function MembersOptions({
               onClick={() => {
                 UpdateMemberRoleProcess("admin");
               }}
-              className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
             >
               <FaCircleArrowUp
                 size={15}
@@ -116,7 +116,7 @@ function MembersOptions({
           {!hide.includes("remove-user-btn") && (
             <button
               onClick={RemoveRealmMemberProcess}
-              className="tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
             >
               <IoPersonRemove
                 size={15}

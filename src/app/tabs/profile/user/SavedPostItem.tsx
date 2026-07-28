@@ -152,18 +152,18 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
         <div className="tw-flex tw-flex-col tw-flex-1 tw-items-start">
           <div className="tw-flex tw-flex-col tw-gap-[6px] tw-p-[5px] tw-items-start tw-flex-1">
             {savedPost.post.caption.trim() === "" ? (
-              <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
+              <span className="cl-text-body tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
                 {savedPost.post.entity.details?.name ??
                   savedPost.post.entity.details.first_name}
                 {"'s"} Post
               </span>
             ) : (
-              <span className="tw-text-[14px] tw-font-semibold tw-font-Inter tw-line-clamp-2 tw-text-left tw-text-[var(--text)]">
+              <span className="cl-text-body tw-font-semibold tw-font-Inter tw-line-clamp-2 tw-text-left tw-text-[var(--text)]">
                 {savedPost.post.caption}
               </span>
             )}
             <div className="tw-flex tw-gap-[5px] tw-items-center">
-              <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text-2)]">
+              <span className="tw-font-Inter cl-text-caption tw-text-[var(--text-2)]">
                 {savedPost.post.content_type
                   .replace("_", " ")
                   .split(" ")
@@ -172,11 +172,11 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
               </span>
               &bull;
               {savedPost.post.entity.type !== "user" ? (
-                <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text-2)]">
+                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text-2)]">
                   {savedPost.post.entity.details.name}
                 </span>
               ) : (
-                <span className="tw-font-Inter tw-text-[12px] tw-text-[var(--text-2)]">
+                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text-2)]">
                   {savedPost.post.entity.details.first_name}
                   {savedPost.post.entity.details.middle_name == "N/A"
                     ? ""
@@ -190,7 +190,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
             <button
               disabled={isFetchingPreview}
               onClick={GetPostPreviewProcess}
-              className="cl-display-card__button cl-display-card__button--muted tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none"
+              className="cl-display-card__button cl-display-card__button--muted tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none"
             >
               <TiArrowLeftThick
                 size={20}
@@ -216,7 +216,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
             <button
               disabled={isSaving}
               onClick={UnsavePostProcess}
-              className="cl-display-card__button cl-display-card__button--muted tw-items-center tw-text-[12px] tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none"
+              className="cl-display-card__button cl-display-card__button--muted tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none"
             >
               <GoBookmarkSlashFill
                 size={15}

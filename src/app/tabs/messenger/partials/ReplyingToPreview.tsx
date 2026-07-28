@@ -177,7 +177,7 @@ function ReplyingToPreview({ cnvs, fromOther, yourReply, theme }: any) {
                 <div className="tw-w-full tw-max-w-[40px]">
                   <IoDocumentOutline style={{ fontSize: "40px" }} />
                 </div>
-                <span className="tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold">
+                <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold">
                   {cnvs.content.split("%%%")[1]}
                 </span>
               </div>

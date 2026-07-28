@@ -1230,7 +1230,7 @@ function Conversation({
                 borderRadius: "inherit",
               }}
             >
-              <span className="tw-text-white tw-text-[14px] tw-font-medium">
+              <span className="tw-text-white cl-text-body tw-font-medium">
                 Drop files to attach
               </span>
             </div>
@@ -1568,7 +1568,7 @@ function Conversation({
                         <BiSolidInfoCircle
                           style={{ fontSize: conversationMenuIconSize }}
                         />
-                        <span className="tw-text-[11px] tw-font-Inter">
+                        <span className="cl-text-meta tw-font-Inter">
                           Info
                         </span>
                       </motion.button>
@@ -1590,7 +1590,7 @@ function Conversation({
                             <IoMdSettings
                               style={{ fontSize: conversationMenuIconSize }}
                             />
-                            <span className="tw-text-[11px] tw-font-Inter">
+                            <span className="cl-text-meta tw-font-Inter">
                               Manage
                             </span>
                           </motion.button>
@@ -1621,7 +1621,7 @@ function Conversation({
                             <BiWindows
                               style={{ fontSize: conversationMenuIconSize }}
                             />
-                            <span className="tw-text-[11px] tw-font-Inter">
+                            <span className="cl-text-meta tw-font-Inter">
                               Minimize
                             </span>
                           </motion.button>
@@ -1641,7 +1641,7 @@ function Conversation({
                               <RiInboxUnarchiveFill
                                 style={{ fontSize: conversationMenuIconSize }}
                               />
-                              <span className="tw-text-[11px] tw-font-Inter">
+                              <span className="cl-text-meta tw-font-Inter">
                                 Unarchive
                               </span>
                             </motion.button>
@@ -1658,7 +1658,7 @@ function Conversation({
                               <RiInboxArchiveFill
                                 style={{ fontSize: conversationMenuIconSize }}
                               />
-                              <span className="tw-text-[11px] tw-font-Inter">
+                              <span className="cl-text-meta tw-font-Inter">
                                 Archive
                               </span>
                             </motion.button>
@@ -1679,7 +1679,7 @@ function Conversation({
                           <MdGraphicEq
                             style={{ fontSize: conversationMenuIconSize }}
                           />
-                          <span className="tw-text-[11px] tw-font-Inter tw-capitalize">
+                          <span className="cl-text-meta tw-font-Inter tw-capitalize">
                             Visualizer: {visualizerStyle}
                           </span>
                         </motion.button>
@@ -1696,7 +1696,7 @@ function Conversation({
                             <MdDelete
                               style={{ fontSize: conversationMenuIconSize }}
                             />
-                            <span className="tw-text-[11px] tw-font-Inter">
+                            <span className="cl-text-meta tw-font-Inter">
                               Delete
                             </span>
                           </motion.button>
@@ -1719,7 +1719,7 @@ function Conversation({
                           <IoMdClose
                             style={{ fontSize: conversationMenuIconSize }}
                           />
-                          <span className="tw-text-[11px] tw-font-Inter">
+                          <span className="cl-text-meta tw-font-Inter">
                             Close
                           </span>
                         </motion.button>
@@ -1942,7 +1942,7 @@ function Conversation({
                                 style={{ fontSize: conversationFileIconSize }}
                               />
                             </div>
-                            <span className="tw-text-[12px] tw-break-all ellipsis-3-lines tw-font-semibold">
+                            <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold">
                               {cnvs.name}
                             </span>
                           </div>
@@ -1958,12 +1958,12 @@ function Conversation({
                   <div className="div_messages_result tw-w-[calc(100%-20px)] tw-flex tw-justify-center tw-p-[10px]">
                     <div className="tw-bg-[#f0f2f5] tw-w-[calc(100%-20px)] tw-max-w-[calc(400px-20px)] tw-p-[10px] tw-rounded-md">
                       <div className="tw-w-full tw-flex tw-flex-col">
-                        <span className="tw-text-[14px] tw-font-semibold tw-font-Inter">
+                        <span className="cl-text-body tw-font-semibold tw-font-Inter">
                           Ongoing Call
                         </span>
                       </div>
                       <div className="tw-w-full tw-flex tw-flex-col tw-h-[40px] tw-justify-center">
-                        <span className="tw-text-[12px] tw-font-Inter">
+                        <span className="cl-text-caption tw-font-Inter">
                           {getChannelPreviewParticipants(
                             conversationsetup.conversationid,
                           ).length === 1
@@ -1986,7 +1986,7 @@ function Conversation({
                           onClick={() => {
                             initializeCall("audio");
                           }}
-                          className="tw-p-[6px] tw-w-full tw-rounded-md tw-border-none tw-text-[14px] tw-text-white tw-font-semibold tw-cursor-pointer"
+                          className="tw-p-[6px] tw-w-full tw-rounded-md tw-border-none cl-text-body tw-text-white tw-font-semibold tw-cursor-pointer"
                         >
                           Join Call
                         </button>
@@ -2100,7 +2100,7 @@ function Conversation({
           >
             <div className="tw-w-full tw-flex tw-flex-row">
               <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px] ellipsis-3-lines">
-                <span className="tw-text-[12px] tw-font-semibold tw-font-inter ellipsis-1-line">
+                <span className="cl-text-caption tw-font-semibold tw-font-inter ellipsis-1-line">
                   {isReplying.isReply &&
                     (conversationList.filter(
                       (flt: any) => flt.messageID == isReplying.replyingTo,
@@ -2113,7 +2113,7 @@ function Conversation({
                           )[0].sender,
                         )}`)}
                 </span>
-                <span className="tw-text-[12px] tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
+                <span className="cl-text-caption tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
                   {isReplying.isReply &&
                     (conversationList.filter(
                       (flt: any) => flt.messageID == isReplying.replyingTo,
@@ -2215,7 +2215,7 @@ function Conversation({
                       <MdAudiotrack
                         style={{ fontSize: conversationFileIconSize }}
                       />
-                      <span className="tw-w-[calc(100%-20px)] tw-text-[10px] tw-truncate">
+                      <span className="tw-w-[calc(100%-20px)] cl-text-micro tw-truncate">
                         {nonimgl.name}
                       </span>
                     </div>
@@ -2242,7 +2242,7 @@ function Conversation({
                       <IoDocumentOutline
                         style={{ fontSize: conversationFileIconSize }}
                       />
-                      <span className="tw-w-[calc(100%-20px)] tw-text-[10px] tw-truncate">
+                      <span className="tw-w-[calc(100%-20px)] cl-text-micro tw-truncate">
                         {nonimgl.name}
                       </span>
                     </div>

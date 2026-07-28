@@ -157,7 +157,7 @@ function GenericRealmItem({
           />
           <div className="tw-w-[calc(100%-10px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-flex-1 tw-min-w-0">
             <span
-              className="cl-display-card__title tw-min-w-0 tw-w-full tw-flex tw-items-center tw-gap-[4px] tw-overflow-hidden tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
+              className="cl-display-card__title tw-min-w-0 tw-w-full tw-flex tw-items-center tw-gap-[4px] tw-overflow-hidden cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
               onClick={() => {
                 navigate(`/${mp.slug}`);
               }}
@@ -169,7 +169,7 @@ function GenericRealmItem({
                 )}
               </div>
             </span>
-            <span className="cl-display-card__description tw-text-[12px] tw-font-Inter tw-text-left line_clamp_3">
+            <span className="cl-display-card__description cl-text-caption tw-font-Inter tw-text-left line_clamp_3">
               {mp.description}
             </span>
             <div className="tw-w-full tw-flex tw-flex-row tw-flex-1 tw-justify-between tw-items-end tw-gap-[10px] tw-pb-[15px]">
@@ -179,7 +179,7 @@ function GenericRealmItem({
                     onClick={() => {
                       navigate(`/realms/${mp.realm_id}`);
                     }}
-                    className="cl-display-card__button cl-display-card__button--primary tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
+                    className="cl-display-card__button cl-display-card__button--primary tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] cl-text-caption"
                   >
                     Manage
                   </button>
@@ -190,7 +190,7 @@ function GenericRealmItem({
                     <button
                       onClick={UnfollowRealmProcess}
                       disabled={isConnectionButtonsLoading}
-                      className="cl-display-card__button cl-display-card__button--outline tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
+                      className="cl-display-card__button cl-display-card__button--outline tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] cl-text-caption"
                     >
                       {isConnectionButtonsLoading ? (
                         <motion.div
@@ -215,7 +215,7 @@ function GenericRealmItem({
                     <button
                       onClick={FollowRealmProcess}
                       disabled={isConnectionButtonsLoading}
-                      className="cl-display-card__button cl-display-card__button--primary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
+                      className="cl-display-card__button cl-display-card__button--primary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] cl-text-caption"
                     >
                       {isConnectionButtonsLoading ? (
                         <motion.div
@@ -244,7 +244,7 @@ function GenericRealmItem({
                     <button
                       onClick={LeaveRealmProcess}
                       disabled={isMembershipButtonLoading}
-                      className="cl-display-card__button cl-display-card__button--outline tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
+                      className="cl-display-card__button cl-display-card__button--outline tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] cl-text-caption"
                     >
                       {isMembershipButtonLoading ? (
                         <motion.div
@@ -269,7 +269,7 @@ function GenericRealmItem({
                     <button
                       onClick={JoinRealmProcess}
                       disabled={isMembershipButtonLoading}
-                      className="cl-display-card__button cl-display-card__button--primary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-text-[12px]"
+                      className="cl-display-card__button cl-display-card__button--primary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-p-[8px] tw-pl-[10px] tw-pr-[10px] cl-text-caption"
                     >
                       {isMembershipButtonLoading ? (
                         <motion.div
@@ -292,7 +292,7 @@ function GenericRealmItem({
                     </button>
                   ))}
               </div>
-              <span className="cl-display-card__meta tw-text-[12px] tw-mb-[5px] tw-inline-flex tw-items-center tw-gap-[4px]">
+              <span className="cl-display-card__meta cl-text-caption tw-mb-[5px] tw-inline-flex tw-items-center tw-gap-[4px]">
                 <span>{mp.followers_count}</span>
                 <RiUserFollowLine size={14} />
               </span>

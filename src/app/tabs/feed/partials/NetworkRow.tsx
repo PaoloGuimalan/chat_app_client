@@ -139,7 +139,7 @@ function NetworkRow({
           <span
             style={{
               fontWeight: 700,
-              fontSize: 13.5,
+              fontSize: "var(--fs-title)",
               color: "var(--text)",
               whiteSpace: "nowrap",
               overflow: "hidden",
@@ -159,7 +159,7 @@ function NetworkRow({
         </button>
         <div
           style={{
-            fontSize: 12,
+            fontSize: "var(--fs-caption)",
             color: "var(--text-3)",
             whiteSpace: "nowrap",
             overflow: "hidden",

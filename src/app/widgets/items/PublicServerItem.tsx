@@ -118,7 +118,7 @@ function PublicServerItem({
           />
           <div className="tw-w-[calc(100%-10px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-flex-1 tw-min-w-0">
             <span
-              className="cl-display-card__title tw-min-w-0 tw-w-full tw-flex tw-items-center tw-gap-[4px] tw-overflow-hidden tw-text-[14px] tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
+              className="cl-display-card__title tw-min-w-0 tw-w-full tw-flex tw-items-center tw-gap-[4px] tw-overflow-hidden cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
               onClick={() => {
                 if (isJoined) {
                   navigate(`/servers/${mp.id}`);
@@ -132,18 +132,18 @@ function PublicServerItem({
                 )}
               </div>
             </span>
-            <span className="cl-display-card__description tw-text-[12px] tw-font-Inter tw-text-left line_clamp">
+            <span className="cl-display-card__description cl-text-caption tw-font-Inter tw-text-left line_clamp">
               {mp.description}
             </span>
             <div className="tw-w-full tw-flex tw-flex-row tw-flex-1 tw-justify-between tw-items-end tw-gap-[10px] tw-pb-[15px]">
-              <span className="cl-display-card__meta tw-text-[12px] tw-mb-[5px]">
+              <span className="cl-display-card__meta cl-text-caption tw-mb-[5px]">
                 {mp.members} member/s
               </span>
               {isJoined && !isSelf ? (
                 isLeaving ? (
                   <button
                     disabled
-                    className="cl-display-card__button cl-display-card__button--muted tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none"
+                    className="cl-display-card__button cl-display-card__button--muted cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-none"
                   >
                     <div className="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center">
                       <motion.div
@@ -165,7 +165,7 @@ function PublicServerItem({
                 ) : (
                   <button
                     onClick={leaveServerProcess}
-                    className="cl-display-card__button cl-display-card__button--outline tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-[1px] tw-border-solid tw-cursor-pointer"
+                    className="cl-display-card__button cl-display-card__button--outline cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-[1px] tw-border-solid tw-cursor-pointer"
                   >
                     Leave
                   </button>
@@ -173,14 +173,14 @@ function PublicServerItem({
               ) : isJoined ? (
                 <button
                   disabled
-                  className="cl-display-card__button cl-display-card__button--muted tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none"
+                  className="cl-display-card__button cl-display-card__button--muted cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-none"
                 >
                   Joined
                 </button>
               ) : isJoining ? (
                 <button
                   disabled
-                  className="cl-display-card__button cl-display-card__button--muted tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none"
+                  className="cl-display-card__button cl-display-card__button--muted cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-none"
                 >
                   <div className="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center">
                     <motion.div
@@ -200,7 +200,7 @@ function PublicServerItem({
               ) : !isSelf ? (
                 <button
                   onClick={joinServerProcess}
-                  className="cl-display-card__button cl-display-card__button--primary tw-text-[12px] tw-h-[27px] tw-w-[100px] tw-border-none tw-cursor-pointer"
+                  className="cl-display-card__button cl-display-card__button--primary cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-none tw-cursor-pointer"
                 >
                   Join
                 </button>
