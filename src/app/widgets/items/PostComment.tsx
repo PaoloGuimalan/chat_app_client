@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { commentsliststate } from "@/redux/actions/states";
 import {
+  DeleteCommentRequest,
   GetCommentsRequest,
   SaveCommentRequest,
 } from "@/reusables/hooks/requests";
@@ -10,7 +11,7 @@ import {
   IPostComment,
 } from "@/reusables/vars/interfaces";
 import { PaginationProp, PostCommentProp } from "@/reusables/vars/props";
-import { IoSend } from "react-icons/io5";
+import { IoSend, IoTrashOutline } from "react-icons/io5";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUniqueItemsOfObjects } from "@/reusables/hooks/validatevariables";
@@ -40,6 +41,9 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
 
   const [writeComment, setwriteComment] = useState<string>("");
   const [isCommentSaving, setisCommentSaving] = useState<boolean>(false);
+  const [deletingCommentID, setDeletingCommentID] = useState<string | null>(
+    null,
+  );
 
   const linkPreview = useLinkPreview({
     text: writeComment,
@@ -73,6 +77,34 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
         setIsError(true);
         console.log(err);
       });
+  };
+
+  // Own-comment deletion. The comment's `entity.id` is an entity id, so this
+  // compares against entity_id (which follows entity switching) rather than
+  // the account id - a page's comment is deletable while acting as that page.
+  // The backend soft-deletes and enforces ownership itself (assert_owns), so
+  // this gate is only about not showing a button that would 403.
+  const isMyComment = (mp: IPostComment) =>
+    mp.entity?.id === authentication.user.entity_id;
+
+  const DeleteCommentProcess = (comment_id: string) => {
+    if (deletingCommentID) return;
+    setDeletingCommentID(comment_id);
+
+    const previous = comments;
+    // Optimistic: drop the row immediately, restore it if the call fails.
+    setComments((prev: PaginationProp<IPostComment>) => ({
+      ...prev,
+      count: Math.max(0, prev.count - 1),
+      results: prev.results.filter((flt) => flt.comment_id !== comment_id),
+    }));
+
+    DeleteCommentRequest(comment_id)
+      .catch((err) => {
+        console.log(err);
+        setComments(previous);
+      })
+      .finally(() => setDeletingCommentID(null));
   };
 
   const GetPostCommentOnLoadProcess = () => {
@@ -247,8 +279,29 @@ function PostComment({ post_id, parent_id }: PostCommentProp) {
                             </div>
                           )}
                         </span>
-                        <span className="tw-text-[11px] tw-text-[var(--text-3)] tw-flex-none tw-whitespace-nowrap tw-text-right">
-                          {timeSince(mp.created_at)}
+                        <span className="tw-flex tw-items-center tw-gap-[6px] tw-flex-none">
+                          <span className="tw-text-[11px] tw-text-[var(--text-3)] tw-whitespace-nowrap tw-text-right">
+                            {timeSince(mp.created_at)}
+                          </span>
+                          {isMyComment(mp) && (
+                            <button
+                              type="button"
+                              title="Delete comment"
+                              aria-label="Delete comment"
+                              disabled={deletingCommentID === mp.comment_id}
+                              onClick={() =>
+                                DeleteCommentProcess(mp.comment_id)
+                              }
+                              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-p-0 tw-flex tw-items-center tw-justify-center"
+                              style={{
+                                color: "var(--text-3)",
+                                opacity:
+                                  deletingCommentID === mp.comment_id ? 0.5 : 1,
+                              }}
+                            >
+                              <IoTrashOutline size={14} />
+                            </button>
+                          )}
                         </span>
                       </div>
                       <div className="tw-w-full tw-flex tw-flex-col tw-gap-[4px] tw-mt-[4px]">

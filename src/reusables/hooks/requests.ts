@@ -1985,6 +1985,27 @@ const ReactToMessageRequest = async (params: any) => {
     });
 };
 
+// Removes the acting entity's own reaction from a message. The server pulls
+// by the entity id on the JWT, so no id is sent (and none could be honoured
+// anyway) - you can only ever remove your own.
+const RemoveMessageReactionRequest = async (params: any) => {
+  const encodedParams = sign(params, SECRET);
+
+  return await Axios.post(
+    `${API}/m/v2/removereaction`,
+    {
+      token: encodedParams,
+    },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  ).then((response) => {
+    return response;
+  });
+};
+
 const ConversationInfoRequest = async (params: any) => {
   const conversationID = params.conversationID;
   const type = params.type;
@@ -2357,6 +2378,20 @@ const SaveCommentRequest = async (
     .catch((err) => {
       throw new Error(err);
     });
+};
+
+// Soft-deletes a comment (sets deleted_at/deleted_by server-side). Ownership
+// is enforced by the backend's assert_owns, so this cannot delete someone
+// else's comment even if a comment_id is guessed.
+const DeleteCommentRequest = async (comment_id: string) => {
+  return await Axios.delete(`${USER_SERVICE_API}/api/newsfeed/comments`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: { comment_id },
+  }).then((response) => {
+    return response.data;
+  });
 };
 
 const GetLinkPreviewRequest = async (
@@ -3941,6 +3976,7 @@ export {
   GetPostRequest,
   DeleteMessageRequest,
   ReactToMessageRequest,
+  RemoveMessageReactionRequest,
   ConversationInfoRequest,
   IsTypingBroadcastRequest,
   AddNewMemberRequest,
@@ -3958,6 +3994,7 @@ export {
   GetReactionTotalRequest,
   GetCommentsRequest,
   SaveCommentRequest,
+  DeleteCommentRequest,
   GetLinkPreviewRequest,
   PublicServersListRequest,
   LottieJSONRequest,

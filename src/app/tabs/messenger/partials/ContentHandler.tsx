@@ -11,6 +11,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import EmojiPickerHandler from "./EmojiPickerHandler";
 import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal";
 import { timeSince, urlify } from "@/reusables/hooks/reusable";
+import { RemoveMessageReactionRequest } from "@/reusables/hooks/requests";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
@@ -84,14 +85,19 @@ function ContentHandler({
   );
 
   const [toggleReactions, settoggleReactions] = useState<boolean>(false);
+  const [isRemovingReaction, setIsRemovingReaction] = useState<boolean>(false);
 
+  // Merge on entityID, not userID: a reaction records the ACTING entity in
+  // `entityID` but always the human's account id in `userID`, so a reaction
+  // made while switched to a page never matched its (realm) info row and
+  // rendered nameless. entityID is also what the server resolves rows by.
   const reactionsWithInfoVar = useMemo(
     () =>
       reactions.map((t1) => ({
         ...t1,
-        ...cnvs.reactionsWithInfo
+        ...(cnvs.reactionsWithInfo || [])
           .filter((item: any) => item !== null)
-          .find((t2: any) => t2.userID === t1.userID),
+          .find((t2: any) => String(t2.entityID) === String(t1.entityID)),
       })),
     [reactions, cnvs.reactions],
   );
@@ -100,14 +106,71 @@ function ContentHandler({
     setreactions(cnvs.reactions ? cnvs.reactions : []);
   }, [cnvs.reactions]);
 
-  const getMemberInfo = (userID: string) => {
-    const member = members.filter((flt) => flt._id === userID);
+  // Senders and seeners are ENTITY ids, but usersWithInfo keys `_id` on the
+  // account/realm pk and carries the entity id separately as `entityID` (see
+  // the usersWithInfo projection in server routes/messages). Matching on
+  // `_id` alone therefore never hit and every name fell back to "Someone";
+  // `_id` is still checked second so other member shapes keep resolving.
+  const getMemberInfo = (entityOrUserID: string) => {
+    const member = members.filter(
+      (flt: any) =>
+        String(flt.entityID) === String(entityOrUserID) ||
+        String(flt._id) === String(entityOrUserID),
+    );
 
     if (member.length > 0) {
       return member[0].fullname.firstName;
     }
 
     return "Someone";
+  };
+
+  // ConversationV2 - the component actually routed today - holds the server's
+  // conversation info, which names this `conversationType` and uses "channel"
+  // for a server's conversation. The legacy Conversation.tsx still passes the
+  // redux setup shape with `type`. Read both so the labels below work
+  // whichever one mounts; without this the group branch never ran and every
+  // group chat rendered a bare "Seen".
+  const conversationKind =
+    (conversationsetup as any)?.conversationType ?? conversationsetup?.type;
+  const isGroupLike =
+    conversationKind === "group" ||
+    conversationKind === "server" ||
+    conversationKind === "channel";
+
+  // Seeners/sender are entity ids, so "is this me" must compare against
+  // entity_id - comparing to userID (an account id) never matched, which left
+  // the current user in their own "Seen by" list.
+  const selfEntityID = authentication.user.entity_id;
+  const otherSeeners = (cnvs.seeners || []).filter(
+    (mp: any) => mp !== cnvs.sender && mp !== selfEntityID,
+  );
+
+  // Reactions are entity-scoped, so "mine" is whichever entity is acting -
+  // removing while switched to a page takes away the page's reaction.
+  const myReaction = reactions.find(
+    (flt: any) => flt.entityID === selfEntityID,
+  );
+
+  const removeMyReaction = () => {
+    if (isRemovingReaction || !myReaction) return;
+    setIsRemovingReaction(true);
+
+    const previous = reactions;
+    // Optimistic: the pill updates instantly, and restores if the call fails.
+    setreactions((prev: any[]) =>
+      prev.filter((flt: any) => flt.entityID !== selfEntityID),
+    );
+
+    RemoveMessageReactionRequest({
+      conversationID: cnvs.conversationID,
+      messageID: cnvs.messageID,
+    })
+      .catch((err) => {
+        console.log(err);
+        setreactions(previous);
+      })
+      .finally(() => setIsRemovingReaction(false));
   };
 
   const formatMessageClock = (messageDate: any) => {
@@ -194,12 +257,11 @@ function ContentHandler({
                 : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
             </span>
           )}
-          {conversationsetup.type == "group" &&
-            authentication.user.userID != cnvs.sender && (
-              <span className="span_sender_label">
-                {getMemberInfo(cnvs.sender)}
-              </span>
-            )}
+          {isGroupLike && selfEntityID != cnvs.sender && (
+            <span className="span_sender_label">
+              {getMemberInfo(cnvs.sender)}
+            </span>
+          )}
           {cnvs.isReply && (
             <ReplyingToPreview
               cnvs={cnvs.replyedmessage[0]}
@@ -239,13 +301,9 @@ function ContentHandler({
               {formatMessageClock(cnvs.messageDate)}
             </span>
           </motion.div>
-          {conversationsetup.type == "group" ||
-          conversationsetup.type == "server"
+          {isGroupLike
             ? i === 0 &&
-              cnvs.seeners.filter(
-                (mp: any) =>
-                  mp != cnvs.sender && mp != authentication.user.userID,
-              ).length > 0 && ( //conversationList.length - 1 == i
+              otherSeeners.length > 0 && ( //conversationList.length - 1 == i
                 <motion.div
                   initial={{
                     justifyContent:
@@ -262,30 +320,15 @@ function ContentHandler({
                   className="div_seen_container"
                 >
                   <span className="span_seenby">Seen by </span>
-                  {cnvs.seeners
-                    .filter(
-                      (mp: any) =>
-                        mp != cnvs.sender && mp != authentication.user.userID,
-                    )
-                    .map((mp: any, i: number) => {
-                      if (
-                        mp != authentication.user.userID &&
-                        mp != cnvs.sender
-                      ) {
-                        return (
-                          <span className="span_seenby" key={i}>
-                            {getMemberInfo(mp)}
-                          </span>
-                        );
-                      }
-                    })}
+                  {otherSeeners.map((mp: any, i: number) => (
+                    <span className="span_seenby" key={i}>
+                      {getMemberInfo(mp)}
+                    </span>
+                  ))}
                 </motion.div>
               )
             : i === 0 &&
-              cnvs.seeners.filter(
-                (mp: any) =>
-                  mp != cnvs.sender && mp != authentication.user.userID,
-              ).length > 0 && (
+              otherSeeners.length > 0 && (
                 <motion.div
                   initial={{
                     justifyContent:
@@ -348,13 +391,11 @@ function ContentHandler({
                   : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
             )}
-            {(conversationsetup.type == "group" ||
-              conversationsetup.type == "server") &&
-              authentication.user.userID != cnvs.sender && (
-                <span className="span_sender_label tw-font-Inter">
-                  {getMemberInfo(cnvs.sender)}
-                </span>
-              )}
+            {isGroupLike && selfEntityID != cnvs.sender && (
+              <span className="span_sender_label tw-font-Inter">
+                {getMemberInfo(cnvs.sender)}
+              </span>
+            )}
             {cnvs.isReply && (
               <ReplyingToPreview
                 cnvs={cnvs.replyedmessage[0]}
@@ -483,10 +524,20 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {reactions.filter(
-                      (flt: any) => flt.userID === authentication.user.userID,
-                    ).length === 0 && (
+                    {myReaction ? (
                       <button
+                        title="Remove your reaction"
+                        disabled={isRemovingReaction}
+                        onClick={removeMyReaction}
+                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
+                      >
+                        <MdOutlineAddReaction
+                          style={{ color: "var(--brand)" }}
+                        />
+                      </button>
+                    ) : (
+                      <button
+                        title="Add a reaction"
                         onClick={() => {
                           settoggleEmojiPicker(!toggleEmojiPicker);
                         }}
@@ -520,13 +571,9 @@ function ContentHandler({
                 </div>
               </div>
             </motion.div>
-            {conversationsetup.type == "group" ||
-            conversationsetup.type == "server"
+            {isGroupLike
               ? i === 0 &&
-                cnvs.seeners.filter(
-                  (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID,
-                ).length > 0 && (
+                otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
                       justifyContent:
@@ -543,30 +590,15 @@ function ContentHandler({
                     className="div_seen_container"
                   >
                     <span className="span_seenby">Seen by </span>
-                    {cnvs.seeners
-                      .filter(
-                        (mp: any) =>
-                          mp != cnvs.sender && mp != authentication.user.userID,
-                      )
-                      .map((mp: any, i: number) => {
-                        if (
-                          mp != authentication.user.userID &&
-                          mp != cnvs.sender
-                        ) {
-                          return (
-                            <span className="span_seenby" key={i}>
-                              {getMemberInfo(mp)}
-                            </span>
-                          );
-                        }
-                      })}
+                    {otherSeeners.map((mp: any, i: number) => (
+                      <span className="span_seenby" key={i}>
+                        {getMemberInfo(mp)}
+                      </span>
+                    ))}
                   </motion.div>
                 )
               : i === 0 &&
-                cnvs.seeners.filter(
-                  (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID,
-                ).length > 0 && (
+                otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
                       justifyContent:
@@ -641,13 +673,11 @@ function ContentHandler({
                   : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
             )}
-            {(conversationsetup.type == "group" ||
-              conversationsetup.type == "server") &&
-              authentication.user.userID != cnvs.sender && (
-                <span className="span_sender_label">
-                  {getMemberInfo(cnvs.sender)}
-                </span>
-              )}
+            {isGroupLike && selfEntityID != cnvs.sender && (
+              <span className="span_sender_label">
+                {getMemberInfo(cnvs.sender)}
+              </span>
+            )}
             {cnvs.isReply && (
               <ReplyingToPreview
                 cnvs={cnvs.replyedmessage[0]}
@@ -736,10 +766,20 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {reactions.filter(
-                      (flt: any) => flt.userID === authentication.user.userID,
-                    ).length === 0 && (
+                    {myReaction ? (
                       <button
+                        title="Remove your reaction"
+                        disabled={isRemovingReaction}
+                        onClick={removeMyReaction}
+                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
+                      >
+                        <MdOutlineAddReaction
+                          style={{ color: "var(--brand)" }}
+                        />
+                      </button>
+                    ) : (
+                      <button
+                        title="Add a reaction"
                         onClick={() => {
                           settoggleEmojiPicker(!toggleEmojiPicker);
                         }}
@@ -773,13 +813,9 @@ function ContentHandler({
                 </div>
               </div>
             </div>
-            {conversationsetup.type == "group" ||
-            conversationsetup.type == "server"
+            {isGroupLike
               ? i === 0 &&
-                cnvs.seeners.filter(
-                  (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID,
-                ).length > 0 && (
+                otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
                       justifyContent:
@@ -796,24 +832,15 @@ function ContentHandler({
                     className="div_seen_container"
                   >
                     <span className="span_seenby">Seen by </span>
-                    {cnvs.seeners
-                      .filter((mp: any) => mp != cnvs.sender)
-                      .map((mp: any, i: number) => {
-                        if (mp != authentication.user.userID) {
-                          return (
-                            <span className="span_seenby" key={i}>
-                              {getMemberInfo(mp)}
-                            </span>
-                          );
-                        }
-                      })}
+                    {otherSeeners.map((mp: any, i: number) => (
+                      <span className="span_seenby" key={i}>
+                        {getMemberInfo(mp)}
+                      </span>
+                    ))}
                   </motion.div>
                 )
               : i === 0 &&
-                cnvs.seeners.filter(
-                  (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID,
-                ).length > 0 && (
+                otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
                       justifyContent:
@@ -888,13 +915,11 @@ function ContentHandler({
                   : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
             )}
-            {(conversationsetup.type == "group" ||
-              conversationsetup.type == "server") &&
-              authentication.user.userID != cnvs.sender && (
-                <span className="span_sender_label">
-                  {getMemberInfo(cnvs.sender)}
-                </span>
-              )}
+            {isGroupLike && selfEntityID != cnvs.sender && (
+              <span className="span_sender_label">
+                {getMemberInfo(cnvs.sender)}
+              </span>
+            )}
             {cnvs.isReply && (
               <ReplyingToPreview
                 cnvs={cnvs.replyedmessage[0]}
@@ -979,10 +1004,20 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {reactions.filter(
-                      (flt: any) => flt.userID === authentication.user.userID,
-                    ).length === 0 && (
+                    {myReaction ? (
                       <button
+                        title="Remove your reaction"
+                        disabled={isRemovingReaction}
+                        onClick={removeMyReaction}
+                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
+                      >
+                        <MdOutlineAddReaction
+                          style={{ color: "var(--brand)" }}
+                        />
+                      </button>
+                    ) : (
+                      <button
+                        title="Add a reaction"
                         onClick={() => {
                           settoggleEmojiPicker(!toggleEmojiPicker);
                         }}
@@ -1016,13 +1051,9 @@ function ContentHandler({
                 </div>
               </div>
             </div>
-            {conversationsetup.type == "group" ||
-            conversationsetup.type == "server"
+            {isGroupLike
               ? i === 0 &&
-                cnvs.seeners.filter(
-                  (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID,
-                ).length > 0 && (
+                otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
                       justifyContent:
@@ -1039,24 +1070,15 @@ function ContentHandler({
                     className="div_seen_container"
                   >
                     <span className="span_seenby">Seen by </span>
-                    {cnvs.seeners
-                      .filter((mp: any) => mp != cnvs.sender)
-                      .map((mp: any, i: number) => {
-                        if (mp != authentication.user.userID) {
-                          return (
-                            <span className="span_seenby" key={i}>
-                              {getMemberInfo(mp)}
-                            </span>
-                          );
-                        }
-                      })}
+                    {otherSeeners.map((mp: any, i: number) => (
+                      <span className="span_seenby" key={i}>
+                        {getMemberInfo(mp)}
+                      </span>
+                    ))}
                   </motion.div>
                 )
               : i === 0 &&
-                cnvs.seeners.filter(
-                  (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID,
-                ).length > 0 && (
+                otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
                       justifyContent:
@@ -1131,11 +1153,9 @@ function ContentHandler({
                   : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
             )}
-            {(conversationsetup.type == "group" ||
-              conversationsetup.type == "server") &&
-              authentication.user.userID != cnvs.sender && (
-                <span className="span_sender_label">{cnvs.sender}</span>
-              )}
+            {isGroupLike && selfEntityID != cnvs.sender && (
+              <span className="span_sender_label">{cnvs.sender}</span>
+            )}
             {cnvs.isReply && (
               <ReplyingToPreview
                 cnvs={cnvs.replyedmessage[0]}
@@ -1217,10 +1237,20 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {reactions.filter(
-                      (flt: any) => flt.userID === authentication.user.userID,
-                    ).length === 0 && (
+                    {myReaction ? (
                       <button
+                        title="Remove your reaction"
+                        disabled={isRemovingReaction}
+                        onClick={removeMyReaction}
+                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
+                      >
+                        <MdOutlineAddReaction
+                          style={{ color: "var(--brand)" }}
+                        />
+                      </button>
+                    ) : (
+                      <button
+                        title="Add a reaction"
                         onClick={() => {
                           settoggleEmojiPicker(!toggleEmojiPicker);
                         }}
@@ -1254,13 +1284,9 @@ function ContentHandler({
                 </div>
               </div>
             </div>
-            {conversationsetup.type == "group" ||
-            conversationsetup.type == "server"
+            {isGroupLike
               ? i === 0 &&
-                cnvs.seeners.filter(
-                  (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID,
-                ).length > 0 && (
+                otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
                       justifyContent:
@@ -1277,24 +1303,15 @@ function ContentHandler({
                     className="div_seen_container"
                   >
                     <span className="span_seenby">Seen by </span>
-                    {cnvs.seeners
-                      .filter((mp: any) => mp != cnvs.sender)
-                      .map((mp: any, i: number) => {
-                        if (mp != authentication.user.userID) {
-                          return (
-                            <span className="span_seenby" key={i}>
-                              {getMemberInfo(mp)}
-                            </span>
-                          );
-                        }
-                      })}
+                    {otherSeeners.map((mp: any, i: number) => (
+                      <span className="span_seenby" key={i}>
+                        {getMemberInfo(mp)}
+                      </span>
+                    ))}
                   </motion.div>
                 )
               : i === 0 &&
-                cnvs.seeners.filter(
-                  (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID,
-                ).length > 0 && (
+                otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
                       justifyContent:
@@ -1381,13 +1398,11 @@ function ContentHandler({
                   : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
             )}
-            {(conversationsetup.type == "group" ||
-              conversationsetup.type == "server") &&
-              authentication.user.userID != cnvs.sender && (
-                <span className="span_sender_label">
-                  {getMemberInfo(cnvs.sender)}
-                </span>
-              )}
+            {isGroupLike && selfEntityID != cnvs.sender && (
+              <span className="span_sender_label">
+                {getMemberInfo(cnvs.sender)}
+              </span>
+            )}
             {cnvs.isReply && (
               <ReplyingToPreview
                 cnvs={cnvs.replyedmessage[0]}
@@ -1491,10 +1506,20 @@ function ContentHandler({
                           +{reactions.length - 4}
                         </span>
                       )}
-                    {reactions.filter(
-                      (flt: any) => flt.userID === authentication.user.userID,
-                    ).length === 0 && (
+                    {myReaction ? (
                       <button
+                        title="Remove your reaction"
+                        disabled={isRemovingReaction}
+                        onClick={removeMyReaction}
+                        className="tw-h-[20px] tw-w-[25px] tw-border-none tw-bg-transparent tw-flex tw-items-center tw-justify-center tw-cursor-pointer"
+                      >
+                        <MdOutlineAddReaction
+                          style={{ color: "var(--brand)" }}
+                        />
+                      </button>
+                    ) : (
+                      <button
+                        title="Add a reaction"
                         onClick={() => {
                           settoggleEmojiPicker(!toggleEmojiPicker);
                         }}
@@ -1528,13 +1553,9 @@ function ContentHandler({
                 </div>
               </div>
             </div>
-            {conversationsetup.type == "group" ||
-            conversationsetup.type == "server"
+            {isGroupLike
               ? i === 0 &&
-                cnvs.seeners.filter(
-                  (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID,
-                ).length > 0 && (
+                otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
                       justifyContent:
@@ -1551,24 +1572,15 @@ function ContentHandler({
                     className="div_seen_container"
                   >
                     <span className="span_seenby">Seen by </span>
-                    {cnvs.seeners
-                      .filter((mp: any) => mp != cnvs.sender)
-                      .map((mp: any, i: number) => {
-                        if (mp != authentication.user.userID) {
-                          return (
-                            <span className="span_seenby" key={i}>
-                              {getMemberInfo(mp)}
-                            </span>
-                          );
-                        }
-                      })}
+                    {otherSeeners.map((mp: any, i: number) => (
+                      <span className="span_seenby" key={i}>
+                        {getMemberInfo(mp)}
+                      </span>
+                    ))}
                   </motion.div>
                 )
               : i === 0 &&
-                cnvs.seeners.filter(
-                  (mp: any) =>
-                    mp != cnvs.sender && mp != authentication.user.userID,
-                ).length > 0 && (
+                otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
                       justifyContent:
