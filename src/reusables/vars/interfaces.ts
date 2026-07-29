@@ -755,6 +755,12 @@ export interface IPostComment {
   post: string;
   entity: IFlexibleEntity; // Unifies both user and realm data profiles safely
   deleted_by: string | null;
+  /**
+   * Non-deleted replies under this comment. Annotated by the backend only on
+   * the TOP-LEVEL list (threads are two levels deep, so a reply never has
+   * children) and always present as 0 elsewhere - see newsfeed/views.py.
+   */
+  reply_count?: number;
 }
 
 export interface ICoordinatesAnchor {

@@ -9,13 +9,7 @@ import {
 import { Avatar } from "@/reusables/design";
 import TaggingSummary from "@/app/reusables/TaggingSummary";
 import { useSelector } from "react-redux";
-import {
-  Dispatch,
-  SetStateAction,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
 import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
 import PostComment from "@/app/widgets/items/PostComment";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
@@ -354,7 +348,10 @@ function PostPreviewModal({
               {/* Same renderer the profile feed uses, so a link in a post
                   shows its preview card here instead of a bare URL. */}
               {post.link_preview && (
-                <LinkPreviewCard preview={post.link_preview} variant="display" />
+                <LinkPreviewCard
+                  preview={post.link_preview}
+                  variant="display"
+                />
               )}
               {minimizedCaption && (
                 <button
@@ -512,7 +509,26 @@ function PostPreviewModal({
                   : "custom:tw-overflow-y-auto"
               }
             >
-              <PostComment post_id={post.post_id} parent_id={null} />
+              <PostComment
+                post_id={post.post_id}
+                parent_id={null}
+                onCommentCountChange={(delta) =>
+                  setPost((prev: IPost | null) =>
+                    prev
+                      ? {
+                          ...prev,
+                          score: {
+                            ...prev.score,
+                            comments_count: Math.max(
+                              0,
+                              prev.score.comments_count + delta,
+                            ),
+                          },
+                        }
+                      : prev,
+                  )
+                }
+              />
             </div>
           </div>
         </div>

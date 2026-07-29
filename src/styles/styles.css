@@ -4072,6 +4072,56 @@ input:checked + .slider:before {
   cursor: pointer;
 }
 
+.cl-comment-section__actions {
+  width: 100%;
+}
+
+.cl-comment-section__action {
+  padding: 0;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text-3);
+}
+
+.cl-comment-section__action:hover {
+  color: var(--text);
+}
+
+.cl-comment-section__action--thread {
+  color: var(--brand);
+}
+
+.cl-comment-section__action--thread:hover {
+  color: var(--brand-hover);
+}
+
+/* A thread is nested one level only - the backend flattens a reply to a reply
+   onto its top-level ancestor - so this rail never stacks inside itself. */
+.cl-comment-section--thread {
+  padding: 4px 0 0 14px;
+  border-left: 2px solid var(--border);
+  min-height: 0;
+}
+
+.cl-comment-section__thread {
+  min-width: 0;
+}
+
+.cl-comment-mention {
+  color: var(--brand-700);
+  font-weight: 700;
+  background: color-mix(in srgb, var(--brand-soft) 75%, transparent);
+  border-radius: 6px;
+  padding: 0 3px;
+}
+
+.cl-redesign[data-theme="dark"] .cl-comment-mention {
+  color: #cfe0ff;
+  background: rgba(60, 139, 255, 0.14);
+}
+
 .cl-comment-section__empty {
   color: var(--text-2);
 }
@@ -4230,6 +4280,24 @@ input:checked + .slider:before {
   border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow: var(--shadow-md);
+}
+
+/* Comment composers, unlike the messenger's, sit INSIDE the post's scrolling
+   pane, so the panel is clipped by that scroll container instead of floating
+   over the whole card - it cannot escape upward past the pane's top edge.
+   Must stay AFTER the base rule above: same specificity, so source order is
+   what decides the override. */
+.cl-comment-section__mentions {
+  z-index: 45;
+}
+
+/* The top-level composer is the first thing in the pane, so upward opens into
+   clipped space (and under the post header). It opens DOWNWARD into the
+   comment list instead. A thread's composer sits below its replies with room
+   above, so it keeps the messenger's upward direction. */
+.cl-comment-section__mentions--below {
+  top: calc(100% + 6px);
+  bottom: auto;
 }
 
 .cl-mention-suggestion-item {

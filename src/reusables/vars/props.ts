@@ -43,6 +43,22 @@ export interface AppItemProp {
 export interface PostCommentProp {
   post_id: string;
   parent_id: string | null;
+  /**
+   * Set on a thread opened via "Reply" (rather than "View replies") so only
+   * that thread's composer takes focus.
+   */
+  autoFocusComposer?: boolean;
+  /**
+   * Fired by a thread after it posts a reply, so the parent row's reply count
+   * keeps up without refetching the whole comment list.
+   */
+  onCommentPosted?: () => void;
+  /**
+   * Signed change to the POST's total comment count (+1 per comment or reply
+   * added, negative by the whole thread when a comment is deleted). Lets the
+   * host card update `score.comments_count` without refetching the post.
+   */
+  onCommentCountChange?: (delta: number) => void;
 }
 
 export interface PaginationProp<T> {

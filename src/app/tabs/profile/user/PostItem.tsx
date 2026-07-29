@@ -273,9 +273,7 @@ function PostItem({
                 </span>
                 &nbsp;
                 {postState.content_type === "profile" && (
-                  <span className="cl-text-body">
-                    changed profile picture
-                  </span>
+                  <span className="cl-text-body">changed profile picture</span>
                 )}
                 {postState.content_type === "cover_photo" && (
                   <span className="cl-text-body">changed cover photo</span>
@@ -503,7 +501,9 @@ function PostItem({
                                 <TaggingSummary tagging={postState.tagging} />
                               )}
                             </div>
-                            <span className="cl-text-caption">{dateposted}</span>
+                            <span className="cl-text-caption">
+                              {dateposted}
+                            </span>
                           </div>
                         </div>
                         {authentication.auth && (
@@ -775,6 +775,18 @@ function PostItem({
                         <PostComment
                           post_id={postState.post_id}
                           parent_id={null}
+                          onCommentCountChange={(delta) =>
+                            setpostState((prev) => ({
+                              ...prev,
+                              score: {
+                                ...prev.score,
+                                comments_count: Math.max(
+                                  0,
+                                  prev.score.comments_count + delta,
+                                ),
+                              },
+                            }))
+                          }
                         />
                       </div>
                     </div>
