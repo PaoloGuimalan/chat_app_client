@@ -34,8 +34,19 @@ const SECRET = envs.SECRET;
 
 const Axios = axios.create();
 
+const EXTERNAL_URLS = ["https://fonts.gstatic.com/s/e/notoemoji/latest/"];
+
+const isExternalUrl = (url: string) =>
+  EXTERNAL_URLS.some((external) => url.startsWith(external));
+
 Axios.interceptors.request.use(async (config) => {
   try {
+    const url = config.url ?? "";
+
+    if (isExternalUrl(url)) {
+      return config;
+    }
+
     const user = localStorage.getItem("authtoken");
     const decoded: { username: string; userID: string } | null = user
       ? jwt_decode(user)
@@ -804,15 +815,12 @@ const NetworkSectionRequest = async (
   page: number,
   pageSize: number,
 ) => {
-  return await Axios.get(
-    `${USER_SERVICE_API}/api/entity/network/${section}`,
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
-      params: { page, page_size: pageSize },
+  return await Axios.get(`${USER_SERVICE_API}/api/entity/network/${section}`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
     },
-  ).then((response) => {
+    params: { page, page_size: pageSize },
+  }).then((response) => {
     // DRF pagination: { count, next, previous, results }
     return response.data;
   });
@@ -4049,3 +4057,4 @@ export {
   CreateInitialConversation,
   ReplyAssistRequest,
 };
+
