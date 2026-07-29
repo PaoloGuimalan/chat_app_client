@@ -140,6 +140,7 @@
   --fs-hero: 24px; /* banner headings */
   --fs-display: 28px; /* splash / empty-state display */
   --fs-display-xl: 40px; /* splash mark */
+  --fs-comments-reaction: 16px;
 }
 
 /* Page headings step down on small screens. Holding this here replaces the
@@ -154,6 +155,9 @@
 
 .cl-text-micro {
   font-size: var(--fs-micro);
+}
+.cl-comments-reaction {
+  font-size: var(--fs-comments-reaction);
 }
 .cl-text-meta {
   font-size: var(--fs-meta);

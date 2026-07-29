@@ -3,6 +3,7 @@
 import { commentsliststate } from "@/redux/actions/states";
 import {
   DeleteCommentRequest,
+  GetCommentReactionTotalRequest,
   GetCommentsRequest,
   NetworkOverviewRequest,
   SaveCommentRequest,
@@ -10,8 +11,10 @@ import {
 } from "@/reusables/hooks/requests";
 import {
   AuthenticationInterface,
+  Emoji,
   IPostComment,
 } from "@/reusables/vars/interfaces";
+import PostEmojis from "@/app/reusables/PostEmojis";
 import { PaginationProp, PostCommentProp } from "@/reusables/vars/props";
 import { IoSend } from "react-icons/io5";
 import { useEffect, useRef, useState } from "react";
@@ -93,6 +96,15 @@ function PostComment({
   // Local nudge to reply_count, which is fetched once with the comment and
   // would otherwise go stale the moment a reply is posted into an open thread.
   const [extraReplies, setExtraReplies] = useState<Record<string, number>>({});
+
+  const emojilist: Emoji[] = useSelector((state: any) => state.emojilist);
+  // Which comment's reaction picker is open, and the hover-close timer -
+  // same open-on-hover, close-after-a-beat behaviour the post card uses.
+  const [openEmojiFor, setOpenEmojiFor] = useState<string | null>(null);
+  const emojiTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  // The reaction each comment had before an optimistic change, so a failed
+  // request can put it back.
+  const previousReactionRef = useRef<Record<string, string | null>>({});
 
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const [mentionState, setMentionState] = useState<{
@@ -361,6 +373,55 @@ function PostComment({
         console.log(err);
       });
   };
+
+  // --- Reactions ----------------------------------------------------------
+  // Mirrors the post card's flow: the picker reports the chosen emoji
+  // optimistically, then reports success or failure. The authoritative
+  // tallies come back from the server afterwards rather than being guessed
+  // here, so a concurrent reaction from someone else lands too.
+
+  const patchComment = (comment_id: string, patch: Partial<IPostComment>) => {
+    setComments((prev: PaginationProp<IPostComment>) => ({
+      ...prev,
+      results: prev.results.map((row) =>
+        row.comment_id === comment_id ? { ...row, ...patch } : row,
+      ),
+    }));
+  };
+
+  const onProcessCommentReaction = (
+    mp: IPostComment,
+    emoji_id: string | null,
+  ) => {
+    previousReactionRef.current[mp.comment_id] = mp.entity_reaction ?? null;
+    setOpenEmojiFor(null);
+    patchComment(mp.comment_id, { entity_reaction: emoji_id });
+  };
+
+  const onSuccessCommentReaction = (
+    comment_id: string,
+    isReactionProcessed: boolean,
+  ) => {
+    if (!isReactionProcessed) {
+      patchComment(comment_id, {
+        entity_reaction: previousReactionRef.current[comment_id] ?? null,
+      });
+      return;
+    }
+
+    GetCommentReactionTotalRequest(comment_id)
+      .then((response) => {
+        patchComment(comment_id, { preview: response });
+      })
+      .catch((err) => {
+        // The reaction itself landed; only the refreshed tallies are missing,
+        // and the next fetch of the list will carry them.
+        console.log(err);
+      });
+  };
+
+  const reactionTotalOf = (mp: IPostComment) =>
+    (mp.preview ?? []).reduce((sum, item) => sum + item.count, 0);
 
   // --- Threads ------------------------------------------------------------
 
@@ -672,6 +733,60 @@ function PostComment({
 
                     {authentication.auth && (
                       <div className="cl-comment-section__actions tw-flex tw-items-center tw-gap-[14px] tw-pl-[4px]">
+                        <div
+                          className="cl-comment-section__react tw-relative"
+                          onMouseEnter={() => {
+                            setOpenEmojiFor(mp.comment_id);
+                            if (emojiTimeoutRef.current) {
+                              clearTimeout(emojiTimeoutRef.current);
+                              emojiTimeoutRef.current = null;
+                            }
+                          }}
+                          onMouseLeave={() => {
+                            emojiTimeoutRef.current = setTimeout(() => {
+                              setOpenEmojiFor(null);
+                            }, 700);
+                          }}
+                        >
+                          <motion.div
+                            className="cl-comment-section__reaction-popover tw-absolute tw-min-h-[44px] tw-rounded-full tw-shadow-lg tw-bottom-[calc(100%+10px)] tw-left-0 tw-z-[30]"
+                            initial={{ scale: 0 }}
+                            animate={{
+                              scale: openEmojiFor === mp.comment_id ? 1 : 0,
+                            }}
+                          >
+                            <PostEmojis
+                              comment_id={mp.comment_id}
+                              reaction={mp.entity_reaction}
+                              onProcessEmojiSelection={(
+                                emoji_id: string | null,
+                              ) => onProcessCommentReaction(mp, emoji_id)}
+                              onSuccessEmojiSelection={(ok: boolean) =>
+                                onSuccessCommentReaction(mp.comment_id, ok)
+                              }
+                            />
+                          </motion.div>
+                          <button className="cl-comment-section__action">
+                            {mp.entity_reaction ? (
+                              emojilist.find(
+                                (flt) => flt.emoji_id === mp.entity_reaction,
+                              )?.emoji_content ? (
+                                <span className="cl-comments-reaction">
+                                  {
+                                    emojilist.find(
+                                      (flt) =>
+                                        flt.emoji_id === mp.entity_reaction,
+                                    )?.emoji_content
+                                  }
+                                </span>
+                              ) : (
+                                <span className="cl-text-meta">React</span>
+                              )
+                            ) : (
+                              <span className="cl-text-meta">React</span>
+                            )}
+                          </button>
+                        </div>
                         <button
                           className="cl-comment-section__action cl-text-meta"
                           onClick={() => openThreadToReply(mp)}
@@ -689,6 +804,29 @@ function PostComment({
                                   replyCount === 1 ? "reply" : "replies"
                                 }`}
                           </button>
+                        )}
+                        {reactionTotalOf(mp) > 0 && (
+                          <span className="cl-comment-section__reactions cl-text-meta tw-flex tw-items-center tw-gap-[4px]">
+                            <span className="tw-flex tw-flex-row">
+                              {(mp.preview ?? [])
+                                .filter((flt) => flt.count > 0)
+                                .map((prv, i) => (
+                                  <span
+                                    key={i}
+                                    className="-tw-mr-[6px] tw-text-[16px]"
+                                  >
+                                    {
+                                      emojilist.find(
+                                        (flt) => flt.emoji_id === prv.emoji,
+                                      )?.emoji_content
+                                    }
+                                  </span>
+                                ))}
+                            </span>
+                            <span className="tw-pl-[8px] tw-text-[var(--text-3)]">
+                              {reactionTotalOf(mp)}
+                            </span>
+                          </span>
                         )}
                       </div>
                     )}
@@ -733,3 +871,4 @@ function PostComment({
 }
 
 export default PostComment;
+

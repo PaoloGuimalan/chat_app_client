@@ -4076,7 +4076,15 @@ input:checked + .slider:before {
   width: 100%;
 }
 
+/* React / Reply / View replies sit on one line, but React can render an emoji
+   glyph instead of a word and emoji font metrics are taller than the label
+   text. Without a shared line-height and inline-flex centring, that one
+   control ends up a couple of pixels off from its neighbours - and the whole
+   row's height jumps the moment someone reacts. */
 .cl-comment-section__action {
+  display: inline-flex;
+  align-items: center;
+  line-height: 1.2;
   padding: 0;
   background: transparent;
   border: none;
@@ -4087,6 +4095,27 @@ input:checked + .slider:before {
 
 .cl-comment-section__action:hover {
   color: var(--text);
+}
+
+/* The React control is wrapped (the popover anchors to it), so the wrapper
+   has to centre too - otherwise the flex row centres the BOX while its
+   content sits at a different offset inside. */
+.cl-comment-section__react {
+  display: inline-flex;
+  align-items: center;
+}
+
+.cl-comment-section__reactions {
+  line-height: 1.2;
+}
+
+/* Was missing entirely, which is why the picker floated with no backdrop -
+   the tailwind classes on the element only gave it a shadow and a radius.
+   Mirrors .cl-feed-card__reaction-popover. */
+.cl-comment-section__reaction-popover {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
 }
 
 .cl-comment-section__action--thread {

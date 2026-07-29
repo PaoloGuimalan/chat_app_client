@@ -6,6 +6,7 @@ import { DotLottieReact } from "@lottiefiles/dotlottie-react";
 import { motion } from "framer-motion";
 import { useEffect, useState } from "react";
 import {
+  CommentReactionSaveRequest,
   LottieJSONRequest,
   ReactionSaveRequest,
 } from "@/reusables/hooks/requests";
@@ -17,6 +18,7 @@ import {
 function DotLottieButton({
   mp,
   post_id,
+  comment_id,
   reaction,
   onProcessEmojiSelection,
   onSuccessEmojiSelection,
@@ -59,11 +61,23 @@ function DotLottieButton({
       : "POST";
 
     onProcessEmojiSelection(reactionMethod === "DELETE" ? null : mp.emoji_id);
-    ReactionSaveRequest({
-      post_id,
-      emoji_id: mp.emoji_id,
-      method: reactionMethod,
-    })
+
+    // Same picker serves posts and comments - `comment_id` is what decides
+    // which endpoint the tap lands on. The two APIs take identical verbs and
+    // differ only in that id, so nothing else here branches.
+    const saveReaction = comment_id
+      ? CommentReactionSaveRequest({
+          comment_id,
+          emoji_id: mp.emoji_id,
+          method: reactionMethod,
+        })
+      : ReactionSaveRequest({
+          post_id,
+          emoji_id: mp.emoji_id,
+          method: reactionMethod,
+        });
+
+    saveReaction
       .then(() => {
         onSuccessEmojiSelection(true);
       })
@@ -115,6 +129,8 @@ function DotLottieButton({
 
 function PostEmojis({
   post_id,
+  // Present only for a comment's reaction row; see DotLottieButton.
+  comment_id,
   reaction,
   onProcessEmojiSelection,
   onSuccessEmojiSelection,
@@ -132,6 +148,7 @@ function PostEmojis({
                 key={mp.emoji_id}
                 mp={mp}
                 post_id={post_id}
+                comment_id={comment_id}
                 reaction={reaction}
                 onProcessEmojiSelection={onProcessEmojiSelection}
                 onSuccessEmojiSelection={onSuccessEmojiSelection}

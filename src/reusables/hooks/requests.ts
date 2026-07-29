@@ -2321,6 +2321,50 @@ const ReactionSaveRequest = async (params: any) => {
     });
 };
 
+// Comment reactions - ReactionSaveRequest one level down. Same `method`
+// switch (POST adds, PUT changes the emoji, DELETE removes) against the
+// comment_reaction route, so PostEmojis drives either kind unchanged.
+const CommentReactionSaveRequest = async (params: any) => {
+  const comment_id = params.comment_id;
+  const emoji_id = params.emoji_id;
+  const method = params.method;
+
+  return await Axios({
+    url: `${USER_SERVICE_API}/api/newsfeed/comment_reaction`,
+    method: method,
+    data: {
+      comment_id,
+      emoji_id,
+    },
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
+const GetCommentReactionTotalRequest = async (comment_id: string) => {
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/newsfeed/comment_total_reactions/${comment_id}/`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+};
+
 const GetReactionTotalRequest = async (post_id: string) => {
   return await Axios.get(
     `${USER_SERVICE_API}/api/newsfeed/total_reactions/${post_id}/`,
@@ -4001,6 +4045,8 @@ export {
   GetFeedEmojisRequest,
   ReactionSaveRequest,
   GetReactionTotalRequest,
+  CommentReactionSaveRequest,
+  GetCommentReactionTotalRequest,
   GetCommentsRequest,
   SaveCommentRequest,
   DeleteCommentRequest,
@@ -4057,4 +4103,3 @@ export {
   CreateInitialConversation,
   ReplyAssistRequest,
 };
-

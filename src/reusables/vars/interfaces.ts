@@ -761,6 +761,13 @@ export interface IPostComment {
    * children) and always present as 0 elsewhere - see newsfeed/views.py.
    */
   reply_count?: number;
+  /**
+   * Per-emoji reaction tallies, same shape as IPost['preview']. Only emojis
+   * anyone actually reacted with have a row - a missing emoji means zero.
+   */
+  preview?: { count: number; emoji: string }[];
+  /** The viewer's own reaction emoji_id, or null. Null for guests. */
+  entity_reaction?: string | null;
 }
 
 export interface ICoordinatesAnchor {
