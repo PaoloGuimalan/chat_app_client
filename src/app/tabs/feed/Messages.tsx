@@ -503,7 +503,7 @@ function Messages() {
               <h2
                 style={{
                   margin: 0,
-                  fontSize: "var(--fs-screen-title)",
+                  fontSize: "var(--fs-heading)",
                   fontWeight: 800,
                   letterSpacing: "-0.03em",
                 }}
@@ -674,7 +674,7 @@ function Messages() {
                   >
                     <AiOutlineLoading3Quarters
                       className="cl-spin"
-                      style={{ fontSize: "var(--fs-screen-title)" }}
+                      style={{ fontSize: 22 }}
                     />
                   </div>
                 )}
@@ -970,7 +970,7 @@ function Messages() {
             >
               <AiOutlineLoading3Quarters
                 className="cl-spin"
-                style={{ fontSize: "var(--fs-screen-title)" }}
+                style={{ fontSize: 22 }}
               />
             </div>
           )}

@@ -392,7 +392,7 @@ function Feed() {
           >
             <AiOutlineLoading3Quarters
               className="cl-spin"
-              style={{ fontSize: "var(--fs-screen-title)" }}
+              style={{ fontSize: 22 }}
             />
           </div>
         )}

@@ -88,7 +88,7 @@ function SeeAllButton({ onClick }: { onClick: () => void }) {
       type="button"
       onClick={onClick}
       style={{
-        fontSize: "var(--fs-body-sm)",
+        fontSize: "var(--fs-label)",
         fontWeight: 650,
         color: "var(--brand)",
         background: "none",
@@ -553,7 +553,7 @@ function SearchPage() {
             minWidth: 0,
             background: "transparent",
             color: "var(--text)",
-            fontSize: "var(--fs-section-title)",
+            fontSize: "var(--fs-body)",
           }}
         />
         {query.length > 0 && (
@@ -578,7 +578,7 @@ function SearchPage() {
             icon={filter.icon}
             active={activeFilter === filter.key}
             onClick={() => setActiveFilter(filter.key)}
-            style={{ height: 34, padding: "0 14px", fontSize: "var(--fs-body-sm)" }}
+            style={{ height: 34, padding: "0 14px" }}
           >
             {filter.key}
           </Chip>
@@ -619,7 +619,7 @@ function SearchPage() {
               <Icon n="manage_search" s={34} c="var(--brand)" />
             </div>
             <span
-              style={{ fontSize: "var(--fs-screen-title)", fontWeight: 800, color: "var(--text)" }}
+              style={{ fontSize: "var(--fs-heading)", fontWeight: 800, color: "var(--text)" }}
             >
               Search people, realms and posts
             </span>
@@ -929,7 +929,7 @@ function SearchPage() {
         >
           <AiOutlineLoading3Quarters
             className="cl-spin"
-            style={{ fontSize: "var(--fs-display)", color: "#fff" }}
+            style={{ fontSize: 28, color: "#fff" }}
           />
         </div>
       )}

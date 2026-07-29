@@ -134,6 +134,7 @@
   --fs-title: 13.5px; /* row primary text */
   --fs-body: 14px; /* prose, bubbles, captions, inputs */
   --fs-section-title: 15px; /* section headers */
+  --fs-heading: 18px; /* empty-state + panel headings */
   --fs-screen-title: 22px; /* page + detail headings (see media query) */
   --fs-hero-sm: 20px; /* stat figures */
   --fs-hero: 24px; /* banner headings */
@@ -174,6 +175,9 @@
 }
 .cl-text-section {
   font-size: var(--fs-section-title);
+}
+.cl-text-heading {
+  font-size: var(--fs-heading);
 }
 .cl-text-screen {
   font-size: var(--fs-screen-title);

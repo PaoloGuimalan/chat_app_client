@@ -61,7 +61,7 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
       </div>
       <div
         style={{
-          fontSize: "var(--fs-body)",
+          fontSize: "var(--fs-title)",
           color: "var(--text-2)",
           lineHeight: 1.45,
           marginBottom: 8,
@@ -78,7 +78,7 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
         style={{
           display: "flex",
           gap: 16,
-          fontSize: "var(--fs-label)",
+          fontSize: "var(--fs-caption)",
           color: "var(--text-3)",
           alignItems: "center",
         }}

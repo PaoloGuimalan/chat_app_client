@@ -71,7 +71,7 @@ function PersonCard({
         <span
           style={{
             fontWeight: 700,
-            fontSize: "var(--fs-body)",
+            fontSize: "var(--fs-title)",
             color: "var(--text)",
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -86,7 +86,7 @@ function PersonCard({
       </button>
       <div
         style={{
-          fontSize: "var(--fs-label)",
+          fontSize: "var(--fs-caption)",
           color: "var(--text-3)",
           margin: "2px 0 10px",
         }}
