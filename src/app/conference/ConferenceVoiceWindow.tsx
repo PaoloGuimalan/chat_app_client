@@ -22,7 +22,6 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 // import { END_CALL_LIST } from "@/redux/types";
-import UserVideoBlock from "../absolutes/calls_v2/UserVideoBlock";
 import Conversation from "../tabs/messenger/Conversation";
 import { Device } from "mediasoup-client";
 import {
@@ -44,7 +43,11 @@ import {
   RemoveRealmMemberRequest,
 } from "@/reusables/hooks/requests";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
-import RemoteVideo from "../absolutes/calls_v2/RemoteVideo";
+import {
+  buildCallTiles,
+  CallStage,
+  RemoteAudio,
+} from "../absolutes/calls_v2/stage";
 import envs from "@/reusables/hooks/env_configs";
 import { useNavigate } from "react-router-dom";
 import { useReconnect } from "@/reusables/hooks/useReconnect";
@@ -1557,6 +1560,17 @@ function ConferenceVoiceWindow({
     ]),
   );
 
+  const tiles = buildCallTiles({
+    mediaStream,
+    enableCamera,
+    enableMic,
+    screenStream,
+    videoConsumers,
+    waitingParticipants,
+    participantByClientId,
+    participantStatuses,
+  });
+
   return (
     <div className="tw-flex tw-flex-row tw-w-full tw-h-full tw-relative">
       <motion.div
@@ -1577,97 +1591,11 @@ function ConferenceVoiceWindow({
           <RxEnterFullScreen style={{ fontSize: "20px", color: "white" }} />
         </button> */}
         </div>
-        <div className="div_voice_blocks_holder t-scroll">
-          {mediaStream ? (
-            <UserVideoBlock
-              mediaStream={mediaStream}
-              cameraOff={!enableCamera}
-              muted={!enableMic}
-            />
-          ) : (
-            <div className="div_video_blocks">
-              <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
-                You
-                {!enableCamera ? " • camera off" : ""}
-                {!enableMic ? " • muted" : ""}
-              </div>
-            </div>
-          )}
-          {screenStream && (
-            <div
-              className={
-                isMobileView ? "div_video_blocks" : "div_video_screen_blocks"
-              }
-            >
-              <div className="video_call_display tw-rounded-[5px] tw-overflow-hidden tw-bg-[#1f1f1f]">
-                <video
-                  className="video_call_display"
-                  autoPlay
-                  playsInline
-                  muted
-                  ref={(node) => {
-                    if (node && screenStream) {
-                      node.srcObject = screenStream;
-                    }
-                  }}
-                />
-              </div>
-            </div>
-          )}
-          {waitingParticipants.map((participant) => (
-            <div
-              key={`placeholder-${participant.clientId}`}
-              className="div_video_blocks"
-            >
-              <div className="video_call_display tw-rounded-[5px] tw-flex tw-items-center tw-justify-center tw-bg-[#1f1f1f] tw-text-[12px] tw-font-semibold tw-text-white">
-                @{participant.username}
-                {participantStatuses.get(participant.clientId)?.muted
-                  ? " • muted"
-                  : ""}
-                {participantStatuses.get(participant.clientId)?.cameraOff
-                  ? " • camera off"
-                  : ""}
-              </div>
-            </div>
-          ))}
-          {videoConsumers.map(({ id, consumer, ownerClientId, source }) => {
-            const owner = ownerClientId
-              ? participantByClientId.get(ownerClientId)
-              : null;
-            const status = ownerClientId
-              ? participantStatuses.get(ownerClientId)
-              : null;
-            return (
-              <RemoteVideo
-                key={id}
-                consumer={consumer}
-                cameraOff={Boolean(status?.cameraOff)}
-                muted={Boolean(status?.muted)}
-                label={owner ? `@${owner.username}` : "Participant"}
-                source={source || undefined}
-              />
-            );
-          })}
-        </div>
+        <CallStage tiles={tiles} />
         <div style={{ display: "none" }}>
-          {audioConsumers.map(({ id, consumer, ownerClientId, source }) => {
-            const owner = ownerClientId
-              ? participantByClientId.get(ownerClientId)
-              : null;
-            const status = ownerClientId
-              ? participantStatuses.get(ownerClientId)
-              : null;
-            return (
-              <RemoteVideo
-                key={id}
-                consumer={consumer}
-                cameraOff={Boolean(status?.cameraOff)}
-                muted={Boolean(status?.muted)}
-                label={owner ? `@${owner.username}` : "Participant"}
-                source={source || undefined}
-              />
-            );
-          })}
+          {audioConsumers.map(({ id, consumer }) => (
+            <RemoteAudio key={id} consumer={consumer} />
+          ))}
         </div>
         <div id="div_voice_controls">
           <button

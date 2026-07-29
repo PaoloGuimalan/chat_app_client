@@ -129,60 +129,61 @@
   cursor: pointer;
 }
 
-#div_call_controls {
-  background-color: transparent;
-  width: calc(100% - 10px);
-  /* position: absolute; */
-  bottom: 0px;
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  padding: 5px;
-  padding-bottom: 10px;
-  gap: 5px;
-  align-items: center;
-  justify-content: center;
-  z-index: 10;
-  position: sticky;
-  bottom: 0;
-}
-
+#div_call_controls,
 #div_voice_controls {
-  background-color: transparent;
-  width: calc(100% - 10px);
-  /* position: absolute; */
-  bottom: 0px;
+  width: 100%;
   display: flex;
   flex-direction: row;
   flex-wrap: wrap;
-  padding: 5px;
-  padding-bottom: 10px;
-  gap: 5px;
+  padding: 12px 10px 14px 10px;
+  gap: 8px;
   align-items: center;
   justify-content: center;
   z-index: 10;
   position: sticky;
   bottom: 0;
+  flex-shrink: 0;
+  background-image: linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0),
+    rgba(0, 0, 0, 0.55)
+  );
 }
 
 .btn_call_controls {
-  width: 45px;
-  height: 30px;
-  border-radius: 10px;
+  width: 48px;
+  height: 40px;
+  border-radius: 12px;
   border: none;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 17px;
+  background-color: #f1f3f4;
+  color: #14161a;
+  transition:
+    background-color 0.15s ease,
+    transform 0.15s ease;
 }
 
+.btn_call_controls svg {
+  width: 18px;
+  height: 18px;
+}
+
+.btn_call_controls:hover {
+  transform: translateY(-1px);
+}
+
+/* Applied when the feature is OFF (muted / camera off / sharing) — the class
+ * name predates the behaviour it now describes. */
 .btn_call_controls_enable {
   background-color: #888;
+  color: white;
 }
 
 .btn_call_controls_end {
-  background-color: red;
+  background-color: #ff4a4a;
   color: white;
 }
 
@@ -290,6 +291,269 @@
   width: 100%;
   height: 100%;
   min-height: 180px;
+}
+
+/* ---------------------------------------------------------------------------
+ * Call stage — the video area shared by CallWindow, VoiceWindow and the
+ * conference room. The layout maths (how many columns, how big a tile, grid
+ * vs spotlight) live in calls_v2/stage/CallStage.tsx because they depend on
+ * the live container size; everything here is chrome.
+ * ------------------------------------------------------------------------ */
+/* The call windows live outside .cl-redesign, which is where the app's
+ * border-box reset lives — without this a tile's 1px border would push it
+ * past the size the grid solved for. */
+.cl-callstage,
+.cl-callstage * {
+  box-sizing: border-box;
+}
+
+.cl-callstage {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  padding: 10px;
+  z-index: 10;
+}
+
+.cl-callstage-body {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+}
+
+.cl-callstage-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(255, 255, 255, 0.65);
+}
+
+.cl-callstage-layout-toggle {
+  position: absolute;
+  top: 14px;
+  left: 14px;
+  z-index: 12;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 10px;
+  background-color: rgba(0, 0, 0, 0.45);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cl-callstage-layout-toggle:hover {
+  background-color: rgba(0, 0, 0, 0.7);
+}
+
+.cl-callstage-layout-toggle svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Tiles are sized inline from the solved grid, so the container only has to
+ * centre them — including a short last row, which wraps and centres itself. */
+.cl-callstage-grid {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  align-content: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.cl-callstage-grid.is-scrolling {
+  align-content: flex-start;
+  overflow-y: auto;
+}
+
+.cl-callstage-cell {
+  display: flex;
+}
+
+.cl-callstage-spotlight {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  gap: 8px;
+}
+
+.cl-callstage-spotlight.is-rail {
+  flex-direction: row;
+}
+
+.cl-callstage-spotlight.is-strip {
+  flex-direction: column;
+}
+
+.cl-callstage-focus {
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+}
+
+.cl-callstage-rail {
+  width: 196px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  overflow-x: hidden;
+  overflow-y: auto;
+}
+
+.cl-callstage-rail .cl-calltile {
+  height: 110px;
+  flex-shrink: 0;
+}
+
+.cl-callstage-strip {
+  height: 104px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.cl-callstage-strip .cl-calltile {
+  width: 172px;
+  flex-shrink: 0;
+}
+
+.cl-calltile {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #3d4043;
+  border: solid 1px transparent;
+  border-radius: 10px;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-calltile.is-focused {
+  border-color: rgba(255, 255, 255, 0.22);
+}
+
+.cl-calltile-video {
+  width: 100%;
+  height: 100%;
+  display: block;
+  background-color: #1f1f1f;
+}
+
+.cl-calltile-avatar-wrap {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-calltile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 100%;
+  background-color: rgba(255, 255, 255, 0.12);
+  color: white;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.cl-calltile.is-thumb .cl-calltile-avatar {
+  width: 40px;
+  height: 40px;
+}
+
+.cl-calltile-label {
+  position: absolute;
+  left: 8px;
+  bottom: 8px;
+  max-width: calc(100% - 16px);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 3px 8px;
+  border-radius: 6px;
+  background-color: rgba(0, 0, 0, 0.55);
+  color: white;
+}
+
+.cl-calltile-name {
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cl-calltile-label-icon {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  opacity: 0.9;
+}
+
+.cl-calltile-actions {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  display: flex;
+  gap: 4px;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.cl-calltile:hover .cl-calltile-actions,
+.cl-calltile:focus-within .cl-calltile-actions {
+  opacity: 1;
+}
+
+.cl-calltile-action {
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.cl-calltile-action:hover {
+  background-color: rgba(0, 0, 0, 0.75);
+}
+
+.cl-calltile-action svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Touch has no hover to reveal the actions on. */
+@media (hover: none) {
+  .cl-calltile-actions {
+    opacity: 1;
+  }
 }
 
 #div_login {
