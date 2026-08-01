@@ -43,7 +43,7 @@ import { HiOutlinePencil } from "react-icons/hi";
 import ProfilePicContainer from "./ProfilePicContainer";
 import ProfileCoverContainer from "./ProfileCoverContainer";
 import Skeleton from "react-loading-skeleton";
-import { RiVerifiedBadgeFill } from "react-icons/ri";
+import { RiLock2Fill, RiVerifiedBadgeFill } from "react-icons/ri";
 import PostsContainer from "./PostsContainer";
 import SavesContainer from "./SavesContainer";
 import ArchivesContainer from "./ArchivesContainer";
@@ -405,6 +405,9 @@ function Profile({
                 </span>
                 {profileInfo.isBadged && (
                   <RiVerifiedBadgeFill size={18} color="var(--brand)" />
+                )}
+                {profileInfo.isPrivate && (
+                  <RiLock2Fill size={18} color="var(--text-2)" />
                 )}
               </span>
               <span className="cl-text-body tw-break-all tw-mb-[14px]">
@@ -815,78 +818,57 @@ function Profile({
               </div>
             </div>
           </div>
-          <div className="cl-profile-surface tw-h-fit tw-w-full tw-flex">
-            <div className="tw-w-full tw-p-[18px] tw-flex tw-flex-col tw-items-start tw-gap-[12px]">
-              <div className="tw-w-full tw-flex">
-                <div className="tw-flex tw-flex-row tw-flex-1 tw-gap-[5px] tw-items-center">
-                  <FaBook
-                    style={{ fontSize: "17px", color: "var(--text-2)" }}
-                  />
-                  <span className="cl-text-body tw-font-semibold">Diary</span>
+          {profileInfo.canView && (
+            <div className="cl-profile-surface tw-h-fit tw-w-full tw-flex">
+              <div className="tw-w-full tw-p-[18px] tw-flex tw-flex-col tw-items-start tw-gap-[12px]">
+                <div className="tw-w-full tw-flex">
+                  <div className="tw-flex tw-flex-row tw-flex-1 tw-gap-[5px] tw-items-center">
+                    <FaBook
+                      style={{ fontSize: "17px", color: "var(--text-2)" }}
+                    />
+                    <span className="cl-text-body tw-font-semibold">Diary</span>
+                  </div>
+                  {params.userID === authentication.user.username && (
+                    <Link
+                      to={`/${params.userID}/diary`}
+                      className="cl-text-caption tw-text-[var(--brand)]"
+                    >
+                      View
+                    </Link>
+                  )}
                 </div>
-                {params.userID === authentication.user.username && (
-                  <Link
-                    to={`/${params.userID}/diary`}
-                    className="cl-text-caption tw-text-[var(--brand)]"
-                  >
-                    View
-                  </Link>
-                )}
-              </div>
-              <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
-                <BiCalendarEdit
-                  style={{
-                    fontSize: "20px",
-                    color: "var(--text-2)",
-                    marginTop: "-4px",
-                  }}
-                />
-                {diaryPreview.isLoaded ? (
-                  diaryPreview.latest_entry ? (
-                    <span className="cl-text-body">
-                      Latest entry on{" "}
-                      <span className="cl-text-body tw-font-semibold tw-text-left">
-                        {formattedDateToWords(
-                          diaryPreview.latest_entry,
-                          "YYYY-MM-DD",
-                        )}
-                      </span>
-                    </span>
-                  ) : params.userID === authentication.user.username ? (
-                    <span className="cl-text-body">
-                      Write your first entry
-                    </span>
-                  ) : (
-                    <span className="cl-text-body">
-                      {profileInfo.fullname.firstName} has no entries
-                    </span>
-                  )
-                ) : (
-                  <Skeleton
-                    className="tw-max-w-full tw-h-[18px]"
-                    containerClassName="tw-w-[180px] -tw-mt-[5px]"
-                    height="15px"
-                    baseColor="var(--surface-3)"
-                    highlightColor="var(--surface-hover)"
-                    count={1}
-                  />
-                )}
-              </div>
-              {params.userID === authentication.user.username && (
-                <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
-                  <HiOutlinePencil
-                    style={{ fontSize: "20px", color: "var(--text-2)" }}
+                <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
+                  <BiCalendarEdit
+                    style={{
+                      fontSize: "20px",
+                      color: "var(--text-2)",
+                      marginTop: "-4px",
+                    }}
                   />
                   {diaryPreview.isLoaded ? (
-                    <span className="cl-text-body">
-                      {diaryPreview.total_entries}{" "}
-                      {diaryPreview.total_entries > 1 ? "entries" : "entry"}{" "}
-                      made{" "}
-                    </span>
+                    diaryPreview.latest_entry ? (
+                      <span className="cl-text-body">
+                        Latest entry on{" "}
+                        <span className="cl-text-body tw-font-semibold tw-text-left">
+                          {formattedDateToWords(
+                            diaryPreview.latest_entry,
+                            "YYYY-MM-DD",
+                          )}
+                        </span>
+                      </span>
+                    ) : params.userID === authentication.user.username ? (
+                      <span className="cl-text-body">
+                        Write your first entry
+                      </span>
+                    ) : (
+                      <span className="cl-text-body">
+                        {profileInfo.fullname.firstName} has no entries
+                      </span>
+                    )
                   ) : (
                     <Skeleton
                       className="tw-max-w-full tw-h-[18px]"
-                      containerClassName="tw-w-[200px] -tw-mt-[5px]"
+                      containerClassName="tw-w-[180px] -tw-mt-[5px]"
                       height="15px"
                       baseColor="var(--surface-3)"
                       highlightColor="var(--surface-hover)"
@@ -894,28 +876,21 @@ function Profile({
                     />
                   )}
                 </div>
-              )}
-              {diaryPreview.top_tags.length > 0 && (
-                <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
-                  <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
-                    <TfiThought
-                      style={{
-                        fontSize: "20px",
-                        color: "var(--text-2)",
-                        marginTop: "-4px",
-                      }}
+                {params.userID === authentication.user.username && (
+                  <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center">
+                    <HiOutlinePencil
+                      style={{ fontSize: "20px", color: "var(--text-2)" }}
                     />
                     {diaryPreview.isLoaded ? (
                       <span className="cl-text-body">
-                        {params.userID === authentication.user.username
-                          ? "You've"
-                          : `${profileInfo.fullname.firstName} has`}{" "}
-                        been writing a lot about:
+                        {diaryPreview.total_entries}{" "}
+                        {diaryPreview.total_entries > 1 ? "entries" : "entry"}{" "}
+                        made{" "}
                       </span>
                     ) : (
                       <Skeleton
                         className="tw-max-w-full tw-h-[18px]"
-                        containerClassName="tw-w-[220px] -tw-mt-[5px]"
+                        containerClassName="tw-w-[200px] -tw-mt-[5px]"
                         height="15px"
                         baseColor="var(--surface-3)"
                         highlightColor="var(--surface-hover)"
@@ -923,32 +898,62 @@ function Profile({
                       />
                     )}
                   </div>
-                  <motion.div
-                    initial={{
-                      paddingLeft: isMobileView ? "20px" : "20px",
-                    }}
-                    animate={{
-                      paddingLeft: isMobileView ? "20px" : "20px",
-                    }}
-                    className="tw-flex tw-flex-wrap tw-gap-[6px]"
-                  >
-                    {diaryPreview.top_tags.map((mp) => {
-                      return (
-                        <div
-                          key={mp.id}
-                          className="tw-p-[6px] tw-pl-[10px] tw-pr-[10px] tw-bg-[var(--surface-2)] tw-rounded-[12px] tw-border tw-border-[var(--border)]"
-                        >
-                          <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
-                            {mp.name}
-                          </span>
-                        </div>
-                      );
-                    })}
-                  </motion.div>
-                </div>
-              )}
+                )}
+                {diaryPreview.top_tags.length > 0 && (
+                  <div className="tw-w-full tw-flex tw-flex-wrap tw-gap-[10px]">
+                    <div className="tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-mt-[2px]">
+                      <TfiThought
+                        style={{
+                          fontSize: "20px",
+                          color: "var(--text-2)",
+                          marginTop: "-4px",
+                        }}
+                      />
+                      {diaryPreview.isLoaded ? (
+                        <span className="cl-text-body">
+                          {params.userID === authentication.user.username
+                            ? "You've"
+                            : `${profileInfo.fullname.firstName} has`}{" "}
+                          been writing a lot about:
+                        </span>
+                      ) : (
+                        <Skeleton
+                          className="tw-max-w-full tw-h-[18px]"
+                          containerClassName="tw-w-[220px] -tw-mt-[5px]"
+                          height="15px"
+                          baseColor="var(--surface-3)"
+                          highlightColor="var(--surface-hover)"
+                          count={1}
+                        />
+                      )}
+                    </div>
+                    <motion.div
+                      initial={{
+                        paddingLeft: isMobileView ? "20px" : "20px",
+                      }}
+                      animate={{
+                        paddingLeft: isMobileView ? "20px" : "20px",
+                      }}
+                      className="tw-flex tw-flex-wrap tw-gap-[6px]"
+                    >
+                      {diaryPreview.top_tags.map((mp) => {
+                        return (
+                          <div
+                            key={mp.id}
+                            className="tw-p-[6px] tw-pl-[10px] tw-pr-[10px] tw-bg-[var(--surface-2)] tw-rounded-[12px] tw-border tw-border-[var(--border)]"
+                          >
+                            <span className="cl-text-caption tw-font-Inter tw-font-semibold tw-text-[var(--text)]">
+                              {mp.name}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </motion.div>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
+          )}
         </div>
         <div className="cl-profile-page__feed tw-w-full tw-pb-[12px] tw-flex tw-flex-col tw-items-center tw-gap-[4px]">
           {params.userID === authentication.user.username && (
@@ -984,7 +989,9 @@ function Profile({
                   }}
                   className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
                 >
-                  <span className="cl-text-caption tw-font-semibold">Posts</span>
+                  <span className="cl-text-caption tw-font-semibold">
+                    Posts
+                  </span>
                 </motion.button>
                 <motion.button
                   initial={{
@@ -1008,7 +1015,9 @@ function Profile({
                   }}
                   className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
                 >
-                  <span className="cl-text-caption tw-font-semibold">Saves</span>
+                  <span className="cl-text-caption tw-font-semibold">
+                    Saves
+                  </span>
                 </motion.button>
                 <motion.button
                   initial={{

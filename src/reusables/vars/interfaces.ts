@@ -91,6 +91,8 @@ export interface ProfileUserInfoInterface {
   isActivated: boolean;
   isVerified: boolean;
   isBadged: boolean;
+  isPrivate: boolean | null;
+  canView: boolean | null;
 }
 
 export interface IRealmBasicInfo {
