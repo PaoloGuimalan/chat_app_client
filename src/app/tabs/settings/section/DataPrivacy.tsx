@@ -4,15 +4,31 @@ import { useDispatch, useSelector } from "react-redux";
 import {
   ExportAccountDataRequest,
   DeleteAccountRequest,
+  UpdateProfilePrivacyRequest,
 } from "@/reusables/hooks/requests";
 
 function DataPrivacy() {
   const alerts = useSelector((state: any) => state.alerts);
+  const authentication = useSelector((state: any) => state.authentication);
   const dispatch = useDispatch();
 
   const [isExporting, setisExporting] = useState<boolean>(false);
   const [isDeleting, setisDeleting] = useState<boolean>(false);
   const [confirmDelete, setconfirmDelete] = useState<boolean>(false);
+  const [isSavingPrivacy, setisSavingPrivacy] = useState<boolean>(false);
+
+  const isPrivate: boolean = authentication?.user?.isPrivate === true;
+
+  const togglePrivacy = () => {
+    if (isSavingPrivacy) return;
+    setisSavingPrivacy(true);
+    UpdateProfilePrivacyRequest(
+      !isPrivate,
+      dispatch,
+      alerts,
+      setisSavingPrivacy,
+    );
+  };
 
   const exportProcess = () => {
     setisExporting(true);
@@ -36,6 +52,40 @@ function DataPrivacy() {
         </span>
       </div>
       <div className="tw-w-full tw-flex tw-flex-col tw-gap-[30px]">
+        <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
+          <div className="tw-w-full tw-flex tw-flex-col tw-items-start">
+            <span className="tw-text-[14px] tw-font-semibold">
+              Private profile
+            </span>
+            <span className="tw-text-[14px] tw-text-left tw-text-[#6b6b6d]">
+              When your profile is private, only your contacts and approved
+              followers can see your posts, diary activity, birthdate and
+              email. Everyone else sees just your name and photo, and has to
+              send a follow request you approve.
+            </span>
+            {/* Stated up front rather than in the confirmation toast: the
+                post rewrite is the irreversible half of this toggle, and the
+                user should know that before flipping it, not after. */}
+            <span className="tw-text-[13px] tw-text-left tw-text-[#6b6b6d] tw-mt-[6px]">
+              Turning this on also limits your existing public posts to your
+              contacts. Turning it back off will not make those posts public
+              again &mdash; you can re-share them individually.
+            </span>
+          </div>
+          <button
+            onClick={togglePrivacy}
+            disabled={isSavingPrivacy}
+            aria-pressed={isPrivate}
+            className="tw-min-w-[140px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--surface-2)] tw-text-[var(--text)] tw-rounded-[var(--r-md)] tw-text-[13px] hover:tw-bg-[var(--surface-hover)] tw-transition-colors disabled:tw-opacity-[0.65]"
+          >
+            {isSavingPrivacy
+              ? "Saving…"
+              : isPrivate
+                ? "Make profile public"
+                : "Make profile private"}
+          </button>
+        </div>
+
         <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
           <div className="tw-w-full tw-flex tw-flex-col tw-items-start">
             <span className="tw-text-[14px] tw-font-semibold">

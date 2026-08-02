@@ -85,6 +85,36 @@ function RealmProfile({
   // not just "do I administer it". A page can't follow or message itself.
   const isSelf = authentication.active_entity_context.id === realmInfo.entity;
 
+  // Same live-refresh as the user profile: a page's admins can accept a
+  // contact request, and the requester may be sitting on the page looking at
+  // a stale "Pending" button. Pages are never private, so only the button
+  // state is at stake here - not access.
+  useEffect(() => {
+    if (!realmInfo?.entity) return;
+
+    // Debounced for the same reason as the user profile: one change emits
+    // several relay events, and each would trigger its own refetch.
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const onRelay = (e: Event) => {
+      const detail = (e as CustomEvent).detail || {};
+      // Only when the change is with THIS page - see Profile.tsx.
+      if (!detail.entityID || detail.entityID !== realmInfo.entity) return;
+
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        timer = null;
+        GetProfileInfoProcess(() => {});
+      }, 300);
+    };
+
+    document.addEventListener("profile-events-relay", onRelay);
+    return () => {
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("profile-events-relay", onRelay);
+    };
+  }, [realmInfo?.entity]);
+
   useEffect(() => {
     let currentView = false;
     if (divcontentRef) {

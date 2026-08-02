@@ -15,6 +15,8 @@ import {
   FaPlus,
   FaCheck,
   FaXmark,
+  FaUserGroup,
+  FaLock,
 } from "react-icons/fa6";
 import { MdAddToPhotos } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
@@ -59,6 +61,54 @@ export function NewPostModal({
   const [mainpostcaption, setmainpostcaption] = useState<string>("");
   const [_, setcurrenttab] = useState<string>("content"); //currenttab
   const [medialist, setmedialist] = useState<any[]>([]);
+
+  // Audience for this post. Defaults to connections-only for a private
+  // profile, public otherwise - the same rule the server applies when the
+  // field is absent (newsfeed/services/post_visibility.py
+  // default_privacy_status_for). Mirrored here so the UI shows what will
+  // actually happen rather than claiming "Public" and being overridden.
+  //
+  // Posting AS A PAGE always defaults to public: profile privacy is a
+  // person-level setting and a realm has none.
+  const isPrivateProfile =
+    authentication?.user?.isPrivate === true &&
+    authentication?.active_entity_context?.entity_type !== "realm";
+  const [postPrivacy, setpostPrivacy] = useState<string>(
+    isPrivateProfile ? "connections" : "public",
+  );
+  const [showPrivacy, setshowPrivacy] = useState<boolean>(false);
+
+  // "custom" is deliberately absent: the backend supports it, but it needs an
+  // allow-list picker (PostPrivacy rows) that does not exist yet.
+  const PRIVACY_OPTIONS: {
+    value: string;
+    label: string;
+    hint: string;
+    icon: JSX.Element;
+  }[] = [
+    {
+      value: "public",
+      label: "Public",
+      hint: "Anyone on Chatterloop, including people signed out",
+      icon: <FaGlobeAsia style={{ fontSize: "16px" }} />,
+    },
+    {
+      value: "connections",
+      label: "Contacts only",
+      hint: "Only people you are connected with",
+      icon: <FaUserGroup style={{ fontSize: "16px" }} />,
+    },
+    {
+      value: "private",
+      label: "Only me",
+      hint: "Nobody else can see this post",
+      icon: <FaLock style={{ fontSize: "15px" }} />,
+    },
+  ];
+
+  const activePrivacy =
+    PRIVACY_OPTIONS.find((mp) => mp.value === postPrivacy) ||
+    PRIVACY_OPTIONS[0];
 
   // Entities selected to tag - users OR realms/pages. We keep the normalized
   // search objects (not just ids) so chips and results render avatars, names
@@ -288,9 +338,9 @@ export function NewPostModal({
             users: validatedTaggedList,
           },
           privacy: {
-            status: "public",
+            status: postPrivacy,
             users: [], //userID for filteration depending on status
-          }, //public, friends, filtered
+          }, //public, connections, private, custom
           onfeed: "feed",
           otherEntityID: otherEntityID,
         });
@@ -353,9 +403,9 @@ export function NewPostModal({
           } ${
             toShare
               ? "tw-max-h-[600px]"
-              : iswithImage || showTagging
+              : iswithImage || showTagging || showPrivacy
                 ? "tw-max-h-[600px]"
-                : "tw-max-h-[250px]"
+                : "tw-max-h-[290px]"
           }`}
         >
           {isuploadingpost && !toShare && (
@@ -363,9 +413,9 @@ export function NewPostModal({
               className={`cl-create-post-loading tw-absolute tw-inset-0 tw-h-full tw-w-full ${
                 toShare
                   ? "tw-max-h-[600px]"
-                  : iswithImage || showTagging
+                  : iswithImage || showTagging || showPrivacy
                     ? "tw-max-h-[520px]"
-                    : "tw-max-h-[220px]"
+                    : "tw-max-h-[260px]"
               } tw-flex tw-items-center tw-justify-center`}
             >
               <div id="div_conversation_content_loader">
@@ -396,8 +446,16 @@ export function NewPostModal({
               </span>
             </div>
           </div>
-          <div className="cl-create-post-body scroller tw-w-full tw-items-stretch tw-justify-start">
-            <div className="tw-w-full tw-flex-1 tw-min-h-0 tw-overflow-y-auto thinscroller tw-bg-transparent tw-flex tw-flex-col tw-gap-[12px] tw-items-stretch">
+          {/* thinscroller, not `scroller`: the latter renders a 10px bar with
+              a #f1f1f1 track, which on the dark theme showed up as a pale
+              strip drawn over the caption box's right edge. Every other
+              scroll area in this modal already uses thinscroller. */}
+          <div className="cl-create-post-body thinscroller tw-w-full tw-items-stretch tw-justify-start">
+            {/* pr-[6px] reserves a gutter for the scrollbar. Without it the
+                track is drawn ON TOP of the caption box's rounded right edge
+                whenever this area scrolls, which it does as soon as a panel
+                or a link preview appears. */}
+            <div className="tw-w-full tw-flex-1 tw-min-h-0 tw-overflow-y-auto thinscroller tw-bg-transparent tw-flex tw-flex-col tw-gap-[12px] tw-items-stretch tw-pr-[6px]">
               <textarea
                 disabled={isuploadingpost}
                 value={mainpostcaption}
@@ -448,6 +506,56 @@ export function NewPostModal({
                       </button>
                     </span>
                   ))}
+                </div>
+              )}
+              {showPrivacy && (
+                <div className="cl-create-post-tagging">
+                  <span className="cl-text-caption tw-text-left tw-text-[var(--text-2)]">
+                    Who can see this post?
+                  </span>
+                  <div className="cl-post-privacy-options">
+                    {PRIVACY_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        disabled={isuploadingpost}
+                        aria-pressed={postPrivacy === option.value}
+                        onClick={() => {
+                          setpostPrivacy(option.value);
+                          setshowPrivacy(false);
+                        }}
+                        className={`cl-post-privacy-option ${
+                          postPrivacy === option.value
+                            ? "cl-post-privacy-option--active"
+                            : ""
+                        }`}
+                      >
+                        <span className="cl-post-privacy-option__icon">
+                          {option.icon}
+                        </span>
+                        <span className="cl-post-privacy-option__text">
+                          <span className="cl-post-privacy-option__label">
+                            {option.label}
+                          </span>
+                          <span className="cl-post-privacy-option__hint">
+                            {option.hint}
+                          </span>
+                        </span>
+                        {postPrivacy === option.value && (
+                          <FaCheck
+                            style={{ fontSize: "13px", flexShrink: 0 }}
+                            color="var(--brand)"
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {isPrivateProfile && postPrivacy === "public" && (
+                    <span className="cl-text-caption tw-text-left tw-text-[var(--text-2)]">
+                      Your profile is private, but this post will be visible to
+                      everyone.
+                    </span>
+                  )}
                 </div>
               )}
               {showTagging && (
@@ -614,10 +722,20 @@ export function NewPostModal({
             <button
               onClick={() => {
                 setcurrenttab("privacy");
+                // Only one panel at a time - they share the composer's scroll
+                // area, and stacking them pushes the caption box out of view.
+                setshowTagging(false);
+                setshowPrivacy((prev) => !prev);
               }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand-700)]"
+              title={`Audience: ${activePrivacy.label}`}
+              className={`cl-tag-toolbar-btn tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand-700)] ${
+                showPrivacy ? "cl-toolbar-btn--active" : ""
+              }`}
             >
-              <FaGlobeAsia style={{ fontSize: "20px" }} />
+              {/* The icon tracks the current audience (globe / group / lock)
+                  so the selection is readable without a text label - the
+                  toolbar is icon-only and has no room for one. */}
+              {activePrivacy.icon}
             </button>
             {!toShare && (
               <button
@@ -640,6 +758,7 @@ export function NewPostModal({
             <button
               onClick={() => {
                 setcurrenttab("tagging");
+                setshowPrivacy(false);
                 setshowTagging((prev) => !prev);
               }}
               title="Tag people or pages"

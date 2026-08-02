@@ -4,6 +4,7 @@ import { UIEvent, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   AcceptContactRequest,
+  AnswerFollowRequest,
   DeclineContactRequest,
   NotificationsOverviewV2Request,
   NotificationsSectionV2Request,
@@ -279,9 +280,26 @@ function Notifications() {
     });
   };
 
+  // The two request kinds share the row and its buttons but hit different
+  // endpoints, so each handler branches on the notification type.
+  //
+  // A follow_request's referenceID is the REQUESTER's entity id (there is no
+  // connection row to address), which is exactly what the follow endpoint
+  // wants as target_id - the followee is always the caller.
   const acceptRequestProcess = (n: INotificationV2) => {
     setIsDisabledByRequest(true);
     setReferenceHandled(n.referenceID);
+
+    if (n.type === "follow_request") {
+      AnswerFollowRequest(
+        { target_id: n.referenceID, action: "approve" },
+        dispatch,
+        alerts,
+        setIsDisabledByRequest,
+      );
+      return;
+    }
+
     AcceptContactRequest(
       { connection_id: n.referenceID, entity_id: n.fromUserID },
       dispatch,
@@ -293,6 +311,17 @@ function Notifications() {
   const declineRequestProcess = (n: INotificationV2) => {
     setIsDisabledByRequest(true);
     setReferenceHandled(n.referenceID);
+
+    if (n.type === "follow_request") {
+      AnswerFollowRequest(
+        { target_id: n.referenceID, action: "decline" },
+        dispatch,
+        alerts,
+        setIsDisabledByRequest,
+      );
+      return;
+    }
+
     DeclineContactRequest(
       {
         connection_id: n.referenceID,

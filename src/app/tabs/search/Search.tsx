@@ -296,34 +296,43 @@ function SearchPage() {
 
   // Follow state lives in FOUR lists (overview people/realms + both detail
   // lists); one applier keeps them consistent for optimistic flips/reverts.
-  const applyFollowState = (entityID: string, next: boolean) => {
+  //
+  // People carry TWO flags because following a private profile lands pending
+  // rather than established, so "followed" and "requested" are different
+  // states. Realms only ever have one - a realm is never private, so a follow
+  // of one is always immediate.
+  const applyFollowState = (
+    entityID: string,
+    next: { followed: boolean; pending: boolean },
+  ) => {
+    const applyPerson = (p: SearchPersonResult) =>
+      p.entity_id === entityID
+        ? { ...p, is_followed: next.followed, is_follow_pending: next.pending }
+        : p;
+
     setOverview((prev) =>
       prev
         ? {
             ...prev,
             people: {
               ...prev.people,
-              results: prev.people.results.map((p) =>
-                p.entity_id === entityID ? { ...p, is_followed: next } : p,
-              ),
+              results: prev.people.results.map(applyPerson),
             },
             realms: {
               ...prev.realms,
               results: prev.realms.results.map((r) =>
-                r.entity_id === entityID ? { ...r, is_follower: next } : r,
+                r.entity_id === entityID
+                  ? { ...r, is_follower: next.followed }
+                  : r,
               ),
             },
           }
         : prev,
     );
-    setDetailPeople((prev) =>
-      prev.map((p) =>
-        p.entity_id === entityID ? { ...p, is_followed: next } : p,
-      ),
-    );
+    setDetailPeople((prev) => prev.map(applyPerson));
     setDetailRealms((prev) =>
       prev.map((r) =>
-        r.entity_id === entityID ? { ...r, is_follower: next } : r,
+        r.entity_id === entityID ? { ...r, is_follower: next.followed } : r,
       ),
     );
   };
@@ -331,22 +340,46 @@ function SearchPage() {
   const toggleFollowEntity = (
     entityID: string,
     currentlyFollowing: boolean,
+    currentlyPending = false,
   ) => {
     if (followBusy[entityID]) return;
     setFollowBusy((prev) => ({ ...prev, [entityID]: true }));
-    applyFollowState(entityID, !currentlyFollowing);
+
+    // A pending request un-follows the same way an established follow does:
+    // DELETE drops the row whatever its status, which is how the requester
+    // cancels. So both count as "on" for the purposes of this toggle.
+    const isActive = currentlyFollowing || currentlyPending;
+    const revert = {
+      followed: currentlyFollowing,
+      pending: currentlyPending,
+    };
+
+    // Optimistically assume the follow takes effect immediately; the response
+    // corrects it to "requested" if the target turned out to be private.
+    applyFollowState(
+      entityID,
+      isActive ? { followed: false, pending: false } : {
+        followed: true,
+        pending: false,
+      },
+    );
+
     // The follow endpoint takes any entity target (person or page);
     // entity_id is the general alias - same convention as Profile.tsx.
-    const request = currentlyFollowing
-      ? UnfollowRealmRequest
-      : FollowRealmRequest;
+    const request = isActive ? UnfollowRealmRequest : FollowRealmRequest;
     request({ entity_id: entityID })
       .then((response) => {
-        if (!response) applyFollowState(entityID, currentlyFollowing);
+        if (!response) {
+          applyFollowState(entityID, revert);
+          return;
+        }
+        if (!isActive && response.is_pending) {
+          applyFollowState(entityID, { followed: false, pending: true });
+        }
       })
       .catch((err) => {
         console.log(err);
-        applyFollowState(entityID, currentlyFollowing);
+        applyFollowState(entityID, revert);
       })
       .finally(() => {
         setFollowBusy((prev) => ({ ...prev, [entityID]: false }));
@@ -393,8 +426,13 @@ function SearchPage() {
   };
 
   const onTogglePersonFollow = (person: SearchPersonResult) =>
-    toggleFollowEntity(person.entity_id, person.is_followed);
+    toggleFollowEntity(
+      person.entity_id,
+      person.is_followed,
+      person.is_follow_pending,
+    );
   const onToggleRealmFollow = (realm: SearchRealmResult) =>
+    // Realms are never private, so there is no pending state to pass.
     toggleFollowEntity(realm.entity_id, realm.is_follower);
   const onOpenPerson = (person: SearchPersonResult) =>
     navigate(`/${person.handle}`);

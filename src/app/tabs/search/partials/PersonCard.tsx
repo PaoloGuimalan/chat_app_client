@@ -96,11 +96,20 @@ function PersonCard({
       <Btn
         block
         size="sm"
-        variant={person.is_followed ? "soft" : "primary"}
+        // "Requested" reads as an already-actioned state, same as Following,
+        // so it takes the soft variant too - only an untouched profile gets
+        // the primary call to action.
+        variant={
+          person.is_followed || person.is_follow_pending ? "soft" : "primary"
+        }
         disabled={followBusy}
         onClick={() => onToggleFollow(person)}
       >
-        {person.is_followed ? "Following" : "Follow"}
+        {person.is_followed
+          ? "Following"
+          : person.is_follow_pending
+            ? "Requested"
+            : "Follow"}
       </Btn>
     </Card>
   );

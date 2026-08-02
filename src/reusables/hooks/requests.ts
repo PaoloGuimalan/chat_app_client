@@ -149,6 +149,7 @@ const AuthCheck = (dispatch: any) => {
               gender: userData.gender,
               isActivated: userData.isActivated,
               isVerified: userData.isVerified,
+              isPrivate: userData.isPrivate,
               isComplete: userData.isComplete,
               pendingConsents: userData.pending_consents || [],
               profile: userData.profile,
@@ -223,6 +224,7 @@ const LoginRequest = (
             email: userData.email,
             isActivated: userData.isActivated,
             isVerified: userData.isVerified,
+            isPrivate: userData.isPrivate,
             isComplete: userData.isComplete,
             pendingConsents: userData.pendingConsents,
             entity_id: userData.entity_id,
@@ -457,6 +459,7 @@ const ThirdPartyAuthenticationRequest = (
             email: userData.email,
             isActivated: userData.isActivated,
             isVerified: userData.isVerified,
+            isPrivate: userData.isPrivate,
             isComplete: userData.isComplete,
             pendingConsents: userData.pendingConsents,
             entity_id: userData.entity_id,
@@ -811,7 +814,7 @@ const NetworkOverviewRequest = async () => {
 };
 
 const NetworkSectionRequest = async (
-  section: "connections" | "followers" | "following",
+  section: "connections" | "followers" | "following" | "follow-requests",
   page: number,
   pageSize: number,
 ) => {
@@ -824,6 +827,61 @@ const NetworkSectionRequest = async (
     // DRF pagination: { count, next, previous, results }
     return response.data;
   });
+};
+
+// Approve / decline a pending follow request addressed to the acting entity.
+// Only a PRIVATE profile ever has these: following a public profile is
+// established immediately and never reaches this call.
+//
+// `target_id` is the REQUESTER's entity id (the followee is always the caller
+// - you can only answer requests made to you), which is what the
+// follow_request notification carries as its referenceID. The action travels
+// as a header to match the contact-request accept/reject call.
+//
+// Signature deliberately mirrors AcceptContactRequest so the Notifications
+// page treats both request kinds identically - same busy flag, same alerts.
+const AnswerFollowRequest = (
+  params: { target_id: string; action: "approve" | "decline" },
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisDisabledByRequest: any,
+) => {
+  Axios.put(
+    `${USER_SERVICE_API}/api/realm/follow`,
+    { target_id: params.target_id },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+        action: params.action,
+      },
+    },
+  )
+    .then((response) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: response.data.status ? "success" : "warning",
+            content: response.data.message,
+          },
+        },
+      });
+      setisDisabledByRequest(false);
+    })
+    .catch((err) => {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: err.message,
+          },
+        },
+      });
+      setisDisabledByRequest(false);
+    });
 };
 
 // Group chat shortcuts for the Contacts page's rail. Separate service from
@@ -3371,6 +3429,7 @@ const CompleteProfileRequest = async (
                 email: userData.email,
                 isActivated: userData.isActivated,
                 isVerified: userData.isVerified,
+                isPrivate: userData.isPrivate,
                 isComplete: userData.isComplete,
                 pendingConsents: userData.pendingConsents,
                 entity_id: userData.entity_id,
@@ -3468,6 +3527,7 @@ const AcceptPoliciesRequest = async (
                 email: userData.email,
                 isActivated: userData.isActivated,
                 isVerified: userData.isVerified,
+                isPrivate: userData.isPrivate,
                 isComplete: userData.isComplete,
                 pendingConsents: userData.pendingConsents,
                 entity_id: userData.entity_id,
@@ -3890,6 +3950,7 @@ const UpdateProfileInfoRequest = async (
                 email: userData.email,
                 isActivated: userData.isActivated,
                 isVerified: userData.isVerified,
+                isPrivate: userData.isPrivate,
                 isComplete: userData.isComplete,
                 pendingConsents: userData.pendingConsents,
                 entity_id: userData.entity_id,
@@ -3926,6 +3987,106 @@ const UpdateProfileInfoRequest = async (
         },
       });
       setisWaitingRequest(false);
+    });
+};
+
+/**
+ * Settings > Data & Privacy > Private profile.
+ *
+ * Same PUT /api/user/me as UpdateProfileInfoRequest, kept separate because
+ * the outcome is not "profile updated": switching ON also narrows every
+ * existing PUBLIC post to connections-only, and the response reports how many
+ * with `posts_restricted`. Surfacing that is the point - a silent bulk
+ * rewrite of someone's back catalogue is exactly the kind of thing a settings
+ * toggle must say out loud.
+ *
+ * Switching back OFF does NOT re-publish those posts (server-side decision;
+ * see apply_profile_privacy_to_posts), which the caller tells the user about
+ * BEFORE they flip it on.
+ */
+const UpdateProfilePrivacyRequest = async (
+  isPrivate: boolean,
+  dispatch: Dispatch<any>,
+  currentAlertState: any,
+  setisWaitingRequest: any,
+) => {
+  return Axios.put(
+    `${USER_SERVICE_API}/api/user/me`,
+    { is_private: isPrivate },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken") || "",
+      },
+    },
+  )
+    .then((response) => {
+      if (response.data.status) {
+        const restricted = response.data.posts_restricted || 0;
+
+        dispatch({
+          type: SET_ALERTS,
+          payload: {
+            alerts: {
+              id: currentAlertState.length,
+              type: "success",
+              content: isPrivate
+                ? restricted > 0
+                  ? `Your profile is now private. ${restricted} existing ${
+                      restricted === 1 ? "post is" : "posts are"
+                    } now visible to your contacts only.`
+                  : "Your profile is now private."
+                : "Your profile is now public.",
+            },
+          },
+        });
+
+        // Keep the store's copy of the account in step - the profile header
+        // reads isPrivate off it for the lock icon.
+        const current = store.getState().authentication;
+        dispatch({
+          type: SET_AUTHENTICATION,
+          payload: {
+            authentication: {
+              ...current,
+              user: {
+                ...current.user,
+                isPrivate,
+              },
+            },
+          },
+        });
+
+        setisWaitingRequest(false);
+        return true;
+      }
+
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "warning",
+            content: response.data.message,
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return false;
+    })
+    .catch((err) => {
+      console.log(err.message);
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: currentAlertState.length,
+            type: "error",
+            content: "Could not update your privacy setting",
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return false;
     });
 };
 
@@ -4098,6 +4259,8 @@ export {
   RevokeDeviceSessionRequest,
   ReportUserRequest,
   UpdateProfileInfoRequest,
+  UpdateProfilePrivacyRequest,
+  AnswerFollowRequest,
   InitConversationListV1Request,
   InitConversationInfoRequest,
   CreateInitialConversation,

@@ -10,6 +10,7 @@ const TYPE_ICONS: Record<string, { icon: string; color: string }> = {
   shared_post_notification: { icon: "cached", color: "var(--brand)" },
   contact_request: { icon: "person_add", color: "var(--brand)" },
   follow: { icon: "person_add", color: "var(--green)" },
+  follow_request: { icon: "lock_person", color: "var(--brand)" },
   info_contact_accept: { icon: "how_to_reg", color: "var(--green)" },
   info_contact_decline: { icon: "close", color: "var(--text-3)" },
   poke: { icon: "touch_app", color: "var(--gold)" },
@@ -55,7 +56,13 @@ function NotificationRow({
     ? `${n.date.date} · ${n.date.time}`
     : timeSince(n.date?.date);
 
-  const showActions = n.type === "contact_request" && !n.referenceStatus;
+  // Both request kinds are answered from this row. referenceStatus=false is
+  // what marks one as still OPEN - the server writes it that way, and
+  // accepting/declining flips it locally so the buttons drop away without a
+  // refetch.
+  const showActions =
+    (n.type === "contact_request" || n.type === "follow_request") &&
+    !n.referenceStatus;
 
   return (
     <div

@@ -46,6 +46,17 @@ const SSENotificationsTRequest = (
 
   const encodedPayload = sign(payload, SECRET);
 
+  // Close any existing stream before opening a new one. This used to just
+  // reassign, leaking the previous EventSource - and there are two callers
+  // (Home and ConferenceRoom), so entering a conference left TWO live
+  // connections delivering every event twice. Every handler below then ran
+  // twice, which showed up as duplicated API calls (notifications, contacts,
+  // and the profile refresh) for a single server-side event.
+  if (sseNtfsSource) {
+    sseNtfsSource.close();
+    sseNtfsSource = null;
+  }
+
   sseNtfsSource = new EventSource(
     `${API}/u/sseNotifications/${encodedPayload}`,
   );
@@ -55,6 +66,12 @@ const SSENotificationsTRequest = (
     // console.log(parsedresponse)
     if (parsedresponse.auth) {
       if (parsedresponse.status) {
+        // Deliberately does NOT relay to the profile page: this event names
+        // no subject, so reacting to it reloaded whatever profile happened to
+        // be open on every unrelated like, comment or follow. The addressed
+        // `profile_relationship_updated` event below is the one the profile
+        // listens to.
+
         // const decodedResult: any = jwt_decode(parsedresponse.result);
         // console.log(decodedResult)
         //play ringtone
@@ -85,6 +102,7 @@ const SSENotificationsTRequest = (
             },
           },
         });
+
       }
     }
   });
@@ -126,6 +144,39 @@ const SSENotificationsTRequest = (
           return bool;
         });
       }
+    }
+  });
+
+  // The ONLY event the profile page reacts to, because it is the only one
+  // that says WHO the change was with. It is published after commit
+  // (entity/services/realtime.py), so refetching on it reads settled rows -
+  // the contactslist/notifications publishes happen mid-transaction and, on
+  // the remove path, before purge_between() tears the follow edges down.
+  //
+  // Fires on contact accept, decline, remove and follow-request approval.
+  //
+  // Nothing is dispatched to redux: the only thing that cares is a mounted
+  // profile page. If none is mounted this is a no-op, and the next visit
+  // loads fresh data anyway.
+  sseNtfsSource.addEventListener("profile_relationship_updated", (e: any) => {
+    const parsedresponse = JSON.parse(e.data);
+    if (parsedresponse.auth && parsedresponse.status) {
+      // The Redis->SSE bridge forwards `message` as the frame body
+      // (res.sse(data.event, data.message) in the server's redis/pubsub.js),
+      // so `result` sits at the top level here, not under `message`.
+      const entityID = parsedresponse.result?.entity_id;
+      // No subject means nothing can be matched against, so nothing is
+      // relayed - better a missed refresh than reloading an unrelated page.
+      if (!entityID) return;
+
+      document.dispatchEvent(
+        new CustomEvent("profile-events-relay", {
+          detail: {
+            event: "profile_relationship_updated",
+            entityID: String(entityID),
+          },
+        }),
+      );
     }
   });
 
@@ -212,6 +263,29 @@ const SSENotificationsTRequest = (
     const parsedresponse = JSON.parse(e.data);
     if (parsedresponse.auth) {
       if (parsedresponse.status) {
+        // Relayed to the profile page because this event now names its
+        // subject: `result.entity_id` is the OTHER party from THIS
+        // recipient's point of view (user/views.py builds it per recipient).
+        // Without an id nothing is relayed - an unaddressed event cannot say
+        // which profile went stale, and reloading on it reloads whatever
+        // page happens to be open.
+        //
+        // Emitted before the contacts refetch below so a throw down there
+        // cannot swallow it.
+        {
+          const subjectID = parsedresponse.result?.entity_id;
+          if (subjectID) {
+            document.dispatchEvent(
+              new CustomEvent("profile-events-relay", {
+                detail: {
+                  event: "contactslist",
+                  entityID: String(subjectID),
+                },
+              }),
+            );
+          }
+        }
+
         // const decodedResult: any = jwt_decode(parsedresponse.result);
         //play ringtone
         // dispatch({
@@ -554,6 +628,9 @@ const SSENotificationsTRequest = (
 const CloseSSENotifications = () => {
   if (sseNtfsSource) {
     sseNtfsSource.close();
+    // Cleared so a later SSENotificationsTRequest() does not try to close an
+    // already-closed handle, and so "is a stream open?" stays answerable.
+    sseNtfsSource = null;
   }
 };
 

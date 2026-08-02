@@ -81,6 +81,7 @@ function Profile({
   // page. Mirrored into local state so the button flips without a refetch.
   const [isFollowLoading, setisFollowLoading] = useState<boolean>(false);
   const [isFollowing, setisFollowing] = useState<boolean>(false);
+  const [isFollowPending, setisFollowPending] = useState<boolean>(false);
 
   const [isPokeLoading, setisPokeLoading] = useState<boolean>(false);
   const [isBlockLoading, setisBlockLoading] = useState<boolean>(false);
@@ -170,23 +171,85 @@ function Profile({
     GetDiaryTotalProcess();
   }, [params.userID]);
 
+  // Live-refresh when the person whose profile we're on answers a request we
+  // sent them. Without this the page keeps showing "Pending"/"Requested" -
+  // and, if they are private, an empty feed - until a manual reload, which is
+  // exactly the moment the user is most likely to be watching.
+  //
+  // Only the profile fetch is triggered: PostsContainer re-runs on a
+  // profileInfo change, so the feed follows on its own once access opens up.
+  // The diary summary has its own fetch and is refreshed alongside.
+  useEffect(() => {
+    if (!profileInfo?.entityID) return;
+
+    // ONE relationship change fans out into several relay events - accepting
+    // a contact request emits notifications, contactslist and
+    // profile_relationship_updated - and each would otherwise re-run both
+    // fetches below (and, through profileInfo, the posts fetch too). Collapse
+    // the burst into a single refresh on the trailing edge, so the last event
+    // in the burst is the one that wins.
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const onRelay = (e: Event) => {
+      const detail = (e as CustomEvent).detail || {};
+      // Refresh ONLY when the change is with the person whose profile is on
+      // screen. An unmatched (or absent) id means the event belongs to some
+      // other profile, and reloading here would be reloading the wrong page.
+      if (!detail.entityID || detail.entityID !== profileInfo.entityID) return;
+
+      if (timer) clearTimeout(timer);
+      timer = setTimeout(() => {
+        timer = null;
+        GetProfileInfoProcess();
+        GetDiaryTotalProcess();
+      }, 300);
+    };
+
+    document.addEventListener("profile-events-relay", onRelay);
+    return () => {
+      if (timer) clearTimeout(timer);
+      document.removeEventListener("profile-events-relay", onRelay);
+    };
+  }, [profileInfo?.entityID, params.userID]);
+
   //   useEffect(() => {
   //     GetProfileInfoProcess()
   //   },[])
 
   useEffect(() => {
     setisFollowing(Boolean(profileInfo?.is_follower));
-  }, [profileInfo?.is_follower]);
+    setisFollowPending(Boolean(profileInfo?.is_follow_pending));
+  }, [profileInfo?.is_follower, profileInfo?.is_follow_pending]);
 
   const toggleFollowProcess = () => {
     if (!profileInfo?.entityID) return;
     setisFollowLoading(true);
     // The follow endpoint takes any entity target; entity_id is the general
     // alias (realm_id remains for pages).
-    const request = isFollowing ? UnfollowRealmRequest : FollowRealmRequest;
+    //
+    // A pending request unfollows the same way an established follow does -
+    // DELETE drops the row whatever its status, which is how the requester
+    // cancels.
+    const request =
+      isFollowing || isFollowPending ? UnfollowRealmRequest : FollowRealmRequest;
     request({ entity_id: profileInfo.entityID })
       .then((response) => {
-        if (response) setisFollowing((prev) => !prev);
+        if (!response) return;
+
+        if (isFollowing || isFollowPending) {
+          setisFollowing(false);
+          setisFollowPending(false);
+          return;
+        }
+
+        // Following a PRIVATE profile does not take effect immediately - the
+        // server answers is_pending and the owner has to approve it, so the
+        // button goes to "Requested" rather than "Following".
+        if (response.is_pending) {
+          setisFollowPending(true);
+        } else {
+          setisFollowing(true);
+        }
       })
       .catch((err) => console.log(err))
       .finally(() => setisFollowLoading(false));
@@ -439,7 +502,7 @@ function Profile({
                     disabled={isFollowLoading}
                     onClick={toggleFollowProcess}
                     className={`${
-                      isFollowing
+                      isFollowing || isFollowPending
                         ? "cl-profile-action-button--secondary"
                         : "cl-profile-action-button"
                     } tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption`}
@@ -456,6 +519,8 @@ function Profile({
                       </motion.div>
                     ) : isFollowing ? (
                       "Following"
+                    ) : isFollowPending ? (
+                      "Requested"
                     ) : (
                       "Follow"
                     )}

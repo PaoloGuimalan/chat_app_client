@@ -22,6 +22,9 @@ export interface AuthenticationInterface {
     gender: string | null;
     isActivated: boolean | null;
     isVerified: boolean | null;
+    // Settings > Data & Privacy. Hydrated from the usertoken on login and on
+    // every session restore, so it survives a reload.
+    isPrivate: boolean | null;
     isComplete: boolean;
     pendingConsents: { document_type: string; version: string }[];
     entity_id: string;
@@ -80,6 +83,10 @@ export interface ProfileUserInfoInterface {
   };
   // Following is entity->entity, so a person can be followed like a page.
   is_follower?: boolean;
+  // A follow of a PRIVATE profile lands pending until its owner approves it.
+  // Mutually exclusive with is_follower - the pair is what distinguishes
+  // Follow / Requested / Following on the button.
+  is_follow_pending?: boolean;
   profile: string;
   coverphoto: string;
   gender: string | null;
@@ -553,6 +560,9 @@ export interface SearchPersonResult {
   is_verified: boolean;
   mutual_count: number;
   is_followed: boolean;
+  // Follow of a PRIVATE profile, awaiting their approval. Mutually exclusive
+  // with is_followed - the pair drives Follow / Requested / Following.
+  is_follow_pending: boolean;
   // Connection-state keys kept for parity with EntitySearchResult so the
   // cards can deep-link into contact flows later.
   id: string | null;

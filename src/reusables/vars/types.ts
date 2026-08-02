@@ -13,6 +13,7 @@ export type OriginalResponse = {
   is_active: boolean;
   is_verified: boolean;
   is_badged: boolean;
+  is_private: boolean;
   is_complete: boolean;
   pending_consents: { document_type: string; version: string }[];
   entity_id: string;
@@ -44,6 +45,10 @@ export type ConvertedResponse = {
   password: null;
   isActivated: boolean;
   isVerified: boolean;
+  // Settings > Data & Privacy toggle. Carried through login so the profile
+  // header can render the lock and Settings can show the current state
+  // without an extra fetch.
+  isPrivate: boolean;
   isComplete: boolean;
   pendingConsents: { document_type: string; version: string }[];
   entity_id: string;

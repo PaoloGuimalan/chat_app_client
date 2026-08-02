@@ -26,6 +26,7 @@ export const authenticationstate: AuthenticationInterface = {
     email: "",
     isActivated: null,
     isVerified: null,
+    isPrivate: null,
     isComplete: false,
     entity_id: "",
     pendingConsents: [],

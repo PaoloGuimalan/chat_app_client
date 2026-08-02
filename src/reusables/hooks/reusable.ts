@@ -303,6 +303,7 @@ function convertLoginResponse(response: OriginalResponse): ConvertedResponse {
     password: null,
     isActivated: response.is_active,
     isVerified: response.is_verified,
+    isPrivate: response.is_private === true,
     isComplete: response.is_complete,
     pendingConsents: response.pending_consents || [],
     entity_id: response.entity_id,
