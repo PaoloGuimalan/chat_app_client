@@ -34,6 +34,47 @@ const getDisplayName = (member: any) => {
   return member?.userID || member?.fullname?.firstName || "someone";
 };
 
+/** Distinct emoji shown in the pill before the rest collapse into "+N". */
+const MAX_PILL_REACTIONS = 3;
+
+// Collapses cosmetic code-point differences so the same VISIBLE emoji groups as
+// one: two clients can send a heart with and without the U+FE0F variation
+// selector, or the same hand with different skin-tone modifiers. They render
+// identically, so keying on the raw string left what looked like duplicates
+// sitting side by side. ZWJ sequences are left alone - those join genuinely
+// different emoji and must not be flattened.
+const normalizeEmojiKey = (emoji: string) =>
+  emoji.replace(/\uFE0F/g, "").replace(/[\u{1F3FB}-\u{1F3FF}]/gu, "");
+
+/**
+ * Groups reactions by emoji, mirroring the app's buildReactionPill: ten
+ * thumbs-up render as "👍 10" instead of ten identical glyphs clipped at the
+ * pill's max width. Insertion-ordered so the pill does not reshuffle as
+ * reactions arrive, and each group keeps the first glyph seen for its key.
+ */
+const groupReactions = (reactions: any[]) => {
+  const groups: { key: string; emoji: string; count: number }[] = [];
+  const byKey = new Map<string, { key: string; emoji: string; count: number }>();
+
+  for (const reaction of reactions) {
+    const emoji = reaction?.emoji ? String(reaction.emoji) : "";
+    if (!emoji) continue;
+
+    const key = normalizeEmojiKey(emoji);
+    const existing = byKey.get(key);
+
+    if (existing) {
+      existing.count += 1;
+    } else {
+      const group = { key, emoji, count: 1 };
+      byKey.set(key, group);
+      groups.push(group);
+    }
+  }
+
+  return groups;
+};
+
 const buildMentionRegex = (members: any[]) => {
   const labels = members
     .map((member) => getDisplayName(member))
@@ -151,6 +192,15 @@ function ContentHandler({
   const myReaction = reactions.find(
     (flt: any) => flt.entityID === selfEntityID,
   );
+
+  // The pill shows the first few distinct emoji; anything past that collapses
+  // into "+N", where N counts the remaining REACTIONS rather than the remaining
+  // emoji kinds - that is the number people read it as.
+  const reactionGroups = useMemo(() => groupReactions(reactions), [reactions]);
+  const shownReactionGroups = reactionGroups.slice(0, MAX_PILL_REACTIONS);
+  const hiddenReactionCount = reactionGroups
+    .slice(MAX_PILL_REACTIONS)
+    .reduce((sum, group) => sum + group.count, 0);
 
   /**
    * Single entry point for add / change / remove. `emoji: null` removes.
@@ -503,7 +553,7 @@ function ContentHandler({
                 }`}
               >
                 <div
-                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
+                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-px-[6px]"
                   style={reactionPillStyle}
                 >
                   <AnimatePresence>
@@ -523,7 +573,7 @@ function ContentHandler({
                       />
                     )}
                   </AnimatePresence>
-                  <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
+                  <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[135px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
                     {toggleReactions && (
                       <ReactionsModal
                         reactions={reactionsWithInfoVar}
@@ -540,20 +590,34 @@ function ContentHandler({
                         onClick={() => {
                           settoggleReactions(true);
                         }}
-                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden"
+                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-row tw-items-center tw-gap-[3px] tw-overflow-hidden"
                       >
-                        {reactions.map((mp: any) => {
-                          return mp.emoji;
-                        })}
+                        {shownReactionGroups.map((group) => (
+                          <span
+                            key={group.key}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[2px]"
+                          >
+                            <span>{group.emoji}</span>
+                            {/* The count is dropped at 1: "👍 1" is just noise. */}
+                            {group.count > 1 && (
+                              <span
+                                className="cl-text-micro"
+                                style={{ whiteSpace: "nowrap" }}
+                              >
+                                {group.count}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                     {cnvs.sender === authentication.user.entity_id &&
-                      reactions.length > 4 && (
+                      hiddenReactionCount > 0 && (
                         <span
                           className="cl-text-micro tw-w-fit"
                           style={{ whiteSpace: "nowrap" }}
                         >
-                          +{reactions.length - 4}
+                          +{hiddenReactionCount}
                         </span>
                       )}
                     <button
@@ -569,12 +633,12 @@ function ContentHandler({
                       />
                     </button>
                     {cnvs.sender !== authentication.user.entity_id &&
-                      reactions.length > 4 && (
+                      hiddenReactionCount > 0 && (
                         <span
                           className="cl-text-micro tw-w-fit"
                           style={{ whiteSpace: "nowrap" }}
                         >
-                          +{reactions.length - 4}
+                          +{hiddenReactionCount}
                         </span>
                       )}
                     {cnvs.sender !== authentication.user.entity_id && (
@@ -582,11 +646,24 @@ function ContentHandler({
                         onClick={() => {
                           settoggleReactions(true);
                         }}
-                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden"
+                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-row tw-items-center tw-gap-[3px] tw-overflow-hidden"
                       >
-                        {reactions.map((mp: any) => {
-                          return mp.emoji;
-                        })}
+                        {shownReactionGroups.map((group) => (
+                          <span
+                            key={group.key}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[2px]"
+                          >
+                            <span>{group.emoji}</span>
+                            {group.count > 1 && (
+                              <span
+                                className="cl-text-micro"
+                                style={{ whiteSpace: "nowrap" }}
+                              >
+                                {group.count}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -741,7 +818,7 @@ function ContentHandler({
                 }`}
               >
                 <div
-                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
+                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-px-[6px]"
                   style={reactionPillStyle}
                 >
                   <AnimatePresence>
@@ -761,7 +838,7 @@ function ContentHandler({
                       />
                     )}
                   </AnimatePresence>
-                  <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
+                  <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[135px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
                     {toggleReactions && (
                       <ReactionsModal
                         reactions={reactionsWithInfoVar}
@@ -778,20 +855,34 @@ function ContentHandler({
                         onClick={() => {
                           settoggleReactions(true);
                         }}
-                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden"
+                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-row tw-items-center tw-gap-[3px] tw-overflow-hidden"
                       >
-                        {reactions.map((mp: any) => {
-                          return mp.emoji;
-                        })}
+                        {shownReactionGroups.map((group) => (
+                          <span
+                            key={group.key}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[2px]"
+                          >
+                            <span>{group.emoji}</span>
+                            {/* The count is dropped at 1: "👍 1" is just noise. */}
+                            {group.count > 1 && (
+                              <span
+                                className="cl-text-micro"
+                                style={{ whiteSpace: "nowrap" }}
+                              >
+                                {group.count}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                     {cnvs.sender === authentication.user.entity_id &&
-                      reactions.length > 4 && (
+                      hiddenReactionCount > 0 && (
                         <span
                           className="cl-text-micro tw-w-fit"
                           style={{ whiteSpace: "nowrap" }}
                         >
-                          +{reactions.length - 4}
+                          +{hiddenReactionCount}
                         </span>
                       )}
                     <button
@@ -807,12 +898,12 @@ function ContentHandler({
                       />
                     </button>
                     {cnvs.sender !== authentication.user.entity_id &&
-                      reactions.length > 4 && (
+                      hiddenReactionCount > 0 && (
                         <span
                           className="cl-text-micro tw-w-fit"
                           style={{ whiteSpace: "nowrap" }}
                         >
-                          +{reactions.length - 4}
+                          +{hiddenReactionCount}
                         </span>
                       )}
                     {cnvs.sender !== authentication.user.entity_id && (
@@ -820,11 +911,24 @@ function ContentHandler({
                         onClick={() => {
                           settoggleReactions(true);
                         }}
-                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden"
+                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-row tw-items-center tw-gap-[3px] tw-overflow-hidden"
                       >
-                        {reactions.map((mp: any) => {
-                          return mp.emoji;
-                        })}
+                        {shownReactionGroups.map((group) => (
+                          <span
+                            key={group.key}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[2px]"
+                          >
+                            <span>{group.emoji}</span>
+                            {group.count > 1 && (
+                              <span
+                                className="cl-text-micro"
+                                style={{ whiteSpace: "nowrap" }}
+                              >
+                                {group.count}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -975,7 +1079,7 @@ function ContentHandler({
                 }`}
               >
                 <div
-                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
+                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-px-[6px]"
                   style={reactionPillStyle}
                 >
                   <AnimatePresence>
@@ -995,7 +1099,7 @@ function ContentHandler({
                       />
                     )}
                   </AnimatePresence>
-                  <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
+                  <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[135px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
                     {toggleReactions && (
                       <ReactionsModal
                         reactions={reactionsWithInfoVar}
@@ -1012,20 +1116,34 @@ function ContentHandler({
                         onClick={() => {
                           settoggleReactions(true);
                         }}
-                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden"
+                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-row tw-items-center tw-gap-[3px] tw-overflow-hidden"
                       >
-                        {reactions.map((mp: any) => {
-                          return mp.emoji;
-                        })}
+                        {shownReactionGroups.map((group) => (
+                          <span
+                            key={group.key}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[2px]"
+                          >
+                            <span>{group.emoji}</span>
+                            {/* The count is dropped at 1: "👍 1" is just noise. */}
+                            {group.count > 1 && (
+                              <span
+                                className="cl-text-micro"
+                                style={{ whiteSpace: "nowrap" }}
+                              >
+                                {group.count}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                     {cnvs.sender === authentication.user.entity_id &&
-                      reactions.length > 4 && (
+                      hiddenReactionCount > 0 && (
                         <span
                           className="cl-text-micro tw-w-fit"
                           style={{ whiteSpace: "nowrap" }}
                         >
-                          +{reactions.length - 4}
+                          +{hiddenReactionCount}
                         </span>
                       )}
                     <button
@@ -1041,12 +1159,12 @@ function ContentHandler({
                       />
                     </button>
                     {cnvs.sender !== authentication.user.entity_id &&
-                      reactions.length > 4 && (
+                      hiddenReactionCount > 0 && (
                         <span
                           className="cl-text-micro tw-w-fit"
                           style={{ whiteSpace: "nowrap" }}
                         >
-                          +{reactions.length - 4}
+                          +{hiddenReactionCount}
                         </span>
                       )}
                     {cnvs.sender !== authentication.user.entity_id && (
@@ -1054,11 +1172,24 @@ function ContentHandler({
                         onClick={() => {
                           settoggleReactions(true);
                         }}
-                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden"
+                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-row tw-items-center tw-gap-[3px] tw-overflow-hidden"
                       >
-                        {reactions.map((mp: any) => {
-                          return mp.emoji;
-                        })}
+                        {shownReactionGroups.map((group) => (
+                          <span
+                            key={group.key}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[2px]"
+                          >
+                            <span>{group.emoji}</span>
+                            {group.count > 1 && (
+                              <span
+                                className="cl-text-micro"
+                                style={{ whiteSpace: "nowrap" }}
+                              >
+                                {group.count}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -1204,7 +1335,7 @@ function ContentHandler({
                 }`}
               >
                 <div
-                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
+                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-px-[6px]"
                   style={reactionPillStyle}
                 >
                   <AnimatePresence>
@@ -1224,7 +1355,7 @@ function ContentHandler({
                       />
                     )}
                   </AnimatePresence>
-                  <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
+                  <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[135px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
                     {toggleReactions && (
                       <ReactionsModal
                         reactions={reactionsWithInfoVar}
@@ -1241,20 +1372,34 @@ function ContentHandler({
                         onClick={() => {
                           settoggleReactions(true);
                         }}
-                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden"
+                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-row tw-items-center tw-gap-[3px] tw-overflow-hidden"
                       >
-                        {reactions.map((mp: any) => {
-                          return mp.emoji;
-                        })}
+                        {shownReactionGroups.map((group) => (
+                          <span
+                            key={group.key}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[2px]"
+                          >
+                            <span>{group.emoji}</span>
+                            {/* The count is dropped at 1: "👍 1" is just noise. */}
+                            {group.count > 1 && (
+                              <span
+                                className="cl-text-micro"
+                                style={{ whiteSpace: "nowrap" }}
+                              >
+                                {group.count}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                     {cnvs.sender === authentication.user.entity_id &&
-                      reactions.length > 4 && (
+                      hiddenReactionCount > 0 && (
                         <span
                           className="cl-text-micro tw-w-fit"
                           style={{ whiteSpace: "nowrap" }}
                         >
-                          +{reactions.length - 4}
+                          +{hiddenReactionCount}
                         </span>
                       )}
                     <button
@@ -1270,12 +1415,12 @@ function ContentHandler({
                       />
                     </button>
                     {cnvs.sender !== authentication.user.entity_id &&
-                      reactions.length > 4 && (
+                      hiddenReactionCount > 0 && (
                         <span
                           className="cl-text-micro tw-w-fit"
                           style={{ whiteSpace: "nowrap" }}
                         >
-                          +{reactions.length - 4}
+                          +{hiddenReactionCount}
                         </span>
                       )}
                     {cnvs.sender !== authentication.user.entity_id && (
@@ -1283,11 +1428,24 @@ function ContentHandler({
                         onClick={() => {
                           settoggleReactions(true);
                         }}
-                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden"
+                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-row tw-items-center tw-gap-[3px] tw-overflow-hidden"
                       >
-                        {reactions.map((mp: any) => {
-                          return mp.emoji;
-                        })}
+                        {shownReactionGroups.map((group) => (
+                          <span
+                            key={group.key}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[2px]"
+                          >
+                            <span>{group.emoji}</span>
+                            {group.count > 1 && (
+                              <span
+                                className="cl-text-micro"
+                                style={{ whiteSpace: "nowrap" }}
+                              >
+                                {group.count}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
@@ -1469,7 +1627,7 @@ function ContentHandler({
                 }`}
               >
                 <div
-                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-pl-[2px] tw-pr-[2px]"
+                  className="cl-message-reaction-pill tw-w-fit tw-rounded-[20px] tw-h-[20px] tw-text-[var(--text)] tw-px-[6px]"
                   style={reactionPillStyle}
                 >
                   <AnimatePresence>
@@ -1489,7 +1647,7 @@ function ContentHandler({
                       />
                     )}
                   </AnimatePresence>
-                  <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[100px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
+                  <div className="tw-select-none tw-w-fit tw-h-[20px] tw-max-w-[135px] tw-items-center tw-justify-center tw-flex tw-flex-row tw-overflow-x-hidden tw-overflow-y-hidden">
                     {toggleReactions && (
                       <ReactionsModal
                         reactions={reactionsWithInfoVar}
@@ -1506,20 +1664,34 @@ function ContentHandler({
                         onClick={() => {
                           settoggleReactions(true);
                         }}
-                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden"
+                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-row tw-items-center tw-gap-[3px] tw-overflow-hidden"
                       >
-                        {reactions.map((mp: any) => {
-                          return mp.emoji;
-                        })}
+                        {shownReactionGroups.map((group) => (
+                          <span
+                            key={group.key}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[2px]"
+                          >
+                            <span>{group.emoji}</span>
+                            {/* The count is dropped at 1: "👍 1" is just noise. */}
+                            {group.count > 1 && (
+                              <span
+                                className="cl-text-micro"
+                                style={{ whiteSpace: "nowrap" }}
+                              >
+                                {group.count}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                     {cnvs.sender === authentication.user.entity_id &&
-                      reactions.length > 4 && (
+                      hiddenReactionCount > 0 && (
                         <span
                           className="cl-text-micro tw-w-fit"
                           style={{ whiteSpace: "nowrap" }}
                         >
-                          +{reactions.length - 4}
+                          +{hiddenReactionCount}
                         </span>
                       )}
                     <button
@@ -1535,12 +1707,12 @@ function ContentHandler({
                       />
                     </button>
                     {cnvs.sender !== authentication.user.entity_id &&
-                      reactions.length > 4 && (
+                      hiddenReactionCount > 0 && (
                         <span
                           className="cl-text-micro tw-w-fit"
                           style={{ whiteSpace: "nowrap" }}
                         >
-                          +{reactions.length - 4}
+                          +{hiddenReactionCount}
                         </span>
                       )}
                     {cnvs.sender !== authentication.user.entity_id && (
@@ -1548,11 +1720,24 @@ function ContentHandler({
                         onClick={() => {
                           settoggleReactions(true);
                         }}
-                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-col tw-items-center tw-overflow-hidden"
+                        className="tw-cursor-pointer tw-w-fit tw-bg-transparent tw-h-[20px] tw-flex tw-flex-row tw-items-center tw-gap-[3px] tw-overflow-hidden"
                       >
-                        {reactions.map((mp: any) => {
-                          return mp.emoji;
-                        })}
+                        {shownReactionGroups.map((group) => (
+                          <span
+                            key={group.key}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[2px]"
+                          >
+                            <span>{group.emoji}</span>
+                            {group.count > 1 && (
+                              <span
+                                className="cl-text-micro"
+                                style={{ whiteSpace: "nowrap" }}
+                              >
+                                {group.count}
+                              </span>
+                            )}
+                          </span>
+                        ))}
                       </div>
                     )}
                   </div>
