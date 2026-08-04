@@ -37,6 +37,7 @@ import {
 } from "@/reusables/vars/interfaces";
 import { Avatar } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
 
 export function NewPostModal({
   toShare,
@@ -157,7 +158,6 @@ export function NewPostModal({
   const [istagsearching, setistagsearching] = useState<boolean>(false);
   const dispatch = useDispatch();
 
-  const MAX_MEDIA_SIZE = 25 * 1024 * 1024;
 
   const isTagged = (entity: EntitySearchResult) =>
     taggedEntities.some((tagged) => tagged.entity_id === entity.entity_id);
@@ -218,14 +218,14 @@ export function NewPostModal({
       });
     }
 
-    const oversized = files.some((file) => file.size > MAX_MEDIA_SIZE);
+    const oversized = files.some((file) => file.size > MAX_UPLOAD_BYTES);
     if (oversized) {
       dispatch({
         type: SET_MUTATE_ALERTS,
         payload: {
           alerts: {
             type: "warning",
-            content: "Cannot upload files greater than 25mb",
+            content: `Cannot upload files greater than ${MAX_UPLOAD_LABEL}`,
           },
         },
       });
@@ -235,7 +235,7 @@ export function NewPostModal({
       .filter(
         (file) =>
           (file.type.includes("image") || file.type.includes("video")) &&
-          file.size <= MAX_MEDIA_SIZE,
+          file.size <= MAX_UPLOAD_BYTES,
       )
       .forEach((file) => {
         setmedialist((prev: any) => [

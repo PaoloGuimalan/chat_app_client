@@ -90,6 +90,7 @@ import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { Avatar } from "@/reusables/design";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
 
 // {
 //     "conversationid": "26177616789363146166",
@@ -905,24 +906,23 @@ function ConversationV2({
     navigate,
   ]);
 
-  const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
 
   const addFilesToComposer = (files: File[]) => {
-    const oversized = files.some((file) => file.size > MAX_ATTACHMENT_SIZE);
+    const oversized = files.some((file) => file.size > MAX_UPLOAD_BYTES);
     if (oversized) {
       dispatch({
         type: SET_MUTATE_ALERTS,
         payload: {
           alerts: {
             type: "warning",
-            content: "Cannot upload files greater than 25mb",
+            content: `Cannot upload files greater than ${MAX_UPLOAD_LABEL}`,
           },
         },
       });
     }
 
     files
-      .filter((file) => file.size <= MAX_ATTACHMENT_SIZE)
+      .filter((file) => file.size <= MAX_UPLOAD_BYTES)
       .forEach((file) => {
         const entry = {
           id: `${Date.now()}_${makeid(6)}`,

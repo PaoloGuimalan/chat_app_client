@@ -37,6 +37,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import PendingAttachmentItem from "./PendingAttachmentItem";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
 
 function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
   const screensizelistener = useSelector(
@@ -314,24 +315,23 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
     }),
   };
 
-  const MAX_ATTACHMENT_SIZE = 25 * 1024 * 1024;
 
   const addAttachmentFiles = (files: File[]) => {
-    const oversized = files.some((file) => file.size > MAX_ATTACHMENT_SIZE);
+    const oversized = files.some((file) => file.size > MAX_UPLOAD_BYTES);
     if (oversized) {
       dispatch({
         type: SET_MUTATE_ALERTS,
         payload: {
           alerts: {
             type: "warning",
-            content: "Cannot upload files greater than 25mb",
+            content: `Cannot upload files greater than ${MAX_UPLOAD_LABEL}`,
           },
         },
       });
     }
 
     files
-      .filter((file) => file.size <= MAX_ATTACHMENT_SIZE)
+      .filter((file) => file.size <= MAX_UPLOAD_BYTES)
       .forEach((file) => {
         setmedialist((prev: any) => [
           ...prev,

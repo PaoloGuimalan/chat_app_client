@@ -11,6 +11,7 @@ import { useDispatch } from "react-redux/es/hooks/useDispatch";
 import { pickFiles } from "@/reusables/hooks/pickFiles";
 import { useDragAndDrop } from "@/reusables/hooks/useDragAndDrop";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
 import { FaGlobeAsia } from "react-icons/fa";
 import {
   CreatePostRequest,
@@ -52,13 +53,13 @@ function UploadProfileMedia({
       return;
     }
 
-    if (file.size > 25 * 1024 * 1024) {
+    if (file.size > MAX_UPLOAD_BYTES) {
       dispatch({
         type: SET_MUTATE_ALERTS,
         payload: {
           alerts: {
             type: "warning",
-            content: "Cannot upload files greater than 25mb",
+            content: `Cannot upload files greater than ${MAX_UPLOAD_LABEL}`,
           },
         },
       });

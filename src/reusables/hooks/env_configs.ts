@@ -8,6 +8,11 @@ const envs = {
   TURN_SERVER_URL: import.meta.env.VITE_TURN_SERVER_URL,
   TURN_SERVER_USERNAME: import.meta.env.VITE_TURN_SERVER_USERNAME,
   TURN_SERVER_CREDENTIAL: import.meta.env.VITE_TURN_SERVER_CREDENTIAL,
+  // Megabytes, optional - see reusables/vars/uploads.ts, which parses this and
+  // falls back to a hardcoded default when it is unset or malformed. Should
+  // match the server's own MAX_UPLOAD_FILE_SIZE_MB; a client cap that is
+  // larger only means the user waits for the whole upload before being told no.
+  MAX_UPLOAD_FILE_SIZE_MB: import.meta.env.VITE_MAX_UPLOAD_FILE_SIZE_MB,
 };
 
 export default envs;
