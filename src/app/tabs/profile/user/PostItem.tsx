@@ -13,7 +13,7 @@ import {
   IReference,
 } from "@/reusables/vars/interfaces";
 import { useSelector } from "react-redux";
-import { useNavigate } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
 import { Carousel } from "react-responsive-carousel";
 import Modal from "@/app/reusables/Modal";
@@ -69,6 +69,8 @@ function PostItem({
   const textRef = useRef<HTMLSpanElement | null>(null);
   const textContainerRef = useRef<HTMLDivElement | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const location = useLocation();
 
   const postAuthorAvatar = (size = 35) => {
     if (postState.entity.type !== "user") {
@@ -171,14 +173,14 @@ function PostItem({
   });
 
   useEffect(() => {
-    if (authentication.user.userID !== postState.entity.details.username) {
+    const isInNewsfeed = location.pathname === "/";
+    if (authentication.user.entity_id !== postState.entity.id || isInNewsfeed) {
       if (isInView) {
         const viewedDate = new Date().toISOString();
         sessionStartTimeRef.current = Date.now();
         persistViewPosts(postState.post_id, {
-          user_id: authentication.user.userID,
-          post_owner_id:
-            postState.entity.details?.id ?? postState.entity.details.id,
+          user_id: authentication.user.entity_id,
+          post_owner_id: postState.entity.id,
           duration: 0.5,
           created_at: viewedDate,
         });
@@ -188,15 +190,14 @@ function PostItem({
         const duration = (endTime - sessionStartTimeRef.current) / 1000;
         sessionStartTimeRef.current = null;
         persistViewPosts(postState.post_id, {
-          user_id: authentication.user.userID,
-          post_owner_id:
-            postState.entity.details?.id ?? postState.entity.details.id,
+          user_id: authentication.user.entity_id,
+          post_owner_id: postState.entity.id,
           duration: duration,
           created_at: viewedDate,
         });
       }
     }
-  }, [authentication.user.userID, isInView, postState]);
+  }, [authentication.user.entity_id, isInView, postState, location]);
 
   if (postState.deleted_at || (!show_archived && postState.is_archived)) {
     return (
@@ -1046,3 +1047,4 @@ function PostItem({
 }
 
 export default PostItem;
+

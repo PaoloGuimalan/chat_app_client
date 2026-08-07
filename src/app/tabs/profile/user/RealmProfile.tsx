@@ -141,7 +141,7 @@ function RealmProfile({
 
   const GetPostProcess = () => {
     GetPostRequest({
-      current_user_id: authentication.user.userID,
+      current_user_id: authentication.user.entity_id,
       userID: params.userID,
       page: page,
       range: range,
@@ -781,4 +781,3 @@ function RealmProfile({
 }
 
 export default RealmProfile;
-

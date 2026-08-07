@@ -72,7 +72,7 @@ function PostsContainer({
   const GetPostProcess = () => {
     setIsLoadingMore(true);
     GetPostRequest({
-      current_user_id: authentication.user.userID,
+      current_user_id: authentication.user.entity_id,
       userID: params.userID,
       page: page,
       range: range,
@@ -307,9 +307,7 @@ function PostsContainer({
         <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
           <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
           <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
-            <span className="tw-font-semibold cl-text-body">
-              No Posts yet
-            </span>
+            <span className="tw-font-semibold cl-text-body">No Posts yet</span>
           </div>
         </div>
       ) : (
@@ -357,3 +355,4 @@ function PostsContainer({
 }
 
 export default PostsContainer;
+

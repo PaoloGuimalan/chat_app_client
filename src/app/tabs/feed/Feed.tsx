@@ -40,7 +40,7 @@ function Feed() {
 
   const GetFeedProcess = () => {
     GetFeedRequest({
-      current_user_id: authentication.user.userID,
+      current_user_id: authentication.user.entity_id,
       page,
       range,
     })
@@ -432,7 +432,13 @@ function FeatureCardHeader({
           {title}
         </span>
       </div>
-      <div style={{ fontSize: "var(--fs-label)", color: "var(--text-2)", lineHeight: 1.5 }}>
+      <div
+        style={{
+          fontSize: "var(--fs-label)",
+          color: "var(--text-2)",
+          lineHeight: 1.5,
+        }}
+      >
         {children}
       </div>
     </div>
