@@ -287,7 +287,7 @@ function PostComment({
             [...prev.results, ...response.results],
             "comment_id",
             "created_at",
-          ),
+          ).reverse(),
         }));
         setIsLoaded(true);
         setIsError(false);
@@ -322,7 +322,9 @@ function PostComment({
     setComments((prev: PaginationProp<IPostComment>) => ({
       ...prev,
       count: Math.max(0, prev.count - 1),
-      results: prev.results.filter((flt) => flt.comment_id !== mp.comment_id),
+      results: prev.results
+        .reverse()
+        .filter((flt) => flt.comment_id !== mp.comment_id),
     }));
     onCommentCountChange?.(-removed);
 
@@ -344,7 +346,7 @@ function PostComment({
             [...prev.results, ...response.results],
             "comment_id",
             "created_at",
-          ),
+          ).reverse(),
         }));
       })
       .catch((err) => {
@@ -383,9 +385,11 @@ function PostComment({
   const patchComment = (comment_id: string, patch: Partial<IPostComment>) => {
     setComments((prev: PaginationProp<IPostComment>) => ({
       ...prev,
-      results: prev.results.map((row) =>
-        row.comment_id === comment_id ? { ...row, ...patch } : row,
-      ),
+      results: prev.results
+        .reverse()
+        .map((row) =>
+          row.comment_id === comment_id ? { ...row, ...patch } : row,
+        ),
     }));
   };
 
