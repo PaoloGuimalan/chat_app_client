@@ -6,10 +6,14 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { genericpaginationstate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
-import { IRealmMember } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  IRealmMember,
+} from "@/reusables/vars/interfaces";
 import { GetRealmMembersRequest } from "@/reusables/hooks/requests";
 import { capitalizeFirstLetter } from "@/reusables/hooks/reusable";
 import MembersOptions from "./MembersOptions";
+import { useSelector } from "react-redux";
 
 function RealmMembers({
   realm_id,
@@ -20,6 +24,10 @@ function RealmMembers({
   hide: string[];
   onList: (list: string[]) => void;
 }) {
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
+
   const [searchFilter, setsearchFilter] = useState<string>("");
   const [members, setmembers] = useState<PaginationProp<IRealmMember>>(
     genericpaginationstate,
@@ -229,7 +237,9 @@ function RealmMembers({
                             {capitalizeFirstLetter(cnts.role)}
                           </span>
                         </div>
-                        <MembersOptions member={cnts} hide={hide} />
+                        {authentication.user.entity_id !== cnts.entity.id && (
+                          <MembersOptions member={cnts} hide={hide} />
+                        )}
                       </div>
                     </motion.div>
                   );
@@ -260,3 +270,4 @@ function RealmMembers({
 }
 
 export default RealmMembers;
+

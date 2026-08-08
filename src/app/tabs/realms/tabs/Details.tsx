@@ -82,7 +82,7 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
           <span className="tw-text-[var(--text)] tw-text-[16px] tw-font-semibold tw-font-Inter">
             Basic Details
           </span>
-          <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-full tw-max-w-[860px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-items-center tw-justify-start tw-rounded-[var(--r-md)] tw-p-[18px] sm:tw-p-[24px]">
+          <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-full tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-items-center tw-justify-start tw-rounded-[var(--r-md)] tw-p-[18px] sm:tw-p-[24px]">
             <div className="tw-grid tw-grid-cols-1 md:tw-grid-cols-2 tw-w-full tw-gap-[12px]">
               {currentPreset.includes("name") && (
                 <div className="tw-flex tw-flex-col tw-w-full tw-items-start tw-gap-[6px]">
@@ -152,7 +152,7 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
                           ...prev,
                           description: e.target.value,
                         };
-                    });
+                      });
                     }}
                     placeholder="Description"
                     className="tw-w-full tw-min-h-[150px] tw-rounded-[var(--r-md)] tw-border tw-border-[var(--border)] tw-bg-[var(--input)] tw-p-[12px] tw-font-Inter tw-text-[var(--text)] tw-outline-none focus:tw-border-[var(--brand)]"
@@ -233,3 +233,4 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
 }
 
 export default Details;
+

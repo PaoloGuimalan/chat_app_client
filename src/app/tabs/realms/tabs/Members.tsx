@@ -106,7 +106,7 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
           />
         </div>
         {addableMember && (
-          <div className="tw-w-full xl:tw-max-w-[520px] tw-h-full tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-overflow-hidden">
+          <div className="tw-flex tw-flex-1 tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-overflow-hidden">
             <ContactMember
               parentRealmID={realm.parent?.id ?? null}
               isRealm={true}

@@ -123,7 +123,7 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
           <span className="tw-text-[var(--text)] tw-text-[16px] tw-font-semibold tw-font-Inter">
             Profile
           </span>
-          <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-full tw-max-w-[860px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-min-h-[300px] tw-items-center tw-justify-center tw-rounded-[var(--r-md)] tw-p-[18px] sm:tw-p-[24px]">
+          <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-full tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-min-h-[300px] tw-items-center tw-justify-center tw-rounded-[var(--r-md)] tw-p-[18px] sm:tw-p-[24px]">
             {selectedProfile && (
               <CachedImage
                 src={URL.createObjectURL(selectedProfile)}
@@ -169,7 +169,7 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
             <span className="tw-text-[var(--text)] tw-text-[16px] tw-font-semibold tw-font-Inter">
               Cover Photo
             </span>
-            <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-full tw-max-w-[860px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-h-auto tw-items-center tw-justify-center tw-rounded-[var(--r-md)] tw-p-[18px] sm:tw-p-[24px]">
+            <div className="tw-flex tw-flex-col tw-gap-[20px] tw-w-full tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-h-auto tw-items-center tw-justify-center tw-rounded-[var(--r-md)] tw-p-[18px] sm:tw-p-[24px]">
               {selectedCoverPhoto && (
                 <CachedImage
                   src={URL.createObjectURL(selectedCoverPhoto)}
@@ -214,3 +214,4 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
 }
 
 export default Media;
+
