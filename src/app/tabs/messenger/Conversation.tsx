@@ -970,9 +970,12 @@ function Conversation({
         conversationID,
         caller,
         recepients: callRecipients,
+        // The CALLER's own picture - see the same fix in ConversationV2.tsx.
+        // userdetails.profile is the person being rung, so their alert showed
+        // them their own face under our name.
         displayImage:
           conversationsetup.type == "single"
-            ? conversationsetup.userdetails.profile
+            ? authentication.user.profile || "none"
             : "none",
       }).finally(() => {
         callRequestInFlightRef.current.delete(callKey);

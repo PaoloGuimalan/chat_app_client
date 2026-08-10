@@ -1128,9 +1128,16 @@ function ConversationV2({
         conversationID,
         caller,
         recepients: callRecipients,
+        // The CALLER's own picture, like the two fields above it.
+        //
+        // Everything in this payload describes whoever is being announced, and
+        // for a 1:1 call that is us - callDisplayName and caller.entityID both
+        // read off authentication.user for exactly that reason. This one read
+        // conversationsetup.details.profile, which is the person we are
+        // ringing, so their alert showed them their own face under our name.
         displayImage:
           conversationsetup.conversationType == "single"
-            ? conversationsetup?.details.profile
+            ? authentication.user.profile || "none"
             : "none",
       }).finally(() => {
         callRequestInFlightRef.current.delete(callKey);
