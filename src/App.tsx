@@ -16,6 +16,9 @@ import ProfileContainer from "./app/tabs/profile/ProfileContainer";
 import { AuthenticationInterface } from "./reusables/vars/interfaces";
 import Setup from "./app/auth/Setup";
 import ConferenceContainer from "./app/conference/ConferenceContainer";
+import PolicyPage from "./app/legal/PolicyPage";
+import DeleteAccount from "./app/legal/DeleteAccount";
+import Support from "./app/legal/Support";
 
 function App() {
   const authentication: AuthenticationInterface = useSelector(
@@ -105,6 +108,23 @@ function App() {
           path="/conference/:slug"
           element={<ConferenceContainer />}
         />
+        {/* PUBLIC, and declared ABOVE the `/*` catch-all below - that route runs
+            the whole authentication gate and redirects to /login, so anything
+            registered under it is unreachable logged out. These four are the
+            URLs the app stores require us to host and that a reviewer opens in
+            a clean browser with no session:
+              /privacy         Play's Privacy Policy field, App Store Connect
+              /terms           linked from the same listings and from signup
+              /delete-account  Play requires a WEB deletion URL as well as the
+                               in-app path in Settings -> Data & Privacy
+              /support         Apple guideline 1.2 - a published way to contact
+                               us about user-generated content
+            Deliberately separate from the consent modals in Register/Setup,
+            which stay exactly as they are; these only share the policies fetch. */}
+        <Route path="/privacy" element={<PolicyPage documentType="privacy" />} />
+        <Route path="/terms" element={<PolicyPage documentType="terms" />} />
+        <Route path="/delete-account" element={<DeleteAccount />} />
+        <Route path="/support" element={<Support />} />
         <Route
           path="/*"
           element={

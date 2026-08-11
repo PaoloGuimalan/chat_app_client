@@ -1807,6 +1807,22 @@
   color: var(--brand);
 }
 
+/* Links inside the PUBLIC policy/support/deletion pages (src/app/legal).
+   `.cl-redesign a { color: inherit; text-decoration: none }` in theme.css has
+   the SAME specificity as the rule above (0,1,1) and lands later in the bundled
+   stylesheet, so it wins and every link in a legal document renders as ordinary
+   body text. On these pages that is a real failure rather than a cosmetic one:
+   they exist so a reader - or a store reviewer - can find the contact address
+   and the deletion route, and an invisible link hides exactly that.
+   Two classes is 0,2,1, which beats `.cl-redesign a` whatever the bundle order
+   turns out to be. Scoped to `.cl-public-doc` on purpose, so the consent modal
+   that shares `.cl-policy-content` is left exactly as it is. */
+.cl-public-doc.cl-policy-content a {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
 .cl-create-modal {
   position: relative;
   overflow: hidden;
