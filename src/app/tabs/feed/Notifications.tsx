@@ -11,9 +11,16 @@ import {
   ReadNotificationsRequest,
 } from "../../../reusables/hooks/requests";
 import {
+  INotificationAction,
   INotificationV2,
   NotificationSectionKey,
 } from "@/reusables/vars/interfaces";
+import {
+  runNotificationAction,
+  webRedirect,
+} from "@/reusables/hooks/notificationActions";
+import { useNavigate } from "react-router-dom";
+import { SET_ALERTS } from "@/redux/types";
 import { needsMoreToFill } from "@/reusables/hooks/reusable";
 import { Card, Icon, IconBtn, useTheme } from "@/reusables/design";
 import NotificationRow from "./partials/NotificationRow";
@@ -151,6 +158,7 @@ function Notifications() {
   );
   const alerts = useSelector((state: any) => state.alerts);
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const { theme } = useTheme();
 
   const [sections, setSections] = useState<SectionsState>(INITIAL_SECTIONS);
@@ -280,8 +288,73 @@ function Notifications() {
     });
   };
 
+  // Server-driven action. One handler for every button the server can send,
+  // instead of a branch per notification type - which is the whole point of
+  // moving actions into the payload.
+  //
+  // The optimistic settle mirrors the legacy handlers: flip referenceStatus so
+  // the buttons drop away immediately, then let `after` decide whether to
+  // re-read. A failure refetches, which puts the buttons back if the action did
+  // not actually take.
+  const runActionProcess = async (
+    n: INotificationV2,
+    action: INotificationAction,
+  ) => {
+    if (action.type === "api-request" || action.type === "external-api-request") {
+      setIsDisabledByRequest(true);
+      setReferenceHandled(n.referenceID);
+    }
+
+    const outcome = await runNotificationAction(action);
+
+    if (outcome.navigateTo) {
+      navigate(outcome.navigateTo);
+      return;
+    }
+    if (outcome.openExternal) {
+      window.open(outcome.openExternal, "_blank", "noopener,noreferrer");
+      return;
+    }
+
+    setIsDisabledByRequest(false);
+
+    if (!outcome.ok) {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: alerts.length,
+            type: "error",
+            content: outcome.message || "Could not complete that action.",
+          },
+        },
+      });
+    }
+
+    // Refetch on failure too - the optimistic flip above has to be undone, and
+    // the server is the only thing that knows the real state.
+    if (action.after === "refresh" || !outcome.ok) {
+      fetchOverview();
+    }
+  };
+
+  // Row tap. The server only sends a `web` route when there IS a destination,
+  // so anything reaching here is safe to navigate to.
+  const openNotificationProcess = (n: INotificationV2) => {
+    const destination = webRedirect(n);
+    if (!destination?.route) return;
+    if (destination.type === "external") {
+      window.open(destination.route, "_blank", "noopener,noreferrer");
+      return;
+    }
+    navigate(destination.route);
+  };
+
   // The two request kinds share the row and its buttons but hit different
   // endpoints, so each handler branches on the notification type.
+  //
+  // LEGACY: only reached when the server sends no `actions` for the row (an
+  // older server). runActionProcess above is the path for everything else.
   //
   // A follow_request's referenceID is the REQUESTER's entity id (there is no
   // connection row to address), which is exactly what the follow endpoint
@@ -410,6 +483,8 @@ function Notifications() {
         actionBusy={isDisabledByRequest}
         onAccept={acceptRequestProcess}
         onDecline={declineRequestProcess}
+        onAction={runActionProcess}
+        onOpen={openNotificationProcess}
       />
     ));
   };

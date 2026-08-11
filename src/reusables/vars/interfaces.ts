@@ -692,6 +692,39 @@ export interface INotificationSender {
   is_verified: boolean;
 }
 
+export type NotificationPlatform = "web" | "android" | "ios";
+
+/** Where tapping the row goes. One entry per platform; read only "web" here. */
+export interface INotificationRedirect {
+  platform: NotificationPlatform;
+  type: string | null;
+  /** In-app path, or an absolute URL when type is "external". Null = no
+   *  destination on this platform, so the row must not be tappable. */
+  route: string | null;
+}
+
+/** One button. Repeated per platform sharing an `id`; filter to "web". */
+export interface INotificationAction {
+  platform: NotificationPlatform;
+  id: string;
+  name: string;
+  type:
+    | "api-request"
+    | "in-app-redirect"
+    | "external-redirect"
+    | "external-api-request";
+  style: "primary" | "secondary" | "danger";
+  order: number;
+  after: "dismiss" | "refresh" | "none";
+  route: string | null;
+  url: string | null;
+  /** Which API base `url` resolves against - the stack has two. */
+  service: "user" | "realtime" | null;
+  method: string | null;
+  payload: Record<string, unknown> | null;
+  headers: Record<string, string> | null;
+}
+
 export interface INotificationV2 {
   notificationID: string;
   referenceID: string;
@@ -703,6 +736,10 @@ export interface INotificationV2 {
   date: { date: string; time: string | null };
   type: string;
   isRead: boolean;
+  /** Server-driven row destination and buttons. Optional: an older server, or
+   *  a type with no mapping, simply omits them. */
+  redirects?: INotificationRedirect[];
+  actions?: INotificationAction[];
 }
 
 export interface NotificationSectionData {

@@ -34,6 +34,16 @@ const SECRET = envs.SECRET;
 
 const Axios = axios.create();
 
+// The configured instance, exported for callers OUTSIDE this file that must
+// reach our own API.
+//
+// It is not interchangeable with a bare `axios`: the request interceptor below
+// attaches X-Nonce and Device-Token, and Django's authentication backend
+// rejects a request missing either ("No Nonce defined" / "Device not
+// recognized"). Anything hitting a first-party endpoint through plain axios
+// gets a 403 that looks like an auth problem and is really a missing header.
+export { Axios as firstPartyClient };
+
 const EXTERNAL_URLS = ["https://fonts.gstatic.com/s/e/notoemoji/latest/"];
 
 const isExternalUrl = (url: string) =>

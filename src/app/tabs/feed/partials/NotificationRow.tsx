@@ -1,6 +1,11 @@
 import { Avatar, Btn, Icon } from "@/reusables/design";
 import { timeSince } from "@/reusables/hooks/reusable";
-import { INotificationV2 } from "@/reusables/vars/interfaces";
+import { INotificationAction, INotificationV2 } from "@/reusables/vars/interfaces";
+import {
+  isRunnable,
+  webActions,
+  webRedirect,
+} from "@/reusables/hooks/notificationActions";
 
 // type -> small badge icon on the avatar (detail rows), per the mockup.
 const TYPE_ICONS: Record<string, { icon: string; color: string }> = {
@@ -25,6 +30,10 @@ interface NotificationRowProps {
   actionBusy: boolean;
   onAccept: (n: INotificationV2) => void;
   onDecline: (n: INotificationV2) => void;
+  /** Runs a server-driven action. Absent = fall back to onAccept/onDecline. */
+  onAction?: (n: INotificationV2, action: INotificationAction) => void;
+  /** Row tap - only called when the server gave this client a destination. */
+  onOpen?: (n: INotificationV2) => void;
 }
 
 function NotificationRow({
@@ -33,6 +42,8 @@ function NotificationRow({
   actionBusy,
   onAccept,
   onDecline,
+  onAction,
+  onOpen,
 }: NotificationRowProps) {
   const isDetail = size === "detail";
   const typeBadge = TYPE_ICONS[n.type] || {
@@ -60,12 +71,38 @@ function NotificationRow({
   // what marks one as still OPEN - the server writes it that way, and
   // accepting/declining flips it locally so the buttons drop away without a
   // refetch.
-  const showActions =
+  // Server-driven buttons, filtered to web and to the kinds this client can
+  // actually carry out. An unrunnable entry renders nothing rather than a
+  // button that does nothing - that rule is what lets the server add an action
+  // type without breaking already-deployed clients.
+  const serverActions = onAction ? webActions(n).filter(isRunnable) : [];
+
+  // The legacy path stays as a FALLBACK, not as the primary. It covers an older
+  // server that sends no `actions`, and it is what makes this deployable before
+  // the server change lands. Delete it once the server is out everywhere.
+  const showLegacyActions =
+    serverActions.length === 0 &&
     (n.type === "contact_request" || n.type === "follow_request") &&
     !n.referenceStatus;
 
+  const destination = webRedirect(n);
+  const isTappable = !!destination && !!onOpen;
+
   return (
     <div
+      onClick={isTappable ? () => onOpen!(n) : undefined}
+      role={isTappable ? "button" : undefined}
+      tabIndex={isTappable ? 0 : undefined}
+      onKeyDown={
+        isTappable
+          ? (e) => {
+              if (e.key === "Enter" || e.key === " ") {
+                e.preventDefault();
+                onOpen!(n);
+              }
+            }
+          : undefined
+      }
       style={{
         display: "flex",
         alignItems: "center",
@@ -77,6 +114,9 @@ function NotificationRow({
           ? `1px solid ${n.isRead ? "var(--border)" : "transparent"}`
           : "none",
         flex: "none",
+        // Only when there is somewhere to go. A pointer over a row that does
+        // nothing is a promise the row cannot keep.
+        cursor: isTappable ? "pointer" : undefined,
       }}
     >
       <div style={{ position: "relative", flex: "none" }}>
@@ -143,8 +183,10 @@ function NotificationRow({
           {timeLabel}
         </div>
       </div>
-      {showActions && (
+      {(serverActions.length > 0 || showLegacyActions) && (
         <div
+          // Buttons must not also fire the row's destination.
+          onClick={(e) => e.stopPropagation()}
           style={{
             display: "flex",
             flexDirection: "column",
@@ -152,17 +194,42 @@ function NotificationRow({
             flex: "none",
           }}
         >
-          <Btn size="sm" disabled={actionBusy} onClick={() => onAccept(n)}>
-            Confirm
-          </Btn>
-          <Btn
-            size="sm"
-            variant="outline"
-            disabled={actionBusy}
-            onClick={() => onDecline(n)}
-          >
-            Decline
-          </Btn>
+          {serverActions.length > 0
+            ? serverActions.map((action) => (
+                <Btn
+                  key={`${action.id}-${action.order}`}
+                  size="sm"
+                  // `style` is a presentation hint from the server; anything
+                  // unrecognised falls back to the neutral outline rather than
+                  // guessing at emphasis.
+                  variant={
+                    action.style === "primary"
+                      ? "primary"
+                      : action.style === "danger"
+                        ? "outline"
+                        : "outline"
+                  }
+                  disabled={actionBusy}
+                  onClick={() => onAction!(n, action)}
+                >
+                  {action.name}
+                </Btn>
+              ))
+            : (
+              <>
+                <Btn size="sm" disabled={actionBusy} onClick={() => onAccept(n)}>
+                  Confirm
+                </Btn>
+                <Btn
+                  size="sm"
+                  variant="outline"
+                  disabled={actionBusy}
+                  onClick={() => onDecline(n)}
+                >
+                  Decline
+                </Btn>
+              </>
+            )}
         </div>
       )}
     </div>
