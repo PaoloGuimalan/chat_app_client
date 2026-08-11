@@ -19,6 +19,7 @@ import { RiVerifiedBadgeFill } from "react-icons/ri";
 import PostOptions from "./PostOptions";
 import { IoMdClose } from "react-icons/io";
 import { timeSince } from "@/reusables/hooks/reusable";
+import PostPrivacyIcon from "@/app/reusables/PostPrivacyIcon";
 import { useNavigate } from "react-router-dom";
 import LoadedPostItem from "./LoadedPostItem";
 import { motion } from "framer-motion";
@@ -39,6 +40,19 @@ interface PostPreviewModalProps {
   /** Extra hook after the default deleted/archived/unarchived state updates
    *  (SavedPostItem flips its "restored" overlay on "unarchived"). */
   onOptionFinish?: (type: string) => void;
+  /**
+   * Render the SAME layout as a page instead of an overlay.
+   *
+   * Only the `<Modal>` wrapper is skipped - the shell below, and everything
+   * inside it, is identical. That is the point: `/post/:postID` should look
+   * like this view, not like a differently-built page that happens to show the
+   * same post, and duplicating this layout would leave two of them to keep in
+   * step.
+   *
+   * Defaults to false, so every existing caller (search, saved posts) is
+   * untouched and still gets the modal.
+   */
+  asPage?: boolean;
 }
 
 // The full "view post" experience - media carousel + author header +
@@ -50,6 +64,7 @@ function PostPreviewModal({
   onClose,
   onShare,
   onOptionFinish,
+  asPage = false,
 }: PostPreviewModalProps) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -131,23 +146,45 @@ function PostPreviewModal({
     return post.score.shares_count;
   }, [post]);
 
-  return (
-    <Modal
-      component={
+  // The shell, built once and then either portaled into an overlay or returned
+  // as-is.
+  //
+  // As a PAGE it always covers the full width - there is no case where a page
+  // should stop short and leave the viewport ruled off down both sides. The
+  // caps below exist to stop a floating DIALOG growing into a page-sized panel,
+  // which is not a problem a page has.
+  //
+  // Nothing inside stretches with it: the reading column keeps its own cap (see
+  // the details pane), and with media the carousel takes the slack while the
+  // details pane stays at its fixed side width.
+  const shellMaxWidth = asPage
+    ? "none"
+    : post.references.length > 0
+      ? post.is_shared
+        ? window.innerWidth >= 842
+          ? "600px"
+          : "none"
+        : "1400px"
+      : window.innerWidth >= 842
+        ? "600px"
+        : "none";
+
+  // A post with nothing to show BESIDE the text - no attachments, or a share,
+  // whose "media" is the quoted post rendered inline in the details column -
+  // has no second pane. Its reading column is therefore the only thing on the
+  // page and needs its own cap; with media, the column is already bounded as a
+  // side pane and the carousel absorbs the extra width instead.
+  const isTextOnly = post.references.length === 0 || post.is_shared;
+  const capsReadingColumn = asPage && isTextOnly;
+
+  const shell = (
         <div
-          style={{
-            maxWidth:
-              post.references.length > 0
-                ? post.is_shared
-                  ? window.innerWidth >= 842
-                    ? "600px"
-                    : "none"
-                  : "1400px"
-                : window.innerWidth >= 842
-                  ? "600px"
-                  : "none",
-          }}
-          className={`cl-feed-card cl-feed-card__modal-shell custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full tw-flex tw-flex-row tw-flex-wrap ${
+          style={{ maxWidth: shellMaxWidth }}
+          className={`cl-feed-card cl-feed-card__modal-shell ${
+            asPage
+              ? "cl-feed-card__modal-shell--page tw-w-full tw-h-full tw-rounded-[0px] tw-max-h-full tw-mx-auto"
+              : "custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full"
+          } tw-flex tw-flex-row tw-flex-wrap ${
             post.is_shared || post.references.length === 0
               ? ""
               : "custom:tw-overflow-hidden"
@@ -194,13 +231,30 @@ function PostPreviewModal({
             </Carousel>
           )}
           <div
+            // The SHELL covers the page (see shellMaxWidth), but the reading
+            // column does not: it keeps the width it had when the shell was
+            // capped, and centres inside the wider container. Stretching the
+            // text and comments across a 2560px monitor is not what covering
+            // the page was for.
+            //
+            // Expressed as a CLASS, and as the only max-width class on the
+            // element, because tailwind.config.js sets `important: true` -
+            // every utility carries !important, so an inline style loses to
+            // `custom:tw-max-w-full` and emitting both would leave the winner
+            // to stylesheet order. The `custom:` variant (842px) is the same
+            // breakpoint the old shell cap used, so narrow screens stay
+            // unbounded exactly as before.
             className={`tw-flex tw-flex-1 tw-max-w-full ${
-              post.references.length > 0
-                ? post.is_shared
-                  ? "custom:tw-max-w-full"
-                  : "custom:tw-max-w-[400px]"
-                : "custom:tw-max-w-full"
-            } tw-min-w-[350px] cl-feed-card__modal-side tw-flex-col tw-pb-[10px] ${
+              capsReadingColumn
+                ? "custom:tw-max-w-[600px] tw-mx-auto"
+                : post.references.length > 0
+                  ? post.is_shared
+                    ? "custom:tw-max-w-full"
+                    : "custom:tw-max-w-[400px]"
+                  : "custom:tw-max-w-full"
+            } tw-min-w-[350px] cl-feed-card__modal-side ${
+              asPage ? "cl-feed-card__modal-side--page" : ""
+            } tw-flex-col tw-pb-[10px] ${
               post.is_shared || post.references.length === 0
                 ? ""
                 : "custom:tw-h-full"
@@ -271,7 +325,10 @@ function PostPreviewModal({
                       <TaggingSummary tagging={post.tagging} />
                     )}
                   </div>
-                  <span className="cl-text-caption">{dateposted}</span>
+                  <span className="cl-text-caption">
+                    <PostPrivacyIcon status={post.privacy_status} />
+                    {dateposted}
+                  </span>
                 </div>
               </div>
               {authentication.auth && (
@@ -325,12 +382,20 @@ function PostPreviewModal({
                   onError={() => {}}
                 />
               )}
-              <button
-                onClick={onClose}
-                className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
-              >
-                <IoMdClose style={{ fontSize: "17px", color: "var(--text)" }} />
-              </button>
+              {/* Dismissing is a MODAL action: as a page there is nothing
+                  underneath to dismiss to, and the rail already carries the way
+                  home - so the slot is simply empty here rather than holding a
+                  second one. */}
+              {!asPage && (
+                <button
+                  onClick={onClose}
+                  className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
+                >
+                  <IoMdClose
+                    style={{ fontSize: "17px", color: "var(--text)" }}
+                  />
+                </button>
+              )}
             </div>
             <div
               className={`tw-w-[calc(100%-0px)] tw-pl-[25px] tw-pr-[25px] tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
@@ -532,9 +597,9 @@ function PostPreviewModal({
             </div>
           </div>
         </div>
-      }
-    />
   );
+
+  return asPage ? shell : <Modal component={shell} />;
 }
 
 export default PostPreviewModal;

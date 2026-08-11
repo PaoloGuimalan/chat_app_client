@@ -14,6 +14,7 @@ import {
 } from "../../reusables/hooks/requests";
 import Contacts from "../tabs/feed/Contacts";
 import Notifications from "../tabs/feed/Notifications";
+import PostPage from "../tabs/feed/PostPage";
 import Messages from "../tabs/feed/Messages";
 import {
   CloseSSENotifications,
@@ -592,6 +593,10 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
               <Route path="/mapfeed" element={<MapFeed />} />
               <Route path="/servers/*" element={<Servers />} />
               <Route path="/pages/*" element={<Pages />} />
+              {/* A post's own URL. Ranked above `/:userID/*` by react-router
+                  because a static first segment outscores a dynamic one - the
+                  same reason /settings and /contacts coexist with it. */}
+              <Route path="/post/:postID" element={<PostPage />} />
             </Routes>
           </div>
         </main>

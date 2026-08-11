@@ -6,6 +6,8 @@ import {
   webActions,
   webRedirect,
 } from "@/reusables/hooks/notificationActions";
+// Carries .cl-notification-row's hover/focus rules.
+import "@/styles/styles.css";
 
 // type -> small badge icon on the avatar (detail rows), per the mockup.
 const TYPE_ICONS: Record<string, { icon: string; color: string }> = {
@@ -90,6 +92,13 @@ function NotificationRow({
 
   return (
     <div
+      // Hover/focus affordance lives in CSS keyed off these attributes rather
+      // than in inline handlers, because the resting background varies with
+      // read state - restoring it on mouse-leave from JS would mean duplicating
+      // that rule in a second place.
+      className="cl-notification-row"
+      data-tappable={isTappable ? "true" : "false"}
+      data-unread={n.isRead ? "false" : "true"}
       onClick={isTappable ? () => onOpen!(n) : undefined}
       role={isTappable ? "button" : undefined}
       tabIndex={isTappable ? 0 : undefined}
@@ -114,9 +123,6 @@ function NotificationRow({
           ? `1px solid ${n.isRead ? "var(--border)" : "transparent"}`
           : "none",
         flex: "none",
-        // Only when there is somewhere to go. A pointer over a row that does
-        // nothing is a promise the row cannot keep.
-        cursor: isTappable ? "pointer" : undefined,
       }}
     >
       <div style={{ position: "relative", flex: "none" }}>

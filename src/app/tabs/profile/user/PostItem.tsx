@@ -27,6 +27,7 @@ import PostComment from "@/app/widgets/items/PostComment";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { timeSince } from "@/reusables/hooks/reusable";
+import PostPrivacyIcon from "@/app/reusables/PostPrivacyIcon";
 import { persistViewPosts } from "@/reusables/hooks/localforagehelper";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import PostOptions from "./PostOptions";
@@ -284,7 +285,10 @@ function PostItem({
                   <TaggingSummary tagging={postState.tagging} />
                 )}
               </div>
-              <span className="cl-text-caption">{dateposted}</span>
+              <span className="cl-text-caption">
+                <PostPrivacyIcon status={postState.privacy_status} />
+                {dateposted}
+              </span>
             </div>
             {authentication.auth && (
               <PostOptions
@@ -503,6 +507,12 @@ function PostItem({
                               )}
                             </div>
                             <span className="cl-text-caption">
+                              {/* PostItem's own expanded view - the same post
+                                  as the collapsed header above, so the same
+                                  audience. */}
+                              <PostPrivacyIcon
+                                status={postState.privacy_status}
+                              />
                               {dateposted}
                             </span>
                           </div>

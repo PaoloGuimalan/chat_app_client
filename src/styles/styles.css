@@ -5331,9 +5331,28 @@ input:checked + .slider:before {
   border: 1px solid var(--border) !important;
 }
 
+/* PostPreviewModal in `asPage` mode (the /post/:postID route).
+   The border and shadow are what make the shell read as a panel floating on
+   top of something. As a page it IS the something, so both go - otherwise a
+   full-page container draws an outline around the whole viewport.
+   Declared AFTER the rule above because both are single-class selectors
+   carrying !important, so source order is what decides. */
+.cl-feed-card__modal-shell--page {
+  border: none !important;
+  box-shadow: none !important;
+}
+
 .cl-feed-card__modal-side {
   background: var(--surface) !important;
   color: var(--text) !important;
+}
+
+/* The reading column in `asPage` mode. It picks up `box-shadow: var(--shadow-sm)`
+   from the grouped .cl-feed-card rule further up, which reads as a raised panel -
+   correct inside a dialog, wrong on a page whose shell is already flat. */
+.cl-feed-card__modal-side--page {
+  border: none !important;
+  box-shadow: none !important;
 }
 
 .cl-post-item-shell {
@@ -7418,4 +7437,37 @@ body::-webkit-scrollbar-thumb:hover,
 .cl-redesign::-webkit-scrollbar-thumb:hover,
 .cl-redesign *::-webkit-scrollbar-thumb:hover {
   background: var(--brand) !important;
+}
+
+/* Notification rows (NotificationRow.tsx).
+   Hover/focus feedback exists ONLY on rows the server gave this client a
+   destination for - a row with no redirect is not clickable, and lighting it up
+   on hover would promise something the click cannot deliver.
+   `!important` because the row's resting background is an inline style (it
+   varies with read state) and tailwind.config.js sets important: true, so a
+   plain rule would lose to both. */
+.cl-notification-row[data-tappable="true"] {
+  cursor: pointer;
+  transition: background-color 0.14s var(--ease);
+}
+
+.cl-notification-row[data-tappable="true"]:hover {
+  background-color: var(--surface-hover) !important;
+}
+
+/* An UNREAD row already sits on brand-soft, so the neutral hover above would
+   read as it turning grey - i.e. losing its unread cue on the one interaction
+   most likely to be about to read it. It deepens instead. */
+.cl-notification-row[data-tappable="true"][data-unread="true"]:hover {
+  background-color: color-mix(
+    in srgb,
+    var(--brand) 16%,
+    var(--surface) 84%
+  ) !important;
+}
+
+/* Keyboard parity - the row is focusable when tappable. */
+.cl-notification-row[data-tappable="true"]:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: -2px;
 }
