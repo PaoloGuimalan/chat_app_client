@@ -594,8 +594,85 @@ const SSENotificationsTRequest = (
     );
   });
 
+  // A channel was created in a server you can see. Relayed rather than
+  // dispatched to redux: the only thing that cares is whichever server's
+  // channel list is open, and it has to compare the id against its own.
+  //
+  // The channel list already refetches on `messageslist`, which is why a TEXT
+  // channel showed up live - creating one writes a system message, and that
+  // raises messages_list. A VOICE room has no chat history to write one into,
+  // so nothing was published for it at all and the room only appeared after a
+  // manual refresh. This event is published for both kinds; the duplicate for a
+  // text channel costs one refetch, not a wrong list.
+  sseNtfsSource.addEventListener("server_channels_changed", (e: any) => {
+    const parsedresponse = JSON.parse(e.data);
+    if (!parsedresponse.auth || !parsedresponse.status) return;
+
+    const serverID = parsedresponse.result?.realm_id;
+    if (!serverID) return;
+
+    document.dispatchEvent(
+      new CustomEvent("server-events-relay", {
+        detail: {
+          event: "server_channels_changed",
+          serverID: String(serverID),
+          channelID: parsedresponse.result?.channel_id
+            ? String(parsedresponse.result.channel_id)
+            : null,
+          type: parsedresponse.result?.type ?? null,
+        },
+      }),
+    );
+  });
+
+  // Somebody joined or was removed from a realm. Two audiences on one event:
+  // the people it happened TO (whose server rail gains or loses an entry) and
+  // the people who stay (whose member lists moved) - the rail listener checks
+  // `entity_ids` against the acting entity to tell them apart.
+  //
+  // Joining a server writes membership rows and nothing else, so before this
+  // the rail only moved on a full reload.
+  sseNtfsSource.addEventListener("realm_membership_changed", (e: any) => {
+    const parsedresponse = JSON.parse(e.data);
+    if (!parsedresponse.auth || !parsedresponse.status) return;
+
+    const realmID = parsedresponse.result?.realm_id;
+    if (!realmID) return;
+
+    document.dispatchEvent(
+      new CustomEvent("server-events-relay", {
+        detail: {
+          event: "realm_membership_changed",
+          realmID: String(realmID),
+          realmType: parsedresponse.result?.type ?? null,
+          action: parsedresponse.result?.action ?? null,
+          entityIDs: Array.isArray(parsedresponse.result?.entity_ids)
+            ? parsedresponse.result.entity_ids.map((id: any) => String(id))
+            : [],
+        },
+      }),
+    );
+  });
+
   sseNtfsSource.addEventListener("removed_user_notif", (e: any) => {
     const data = JSON.parse(e.data);
+
+    // Losing a realm is a membership change too, and it is the only half of one
+    // that has ever been published. Relayed on the same channel as the join so
+    // the rail has ONE listener rather than two that must agree.
+    document.dispatchEvent(
+      new CustomEvent("server-events-relay", {
+        detail: {
+          event: "realm_membership_changed",
+          realmID: String(data.result?.realm_id ?? ""),
+          realmType: data.result?.type ?? null,
+          action: "removed",
+          // The event is published per removed member to their own channel, so
+          // its arrival already means it happened to whoever is reading it.
+          entityIDs: data.result?.entityID ? [String(data.result.entityID)] : [],
+        },
+      }),
+    );
 
     InitConversationListRequest(1, 10).then((response) => {
       dispatch({

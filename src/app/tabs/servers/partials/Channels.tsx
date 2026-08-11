@@ -118,6 +118,51 @@ function Channels() {
     InitServerChannelsProcess();
   }, [serverID, messageslist]);
 
+  // A channel was created in THIS server by somebody else.
+  //
+  // The refetch on `messageslist` above only covers a TEXT channel, and only by
+  // accident: creating one writes a system message, which raises messages_list.
+  // A VOICE room has no chat history to write that message into, so nothing was
+  // published for it and the room stayed invisible to everyone but its creator
+  // until they refreshed. This is the direct statement of "the channel list
+  // moved", published for both kinds.
+  //
+  // Keyed on serverID from the URL rather than on serverdetails, so it is live
+  // from the first render instead of only once the details have landed.
+  useEffect(() => {
+    if (!serverID) return;
+
+    const handler = (event: CustomEvent) => {
+      const detail = event.detail;
+      switch (detail?.event) {
+        case "server_channels_changed":
+          if (detail.serverID !== serverID) return;
+          InitServerChannelsProcess();
+          return;
+        // Somebody joined or was removed from THIS server. The member list this
+        // screen carries (and hands to ServerInfoModal) comes off the same
+        // payload as the channels, so one refetch moves both.
+        //
+        // Not the removal of THIS reader - that is handled below, where it
+        // navigates out of the server entirely.
+        case "realm_membership_changed":
+          if (detail.realmID !== serverID) return;
+          InitServerChannelsProcess();
+          return;
+        default:
+          return;
+      }
+    };
+
+    document.addEventListener("server-events-relay", handler as EventListener);
+    return () => {
+      document.removeEventListener(
+        "server-events-relay",
+        handler as EventListener,
+      );
+    };
+  }, [serverID]);
+
   useEffect(() => {
     if (!serverdetails?._id) return;
 
