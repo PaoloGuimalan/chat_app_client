@@ -127,7 +127,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                     onClick={() => {
                       setisReportOpen(true);
                     }}
-                    className="cl-server-accent-button tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] cl-text-caption tw-flex tw-items-center tw-justify-center tw-gap-[5px]"
+                    className="cl-server-accent-button--danger tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] cl-text-caption tw-flex tw-items-center tw-justify-center tw-gap-[5px]"
                   >
                     <MdReport style={{ fontSize: "14px" }} />
                     Report

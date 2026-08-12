@@ -14,15 +14,19 @@ import {
   RiAddCircleFill,
   RiInboxArchiveFill,
   RiInboxUnarchiveFill,
+  RiVerifiedBadgeFill,
 } from "react-icons/ri";
+import { PiFlag } from "react-icons/pi";
 import { IoArrowBack, IoDocumentOutline, IoSend } from "react-icons/io5";
 import {
   MdAudiotrack,
   MdDelete,
   MdGraphicEq,
   MdMic,
+  MdReport,
   MdStop,
 } from "react-icons/md";
+import ReportModal from "@/app/widgets/modals/ReportModal";
 import { AiOutlineClose } from "react-icons/ai"; //AiFillInfoCircle
 import { checkIfValid } from "../../../reusables/hooks/validatevariables";
 import {
@@ -279,6 +283,7 @@ function ConversationV2({
   const [conversationinfo, setconversationinfo] =
     useState<ConversationInfoInterface | null>(null);
   const [toggleMenu, settoggleMenu] = useState<boolean>(false);
+  const [isReportGroupOpen, setisReportGroupOpen] = useState<boolean>(false);
   const [visualizerStyle, setvisualizerStyle] =
     useState<VisualizerStyle>(getVisualizerStyle());
   useEffect(() => subscribeVisualizerStyle(setvisualizerStyle), []);
@@ -1316,6 +1321,20 @@ function ConversationV2({
   }
 
   return (
+    <>
+    {/* Sibling of the shell rather than a child: the shell animates its own
+        display to "none" on some breakpoints, and the report modal must not
+        inherit that. */}
+    {isReportGroupOpen && conversationinfo?.contactID && (
+      <ReportModal
+        targetType="realm"
+        // A group's contactID is its realm id, which the reports endpoint
+        // resolves a realm from just as it does an entity id.
+        targetId={conversationinfo.contactID}
+        title="Report this group"
+        onClose={() => setisReportGroupOpen(false)}
+      />
+    )}
     <motion.div
       animate={{
         display:
@@ -1548,13 +1567,40 @@ function ConversationV2({
               )}
               <div id="div_conversation_user_name">
                 {conversationsetup.conversationType == "single" ? (
-                  <span
-                    className="span_userdetails_name tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
-                    onClick={() => {
-                      navigate(`/${conversationsetup.details.username}`);
-                    }}
-                  >
-                    {conversationsetup.details.display_name}
+                  // The badge/flag live INSIDE .span_userdetails_name, not in a
+                  // wrapper around it. That class is sized by
+                  // `:first-of-type` (16px/750) vs `:last-of-type` (12px), which
+                  // are scoped per parent - wrapping it made the name the only
+                  // span of its type in that wrapper, so it matched BOTH and the
+                  // later `:last-of-type` rule shrank it to the subtitle size.
+                  // Same shape the group branch below already uses.
+                  <span className="span_userdetails_name tw-flex tw-items-center tw-gap-[3px]">
+                    <span
+                      className="tw-truncate tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[#808080]"
+                      onClick={() => {
+                        navigate(`/${conversationsetup.details.username}`);
+                      }}
+                    >
+                      {conversationsetup.details.display_name}
+                    </span>
+                    {conversationsetup.details.is_verified && (
+                      <RiVerifiedBadgeFill
+                        size={14}
+                        color="var(--brand)"
+                        style={{ flex: "none" }}
+                      />
+                    )}
+                    {/* Only a PAGE. Groups/channels are realms too, but the
+                        lock/hash glyph beside them already says what they
+                        are. Matches the Network row's page flag. */}
+                    {conversationsetup.details.realm_type === "page" && (
+                      <span
+                        title="Page"
+                        style={{ display: "inline-flex", flex: "none" }}
+                      >
+                        <PiFlag size={13} color="var(--text-3)" />
+                      </span>
+                    )}
                   </span>
                 ) : (
                   <span className="span_userdetails_name tw-flex tw-items-center tw-gap-[3px]">
@@ -1565,6 +1611,13 @@ function ConversationV2({
                         <FaHashtag />
                       ))}{" "}
                     {conversationsetup.details.display_name}
+                    {conversationsetup.details.is_verified && (
+                      <RiVerifiedBadgeFill
+                        size={14}
+                        color="var(--brand)"
+                        style={{ flex: "none" }}
+                      />
+                    )}
                   </span>
                 )}
                 {conversationType !== "conference" &&
@@ -1934,6 +1987,29 @@ function ConversationV2({
                           />
                           <span className="cl-text-meta tw-font-Inter">
                             Close
+                          </span>
+                        </motion.button>
+                      )}
+                      {/* GROUPS only, and above Leave so the destructive
+                          entries stay last. Not single (not a realm - report
+                          the person from their profile, or one message from
+                          its own options) and not channel/server, where the
+                          SERVER is what moderation acts on and is reportable
+                          from its own info modal. */}
+                      {conversationinfo?.type === "group" && (
+                        <motion.button
+                          className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                          disabled={conversationinfo ? false : true}
+                          onClick={() => {
+                            settoggleMenu(false);
+                            setisReportGroupOpen(true);
+                          }}
+                        >
+                          <MdReport
+                            style={{ fontSize: conversationMenuIconSize }}
+                          />
+                          <span className="cl-text-meta tw-font-Inter">
+                            Report
                           </span>
                         </motion.button>
                       )}
@@ -2814,6 +2890,7 @@ function ConversationV2({
         </motion.div>
       </motion.div>
     </motion.div>
+    </>
   );
 }
 

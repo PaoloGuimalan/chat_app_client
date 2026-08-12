@@ -5888,6 +5888,12 @@ input:checked + .slider:before {
   background: var(--surface);
   border: 5px solid var(--surface);
   box-shadow: var(--shadow-md);
+  /* The shell clips its child (overflow:hidden) but had no radius of its own,
+     so it squared off the rounded <img> Avatar renders inside it - the card
+     avatars came out as sharp squares despite shape="rounded". 20px matches
+     the rounding ServerItemLoader's placeholder shell already hardcodes, so
+     the skeleton and the card it stands in for no longer disagree. */
+  border-radius: 20px;
   overflow: hidden;
   width: 50px !important;
   height: 50px !important;

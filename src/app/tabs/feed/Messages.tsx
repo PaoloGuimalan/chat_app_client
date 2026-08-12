@@ -91,11 +91,19 @@ function MessageRow({
   active,
   onClick,
   style,
+  isBadged,
+  isPage,
 }: {
   imgSrc: string | null | undefined;
   title: string;
   titleColor?: string;
   titleIcon?: string;
+  /** Verified badge. One flag for both kinds of counterpart - the server
+   *  normalises an account's is_badged and a realm's is_verified. */
+  isBadged?: boolean;
+  /** Counterpart is a PAGE. Same flag the Network/Contacts rows already put
+   *  on a page connection, so a page reads the same wherever it appears. */
+  isPage?: boolean;
   subtitle: string;
   subtitleColor?: string;
   subtitleHtml?: boolean;
@@ -183,6 +191,14 @@ function MessageRow({
               {title}
             </span>
             {titleIcon && <Icon n={titleIcon} s={15} c={titleColor} />}
+            {isBadged && (
+              <Icon n="verified" s={14} c="var(--brand)" style={{ flex: "none" }} />
+            )}
+            {isPage && (
+              <span title="Page" style={{ display: "inline-flex", flex: "none" }}>
+                <Icon n="flag" s={13} c="var(--text-3)" />
+              </span>
+            )}
           </div>
           <div style={{ fontSize: "var(--fs-meta)", color: "var(--text-3)", flex: "none" }}>
             {time}
@@ -644,6 +660,10 @@ function Messages() {
                           : msgslst.details.profile
                       }
                       title={msgslst.details.display_name}
+                      isBadged={msgslst.details.is_verified === true}
+                      // Only a PAGE gets the flag. Groups/channels/servers are
+                      // realms too, but titleIcon already says what they are.
+                      isPage={msgslst.details.realm_type === "page"}
                       subtitle={typingHere ? "is typing…" : last.text}
                       subtitleColor={typingHere ? "var(--brand)" : undefined}
                       subtitleHtml={!typingHere && last.html}

@@ -207,7 +207,16 @@ export interface UserWithInfoConversationInterface {
   };
   profile?: string;
   isActivated: boolean;
+  /**
+   * The display BADGE - an account's is_badged or a realm's is_verified,
+   * normalised server-side by formatConnectionData. NOT the account's
+   * email-verified flag.
+   */
   isVerified: boolean;
+  /** "user" | "realm". Absent on payloads that predate it. */
+  entityType?: string | null;
+  /** "page" | "server" | ... Absent when this member is a person. */
+  realmType?: string | null;
   __v: 0;
 }
 
@@ -986,6 +995,15 @@ export interface IConversation {
     username: string;
     display_name: string;
     profile: string;
+    // The display BADGE, normalised server-side: an account's is_badged or a
+    // realm's is_verified, both arriving as this one field. NOT the account's
+    // email-verified flag, which is a different thing entirely.
+    is_verified?: boolean;
+    // "user" | "realm" - the counterpart's entity type.
+    type?: string;
+    // "page" | "server" | "group" | ... Absent when the counterpart is a
+    // person, which is what marks a conversation with a PAGE.
+    realm_type?: string | null;
   };
   voice_participants: any[];
 }
@@ -1029,6 +1047,13 @@ export interface IConversationSetup {
     profile: string;
     privacy: boolean;
     type?: string | null;
+    // The display BADGE, normalised server-side: an account's is_badged or a
+    // realm's is_verified, both arriving as this one field. NOT the account's
+    // email-verified flag.
+    is_verified?: boolean;
+    // "page" | "server" | "group" | ... Absent when the counterpart is a
+    // person, which is what marks a conversation with a PAGE.
+    realm_type?: string | null;
   };
   voice_participants: [];
 }

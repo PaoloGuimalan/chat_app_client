@@ -84,6 +84,9 @@ function MessageOptions({
       >
         <BsFillReplyFill style={{ fontSize: "15px" }} />
       </button>
+      {/* Neutral, like Reply beside it - red is reserved for the labelled
+          Report entries in menus and modals. This is an icon-only action in a
+          hover strip, where the red already means "delete". */}
       {!isOwnMessage && (
         <button
           onClick={() => {

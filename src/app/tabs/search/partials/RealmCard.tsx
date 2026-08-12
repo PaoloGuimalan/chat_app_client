@@ -75,7 +75,6 @@ function RealmCard({
             src={realm.profile}
             size={44}
             shape="rounded"
-            style={{ boxShadow: "0 0 0 2px rgba(255,255,255,0.65)" }}
           />
         ) : (
           <Icon

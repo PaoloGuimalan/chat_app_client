@@ -35,6 +35,11 @@ function RealmCardReportButton({
 
   return (
     <>
+      {/* Neutral scrim, NOT the danger red the labelled Report entries use.
+          This sits on a card's cover photo as a small icon-only affordance;
+          a red dot in the corner of every realm card reads as an alert about
+          the card rather than an action available on it. Red is reserved for
+          the menu/modal entries that say "Report" in words. */}
       <button
         type="button"
         aria-label={`Report this ${noun}`}

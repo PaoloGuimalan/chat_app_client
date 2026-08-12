@@ -22,6 +22,8 @@ import { FaHashtag } from "react-icons/fa6";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { timeSince } from "@/reusables/hooks/reusable";
 import { Avatar } from "@/reusables/design";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
+import { PiFlag } from "react-icons/pi";
 
 function ConversationInfoModal({
   conversationinfo,
@@ -124,7 +126,7 @@ function ConversationInfoModal({
                       120,
                     )}
                   </div>
-                  <span className="cl-text-body tw-font-Inter tw-font-semibold">
+                  <span className="cl-text-body tw-font-Inter tw-font-semibold tw-flex tw-items-center tw-gap-[4px]">
                     {
                       conversationinfo.usersWithInfo.filter(
                         (flt: any) =>
@@ -148,6 +150,21 @@ function ConversationInfoModal({
                           flt.entityID !== authentication.user.entity_id,
                       )[0].fullname.lastName
                     }
+                    {userInfo?.isVerified && (
+                      <RiVerifiedBadgeFill
+                        size={16}
+                        color="var(--brand)"
+                        style={{ flex: "none" }}
+                      />
+                    )}
+                    {userInfo?.realmType === "page" && (
+                      <span
+                        title="Page"
+                        style={{ display: "inline-flex", flex: "none" }}
+                      >
+                        <PiFlag size={14} color="var(--text-3)" />
+                      </span>
+                    )}
                   </span>
                 </div>
                 <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start">
@@ -197,14 +214,32 @@ function ConversationInfoModal({
                                 36,
                               )}
                             </div>
-                            <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis">
-                              <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
+                            <div className="tw-flex tw-flex-1 tw-min-w-0 tw-items-center tw-gap-[4px] span_userdetails_ellipsis">
+                              <span className="tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
                                 {mp.fullname.firstName}
                                 {mp.fullname.middleName == "N/A"
                                   ? ""
                                   : ` ${mp.fullname.middleName}`}{" "}
                                 {mp.fullname.lastName}
                               </span>
+                              {mp.isVerified && (
+                                <RiVerifiedBadgeFill
+                                  size={14}
+                                  color="var(--brand)"
+                                  style={{ flex: "none" }}
+                                />
+                              )}
+                              {mp.realmType === "page" && (
+                                <span
+                                  title="Page"
+                                  style={{
+                                    display: "inline-flex",
+                                    flex: "none",
+                                  }}
+                                >
+                                  <PiFlag size={12} color="var(--text-3)" />
+                                </span>
+                              )}
                             </div>
                           </div>
                         );
@@ -869,14 +904,32 @@ function ConversationInfoModal({
                                 36,
                               )}
                             </div>
-                            <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis">
-                              <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
+                            <div className="tw-flex tw-flex-1 tw-min-w-0 tw-items-center tw-gap-[4px] span_userdetails_ellipsis">
+                              <span className="tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
                                 {mp.fullname.firstName}
                                 {mp.fullname.middleName == "N/A"
                                   ? ""
                                   : ` ${mp.fullname.middleName}`}{" "}
                                 {mp.fullname.lastName}
                               </span>
+                              {mp.isVerified && (
+                                <RiVerifiedBadgeFill
+                                  size={14}
+                                  color="var(--brand)"
+                                  style={{ flex: "none" }}
+                                />
+                              )}
+                              {mp.realmType === "page" && (
+                                <span
+                                  title="Page"
+                                  style={{
+                                    display: "inline-flex",
+                                    flex: "none",
+                                  }}
+                                >
+                                  <PiFlag size={12} color="var(--text-3)" />
+                                </span>
+                              )}
                             </div>
                           </div>
                         );
