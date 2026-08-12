@@ -59,6 +59,7 @@ function PostComment({
   post_id,
   parent_id,
   autoFocusComposer,
+  initialMention,
   onCommentPosted,
   onCommentCountChange,
 }: PostCommentProp) {
@@ -131,6 +132,15 @@ function PostComment({
       composerRef.current?.focus();
     }
   }, [autoFocusComposer]);
+
+  // A thread opened via "Reply" pre-fills the parent's handle, the same way
+  // replying to a reply pre-fills that reply's. Keyed on the handle so
+  // re-opening the same thread for the same person doesn't insert twice;
+  // startReplyInComposer skips it anyway if the draft already has it.
+  useEffect(() => {
+    if (!initialMention) return;
+    startReplyInComposer(initialMention);
+  }, [initialMention]);
 
   // --- Mentions -----------------------------------------------------------
   // Same convention as messages: the mention is plain "@handle" text in the
@@ -441,26 +451,60 @@ function PostComment({
     setFocusedThread(null);
   };
 
+  /**
+   * The handle to pre-fill when replying to `mp`, or null when there is
+   * nothing worth inserting.
+   *
+   * Null for your OWN comment - @-ing yourself notifies nobody and just eats
+   * characters - and null for a missing handle. Mirrors the mobile app's
+   * replyMentionHandleFor so the two can't drift.
+   */
+  const replyMentionHandle = (mp: IPostComment): string | null => {
+    if (isMyComment(mp)) return null;
+    const handle = getEntityHandle(mp.entity);
+    return handle ? handle : null;
+  };
+
+  /**
+   * Appends "@handle " to this composer and focuses it.
+   *
+   * Appends rather than replaces, so a reply started mid-draft keeps the
+   * draft, and skips a handle the text already mentions - which is what stops
+   * a second Reply tap from doubling it. The trailing space closes the "@..."
+   * token so the mention autocomplete doesn't spring open on a complete
+   * handle.
+   *
+   * A null handle still focuses: the reply is starting either way.
+   */
+  const startReplyInComposer = (handle: string | null) => {
+    if (handle) {
+      // Functional update, and the "already mentioned" test reads `prev`
+      // rather than the captured writeComment - two Reply taps in one render
+      // would otherwise both see the stale empty draft and insert twice.
+      setwriteComment((prev) => {
+        const already = extractMentionHandles(prev).includes(
+          handle.toLowerCase(),
+        );
+        if (already) return prev;
+        return prev ? `${prev} @${handle} ` : `@${handle} `;
+      });
+    }
+    composerRef.current?.focus();
+  };
+
   const openThreadToReply = (mp: IPostComment) => {
     if (isThread) {
       // Already inside a thread: replying to a reply doesn't nest further, it
       // just addresses that person in THIS thread's composer - which is also
       // what carries the "aimed at you" signal the backend would otherwise
       // lose when it re-parents the reply. Same pre-fill the messenger does.
-      const handle = getEntityHandle(mp.entity);
-      const alreadyMentioned = extractMentionHandles(writeComment).includes(
-        handle.toLowerCase(),
-      );
-
-      if (handle && !alreadyMentioned) {
-        setwriteComment((prev) =>
-          prev ? `${prev} @${handle} ` : `@${handle} `,
-        );
-      }
-      composerRef.current?.focus();
+      startReplyInComposer(replyMentionHandle(mp));
       return;
     }
 
+    // Replying to a TOP-LEVEL comment: the thread this opens owns its own
+    // composer, so the mention can't be inserted from here - it rides down as
+    // `initialMention` and the thread applies it on mount.
     setOpenThreads((prev) =>
       prev.includes(mp.comment_id) ? prev : [...prev, mp.comment_id],
     );
@@ -844,6 +888,14 @@ function PostComment({
                           post_id={post_id}
                           parent_id={mp.comment_id}
                           autoFocusComposer={focusedThread === mp.comment_id}
+                          // Only for a thread opened by REPLY - "View replies"
+                          // leaves focusedThread null and must not write into
+                          // the composer.
+                          initialMention={
+                            focusedThread === mp.comment_id
+                              ? replyMentionHandle(mp)
+                              : null
+                          }
                           onCommentCountChange={onCommentCountChange}
                           onCommentPosted={() =>
                             setExtraReplies((prev) => ({

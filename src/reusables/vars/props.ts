@@ -49,6 +49,15 @@ export interface PostCommentProp {
    */
   autoFocusComposer?: boolean;
   /**
+   * Handle to pre-fill as "@handle" when a thread is opened via "Reply", so
+   * the person being replied to is actually notified. Null when there is
+   * nothing worth inserting - your OWN comment, or a missing handle.
+   *
+   * Only meaningful alongside `autoFocusComposer`: opening a thread via
+   * "View replies" is reading, not replying, and must not touch the composer.
+   */
+  initialMention?: string | null;
+  /**
    * Fired by a thread after it posts a reply, so the parent row's reply count
    * keeps up without refetching the whole comment list.
    */
