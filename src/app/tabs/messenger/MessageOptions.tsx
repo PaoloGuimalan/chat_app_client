@@ -4,8 +4,9 @@ import { MessageOptionsProp } from "@/reusables/vars/props";
 import { useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BsFillReplyFill } from "react-icons/bs";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdReport } from "react-icons/md";
 import { motion } from "framer-motion";
+import ReportModal from "@/app/widgets/modals/ReportModal";
 
 function MessageOptions({
   conversationID,
@@ -14,6 +15,12 @@ function MessageOptions({
   setisReplying,
 }: MessageOptionsProp) {
   const [isDeleting, setisDeleting] = useState<boolean>(false);
+  const [isReportOpen, setisReportOpen] = useState<boolean>(false);
+
+  // "sender" means the message is yours - Delete replaces Report, exactly the
+  // way it does in the post menu. Reporting your own message would resolve to
+  // your own entity and be rejected server-side anyway.
+  const isOwnMessage = type === "sender";
 
   const DeleteMessageProcess = () => {
     setisDeleting(true);
@@ -40,7 +47,7 @@ function MessageOptions({
           : "tw-justify-end tw-pl-[5px] tw-flex-row-reverse"
       }`}
     >
-      {type === "sender" &&
+      {isOwnMessage &&
         (isDeleting ? (
           <div
             id="divlazyloader"
@@ -77,6 +84,25 @@ function MessageOptions({
       >
         <BsFillReplyFill style={{ fontSize: "15px" }} />
       </button>
+      {!isOwnMessage && (
+        <button
+          onClick={() => {
+            setisReportOpen(true);
+          }}
+          aria-label="Report message"
+          title="Report"
+          className="cl-message-options-button tw-flex tw-items-center tw-justify-center tw-h-[30px] tw-cursor-pointer tw-bg-transparent tw-border-none"
+        >
+          <MdReport style={{ fontSize: "15px" }} />
+        </button>
+      )}
+      {isReportOpen && (
+        <ReportModal
+          targetType="message"
+          targetId={messageID}
+          onClose={() => setisReportOpen(false)}
+        />
+      )}
     </div>
   );
 }

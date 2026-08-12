@@ -3860,7 +3860,15 @@ const RevokeDeviceSessionRequest = async (
     });
 };
 
-const ReportUserRequest = async (
+/**
+ * POST /api/user/reports - files a report against any entity or one piece of
+ * its content.
+ *
+ * `target_id` is the ENTITY id for target_type "user"/"realm", and the
+ * artefact's own id for "post"/"comment"/"message". The server resolves which
+ * entity is responsible either way, so this one call covers every surface.
+ */
+const SubmitReportRequest = async (
   params: {
     target_type: string;
     target_id: string;
@@ -4267,7 +4275,7 @@ export {
   ListBlockedUsersRequest,
   ListDeviceSessionsRequest,
   RevokeDeviceSessionRequest,
-  ReportUserRequest,
+  SubmitReportRequest,
   UpdateProfileInfoRequest,
   UpdateProfilePrivacyRequest,
   AnswerFollowRequest,

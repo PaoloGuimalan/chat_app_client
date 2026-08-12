@@ -1,4 +1,5 @@
 import { Avatar, Btn, Card, Icon } from "@/reusables/design";
+import RealmCardReportButton from "@/app/widgets/items/RealmCardReportButton";
 import { SearchRealmResult } from "@/reusables/vars/interfaces";
 import {
   gradFor,
@@ -44,8 +45,14 @@ function RealmCard({
         width: rail ? 200 : "100%",
         flex: rail ? "none" : undefined,
         overflow: "hidden",
+        // Anchors the corner report button to the card, not the page.
+        position: "relative",
       }}
     >
+      <RealmCardReportButton
+        targetId={realm.entity_id}
+        realmType={realm.realm_type}
+      />
       <button
         type="button"
         onClick={() => onOpen(realm)}

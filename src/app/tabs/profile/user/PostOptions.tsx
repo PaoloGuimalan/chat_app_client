@@ -11,9 +11,10 @@ import { BsThreeDots } from "react-icons/bs";
 import { GoBookmarkSlashFill } from "react-icons/go";
 import { FaArchive } from "react-icons/fa";
 import { IoBookmark } from "react-icons/io5";
-import { MdDelete } from "react-icons/md";
+import { MdDelete, MdReport } from "react-icons/md";
 import { useSelector } from "react-redux";
 import { RiInboxUnarchiveFill } from "react-icons/ri";
+import ReportModal from "@/app/widgets/modals/ReportModal";
 
 function PostOptions({
   post,
@@ -33,6 +34,13 @@ function PostOptions({
   const [isOptionsToggled, setisOptionsToggled] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(post);
   const [isSaving, setisSaving] = useState<boolean>(false);
+  const [isReportOpen, setisReportOpen] = useState<boolean>(false);
+
+  // Reporting your own post is meaningless, and the server rejects it anyway
+  // (the post resolves to your own entity) - so don't offer it. This is the
+  // same ownership check the archive/delete items already use, which covers
+  // posts published *as* a page you administer too.
+  const isOwnPost = post.entity.id === authentication.user.entity_id;
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -141,7 +149,7 @@ function PostOptions({
                 <span>Unsave</span>
               </button>
             ))}
-          {post.entity.id === authentication.user.entity_id &&
+          {isOwnPost &&
             (post.is_archived ? (
               <button
                 onClick={() => {
@@ -166,13 +174,28 @@ function PostOptions({
                 <span>Archive</span>
               </button>
             ))}
-          {post.entity.id === authentication.user.entity_id && (
+          {isOwnPost && (
             <button
               onClick={DeletePostProcess}
               className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
             >
               <MdDelete size={18} style={{ marginLeft: "-3px" }} />
               <span>Delete</span>
+            </button>
+          )}
+          {!isOwnPost && (
+            <button
+              onClick={() => {
+                setisOptionsToggled(false);
+                setisReportOpen(true);
+              }}
+              className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+            >
+              <MdReport
+                size={15}
+                style={{ marginLeft: "-1px", marginRight: "4px" }}
+              />
+              <span>Report</span>
             </button>
           )}
         </div>
@@ -185,6 +208,13 @@ function PostOptions({
       >
         <BsThreeDots style={{ fontSize: "17px", color: "var(--text)" }} />
       </button>
+      {isReportOpen && (
+        <ReportModal
+          targetType="post"
+          targetId={post.post_id}
+          onClose={() => setisReportOpen(false)}
+        />
+      )}
     </div>
   );
 }

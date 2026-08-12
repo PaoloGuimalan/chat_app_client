@@ -24,6 +24,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Avatar, Btn, Card, Icon } from "@/reusables/design";
 import {
   AcceptContactRequest,
+  BlockUserRequest,
   ContactRequest,
   CreateInitialConversation,
   DeclineContactRequest,
@@ -31,7 +32,10 @@ import {
   GetPostRequest,
   UnfollowRealmRequest,
 } from "@/reusables/hooks/requests";
-import { MdPerson } from "react-icons/md";
+import { MdBlock, MdPerson, MdReport } from "react-icons/md";
+import { IoClose } from "react-icons/io5";
+import { BsThreeDots } from "react-icons/bs";
+import ReportModal from "@/app/widgets/modals/ReportModal";
 import { PiShareFat } from "react-icons/pi";
 import { SET_MINIMIZED_CONVERSATION } from "@/redux/types";
 
@@ -72,6 +76,12 @@ function RealmProfile({
   const [isConnectionButtonsLoading, setisConnectionButtonsLoading] =
     useState<boolean>(false);
 
+  const [isOptionsToggled, setisOptionsToggled] = useState<boolean>(false);
+  const [isReportOpen, setisReportOpen] = useState<boolean>(false);
+  const [isBlockLoading, setisBlockLoading] = useState<boolean>(false);
+  const [confirmBlock, setconfirmBlock] = useState<boolean>(false);
+  const optionsWrapperRef = useRef<HTMLDivElement>(null);
+
   const [page, setpage] = useState<number>(1);
   const [range] = useState<number>(20);
 
@@ -84,6 +94,53 @@ function RealmProfile({
   // than the personal account, or the page itself) is this exact page -
   // not just "do I administer it". A page can't follow or message itself.
   const isSelf = authentication.active_entity_context.id === realmInfo.entity;
+
+  // A "page" is the standalone, followable realm type; servers/groups/channels
+  // are membership spaces you leave rather than block. Both are reportable -
+  // only pages get a block button, because blocking a space you're a member of
+  // would leave the membership behind and mean something different.
+  const isPage = realmInfo.type === "page";
+  const realmNoun = isPage ? "page" : realmInfo.type || "realm";
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (
+        optionsWrapperRef.current &&
+        !optionsWrapperRef.current.contains(event.target as Node)
+      ) {
+        setisOptionsToggled(false);
+        setconfirmBlock(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
+
+  // Two-step, same as the user profile: the first click arms, the second
+  // commits. Blocking a page tears down follows and connections server-side,
+  // so a stray click on a dropdown item must not be enough to trigger it.
+  const blockRealmProcess = () => {
+    if (!confirmBlock) {
+      setconfirmBlock(true);
+      return;
+    }
+    setisBlockLoading(true);
+    BlockUserRequest(
+      realmInfo.entity,
+      dispatch,
+      alerts,
+      setisBlockLoading,
+    ).then((success) => {
+      if (success) {
+        navigate("/");
+      } else {
+        setconfirmBlock(false);
+      }
+    });
+  };
 
   // Same live-refresh as the user profile: a page's admins can accept a
   // contact request, and the requester may be sitting on the page looking at
@@ -545,11 +602,95 @@ function RealmProfile({
                 >
                   Message
                 </button>
+                {!isSelf && (
+                  <div
+                    ref={optionsWrapperRef}
+                    className="tw-relative tw-flex tw-items-center"
+                  >
+                    <button
+                      onClick={() => {
+                        setisOptionsToggled((prev) => !prev);
+                      }}
+                      className="tw-ml-[0px] sm:tw-ml-[10px] tw-w-[32px] tw-h-[32px] tw-flex tw-items-center tw-justify-center tw-rounded-full tw-border-none tw-bg-transparent hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer"
+                      aria-label="More options"
+                    >
+                      <BsThreeDots
+                        style={{ fontSize: "17px", color: "var(--text)" }}
+                      />
+                    </button>
+                    {isOptionsToggled && (
+                      <div className="cl-post-options-menu tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[160px] tw-absolute tw-right-[0px] tw-top-[36px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md">
+                        {isPage && (
+                          <Fragment>
+                            <button
+                              disabled={isBlockLoading}
+                              onClick={() => {
+                                blockRealmProcess();
+                              }}
+                              className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                            >
+                              <MdBlock
+                                size={15}
+                                style={{
+                                  marginLeft: "-1px",
+                                  marginRight: "4px",
+                                }}
+                              />
+                              <span>
+                                {isBlockLoading
+                                  ? "Blocking…"
+                                  : confirmBlock
+                                    ? "Confirm block"
+                                    : "Block"}
+                              </span>
+                            </button>
+                            {confirmBlock && !isBlockLoading && (
+                              <button
+                                onClick={() => setconfirmBlock(false)}
+                                className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                              >
+                                <IoClose
+                                  size={15}
+                                  style={{
+                                    marginLeft: "-1px",
+                                    marginRight: "4px",
+                                  }}
+                                />
+                                <span>Cancel block</span>
+                              </button>
+                            )}
+                          </Fragment>
+                        )}
+                        <button
+                          onClick={() => {
+                            setisOptionsToggled(false);
+                            setisReportOpen(true);
+                          }}
+                          className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                        >
+                          <MdReport
+                            size={15}
+                            style={{ marginLeft: "-1px", marginRight: "4px" }}
+                          />
+                          <span>Report</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
         </div>
       </div>
+      {isReportOpen && (
+        <ReportModal
+          targetType="realm"
+          targetId={realmInfo.entity}
+          title={`Report this ${realmNoun}`}
+          onClose={() => setisReportOpen(false)}
+        />
+      )}
       <div className="cl-profile-page__content tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[6px] tw-items-stretch md:tw-items-start">
         <div className="cl-profile-page__sidebar tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[8px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
           <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex tw-flex-col">

@@ -13,7 +13,7 @@ import { TfiThought } from "react-icons/tfi";
 import { BsThreeDots } from "react-icons/bs";
 import { MdBlock, MdReport } from "react-icons/md";
 import { useEffect, useMemo, useRef, useState } from "react";
-import Modal from "@/app/reusables/Modal";
+import ReportModal from "@/app/widgets/modals/ReportModal";
 import {
   AcceptContactRequest,
   ContactRequest,
@@ -21,7 +21,6 @@ import {
   GetDiaryTotalRequest,
   BlockUserRequest,
   PokeUserRequest,
-  ReportUserRequest,
   CreateInitialConversation,
   FollowRealmRequest,
   UnfollowRealmRequest,
@@ -87,9 +86,6 @@ function Profile({
   const [isBlockLoading, setisBlockLoading] = useState<boolean>(false);
   const [confirmBlock, setconfirmBlock] = useState<boolean>(false);
   const [isReportOpen, setisReportOpen] = useState<boolean>(false);
-  const [reportReason, setreportReason] = useState<string>("spam");
-  const [reportDescription, setreportDescription] = useState<string>("");
-  const [isReportSubmitting, setisReportSubmitting] = useState<boolean>(false);
   const [isOptionsToggled, setisOptionsToggled] = useState<boolean>(false);
   const optionsWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -108,18 +104,6 @@ function Profile({
       document.removeEventListener("mousedown", handleClickOutside);
     };
   }, []);
-
-  const reportReasons: { value: string; label: string }[] = [
-    { value: "spam", label: "Spam" },
-    { value: "harassment", label: "Harassment or bullying" },
-    { value: "hate_speech", label: "Hate speech" },
-    { value: "violence", label: "Violence or dangerous behavior" },
-    { value: "nudity", label: "Nudity or sexual content" },
-    { value: "csae", label: "Child sexual abuse or exploitation" },
-    { value: "impersonation", label: "Impersonation" },
-    { value: "misinformation", label: "Misinformation" },
-    { value: "other", label: "Other" },
-  ];
 
   const [diaryPreview, setDiaryPreview] = useState<IDiaryPreview>({
     isLoaded: false,
@@ -357,27 +341,6 @@ function Profile({
         navigate("/");
       } else {
         setconfirmBlock(false);
-      }
-    });
-  };
-
-  const submitReportProcess = () => {
-    setisReportSubmitting(true);
-    ReportUserRequest(
-      {
-        target_type: "user",
-        target_id: profileInfo.entityID,
-        reason: reportReason,
-        description: reportDescription,
-      },
-      dispatch,
-      alerts,
-      setisReportSubmitting,
-    ).then((success) => {
-      if (success) {
-        setisReportOpen(false);
-        setreportDescription("");
-        setreportReason("spam");
       }
     });
   };
@@ -789,57 +752,10 @@ function Profile({
         </div>
       </div>
       {isReportOpen && (
-        <Modal
-          component={
-            <div className="cl-profile-surface tw-w-[calc(100%-24px)] tw-max-w-[460px] tw-p-[18px] tw-flex tw-flex-col tw-gap-[10px] tw-items-start tw-rounded-[12px]">
-              <div className="tw-w-full tw-flex tw-items-center tw-gap-[8px]">
-                <MdReport style={{ fontSize: "20px", color: "var(--text)" }} />
-                <span className="tw-flex-1 cl-text-body tw-font-semibold">
-                  Report this account
-                </span>
-                <button
-                  onClick={() => setisReportOpen(false)}
-                  aria-label="Close"
-                  className="tw-w-[28px] tw-h-[28px] tw-flex tw-items-center tw-justify-center tw-rounded-full tw-border-none tw-bg-transparent hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer"
-                >
-                  <IoClose style={{ fontSize: "18px", color: "var(--text)" }} />
-                </button>
-              </div>
-              <select
-                value={reportReason}
-                onChange={(e) => setreportReason(e.target.value)}
-                className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] cl-text-body-sm"
-              >
-                {reportReasons.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
-              <textarea
-                value={reportDescription}
-                onChange={(e) => setreportDescription(e.target.value)}
-                placeholder="Additional details (optional)"
-                rows={4}
-                className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] cl-text-body-sm tw-resize-none"
-              />
-              <div className="tw-w-full tw-flex tw-gap-[6px] tw-justify-end">
-                <button
-                  onClick={() => setisReportOpen(false)}
-                  className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                >
-                  Cancel
-                </button>
-                <button
-                  disabled={isReportSubmitting}
-                  onClick={submitReportProcess}
-                  className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                >
-                  {isReportSubmitting ? "Submitting…" : "Submit report"}
-                </button>
-              </div>
-            </div>
-          }
+        <ReportModal
+          targetType="user"
+          targetId={profileInfo.entityID}
+          onClose={() => setisReportOpen(false)}
         />
       )}
       <div className="cl-profile-page__content tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-stretch md:tw-items-start">

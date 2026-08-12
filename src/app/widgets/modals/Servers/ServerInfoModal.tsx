@@ -4,7 +4,7 @@ import Modal from "@/app/reusables/Modal";
 import { ServerInfoModalProp } from "@/reusables/vars/props";
 import { motion } from "framer-motion";
 import { IoMdClose } from "react-icons/io";
-import { useState } from "react";
+import { Fragment, useState } from "react";
 import { IoClose } from "react-icons/io5";
 import { BiLogOut } from "react-icons/bi";
 import {
@@ -15,6 +15,8 @@ import { useNavigate } from "react-router-dom";
 import { useSelector } from "react-redux";
 import { Avatar } from "@/reusables/design";
 import { RemoveRealmMemberRequest } from "@/reusables/hooks/requests";
+import { MdReport } from "react-icons/md";
+import ReportModal from "@/app/widgets/modals/ReportModal";
 
 function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   const navigate = useNavigate();
@@ -23,6 +25,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   );
 
   const [isLeaving, setisLeaving] = useState<boolean>(false);
+  const [isReportOpen, setisReportOpen] = useState<boolean>(false);
 
   const LeaveServerProcess = () => {
     setisLeaving(true);
@@ -56,8 +59,20 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   };
 
   return (
-    <Modal
-      component={
+    <Fragment>
+      {isReportOpen && (
+        <ReportModal
+          targetType="realm"
+          // The server's realm id - the reports endpoint resolves a realm from
+          // either its entity id or its own pk, and this screen only ever
+          // holds the latter.
+          targetId={serverdetails.serverID}
+          title="Report this server"
+          onClose={() => setisReportOpen(false)}
+        />
+      )}
+      <Modal
+        component={
         <div className="div_modal_container tw-max-w-[600px] tw-max-h-[550px] tw-items-center">
           <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-pl-[10px] tw-pr-[10px] tw-pt-[7px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
             <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1">
@@ -105,6 +120,18 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                       Manage
                     </button>
                   )}
+                  {/* Between Manage and Leave: Leave is the destructive one
+                      and stays last, so Report never sits where a mis-tap
+                      costs you your membership. */}
+                  <button
+                    onClick={() => {
+                      setisReportOpen(true);
+                    }}
+                    className="cl-server-accent-button tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] cl-text-caption tw-flex tw-items-center tw-justify-center tw-gap-[5px]"
+                  >
+                    <MdReport style={{ fontSize: "14px" }} />
+                    Report
+                  </button>
                   <button
                     onClick={LeaveServerProcess}
                     disabled={isLeaving}
@@ -208,8 +235,9 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
             </div>
           </div>
         </div>
-      }
-    />
+        }
+      />
+    </Fragment>
   );
 }
 

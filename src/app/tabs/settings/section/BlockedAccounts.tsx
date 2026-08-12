@@ -15,6 +15,11 @@ interface IBlockedAccount {
   last_name: string;
   profile: string;
   created_at: string;
+  // "user" or "realm". Blocks are entity-level, so a page blocked from its
+  // profile lands in this same list - and a page's name arrives in first_name
+  // with an empty last_name, which would otherwise look like a person.
+  // Absent on rows served before this field existed; those are all accounts.
+  entityType?: string;
 }
 
 function BlockedAccounts() {
@@ -61,8 +66,8 @@ function BlockedAccounts() {
       </div>
       <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
         <span className="tw-text-[14px] tw-text-left tw-text-[#6b6b6d]">
-          Accounts you've blocked can't contact you, see your posts, or find
-          your profile in search.
+          Accounts and pages you've blocked can't contact you, see your posts,
+          or find your profile in search.
         </span>
         {isLoading ? (
           <span className="tw-text-[13px] tw-text-[#6b6b6d]">Loading…</span>
@@ -84,8 +89,15 @@ function BlockedAccounts() {
                   size={36}
                 />
                 <div className="tw-flex tw-flex-col tw-flex-1 tw-min-w-0">
-                  <span className="tw-text-[13px] tw-text-left tw-font-semibold">
-                    {acc.first_name} {acc.last_name}
+                  <span className="tw-text-[13px] tw-text-left tw-font-semibold tw-flex tw-items-center tw-gap-[6px]">
+                    <span className="tw-truncate">
+                      {acc.first_name} {acc.last_name}
+                    </span>
+                    {acc.entityType === "realm" && (
+                      <span className="tw-shrink-0 tw-text-[11px] tw-font-semibold tw-px-[6px] tw-py-[1px] tw-rounded-full tw-bg-[var(--surface)] tw-text-[#6b6b6d]">
+                        Page
+                      </span>
+                    )}
                   </span>
                   <span className="tw-text-[12px] tw-text-left tw-text-[#6b6b6d]">
                     @{acc.username}

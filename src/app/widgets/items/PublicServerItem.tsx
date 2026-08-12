@@ -14,6 +14,7 @@ import {
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import { Avatar } from "@/reusables/design/primitives2";
+import RealmCardReportButton from "@/app/widgets/items/RealmCardReportButton";
 
 function PublicServerItem({
   mp,
@@ -99,7 +100,12 @@ function PublicServerItem({
     <div
       className={`cl-display-card tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col`}
     >
-      <div className="cl-display-card__surface tw-w-full tw-h-full tw-min-h-[0px] tw-flex tw-flex-col tw-justify-start tw-items-center">
+      <div className="cl-display-card__surface tw-relative tw-w-full tw-h-full tw-min-h-[0px] tw-flex tw-flex-col tw-justify-start tw-items-center">
+        <RealmCardReportButton
+          targetId={mp.entity || mp.realm_id || mp.id}
+          realmType="server"
+          hidden={isSelf}
+        />
         {mp.cover_photo ? (
           <img
             src={mp.cover_photo}

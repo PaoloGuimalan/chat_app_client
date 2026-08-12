@@ -699,12 +699,15 @@ function PostComment({
                           <span className="cl-text-meta tw-text-[var(--text-3)] tw-whitespace-nowrap tw-text-right">
                             {timeSince(mp.created_at)}
                           </span>
-                          {isMyComment(mp) && (
-                            <CommentOptions
-                              isBusy={deletingCommentID === mp.comment_id}
-                              onDelete={() => DeleteCommentProcess(mp)}
-                            />
-                          )}
+                          {/* On every comment now, not just your own: the menu
+                              carries Edit/Delete for the author and Report for
+                              everyone else. */}
+                          <CommentOptions
+                            commentID={mp.comment_id}
+                            isOwnComment={isMyComment(mp)}
+                            isBusy={deletingCommentID === mp.comment_id}
+                            onDelete={() => DeleteCommentProcess(mp)}
+                          />
                         </span>
                       </div>
                       <div className="tw-w-full tw-flex tw-flex-col tw-gap-[4px] tw-mt-[4px]">

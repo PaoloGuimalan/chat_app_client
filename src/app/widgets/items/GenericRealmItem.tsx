@@ -13,6 +13,7 @@ import {
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { Avatar } from "@/reusables/design/primitives2";
+import RealmCardReportButton from "@/app/widgets/items/RealmCardReportButton";
 
 function GenericRealmItem({
   mp,
@@ -137,8 +138,13 @@ function GenericRealmItem({
       className={`cl-display-card tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col`}
     >
       <div
-        className="cl-display-card__surface tw-w-full tw-h-full tw-min-h-[0px] tw-flex tw-flex-col tw-justify-start tw-items-center"
+        className="cl-display-card__surface tw-relative tw-w-full tw-h-full tw-min-h-[0px] tw-flex tw-flex-col tw-justify-start tw-items-center"
       >
+        <RealmCardReportButton
+          targetId={mp.entity || mp.realm_id || mp.id}
+          realmType={mp.type}
+          hidden={isSelf}
+        />
         {mp.cover_photo ? (
           <img
             src={mp.cover_photo}
