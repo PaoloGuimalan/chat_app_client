@@ -133,6 +133,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
           caption: mp.caption,
           referenceMediaType: mp.referenceMediaType,
         })),
+        "entry",
       )
         .then((response) => {
           if (response.data.status) {

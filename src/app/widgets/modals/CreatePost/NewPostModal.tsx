@@ -292,6 +292,7 @@ export function NewPostModal({
               caption: mp.caption,
               referenceMediaType: mp.referenceMediaType,
             })),
+            "post",
           );
 
           uploadedReferences = uploadResponse.data.result.map(

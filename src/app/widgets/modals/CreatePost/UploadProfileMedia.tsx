@@ -127,13 +127,18 @@ function UploadProfileMedia({
         // "profile"|"cover_photo" path, which already updates
         // user_account.profile/coverphoto AND creates the feed post - same
         // two-step pattern Create Post uses.
-        const uploadResponse: any = await UploadMediaRequest([
-          {
-            file: medialist.file,
-            caption: mainpostcaption,
-            referenceMediaType: medialist.referenceMediaType,
-          },
-        ]);
+        const uploadResponse: any = await UploadMediaRequest(
+          [
+            {
+              file: medialist.file,
+              caption: mainpostcaption,
+              referenceMediaType: medialist.referenceMediaType,
+            },
+          ],
+          // Already exactly "profile" | "cover_photo" - the same prop that
+          // drives the post's contentType below.
+          type,
+        );
 
         const uploaded = uploadResponse.data.result[0];
 

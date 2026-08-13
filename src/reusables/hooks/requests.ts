@@ -1959,8 +1959,14 @@ const CreatePostRequest = async (payload: any) => {
     });
 };
 
+/// What an upload is FOR. Stored on the file record (uploadedfiles.action)
+/// rather than used for routing - this one endpoint serves avatars, covers,
+/// post media and diary attachments alike.
+export type UploadAction = "profile" | "cover_photo" | "post" | "entry";
+
 const UploadMediaRequest = async (
   files: { file: File; caption?: string; referenceMediaType?: string }[],
+  action: UploadAction,
 ) => {
   const formData = new FormData();
   files.forEach((f) => formData.append("media", f.file, f.file.name));
@@ -1972,6 +1978,11 @@ const UploadMediaRequest = async (
     "referenceMediaTypes",
     JSON.stringify(files.map((f) => f.referenceMediaType || f.file.type)),
   );
+  // Plain scalar, NOT JSON.stringify'd like the two fields above - those are
+  // real arrays with one entry per file, this is a single value covering the
+  // whole request. The server reads fields.action[0] because multiparty hands
+  // every field back as an array, not because it is encoded.
+  formData.append("action", action);
 
   return await Axios.post(`${API}/posts/upload`, formData, {
     headers: {
