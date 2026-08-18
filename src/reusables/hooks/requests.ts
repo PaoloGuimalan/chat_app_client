@@ -625,6 +625,97 @@ const LogoutRequest = (dispatch: Dispatch<any>) => {
   });
 };
 
+/**
+ * The public account-deletion flow (user_service PublicAccountDeletion).
+ *
+ * Unlike almost everything else in this file these take no dispatch: the page
+ * is rendered outside the app shell for a logged-out visitor, so there is no
+ * store to write to and no alert bar to raise. They resolve rather than throw,
+ * because a 400 here is an ordinary outcome - a wrong code - not an exception.
+ *
+ * Deliberately NOT sending an auth token. The endpoints strip their
+ * authenticators, and the whole point of the flow is that it works for someone
+ * who cannot sign in.
+ */
+type DeletionStepResult = {
+  ok: boolean;
+  status: number;
+  data: any;
+  message: string;
+};
+
+const postDeletionStep = async (
+  step: "lookup" | "request" | "confirm",
+  payload: Record<string, string>,
+): Promise<DeletionStepResult> => {
+  try {
+    const response = await Axios.post(
+      `${USER_SERVICE_API}/api/user/deletion/${step}`,
+      payload,
+    );
+    return {
+      ok: true,
+      status: response.status,
+      data: response.data,
+      message: response.data?.message ?? "",
+    };
+  } catch (error: any) {
+    const data = error?.response?.data;
+    return {
+      ok: false,
+      status: error?.response?.status ?? 0,
+      data,
+      message:
+        data?.message ??
+        "We couldn't reach Chatterloop. Check your connection and try again.",
+    };
+  }
+};
+
+const LookupAccountForDeletion = (email: string) =>
+  postDeletionStep("lookup", { email });
+
+const RequestAccountDeletionCode = (email: string) =>
+  postDeletionStep("request", { email });
+
+const ConfirmAccountDeletion = (email: string, code: string) =>
+  postDeletionStep("confirm", { email, code });
+
+/**
+ * Asks for a fresh signup verification code.
+ *
+ * Authenticated - registration already returned a token, so the address comes
+ * from the account server-side and is never sent from here. Resolves rather
+ * than throws so the caller can show the 429 cooldown message as ordinary copy
+ * instead of an error.
+ */
+const ResendVerificationCodeRequest = async (): Promise<{
+  ok: boolean;
+  status: number;
+  message: string;
+}> => {
+  try {
+    const response = await Axios.post(
+      `${USER_SERVICE_API}/api/user/verification/resend`,
+      {},
+      { headers: { "x-access-token": localStorage.getItem("authtoken") } },
+    );
+    return {
+      ok: true,
+      status: response.status,
+      message: response.data?.message ?? "A new code is on its way.",
+    };
+  } catch (error: any) {
+    return {
+      ok: false,
+      status: error?.response?.status ?? 0,
+      message:
+        error?.response?.data?.message ??
+        "We couldn't send a new code. Check your connection and try again.",
+    };
+  }
+};
+
 const VerifyCodeRequest = (
   params: any,
   dispatch: Dispatch<any>,
@@ -4294,4 +4385,8 @@ export {
   InitConversationInfoRequest,
   CreateInitialConversation,
   ReplyAssistRequest,
+  LookupAccountForDeletion,
+  RequestAccountDeletionCode,
+  ConfirmAccountDeletion,
+  ResendVerificationCodeRequest,
 };

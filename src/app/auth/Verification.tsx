@@ -1,8 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { KeyboardEvent, useRef, useState } from "react";
+import { KeyboardEvent, useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   LogoutRequest,
+  ResendVerificationCodeRequest,
   VerifyCodeRequest,
 } from "../../reusables/hooks/requests";
 import { checkIfValid } from "../../reusables/hooks/validatevariables";
@@ -12,6 +13,9 @@ import { Btn, Icon, useTheme } from "@/reusables/design";
 import { BrandMark, BrandPanel } from "./Login";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 
+// Matches ResendVerificationCode.RESEND_COOLDOWN in user_service.
+const RESEND_SECONDS = 60;
+
 function Verification() {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -20,9 +24,20 @@ function Verification() {
 
   const [code, setCode] = useState<string[]>(["", "", "", "", "", ""]);
   const [isWaitingRequest, setisWaitingRequest] = useState(false);
+  const [isResending, setIsResending] = useState(false);
+  // Mirrors ResendVerificationCode.RESEND_COOLDOWN on the server, so the link
+  // disables itself for the same window rather than letting people click into
+  // a 429.
+  const [resendIn, setResendIn] = useState(0);
   const refs = useRef<(HTMLInputElement | null)[]>([]);
   const dispatch = useDispatch();
   const { theme, toggleTheme } = useTheme();
+
+  useEffect(() => {
+    if (resendIn <= 0) return;
+    const id = setInterval(() => setResendIn((n) => Math.max(0, n - 1)), 1000);
+    return () => clearInterval(id);
+  }, [resendIn]);
 
   const setDigit = (i: number, v: string) => {
     if (!/^\d?$/.test(v)) return;
@@ -78,6 +93,39 @@ function Verification() {
       });
       setisWaitingRequest(false);
     }
+  };
+
+  const resendProcess = async () => {
+    if (isResending || resendIn > 0) return;
+
+    setIsResending(true);
+    const result = await ResendVerificationCodeRequest();
+    setIsResending(false);
+
+    // A 429 means the server's own cooldown is still running - our countdown
+    // and its clock can drift apart across a reload, so honour whichever is
+    // stricter by starting ours again.
+    if (result.ok || result.status === 429) {
+      setResendIn(RESEND_SECONDS);
+    }
+
+    if (result.ok) {
+      // The previous code is retired server-side, so anything half-typed is
+      // now wrong. Clearing it avoids submitting a code that cannot work.
+      setCode(["", "", "", "", "", ""]);
+      refs.current[0]?.focus();
+    }
+
+    dispatch({
+      type: SET_ALERTS,
+      payload: {
+        alerts: {
+          id: alerts.length,
+          type: result.ok ? "success" : "warning",
+          content: result.message,
+        },
+      },
+    });
   };
 
   const logoutProcess = () => {
@@ -243,13 +291,30 @@ function Verification() {
           >
             Didn't get it?{" "}
             <span
+              onClick={resendProcess}
+              role="button"
+              tabIndex={0}
+              aria-disabled={isResending || resendIn > 0}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  resendProcess();
+                }
+              }}
               style={{
-                color: "var(--brand)",
+                color:
+                  isResending || resendIn > 0
+                    ? "var(--text-3)"
+                    : "var(--brand)",
                 fontWeight: 700,
-                cursor: "pointer",
+                cursor: isResending || resendIn > 0 ? "default" : "pointer",
               }}
             >
-              Resend Code
+              {isResending
+                ? "Sending…"
+                : resendIn > 0
+                  ? `Resend in ${resendIn}s`
+                  : "Resend Code"}
             </span>
             <span style={{ margin: "0 8px", color: "var(--border-2)" }}>·</span>
             <span
