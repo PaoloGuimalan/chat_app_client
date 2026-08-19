@@ -3448,6 +3448,38 @@ const UpdateMemberRoleRequest = async (
     });
 };
 
+/**
+ * Hand the realm to another member: they become owner, the current owner
+ * becomes admin. Separate from UpdateMemberRoleRequest, which refuses
+ * new_role "owner" because promoting without demoting would leave two.
+ */
+const TransferRealmOwnershipRequest = async (
+  realm_id: string,
+  member_id: string,
+) => {
+  return await Axios.put(
+    `${API}/s/transfer-realm-ownership`,
+    { realm_id, member_id },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      return response.data;
+    })
+    .catch((err) => {
+      // The server refuses this with a 4xx and an explanatory message
+      // ("They already own this realm", "Only the realm owner ..."). Those
+      // are answers, not transport failures - hand them back in the same
+      // { status, message } shape the success path uses so callers can show
+      // them instead of swallowing an exception.
+      if (err?.response?.data) return err.response.data;
+      throw new Error(err);
+    });
+};
+
 const RemoveRealmMemberRequest = async (
   realm_id: string,
   account_ids: string[],
@@ -3465,6 +3497,12 @@ const RemoveRealmMemberRequest = async (
       return response.data;
     })
     .catch((err) => {
+      // Leaving/removing is refused with a 400 and a message the user needs
+      // to read - most importantly "Transfer ownership to another member
+      // before leaving." Throwing here is what made every Leave button look
+      // like it did nothing at all for a realm owner, since every caller
+      // just console.logs the rejection.
+      if (err?.response?.data) return err.response.data;
       throw new Error(err);
     });
 };
@@ -4361,6 +4399,7 @@ export {
   GetRealmFollowersRequest,
   UpdateMemberRoleRequest,
   RemoveRealmMemberRequest,
+  TransferRealmOwnershipRequest,
   RemoveRealmFollowersRequest,
   UpdateChatHistoryRequest,
   ManualInitConversationListRequest,

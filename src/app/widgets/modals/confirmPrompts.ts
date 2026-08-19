@@ -58,7 +58,12 @@ export const removeConnectionPrompt = (
  * channels with it, a voice channel drops you out of the room you are sitting
  * in, and a group just stops delivering messages.
  */
-export type LeaveRealmKind = "server" | "channel" | "voice" | "group";
+export type LeaveRealmKind =
+  | "server"
+  | "channel"
+  | "voice"
+  | "group"
+  | "page";
 
 const LEAVE_MESSAGES: Record<LeaveRealmKind, string> = {
   server:
@@ -69,7 +74,22 @@ const LEAVE_MESSAGES: Record<LeaveRealmKind, string> = {
     "You'll stop receiving messages here, and you'll need to be added back to rejoin.",
   group:
     "You'll stop receiving messages here, and you'll need to be added back to rejoin.",
+  // A page has no thread to stop receiving - membership there is purely about
+  // who can act as and manage it.
+  page: "You'll lose access to managing this page, and an admin has to add you back.",
 };
+
+/**
+ * Realm nouns arrive as plain strings (realm.type, refined for channels), so
+ * narrow them here rather than at each call site. Anything unrecognised reads
+ * as a group, which is the mildest and most generic of the messages.
+ */
+export const leaveKindFromRealmNoun = (noun: string): LeaveRealmKind =>
+  (["server", "channel", "voice", "group", "page"] as const).includes(
+    noun as LeaveRealmKind,
+  )
+    ? (noun as LeaveRealmKind)
+    : "group";
 
 /**
  * Leaving IS removing yourself - same /realms/remove-user call an admin uses
@@ -116,4 +136,43 @@ export const removeFollowerPrompt = (name: string): ConfirmPrompt => ({
   title: `Remove ${name}?`,
   message: "They'll stop following this page, and can follow again themselves.",
   confirmLabel: "Remove",
+});
+
+/**
+ * Handing the realm over. Phrased around what the CURRENT owner gives up,
+ * since that is the part that is not undoable by them afterwards: only the
+ * new owner can hand it back.
+ */
+export const transferOwnershipPrompt = (
+  name: string,
+  realmNoun: string,
+): ConfirmPrompt => ({
+  title: `Make ${name} the owner?`,
+  message: `They'll get full control of this ${realmNoun}, including deleting it and removing admins. You'll stay on as an admin, and only they can transfer it back.`,
+  confirmLabel: "Transfer",
+});
+
+/**
+ * Shown INSTEAD of the leave prompt when the owner tries to leave. The server
+ * refuses this outright ("Transfer ownership to another member before
+ * leaving.") because a realm cannot be left without an owner - so the useful
+ * thing to offer is the screen where they can hand it over, not a Leave
+ * button that will fail.
+ */
+export const ownerCannotLeavePrompt = (realmNoun: string): ConfirmPrompt => ({
+  title: `You own this ${realmNoun}`,
+  message: `A ${realmNoun} can't be left without an owner. Transfer ownership to another member first, then you can leave.`,
+  confirmLabel: "Manage members",
+});
+
+/**
+ * The owner trying to leave from the members screen itself. Informational -
+ * rendered without an onConfirm - because there is no action to offer: they
+ * are already looking at the list they need to transfer from, so the only
+ * thing left is to say why Leave is refused.
+ */
+export const ownerMustTransferPrompt = (realmNoun: string): ConfirmPrompt => ({
+  title: `You own this ${realmNoun}`,
+  message: `A ${realmNoun} can't be left without an owner. Transfer ownership to someone in this list first, then you can leave.`,
+  confirmLabel: "Got it",
 });

@@ -67,6 +67,7 @@ import {
   // SET_CALLS_LIST,
   SET_CONVERSATION_SETUP,
   SET_MESSAGES_LIST_OVERRIDE,
+  SET_ALERTS,
   SET_MINIMIZED_CONVERSATION,
   SET_MUTATE_ALERTS,
   SET_PENDING_MESSAGES_LIST,
@@ -144,6 +145,7 @@ function ConversationV2({
   const pendingcallalerts = useSelector(
     (state: any) => state.pendingcallalerts,
   );
+  const alerts = useSelector((state: any) => state.alerts);
   const callslist = useSelector((state: any) => state.callslist);
   const pendingmessageslist = useSelector(
     (state: any) => state.pendingmessageslist,
@@ -1179,6 +1181,22 @@ function ConversationV2({
       authentication.active_entity_context.id,
     ])
       .then((response) => {
+        if (!response.status) {
+          // Most often "Transfer ownership to another member before
+          // leaving." - this surface has no my_role to check up front, so
+          // the server's reason is what tells the user why nothing happened.
+          dispatch({
+            type: SET_ALERTS,
+            payload: {
+              alerts: {
+                id: alerts.length,
+                type: "warning",
+                content: response?.message || "Could not leave. Try again.",
+              },
+            },
+          });
+          return;
+        }
         if (response.status) {
           if (isMinimized) {
             dispatch({

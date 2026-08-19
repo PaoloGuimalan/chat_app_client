@@ -17,6 +17,7 @@ import RealmCardReportButton from "@/app/widgets/items/RealmCardReportButton";
 import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
 import {
   leaveRealmPrompt,
+  ownerCannotLeavePrompt,
   unfollowPrompt,
 } from "@/app/widgets/modals/confirmPrompts";
 
@@ -79,6 +80,11 @@ function GenericRealmItem({
   // Leaving confirms too - it is the same one-way trip as on mobile: a
   // private realm needs an invitation to get back into.
   const [isLeaveConfirmOpen, setisLeaveConfirmOpen] = useState<boolean>(false);
+  // The owner is refused by the server ("Transfer ownership to another member
+  // before leaving."), so they get told that up front instead of a Leave
+  // button that fails.
+  const [isOwnerBlockOpen, setisOwnerBlockOpen] = useState<boolean>(false);
+  const realmNoun = mp.type === "server" ? "server" : "group";
 
   const [isMembershipButtonLoading, setisMembershipButtonLoading] =
     useState<boolean>(false);
@@ -263,7 +269,11 @@ function GenericRealmItem({
                   !mp.is_private &&
                   (mp.is_member ? (
                     <button
-                      onClick={() => setisLeaveConfirmOpen(true)}
+                      onClick={() =>
+                        mp.my_role === "owner"
+                          ? setisOwnerBlockOpen(true)
+                          : setisLeaveConfirmOpen(true)
+                      }
                       disabled={isMembershipButtonLoading}
                       className="cl-display-card__button cl-display-card__button--outline tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] cl-text-caption"
                     >
@@ -321,12 +331,22 @@ function GenericRealmItem({
           </div>
         </div>
       </div>
+      {isOwnerBlockOpen && (
+        <ConfirmModal
+          {...ownerCannotLeavePrompt(realmNoun)}
+          onClose={() => setisOwnerBlockOpen(false)}
+          onConfirm={() => {
+            setisOwnerBlockOpen(false);
+            navigate(`/realms/${mp.realm_id}`);
+          }}
+        />
+      )}
       {isLeaveConfirmOpen && (
         <ConfirmModal
           {...leaveRealmPrompt(
             // Pages never render this button; anything else is a server or a
             // group, and they read differently.
-            mp.type === "server" ? "server" : "group",
+            realmNoun,
             mp.name,
           )}
           onClose={() => setisLeaveConfirmOpen(false)}

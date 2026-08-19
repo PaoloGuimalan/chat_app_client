@@ -20,8 +20,7 @@ function RealmMembers({
   hide,
   onList,
   realmNoun,
-  ownerEntityID,
-  realmEntityID,
+  myRole,
 }: {
   realm_id: string;
   hide: string[];
@@ -29,14 +28,11 @@ function RealmMembers({
   /** Kind of realm these are members OF - names it in the remove prompt. */
   realmNoun: string;
   /**
-   * The realm's creator entity - the only way an `owner` member row is ever
-   * minted (realm creation gives the creating entity that role; there is no
-   * ownership-transfer endpoint yet, and update-member-realm-role explicitly
-   * refuses new_role === "owner").
+   * The viewer's own role here, straight from the realm payload's my_role.
+   * The server computes it with the same acting-as-the-realm special case
+   * the write routes apply, so this agrees with what they will allow.
    */
-  ownerEntityID: string;
-  /** The realm's OWN entity - see viewerIsOwner below. */
-  realmEntityID: string;
+  myRole?: string | null;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -47,18 +43,23 @@ function RealmMembers({
   // remove or re-role a fellow admin/owner - everyone else gets a 401 with
   // "Only the realm owner can ...". The rule is spelled out in the NOTE in
   // entity/permissions.py, which says each call site must enforce it.
-  //
-  // Acting AS the realm counts as owner tier, exactly as both routes resolve
-  // it: a page's own entity never has a Member row of its own realm, so they
-  // special-case it rather than let the role lookup miss.
-  const actingEntityID = authentication.active_entity_context.id;
-  const viewerIsOwner =
-    actingEntityID === ownerEntityID || actingEntityID === realmEntityID;
+  const viewerIsOwner = myRole === "owner";
 
   // Every item in the menu is governed by that one rule, so an outranked
   // target gets no menu at all rather than an empty one.
   const canActOn = (role: string) =>
     viewerIsOwner || !["admin", "owner"].includes(role);
+
+  // Your own row shows one thing: Leave. The acting entity rather than the
+  // personal one, since that is whose role my_role describes and whose
+  // membership a leave would actually drop - they differ while switched into
+  // acting as a page.
+  const actingEntityID = authentication.active_entity_context.id;
+
+  // "remove-user-btn" is hidden for realms whose membership isn't
+  // independently editable (a public channel inherits it from its server), and
+  // leaving is that same endpoint - so it isn't offered there either.
+  const canLeave = !hide.includes("remove-user-btn");
 
   const [searchFilter, setsearchFilter] = useState<string>("");
   const [members, setmembers] = useState<PaginationProp<IRealmMember>>(
@@ -269,14 +270,17 @@ function RealmMembers({
                             {capitalizeFirstLetter(cnts.role)}
                           </span>
                         </div>
-                        {authentication.user.entity_id !== cnts.entity.id &&
-                          canActOn(cnts.role) && (
-                            <MembersOptions
-                              member={cnts}
-                              hide={hide}
-                              realmNoun={realmNoun}
-                            />
-                          )}
+                        {(cnts.entity.id === actingEntityID
+                          ? canLeave
+                          : canActOn(cnts.role)) && (
+                          <MembersOptions
+                            member={cnts}
+                            hide={hide}
+                            realmNoun={realmNoun}
+                            viewerIsOwner={viewerIsOwner}
+                            isSelf={cnts.entity.id === actingEntityID}
+                          />
+                        )}
                       </div>
                     </motion.div>
                   );

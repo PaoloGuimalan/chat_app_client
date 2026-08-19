@@ -140,6 +140,17 @@ export interface IRealmProfileInfo {
   slug: string | null;
   type: string;
   is_admin: boolean;
+  /**
+   * MY role in this realm: "owner" | "admin" | "moderator" | "member", or
+   * null when I am not a member. Distinct from is_admin, which is true for
+   * owner AND admin alike - the rules that matter here (who may remove or
+   * re-role a fellow admin, who may transfer ownership, who is blocked from
+   * leaving) all turn on exactly that distinction.
+   *
+   * Optional because only the realm endpoints that apply my_role_annotation
+   * send it; anything else leaves it undefined rather than wrong.
+   */
+  my_role?: string | null;
   is_member: boolean;
   followers_count: number;
   members: number;

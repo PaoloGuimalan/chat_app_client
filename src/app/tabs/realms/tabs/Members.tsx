@@ -105,11 +105,8 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
             realmNoun={
               realm.type === "group" && realm.parent ? "channel" : realm.type
             }
-            // Who may act on whom - see RealmMembers. created_by is the
-            // creator's ENTITY id (Realm.created_by is an Entity FK), which
-            // is the same entity that gets the sole "owner" member row.
-            ownerEntityID={realm.created_by}
-            realmEntityID={realm.entity}
+            // Who may act on whom - see RealmMembers.
+            myRole={realm.my_role}
             hide={!addableMember ? ["remove-user-btn"] : []}
             onList={(list: string[]) => {
               setmemberIDs(list);

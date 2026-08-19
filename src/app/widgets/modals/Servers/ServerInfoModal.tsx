@@ -12,7 +12,8 @@ import {
   ServerUsersWithInfo,
 } from "@/reusables/vars/interfaces";
 import { useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import { SET_ALERTS } from "@/redux/types";
 import { Avatar } from "@/reusables/design";
 import { RemoveRealmMemberRequest } from "@/reusables/hooks/requests";
 import { MdReport } from "react-icons/md";
@@ -25,6 +26,25 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+
+  const dispatch = useDispatch();
+  const alerts = useSelector((state: any) => state.alerts);
+
+  // RemoveRealmMemberRequest hands 4xx bodies back as data now, so the
+  // server's reason - most often "Transfer ownership to another member
+  // before leaving." - reaches the user instead of a console.log. This
+  // surface has no my_role to check up front, so it asks and reports.
+  const notifyLeaveFailure = (message?: string) =>
+    dispatch({
+      type: SET_ALERTS,
+      payload: {
+        alerts: {
+          id: alerts.length,
+          type: "warning",
+          content: message || "Could not leave. Please try again.",
+        },
+      },
+    });
 
   const [isLeaving, setisLeaving] = useState<boolean>(false);
   const [isReportOpen, setisReportOpen] = useState<boolean>(false);
@@ -41,6 +61,8 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
         if (response.status) {
           onclose(false);
           navigate("/servers");
+        } else {
+          notifyLeaveFailure(response?.message);
         }
       })
       .catch((err) => {

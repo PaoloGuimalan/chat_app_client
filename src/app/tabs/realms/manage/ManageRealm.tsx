@@ -33,7 +33,6 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const [realmState, _setrealmState] = useState<IRealmProfileInfo>(realm);
   const [isMenuToggled, setisMenuToggled] = useState<boolean>(true);
   const activePath = location.pathname;
 
@@ -91,18 +90,18 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                 </button>
                 <div className="tw-flex tw-flex-1 tw-items-center tw-gap-[10px] tw-min-w-0">
                   <Avatar
-                    id={realmState.slug ?? realmState.realm_id}
-                    name={realmState.name}
-                    src={realmState.profile && realmState.profile !== "N/A" ? realmState.profile : undefined}
+                    id={realm.slug ?? realm.realm_id}
+                    name={realm.name}
+                    src={realm.profile && realm.profile !== "N/A" ? realm.profile : undefined}
                     size={42}
                   />
                   <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-truncate tw-min-w-0">
                     <span className="tw-truncate tw-text-[16px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
-                      {realmState.name}
+                      {realm.name}
                     </span>
-                    {realmState.parent && (
+                    {realm.parent && (
                       <span className="tw-truncate tw-text-[12px] tw-font-semibold tw-font-Inter tw-text-[var(--text-2)]">
-                        {realmState.parent.name}
+                        {realm.parent.name}
                       </span>
                     )}
                   </div>
@@ -149,7 +148,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                     Members
                   </span>
                 </button>
-                {realmState.type === "page" && (
+                {realm.type === "page" && (
                   <button
                     onClick={() => {
                       navigate(`/realms/${realm.id}/followers`);
@@ -190,18 +189,18 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               </button>
               <div className="tw-flex tw-flex-1 tw-items-center tw-gap-[10px] tw-min-w-0">
                 <Avatar
-                  id={realmState.slug ?? realmState.realm_id}
-                  name={realmState.name}
-                  src={realmState.profile && realmState.profile !== "N/A" ? realmState.profile : undefined}
+                  id={realm.slug ?? realm.realm_id}
+                  name={realm.name}
+                  src={realm.profile && realm.profile !== "N/A" ? realm.profile : undefined}
                   size={42}
                 />
                 <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-truncate tw-min-w-0">
                   <span className="tw-truncate tw-text-[16px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
-                    {realmState.name}
+                    {realm.name}
                   </span>
-                  {realmState.parent && (
+                  {realm.parent && (
                     <span className="tw-truncate tw-text-[12px] tw-font-semibold tw-font-Inter tw-text-[var(--text-2)]">
-                      {realmState.parent.name}
+                      {realm.parent.name}
                     </span>
                   )}
                 </div>
@@ -248,7 +247,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                   Members
                 </span>
               </button>
-              {realmState.type === "page" && (
+              {realm.type === "page" && (
                 <button
                   onClick={() => {
                     navigate(`/realms/${realm.id}/followers`);
@@ -266,14 +265,14 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
         <div className="tw-flex tw-flex-1 tw-overflow-y-scroll x-scroll tw-min-w-0 tw-bg-[var(--background)]">
           <Routes>
             <Route path="/" element={<Dashboard />} />
-            <Route path="/details" element={<Details realm={realmState} />} />
-            <Route path="/media" element={<Media realm={realmState} />} />
-            <Route path="/members" element={<Members realm={realmState} />} />
+            <Route path="/details" element={<Details realm={realm} />} />
+            <Route path="/media" element={<Media realm={realm} />} />
+            <Route path="/members" element={<Members realm={realm} />} />
             <Route
               path="/followers"
               element={
-                realmState.type === "page" ? (
-                  <Followers realm={realmState} />
+                realm.type === "page" ? (
+                  <Followers realm={realm} />
                 ) : (
                   <Navigate to={`/realms/${realm.id}/`} />
                 )

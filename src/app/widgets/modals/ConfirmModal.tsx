@@ -2,7 +2,14 @@ import Modal from "@/app/reusables/Modal";
 import { ConfirmPrompt } from "./confirmPrompts";
 
 interface ConfirmModalProps extends ConfirmPrompt {
-  onConfirm: () => void;
+  /**
+   * Omit for an informational prompt: there is nothing to confirm, so the
+   * dialog renders a single dismiss button (labelled with confirmLabel)
+   * instead of a Cancel/destructive pair. Used where an action is refused
+   * outright and the user just needs to be told why - offering "Cancel" next
+   * to a button that does nothing would imply a choice that isn't there.
+   */
+  onConfirm?: () => void;
   onClose: () => void;
   // Locks both buttons while the action it guards is in flight. Optional:
   // most call sites close the prompt the moment it is confirmed and let
@@ -38,17 +45,23 @@ function ConfirmModal({
             {message}
           </span>
           <div className="tw-w-full tw-flex tw-gap-[6px] tw-justify-end tw-pt-[6px]">
+            {onConfirm && (
+              <button
+                onClick={onClose}
+                disabled={isBusy}
+                className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption disabled:tw-opacity-[0.6] disabled:tw-cursor-not-allowed"
+              >
+                Cancel
+              </button>
+            )}
             <button
-              onClick={onClose}
+              onClick={onConfirm ?? onClose}
               disabled={isBusy}
-              className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption disabled:tw-opacity-[0.6] disabled:tw-cursor-not-allowed"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={onConfirm}
-              disabled={isBusy}
-              className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption disabled:tw-opacity-[0.6] disabled:tw-cursor-not-allowed"
+              className={`${
+                onConfirm
+                  ? "cl-profile-action-button--danger"
+                  : "cl-profile-action-button"
+              } tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption disabled:tw-opacity-[0.6] disabled:tw-cursor-not-allowed`}
             >
               {confirmLabel}
             </button>
