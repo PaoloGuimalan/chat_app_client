@@ -14,6 +14,12 @@ import { BsThreeDots } from "react-icons/bs";
 import { MdBlock, MdReport } from "react-icons/md";
 import { useEffect, useMemo, useRef, useState } from "react";
 import ReportModal from "@/app/widgets/modals/ReportModal";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import {
+  ConfirmPrompt,
+  removeConnectionPrompt,
+  unfollowPrompt,
+} from "@/app/widgets/modals/confirmPrompts";
 import {
   AcceptContactRequest,
   ContactRequest,
@@ -86,6 +92,13 @@ function Profile({
   const [isBlockLoading, setisBlockLoading] = useState<boolean>(false);
   const [confirmBlock, setconfirmBlock] = useState<boolean>(false);
   const [isReportOpen, setisReportOpen] = useState<boolean>(false);
+  // The pending confirm prompt, or null when nothing is being confirmed.
+  // Holds the action itself so one modal can guard every destructive
+  // button on this page - same shape the app's showDialog() call has.
+  const [confirmAction, setconfirmAction] = useState<{
+    prompt: ConfirmPrompt;
+    run: () => void;
+  } | null>(null);
   const [isOptionsToggled, setisOptionsToggled] = useState<boolean>(false);
   const optionsWrapperRef = useRef<HTMLDivElement>(null);
 
@@ -237,6 +250,19 @@ function Profile({
       })
       .catch((err) => console.log(err))
       .finally(() => setisFollowLoading(false));
+  };
+
+  // Following is cheap and reversible, so it goes straight through; dropping
+  // a follow (or withdrawing a request) confirms first, matching the app.
+  const requestToggleFollow = () => {
+    if (!isFollowing && !isFollowPending) {
+      toggleFollowProcess();
+      return;
+    }
+    setconfirmAction({
+      prompt: unfollowPrompt(`@${profileInfo.userID}`, false, isFollowPending),
+      run: toggleFollowProcess,
+    });
   };
 
   const initiateConnectionProcess = (mode: string) => {
@@ -463,7 +489,7 @@ function Profile({
                 <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] sm:tw-pr-[5px] tw-pr-[0px]">
                   <button
                     disabled={isFollowLoading}
-                    onClick={toggleFollowProcess}
+                    onClick={requestToggleFollow}
                     className={`${
                       isFollowing || isFollowPending
                         ? "cl-profile-action-button--secondary"
@@ -527,7 +553,13 @@ function Profile({
                       <button
                         disabled={isConnectionButtonsLoading}
                         onClick={() => {
-                          initiateConnectionProcess("remove");
+                          setconfirmAction({
+                            prompt: removeConnectionPrompt(
+                              `@${profileInfo.userID}`,
+                              false,
+                            ),
+                            run: () => initiateConnectionProcess("remove"),
+                          });
                         }}
                         className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                       >
@@ -756,6 +788,20 @@ function Profile({
           targetType="user"
           targetId={profileInfo.entityID}
           onClose={() => setisReportOpen(false)}
+        />
+      )}
+      {confirmAction && (
+        <ConfirmModal
+          {...confirmAction.prompt}
+          onClose={() => setconfirmAction(null)}
+          onConfirm={() => {
+            // Closed before the request fires: the button it guards already
+            // renders its own spinner, so keeping the modal up would just
+            // hide that feedback behind an overlay.
+            const { run } = confirmAction;
+            setconfirmAction(null);
+            run();
+          }}
         />
       )}
       <div className="cl-profile-page__content tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-stretch md:tw-items-start">

@@ -99,6 +99,17 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
         >
           <RealmMembers
             realm_id={realm.id}
+            // Same refinement ContactMember gets below: a group WITH a parent
+            // is a channel, and calling it a group in the prompt would name
+            // the wrong thing.
+            realmNoun={
+              realm.type === "group" && realm.parent ? "channel" : realm.type
+            }
+            // Who may act on whom - see RealmMembers. created_by is the
+            // creator's ENTITY id (Realm.created_by is an Entity FK), which
+            // is the same entity that gets the sole "owner" member row.
+            ownerEntityID={realm.created_by}
+            realmEntityID={realm.entity}
             hide={!addableMember ? ["remove-user-btn"] : []}
             onList={(list: string[]) => {
               setmemberIDs(list);

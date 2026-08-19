@@ -27,6 +27,8 @@ import {
   MdStop,
 } from "react-icons/md";
 import ReportModal from "@/app/widgets/modals/ReportModal";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import { leaveRealmPrompt } from "@/app/widgets/modals/confirmPrompts";
 import { AiOutlineClose } from "react-icons/ai"; //AiFillInfoCircle
 import { checkIfValid } from "../../../reusables/hooks/validatevariables";
 import {
@@ -283,6 +285,8 @@ function ConversationV2({
   const [conversationinfo, setconversationinfo] =
     useState<ConversationInfoInterface | null>(null);
   const [toggleMenu, settoggleMenu] = useState<boolean>(false);
+  const [isLeaveConfirmOpen, setisLeaveConfirmOpen] =
+    useState<boolean>(false);
   const [isReportGroupOpen, setisReportGroupOpen] = useState<boolean>(false);
   const [visualizerStyle, setvisualizerStyle] =
     useState<VisualizerStyle>(getVisualizerStyle());
@@ -1184,7 +1188,16 @@ function ConversationV2({
               },
             });
           } else {
-            navigate("/messages");
+            // A channel lives inside a server, so /messages strands you in a
+            // different tab entirely - go back to the server you were in.
+            //
+            // serverID rather than the conversation's own type: it is the
+            // parent realm, null on a plain group (see the sample payload up
+            // top) and set on anything inside a server. That covers the
+            // type === "server" case this button also allows, which a
+            // conversationType === "channel" check would miss.
+            const serverID = conversationinfo?.conversationInfo?.serverID;
+            navigate(serverID ? `/servers/${serverID}` : "/messages");
           }
 
           dispatch({
@@ -1325,6 +1338,23 @@ function ConversationV2({
     {/* Sibling of the shell rather than a child: the shell animates its own
         display to "none" on some breakpoints, and the report modal must not
         inherit that. */}
+    {isLeaveConfirmOpen && (
+      <ConfirmModal
+        {...leaveRealmPrompt(
+          // Same split the button's own label uses: a server/channel thread
+          // is a channel, everything else here is a group.
+          conversationinfo?.type === "server" ||
+            conversationinfo?.type === "channel"
+            ? "channel"
+            : "group",
+        )}
+        onClose={() => setisLeaveConfirmOpen(false)}
+        onConfirm={() => {
+          setisLeaveConfirmOpen(false);
+          LeaveConversationProcess();
+        }}
+      />
+    )}
     {isReportGroupOpen && conversationinfo?.contactID && (
       <ReportModal
         targetType="realm"
@@ -2028,7 +2058,8 @@ function ConversationV2({
                             className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                             disabled={conversationinfo ? false : true}
                             onClick={() => {
-                              LeaveConversationProcess();
+                              settoggleMenu(false);
+                              setisLeaveConfirmOpen(true);
                             }}
                           >
                             <BiLogOut

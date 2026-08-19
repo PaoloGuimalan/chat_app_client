@@ -36,6 +36,12 @@ import { MdBlock, MdPerson, MdReport } from "react-icons/md";
 import { IoClose } from "react-icons/io5";
 import { BsThreeDots } from "react-icons/bs";
 import ReportModal from "@/app/widgets/modals/ReportModal";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import {
+  ConfirmPrompt,
+  removeConnectionPrompt,
+  unfollowPrompt,
+} from "@/app/widgets/modals/confirmPrompts";
 import { PiShareFat } from "react-icons/pi";
 import { SET_MINIMIZED_CONVERSATION } from "@/redux/types";
 
@@ -80,6 +86,12 @@ function RealmProfile({
   const [isReportOpen, setisReportOpen] = useState<boolean>(false);
   const [isBlockLoading, setisBlockLoading] = useState<boolean>(false);
   const [confirmBlock, setconfirmBlock] = useState<boolean>(false);
+  // One prompt guards every destructive button on this page - it carries
+  // the action to run, so the modal itself stays stateless.
+  const [confirmAction, setconfirmAction] = useState<{
+    prompt: ConfirmPrompt;
+    run: () => void;
+  } | null>(null);
   const optionsWrapperRef = useRef<HTMLDivElement>(null);
 
   const [page, setpage] = useState<number>(1);
@@ -306,6 +318,21 @@ function RealmProfile({
       });
   };
 
+  // Unfollowing and unfriending are silent and one-tap, so both confirm
+  // first - the same guard the app puts in front of them. A page is never
+  // private, so an unfollow here is never a pending request being withdrawn.
+  const requestUnfollowRealm = () =>
+    setconfirmAction({
+      prompt: unfollowPrompt(realmInfo.name, true, false, realmNoun),
+      run: UnfollowRealmProcess,
+    });
+
+  const requestRemoveRealmConnection = () =>
+    setconfirmAction({
+      prompt: removeConnectionPrompt(realmInfo.name, true),
+      run: () => realmConnectionProcess("remove"),
+    });
+
   useEffect(() => {
     GetPostProcess();
   }, [params.userID, page, realmInfo]);
@@ -415,7 +442,7 @@ function RealmProfile({
                 {!isSelf &&
                   (realmInfo.is_follower ? (
                     <button
-                      onClick={UnfollowRealmProcess}
+                      onClick={requestUnfollowRealm}
                       disabled={isConnectionButtonsLoading}
                       className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                     >
@@ -495,9 +522,7 @@ function RealmProfile({
                   </button>
                 ) : realmInfo.connection?.is_connection_handshaked ? (
                   <button
-                    onClick={() => {
-                      realmConnectionProcess("remove");
-                    }}
+                    onClick={requestRemoveRealmConnection}
                     className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                   >
                     {isConnectionButtonsLoading ? (
@@ -689,6 +714,17 @@ function RealmProfile({
           targetId={realmInfo.entity}
           title={`Report this ${realmNoun}`}
           onClose={() => setisReportOpen(false)}
+        />
+      )}
+      {confirmAction && (
+        <ConfirmModal
+          {...confirmAction.prompt}
+          onClose={() => setconfirmAction(null)}
+          onConfirm={() => {
+            const { run } = confirmAction;
+            setconfirmAction(null);
+            run();
+          }}
         />
       )}
       <div className="cl-profile-page__content tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[6px] tw-items-stretch md:tw-items-start">

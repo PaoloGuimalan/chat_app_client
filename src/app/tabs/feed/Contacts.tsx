@@ -32,6 +32,8 @@ import {
 } from "@/reusables/design";
 import { useRailFillCount } from "@/reusables/hooks/useRailFillCount";
 import NetworkRow, { NetworkRowKind } from "./partials/NetworkRow";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import { unfollowPrompt } from "@/app/widgets/modals/confirmPrompts";
 import GroupTile from "./partials/GroupTile";
 import {
   GroupTileSkeleton,
@@ -170,6 +172,10 @@ function Contacts() {
   const [isDetailLoadingMore, setIsDetailLoadingMore] = useState(false);
 
   const [followBusy, setFollowBusy] = useState<Record<string, boolean>>({});
+  // The row whose Unfollow/Following button was clicked and is waiting on
+  // the confirm prompt, or null when nothing is pending.
+  const [pendingUnfollow, setPendingUnfollow] =
+    useState<NetworkEntityResult | null>(null);
 
   const scrollRef = useRef<HTMLDivElement | null>(null);
   const [groupsRailRef, groupSkeletonCount] = useRailFillCount(GROUP_TILE_W, {
@@ -311,7 +317,7 @@ function Contacts() {
     setDetailItems((prev) => prev.map(patch));
   };
 
-  const onToggleFollow = (item: NetworkEntityResult) => {
+  const applyToggleFollow = (item: NetworkEntityResult) => {
     if (followBusy[item.entity_id]) return;
     // Follower rows track is_followed_back; following rows are always
     // followed, so either flag answers "am I following them right now".
@@ -332,6 +338,18 @@ function Contacts() {
       .finally(() => {
         setFollowBusy((prev) => ({ ...prev, [item.entity_id]: false }));
       });
+  };
+
+  // Dropping a follow confirms first (the app's dialog); following back does
+  // not. The row it came from is held in state, since the prompt has to name
+  // the entity and then act on that same one.
+  const onToggleFollow = (item: NetworkEntityResult) => {
+    if (followBusy[item.entity_id]) return;
+    if (item.is_followed_back || item.is_followed) {
+      setPendingUnfollow(item);
+      return;
+    }
+    applyToggleFollow(item);
   };
 
   const onOpenEntity = (item: NetworkEntityResult) =>
@@ -671,6 +689,24 @@ function Contacts() {
           {detail ? renderDetailView() : renderMainView()}
         </div>
       </div>
+      {pendingUnfollow && (
+        <ConfirmModal
+          {...unfollowPrompt(
+            pendingUnfollow.type === "realm"
+              ? pendingUnfollow.display_name
+              : `@${pendingUnfollow.handle}`,
+            pendingUnfollow.type === "realm",
+            false,
+            pendingUnfollow.realm_type || "page",
+          )}
+          onClose={() => setPendingUnfollow(null)}
+          onConfirm={() => {
+            const item = pendingUnfollow;
+            setPendingUnfollow(null);
+            applyToggleFollow(item);
+          }}
+        />
+      )}
     </div>
   );
 }

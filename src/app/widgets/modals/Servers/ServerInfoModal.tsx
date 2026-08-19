@@ -17,6 +17,8 @@ import { Avatar } from "@/reusables/design";
 import { RemoveRealmMemberRequest } from "@/reusables/hooks/requests";
 import { MdReport } from "react-icons/md";
 import ReportModal from "@/app/widgets/modals/ReportModal";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import { leaveRealmPrompt } from "@/app/widgets/modals/confirmPrompts";
 
 function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   const navigate = useNavigate();
@@ -26,6 +28,8 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
 
   const [isLeaving, setisLeaving] = useState<boolean>(false);
   const [isReportOpen, setisReportOpen] = useState<boolean>(false);
+  const [isLeaveConfirmOpen, setisLeaveConfirmOpen] =
+    useState<boolean>(false);
 
   const LeaveServerProcess = () => {
     setisLeaving(true);
@@ -60,6 +64,16 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
 
   return (
     <Fragment>
+      {isLeaveConfirmOpen && (
+        <ConfirmModal
+          {...leaveRealmPrompt("server")}
+          onClose={() => setisLeaveConfirmOpen(false)}
+          onConfirm={() => {
+            setisLeaveConfirmOpen(false);
+            LeaveServerProcess();
+          }}
+        />
+      )}
       {isReportOpen && (
         <ReportModal
           targetType="realm"
@@ -133,7 +147,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                     Report
                   </button>
                   <button
-                    onClick={LeaveServerProcess}
+                    onClick={() => setisLeaveConfirmOpen(true)}
                     disabled={isLeaving}
                     className="cl-server-accent-button--danger tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[6px] cl-text-caption tw-flex tw-items-center tw-justify-center tw-gap-[5px]"
                   >

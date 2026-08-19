@@ -14,6 +14,11 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { Avatar } from "@/reusables/design/primitives2";
 import RealmCardReportButton from "@/app/widgets/items/RealmCardReportButton";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import {
+  leaveRealmPrompt,
+  unfollowPrompt,
+} from "@/app/widgets/modals/confirmPrompts";
 
 function GenericRealmItem({
   mp,
@@ -64,6 +69,16 @@ function GenericRealmItem({
         console.log(err);
       });
   };
+
+  // Unfollow confirms before it fires, like every other unfollow surface -
+  // on a card grid the button is small and sits under the cursor's path to
+  // the next card, so a mis-click is easy and nothing on screen undoes it.
+  const [isUnfollowConfirmOpen, setisUnfollowConfirmOpen] =
+    useState<boolean>(false);
+
+  // Leaving confirms too - it is the same one-way trip as on mobile: a
+  // private realm needs an invitation to get back into.
+  const [isLeaveConfirmOpen, setisLeaveConfirmOpen] = useState<boolean>(false);
 
   const [isMembershipButtonLoading, setisMembershipButtonLoading] =
     useState<boolean>(false);
@@ -194,7 +209,7 @@ function GenericRealmItem({
                   !isSelf &&
                   (mp.is_follower ? (
                     <button
-                      onClick={UnfollowRealmProcess}
+                      onClick={() => setisUnfollowConfirmOpen(true)}
                       disabled={isConnectionButtonsLoading}
                       className="cl-display-card__button cl-display-card__button--outline tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] cl-text-caption"
                     >
@@ -248,7 +263,7 @@ function GenericRealmItem({
                   !mp.is_private &&
                   (mp.is_member ? (
                     <button
-                      onClick={LeaveRealmProcess}
+                      onClick={() => setisLeaveConfirmOpen(true)}
                       disabled={isMembershipButtonLoading}
                       className="cl-display-card__button cl-display-card__button--outline tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-[1px] tw-border-solid tw-p-[8px] tw-pl-[10px] tw-pr-[10px] cl-text-caption"
                     >
@@ -306,6 +321,31 @@ function GenericRealmItem({
           </div>
         </div>
       </div>
+      {isLeaveConfirmOpen && (
+        <ConfirmModal
+          {...leaveRealmPrompt(
+            // Pages never render this button; anything else is a server or a
+            // group, and they read differently.
+            mp.type === "server" ? "server" : "group",
+            mp.name,
+          )}
+          onClose={() => setisLeaveConfirmOpen(false)}
+          onConfirm={() => {
+            setisLeaveConfirmOpen(false);
+            LeaveRealmProcess();
+          }}
+        />
+      )}
+      {isUnfollowConfirmOpen && (
+        <ConfirmModal
+          {...unfollowPrompt(mp.name, true)}
+          onClose={() => setisUnfollowConfirmOpen(false)}
+          onConfirm={() => {
+            setisUnfollowConfirmOpen(false);
+            UnfollowRealmProcess();
+          }}
+        />
+      )}
     </div>
   );
 }

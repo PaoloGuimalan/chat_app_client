@@ -14,6 +14,8 @@ import { BiSolidInfoCircle, BiLogOut } from "react-icons/bi";
 import { useSelector } from "react-redux";
 import { useLocation, useNavigate } from "react-router-dom";
 import { RemoveRealmMemberRequest } from "@/reusables/hooks/requests";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import { leaveRealmPrompt } from "@/app/widgets/modals/confirmPrompts";
 
 function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
   const authentication: AuthenticationInterface = useSelector(
@@ -41,6 +43,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
 
   const [toggleMenu, settoggleMenu] = useState<boolean>(false);
   const [isLeaving, setisLeaving] = useState<boolean>(false);
+  const [isLeaveConfirmOpen, setisLeaveConfirmOpen] = useState<boolean>(false);
 
   const backPath = useMemo(
     () =>
@@ -333,7 +336,8 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                     className="cl-conversation-menu-action cl-conversation-menu-action--danger tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                     disabled={isLeaving}
                     onClick={() => {
-                      LeaveVoiceChannelProcess();
+                      settoggleMenu(false);
+                      setisLeaveConfirmOpen(true);
                     }}
                   >
                     <BiLogOut style={{ fontSize: "18px" }} />
@@ -366,6 +370,19 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           </div>
         </motion.div>
       </motion.div>
+      {isLeaveConfirmOpen && (
+        <ConfirmModal
+          {...leaveRealmPrompt(
+            "voice",
+            conversationsetup.groupdetails.groupName,
+          )}
+          onClose={() => setisLeaveConfirmOpen(false)}
+          onConfirm={() => {
+            setisLeaveConfirmOpen(false);
+            LeaveVoiceChannelProcess();
+          }}
+        />
+      )}
     </motion.div>
   );
 }

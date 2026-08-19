@@ -15,6 +15,8 @@ import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import { Avatar } from "@/reusables/design/primitives2";
 import RealmCardReportButton from "@/app/widgets/items/RealmCardReportButton";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import { leaveRealmPrompt } from "@/app/widgets/modals/confirmPrompts";
 
 function PublicServerItem({
   mp,
@@ -78,6 +80,10 @@ function PublicServerItem({
         console.log(err);
       });
   };
+
+  // Named in the prompt: this card sits in a grid of servers, so "Leave
+  // server?" alone would not say which one.
+  const [isLeaveConfirmOpen, setisLeaveConfirmOpen] = useState<boolean>(false);
 
   const leaveServerProcess = () => {
     setisLeaving(true);
@@ -170,7 +176,7 @@ function PublicServerItem({
                   </button>
                 ) : (
                   <button
-                    onClick={leaveServerProcess}
+                    onClick={() => setisLeaveConfirmOpen(true)}
                     className="cl-display-card__button cl-display-card__button--outline cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-[1px] tw-border-solid tw-cursor-pointer"
                   >
                     Leave
@@ -215,6 +221,16 @@ function PublicServerItem({
           </div>
         </div>
       </div>
+      {isLeaveConfirmOpen && (
+        <ConfirmModal
+          {...leaveRealmPrompt("server", mp.name)}
+          onClose={() => setisLeaveConfirmOpen(false)}
+          onConfirm={() => {
+            setisLeaveConfirmOpen(false);
+            leaveServerProcess();
+          }}
+        />
+      )}
     </div>
   );
 }

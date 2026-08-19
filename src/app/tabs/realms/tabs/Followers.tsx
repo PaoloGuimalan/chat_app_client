@@ -8,6 +8,8 @@ import { PaginationProp } from "@/reusables/vars/props";
 import { IRealmFollower, IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { genericpaginationstate } from "@/redux/actions/states";
 import { formattedDateToWords } from "@/reusables/hooks/reusable";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import { removeFollowerPrompt } from "@/app/widgets/modals/confirmPrompts";
 import {
   GetRealmFollowersRequest,
   RemoveRealmFollowersRequest,
@@ -86,6 +88,13 @@ function Followers({ realm }: { realm: IRealmProfileInfo }) {
       document.removeEventListener("reload-realm-members", reloadListener);
     };
   }, []);
+
+  // The follower waiting on the confirm prompt: the id to remove plus the
+  // name to put in it. Null when nothing is pending.
+  const [pendingRemoval, setpendingRemoval] = useState<{
+    follow_id: string;
+    name: string;
+  } | null>(null);
 
   const RemoveRealmFollowersProcess = (follow_id: string) => {
     setisSaving(true);
@@ -263,7 +272,10 @@ function Followers({ realm }: { realm: IRealmProfileInfo }) {
                               <button
                                 disabled={isSaving}
                                 onClick={() => {
-                                  RemoveRealmFollowersProcess(cnts.follow_id);
+                                  setpendingRemoval({
+                                    follow_id: cnts.follow_id,
+                                    name: `${cnts.follower.details.first_name} ${cnts.follower.details.last_name}`,
+                                  });
                                 }}
                                 className="tw-min-w-[84px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--surface-2)] tw-text-[var(--text)] tw-rounded-[var(--r-md)] tw-text-[12px] hover:tw-bg-[var(--surface-hover)] tw-transition-colors"
                               >
@@ -302,6 +314,17 @@ function Followers({ realm }: { realm: IRealmProfileInfo }) {
           </div>
         </div>
       </div>
+      {pendingRemoval && (
+        <ConfirmModal
+          {...removeFollowerPrompt(pendingRemoval.name)}
+          onClose={() => setpendingRemoval(null)}
+          onConfirm={() => {
+            const { follow_id } = pendingRemoval;
+            setpendingRemoval(null);
+            RemoveRealmFollowersProcess(follow_id);
+          }}
+        />
+      )}
     </div>
   );
 }

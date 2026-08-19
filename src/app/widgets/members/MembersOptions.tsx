@@ -3,6 +3,8 @@ import {
   UpdateMemberRoleRequest,
 } from "@/reusables/hooks/requests";
 import { IRealmMember } from "@/reusables/vars/interfaces";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import { removeMemberPrompt } from "@/app/widgets/modals/confirmPrompts";
 import { useEffect, useRef, useState } from "react";
 import { BsThreeDots } from "react-icons/bs";
 import { FaCircleArrowDown, FaCircleArrowUp } from "react-icons/fa6";
@@ -11,11 +13,26 @@ import { IoPersonRemove } from "react-icons/io5";
 function MembersOptions({
   member,
   hide,
+  realmNoun,
 }: {
   member: IRealmMember;
   hide: string[];
+  /** "server" | "group" | "channel" - what they lose access to. */
+  realmNoun: string;
 }) {
   const [isOptionsToggled, setisOptionsToggled] = useState<boolean>(false);
+  // Removing someone else is the same one-way call as leaving, and it is
+  // silent from their side, so it confirms first - mirrors the app's
+  // realm_sections dialog.
+  const [isRemoveConfirmOpen, setisRemoveConfirmOpen] =
+    useState<boolean>(false);
+
+  // Same name the row above this menu renders: realms carry a `name`, people
+  // carry first/last.
+  const memberName =
+    member.entity.type === "realm"
+      ? (member.entity.details.name ?? "this page")
+      : `${member.entity.details.first_name} ${member.entity.details.last_name}`;
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -81,17 +98,27 @@ function MembersOptions({
 
   return (
     <div ref={wrapperRef} className="tw-relative">
+      {isRemoveConfirmOpen && (
+        <ConfirmModal
+          {...removeMemberPrompt(memberName, realmNoun)}
+          onClose={() => setisRemoveConfirmOpen(false)}
+          onConfirm={() => {
+            setisRemoveConfirmOpen(false);
+            RemoveRealmMemberProcess();
+          }}
+        />
+      )}
       {isOptionsToggled && (
         <div
           autoFocus
-          className="tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[100px] tw-fixed tw-mb-[0px] -tw-ml-[170px] tw-bg-white tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-border-[#d2d2d2] tw-shadow-md"
+          className="tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[100px] tw-fixed tw-mb-[0px] -tw-ml-[170px] tw-bg-[var(--surface)] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-border-[var(--border)] tw-shadow-md"
         >
           {member.role === "admin" ? (
             <button
               onClick={() => {
                 UpdateMemberRoleProcess("member");
               }}
-              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent tw-text-[var(--text)] hover:tw-bg-[var(--surface-hover)]"
             >
               <FaCircleArrowDown
                 size={15}
@@ -104,7 +131,7 @@ function MembersOptions({
               onClick={() => {
                 UpdateMemberRoleProcess("admin");
               }}
-              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent tw-text-[var(--text)] hover:tw-bg-[var(--surface-hover)]"
             >
               <FaCircleArrowUp
                 size={15}
@@ -115,8 +142,11 @@ function MembersOptions({
           )}
           {!hide.includes("remove-user-btn") && (
             <button
-              onClick={RemoveRealmMemberProcess}
-              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent hover:tw-bg-[#d2d2d2]"
+              onClick={() => {
+                setisOptionsToggled(false);
+                setisRemoveConfirmOpen(true);
+              }}
+              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent tw-text-[var(--pink)] hover:tw-bg-[var(--surface-hover)]"
             >
               <IoPersonRemove
                 size={15}
@@ -133,7 +163,7 @@ function MembersOptions({
         }}
         className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
       >
-        <BsThreeDots style={{ fontSize: "17px" }} />
+        <BsThreeDots style={{ fontSize: "17px", color: "var(--text)" }} />
       </button>
     </div>
   );

@@ -63,8 +63,12 @@ export interface IUserInterface {
 export interface ProfileUserInfoInterface {
   id: string;
   entityID: string;
+  /**
+   * The HANDLE, despite the name - the server sends `"userID": user.username`
+   * (user_service views.py GetProfileInfo). There is no `username` key in this
+   * payload; `id` is the account pk. Anything rendering "@..." reads this.
+   */
   userID: string;
-  username: string;
   fullname: {
     firstName: string;
     middleName: string;

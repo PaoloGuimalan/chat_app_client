@@ -43,6 +43,8 @@ import {
   RemoveRealmMemberRequest,
 } from "@/reusables/hooks/requests";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import { removeMemberPrompt } from "@/app/widgets/modals/confirmPrompts";
 import {
   buildCallTiles,
   CallStage,
@@ -401,6 +403,10 @@ function ConferenceVoiceWindow({
     },
     [memberRoleMap, updatingRoleFor, realmId],
   );
+
+  // Removing someone from the call drops their realm membership too, so it
+  // is not "mute for now" - it confirms first, like every other removal.
+  const [pendingRemoval, setPendingRemoval] = useState<string | null>(null);
 
   const removeParticipant = useCallback(
     async (username: string) => {
@@ -1905,9 +1911,10 @@ function ConferenceVoiceWindow({
                             )}
                             <button
                               type="button"
-                              onClick={() =>
-                                removeParticipant(participant.username)
-                              }
+                              onClick={() => {
+                                setRoleMenuFor(null);
+                                setPendingRemoval(participant.username);
+                              }}
                               className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--pink)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)]"
                             >
                               <IoPersonRemove size={14} />
@@ -1923,6 +1930,17 @@ function ConferenceVoiceWindow({
             </div>
           </div>
         </motion.div>
+      )}
+      {pendingRemoval && (
+        <ConfirmModal
+          {...removeMemberPrompt(`@${pendingRemoval}`, "channel")}
+          onClose={() => setPendingRemoval(null)}
+          onConfirm={() => {
+            const username = pendingRemoval;
+            setPendingRemoval(null);
+            removeParticipant(username);
+          }}
+        />
       )}
     </div>
   );

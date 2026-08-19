@@ -40,6 +40,11 @@ import {
   useTheme,
 } from "@/reusables/design";
 import PostPreviewModal from "@/app/tabs/profile/user/PostPreviewModal";
+import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
+import {
+  ConfirmPrompt,
+  unfollowPrompt,
+} from "@/app/widgets/modals/confirmPrompts";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import PersonCard from "./partials/PersonCard";
@@ -159,6 +164,12 @@ function SearchPage() {
   const [isDetailLoadingMore, setIsDetailLoadingMore] = useState(false);
 
   const [followBusy, setFollowBusy] = useState<Record<string, boolean>>({});
+  // The entity whose follow is being dropped, held while its confirm prompt
+  // is open. Carries the action so one modal covers people and pages alike.
+  const [pendingUnfollow, setPendingUnfollow] = useState<{
+    prompt: ConfirmPrompt;
+    run: () => void;
+  } | null>(null);
   const [joinBusy, setJoinBusy] = useState<Record<string, boolean>>({});
   // Post preview - same modal experience as saved posts' "View" on Profile.
   // previewPost keeps its data after the modal closes so the share composer
@@ -425,15 +436,45 @@ function SearchPage() {
       });
   };
 
-  const onTogglePersonFollow = (person: SearchPersonResult) =>
-    toggleFollowEntity(
-      person.entity_id,
-      person.is_followed,
-      person.is_follow_pending,
-    );
-  const onToggleRealmFollow = (realm: SearchRealmResult) =>
+  // Following goes straight through; dropping one (or withdrawing a pending
+  // request) confirms first, same as the app and the profile pages.
+  const onTogglePersonFollow = (person: SearchPersonResult) => {
+    const run = () =>
+      toggleFollowEntity(
+        person.entity_id,
+        person.is_followed,
+        person.is_follow_pending,
+      );
+    if (!person.is_followed && !person.is_follow_pending) {
+      run();
+      return;
+    }
+    setPendingUnfollow({
+      prompt: unfollowPrompt(
+        `@${person.handle}`,
+        false,
+        person.is_follow_pending,
+      ),
+      run,
+    });
+  };
+  const onToggleRealmFollow = (realm: SearchRealmResult) => {
     // Realms are never private, so there is no pending state to pass.
-    toggleFollowEntity(realm.entity_id, realm.is_follower);
+    const run = () => toggleFollowEntity(realm.entity_id, realm.is_follower);
+    if (!realm.is_follower) {
+      run();
+      return;
+    }
+    setPendingUnfollow({
+      prompt: unfollowPrompt(
+        realm.display_name,
+        true,
+        false,
+        realm.realm_type || "page",
+      ),
+      run,
+    });
+  };
   const onOpenPerson = (person: SearchPersonResult) =>
     navigate(`/${person.handle}`);
   // Destination depends on the realm kind: pages have profile routes,
@@ -986,6 +1027,18 @@ function SearchPage() {
           setcreateposttext={() => {}}
           getpostprocess={() => {}}
           onclose={setToggleNewPostModal}
+        />
+      )}
+
+      {pendingUnfollow && (
+        <ConfirmModal
+          {...pendingUnfollow.prompt}
+          onClose={() => setPendingUnfollow(null)}
+          onConfirm={() => {
+            const { run } = pendingUnfollow;
+            setPendingUnfollow(null);
+            run();
+          }}
         />
       )}
 
