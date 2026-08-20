@@ -28,7 +28,19 @@ import { useEffect } from "react";
 const activeCalls = new Set<string>();
 const listeners = new Set<() => void>();
 
-const notify = () => listeners.forEach((listener) => listener());
+// One listener throwing must not strand the rest. These fire from inside
+// enterCall/exitCall, which are called from a call surface's mount effect - so
+// an exception here propagated INTO that effect and aborted the registration
+// itself, taking presence tracking down over an unrelated subscriber's bug.
+// Reported, never swallowed silently.
+const notify = () =>
+  listeners.forEach((listener) => {
+    try {
+      listener();
+    } catch (err) {
+      console.error("[callPresence] listener failed", err);
+    }
+  });
 
 /**
  * Watch for this tab entering or leaving a call.

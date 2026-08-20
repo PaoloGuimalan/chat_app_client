@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import "../../App.css";
 import GroupChatIcon from "../../assets/imgs/group-chat-icon.jpg";
 import { Avatar } from "../../reusables/design/primitives2";
@@ -64,10 +64,26 @@ function Alert({ al }: any) {
   //
   // "ended", not "rejected", so nothing is sent to the caller: they keep
   // ringing, and this user's other devices keep their chance to answer.
+  //
+  // Fires AT MOST ONCE per alert. rejectCallProcess is a teardown - it stops
+  // the tone, hides the banner and nulls `audioMessage` on a timer - so
+  // running it a second time is both pointless and unsafe. Without the latch
+  // every later presence change re-ran it through this effect's captured
+  // closure (deps are [al], so the closure is not refreshed per render),
+  // which threw on the already-nulled audio the moment a call ended and
+  // another began.
+  const busyStopRef = useRef(false);
+
   useEffect(() => {
     if (al.type != "incomingcall") return;
+    // Reset per alert, not per mount: this component instance can be reused
+    // for a different alert, and a latch left set would silence the busy
+    // handling for the next one.
+    busyStopRef.current = false;
     const stopIfBusy = () => {
-      if (isInAnyCall()) rejectCallProcess("ended");
+      if (busyStopRef.current || !isInAnyCall()) return;
+      busyStopRef.current = true;
+      rejectCallProcess("ended");
     };
     stopIfBusy();
     return subscribeCallPresence(stopIfBusy);
@@ -206,7 +222,14 @@ function Alert({ al }: any) {
 
   const rejectCallProcess = (trigger: any) => {
     setonStop(true);
-    audioMessage.pause();
+    // Optional-chained because `audioMessage` is nulled on a timer by this
+    // function and by the 60s ring-out below, so any second call - the
+    // rejectcalls effect re-firing, a presence change - lands on null. The
+    // line under it was already written defensively; this one was not.
+    //
+    // callinstancetune is unaffected: it captured the Audio object at
+    // construction, and nulling the local binding does not reach it.
+    audioMessage?.pause();
     callinstancetune.stop();
     if (audioMessage) callaudiomonocontrol().stop();
     settimerUnToggle(false);
