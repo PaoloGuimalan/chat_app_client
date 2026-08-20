@@ -34,6 +34,7 @@ import { buildCallTiles, CallStage, RemoteAudio } from "./stage";
 import envs from "@/reusables/hooks/env_configs";
 import { useNavigate } from "react-router-dom";
 import { useReconnect } from "@/reusables/hooks/useReconnect";
+import { useCallPresence } from "@/reusables/hooks/callPresence";
 
 function VoiceWindow({ data }: any) {
   const authentication: AuthenticationInterface = useSelector(
@@ -114,6 +115,12 @@ function VoiceWindow({ data }: any) {
     () => data.conversationID || data.conversationid,
     [data],
   );
+
+  // A voice channel is a call for busy purposes even though it never touches
+  // callslist - see callPresence.ts. This is the registration that stops an
+  // incoming call ringing over a room you are sitting in.
+  useCallPresence(conversationID);
+
   const isGroupCall = useMemo(
     () => data.isGroup ?? data.conversationType === "group",
     [data],

@@ -33,6 +33,7 @@ import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { buildCallTiles, CallStage, RemoteAudio } from "./stage";
 import envs from "@/reusables/hooks/env_configs";
 import { useReconnect } from "@/reusables/hooks/useReconnect";
+import { useCallPresence } from "@/reusables/hooks/callPresence";
 
 function CallWindow({ data, lineNum }: any) {
   const authentication: AuthenticationInterface = useSelector(
@@ -125,6 +126,12 @@ function CallWindow({ data, lineNum }: any) {
     () => data.conversationID || data.conversationid,
     [data],
   );
+
+  // Declares this tab busy for as long as the window is open - see
+  // callPresence.ts. What the "incomingcall" SSE handler reads before it
+  // decides whether to ring.
+  useCallPresence(conversationID);
+
   const isGroupCall = useMemo(
     () => data.isGroup ?? data.conversationType === "group",
     [data],

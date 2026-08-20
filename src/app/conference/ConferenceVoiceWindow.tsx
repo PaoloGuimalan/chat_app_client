@@ -53,6 +53,7 @@ import {
 import envs from "@/reusables/hooks/env_configs";
 import { useNavigate } from "react-router-dom";
 import { useReconnect } from "@/reusables/hooks/useReconnect";
+import { useCallPresence } from "@/reusables/hooks/callPresence";
 import { useTheme } from "@/reusables/design";
 
 function ConferenceVoiceWindow({
@@ -178,6 +179,11 @@ function ConferenceVoiceWindow({
     () => data.conversationID || data.conversationid,
     [data],
   );
+
+  // Third of the three call surfaces - see callPresence.ts. A conference is
+  // the one you are least likely to want interrupted.
+  useCallPresence(conversationID);
+
   const isGroupCall = useMemo(
     () => data.isGroup ?? data.conversationType === "group",
     [data],

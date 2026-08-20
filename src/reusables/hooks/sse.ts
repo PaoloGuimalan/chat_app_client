@@ -27,6 +27,7 @@ import {
   NotificationOverrideRequest,
 } from "./requests";
 import envs from "./env_configs";
+import { isInAnyCall } from "./callPresence";
 
 const API = envs.CHATTERLOOP_API;
 const SECRET = envs.SECRET;
@@ -206,6 +207,22 @@ const SSENotificationsTRequest = (
         const decodedResult: any = jwt_decode(parsedresponse.result);
         const randomID = Math.random() * (2000 - 1 + 1) + 1;
         //play ringtone
+
+        // Already on a call in this tab - stay silent. Alert.tsx starts a
+        // 60-second ringtone the moment this dispatches, and it was doing so
+        // over live calls, voice channels and conferences alike because
+        // nothing here asked. isInAnyCall covers all three surfaces;
+        // callslist would only have covered the first.
+        //
+        // SILENT, not declined. Rejecting on the user's behalf posts
+        // /rejectcall, which tells the CALLER their call was refused and
+        // tears it down - so a busy laptop would cancel a call the same
+        // person could have answered on their phone. The event still
+        // reaches every other device on this entity's channel, and any of
+        // them that is free rings normally.
+        if (isInAnyCall()) {
+          return;
+        }
 
         dispatch({
           type: SET_ALERTS,

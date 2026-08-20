@@ -24,6 +24,10 @@ import {
   REMOVE_REJECTED_CALL_LIST,
 } from "../../redux/types";
 import { RejectCallRequest } from "../../reusables/hooks/requests";
+import {
+  isInAnyCall,
+  subscribeCallPresence,
+} from "../../reusables/hooks/callPresence";
 import CachedImage from "../reusables/cachers/CachedImage";
 
 function Alert({ al }: any) {
@@ -52,6 +56,22 @@ function Alert({ al }: any) {
       },
     };
   };
+
+  // Busy-ness that begins while this alert is ALREADY ringing - the user
+  // answered a different call, or walked into a voice channel, during the
+  // 60 seconds this one rings for. sse.ts suppresses alerts that arrive
+  // while busy; this covers the opposite order.
+  //
+  // "ended", not "rejected", so nothing is sent to the caller: they keep
+  // ringing, and this user's other devices keep their chance to answer.
+  useEffect(() => {
+    if (al.type != "incomingcall") return;
+    const stopIfBusy = () => {
+      if (isInAnyCall()) rejectCallProcess("ended");
+    };
+    stopIfBusy();
+    return subscribeCallPresence(stopIfBusy);
+  }, [al]);
 
   useEffect(() => {
     if (al.type == "incomingcall") {
