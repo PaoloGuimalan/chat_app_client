@@ -53,6 +53,7 @@ import PostsContainer from "./PostsContainer";
 import SavesContainer from "./SavesContainer";
 import ArchivesContainer from "./ArchivesContainer";
 import { PiShareFat } from "react-icons/pi";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 function Profile({
   profileInfo,
@@ -248,7 +249,15 @@ function Profile({
           setisFollowing(true);
         }
       })
-      .catch((err) => console.log(err))
+      .catch((err) => {
+        console.log(err);
+        notifyRequestError(
+          err,
+          isFollowing || isFollowPending
+            ? "We couldn't unfollow this account."
+            : "We couldn't follow this account.",
+        );
+      })
       .finally(() => setisFollowLoading(false));
   };
 

@@ -27,6 +27,7 @@ import {
 } from "react-icons/ai";
 import { IoClose } from "react-icons/io5";
 import { IoIosArrowForward } from "react-icons/io";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 type PageModeratorCandidate = {
   id: string;
@@ -227,6 +228,10 @@ function CreatePage() {
       .catch((err) => {
         setisSaving(false);
         console.log(err);
+        notifyRequestError(
+          err,
+          "We couldn't create that page. Check the details and try again.",
+        );
       });
   };
 

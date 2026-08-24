@@ -15,6 +15,7 @@ import { MdDelete, MdReport } from "react-icons/md";
 import { useSelector } from "react-redux";
 import { RiInboxUnarchiveFill } from "react-icons/ri";
 import ReportModal from "@/app/widgets/modals/ReportModal";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 function PostOptions({
   post,
@@ -70,6 +71,7 @@ function PostOptions({
       .catch((err) => {
         onError();
         console.log(err);
+        notifyRequestError(err, "We couldn't delete that post.");
       });
   };
 
@@ -83,6 +85,12 @@ function PostOptions({
       .catch((err) => {
         onError();
         console.log(err);
+        notifyRequestError(
+          err,
+          archive_status
+            ? "We couldn't archive that post."
+            : "We couldn't restore that post.",
+        );
       });
   };
 
@@ -98,6 +106,7 @@ function PostOptions({
       .catch((err) => {
         setisSaving(false);
         console.log(err);
+        notifyRequestError(err, "We couldn't save that post.");
       });
   };
 
@@ -113,6 +122,7 @@ function PostOptions({
       .catch((err) => {
         setisSaving(false);
         console.log(err);
+        notifyRequestError(err, "We couldn't remove that post from saved.");
       });
   };
 

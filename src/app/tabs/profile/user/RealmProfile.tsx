@@ -44,6 +44,7 @@ import {
 } from "@/app/widgets/modals/confirmPrompts";
 import { PiShareFat } from "react-icons/pi";
 import { SET_MINIMIZED_CONVERSATION } from "@/redux/types";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 function RealmProfile({
   realmInfo,
@@ -300,6 +301,7 @@ function RealmProfile({
       .catch((err) => {
         setisConnectionButtonsLoading(false);
         console.log(err);
+        notifyRequestError(err, "We couldn't follow this page.");
       });
   };
 
@@ -315,6 +317,7 @@ function RealmProfile({
       .catch((err) => {
         setisConnectionButtonsLoading(false);
         console.log(err);
+        notifyRequestError(err, "We couldn't unfollow this page.");
       });
   };
 

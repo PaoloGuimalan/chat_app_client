@@ -26,6 +26,7 @@ import { useTheme } from "@/reusables/design/ThemeProvider";
 import { SET_ALERTS, SET_REMOVE_IS_TYPING_LIST } from "@/redux/types";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import ConferenceRoom from "./ConferenceRoom";
+import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
 
 function ConferencePage() {
   const authentication: AuthenticationInterface = useSelector(
@@ -213,7 +214,10 @@ function ConferencePage() {
           alerts: {
             id: alerts.length,
             type: "error",
-            content: err?.message || "Unable to create conference.",
+            content: resolveErrorMessage(
+              err,
+              "We couldn't create that conference. Please try again.",
+            ),
           },
         },
       });

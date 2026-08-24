@@ -6,6 +6,12 @@ import {
 } from "@/reusables/hooks/requests";
 import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { useState } from "react";
+import {
+  notifyRequestError,
+  notifyResponseFailure,
+} from "@/reusables/hooks/errormessages";
+
+const ADD_MEMBERS_FAILED = "We couldn't add those members. Please try again.";
 
 function Members({ realm }: { realm: IRealmProfileInfo }) {
   const realmTypeLabel =
@@ -34,23 +40,26 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
       };
       AddNewMemberToServer(initialpayload)
         .then((response) => {
-          if (response.data.status) {
-            setmemberIDs((prev) => {
-              return [...prev, ...markedMembers.map((mp) => mp.id)];
-            });
-            callback();
-            document.dispatchEvent(
-              new CustomEvent("reload-realm-members", {
-                detail: {
-                  event: "reload",
-                  data: "",
-                },
-              }),
-            );
+          if (!response.data.status) {
+            notifyResponseFailure(response, ADD_MEMBERS_FAILED);
+            return;
           }
+          setmemberIDs((prev) => {
+            return [...prev, ...markedMembers.map((mp) => mp.id)];
+          });
+          callback();
+          document.dispatchEvent(
+            new CustomEvent("reload-realm-members", {
+              detail: {
+                event: "reload",
+                data: "",
+              },
+            }),
+          );
         })
         .catch((err) => {
           console.log(err);
+          notifyRequestError(err, ADD_MEMBERS_FAILED);
         });
     } else {
       const initialpayload = {
@@ -60,23 +69,26 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
       };
       AddNewMemberRequest(initialpayload)
         .then((response) => {
-          if (response.data.status) {
-            setmemberIDs((prev) => {
-              return [...prev, ...markedMembers.map((mp) => mp.id)];
-            });
-            callback();
-            document.dispatchEvent(
-              new CustomEvent("reload-realm-members", {
-                detail: {
-                  event: "reload",
-                  data: "",
-                },
-              }),
-            );
+          if (!response.data.status) {
+            notifyResponseFailure(response, ADD_MEMBERS_FAILED);
+            return;
           }
+          setmemberIDs((prev) => {
+            return [...prev, ...markedMembers.map((mp) => mp.id)];
+          });
+          callback();
+          document.dispatchEvent(
+            new CustomEvent("reload-realm-members", {
+              detail: {
+                event: "reload",
+                data: "",
+              },
+            }),
+          );
         })
         .catch((err) => {
           console.log(err);
+          notifyRequestError(err, ADD_MEMBERS_FAILED);
         });
     }
   };

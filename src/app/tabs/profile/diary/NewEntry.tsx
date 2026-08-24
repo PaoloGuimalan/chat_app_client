@@ -38,6 +38,12 @@ import { motion } from "framer-motion";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import PendingAttachmentItem from "./PendingAttachmentItem";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
+import {
+  notifyRequestError,
+  resolveErrorMessage,
+} from "@/reusables/hooks/errormessages";
+
+const ENTRY_SAVE_FAILED = "We couldn't save your entry. Please try again.";
 
 function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
   const screensizelistener = useSelector(
@@ -155,6 +161,10 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
         .catch((err) => {
           setisSaving(false);
           console.log(err);
+          notifyRequestError(
+            err,
+            "We couldn't upload those attachments. The entry was saved without them.",
+          );
         })
         .finally(() => {
           PostNewEntryRequest(pendingNewEntry)
@@ -169,7 +179,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
                 payload: {
                   alerts: {
                     type: "error",
-                    content: "There was a problem saving your entry",
+                    content: resolveErrorMessage(err, ENTRY_SAVE_FAILED),
                   },
                 },
               });
@@ -194,7 +204,7 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
           payload: {
             alerts: {
               type: "error",
-              content: "There was a problem saving your entry",
+              content: resolveErrorMessage(err, ENTRY_SAVE_FAILED),
             },
           },
         });

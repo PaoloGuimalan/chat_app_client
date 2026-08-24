@@ -39,6 +39,7 @@ import {
   GroupTileSkeleton,
   NetworkRowSkeleton,
 } from "./partials/NetworkSkeletons";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 // Redesigned Contacts page ("ChatterLoop Upgrade" - Contacts Page.dc.html).
 // Four sections - Group chats / Connections / Followers / Following - each
@@ -334,6 +335,12 @@ function Contacts() {
       .catch((err: any) => {
         console.log(err);
         patchFollowState(item.entity_id, isFollowing);
+        notifyRequestError(
+          err,
+          isFollowing
+            ? "We couldn't unfollow that account."
+            : "We couldn't follow that account.",
+        );
       })
       .finally(() => {
         setFollowBusy((prev) => ({ ...prev, [item.entity_id]: false }));

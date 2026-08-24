@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import "../../App.css";
 import GroupChatIcon from "../../assets/imgs/group-chat-icon.jpg";
 import { Avatar } from "../../reusables/design/primitives2";
@@ -103,14 +103,36 @@ function Alert({ al }: any) {
     }
   }, [alerts, rejectcalls]);
 
+  // How long a banner stays up. The old flat 3s was written for one-liners
+  // like "Please complete the field."; the copy the request layer now
+  // produces explains what went wrong and what to do about it, and a 3s
+  // read is not enough for a sentence of that length. Failures also linger
+  // longer than confirmations, because they are the ones worth reading.
+  const dwell = useMemo(() => {
+    const base = al.type === "error" || al.type === "warning" ? 4500 : 3000;
+    return Math.min(11000, base + String(al.content ?? "").length * 40);
+  }, [al.type, al.content]);
+
+  // The X has always been rendered and has never done anything. With longer
+  // dwell times it needs to: dismissing runs the same slide-out the timer
+  // would have.
+  const dismiss = () => {
+    settimerUnToggle(false);
+    setTimeout(() => setdisplayUntoggle(false), 500);
+  };
+
   useEffect(() => {
     if (al.type != "incomingcall") {
-      setTimeout(() => {
+      const slideOut = setTimeout(() => {
         settimerUnToggle(false);
-      }, 3000);
-      setTimeout(() => {
+      }, dwell);
+      const hide = setTimeout(() => {
         setdisplayUntoggle(false);
-      }, 3500);
+      }, dwell + 500);
+      return () => {
+        clearTimeout(slideOut);
+        clearTimeout(hide);
+      };
     } else {
       if (!onStop) {
         if (audioMessage) callaudiomonocontrol().start();
@@ -349,7 +371,7 @@ function Alert({ al }: any) {
         {alertIcons[al.type].component}
         <span id="span_header_label">{alertIcons[al.type].title}</span>
         <div id="div_close_alert_container">
-          <button id="btn_close_alert">
+          <button id="btn_close_alert" onClick={dismiss} aria-label="Dismiss">
             <IoMdClose
               style={{ fontSize: "20px", color: "white", fontWeight: "bold" }}
             />

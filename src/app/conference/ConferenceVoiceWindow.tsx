@@ -55,6 +55,7 @@ import { useNavigate } from "react-router-dom";
 import { useReconnect } from "@/reusables/hooks/useReconnect";
 import { useCallPresence } from "@/reusables/hooks/callPresence";
 import { useTheme } from "@/reusables/design";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 function ConferenceVoiceWindow({
   data,
@@ -272,6 +273,12 @@ function ConferenceVoiceWindow({
         );
       } catch (err) {
         console.log("Failed to update join request:", err);
+        notifyRequestError(
+          err,
+          nextStatus === "accepted"
+            ? "We couldn't admit that person."
+            : "We couldn't decline that request.",
+        );
         fetchPendingRequests();
       } finally {
         setUpdatingRequestToken(null);
@@ -394,6 +401,7 @@ function ConferenceVoiceWindow({
         await UpdateMemberRoleRequest(realmId, member.member_id, nextRole);
       } catch (err) {
         console.log("Failed to update member role:", err);
+        notifyRequestError(err, "We couldn't change that member's role.");
         // Revert on failure.
         setMemberRoleMap((prev) => {
           const next = new Map(prev);
@@ -433,6 +441,7 @@ function ConferenceVoiceWindow({
         });
       } catch (err) {
         console.log("Failed to remove participant:", err);
+        notifyRequestError(err, "We couldn't remove that participant.");
       } finally {
         setUpdatingRoleFor(null);
       }

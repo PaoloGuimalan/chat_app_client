@@ -38,6 +38,12 @@ import {
 import { Avatar } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
+import {
+  resolveErrorMessage,
+  resolveResponseMessage,
+} from "@/reusables/hooks/errormessages";
+
+const POST_FAILED = "We couldn't publish that post. Please try again.";
 
 export function NewPostModal({
   toShare,
@@ -363,7 +369,18 @@ export function NewPostModal({
           });
           getpostprocess();
         } else {
+          // A refusal inside a 200 used to close nothing and say nothing -
+          // the modal just stopped spinning with the post still unsaved.
           setisuploadingpost(false);
+          dispatch({
+            type: SET_MUTATE_ALERTS,
+            payload: {
+              alerts: {
+                type: "warning",
+                content: resolveResponseMessage(response, POST_FAILED),
+              },
+            },
+          });
         }
       } catch (err: any) {
         console.log(err);
@@ -373,7 +390,7 @@ export function NewPostModal({
           payload: {
             alerts: {
               type: "warning",
-              content: "Failed to create post, please try again",
+              content: resolveErrorMessage(err, POST_FAILED),
             },
           },
         });

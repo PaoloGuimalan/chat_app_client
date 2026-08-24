@@ -36,6 +36,7 @@ import { Avatar } from "@/reusables/design";
 import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import DOMPurify from "dompurify";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 // The @handle to type when mentioning an entity. EmbeddedRealmSerializer maps
 // a realm's slug onto `username` precisely so entity-embedding surfaces don't
@@ -343,6 +344,9 @@ function PostComment({
         console.log(err);
         setComments(previous);
         onCommentCountChange?.(removed);
+        // The row reappearing is the only other sign anything went wrong,
+        // and on its own that reads like a rendering glitch.
+        notifyRequestError(err, "We couldn't delete that comment.");
       })
       .finally(() => setDeletingCommentID(null));
   };
@@ -383,6 +387,7 @@ function PostComment({
       .catch((err) => {
         setisCommentSaving(false);
         console.log(err);
+        notifyRequestError(err, "We couldn't post that comment.");
       });
   };
 

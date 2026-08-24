@@ -18,6 +18,12 @@ import {
   UpdateRealmMediaRequest,
   UploadMediaRequest,
 } from "@/reusables/hooks/requests";
+import {
+  resolveErrorMessage,
+  resolveResponseMessage,
+} from "@/reusables/hooks/errormessages";
+
+const UPLOAD_FAILED = "We couldn't upload that photo. Please try again.";
 
 function UploadProfileMedia({
   realm_id,
@@ -188,6 +194,15 @@ function UploadProfileMedia({
           getpostprocess();
         } else {
           setisuploadingpost(false);
+          dispatch({
+            type: SET_MUTATE_ALERTS,
+            payload: {
+              alerts: {
+                type: "warning",
+                content: resolveResponseMessage(response, UPLOAD_FAILED),
+              },
+            },
+          });
         }
       } catch (err: any) {
         console.log(err);
@@ -197,7 +212,7 @@ function UploadProfileMedia({
           payload: {
             alerts: {
               type: "warning",
-              content: "Failed to upload, please try again",
+              content: resolveErrorMessage(err, UPLOAD_FAILED),
             },
           },
         });

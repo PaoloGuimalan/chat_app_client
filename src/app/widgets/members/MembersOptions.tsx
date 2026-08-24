@@ -18,6 +18,10 @@ import { useEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { SET_ALERTS } from "@/redux/types";
+import {
+  resolveErrorMessage,
+  resolveResponseMessage,
+} from "@/reusables/hooks/errormessages";
 import { BsThreeDots } from "react-icons/bs";
 import { FaCircleArrowDown, FaCircleArrowUp } from "react-icons/fa6";
 import { IoPersonRemove } from "react-icons/io5";
@@ -107,21 +111,36 @@ function MembersOptions({
     setisOptionsToggled(false);
     UpdateMemberRoleRequest(member.realm, member.member_id, role)
       .then((response) => {
-        if (response.status) {
-          setTimeout(() => {
-            document.dispatchEvent(
-              new CustomEvent("reload-realm-members", {
-                detail: {
-                  event: "reload",
-                  data: "",
-                },
-              }),
-            );
-          }, 1000);
+        if (!response?.status) {
+          notify(
+            false,
+            resolveResponseMessage(
+              response,
+              "We couldn't change that member's role.",
+            ),
+          );
+          return;
         }
+        setTimeout(() => {
+          document.dispatchEvent(
+            new CustomEvent("reload-realm-members", {
+              detail: {
+                event: "reload",
+                data: "",
+              },
+            }),
+          );
+        }, 1000);
       })
       .catch((err) => {
         console.log(err);
+        notify(
+          false,
+          resolveErrorMessage(
+            err,
+            "We couldn't change that member's role.",
+          ),
+        );
       });
   };
 
@@ -134,7 +153,13 @@ function MembersOptions({
     RemoveRealmMemberRequest(member.realm, [member.entity.id])
       .then((response) => {
         if (!response?.status) {
-          notify(false, response?.message || "Could not leave. Please try again.");
+          notify(
+            false,
+            resolveResponseMessage(
+              response,
+              `We couldn't leave that ${realmNoun}. Please try again.`,
+            ),
+          );
           return;
         }
         // No refetch: this page is admin-only and we are no longer a member
@@ -143,7 +168,13 @@ function MembersOptions({
       })
       .catch((err) => {
         console.log(err);
-        notify(false, "Could not leave. Please try again.");
+        notify(
+          false,
+          resolveErrorMessage(
+            err,
+            `We couldn't leave that ${realmNoun}. Please try again.`,
+          ),
+        );
       });
   };
 
@@ -156,10 +187,12 @@ function MembersOptions({
         // loud rather than leaving the menu looking broken.
         notify(
           Boolean(response?.status),
-          response?.message ||
-            (response?.status
-              ? "Ownership transferred"
-              : "Could not transfer ownership"),
+          resolveResponseMessage(
+            response,
+            response?.status
+              ? "Ownership transferred."
+              : "We couldn't transfer ownership. Please try again.",
+          ),
         );
         if (response?.status) {
           setTimeout(() => {
@@ -176,7 +209,13 @@ function MembersOptions({
       })
       .catch((err) => {
         console.log(err);
-        notify(false, "Could not transfer ownership");
+        notify(
+          false,
+          resolveErrorMessage(
+            err,
+            "We couldn't transfer ownership. Please try again.",
+          ),
+        );
       });
   };
 
@@ -184,21 +223,36 @@ function MembersOptions({
     setisOptionsToggled(false);
     RemoveRealmMemberRequest(member.realm, [member.entity.id])
       .then((response) => {
-        if (response.status) {
-          setTimeout(() => {
-            document.dispatchEvent(
-              new CustomEvent("reload-realm-members", {
-                detail: {
-                  event: "reload",
-                  data: "",
-                },
-              }),
-            );
-          }, 1000);
+        if (!response?.status) {
+          notify(
+            false,
+            resolveResponseMessage(
+              response,
+              `We couldn't remove ${memberName} from this ${realmNoun}.`,
+            ),
+          );
+          return;
         }
+        setTimeout(() => {
+          document.dispatchEvent(
+            new CustomEvent("reload-realm-members", {
+              detail: {
+                event: "reload",
+                data: "",
+              },
+            }),
+          );
+        }, 1000);
       })
       .catch((err) => {
         console.log(err);
+        notify(
+          false,
+          resolveErrorMessage(
+            err,
+            `We couldn't remove ${memberName} from this ${realmNoun}.`,
+          ),
+        );
       });
   };
 

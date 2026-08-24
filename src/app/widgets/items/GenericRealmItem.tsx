@@ -3,7 +3,7 @@ import { AuthenticationInterface, IRealmProfileInfo } from "@/reusables/vars/int
 import { RiUserFollowLine, RiVerifiedBadgeFill } from "react-icons/ri";
 import { useNavigate } from "react-router-dom";
 import { useState } from "react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   FollowRealmRequest,
   UnfollowRealmRequest,
@@ -20,6 +20,11 @@ import {
   ownerCannotLeavePrompt,
   unfollowPrompt,
 } from "@/app/widgets/modals/confirmPrompts";
+import {
+  pushAlert,
+  resolveErrorMessage,
+  resolveResponseMessage,
+} from "@/reusables/hooks/errormessages";
 
 function GenericRealmItem({
   mp,
@@ -38,6 +43,16 @@ function GenericRealmItem({
   // can't follow itself - only relevant once switched into acting as mp.
   const isSelf = authentication.active_entity_context.id === mp.entity;
 
+  const dispatch = useDispatch();
+
+  // These four buttons all used to swallow their failures into console.log,
+  // so a refused follow/join looked identical to one that worked until the
+  // card refreshed back to its old state.
+  const notifyFailure = (message: string) =>
+    pushAlert(dispatch, "warning", message);
+
+  const realmName = mp.name || "that page";
+
   const [isConnectionButtonsLoading, setisConnectionButtonsLoading] =
     useState<boolean>(false);
 
@@ -53,6 +68,9 @@ function GenericRealmItem({
       .catch((err) => {
         setisConnectionButtonsLoading(false);
         console.log(err);
+        notifyFailure(
+          resolveErrorMessage(err, `We couldn't follow ${realmName}.`),
+        );
       });
   };
 
@@ -68,6 +86,9 @@ function GenericRealmItem({
       .catch((err) => {
         setisConnectionButtonsLoading(false);
         console.log(err);
+        notifyFailure(
+          resolveErrorMessage(err, `We couldn't unfollow ${realmName}.`),
+        );
       });
   };
 
@@ -126,11 +147,23 @@ function GenericRealmItem({
           });
         } else {
           setisMembershipButtonLoading(false);
+          notifyFailure(
+            resolveResponseMessage(
+              response,
+              `We couldn't join ${realmName}. Please try again.`,
+            ),
+          );
         }
       })
       .catch((err) => {
         setisMembershipButtonLoading(false);
         console.log(err);
+        notifyFailure(
+          resolveErrorMessage(
+            err,
+            `We couldn't join ${realmName}. Please try again.`,
+          ),
+        );
       });
   };
 
@@ -146,11 +179,23 @@ function GenericRealmItem({
           });
         } else {
           setisMembershipButtonLoading(false);
+          notifyFailure(
+            resolveResponseMessage(
+              response,
+              `We couldn't leave that ${realmNoun}. Please try again.`,
+            ),
+          );
         }
       })
       .catch((err) => {
         setisMembershipButtonLoading(false);
         console.log(err);
+        notifyFailure(
+          resolveErrorMessage(
+            err,
+            `We couldn't leave that ${realmNoun}. Please try again.`,
+          ),
+        );
       });
   };
 

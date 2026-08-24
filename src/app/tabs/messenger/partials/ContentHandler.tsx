@@ -18,6 +18,7 @@ import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useTheme } from "@/reusables/design";
 import DOMPurify from "dompurify";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 const escapeHtml = (value: string) =>
   value
@@ -240,6 +241,7 @@ function ContentHandler({
       .catch((err) => {
         console.log(err);
         setreactions(previous);
+        notifyRequestError(err, "We couldn't save that reaction.");
       })
       .finally(() => setIsRemovingReaction(false));
   };

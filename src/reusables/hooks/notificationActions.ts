@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 import { firstPartyClient } from "./requests";
+import { resolveErrorMessage, resolveResponseMessage } from "./errormessages";
 import envs from "./env_configs";
 import {
   INotificationAction,
@@ -129,7 +130,11 @@ export interface ActionOutcome {
 export const runNotificationAction = async (
   action: INotificationAction,
 ): Promise<ActionOutcome> => {
-  if (!isRunnable(action)) return { ok: false, message: "Unsupported action" };
+  if (!isRunnable(action))
+    return {
+      ok: false,
+      message: "This action isn't available on the web app yet.",
+    };
 
   if (action.type === "in-app-redirect") {
     return { ok: true, navigateTo: action.route as string };
@@ -179,14 +184,25 @@ export const runNotificationAction = async (
         ...(action.headers || {}),
       },
     });
+    const ok = response.data?.status !== false;
     return {
-      ok: response.data?.status !== false,
-      message: response.data?.message,
+      ok,
+      // A refusal inside a 200 still has to explain itself; a success may
+      // legitimately carry no copy at all, so only the failure gets a floor.
+      message: ok
+        ? response.data?.message
+        : resolveResponseMessage(
+            response,
+            "We couldn't complete that action. Please try again.",
+          ),
     };
   } catch (err: any) {
     return {
       ok: false,
-      message: err?.response?.data?.message || "Something went wrong",
+      message: resolveErrorMessage(
+        err,
+        "We couldn't complete that action. Please try again.",
+      ),
     };
   }
 };

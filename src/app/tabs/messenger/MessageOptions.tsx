@@ -7,6 +7,7 @@ import { BsFillReplyFill } from "react-icons/bs";
 import { MdDelete, MdReport } from "react-icons/md";
 import { motion } from "framer-motion";
 import ReportModal from "@/app/widgets/modals/ReportModal";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 function MessageOptions({
   conversationID,
@@ -35,7 +36,9 @@ function MessageOptions({
         // console.log(response);
       })
       .catch((err) => {
+        setisDeleting(false);
         console.log(err);
+        notifyRequestError(err, "We couldn't delete that message.");
       });
   };
 

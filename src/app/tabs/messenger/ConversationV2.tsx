@@ -67,7 +67,6 @@ import {
   // SET_CALLS_LIST,
   SET_CONVERSATION_SETUP,
   SET_MESSAGES_LIST_OVERRIDE,
-  SET_ALERTS,
   SET_MINIMIZED_CONVERSATION,
   SET_MUTATE_ALERTS,
   SET_PENDING_MESSAGES_LIST,
@@ -98,6 +97,11 @@ import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { Avatar } from "@/reusables/design";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
+import {
+  pushErrorAlert,
+  pushResponseAlert,
+  resolveErrorMessage,
+} from "@/reusables/hooks/errormessages";
 
 // {
 //     "conversationid": "26177616789363146166",
@@ -186,8 +190,7 @@ function ConversationV2({
         // conversationIdentityKey changes - never gets flipped back off,
         // leaving the spinner spinning forever with no explanation.
         setconversationLoadError(
-          err?.response?.data?.message ||
-            "This conversation could not be loaded.",
+          resolveErrorMessage(err, "We couldn't open that conversation."),
         );
         setswitchingcontext(false);
       });
@@ -1185,16 +1188,12 @@ function ConversationV2({
           // Most often "Transfer ownership to another member before
           // leaving." - this surface has no my_role to check up front, so
           // the server's reason is what tells the user why nothing happened.
-          dispatch({
-            type: SET_ALERTS,
-            payload: {
-              alerts: {
-                id: alerts.length,
-                type: "warning",
-                content: response?.message || "Could not leave. Try again.",
-              },
-            },
-          });
+          pushResponseAlert(
+            dispatch,
+            response,
+            "We couldn't leave this conversation. Please try again.",
+            alerts,
+          );
           return;
         }
         if (response.status) {
@@ -1291,15 +1290,21 @@ function ConversationV2({
     navigate("/messages");
   };
 
+  const REPLY_ASSIST_FAILED =
+    "We couldn't draft a reply just now. Please try again.";
+
   const ReplyAssistProcess = () => {
     ReplyAssistRequest(conversationID, isReplying.replyingTo)
       .then((response) => {
-        if (response.status) {
-          setmessageValue(response.message);
+        if (!response.status) {
+          pushResponseAlert(dispatch, response, REPLY_ASSIST_FAILED, alerts);
+          return;
         }
+        setmessageValue(response.message);
       })
       .catch((err) => {
         console.log(err);
+        pushErrorAlert(dispatch, err, REPLY_ASSIST_FAILED, alerts);
       });
   };
 

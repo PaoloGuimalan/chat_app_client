@@ -14,6 +14,7 @@ import {
   GetRealmFollowersRequest,
   RemoveRealmFollowersRequest,
 } from "@/reusables/hooks/requests";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 function Followers({ realm }: { realm: IRealmProfileInfo }) {
   const [searchFilter, setsearchFilter] = useState<string>("");
@@ -108,6 +109,7 @@ function Followers({ realm }: { realm: IRealmProfileInfo }) {
       .catch((err) => {
         setisSaving(false);
         console.log(err);
+        notifyRequestError(err, "We couldn't remove that follower.");
       });
   };
 

@@ -3,7 +3,6 @@
 import axios from "axios";
 import {
   SET_ACTIVE_USERS_LIST,
-  SET_ALERTS,
   SET_AUTHENTICATION,
   SET_CONTACTS_LIST,
   SET_CONTACTS_LIST_OVERRIDE,
@@ -27,6 +26,15 @@ import {
   getSettings,
 } from "./localforagehelper";
 import jwtDecode from "jwt-decode";
+import {
+  friendlyError,
+  pushAlert,
+  pushErrorAlert,
+  pushResponseAlert,
+  resolveErrorMessage,
+  resolveResponseMessage,
+  toRequestError,
+} from "./errormessages";
 
 const API = envs.CHATTERLOOP_API;
 const USER_SERVICE_API = envs.USER_SERVICE_API;
@@ -250,42 +258,30 @@ const LoginRequest = (
           type: SET_AUTHENTICATION,
           payload: { authentication: loggedInAuthentication },
         });
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "success",
-              content: "You have been Logged In.",
-            },
-          },
-        });
+        pushAlert(
+          dispatch,
+          "success",
+          "You have been Logged In.",
+          currentAlertState,
+        );
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't sign you in. Check your details and try again.",
+          currentAlertState,
+        );
         // console.log(response.data)
       }
       setisWaitingRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't sign you in. Check your details and try again.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       // console.log(err)
     });
@@ -359,29 +355,21 @@ const SwitchEntityRequest = (
         window.location.reload();
         return true;
       }
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "warning",
-            content: response.data.message,
-          },
-        },
-      });
+      pushResponseAlert(
+        dispatch,
+        response,
+        "We couldn't switch to that page.",
+        currentAlertState,
+      );
       return false;
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't switch to that page.",
+        currentAlertState,
+      );
       return false;
     });
 };
@@ -409,29 +397,21 @@ const SwitchBackToSelfRequest = (
         window.location.reload();
         return true;
       }
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "warning",
-            content: response.data.message,
-          },
-        },
-      });
+      pushResponseAlert(
+        dispatch,
+        response,
+        "We couldn't switch back to your own account.",
+        currentAlertState,
+      );
       return false;
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't switch back to your own account.",
+        currentAlertState,
+      );
       return false;
     });
 };
@@ -485,42 +465,30 @@ const ThirdPartyAuthenticationRequest = (
           type: SET_AUTHENTICATION,
           payload: { authentication: loggedInAuthentication },
         });
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "success",
-              content: "You have been Logged In.",
-            },
-          },
-        });
+        pushAlert(
+          dispatch,
+          "success",
+          "You have been Logged In.",
+          currentAlertState,
+        );
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't sign you in with that account.",
+          currentAlertState,
+        );
         // console.log(response.data)
       }
       setisWaitingRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't sign you in with that account.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       // console.log(err)
     });
@@ -573,41 +541,29 @@ const RegisterRequest = (
           type: SET_AUTHENTICATION,
           payload: { authentication: registeredAuthentication },
         });
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "success",
-              content: "You have been registered!",
-            },
-          },
-        });
+        pushAlert(
+          dispatch,
+          "success",
+          "You have been registered!",
+          currentAlertState,
+        );
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't create your account. Check your details and try again.",
+          currentAlertState,
+        );
       }
       setisWaitingRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't create your account. Check your details and try again.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
     });
 };
@@ -660,14 +616,14 @@ const postDeletionStep = async (
       message: response.data?.message ?? "",
     };
   } catch (error: any) {
-    const data = error?.response?.data;
     return {
       ok: false,
       status: error?.response?.status ?? 0,
-      data,
-      message:
-        data?.message ??
-        "We couldn't reach Chatterloop. Check your connection and try again.",
+      data: error?.response?.data,
+      message: resolveErrorMessage(
+        error,
+        "We couldn't complete that step. Please try again.",
+      ),
     };
   }
 };
@@ -709,9 +665,10 @@ const ResendVerificationCodeRequest = async (): Promise<{
     return {
       ok: false,
       status: error?.response?.status ?? 0,
-      message:
-        error?.response?.data?.message ??
-        "We couldn't send a new code. Check your connection and try again.",
+      message: resolveErrorMessage(
+        error,
+        "We couldn't send a new code. Please try again.",
+      ),
     };
   }
 };
@@ -751,42 +708,30 @@ const VerifyCodeRequest = (
             },
           },
         });
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "success",
-              content: "Your account is now verified.",
-            },
-          },
-        });
+        pushAlert(
+          dispatch,
+          "success",
+          "Your account is now verified.",
+          currentAlertState,
+        );
         // console.log(response.data)
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't verify that code. Check it and try again.",
+          currentAlertState,
+        );
       }
       setisWaitingRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.response.data.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't verify that code. Check it and try again.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       // console.log(err);
     });
@@ -816,16 +761,12 @@ const SearchRequest = (
     .catch((err) => {
       setisLoading(false);
       setsearchresults([]);
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't run that search. Please try again.",
+        currentAlertState,
+      );
     });
 };
 
@@ -860,16 +801,12 @@ const EntitySearchRequest = (
     .catch((err) => {
       setisLoading(false);
       setsearchresults([]);
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't run that search. Please try again.",
+        currentAlertState,
+      );
     });
 };
 
@@ -958,29 +895,24 @@ const AnswerFollowRequest = (
     },
   )
     .then((response) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: response.data.status ? "success" : "warning",
-            content: response.data.message,
-          },
-        },
-      });
+      pushAlert(
+        dispatch,
+        response.data.status ? "success" : "warning",
+        resolveResponseMessage(
+          response,
+          "We couldn't answer that follow request.",
+        ),
+        currentAlertState,
+      );
       setisDisabledByRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't answer that follow request.",
+        currentAlertState,
+      );
       setisDisabledByRequest(false);
     });
 };
@@ -1096,41 +1028,32 @@ const ContactRequest = (
   })
     .then((response) => {
       if (response.data.status) {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "success",
-              content: response.data.message,
-            },
-          },
-        });
+        pushAlert(
+          dispatch,
+          "success",
+          resolveResponseMessage(
+            response,
+            "Your contact request has been sent.",
+          ),
+          currentAlertState,
+        );
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't send that contact request.",
+          currentAlertState,
+        );
       }
       setisDisabledByRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't send that contact request.",
+        currentAlertState,
+      );
       setisDisabledByRequest(false);
     });
 };
@@ -1155,29 +1078,21 @@ const DeclineContactRequest = (
     },
   })
     .then((response) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "success",
-            content: response.data.message,
-          },
-        },
-      });
+      pushAlert(
+        dispatch,
+        "success",
+        resolveResponseMessage(response, "Your contacts have been updated."),
+        currentAlertState,
+      );
       setisDisabledByRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't update that contact request.",
+        currentAlertState,
+      );
       setisDisabledByRequest(false);
     });
 };
@@ -1393,41 +1308,32 @@ const AcceptContactRequest = (
   })
     .then((response) => {
       if (response.data.status) {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "success",
-              content: response.data.message,
-            },
-          },
-        });
+        pushAlert(
+          dispatch,
+          "success",
+          resolveResponseMessage(
+            response,
+            "That contact request has been accepted.",
+          ),
+          currentAlertState,
+        );
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't accept that contact request.",
+          currentAlertState,
+        );
       }
       setisDisabledByRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't accept that contact request.",
+        currentAlertState,
+      );
       setisDisabledByRequest(false);
     });
 };
@@ -1559,7 +1465,7 @@ const SendFilesRequest = async (params: {
     .then((response) => response)
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -1639,7 +1545,9 @@ const InitConversationInfoRequest = async (conversationID: string) => {
       return response.data.result;
     }
     return Promise.reject(
-      new Error(response.data.message || "Failed to load conversation"),
+      friendlyError(
+        resolveResponseMessage(response, "We couldn't open that conversation."),
+      ),
     );
   });
 };
@@ -1714,7 +1622,7 @@ const SeenMessageRequest = async (params: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -1847,7 +1755,7 @@ const CreateConferenceRequest = async (params: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -1860,7 +1768,7 @@ const CreateRealmInviteRequest = async (params: any) => {
     .then((response) => response.data)
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -1874,7 +1782,7 @@ const GetRealmInviteRequest = async (params: any) => {
     .then((response) => response.data)
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -1887,7 +1795,7 @@ const UpdateRealmInviteRequest = async (params: any) => {
     .then((response) => response.data)
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -1916,7 +1824,7 @@ const CallRequest = async (params: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -1938,7 +1846,7 @@ const VoiceRequest = async (params: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2023,7 +1931,7 @@ const GetProfileInfo = async (params: any, query?: any) => {
       return response;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2046,7 +1954,7 @@ const CreatePostRequest = async (payload: any) => {
       return response;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2084,7 +1992,7 @@ const UploadMediaRequest = async (
       return response;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2115,7 +2023,7 @@ const GetPostRequest = async (params: any, archive?: boolean) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2137,7 +2045,7 @@ const DeleteMessageRequest = async (params: any) => {
       return response;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2159,7 +2067,7 @@ const ReactToMessageRequest = async (params: any) => {
       return response;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2206,7 +2114,7 @@ const ConversationInfoRequest = async (params: any) => {
       }
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2253,7 +2161,7 @@ const AddNewMemberRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2273,7 +2181,7 @@ const InitServerListRequest = async () => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2299,7 +2207,7 @@ const InitServerConversationRequest = async (params: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2321,7 +2229,7 @@ const InitServerChannelsRequest = async (params: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2343,7 +2251,7 @@ const AddNewMemberToServer = async (payload: any) => {
       return response;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2430,7 +2338,7 @@ const GetFeedRequest = async (params: any) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2444,7 +2352,7 @@ const GetFeedEmojisRequest = async () => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2463,7 +2371,7 @@ const GetPostPreviewRequest = async (params: any) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2487,7 +2395,7 @@ const ReactionSaveRequest = async (params: any) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2514,7 +2422,7 @@ const CommentReactionSaveRequest = async (params: any) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2531,7 +2439,7 @@ const GetCommentReactionTotalRequest = async (comment_id: string) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2548,7 +2456,7 @@ const GetReactionTotalRequest = async (post_id: string) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2570,7 +2478,7 @@ const GetCommentsRequest = async (
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2599,7 +2507,7 @@ const SaveCommentRequest = async (
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2633,7 +2541,7 @@ const GetLinkPreviewRequest = async (
   )
     .then((response) => response.data)
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2652,7 +2560,7 @@ const PublicServersListRequest = async () => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2663,7 +2571,7 @@ const LottieJSONRequest = async (url: string) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2678,7 +2586,7 @@ const GetDiaryTotalRequest = async (params: any) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2698,7 +2606,7 @@ const GetMoodListRequest = async (params: any) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2719,7 +2627,7 @@ const GetTagsListRequest = async (params: any) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2739,7 +2647,7 @@ const GetUserEntriesRequest = async (params: any) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2753,7 +2661,7 @@ const PostNewEntryRequest = async (payload: INewEntry) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2767,7 +2675,7 @@ const GetEntryRequest = async (entry_id: string) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2787,7 +2695,7 @@ const BroadcastCoordinatesRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2809,7 +2717,7 @@ const SnapCoordinatesOpenRoute = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2829,7 +2737,7 @@ const JoinRoomRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2853,7 +2761,7 @@ const CreateTransportRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2877,7 +2785,7 @@ const TransportConnectRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2896,7 +2804,7 @@ const GetEncodingsRequest = async () => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2916,7 +2824,7 @@ const TransportProduceRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2936,7 +2844,7 @@ const ConsumeRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2959,7 +2867,7 @@ const CloseProducerRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -2982,7 +2890,7 @@ const LeaveRoomRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3005,7 +2913,7 @@ const ParticipantStatusRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3041,7 +2949,7 @@ const CreatePageRequest = async (payload: {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3064,7 +2972,7 @@ const FollowRealmRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3084,7 +2992,7 @@ const UnfollowRealmRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3114,7 +3022,7 @@ const GetFollowRealmRequest = async (
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3144,7 +3052,7 @@ const GetMyRealmsRequest = async (
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3174,7 +3082,7 @@ const GetTopRealmsRequest = async (
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3192,7 +3100,7 @@ const DeletePostRequest = async (post_ids: string[]) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3214,7 +3122,7 @@ const UpdatePostRequest = async (post_id: string, fields: any) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3234,7 +3142,7 @@ const SavePostRequest = async (post_id: string) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3251,7 +3159,7 @@ const UnsavePostRequest = async (post_id: string) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3271,7 +3179,7 @@ const GetSavedPostsRequest = async (params: any) => {
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3305,9 +3213,15 @@ const UpdateRealmMediaRequest = async (payload: {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
+
+/**
+ * Tag on the RequestError UpdateRealmRequest throws for a slug collision, so
+ * the Details form can mark the field rather than string-match the copy.
+ */
+export const SLUG_TAKEN = "SLUG_TAKEN";
 
 const UpdateRealmRequest = async (realm_id: string, fields: any) => {
   return await Axios.put(
@@ -3332,11 +3246,20 @@ const UpdateRealmRequest = async (realm_id: string, fields: any) => {
     .catch((err) => {
       console.log(err);
 
-      if (err.response.data.includes("duplicate key")) {
-        throw new Error("Slug already exists");
+      // Postgres surfaces the slug uniqueness constraint as a raw "duplicate
+      // key" string, which toRequestError deliberately refuses to show - so
+      // name the actual conflict here, before it gets filtered. `data` is only
+      // a string on the 500 path, hence the coercion rather than .includes()
+      // straight off it.
+      if (String(err?.response?.data ?? "").includes("duplicate key")) {
+        throw friendlyError(
+          "That link name is already taken. Try a different one.",
+          err,
+          SLUG_TAKEN,
+        );
       }
 
-      throw new Error(err);
+      throw toRequestError(err, "We couldn't save those changes.");
     });
 };
 
@@ -3366,7 +3289,7 @@ const GetRealmMembersRequest = async (
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3396,7 +3319,7 @@ const GetRealmFollowersRequest = async (
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3422,7 +3345,7 @@ const RemoveRealmFollowersRequest = async (
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3444,7 +3367,7 @@ const UpdateMemberRoleRequest = async (
       return response.data;
     })
     .catch((err) => {
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3476,7 +3399,7 @@ const TransferRealmOwnershipRequest = async (
       // { status, message } shape the success path uses so callers can show
       // them instead of swallowing an exception.
       if (err?.response?.data) return err.response.data;
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3503,7 +3426,7 @@ const RemoveRealmMemberRequest = async (
       // like it did nothing at all for a realm owner, since every caller
       // just console.logs the rejection.
       if (err?.response?.data) return err.response.data;
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3518,7 +3441,7 @@ const UpdateChatHistoryRequest = async (payload: any) => {
     })
     .catch((err) => {
       console.log(err);
-      throw new Error(err);
+      throw toRequestError(err);
     });
 };
 
@@ -3590,31 +3513,23 @@ const CompleteProfileRequest = async (
           },
         });
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't save your profile. Check the details and try again.",
+          currentAlertState,
+        );
       }
       setisWaitingRequest(false);
       return response.data.status as boolean;
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't save your profile. Check the details and try again.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return false;
     });
@@ -3688,30 +3603,22 @@ const AcceptPoliciesRequest = async (
           },
         });
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't record your acceptance. Please try again.",
+          currentAlertState,
+        );
       }
       setisWaitingRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't record your acceptance. Please try again.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
     });
 };
@@ -3740,30 +3647,22 @@ const ExportAccountDataRequest = async (
         document.body.removeChild(link);
         URL.revokeObjectURL(url);
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't start your data export. Please try again.",
+          currentAlertState,
+        );
       }
       setisWaitingRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't start your data export. Please try again.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
     });
 };
@@ -3782,30 +3681,22 @@ const DeleteAccountRequest = async (
       if (response.data.status) {
         LogoutRequest(dispatch);
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't delete your account. Please try again.",
+          currentAlertState,
+        );
       }
       setisWaitingRequest(false);
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't delete your account. Please try again.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
     });
 };
@@ -3826,30 +3717,22 @@ const BlockUserRequest = async (
     },
   )
     .then((response) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: response.data.status ? "success" : "warning",
-            content: response.data.message,
-          },
-        },
-      });
+      pushAlert(
+        dispatch,
+        response.data.status ? "success" : "warning",
+        resolveResponseMessage(response, "We couldn't block that account."),
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return response.data.status as boolean;
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't block that account.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return false;
     });
@@ -3871,30 +3754,22 @@ const PokeUserRequest = async (
     },
   )
     .then((response) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: response.data.status ? "success" : "warning",
-            content: response.data.message,
-          },
-        },
-      });
+      pushAlert(
+        dispatch,
+        response.data.status ? "success" : "warning",
+        resolveResponseMessage(response, "We couldn't send that poke."),
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return response.data.status as boolean;
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't send that poke.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return false;
     });
@@ -3913,30 +3788,22 @@ const UnblockUserRequest = async (
     },
   })
     .then((response) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: response.data.status ? "success" : "warning",
-            content: response.data.message,
-          },
-        },
-      });
+      pushAlert(
+        dispatch,
+        response.data.status ? "success" : "warning",
+        resolveResponseMessage(response, "We couldn't unblock that account."),
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return response.data.status as boolean;
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't unblock that account.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return false;
     });
@@ -3971,30 +3838,22 @@ const RevokeDeviceSessionRequest = async (
     },
   })
     .then((response) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: response.data.status ? "success" : "warning",
-            content: response.data.message,
-          },
-        },
-      });
+      pushAlert(
+        dispatch,
+        response.data.status ? "success" : "warning",
+        resolveResponseMessage(response, "We couldn't sign that device out."),
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return response.data.status as boolean;
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't sign that device out.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return false;
     });
@@ -4025,32 +3884,27 @@ const SubmitReportRequest = async (
     },
   })
     .then((response) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: response.data.status ? "success" : "warning",
-            content: response.data.status
-              ? "Report submitted. Thank you for letting us know."
-              : response.data.message,
-          },
-        },
-      });
+      pushAlert(
+        dispatch,
+        response.data.status ? "success" : "warning",
+        response.data.status
+          ? "Report submitted. Thank you for letting us know."
+          : resolveResponseMessage(
+              response,
+              "We couldn't submit that report. Please try again.",
+            ),
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return response.data.status as boolean;
     })
     .catch((err) => {
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: err.message,
-          },
-        },
-      });
+      pushErrorAlert(
+        dispatch,
+        err,
+        "We couldn't submit that report. Please try again.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return false;
     });
@@ -4074,16 +3928,12 @@ const UpdateProfileInfoRequest = async (
           response.data.data,
         );
 
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "success",
-              content: "Successfully updated profile",
-            },
-          },
-        });
+        pushAlert(
+          dispatch,
+          "success",
+          "Successfully updated profile",
+          currentAlertState,
+        );
 
         dispatch({
           type: SET_AUTHENTICATION,
@@ -4119,31 +3969,23 @@ const UpdateProfileInfoRequest = async (
           },
         });
       } else {
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "warning",
-              content: response.data.message,
-            },
-          },
-        });
+        pushResponseAlert(
+          dispatch,
+          response,
+          "We couldn't save those changes. Check the details and try again.",
+          currentAlertState,
+        );
       }
       setisWaitingRequest(false);
     })
     .catch((err) => {
       console.log(err.message);
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: "Some fields might be invalid or already taken",
-          },
-        },
-      });
+      pushAlert(
+        dispatch,
+        "error",
+        "Some fields might be invalid or already taken.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
     });
 };
@@ -4181,22 +4023,18 @@ const UpdateProfilePrivacyRequest = async (
       if (response.data.status) {
         const restricted = response.data.posts_restricted || 0;
 
-        dispatch({
-          type: SET_ALERTS,
-          payload: {
-            alerts: {
-              id: currentAlertState.length,
-              type: "success",
-              content: isPrivate
-                ? restricted > 0
-                  ? `Your profile is now private. ${restricted} existing ${
-                      restricted === 1 ? "post is" : "posts are"
-                    } now visible to your contacts only.`
-                  : "Your profile is now private."
-                : "Your profile is now public.",
-            },
-          },
-        });
+        pushAlert(
+          dispatch,
+          "success",
+          isPrivate
+            ? restricted > 0
+              ? `Your profile is now private. ${restricted} existing ${
+                  restricted === 1 ? "post is" : "posts are"
+                } now visible to your contacts only.`
+              : "Your profile is now private."
+            : "Your profile is now public.",
+          currentAlertState,
+        );
 
         // Keep the store's copy of the account in step - the profile header
         // reads isPrivate off it for the lock icon.
@@ -4218,31 +4056,23 @@ const UpdateProfilePrivacyRequest = async (
         return true;
       }
 
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "warning",
-            content: response.data.message,
-          },
-        },
-      });
+      pushResponseAlert(
+        dispatch,
+        response,
+        "We couldn't update your privacy setting.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return false;
     })
     .catch((err) => {
       console.log(err.message);
-      dispatch({
-        type: SET_ALERTS,
-        payload: {
-          alerts: {
-            id: currentAlertState.length,
-            type: "error",
-            content: "Could not update your privacy setting",
-          },
-        },
-      });
+      pushAlert(
+        dispatch,
+        "error",
+        "We couldn't update your privacy setting.",
+        currentAlertState,
+      );
       setisWaitingRequest(false);
       return false;
     });

@@ -56,6 +56,7 @@ import {
   RealmCardSkeleton,
 } from "./partials/SearchSkeletons";
 import { useRailFillCount } from "@/reusables/hooks/useRailFillCount";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 // Redesigned Search page ("ChatterLoop Upgrade" - Search Page.dc.html).
 // One overview call settles all three section previews per query; each
@@ -391,6 +392,12 @@ function SearchPage() {
       .catch((err) => {
         console.log(err);
         applyFollowState(entityID, revert);
+        notifyRequestError(
+          err,
+          isActive
+            ? "We couldn't unfollow that account."
+            : "We couldn't follow that account.",
+        );
       })
       .finally(() => {
         setFollowBusy((prev) => ({ ...prev, [entityID]: false }));
@@ -430,7 +437,10 @@ function SearchPage() {
       .then((result) => {
         if (result) applyMemberState(realm.entity_id, true);
       })
-      .catch((err) => console.log(err))
+      .catch((err) => {
+        console.log(err);
+        notifyRequestError(err, "We couldn't join that group.");
+      })
       .finally(() => {
         setJoinBusy((prev) => ({ ...prev, [realm.entity_id]: false }));
       });

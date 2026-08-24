@@ -1,5 +1,6 @@
 import { SET_MUTATE_ALERTS } from "@/redux/types";
-import { UpdateRealmRequest } from "@/reusables/hooks/requests";
+import { SLUG_TAKEN, UpdateRealmRequest } from "@/reusables/hooks/requests";
+import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
 import { getDifferentValues } from "@/reusables/hooks/reusable";
 import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { useMemo, useState } from "react";
@@ -44,22 +45,25 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
         setisSaving(false);
         console.log(err);
 
-        if (err.message.includes("Slug already exists")) {
-          seterrorFields((prev) => {
-            const uniqueArray = [...new Set(prev), "slug"];
-
-            return uniqueArray;
-          });
-          dispatch({
-            type: SET_MUTATE_ALERTS,
-            payload: {
-              alerts: {
-                type: "error",
-                content: "Slug provided already exist",
-              },
-            },
-          });
+        // A slug collision also marks the field; every OTHER failure used to
+        // fall through this branch silently, leaving the form looking as
+        // though the save had simply been ignored.
+        if (err?.code === SLUG_TAKEN) {
+          seterrorFields((prev) => [...new Set([...prev, "slug"])]);
         }
+
+        dispatch({
+          type: SET_MUTATE_ALERTS,
+          payload: {
+            alerts: {
+              type: "error",
+              content: resolveErrorMessage(
+                err,
+                "We couldn't save those details. Please try again.",
+              ),
+            },
+          },
+        });
       });
   };
 

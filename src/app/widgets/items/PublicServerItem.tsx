@@ -6,7 +6,7 @@ import {
   AddNewMemberToServer,
   RemoveRealmMemberRequest,
 } from "@/reusables/hooks/requests";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   AuthenticationInterface,
   IRealmProfileInfo,
@@ -20,6 +20,11 @@ import {
   leaveRealmPrompt,
   ownerCannotLeavePrompt,
 } from "@/app/widgets/modals/confirmPrompts";
+import {
+  pushAlert,
+  resolveErrorMessage,
+  resolveResponseMessage,
+} from "@/reusables/hooks/errormessages";
 
 function PublicServerItem({
   mp,
@@ -31,6 +36,15 @@ function PublicServerItem({
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  const dispatch = useDispatch();
+
+  const serverName = mp.name || "that server";
+  const JOIN_FAILED = `We couldn't join ${serverName}. Please try again.`;
+  const LEAVE_FAILED = `We couldn't leave ${serverName}. Please try again.`;
+
+  const notifyFailure = (message: string) =>
+    pushAlert(dispatch, "warning", message);
+
   const [isJoining, setisJoining] = useState<boolean>(false);
   const [isJoined, setisJoined] = useState<boolean>(mp.is_member ?? false);
 
@@ -73,14 +87,19 @@ function PublicServerItem({
     };
     AddNewMemberToServer(initialpayload)
       .then((response) => {
+        setisJoining(false);
         if (response.data.status) {
-          setisJoining(false);
           setisJoined(true);
+          return;
         }
+        // A refusal used to leave the spinner's aftermath looking like a
+        // success until the card was re-rendered from the server.
+        notifyFailure(resolveResponseMessage(response, JOIN_FAILED));
       })
       .catch((err) => {
         setisJoining(false);
         console.log(err);
+        notifyFailure(resolveErrorMessage(err, JOIN_FAILED));
       });
   };
 
@@ -99,11 +118,14 @@ function PublicServerItem({
         setisLeaving(false);
         if (response.status) {
           setisJoined(false);
+          return;
         }
+        notifyFailure(resolveResponseMessage(response, LEAVE_FAILED));
       })
       .catch((err) => {
         setisLeaving(false);
         console.log(err);
+        notifyFailure(resolveErrorMessage(err, LEAVE_FAILED));
       });
   };
 

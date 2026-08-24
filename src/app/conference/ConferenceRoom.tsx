@@ -19,6 +19,7 @@ import {
   CloseSSENotifications,
   SSENotificationsTRequest,
 } from "@/reusables/hooks/sse";
+import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
 
 function ConferenceRoom() {
   const authentication: AuthenticationInterface = useSelector(
@@ -74,7 +75,12 @@ function ConferenceRoom() {
       })
       .catch((err) => {
         setRoomInfo(null);
-        setLoadError(err?.message || "Unable to load conference room.");
+        setLoadError(
+          resolveErrorMessage(
+            err,
+            "We couldn't open that conference room. Check the link and try again.",
+          ),
+        );
         setIsLoading(false);
       });
   }, [roomSlug]);
@@ -102,7 +108,12 @@ function ConferenceRoom() {
       })
       .catch((err) => {
         setInviteInfo(null);
-        setInviteLoadError(err?.message || "Unable to load invite.");
+        setInviteLoadError(
+          resolveErrorMessage(
+            err,
+            "We couldn't open that invite. It may have expired.",
+          ),
+        );
       })
       .finally(() => {
         setIsInviteLoading(false);

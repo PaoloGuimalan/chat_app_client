@@ -18,6 +18,7 @@ import { motion } from "framer-motion";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import PostPreviewModal from "./PostPreviewModal";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
   const authentication: AuthenticationInterface = useSelector(
@@ -51,6 +52,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
       .catch((err) => {
         setisSaving(false);
         console.log(err);
+        notifyRequestError(err, "We couldn't remove that post from saved.");
       });
   };
 

@@ -14,6 +14,7 @@ import {
   getLottieData,
   persistLottieData,
 } from "@/reusables/hooks/localforagehelper";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 function DotLottieButton({
   mp,
@@ -84,6 +85,7 @@ function DotLottieButton({
       .catch((err) => {
         onSuccessEmojiSelection(false);
         console.log(err);
+        notifyRequestError(err, "We couldn't save that reaction.");
       });
   };
 

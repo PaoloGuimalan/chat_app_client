@@ -13,13 +13,17 @@ import {
 } from "@/reusables/vars/interfaces";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { SET_ALERTS } from "@/redux/types";
 import { Avatar } from "@/reusables/design";
 import { RemoveRealmMemberRequest } from "@/reusables/hooks/requests";
 import { MdReport } from "react-icons/md";
 import ReportModal from "@/app/widgets/modals/ReportModal";
 import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
 import { leaveRealmPrompt } from "@/app/widgets/modals/confirmPrompts";
+import {
+  pushAlert,
+  resolveErrorMessage,
+  resolveResponseMessage,
+} from "@/reusables/hooks/errormessages";
 
 function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   const navigate = useNavigate();
@@ -34,17 +38,10 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
   // server's reason - most often "Transfer ownership to another member
   // before leaving." - reaches the user instead of a console.log. This
   // surface has no my_role to check up front, so it asks and reports.
-  const notifyLeaveFailure = (message?: string) =>
-    dispatch({
-      type: SET_ALERTS,
-      payload: {
-        alerts: {
-          id: alerts.length,
-          type: "warning",
-          content: message || "Could not leave. Please try again.",
-        },
-      },
-    });
+  const LEAVE_FAILED = "We couldn't leave this server. Please try again.";
+
+  const notifyLeaveFailure = (message: string) =>
+    pushAlert(dispatch, "warning", message, alerts);
 
   const [isLeaving, setisLeaving] = useState<boolean>(false);
   const [isReportOpen, setisReportOpen] = useState<boolean>(false);
@@ -62,12 +59,13 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
           onclose(false);
           navigate("/servers");
         } else {
-          notifyLeaveFailure(response?.message);
+          notifyLeaveFailure(resolveResponseMessage(response, LEAVE_FAILED));
         }
       })
       .catch((err) => {
         setisLeaving(false);
         console.log(err);
+        notifyLeaveFailure(resolveErrorMessage(err, LEAVE_FAILED));
       });
   };
 
