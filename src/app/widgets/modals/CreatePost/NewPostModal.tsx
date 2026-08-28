@@ -8,16 +8,19 @@ import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { useEffect, useRef, useState } from "react";
 import HashtagField from "@/app/reusables/HashtagField";
+import {
+  PRIVACY_OPTIONS,
+  defaultPrivacyStatus,
+  findPrivacyOption,
+  isPrivateProfile as privacyIsPrivateProfile,
+} from "@/reusables/hooks/postPrivacy";
 import { BsFileEarmarkPost, BsPinMapFill } from "react-icons/bs";
-import { FaGlobeAsia } from "react-icons/fa";
 import {
   FaUserTag,
   FaMagnifyingGlass,
   FaPlus,
   FaCheck,
   FaXmark,
-  FaUserGroup,
-  FaLock,
 } from "react-icons/fa6";
 import { MdAddToPhotos } from "react-icons/md";
 import { useDispatch, useSelector } from "react-redux";
@@ -71,53 +74,16 @@ export function NewPostModal({
   const [_, setcurrenttab] = useState<string>("content"); //currenttab
   const [medialist, setmedialist] = useState<any[]>([]);
 
-  // Audience for this post. Defaults to connections-only for a private
-  // profile, public otherwise - the same rule the server applies when the
-  // field is absent (newsfeed/services/post_visibility.py
-  // default_privacy_status_for). Mirrored here so the UI shows what will
-  // actually happen rather than claiming "Public" and being overridden.
-  //
-  // Posting AS A PAGE always defaults to public: profile privacy is a
-  // person-level setting and a realm has none.
-  const isPrivateProfile =
-    authentication?.user?.isPrivate === true &&
-    authentication?.active_entity_context?.entity_type !== "realm";
-  const [postPrivacy, setpostPrivacy] = useState<string>(
-    isPrivateProfile ? "connections" : "public",
+  // Audience for this post. The default mirrors the server's own rule so the
+  // UI shows what will actually happen rather than claiming "Public" and being
+  // overridden - see reusables/hooks/postPrivacy.
+  const isPrivateProfile = privacyIsPrivateProfile(authentication);
+  const [postPrivacy, setpostPrivacy] = useState<string>(() =>
+    defaultPrivacyStatus(authentication),
   );
   const [showPrivacy, setshowPrivacy] = useState<boolean>(false);
 
-  // "custom" is deliberately absent: the backend supports it, but it needs an
-  // allow-list picker (PostPrivacy rows) that does not exist yet.
-  const PRIVACY_OPTIONS: {
-    value: string;
-    label: string;
-    hint: string;
-    icon: JSX.Element;
-  }[] = [
-    {
-      value: "public",
-      label: "Public",
-      hint: "Anyone on Chatterloop, including people signed out",
-      icon: <FaGlobeAsia style={{ fontSize: "16px" }} />,
-    },
-    {
-      value: "connections",
-      label: "Contacts only",
-      hint: "Only people you are connected with",
-      icon: <FaUserGroup style={{ fontSize: "16px" }} />,
-    },
-    {
-      value: "private",
-      label: "Only me",
-      hint: "Nobody else can see this post",
-      icon: <FaLock style={{ fontSize: "15px" }} />,
-    },
-  ];
-
-  const activePrivacy =
-    PRIVACY_OPTIONS.find((mp) => mp.value === postPrivacy) ||
-    PRIVACY_OPTIONS[0];
+  const activePrivacy = findPrivacyOption(postPrivacy);
 
   // Entities selected to tag - users OR realms/pages. We keep the normalized
   // search objects (not just ids) so chips and results render avatars, names
@@ -165,7 +131,6 @@ export function NewPostModal({
   const [tagresults, settagresults] = useState<EntitySearchResult[]>([]);
   const [istagsearching, setistagsearching] = useState<boolean>(false);
   const dispatch = useDispatch();
-
 
   const isTagged = (entity: EntitySearchResult) =>
     taggedEntities.some((tagged) => tagged.entity_id === entity.entity_id);

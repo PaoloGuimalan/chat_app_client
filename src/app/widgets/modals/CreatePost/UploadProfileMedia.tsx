@@ -8,11 +8,19 @@ import { useState } from "react";
 import { MdAddToPhotos } from "react-icons/md";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { useDispatch } from "react-redux/es/hooks/useDispatch";
+import { useSelector } from "react-redux";
+import { FaCheck } from "react-icons/fa6";
+import {
+  PRIVACY_OPTIONS,
+  defaultPrivacyStatus,
+  findPrivacyOption,
+  isPrivateProfile as privacyIsPrivateProfile,
+} from "@/reusables/hooks/postPrivacy";
+import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { pickFiles } from "@/reusables/hooks/pickFiles";
 import { useDragAndDrop } from "@/reusables/hooks/useDragAndDrop";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
-import { FaGlobeAsia } from "react-icons/fa";
 import {
   CreatePostRequest,
   UpdateRealmMediaRequest,
@@ -41,9 +49,29 @@ function UploadProfileMedia({
   const [isuploadingpost, setisuploadingpost] = useState<boolean>(false);
   const [mainpostcaption, setmainpostcaption] = useState<string>("");
 
-  const [_, setcurrenttab] = useState<string>("content"); //currenttab
   const [medialist, setmedialist] = useState<any>(null);
   const dispatch = useDispatch();
+
+  const authentication: AuthenticationInterface = useSelector(
+    (state: any) => state.authentication,
+  );
+
+  // Audience for the post this upload creates. It was hardcoded "public" -
+  // the globe button set a tab nobody read and no panel was ever rendered, so
+  // a profile or cover photo went out to everyone whatever the author's
+  // profile privacy said. Defaults to the same rule the main composer and the
+  // server use.
+  //
+  // Only meaningful on the PERSONAL path: the realm branch updates the page's
+  // media through UpdateRealmMediaRequest and returns before any post is
+  // created, so there is no audience to choose.
+  const isRealmUpload = realm_id !== null;
+  const isPrivateProfile = privacyIsPrivateProfile(authentication);
+  const [postPrivacy, setpostPrivacy] = useState<string>(() =>
+    defaultPrivacyStatus(authentication),
+  );
+  const [showPrivacy, setshowPrivacy] = useState<boolean>(false);
+  const activePrivacy = findPrivacyOption(postPrivacy);
 
   const addMediaFile = (files: File[]) => {
     const file = files[0];
@@ -171,7 +199,7 @@ function UploadProfileMedia({
             users: [],
           },
           privacy: {
-            status: "public",
+            status: postPrivacy,
             users: [], //userID for filteration depending on status
           }, //public, friends, filtered
           onfeed: "feed",
@@ -276,6 +304,56 @@ function UploadProfileMedia({
                 className="cl-create-post-textarea tw-font-inter thinscroller tw-font-Inter"
                 placeholder="Type your caption"
               />
+              {showPrivacy && !isRealmUpload && (
+                <div className="cl-create-post-tagging">
+                  <span className="cl-text-caption tw-text-left tw-text-[var(--text-2)]">
+                    Who can see this post?
+                  </span>
+                  <div className="cl-post-privacy-options">
+                    {PRIVACY_OPTIONS.map((option) => (
+                      <button
+                        key={option.value}
+                        type="button"
+                        disabled={isuploadingpost}
+                        aria-pressed={postPrivacy === option.value}
+                        onClick={() => {
+                          setpostPrivacy(option.value);
+                          setshowPrivacy(false);
+                        }}
+                        className={`cl-post-privacy-option ${
+                          postPrivacy === option.value
+                            ? "cl-post-privacy-option--active"
+                            : ""
+                        }`}
+                      >
+                        <span className="cl-post-privacy-option__icon">
+                          {option.icon}
+                        </span>
+                        <span className="cl-post-privacy-option__text">
+                          <span className="cl-post-privacy-option__label">
+                            {option.label}
+                          </span>
+                          <span className="cl-post-privacy-option__hint">
+                            {option.hint}
+                          </span>
+                        </span>
+                        {postPrivacy === option.value && (
+                          <FaCheck
+                            style={{ fontSize: "13px", flexShrink: 0 }}
+                            color="var(--brand)"
+                          />
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  {isPrivateProfile && postPrivacy === "public" && (
+                    <span className="cl-text-caption tw-text-left tw-text-[var(--text-2)]">
+                      Your profile is private, but this post will be visible to
+                      everyone.
+                    </span>
+                  )}
+                </div>
+              )}
               <div className="cl-create-post-attachments tw-w-full tw-h-[300px]">
                 {medialist === null ? (
                   <div
@@ -322,18 +400,25 @@ function UploadProfileMedia({
             </div>
           </div>
           <div className="cl-create-post-toolbar">
+            {!isRealmUpload && (
+              <button
+                type="button"
+                disabled={isuploadingpost}
+                onClick={() => setshowPrivacy((prev) => !prev)}
+                title={`Audience: ${activePrivacy.label}`}
+                className={`cl-tag-toolbar-btn tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand-700)] ${
+                  showPrivacy ? "cl-toolbar-btn--active" : ""
+                }`}
+              >
+                {/* The icon tracks the current audience (globe / group / lock)
+                    so the selection is readable without a text label - the
+                    toolbar is icon-only, same as Create Post's. */}
+                {activePrivacy.icon}
+              </button>
+            )}
             <button
-              onClick={() => {
-                setcurrenttab("privacy");
-              }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand-700)]"
-            >
-              <FaGlobeAsia style={{ fontSize: "20px" }} />
-            </button>
-            <button
-              onClick={() => {
-                setcurrenttab("content");
-              }}
+              type="button"
+              onClick={() => setshowPrivacy(false)}
               className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand)]"
             >
               <BsFileEarmarkPost style={{ fontSize: "20px" }} />
