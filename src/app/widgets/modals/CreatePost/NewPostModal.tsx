@@ -6,7 +6,8 @@ import { pickFiles } from "@/reusables/hooks/pickFiles";
 import { useDragAndDrop } from "@/reusables/hooks/useDragAndDrop";
 import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import HashtagField from "@/app/reusables/HashtagField";
 import { BsFileEarmarkPost, BsPinMapFill } from "react-icons/bs";
 import { FaGlobeAsia } from "react-icons/fa";
 import {
@@ -66,6 +67,7 @@ export function NewPostModal({
   );
 
   const [mainpostcaption, setmainpostcaption] = useState<string>("");
+  const captionRef = useRef<HTMLTextAreaElement | null>(null);
   const [_, setcurrenttab] = useState<string>("content"); //currenttab
   const [medialist, setmedialist] = useState<any[]>([]);
 
@@ -474,16 +476,23 @@ export function NewPostModal({
                 whenever this area scrolls, which it does as soon as a panel
                 or a link preview appears. */}
             <div className="tw-w-full tw-flex-1 tw-min-h-0 tw-overflow-y-auto thinscroller tw-bg-transparent tw-flex tw-flex-col tw-gap-[12px] tw-items-stretch tw-pr-[6px]">
-              <textarea
-                disabled={isuploadingpost}
-                value={mainpostcaption}
-                onChange={(e) => {
-                  setcreateposttext(e.target.value);
-                  setmainpostcaption(e.target.value);
-                }}
-                className="cl-create-post-textarea tw-font-inter thinscroller tw-font-Inter"
-                placeholder="Type your caption"
-              />
+              {/* Wrapped so #hashtags colour as they are typed. The textarea
+                  itself is untouched - same value, same handlers, same class -
+                  because the highlighting is painted behind it rather than
+                  replacing it. */}
+              <HashtagField value={mainpostcaption} inputRef={captionRef}>
+                <textarea
+                  ref={captionRef}
+                  disabled={isuploadingpost}
+                  value={mainpostcaption}
+                  onChange={(e) => {
+                    setcreateposttext(e.target.value);
+                    setmainpostcaption(e.target.value);
+                  }}
+                  className="cl-create-post-textarea tw-font-inter thinscroller tw-font-Inter"
+                  placeholder="Type your caption"
+                />
+              </HashtagField>
               {!toShare &&
                 linkPreview.status === "ok" &&
                 linkPreview.preview && (

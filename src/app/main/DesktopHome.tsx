@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Feed from "../tabs/feed/Feed";
+import PopularTopics from "../tabs/feed/partials/PopularTopics";
 
 function DesktopHome() {
   return (
@@ -36,7 +37,7 @@ function DesktopHome() {
           minHeight: 0,
         }}
       >
-        <Feed />
+        <Feed sidebar={<PopularTopics />} />
       </div>
     </div>
   );

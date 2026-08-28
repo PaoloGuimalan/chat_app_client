@@ -7477,3 +7477,188 @@ body::-webkit-scrollbar-thumb:hover,
   outline: 2px solid var(--brand);
   outline-offset: -2px;
 }
+
+/* Popular Topics sidebar ---------------------------------------------------
+   The rail hides below a breakpoint derived from what it sits beside: a 680px
+   feed column, a 16px gap, this 380px rail and the page's own padding. Below
+   that the two would fight for width, so the rail goes rather than squeezing
+   the feed. Keep this threshold and the width in step - widening one without
+   the other is what makes a layout collapse awkwardly instead of cleanly. */
+.cl-topics-widget {
+  display: block;
+}
+
+@media (max-width: 1160px) {
+  .cl-topics-widget {
+    display: none;
+  }
+}
+
+/* Shared by the topic rows. Hover is on the row rather than the label so the
+   whole 340px target reacts, which is what makes it read as a button. */
+.cl-rowbtn {
+  transition: background 0.16s var(--ease);
+}
+
+.cl-rowbtn:hover {
+  background: var(--surface-hover) !important;
+}
+
+.cl-rowbtn:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: -2px;
+}
+
+/* #hashtags in authored text. Deliberately distinct from .cl-message-mention:
+   a mention points at a person and a hashtag at a topic, and they frequently
+   sit in the same sentence. No border, so a caption dense with tags does not
+   turn into a row of boxes. */
+.cl-hashtag {
+  color: var(--brand-700);
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.cl-hashtag:hover {
+  text-decoration: underline;
+}
+
+/* The tags carry role="link" and tabindex="0" so they can be reached by
+   keyboard; without a visible focus ring that reachability is invisible and
+   the tab order just seems to stop somewhere in the middle of a sentence. */
+.cl-hashtag:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.cl-redesign[data-theme="dark"] .cl-hashtag {
+  color: #9ec5ff;
+}
+
+/* Live hashtag highlighting in a textarea (app/reusables/HashtagField.tsx).
+   The textarea keeps every native behaviour and simply goes transparent; the
+   mirror behind it paints the same text with the tags coloured. Typography is
+   copied onto the mirror at runtime, so nothing here may set a font, a
+   padding or a border WIDTH - those would be overwritten anyway, and stating
+   them twice is how the two silently drift apart. */
+.cl-hashtag-field {
+  position: relative;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.cl-hashtag-field__mirror {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  margin: 0;
+  overflow: hidden;
+  pointer-events: none;
+  /* Matches how a textarea lays out its value: newlines and runs of spaces
+     are significant, and long words break rather than overflow. */
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  color: var(--text);
+}
+
+.cl-hashtag-field > textarea {
+  position: relative;
+  z-index: 1;
+  background: transparent !important;
+  /* The text is drawn by the mirror. The caret is not, so it is given back
+     explicitly - without this the composer looks broken, with no visible
+     insertion point. */
+  color: transparent !important;
+  caret-color: var(--text);
+}
+
+/* The selection highlight still comes from the textarea, and over transparent
+   text it would render as a coloured band with nothing in it. Giving the
+   selection a readable foreground keeps text visible while dragging. */
+.cl-hashtag-field > textarea::selection {
+  color: var(--text);
+  background: var(--brand-soft);
+}
+
+.cl-hashtag-field > textarea::placeholder {
+  color: var(--text-3);
+}
+
+/* Popular Topics category pills -------------------------------------------
+   Eight hues picked by hashing the category name, so a category keeps its
+   colour across sessions. Each is a soft tint behind a saturated label, which
+   reads as a tag rather than a button.
+
+   Written as classes rather than inline styles because every one needs a
+   different value in dark mode: the light tints are far too bright on a dark
+   surface, and a style attribute cannot carry a media query. Dark uses a
+   translucent wash of the same hue so the pill sits IN the card instead of
+   glowing on top of it. */
+.cl-topic-pill {
+  display: inline-flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 9px;
+  font-size: var(--fs-meta);
+  font-weight: 650;
+  letter-spacing: 0.01em;
+  border-radius: var(--r-pill);
+  flex: none;
+  white-space: nowrap;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cl-topic-pill--0 { background: #e7f0fe; color: #1b5fc1; }
+.cl-topic-pill--1 { background: #e3f7ed; color: #12805a; }
+.cl-topic-pill--2 { background: #fdf0d9; color: #a06400; }
+.cl-topic-pill--3 { background: #ffe9ec; color: #c2334a; }
+.cl-topic-pill--4 { background: #f0eaff; color: #6b3fd4; }
+.cl-topic-pill--5 { background: #e0f5f8; color: #0b7183; }
+.cl-topic-pill--6 { background: #ffe9f3; color: #bf3579; }
+.cl-topic-pill--7 { background: #eceef2; color: #4a5462; }
+
+.cl-redesign[data-theme="dark"] .cl-topic-pill--0 { background: rgba(60,139,255,0.16);  color: #9ec5ff; }
+.cl-redesign[data-theme="dark"] .cl-topic-pill--1 { background: rgba(32,189,124,0.16);  color: #74e0ae; }
+.cl-redesign[data-theme="dark"] .cl-topic-pill--2 { background: rgba(230,149,0,0.18);   color: #f5c46a; }
+.cl-redesign[data-theme="dark"] .cl-topic-pill--3 { background: rgba(255,91,107,0.16);  color: #ff9aa6; }
+.cl-redesign[data-theme="dark"] .cl-topic-pill--4 { background: rgba(139,92,246,0.18);  color: #c4a8ff; }
+.cl-redesign[data-theme="dark"] .cl-topic-pill--5 { background: rgba(14,165,183,0.18);  color: #6fd8e8; }
+.cl-redesign[data-theme="dark"] .cl-topic-pill--6 { background: rgba(240,81,140,0.16);  color: #ff9cc6; }
+.cl-redesign[data-theme="dark"] .cl-topic-pill--7 { background: rgba(255,255,255,0.08); color: #b7c0cc; }
+
+/* The overlapping face stack. The 2px ring is what separates one avatar from
+   the one it overlaps; it has to sit on the rendered image/initials rather
+   than Avatar's positioning wrapper, hence the descendant selectors. */
+.cl-topic-face {
+  margin-left: -6px;
+}
+
+.cl-topic-face img,
+.cl-topic-face > span {
+  box-shadow: 0 0 0 2px var(--surface) !important;
+}
+
+/* react-loading-skeleton emits a <br> after every shimmer - its way of
+   stacking a multi-count skeleton - and inherits the surrounding line-height
+   on its container. Together those added ~28px to every Popular Topics row,
+   leaving the loader half again as tall as the rows it stands in for and
+   making the whole list jump when the data arrived.
+   Suppressing the <br> and pinning line-height makes each piece occupy
+   exactly the height it was given, which is what row parity depends on. */
+.cl-topic-skeleton-line {
+  display: block;
+  line-height: 1;
+}
+
+.cl-topic-skeleton-line > span {
+  display: block;
+}
+
+.cl-topic-skeleton-line br {
+  display: none;
+}

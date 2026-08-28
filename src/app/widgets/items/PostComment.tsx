@@ -25,6 +25,11 @@ import {
   extractMentionHandles,
   highlightMentions,
 } from "@/reusables/hooks/mentions";
+import {
+  highlightHashtagsInMarkup,
+  useHashtagNavigation,
+} from "@/reusables/hooks/hashtags";
+import HashtagField from "@/app/reusables/HashtagField";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { FaFileAlt } from "react-icons/fa";
@@ -75,6 +80,10 @@ function PostComment({
   // the list. Threads are two levels deep (the backend re-parents a reply to
   // a reply onto its top-level ancestor), so this never recurses further.
   const isThread = Boolean(parent_id);
+
+  // Delegated onto the comment text span - the tags inside it are raw HTML,
+  // so there is no React element per tag to bind a handler to.
+  const hashtagHandlers = useHashtagNavigation();
 
   const [comments, setComments] =
     useState<PaginationProp<IPostComment>>(commentsliststate);
@@ -565,56 +574,61 @@ function PostComment({
               ))}
             </div>
           )}
-          <textarea
-            ref={composerRef}
-            placeholder={isThread ? "Write a reply..." : "Write a comment..."}
-            id={isThread ? "textarea_feed_reply_box" : "textarea_feed_box"}
-            className="cl-comment-section__field tw-font-Inter"
-            value={writeComment}
-            onChange={(e) => {
-              setwriteComment(e.target.value);
-              updateMentionSuggestions(
-                e.target.value,
-                e.target.selectionStart ?? e.target.value.length,
-              );
-            }}
-            onKeyDown={(e) => {
-              if (mentionState.open && mentionSuggestions.length > 0) {
-                if (e.key === "ArrowDown") {
-                  e.preventDefault();
-                  setMentionActiveIndex((prev) =>
-                    prev + 1 >= mentionSuggestions.length ? 0 : prev + 1,
-                  );
-                  return;
-                }
+          {/* Wrapped so #hashtags colour as they are typed. composerRef is
+              still the textarea's own ref - mention insertion writes through
+              it and must keep working. */}
+          <HashtagField value={writeComment} inputRef={composerRef}>
+            <textarea
+              ref={composerRef}
+              placeholder={isThread ? "Write a reply..." : "Write a comment..."}
+              id={isThread ? "textarea_feed_reply_box" : "textarea_feed_box"}
+              className="cl-comment-section__field tw-font-Inter"
+              value={writeComment}
+              onChange={(e) => {
+                setwriteComment(e.target.value);
+                updateMentionSuggestions(
+                  e.target.value,
+                  e.target.selectionStart ?? e.target.value.length,
+                );
+              }}
+              onKeyDown={(e) => {
+                if (mentionState.open && mentionSuggestions.length > 0) {
+                  if (e.key === "ArrowDown") {
+                    e.preventDefault();
+                    setMentionActiveIndex((prev) =>
+                      prev + 1 >= mentionSuggestions.length ? 0 : prev + 1,
+                    );
+                    return;
+                  }
 
-                if (e.key === "ArrowUp") {
-                  e.preventDefault();
-                  setMentionActiveIndex((prev) =>
-                    prev - 1 < 0 ? mentionSuggestions.length - 1 : prev - 1,
-                  );
-                  return;
-                }
+                  if (e.key === "ArrowUp") {
+                    e.preventDefault();
+                    setMentionActiveIndex((prev) =>
+                      prev - 1 < 0 ? mentionSuggestions.length - 1 : prev - 1,
+                    );
+                    return;
+                  }
 
-                if (e.key === "Enter" && !e.shiftKey) {
-                  e.preventDefault();
-                  insertMentionAtCursor(
-                    mentionSuggestions[mentionActiveIndex] ??
-                      mentionSuggestions[0],
-                  );
-                  return;
-                }
+                  if (e.key === "Enter" && !e.shiftKey) {
+                    e.preventDefault();
+                    insertMentionAtCursor(
+                      mentionSuggestions[mentionActiveIndex] ??
+                        mentionSuggestions[0],
+                    );
+                    return;
+                  }
 
-                if (e.key === "Escape") {
-                  e.preventDefault();
-                  closeMentionSuggestions();
-                  return;
+                  if (e.key === "Escape") {
+                    e.preventDefault();
+                    closeMentionSuggestions();
+                    return;
+                  }
                 }
-              }
-            }}
-            onBlur={() => closeMentionSuggestions()}
-            disabled={isCommentSaving}
-          />
+              }}
+              onBlur={() => closeMentionSuggestions()}
+              disabled={isCommentSaving}
+            />
+          </HashtagField>
         </div>
         <div id="div_confirm_send" className="cl-comment-section__send-shell">
           <button
@@ -766,12 +780,22 @@ function PostComment({
                             messenger renders message content. */}
                         <span
                           className="cl-comment-section__text cl-text-body tw-leading-[1.5] tw-break-words tw-text-[var(--text)]"
+                          {...hashtagHandlers}
                           dangerouslySetInnerHTML={{
+                            /* Order matters. highlightMentions escapes the
+                               text and returns markup, urlify then adds
+                               anchors, so hashtags are highlighted LAST and
+                               with the markup-aware variant - it only
+                               transforms text between tags, which is what
+                               stops a "#" inside an href from being wrapped
+                               in a span inside an attribute value. */
                             __html: DOMPurify.sanitize(
-                              urlify(
-                                highlightMentions(
-                                  mp.text ?? "",
-                                  "cl-comment-mention",
+                              highlightHashtagsInMarkup(
+                                urlify(
+                                  highlightMentions(
+                                    mp.text ?? "",
+                                    "cl-comment-mention",
+                                  ),
                                 ),
                               ),
                             ),
@@ -935,4 +959,3 @@ function PostComment({
 }
 
 export default PostComment;
-

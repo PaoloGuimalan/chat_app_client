@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React from 'react'
 import { useEffect, useMemo, useRef, useState } from "react";
+import DOMPurify from "dompurify";
+import {
+  highlightHashtags,
+  useHashtagNavigation,
+} from "@/reusables/hooks/hashtags";
 import { BiLike } from "react-icons/bi";
 import { LiaComment } from "react-icons/lia";
 import { PiShareFat } from "react-icons/pi";
@@ -62,6 +67,23 @@ function PostItem({
   const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(mp);
+
+  // Captions are rendered as markup so #hashtags can be highlighted.
+  // highlightHashtags escapes the text itself before wrapping anything, and
+  // DOMPurify is the second line - a caption is user input and this is
+  // dangerouslySetInnerHTML.
+  //
+  // Deliberately hashtags ONLY. Captions have never been linkified or
+  // mention-highlighted, and turning that on here would change how every
+  // existing post renders, which is a bigger change than was asked for.
+  // Delegated onto the caption span - the tags inside it are raw HTML, so
+  // there is no React element per tag to bind.
+  const hashtagHandlers = useHashtagNavigation();
+
+  const captionHtml = useMemo(
+    () => DOMPurify.sanitize(highlightHashtags(postState.caption ?? "")),
+    [postState.caption],
+  );
   const [isProcessing, setisProcessing] = useState<boolean>(false);
   const [isRestored, setisRestored] = useState<boolean>(false);
 
@@ -333,9 +355,12 @@ function PostItem({
                 minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
               } tw-overflow-y-hidden`}
             >
-              <span ref={textRef} className={`cl-text-body tw-text-left c1`}>
-                {postState.caption}
-              </span>
+              <span
+                ref={textRef}
+                className={`cl-text-body tw-text-left c1`}
+                {...hashtagHandlers}
+                dangerouslySetInnerHTML={{ __html: captionHtml }}
+              />
             </div>
             {postState.link_preview && (
               <LinkPreviewCard
@@ -581,9 +606,9 @@ function PostItem({
                           <span
                             ref={textRef}
                             className={`cl-text-body tw-text-left c1`}
-                          >
-                            {postState.caption}
-                          </span>
+                            {...hashtagHandlers}
+                            dangerouslySetInnerHTML={{ __html: captionHtml }}
+                          />
                         </div>
                         {postState.link_preview && (
                           <LinkPreviewCard
@@ -1057,4 +1082,3 @@ function PostItem({
 }
 
 export default PostItem;
-

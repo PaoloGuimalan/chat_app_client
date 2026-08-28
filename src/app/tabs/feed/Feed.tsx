@@ -16,7 +16,14 @@ import { Btn, Card, Icon, useTheme } from "@/reusables/design";
 import { Avatar } from "@/reusables/design/primitives2";
 import { getActiveAvatar } from "@/reusables/hooks/reusable";
 
-function Feed() {
+/**
+ * `sidebar` renders to the RIGHT of the 680px column, inside this component's
+ * scroll container rather than beside it. That placement is load-bearing: the
+ * rail is `position: sticky`, and sticky resolves against the nearest
+ * scrolling ancestor. Rendered as a sibling of <Feed /> it would sit outside
+ * this scroller and simply scroll away instead of holding at the top.
+ */
+function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -117,285 +124,303 @@ function Feed() {
     >
       <div
         style={{
-          maxWidth: 680,
-          margin: "0 auto",
-          padding: "16px 18px 24px",
           display: "flex",
-          flexDirection: "column",
+          flexDirection: "row",
+          gap: 16,
+          justifyContent: "center",
+          alignItems: "flex-start",
+          padding: "16px 18px 24px",
         }}
       >
-        {toggleNewPostModal.toggle && (
-          <NewPostModal
-            toShare={false}
-            sharePreviewData={null}
-            withImage={toggleNewPostModal.withImage}
-            profileInfo={{
-              id: authentication.user.userID,
-              entityID: authentication.user.entity_id,
-              username: authentication.user.username,
-            }}
-            otherEntityID={null}
-            setcreateposttext={setcreateposttext}
-            getpostprocess={() => {}}
-            onclose={settoggleNewPostModal}
-          />
-        )}
-
-        <Card pad={14} style={{ marginBottom: 8 }}>
-          <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-            <Avatar
-              id={authentication.user.userID}
-              name={activeAvatar.name}
-              src={activeAvatar.src}
-              size={42}
+        <div
+          style={{
+            maxWidth: 680,
+            width: "100%",
+            display: "flex",
+            flexDirection: "column",
+            minWidth: 0,
+          }}
+        >
+          {toggleNewPostModal.toggle && (
+            <NewPostModal
+              toShare={false}
+              sharePreviewData={null}
+              withImage={toggleNewPostModal.withImage}
+              profileInfo={{
+                id: authentication.user.userID,
+                entityID: authentication.user.entity_id,
+                username: authentication.user.username,
+              }}
+              otherEntityID={null}
+              setcreateposttext={setcreateposttext}
+              getpostprocess={() => {}}
+              onclose={settoggleNewPostModal}
             />
-            <input
-              type="text"
-              placeholder="Share something with your loop…"
-              value={createposttext}
-              onFocus={() =>
-                settoggleNewPostModal({ toggle: true, withImage: false })
-              }
-              onChange={(e) => setcreateposttext(e.target.value)}
-              style={{
-                flex: 1,
-                height: 42,
-                border: "none",
-                outline: "none",
-                background: "var(--input)",
-                padding: "0 16px",
-                borderRadius: 21,
-                color: "var(--text)",
-                fontSize: "var(--fs-body)",
-              }}
-            />
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              marginTop: 10,
-              paddingTop: 10,
-              borderTop: "1px solid var(--border)",
-            }}
-          >
-            <button
-              onClick={() =>
-                settoggleNewPostModal({ toggle: true, withImage: true })
-              }
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                height: 34,
-                padding: "0 12px",
-                border: "none",
-                background: "transparent",
-                borderRadius: "var(--r-sm)",
-                cursor: "pointer",
-                color: "var(--text-2)",
-                fontSize: "var(--fs-body-sm)",
-                fontWeight: 600,
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "var(--surface-hover)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background = "transparent")
-              }
-            >
-              <Icon n="image" s={20} c="var(--green)" />
-              Photo
-            </button>
-            <Btn
-              size="sm"
-              style={{
-                marginLeft: "auto",
-                opacity: createposttext.trim() ? 1 : 0.7,
-              }}
-              onClick={() =>
-                settoggleNewPostModal({ toggle: true, withImage: false })
-              }
-            >
-              Post
-            </Btn>
-          </div>
-        </Card>
+          )}
 
-        {paginatedPosts.results.length === 0 && postsIsLoaded && (
-          <Fragment>
-            <Card pad={20} style={{ marginBottom: 8, textAlign: "center" }}>
-              <div
+          <Card pad={14} style={{ marginBottom: 8 }}>
+            <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
+              <Avatar
+                id={authentication.user.userID}
+                name={activeAvatar.name}
+                src={activeAvatar.src}
+                size={42}
+              />
+              <input
+                type="text"
+                placeholder="Share something with your loop…"
+                value={createposttext}
+                onFocus={() =>
+                  settoggleNewPostModal({ toggle: true, withImage: false })
+                }
+                onChange={(e) => setcreateposttext(e.target.value)}
                 style={{
-                  fontSize: "var(--fs-hero-sm)",
-                  fontWeight: 800,
+                  flex: 1,
+                  height: 42,
+                  border: "none",
+                  outline: "none",
+                  background: "var(--input)",
+                  padding: "0 16px",
+                  borderRadius: 21,
                   color: "var(--text)",
-                  marginBottom: 6,
+                  fontSize: "var(--fs-body)",
                 }}
-              >
-                You're all caught up!
-              </div>
-              <div
-                style={{
-                  fontSize: "var(--fs-body-sm)",
-                  color: "var(--brand)",
-                  fontWeight: 700,
-                  letterSpacing: "0.02em",
-                  marginBottom: 8,
-                }}
-              >
-                Link · Share · Explore
-              </div>
-              <div
-                style={{
-                  fontSize: "var(--fs-body-sm)",
-                  color: "var(--text-2)",
-                  lineHeight: 1.55,
-                }}
-              >
-                A new way of connection. A visual connection, more visible and
-                interactable way of social media.
-              </div>
-            </Card>
-
-            <Card pad={20} style={{ marginBottom: 8 }}>
-              <FeatureCardHeader icon="menu_book" title="Chatterloop Diary">
-                Have your daily life written, privately, or let someone see it.
-              </FeatureCardHeader>
-              <FeatureRow
-                items={[
-                  ["edit_calendar", "Take track of your entries"],
-                  ["edit", "Write entries as many as you like"],
-                  ["psychology", "Let people know a part of your thoughts"],
-                ]}
               />
-              <div
-                style={{
-                  textAlign: "center",
-                  fontSize: "var(--fs-label)",
-                  color: "var(--text-2)",
-                  marginTop: 12,
-                }}
-              >
-                Click{" "}
-                <a
-                  href={`/${authentication.user.username}/diary`}
-                  style={{ color: "var(--brand)", fontWeight: 700 }}
-                >
-                  here
-                </a>{" "}
-                to get your writing started or view your existing entries.
-              </div>
-            </Card>
-
-            <Card
-              pad={20}
-              style={{ marginBottom: 8 }}
-              className="tw-flex tw-justify-center"
+            </div>
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 4,
+                marginTop: 10,
+                paddingTop: 10,
+                borderTop: "1px solid var(--border)",
+              }}
             >
-              <ServerBanner />
-            </Card>
-
-            <Card pad={20} style={{ marginBottom: 8 }}>
-              <FeatureCardHeader icon="map" title="Map Feed">
-                Browse your feed in a new way. Walk, Travel, Drive, Share, and
-                Socialize interactively based on where you are. (In Development)
-              </FeatureCardHeader>
-              <FeatureRow
-                items={[
-                  ["directions_walk", "Socialize nearby while you walk."],
-                  ["card_travel", "Document your travel on the map."],
-                  ["drive_eta", "Connect to fellow drivers on the road."],
-                  ["place", "Share your posts on the map."],
-                ]}
-              />
-              <div
+              <button
+                onClick={() =>
+                  settoggleNewPostModal({ toggle: true, withImage: true })
+                }
                 style={{
-                  textAlign: "center",
-                  fontSize: "var(--fs-label)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  height: 34,
+                  padding: "0 12px",
+                  border: "none",
+                  background: "transparent",
+                  borderRadius: "var(--r-sm)",
+                  cursor: "pointer",
                   color: "var(--text-2)",
-                  marginTop: 12,
+                  fontSize: "var(--fs-body-sm)",
+                  fontWeight: 600,
                 }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "var(--surface-hover)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
               >
-                Explore Map Feed now. Click{" "}
-                <a
-                  href="/mapfeed"
-                  style={{ color: "var(--brand)", fontWeight: 700 }}
+                <Icon n="image" s={20} c="var(--green)" />
+                Photo
+              </button>
+              <Btn
+                size="sm"
+                style={{
+                  marginLeft: "auto",
+                  opacity: createposttext.trim() ? 1 : 0.7,
+                }}
+                onClick={() =>
+                  settoggleNewPostModal({ toggle: true, withImage: false })
+                }
+              >
+                Post
+              </Btn>
+            </div>
+          </Card>
+
+          {paginatedPosts.results.length === 0 && postsIsLoaded && (
+            <Fragment>
+              <Card pad={20} style={{ marginBottom: 8, textAlign: "center" }}>
+                <div
+                  style={{
+                    fontSize: "var(--fs-hero-sm)",
+                    fontWeight: 800,
+                    color: "var(--text)",
+                    marginBottom: 6,
+                  }}
                 >
-                  here
-                </a>
-                .
-              </div>
-            </Card>
+                  You're all caught up!
+                </div>
+                <div
+                  style={{
+                    fontSize: "var(--fs-body-sm)",
+                    color: "var(--brand)",
+                    fontWeight: 700,
+                    letterSpacing: "0.02em",
+                    marginBottom: 8,
+                  }}
+                >
+                  Link · Share · Explore
+                </div>
+                <div
+                  style={{
+                    fontSize: "var(--fs-body-sm)",
+                    color: "var(--text-2)",
+                    lineHeight: 1.55,
+                  }}
+                >
+                  A new way of connection. A visual connection, more visible and
+                  interactable way of social media.
+                </div>
+              </Card>
 
-            <Card
-              pad={20}
-              style={{ marginBottom: 8 }}
-              className="tw-flex tw-justify-center"
-            >
-              <PagesBanner />
-            </Card>
+              <Card pad={20} style={{ marginBottom: 8 }}>
+                <FeatureCardHeader icon="menu_book" title="Chatterloop Diary">
+                  Have your daily life written, privately, or let someone see
+                  it.
+                </FeatureCardHeader>
+                <FeatureRow
+                  items={[
+                    ["edit_calendar", "Take track of your entries"],
+                    ["edit", "Write entries as many as you like"],
+                    ["psychology", "Let people know a part of your thoughts"],
+                  ]}
+                />
+                <div
+                  style={{
+                    textAlign: "center",
+                    fontSize: "var(--fs-label)",
+                    color: "var(--text-2)",
+                    marginTop: 12,
+                  }}
+                >
+                  Click{" "}
+                  <a
+                    href={`/${authentication.user.username}/diary`}
+                    style={{ color: "var(--brand)", fontWeight: 700 }}
+                  >
+                    here
+                  </a>{" "}
+                  to get your writing started or view your existing entries.
+                </div>
+              </Card>
 
-            <Card pad={20} style={{ marginBottom: 8 }}>
-              <FeatureCardHeader icon="extension" title="Chatterloop Extension">
-                Sick of switching social platforms frequently? Coming soon,
-                Chatterloop Extension will allow you to share contents from
-                different platforms to your Chatterloop account. (In
-                Development)
-              </FeatureCardHeader>
-              <FeatureRow
-                items={[
-                  [
-                    "extension",
-                    "Will be first released in Chrome Browser as Extension.",
-                  ],
-                ]}
-              />
-            </Card>
-          </Fragment>
-        )}
+              <Card
+                pad={20}
+                style={{ marginBottom: 8 }}
+                className="tw-flex tw-justify-center"
+              >
+                <ServerBanner />
+              </Card>
 
-        {posts.length === 0
-          ? !postsIsLoaded
-            ? Array.from({ length: 10 }, (_, i: number) => (
+              <Card pad={20} style={{ marginBottom: 8 }}>
+                <FeatureCardHeader icon="map" title="Map Feed">
+                  Browse your feed in a new way. Walk, Travel, Drive, Share, and
+                  Socialize interactively based on where you are. (In
+                  Development)
+                </FeatureCardHeader>
+                <FeatureRow
+                  items={[
+                    ["directions_walk", "Socialize nearby while you walk."],
+                    ["card_travel", "Document your travel on the map."],
+                    ["drive_eta", "Connect to fellow drivers on the road."],
+                    ["place", "Share your posts on the map."],
+                  ]}
+                />
+                <div
+                  style={{
+                    textAlign: "center",
+                    fontSize: "var(--fs-label)",
+                    color: "var(--text-2)",
+                    marginTop: 12,
+                  }}
+                >
+                  Explore Map Feed now. Click{" "}
+                  <a
+                    href="/mapfeed"
+                    style={{ color: "var(--brand)", fontWeight: 700 }}
+                  >
+                    here
+                  </a>
+                  .
+                </div>
+              </Card>
+
+              <Card
+                pad={20}
+                style={{ marginBottom: 8 }}
+                className="tw-flex tw-justify-center"
+              >
+                <PagesBanner />
+              </Card>
+
+              <Card pad={20} style={{ marginBottom: 8 }}>
+                <FeatureCardHeader
+                  icon="extension"
+                  title="Chatterloop Extension"
+                >
+                  Sick of switching social platforms frequently? Coming soon,
+                  Chatterloop Extension will allow you to share contents from
+                  different platforms to your Chatterloop account. (In
+                  Development)
+                </FeatureCardHeader>
+                <FeatureRow
+                  items={[
+                    [
+                      "extension",
+                      "Will be first released in Chrome Browser as Extension.",
+                    ],
+                  ]}
+                />
+              </Card>
+            </Fragment>
+          )}
+
+          {posts.length === 0
+            ? !postsIsLoaded
+              ? Array.from({ length: 10 }, (_, i: number) => (
+                  <Card
+                    pad={10}
+                    style={{ marginBottom: 8 }}
+                    key={i}
+                    className="tw-flex tw-justify-center"
+                  >
+                    <PostItemLoader />
+                  </Card>
+                ))
+              : null
+            : posts.map((mp: IPost, i: number) => (
                 <Card
                   pad={10}
                   style={{ marginBottom: 8 }}
                   key={i}
                   className="tw-flex tw-justify-center"
                 >
-                  <PostItemLoader />
+                  <PostItem key={i} isSharePreview={false} mp={mp} />
                 </Card>
-              ))
-            : null
-          : posts.map((mp: IPost, i: number) => (
-              <Card
-                pad={10}
-                style={{ marginBottom: 8 }}
-                key={i}
-                className="tw-flex tw-justify-center"
-              >
-                <PostItem key={i} isSharePreview={false} mp={mp} />
-              </Card>
-            ))}
+              ))}
 
-        {paginatedPosts.next && (
-          <div
-            ref={divlazyloaderRef}
-            style={{
-              display: "flex",
-              justifyContent: "center",
-              padding: 16,
-              color: "var(--text-3)",
-            }}
-          >
-            <AiOutlineLoading3Quarters
-              className="cl-spin"
-              style={{ fontSize: 22 }}
-            />
-          </div>
-        )}
+          {paginatedPosts.next && (
+            <div
+              ref={divlazyloaderRef}
+              style={{
+                display: "flex",
+                justifyContent: "center",
+                padding: 16,
+                color: "var(--text-3)",
+              }}
+            >
+              <AiOutlineLoading3Quarters
+                className="cl-spin"
+                style={{ fontSize: 22 }}
+              />
+            </div>
+          )}
+        </div>
+
+        {sidebar}
       </div>
     </div>
   );
@@ -485,4 +510,3 @@ function FeatureRow({ items }: { items: [string, string][] }) {
 }
 
 export default Feed;
-

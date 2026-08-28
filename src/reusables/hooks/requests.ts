@@ -833,6 +833,56 @@ const SearchOverviewRequest = async (searchdata: string) => {
   });
 };
 
+/**
+ * Popular Topics for the newsfeed sidebar.
+ *
+ * Counts and participant faces come back filtered to what THIS viewer may see
+ * - the endpoint applies the feed's own post-visibility rule - so two accounts
+ * can legitimately receive different numbers for the same topic. Nothing here
+ * should cache the result across accounts.
+ */
+const GetPopularTopicsRequest = async (params: { limit?: number } = {}) => {
+  const limit = params.limit ?? 8;
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/interests/popular/?limit=${limit}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  ).then((response) => response.data);
+};
+
+/**
+ * One page of the posts inside a topic.
+ *
+ * Separate from GetPopularTopicsRequest deliberately: the sidebar's list is
+ * small and fetched once when the feed mounts, while this is page-sized and
+ * fetched only when a topic is opened. `slug` is the interest's normalized
+ * name - the same string a hashtag normalises to.
+ *
+ * Returns the standard paginated envelope plus a `topic` object naming what
+ * is being listed, so a drill-down header needs no second request.
+ */
+const GetTopicPostsRequest = async (params: {
+  slug: string;
+  page?: number;
+  page_size?: number;
+}) => {
+  const page = params.page ?? 1;
+  const pageSize = params.page_size ?? 10;
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/interests/topics/${encodeURIComponent(
+      params.slug,
+    )}/posts/?page=${page}&page_size=${pageSize}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  ).then((response) => response.data);
+};
+
 // --- Network v2 (redesigned Contacts page) -------------------------------
 // Sectioned endpoints: one overview call settles all four section previews
 // on page init, then each section pages its OWN route for the "See all"
@@ -4189,6 +4239,8 @@ export {
   CreateChannelRequest,
   GetMembersListInServer,
   GetFeedRequest,
+  GetPopularTopicsRequest,
+  GetTopicPostsRequest,
   GetPostPreviewRequest,
   NotificationOverrideRequest,
   GetFeedEmojisRequest,

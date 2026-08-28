@@ -75,6 +75,7 @@ import Pages from "../tabs/pages/Pages";
 import EntitySwitcher from "../reusables/EntitySwitcher";
 import RealmContainer from "../tabs/realms/RealmContainer";
 import SearchPage from "../tabs/search/Search";
+import TopicFeed from "../tabs/feed/TopicFeed";
 import { Avatar, Icon, useTheme } from "@/reusables/design";
 import ConversationV2 from "../tabs/messenger/ConversationV2";
 
@@ -597,6 +598,10 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
                   because a static first segment outscores a dynamic one - the
                   same reason /settings and /contacts coexist with it. */}
               <Route path="/post/:postID" element={<PostPage />} />
+              {/* Ranked above "/:userID/*" by react-router's specificity
+                  scoring - a static first segment beats a dynamic one - so a
+                  topic slug is never mistaken for a username. */}
+              <Route path="/topics/:slug" element={<TopicFeed />} />
             </Routes>
           </div>
         </main>

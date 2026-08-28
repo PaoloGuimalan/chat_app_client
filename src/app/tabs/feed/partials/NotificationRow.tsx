@@ -1,6 +1,9 @@
 import { Avatar, Btn, Icon } from "@/reusables/design";
 import { timeSince } from "@/reusables/hooks/reusable";
-import { INotificationAction, INotificationV2 } from "@/reusables/vars/interfaces";
+import {
+  INotificationAction,
+  INotificationV2,
+} from "@/reusables/vars/interfaces";
 import {
   isRunnable,
   webActions,
@@ -114,7 +117,7 @@ function NotificationRow({
       }
       style={{
         display: "flex",
-        alignItems: "center",
+        alignItems: "start",
         gap: isDetail ? 12 : 10,
         padding: isDetail ? 13 : 9,
         borderRadius: isDetail ? "var(--r-md)" : "var(--r-sm)",
@@ -200,42 +203,42 @@ function NotificationRow({
             flex: "none",
           }}
         >
-          {serverActions.length > 0
-            ? serverActions.map((action) => (
-                <Btn
-                  key={`${action.id}-${action.order}`}
-                  size="sm"
-                  // `style` is a presentation hint from the server; anything
-                  // unrecognised falls back to the neutral outline rather than
-                  // guessing at emphasis.
-                  variant={
-                    action.style === "primary"
-                      ? "primary"
-                      : action.style === "danger"
-                        ? "outline"
-                        : "outline"
-                  }
-                  disabled={actionBusy}
-                  onClick={() => onAction!(n, action)}
-                >
-                  {action.name}
-                </Btn>
-              ))
-            : (
-              <>
-                <Btn size="sm" disabled={actionBusy} onClick={() => onAccept(n)}>
-                  Confirm
-                </Btn>
-                <Btn
-                  size="sm"
-                  variant="outline"
-                  disabled={actionBusy}
-                  onClick={() => onDecline(n)}
-                >
-                  Decline
-                </Btn>
-              </>
-            )}
+          {serverActions.length > 0 ? (
+            serverActions.map((action) => (
+              <Btn
+                key={`${action.id}-${action.order}`}
+                size="sm"
+                // `style` is a presentation hint from the server; anything
+                // unrecognised falls back to the neutral outline rather than
+                // guessing at emphasis.
+                variant={
+                  action.style === "primary"
+                    ? "primary"
+                    : action.style === "danger"
+                      ? "outline"
+                      : "outline"
+                }
+                disabled={actionBusy}
+                onClick={() => onAction!(n, action)}
+              >
+                {action.name}
+              </Btn>
+            ))
+          ) : (
+            <>
+              <Btn size="sm" disabled={actionBusy} onClick={() => onAccept(n)}>
+                Confirm
+              </Btn>
+              <Btn
+                size="sm"
+                variant="outline"
+                disabled={actionBusy}
+                onClick={() => onDecline(n)}
+              >
+                Decline
+              </Btn>
+            </>
+          )}
         </div>
       )}
     </div>
