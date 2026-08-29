@@ -2,8 +2,15 @@ import { SpeedPopupProp } from "@/reusables/vars/props";
 import { Popup } from "@vis.gl/react-maplibre";
 import { SemiCircleProgress } from "react-semicircle-progressbar";
 import { motion } from "framer-motion";
+import { useTheme } from "@/reusables/design";
 
 function SpeedPopup({ coordinates, maxSpeed }: SpeedPopupProp) {
+  /* react-semicircle-progressbar paints SVG strokes, which cannot read a CSS
+   * variable off the popup, so the track colour is resolved here instead.
+   * Both values are --surface-3. */
+  const { theme } = useTheme();
+  const trackColor = theme === "dark" ? "#222a3a" : "#eceff3";
+
   const speedPercentage =
     (+((coordinates.speed ?? 0) * 3.6).toFixed(2) / maxSpeed) * 100;
 
@@ -41,11 +48,11 @@ function SpeedPopup({ coordinates, maxSpeed }: SpeedPopupProp) {
             fontStyle={{
               fontSize: "0px",
               fontWeight: "normal",
-              fill: "white",
+              fill: "transparent",
             }}
             hasBackground={true}
-            bgStrokeColor="#eaecef"
-            strokeColor="#ffaa00"
+            bgStrokeColor={trackColor}
+            strokeColor="#e69500" /* --gold */
           />
         </motion.div>
         <span className="tw-text-[12px] tw-font-Inter tw-font-semibold tw-absolute tw-ml-[30px]">

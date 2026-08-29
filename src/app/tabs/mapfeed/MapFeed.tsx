@@ -51,6 +51,7 @@ import { HiOutlineSquare3Stack3D } from "react-icons/hi2";
 import { SET_COORDINATES, SET_USER_SETTINGS } from "@/redux/types";
 import { persistSettings } from "@/reusables/hooks/localforagehelper";
 import { useWakeLock } from "react-screen-wake-lock";
+import { useTheme } from "@/reusables/design";
 
 function MapFeed() {
   const authentication: AuthenticationInterface = useSelector(
@@ -157,26 +158,15 @@ function MapFeed() {
     });
   };
 
-  const [isDarkMode, setisDarkMode] = useState<boolean>(false);
+  /* The basemap used to flip to its dark style on a wall-clock rule (dark
+   * 6PM-6AM). That left the basemap and the overlay chrome disagreeing for
+   * most of the day - dark tiles under a white panel in the evening, and a
+   * light basemap under a dark-themed app all morning. Both now follow the
+   * one theme the user actually picked. */
+  const { theme } = useTheme();
+  const isDarkMode = theme === "dark";
 
   const [toggle3Drenders, settoggle3Drenders] = useState<boolean>(false);
-
-  useEffect(() => {
-    const checkLocalTime = () => {
-      const hour = new Date().getHours();
-
-      // PH typical pattern: Dark 6PM-6AM, Light 6AM-6PM
-      const isNight = hour >= 18 || hour < 6;
-
-      setisDarkMode(isNight);
-    };
-
-    // Check immediately + every hour
-    checkLocalTime();
-    const interval = setInterval(checkLocalTime, 60 * 60 * 1000); // Hourly check
-
-    return () => clearInterval(interval);
-  }, []);
 
   const myLocation = useMemo<ICoordinatesAnchor>(() => {
     if (authentication.user.userID) {
@@ -547,7 +537,7 @@ function MapFeed() {
       icon: (
         <HiOutlineSquare3Stack3D
           size={50}
-          style={{ color: toggle3Drenders ? "#00ff88" : "#ffffff" }}
+          style={{ color: toggle3Drenders ? "var(--green)" : "var(--text-2)" }}
         />
       ),
       click: () => {
@@ -561,7 +551,9 @@ function MapFeed() {
       icon: (
         <MdShareLocation
           size={50}
-          style={{ color: isLocationSharing ? "#00ff88" : "#ffffff" }}
+          style={{
+            color: isLocationSharing ? "var(--green)" : "var(--text-2)",
+          }}
         />
       ),
       click: () => {
@@ -579,6 +571,7 @@ function MapFeed() {
           <DotLottieReact
             // src={mp.animated_preview!}
             data={WalkingLottie}
+            className="cl-toggle-lottie"
             loop
             autoplay
             width={30}
@@ -606,6 +599,7 @@ function MapFeed() {
           <DotLottieReact
             // src={mp.animated_preview!}
             data={SuitCaseLottie}
+            className="cl-toggle-lottie"
             loop
             autoplay
             width={20}
@@ -650,7 +644,7 @@ function MapFeed() {
           icon: (
             <SlSpeedometer
               size={50}
-              style={{ color: toggleSpeed ? "#00ff88" : "#ffffff" }}
+              style={{ color: toggleSpeed ? "var(--green)" : "var(--text-2)" }}
             />
           ),
           click: () => {
@@ -823,7 +817,7 @@ function MapFeed() {
                     "circle-radius": 8,
                     "circle-color":
                       followLocation === mp.referenceID ? "#2b35af" : "#727adc",
-                    "circle-stroke-color": "white",
+                    "circle-stroke-color": isDarkMode ? "#0b0e14" : "#ffffff",
                     "circle-stroke-width": 2,
                     "circle-opacity": 0.9,
                   }}
@@ -852,9 +846,9 @@ function MapFeed() {
             "circle-radius": 8,
             "circle-color":
               followLocation === authentication.user.userID
-                ? "#00ff88"
-                : "#ffaa00",
-            "circle-stroke-color": "white",
+                ? "#20bd7c" /* --green */
+                : "#e69500" /* --gold */,
+            "circle-stroke-color": isDarkMode ? "#0b0e14" : "#ffffff",
             "circle-stroke-width": 2,
             "circle-opacity": 0.9,
           }}
@@ -930,8 +924,8 @@ function MapFeed() {
           "text-anchor": "center",
         }}
         paint={{
-          "text-color": "white",
-          "text-halo-color": "#000",
+          "text-color": isDarkMode ? "#ffffff" : "#14161a",
+          "text-halo-color": isDarkMode ? "#000000" : "#ffffff",
           "text-halo-width": 2,
         }}
       />
@@ -945,7 +939,8 @@ function MapFeed() {
             width: toggleLevel > 0 ? "340px" : "300px",
             height: toggleLevelHeight[toggleLevel],
           }}
-          className="tw-bg-white tw-absolute tw-bottom-0 tw-z-[10] tw-rounded-xl tw-flex tw-flex-col tw-mb-[15px] tw-ml-[15px]"
+          style={{ boxShadow: "var(--shadow-lg)" }}
+          className="tw-bg-[var(--surface)] tw-text-[var(--text)] tw-border tw-border-solid tw-border-[var(--border)] tw-absolute tw-bottom-0 tw-z-[10] tw-rounded-xl tw-flex tw-flex-col tw-mb-[15px] tw-ml-[15px]"
         >
           <div className="tw-w-full tw-bg-transparent tw-flex tw-gap-[5px] tw-justify-center tw--mt-[20px]">
             <button
@@ -957,7 +952,8 @@ function MapFeed() {
 
                 settoggleLevel(0);
               }}
-              className="tw-border-none tw-bg-white tw-p-[15px] tw-rounded-full"
+              style={{ boxShadow: "var(--shadow-md)" }}
+              className="tw-border-none tw-bg-[var(--surface)] tw-text-[var(--text)] tw-p-[15px] tw-rounded-full"
             >
               {toggleLevel === 0 ? (
                 <FaAngleUp size={15} />
@@ -976,7 +972,8 @@ function MapFeed() {
                 onClick={() => {
                   settoggleLevel(2);
                 }}
-                className="tw-border-none tw-bg-white tw-p-[15px] tw-rounded-full"
+                style={{ boxShadow: "var(--shadow-md)" }}
+                className="tw-border-none tw-bg-[var(--surface)] tw-text-[var(--text)] tw-p-[15px] tw-rounded-full"
               >
                 <FaAnglesUp size={15} />
               </motion.button>
@@ -1002,9 +999,10 @@ function MapFeed() {
               }}
               animate={{
                 marginTop: toggleLevel > 0 ? "35px" : "-10px",
-                backgroundColor: toggleLevel > 0 ? "#eaecef" : "transparent",
+                backgroundColor:
+                  toggleLevel > 0 ? "var(--surface-2)" : "transparent",
                 width:
-                  toggleLevel > 0 ? "calc(100% - 40px)" : "calc(100% - 20px)",
+                  toggleLevel > 0 ? "calc(100% - 20px)" : "calc(100% - 0px)",
                 marginRight: toggleLevel > 0 ? "10px" : "0px",
                 marginLeft: toggleLevel > 0 ? "10px" : "0px",
               }}
@@ -1029,13 +1027,16 @@ function MapFeed() {
                         return null;
                       })
                     }
-                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-                    style={{ pointerEvents: "auto" }}
+                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-[var(--surface-3)] hover:tw-bg-[var(--surface-hover)] tw-rounded-full tw-border tw-border-solid tw-border-[var(--border)] tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+                    style={{
+                      pointerEvents: "auto",
+                      boxShadow: "var(--shadow-sm)",
+                    }}
                   >
                     <FaLocationCrosshairs
                       size={15}
                       style={{
-                        color: followLocation ? "#00ff88" : "#ffaa00",
+                        color: followLocation ? "var(--green)" : "var(--gold)",
                       }}
                     />
                   </button>
@@ -1056,13 +1057,18 @@ function MapFeed() {
                     onClick={() => {
                       settoggleProfileView(!toggleProfileView);
                     }}
-                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-                    style={{ pointerEvents: "auto" }}
+                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-[var(--surface-3)] hover:tw-bg-[var(--surface-hover)] tw-rounded-full tw-border tw-border-solid tw-border-[var(--border)] tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+                    style={{
+                      pointerEvents: "auto",
+                      boxShadow: "var(--shadow-sm)",
+                    }}
                   >
                     <BsPersonCircle
                       size={15}
                       style={{
-                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
+                        color: toggleProfileView
+                          ? "var(--green)"
+                          : "var(--gold)",
                       }}
                     />
                   </button>
@@ -1116,14 +1122,14 @@ function MapFeed() {
                 animate={{
                   height: isLocationSharing ? "auto" : "0px",
                 }}
-                className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-md tw-flex"
+                className="tw-bg-[var(--surface-2)] tw-w-[calc(100%-20px)] tw-rounded-md tw-flex"
               >
                 <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-items-center tw-gap-[5px]">
                   <span className="tw-whitespace-nowrap tw-text-ellipsis tw-truncate tw-text-[12px] tw-font-Inter tw-flex-1">
                     {window.location.href}?anchor={authentication.user.username}
                   </span>
                   <button
-                    className="tw-h-[25px] tw-w-[40px] tw-cursor-pointer tw-border-none tw-bg-transparent"
+                    className="tw-h-[25px] tw-w-[40px] tw-cursor-pointer tw-border-none tw-bg-transparent tw-text-[var(--text-2)]"
                     onClick={() =>
                       navigator.clipboard.writeText(
                         window.location.href +
@@ -1144,9 +1150,9 @@ function MapFeed() {
               animate={{
                 marginTop: isLocationSharing ? "0px" : "-10px",
               }}
-              className="tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-pl-[10px] tw-pr-[10px]"
+              className="tw-w-[calc(100%-0px)] tw-flex tw-flex-col tw-pl-[10px] tw-pr-[10px]"
             >
-              <motion.div className="tw-bg-[#eaecef] tw-w-full tw-h-auto tw-min-h-[194px] tw-rounded-md tw-flex">
+              <motion.div className="tw-bg-[var(--surface-2)] tw-w-full tw-h-auto tw-min-h-[194px] tw-rounded-md tw-flex">
                 <div
                   className={`tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex tw-gap-[6px] tw-flex-wrap ${toggleSwitchOptions[currentMode].items.length > 2 ? "tw-justify-center" : "tw-justify-start"}`}
                 >
@@ -1155,7 +1161,7 @@ function MapFeed() {
                       return (
                         <button
                           key={i}
-                          className="tw-w-[92px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
+                          className="tw-w-[92px] tw-h-[100px] tw-bg-[var(--surface-3)] tw-text-[var(--text)] tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border tw-border-solid tw-border-[var(--border)]"
                           onClick={mp.click}
                         >
                           {mp.icon}
@@ -1179,7 +1185,8 @@ function MapFeed() {
             width: isMobileView ? "100%" : "300px",
             height: toggleLevelHeight[toggleLevel],
           }}
-          className="tw-bg-white tw-absolute tw-bottom-0 tw-z-[10] tw-rounded-t-xl tw-flex tw-flex-col"
+          style={{ boxShadow: "var(--shadow-lg)" }}
+          className="tw-bg-[var(--surface)] tw-text-[var(--text)] tw-border tw-border-solid tw-border-[var(--border)] tw-absolute tw-bottom-0 tw-z-[10] tw-rounded-t-xl tw-flex tw-flex-col"
         >
           <div className="tw-w-full tw-bg-transparent tw-flex tw-gap-[5px] tw-justify-center tw--mt-[20px]">
             <button
@@ -1191,7 +1198,8 @@ function MapFeed() {
 
                 settoggleLevel(0);
               }}
-              className="tw-border-none tw-bg-white tw-p-[15px] tw-rounded-full"
+              style={{ boxShadow: "var(--shadow-md)" }}
+              className="tw-border-none tw-bg-[var(--surface)] tw-text-[var(--text)] tw-p-[15px] tw-rounded-full"
             >
               {toggleLevel === 0 ? (
                 <FaAngleUp size={15} />
@@ -1210,7 +1218,8 @@ function MapFeed() {
                 onClick={() => {
                   settoggleLevel(2);
                 }}
-                className="tw-border-none tw-bg-white tw-p-[15px] tw-rounded-full"
+                style={{ boxShadow: "var(--shadow-md)" }}
+                className="tw-border-none tw-bg-[var(--surface)] tw-text-[var(--text)] tw-p-[15px] tw-rounded-full"
               >
                 <FaAnglesUp size={15} />
               </motion.button>
@@ -1236,9 +1245,10 @@ function MapFeed() {
               }}
               animate={{
                 marginTop: toggleLevel > 0 ? "35px" : "-10px",
-                backgroundColor: toggleLevel > 0 ? "#eaecef" : "transparent",
+                backgroundColor:
+                  toggleLevel > 0 ? "var(--surface-2)" : "transparent",
                 width:
-                  toggleLevel > 0 ? "calc(100% - 40px)" : "calc(100% - 20px)",
+                  toggleLevel > 0 ? "calc(100% - 20px)" : "calc(100% - 0px)",
                 marginRight: toggleLevel > 0 ? "10px" : "0px",
                 marginLeft: toggleLevel > 0 ? "10px" : "0px",
               }}
@@ -1263,13 +1273,16 @@ function MapFeed() {
                         return null;
                       })
                     }
-                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-                    style={{ pointerEvents: "auto" }}
+                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-[var(--surface-3)] hover:tw-bg-[var(--surface-hover)] tw-rounded-full tw-border tw-border-solid tw-border-[var(--border)] tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+                    style={{
+                      pointerEvents: "auto",
+                      boxShadow: "var(--shadow-sm)",
+                    }}
                   >
                     <FaLocationCrosshairs
                       size={15}
                       style={{
-                        color: followLocation ? "#00ff88" : "#ffaa00",
+                        color: followLocation ? "var(--green)" : "var(--gold)",
                       }}
                     />
                   </button>
@@ -1290,13 +1303,18 @@ function MapFeed() {
                     onClick={() => {
                       settoggleProfileView(!toggleProfileView);
                     }}
-                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-white/90 hover:tw-bg-white tw-rounded-full tw-shadow-2xl tw-border-white/50 tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
-                    style={{ pointerEvents: "auto" }}
+                    className="tw-cursor-pointer tw-w-[35px] tw-h-[35px] tw-bg-[var(--surface-3)] hover:tw-bg-[var(--surface-hover)] tw-rounded-full tw-border tw-border-solid tw-border-[var(--border)] tw-flex tw-items-center tw-justify-center tw-text-2xl tw-transition-all tw-duration-300 hover:tw-scale-110 active:tw-scale-95"
+                    style={{
+                      pointerEvents: "auto",
+                      boxShadow: "var(--shadow-sm)",
+                    }}
                   >
                     <BsPersonCircle
                       size={15}
                       style={{
-                        color: toggleProfileView ? "#00ff88" : "#ffaa00",
+                        color: toggleProfileView
+                          ? "var(--green)"
+                          : "var(--gold)",
                       }}
                     />
                   </button>
@@ -1350,14 +1368,14 @@ function MapFeed() {
                 animate={{
                   height: isLocationSharing ? "auto" : "0px",
                 }}
-                className="tw-bg-[#eaecef] tw-w-[calc(100%-20px)] tw-rounded-md tw-flex"
+                className="tw-bg-[var(--surface-2)] tw-w-[calc(100%-20px)] tw-rounded-md tw-flex"
               >
                 <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-items-center tw-gap-[5px]">
                   <span className="tw-whitespace-nowrap tw-text-ellipsis tw-truncate tw-text-[12px] tw-font-Inter tw-flex-1">
                     {window.location.href}?anchor={authentication.user.username}
                   </span>
                   <button
-                    className="tw-h-[25px] tw-w-[40px] tw-cursor-pointer tw-border-none tw-bg-transparent"
+                    className="tw-h-[25px] tw-w-[40px] tw-cursor-pointer tw-border-none tw-bg-transparent tw-text-[var(--text-2)]"
                     onClick={() =>
                       navigator.clipboard.writeText(
                         window.location.href +
@@ -1380,7 +1398,7 @@ function MapFeed() {
               }}
               className="tw-w-[calc(100%-20px)] tw-flex tw-flex-col tw-pl-[10px] tw-pr-[10px]"
             >
-              <motion.div className="tw-bg-[#eaecef] tw-w-full tw-h-auto tw-min-h-[194px] tw-rounded-md tw-flex">
+              <motion.div className="tw-bg-[var(--surface-2)] tw-w-full tw-h-auto tw-min-h-[194px] tw-rounded-md tw-flex">
                 <div
                   className={`tw-w-[calc(100%-20px)] tw-h-[calc(100%-20px)] tw-p-[10px] tw-flex tw-gap-[6px] tw-flex-wrap ${toggleSwitchOptions[currentMode].items.length > 2 ? "tw-justify-center" : "tw-justify-start"}`}
                 >
@@ -1389,7 +1407,7 @@ function MapFeed() {
                       return (
                         <button
                           key={i}
-                          className="tw-w-[92px] tw-h-[100px] tw-bg-[#cccccc] tw-text-white tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border-none"
+                          className="tw-w-[92px] tw-h-[100px] tw-bg-[var(--surface-3)] tw-text-[var(--text)] tw-flex tw-flex-col tw-items-center tw-justify-evenly tw-rounded-md tw-border tw-border-solid tw-border-[var(--border)]"
                           onClick={mp.click}
                         >
                           {mp.icon}
@@ -1409,3 +1427,4 @@ function MapFeed() {
 }
 
 export default MapFeed;
+

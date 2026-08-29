@@ -35,15 +35,15 @@ function ProfilePopup({ coordinates, user }: ProfilePopupProp) {
         {user.coverphoto !== "none" ? (
           <CachedImage
             src={user.coverphoto}
-            className="tw-bg-black tw-max-h-full tw-max-w-full tw-w-full tw-h-full tw-object-cover"
+            className="tw-bg-[var(--surface-3)] tw-max-h-full tw-max-w-full tw-w-full tw-h-full tw-object-cover"
           />
         ) : (
-          <div className="tw-bg-black tw-w-full tw-flex tw-flex-1 tw-h-full tw-rounded-t-[0px]" />
+          <div className="tw-bg-[var(--surface-3)] tw-w-full tw-flex tw-flex-1 tw-h-full tw-rounded-t-[0px]" />
         )}
       </div>
       <div className="tw-p-[2px] tw-flex tw-w-full tw-gap-[10px]">
         <div className="tw-bg-transparent tw-w-full tw-max-w-[50px] tw-flex tw-justify-center">
-          <div className="tw--mt-[25px] tw-cursor-pointer tw-bg-[#d2d2d2] tw-min-w-[50px] tw-max-w-[50px] tw-h-[50px] sm:tw-max-w-[50px] sm:tw-h-[50px] tw-border-solid tw-border-[3px] tw-border-white tw-flex tw-items-center tw-justify-center tw-overflow-hidden tw-rounded-[160px] tw-relative">
+          <div className="tw--mt-[25px] tw-cursor-pointer tw-bg-[var(--surface-3)] tw-min-w-[50px] tw-max-w-[50px] tw-h-[50px] sm:tw-max-w-[50px] sm:tw-h-[50px] tw-border-solid tw-border-[3px] tw-border-[var(--surface)] tw-flex tw-items-center tw-justify-center tw-overflow-hidden tw-rounded-[160px] tw-relative">
             {user.userID === authentication.user.userID ? (
               <Avatar
                 id={authentication.user.userID}

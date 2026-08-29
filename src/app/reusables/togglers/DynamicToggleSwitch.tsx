@@ -20,7 +20,7 @@ const DynamicToggleSwitch = ({
 
   return (
     <div className="tw-p-[10px] tw--mt-[10px] tw-relative">
-      <div className="tw-bg-[#eaecef] tw-flex tw-justify-between tw-rounded-md tw-min-h-[35px] tw-z-[2] tw-absolute tw-w-[calc(100%-20px)]"></div>
+      <div className="tw-bg-[var(--surface-3)] tw-flex tw-justify-between tw-rounded-md tw-min-h-[35px] tw-z-[2] tw-absolute tw-w-[calc(100%-20px)]"></div>
       <div className="tw-bg-transparent tw-flex tw-justify-between tw-rounded-md tw-min-h-[35px] tw-z-[10] tw-absolute tw-w-[calc(100%-20px)]">
         {options.map((mp: { icon: ReactNode; label: string }, i: number) => {
           return (
@@ -30,19 +30,21 @@ const DynamicToggleSwitch = ({
               onClick={() => {
                 setcurrentSelection(
                   options.findIndex(
-                    (ind: { icon: ReactNode; label: string }) => ind === mp
-                  )
+                    (ind: { icon: ReactNode; label: string }) => ind === mp,
+                  ),
                 );
                 setMode(
                   options.findIndex(
-                    (ind: { icon: ReactNode; label: string }) => ind === mp
-                  )
+                    (ind: { icon: ReactNode; label: string }) => ind === mp,
+                  ),
                 );
               }}
             >
               <span
                 className={`tw-text-[12px] tw-font-Inter tw-text-center ${
-                  currentSelection === i && "tw-text-white tw-font-semibold"
+                  currentSelection === i
+                    ? "tw-text-[var(--on-brand)] tw-font-semibold"
+                    : "tw-text-[var(--text-2)]"
                 }`}
               >
                 {mp.icon} {mp.label}
@@ -62,11 +64,11 @@ const DynamicToggleSwitch = ({
               animate={{
                 flex: 1,
               }}
-              className="tw-flex tw-justify-center tw-items-center tw-border-none tw-transparent tw-h-[35px] tw-rounded-md"
+              className="tw-flex tw-justify-center tw-items-center tw-border-none tw-bg-[var(--surface-3)] tw-h-[35px] tw-rounded-md"
             ></motion.button>
           );
         })}
-        <button className="tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-none tw-bg-[#99a3b2] tw-h-[35px] tw-rounded-md"></button>
+        <button className="tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-none tw-bg-[var(--brand)] tw-h-[35px] tw-rounded-md"></button>
         {Array.from({ length: rightMargin }).map((__, i: number) => {
           return (
             <motion.button
@@ -77,7 +79,7 @@ const DynamicToggleSwitch = ({
               animate={{
                 flex: 1,
               }}
-              className="tw-flex tw-justify-center tw-items-center tw-border-none tw-transparent tw-h-[35px] tw-rounded-md"
+              className="tw-flex tw-justify-center tw-items-center tw-border-none tw-bg-[var(--surface-3)] tw-h-[35px] tw-rounded-md"
             ></motion.button>
           );
         })}
