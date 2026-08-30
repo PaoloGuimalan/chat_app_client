@@ -76,6 +76,7 @@ import EntitySwitcher from "../reusables/EntitySwitcher";
 import RealmContainer from "../tabs/realms/RealmContainer";
 import SearchPage from "../tabs/search/Search";
 import TopicFeed from "../tabs/feed/TopicFeed";
+import ModerationDetail from "../tabs/moderation/ModerationDetail";
 import { Avatar, Icon, useTheme } from "@/reusables/design";
 import ConversationV2 from "../tabs/messenger/ConversationV2";
 
@@ -602,6 +603,13 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
                   scoring - a static first segment beats a dynamic one - so a
                   topic slug is never mistaken for a username. */}
               <Route path="/topics/:slug" element={<TopicFeed />} />
+              {/* Opened from a moderation notification. Static first segment,
+                  so react-router ranks it above "/:userID/*" and a moderation
+                  id is never mistaken for a username. */}
+              <Route
+                path="/moderation/:moderationId"
+                element={<ModerationDetail />}
+              />
             </Routes>
           </div>
         </main>

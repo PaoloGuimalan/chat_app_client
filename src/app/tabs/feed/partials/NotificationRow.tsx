@@ -133,6 +133,9 @@ function NotificationRow({
           id={n.fromUser?.entity_id || n.fromUserID}
           name={senderName}
           src={n.fromUser?.profile ?? undefined}
+          // So a platform bot reads as the platform rather than as a person
+          // with the initials "CM".
+          kind={n.fromUser?.type}
           size={isDetail ? 44 : 38}
         />
         {isDetail && (

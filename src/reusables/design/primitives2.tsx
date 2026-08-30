@@ -33,6 +33,16 @@ export interface AvatarProps {
   className?: string;
   style?: CSSProperties;
   onClick?: () => void;
+  /**
+   * The entity's kind, when the caller knows it. Only "bot" changes anything:
+   * a bot with no uploaded picture gets the bot glyph rather than initials,
+   * because "CM" tells a reader nothing about who "Chatterloop Moderation" is,
+   * and a notification saying their post was removed should visibly come from
+   * the platform rather than from something that looks like a person.
+   *
+   * An uploaded `src` still wins - this is the fallback, not an override.
+   */
+  kind?: string | null;
 }
 
 function ringShadow(ring?: AvatarProps["ring"]) {
@@ -49,6 +59,7 @@ export function Avatar({
   id,
   name,
   src,
+  kind,
   size = 38,
   shape = "circle",
   online,
@@ -116,7 +127,16 @@ export function Avatar({
             boxShadow: ringShadow(ring),
           }}
         >
-          {initials(name)}
+          {kind === "bot" ? (
+            <span
+              className="material-icons"
+              style={{ fontSize: size * 0.56, lineHeight: 1 }}
+            >
+              smart_toy
+            </span>
+          ) : (
+            initials(name)
+          )}
         </span>
       )}
       {online && (

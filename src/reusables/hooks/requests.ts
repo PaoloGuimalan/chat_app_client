@@ -883,6 +883,27 @@ const GetTopicPostsRequest = async (params: {
   ).then((response) => response.data);
 };
 
+/**
+ * Why a post or comment of yours was removed.
+ *
+ * The ONLY read path that returns soft-deleted content, and it is gated to the
+ * owner and platform staff - see user_service entity/moderation_views.py.
+ * A 404 here means either no such record OR no permission; the server
+ * deliberately does not distinguish, so callers must not either.
+ */
+const GetModerationDetailRequest = async (moderationId: string) => {
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/entity/moderation/${encodeURIComponent(
+      moderationId,
+    )}/`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  ).then((response) => response.data);
+};
+
 // --- Network v2 (redesigned Contacts page) -------------------------------
 // Sectioned endpoints: one overview call settles all four section previews
 // on page init, then each section pages its OWN route for the "See all"
@@ -4239,6 +4260,7 @@ export {
   CreateChannelRequest,
   GetMembersListInServer,
   GetFeedRequest,
+  GetModerationDetailRequest,
   GetPopularTopicsRequest,
   GetTopicPostsRequest,
   GetPostPreviewRequest,
