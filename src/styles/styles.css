@@ -7662,3 +7662,15 @@ body::-webkit-scrollbar-thumb:hover,
 .cl-topic-skeleton-line br {
   display: none;
 }
+
+/* Media on the moderation review page. Sized here rather than inline because
+   CachedImage takes a className and no style prop - and the video beside it
+   has to match, or a flagged photo and a flagged clip frame differently. */
+.cl-moderation-media {
+  width: 100%;
+  max-height: 320px;
+  object-fit: cover;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--border);
+  display: block;
+}

@@ -1,10 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import DOMPurify from "dompurify";
 import { Card, Icon, useTheme } from "@/reusables/design";
 import { GetModerationDetailRequest } from "@/reusables/hooks/requests";
-import { highlightHashtags } from "@/reusables/hooks/hashtags";
+import RemovedPostPreview from "./RemovedPostPreview";
 
 /**
  * "Your content was removed. Here is why."
@@ -93,6 +92,7 @@ function ModerationDetail() {
 
   const content = detail?.content;
   const moderation = detail?.moderation;
+  // Only used to decide whether the reviewed text is worth showing twice.
   const body = content?.type === "comment" ? content?.text : content?.caption;
 
   return (
@@ -109,6 +109,11 @@ function ModerationDetail() {
           display: "flex",
           flexDirection: "column",
           gap: 8,
+          // App.tsx's root carries `.App { text-align: center }` - a
+          // Create-React-App template leftover that every page inherits and
+          // that the older screens each override with tw-text-left. Without
+          // this the whole review reads as centred prose.
+          textAlign: "left",
         }}
       >
         <Card pad={14}>
@@ -208,14 +213,14 @@ function ModerationDetail() {
                   </div>
                   <div
                     style={{
-                      marginTop: 4,
+                      marginTop: 3,
                       fontSize: "var(--fs-body-sm)",
                       color: "var(--text-2)",
-                      lineHeight: 1.5,
+                      lineHeight: 1.45,
                     }}
                   >
                     {detail.viewer_is_owner
-                      ? "Our automated review found it likely breaks the community guidelines."
+                      ? "An automated review found it likely breaks the community guidelines."
                       : "Shown to you as a platform moderator."}
                   </div>
 
@@ -248,16 +253,25 @@ function ModerationDetail() {
                   {moderation.unevaluated.length > 0 && (
                     <div
                       style={{
-                        marginTop: 10,
+                        marginTop: 12,
+                        paddingTop: 10,
+                        borderTop: "1px solid var(--border)",
                         fontSize: "var(--fs-meta)",
                         color: "var(--text-3)",
+                        lineHeight: 1.45,
                       }}
+                      /* The full list on hover rather than inline. A category
+                         nobody checked is not a category that came back clean,
+                         so this must be SAID - but spelling out five of them
+                         above the content buried the thing the reader came
+                         for. */
+                      title={moderation.unevaluated
+                        .map(readableCategory)
+                        .join(", ")}
                     >
-                      {/* A category nobody checked is not a category that came
-                          back clean. Said plainly so this page cannot be read
-                          as a clean bill of health on everything it omits. */}
-                      Not checked:{" "}
-                      {moderation.unevaluated.map(readableCategory).join(", ")}
+                      {moderation.unevaluated.length} other categor
+                      {moderation.unevaluated.length === 1 ? "y was" : "ies were"}{" "}
+                      not checked
                     </div>
                   )}
                 </div>
@@ -280,46 +294,7 @@ function ModerationDetail() {
                 Your {content.type}
               </div>
 
-              {body ? (
-                <span
-                  className="cl-text-body"
-                  style={{ color: "var(--text)", lineHeight: 1.5 }}
-                  dangerouslySetInnerHTML={{
-                    __html: DOMPurify.sanitize(highlightHashtags(body)),
-                  }}
-                />
-              ) : (
-                <span style={{ color: "var(--text-3)" }}>No text.</span>
-              )}
-
-              {content.references && content.references.length > 0 && (
-                <div
-                  style={{
-                    marginTop: 12,
-                    display: "flex",
-                    flexWrap: "wrap",
-                    gap: 8,
-                  }}
-                >
-                  {content.references.map((reference) => (
-                    <a
-                      key={reference.id}
-                      href={reference.reference}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      style={{
-                        fontSize: "var(--fs-meta)",
-                        color: "var(--brand)",
-                        border: "1px solid var(--border)",
-                        borderRadius: "var(--r-sm)",
-                        padding: "6px 10px",
-                      }}
-                    >
-                      {reference.media_type || "attachment"}
-                    </a>
-                  ))}
-                </div>
-              )}
+              <RemovedPostPreview content={content as any} />
 
               {moderation.reviewed_text &&
                 moderation.reviewed_text !== body && (
