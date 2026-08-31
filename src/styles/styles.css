@@ -3796,7 +3796,8 @@ input:checked + .slider:before {
 
 #div_conversation_header {
   width: 100%;
-  min-height: 72px;
+  min-height: 62px;
+  height: 62px;
   background: var(--surface);
   border-radius: 0px;
   border-bottom: 1px solid var(--border);
@@ -3804,12 +3805,41 @@ input:checked + .slider:before {
   flex-direction: row;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 18px;
-  gap: 12px;
+  padding: 0 12px 0 14px;
+  gap: 8px;
+}
+
+/* The header buttons read as a flat cluster in the lean header - the outlined
+   pills were sized for the old 72px bar and crowded the 56px one. Scoped to
+   the conversation header so the server-channel header keeps its own. */
+#div_conversation_header .btn_conversation_header_navigation {
+  width: 34px;
+  height: 34px;
+  border-color: transparent;
+  background: transparent;
+}
+
+#div_conversation_header .btn_conversation_header_navigation:hover {
+  background: var(--surface-hover);
+  border-color: transparent;
 }
 
 .cl-messages-shell__header {
-  min-height: 66px;
+  min-height: 54px;
+}
+
+/* The list skeleton has to match the real row's new height or the list jumps
+   when it resolves. Its own class, because `.div_messages_list_cards` is
+   shared with the Archived Messages screen, which keeps the taller card. */
+.cl-message-row-skeleton {
+  width: 100%;
+  min-height: 58px;
+  height: 58px;
+  padding: 9px 10px;
+  gap: 10px;
+  border-radius: var(--r-md);
+  background: transparent;
+  border: 1px solid transparent;
 }
 
 .cl-messages-shell__title h2 {
@@ -3837,7 +3867,7 @@ input:checked + .slider:before {
   flex: 1;
   flex-direction: row;
   background-color: transparent;
-  gap: 14px;
+  gap: 9px;
   align-items: center;
   white-space: nowrap;
   min-width: 0;
@@ -3892,7 +3922,8 @@ input:checked + .slider:before {
 }
 
 .span_userdetails_name:first-of-type {
-  font-size: 16px;
+  font-size: var(--fs-section-title);
+  line-height: 1.25;
   font-weight: 750;
   color: var(--text);
   white-space: nowrap;
@@ -3907,7 +3938,9 @@ input:checked + .slider:before {
 }
 
 .span_userdetails_name:last-of-type {
-  font-size: 12px;
+  font-size: var(--fs-caption);
+  line-height: 1.3;
+  letter-spacing: 0.01em;
   font-weight: 500;
   color: var(--text-2);
   white-space: nowrap;
@@ -3917,11 +3950,11 @@ input:checked + .slider:before {
 
 #div_conversation_header_navigations {
   background-color: transparent;
-  height: 100%;
+  height: auto;
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
 }
 
 .btn_conversation_header_navigation {
@@ -3958,12 +3991,38 @@ input:checked + .slider:before {
 }
 
 #div_img_cncts_container {
-  height: 100%;
-  width: 48px;
+  height: auto;
+  width: 40px;
+  flex: none;
+  position: relative;
   background-color: transparent;
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+/* The shared `.div_online_indicator` places itself with negative margins tuned
+   for the old 48px header avatar, which lands it off the 38px one. Inside the
+   conversation header it is pinned to the avatar's corner instead, so it keeps
+   its place at every avatar size the header uses. */
+#div_conversation_header #div_img_server_back_container_cncts {
+  min-height: 36px;
+  min-width: 36px;
+  max-width: 36px;
+  max-height: 36px;
+}
+
+#div_conversation_header #div_img_cncts_container .div_online_indicator {
+  position: absolute;
+  right: -1px;
+  bottom: -1px;
+  margin: 0;
+  width: 11px;
+  height: 11px;
+  min-width: 11px;
+  min-height: 11px;
+  border: solid 2px var(--surface);
+  background-color: var(--online);
 }
 
 #div_img_comments_container {
@@ -4216,18 +4275,18 @@ input:checked + .slider:before {
 #div_send_controls {
   background: var(--surface);
   width: 100%;
-  min-height: 76px;
+  min-height: 68px;
   border-top: 1px solid var(--border);
   display: flex;
   flex-direction: row;
   align-items: center;
   padding: 12px 14px;
-  gap: 8px;
+  gap: 6px;
   /* padding-bottom: 2px; */
 }
 
 #div_confirm_send {
-  height: 100%;
+  height: auto;
   display: flex;
   flex-direction: row;
   gap: 2px;
@@ -4235,10 +4294,10 @@ input:checked + .slider:before {
 }
 
 #div_options_send {
-  height: 100%;
+  height: auto;
   display: flex;
   flex-direction: row;
-  gap: 8px;
+  gap: 4px;
   align-items: center;
 }
 
@@ -4246,11 +4305,11 @@ input:checked + .slider:before {
   width: 36px;
   height: 36px;
   border-radius: 10px;
-  border: 1px solid var(--border);
+  border: 1px solid transparent;
   display: flex;
   justify-content: center;
   align-items: center;
-  background: var(--surface-2);
+  background: transparent;
   cursor: pointer;
   transition:
     background-color 0.14s ease,
@@ -4260,7 +4319,7 @@ input:checked + .slider:before {
 
 .btn_options_send:hover {
   background: var(--surface-hover);
-  border-color: var(--border-2);
+  border-color: transparent;
   transform: translateY(-1px);
 }
 
@@ -4268,7 +4327,7 @@ input:checked + .slider:before {
   background: var(--brand);
   border-color: transparent;
   color: #fff;
-  box-shadow: 0 10px 20px rgba(28, 125, 239, 0.2);
+  box-shadow: 0 6px 14px rgba(28, 125, 239, 0.18);
 }
 
 #div_confirm_send .btn_options_send:hover {
@@ -4284,7 +4343,7 @@ input:checked + .slider:before {
   background-color: transparent;
   display: flex;
   flex: 1;
-  height: 100%;
+  height: auto;
   padding-left: 0px;
   padding-right: 0px;
   align-items: center;
@@ -4294,11 +4353,13 @@ input:checked + .slider:before {
 
 #input_text_content_send {
   width: 100%;
-  max-height: 44px;
-  min-height: 44px;
+  max-height: 40px;
+  min-height: 40px;
   border-radius: 999px;
   border: 1px solid var(--border);
   padding: 10px 16px;
+  font-size: var(--fs-body);
+  line-height: 18px;
   background: var(--surface-2);
   color: var(--text);
   outline: none;
@@ -4958,6 +5019,180 @@ input:checked + .slider:before {
   color: currentColor;
 }
 
+/* The dock of collapsed mini conversations, riding the middle of the app
+   shell's right edge as a translucent macOS-style pill. It scrolls on its own
+   once the stack outgrows the viewport, which is also why the hover card is a
+   SIBLING of this element positioned `fixed` from JS - as a descendant it
+   would be both clipped by this overflow and re-based by the backdrop-filter,
+   which makes this a containing block for fixed children. The 10px padding is
+   symmetrical so the bubbles centre in the panel. Soft-cornered rectangle, not
+   a pill - a fully rounded panel read as a blob at one or two bubbles. */
+.cl-bubble-dock {
+  display: flex;
+  flex-direction: column-reverse;
+  gap: 9px;
+  padding: 8px;
+  max-height: calc(100vh - 100px);
+  overflow-y: auto;
+  scrollbar-width: none;
+  pointer-events: auto;
+  /* `--surface` sits only a shade off `--bg` in BOTH themes (#fff on #eef1f5,
+     #151a23 on #0b0e14), so a barely-tinted panel disappeared against the app.
+     The fill is nearly opaque and the edge does the real work: a full-strength
+     border, an inset highlight along the top, and a shadow deep enough to lift
+     the panel off the background. */
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  backdrop-filter: blur(18px) saturate(140%);
+  -webkit-backdrop-filter: blur(18px) saturate(140%);
+  border: 1px solid var(--border-2);
+  border-radius: 18px;
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.18),
+    0 2px 8px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+
+/* Dark's `--surface` is too close to its `--bg` to read as a panel at all, so
+   the fill steps up to `--surface-3` and the highlight drops to a whisper. */
+.cl-redesign[data-theme="dark"] .cl-bubble-dock {
+  background: color-mix(in srgb, var(--surface-3) 92%, transparent);
+  border-color: var(--border-2);
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.4),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+}
+
+.cl-bubble-dock::-webkit-scrollbar {
+  width: 0;
+}
+
+/* The bubble ring and the dot/badge cut-outs are drawn in `--surface` so they
+   read as holes punched in the panel. Dark's panel is `--surface-3`, so they
+   follow it there or they show up as mismatched halos. */
+.cl-redesign[data-theme="dark"] .cl-bubble-dock__button,
+.cl-redesign[data-theme="dark"] .cl-bubble-dock__online,
+.cl-redesign[data-theme="dark"] .cl-bubble-dock__badge {
+  border-color: var(--surface-3);
+}
+
+.cl-redesign[data-theme="dark"] .cl-bubble-dock__button {
+  background: var(--surface-3);
+}
+
+.cl-bubble-dock__item {
+  position: relative;
+  flex: none;
+  width: 46px;
+  height: 46px;
+}
+
+.cl-bubble-dock__button {
+  width: 46px;
+  height: 46px;
+  padding: 0;
+  border: 2px solid var(--surface);
+  border-radius: 50%;
+  background: var(--surface);
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.12);
+  cursor: pointer;
+  display: block;
+  overflow: hidden;
+  transition: transform 0.14s ease;
+}
+
+.cl-bubble-dock__button:hover {
+  transform: translateX(-2px);
+}
+
+.cl-bubble-dock__online {
+  position: absolute;
+  right: 0px;
+  bottom: 0px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--online);
+  border: 2px solid var(--surface);
+  pointer-events: none;
+}
+
+.cl-bubble-dock__badge {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 4px;
+  box-sizing: border-box;
+  background: var(--pink);
+  color: #fff;
+  font-size: var(--fs-micro);
+  font-weight: 700;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--surface);
+  pointer-events: none;
+}
+
+.cl-bubble-dock__close {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 2;
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 50%;
+  background: var(--surface);
+  color: #d04e4e;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.cl-bubble-dock__close:hover {
+  background: var(--surface-hover);
+}
+
+.cl-bubble-dock__card {
+  position: fixed;
+  z-index: 200;
+  pointer-events: none;
+  text-align: left;
+  width: max-content;
+  max-width: 230px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  box-shadow: var(--shadow-lg);
+  padding: 8px 12px;
+  transform: translateY(-50%);
+}
+
+.cl-bubble-dock__card-name {
+  font-size: var(--fs-body-sm);
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cl-bubble-dock__card-preview {
+  font-size: var(--fs-meta);
+  color: var(--text-2);
+  margin-top: 2px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .cl-conversation-window--minimized {
   max-width: 340px !important;
   width: 100%;
@@ -4972,18 +5207,30 @@ input:checked + .slider:before {
 }
 
 .cl-conversation-window--minimized #div_conversation_header {
-  min-height: 58px;
-  padding: 10px 12px;
+  min-height: 54px;
+  height: 54px;
+  padding: 0 6px 0 10px;
+  gap: 6px;
   background: linear-gradient(180deg, var(--surface) 0%, var(--surface-2) 100%);
   color: var(--text) !important;
 }
 
 .cl-conversation-window--minimized #div_conversation_user {
-  gap: 10px;
+  gap: 8px;
 }
 
 .cl-conversation-window--minimized #div_img_cncts_container {
-  width: 42px;
+  width: 38px;
+}
+
+.cl-conversation-window--minimized
+  #div_conversation_header
+  #div_img_cncts_container
+  .div_online_indicator {
+  width: 10px;
+  height: 10px;
+  min-width: 10px;
+  min-height: 10px;
 }
 
 .cl-conversation-window--minimized #div_img_search_profiles_container_cncts,
@@ -4995,20 +5242,22 @@ input:checked + .slider:before {
 }
 
 .cl-conversation-window--minimized .span_userdetails_name:first-of-type {
-  font-size: 14px;
+  font-size: var(--fs-body);
 }
 
 .cl-conversation-window--minimized .span_userdetails_name:last-of-type {
-  font-size: 11px;
+  font-size: var(--fs-meta);
 }
 
 .cl-conversation-window--minimized #div_conversation_header_navigations {
-  gap: 6px;
+  gap: 0px;
 }
 
-.cl-conversation-window--minimized .btn_conversation_header_navigation {
-  width: 34px;
-  height: 34px;
+.cl-conversation-window--minimized
+  #div_conversation_header
+  .btn_conversation_header_navigation {
+  width: 32px;
+  height: 32px;
   border-radius: 10px;
 }
 
@@ -5018,20 +5267,23 @@ input:checked + .slider:before {
 }
 
 .cl-conversation-window--minimized #div_send_controls {
-  min-height: 72px;
-  padding: 10px 12px;
+  min-height: 62px;
+  padding: 10px 10px;
+  gap: 6px;
 }
 
 .cl-conversation-window--minimized #input_text_content_send {
-  min-height: 40px;
-  max-height: 40px;
-  padding: 10px 14px;
-  font-size: 13px;
+  min-height: 38px;
+  max-height: 38px;
+  padding: 9px 14px;
+  font-size: var(--fs-body-sm);
+  line-height: 17px;
 }
 
 .cl-conversation-window--minimized .btn_options_send {
-  width: 36px;
-  height: 36px;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
 }
 
 .cl-conversation-window-action {
@@ -5058,6 +5310,18 @@ input:checked + .slider:before {
 .cl-conversation-window-action--close:hover {
   background: var(--surface-hover);
   color: #c74444;
+  border-color: var(--border-2);
+}
+
+.cl-conversation-window-action--collapse {
+  background: var(--surface-2);
+  color: var(--text-2);
+  border-color: var(--border);
+}
+
+.cl-conversation-window-action--collapse:hover {
+  background: var(--surface-hover);
+  color: var(--text);
   border-color: var(--border-2);
 }
 
@@ -6388,8 +6652,8 @@ input:checked + .slider:before {
   }
 
   .cl-messages-shell__header {
-    min-height: 56px;
-    padding: 10px 14px 8px !important;
+    min-height: 50px;
+    padding: 8px 14px 6px !important;
     gap: 10px !important;
   }
 
@@ -6404,14 +6668,15 @@ input:checked + .slider:before {
   }
 
   .cl-messages-shell__list {
-    padding-left: 12px !important;
-    padding-right: 12px !important;
-    gap: 6px !important;
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+    gap: 5px !important;
   }
 
   #div_conversation_header {
     min-height: 58px;
-    padding: 10px 12px;
+    height: 58px;
+    padding: 0 8px 0 10px;
     gap: 8px;
   }
 
@@ -6420,7 +6685,7 @@ input:checked + .slider:before {
   }
 
   #div_conversation_header_navigations {
-    gap: 4px;
+    gap: 0px;
   }
 
   #div_conversation_content {
@@ -6428,17 +6693,17 @@ input:checked + .slider:before {
     padding: 12px 12px 6px;
   }
 
-  .btn_conversation_header_navigation {
-    width: 30px;
-    height: 30px;
+  #div_conversation_header .btn_conversation_header_navigation {
+    width: 32px;
+    height: 32px;
   }
 
   #div_conversation_header .span_userdetails_name:first-of-type {
-    font-size: 13px;
+    font-size: var(--fs-body);
   }
 
   #div_conversation_header .span_userdetails_name:last-of-type {
-    font-size: 10px;
+    font-size: var(--fs-meta);
   }
 
   .cl-profile-page__hero {
@@ -6462,20 +6727,23 @@ input:checked + .slider:before {
   }
 
   #div_send_controls {
-    min-height: 72px;
+    min-height: 62px;
     padding: 10px 12px;
     gap: 6px;
   }
 
   #input_text_content_send {
-    max-height: 42px;
-    min-height: 42px;
+    max-height: 38px;
+    min-height: 38px;
     padding: 9px 14px;
+    font-size: var(--fs-body-sm);
+    line-height: 17px;
   }
 
   .btn_options_send {
     width: 34px;
     height: 34px;
+    border-radius: 9px;
   }
 
   .cl-message-actions button {
@@ -7613,23 +7881,71 @@ body::-webkit-scrollbar-thumb:hover,
   text-overflow: ellipsis;
 }
 
-.cl-topic-pill--0 { background: #e7f0fe; color: #1b5fc1; }
-.cl-topic-pill--1 { background: #e3f7ed; color: #12805a; }
-.cl-topic-pill--2 { background: #fdf0d9; color: #a06400; }
-.cl-topic-pill--3 { background: #ffe9ec; color: #c2334a; }
-.cl-topic-pill--4 { background: #f0eaff; color: #6b3fd4; }
-.cl-topic-pill--5 { background: #e0f5f8; color: #0b7183; }
-.cl-topic-pill--6 { background: #ffe9f3; color: #bf3579; }
-.cl-topic-pill--7 { background: #eceef2; color: #4a5462; }
+.cl-topic-pill--0 {
+  background: #e7f0fe;
+  color: #1b5fc1;
+}
+.cl-topic-pill--1 {
+  background: #e3f7ed;
+  color: #12805a;
+}
+.cl-topic-pill--2 {
+  background: #fdf0d9;
+  color: #a06400;
+}
+.cl-topic-pill--3 {
+  background: #ffe9ec;
+  color: #c2334a;
+}
+.cl-topic-pill--4 {
+  background: #f0eaff;
+  color: #6b3fd4;
+}
+.cl-topic-pill--5 {
+  background: #e0f5f8;
+  color: #0b7183;
+}
+.cl-topic-pill--6 {
+  background: #ffe9f3;
+  color: #bf3579;
+}
+.cl-topic-pill--7 {
+  background: #eceef2;
+  color: #4a5462;
+}
 
-.cl-redesign[data-theme="dark"] .cl-topic-pill--0 { background: rgba(60,139,255,0.16);  color: #9ec5ff; }
-.cl-redesign[data-theme="dark"] .cl-topic-pill--1 { background: rgba(32,189,124,0.16);  color: #74e0ae; }
-.cl-redesign[data-theme="dark"] .cl-topic-pill--2 { background: rgba(230,149,0,0.18);   color: #f5c46a; }
-.cl-redesign[data-theme="dark"] .cl-topic-pill--3 { background: rgba(255,91,107,0.16);  color: #ff9aa6; }
-.cl-redesign[data-theme="dark"] .cl-topic-pill--4 { background: rgba(139,92,246,0.18);  color: #c4a8ff; }
-.cl-redesign[data-theme="dark"] .cl-topic-pill--5 { background: rgba(14,165,183,0.18);  color: #6fd8e8; }
-.cl-redesign[data-theme="dark"] .cl-topic-pill--6 { background: rgba(240,81,140,0.16);  color: #ff9cc6; }
-.cl-redesign[data-theme="dark"] .cl-topic-pill--7 { background: rgba(255,255,255,0.08); color: #b7c0cc; }
+.cl-redesign[data-theme="dark"] .cl-topic-pill--0 {
+  background: rgba(60, 139, 255, 0.16);
+  color: #9ec5ff;
+}
+.cl-redesign[data-theme="dark"] .cl-topic-pill--1 {
+  background: rgba(32, 189, 124, 0.16);
+  color: #74e0ae;
+}
+.cl-redesign[data-theme="dark"] .cl-topic-pill--2 {
+  background: rgba(230, 149, 0, 0.18);
+  color: #f5c46a;
+}
+.cl-redesign[data-theme="dark"] .cl-topic-pill--3 {
+  background: rgba(255, 91, 107, 0.16);
+  color: #ff9aa6;
+}
+.cl-redesign[data-theme="dark"] .cl-topic-pill--4 {
+  background: rgba(139, 92, 246, 0.18);
+  color: #c4a8ff;
+}
+.cl-redesign[data-theme="dark"] .cl-topic-pill--5 {
+  background: rgba(14, 165, 183, 0.18);
+  color: #6fd8e8;
+}
+.cl-redesign[data-theme="dark"] .cl-topic-pill--6 {
+  background: rgba(240, 81, 140, 0.16);
+  color: #ff9cc6;
+}
+.cl-redesign[data-theme="dark"] .cl-topic-pill--7 {
+  background: rgba(255, 255, 255, 0.08);
+  color: #b7c0cc;
+}
 
 /* The overlapping face stack. The 2px ring is what separates one avatar from
    the one it overlaps; it has to sit on the rendered image/initials rather

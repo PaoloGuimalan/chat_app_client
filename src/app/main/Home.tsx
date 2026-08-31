@@ -79,6 +79,7 @@ import TopicFeed from "../tabs/feed/TopicFeed";
 import ModerationDetail from "../tabs/moderation/ModerationDetail";
 import { Avatar, Icon, useTheme } from "@/reusables/design";
 import ConversationV2 from "../tabs/messenger/ConversationV2";
+import ConversationBubbleDock from "../tabs/messenger/partials/ConversationBubbleDock";
 
 interface RailItem {
   key: string;
@@ -492,6 +493,13 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
     .map((key) => mobileNavItems.find((item) => item.key === key))
     .filter((item): item is RailItem => Boolean(item));
 
+  const collapsedConversations = minimizedconversation.filter(
+    (flt: any) => flt.collapsed,
+  );
+  const openConversations = minimizedconversation.filter(
+    (flt: any) => !flt.collapsed,
+  );
+
   const showRail = !isMobileView && !isMapFeedMobileView;
   const showMobileNav = isMobileView && !isMapFeedMobileView;
 
@@ -614,20 +622,49 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           </div>
         </main>
 
-        {!(screensizelistener.W <= 900) && minimizedconversation.length > 0 && (
+        {/* The dock rides the middle of the right edge, so it is anchored
+            separately from the open windows, which stay along the bottom. */}
+        {!(screensizelistener.W <= 900) && collapsedConversations.length > 0 && (
+          <div
+            style={{
+              position: "absolute",
+              top: 0,
+              bottom: 0,
+              right: 10,
+              display: "flex",
+              flexDirection: "column",
+              justifyContent: "center",
+              zIndex: 100,
+              // A `transform` here would make this the containing block for
+              // the hover card, which is positioned `fixed` off measured
+              // viewport coordinates - hence centring by flex, not translate.
+              // The strip spans the full height, so it only takes clicks on
+              // the dock itself.
+              pointerEvents: "none",
+            }}
+          >
+            <ConversationBubbleDock bubbles={collapsedConversations} />
+          </div>
+        )}
+
+        {!(screensizelistener.W <= 900) && openConversations.length > 0 && (
           <div
             style={{
               position: "absolute",
               bottom: 0,
-              right: 10,
+              // Clears the dock, which no longer shares this row: its 64px
+              // panel (46px bubble + 16px padding + 2px border), the 10px it
+              // is inset by, and a 10px gutter between the two.
+              right: collapsedConversations.length > 0 ? 84 : 10,
               display: "flex",
               flexDirection: "row-reverse",
+              alignItems: "flex-end",
               gap: 10,
               zIndex: 100,
               justifyContent: "flex-end",
             }}
           >
-            {minimizedconversation.map((mp: any) => (
+            {openConversations.map((mp: any) => (
               <div
                 style={{
                   width: 330,

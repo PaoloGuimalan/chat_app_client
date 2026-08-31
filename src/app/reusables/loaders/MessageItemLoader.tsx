@@ -2,12 +2,12 @@ import Skeleton from "react-loading-skeleton";
 
 function MessageItemLoader() {
   return (
-    <div className="div_messages_list_cards tw-border-[0px] tw-items-center">
+    <div className="div_messages_list_cards cl-message-row-skeleton tw-border-[0px] tw-items-center">
       <div className="tw-relative tw-flex-none">
         <Skeleton
           circle
-          height="46px"
-          width="46px"
+          height="40px"
+          width="40px"
           className="img_search_profiles_ntfs"
           baseColor="var(--surface-3)"
           highlightColor="var(--surface-hover)"

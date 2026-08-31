@@ -23,6 +23,7 @@ import {
   MdDelete,
   MdGraphicEq,
   MdMic,
+  MdMinimize,
   MdReport,
   MdStop,
 } from "react-icons/md";
@@ -60,6 +61,7 @@ import LinkPreviewCard from "../../reusables/LinkPreviewCard";
 import {
   CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
   CLOSE_MINIMIZED_CONVERSATION,
+  COLLAPSE_MINIMIZED_CONVERSATION,
   REMOVE_CONVERSATION,
   // MEDIA_MY_VIDEO_HOLDER,
   // MEDIA_TRACK_HOLDER,
@@ -238,17 +240,18 @@ function ConversationV2({
   });
   const [mentionActiveIndex, setMentionActiveIndex] = useState(0);
   const isCompactConversation = screensizelistener.W <= 799;
-  const conversationHeaderIconSize = isCompactConversation ? "18px" : "20px";
+  const conversationHeaderIconSize = isCompactConversation ? "19px" : "21px";
   const conversationHeaderActionIconSize = isCompactConversation
-    ? "17px"
-    : "19px";
+    ? "18px"
+    : "21px";
   const conversationHeaderPrimaryIconSize = isCompactConversation
     ? "21px"
-    : "25px";
-  const conversationMenuIconSize = isCompactConversation ? "18px" : "20px";
+    : "23px";
+  const conversationMenuIconSize = isCompactConversation ? "19px" : "22px";
   const conversationFileIconSize = isCompactConversation ? "34px" : "40px";
-  const conversationComposerIconSize = isCompactConversation ? "22px" : "25px";
-  const conversationCloseIconSize = isCompactConversation ? "16px" : "18px";
+  const conversationComposerIconSize =
+    isMinimized || isCompactConversation ? "23px" : "25px";
+  const conversationCloseIconSize = isCompactConversation ? "17px" : "19px";
   const conversationLoadingIconSize = isCompactConversation ? "20px" : "25px";
 
   const conversationIdentityKey = useMemo(() => {
@@ -1564,7 +1567,9 @@ function ConversationV2({
                   ? screensizelistener.W <= 900
                     ? "0px"
                     : "10px"
-                  : "10px",
+                  : isMinimized
+                    ? "10px"
+                    : "14px",
             }}
             animate={{
               paddingLeft:
@@ -1572,7 +1577,9 @@ function ConversationV2({
                   ? screensizelistener.W <= 900
                     ? "0px"
                     : "10px"
-                  : "10px",
+                  : isMinimized
+                    ? "10px"
+                    : "14px",
             }}
             id="div_conversation_header"
             className="cl-conversation-header-shell"
@@ -1609,7 +1616,7 @@ function ConversationV2({
                         ? undefined
                         : conversationsetup.details.profile
                     }
-                    size={screensizelistener.W <= 799 ? 42 : 48}
+                    size={isMinimized ? 38 : 40}
                     // ring="unviewed"
                   />
                   {isUserOnline(
@@ -1719,7 +1726,47 @@ function ConversationV2({
               )}
               {isMinimized && (
                 <>
+                  {/* Collapses the window into the bubble dock on the right
+                      edge. The entry stays in `minimizedconversation` - only
+                      its `collapsed` flag flips - so the dock keeps its place
+                      and expanding restores the same slot. The bubble metadata
+                      travels with the action because the window unmounts while
+                      collapsed and the dock has nothing else to render from. */}
                   <motion.button
+                    title="Minimize to bubble"
+                    aria-label="Minimize to bubble"
+                    whileHover={{
+                      backgroundColor: "var(--surface-hover)",
+                    }}
+                    className="btn_conversation_header_navigation cl-conversation-window-action cl-conversation-window-action--collapse"
+                    onClick={() => {
+                      dispatch({
+                        type: COLLAPSE_MINIMIZED_CONVERSATION,
+                        payload: {
+                          conversationID: conversationID,
+                          bubble: {
+                            id: conversationsetup.details.id,
+                            entity_id: conversationsetup.details.entity_id,
+                            display_name:
+                              conversationsetup.details.display_name,
+                            profile:
+                              conversationsetup.details.profile == "none"
+                                ? null
+                                : conversationsetup.details.profile,
+                            conversationType:
+                              conversationsetup.conversationType,
+                          },
+                        },
+                      });
+                    }}
+                  >
+                    <MdMinimize
+                      style={{ fontSize: conversationHeaderActionIconSize }}
+                    />
+                  </motion.button>
+                  <motion.button
+                    title="Conversation info"
+                    aria-label="Conversation info"
                     whileHover={{
                       backgroundColor: "var(--surface-hover)",
                     }}

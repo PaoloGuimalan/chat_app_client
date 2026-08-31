@@ -121,9 +121,9 @@ function MessageRow({
       style={{
         display: "flex",
         alignItems: "flex-start",
-        gap: 12,
+        gap: 10,
         width: "100%",
-        padding: "12px",
+        padding: "9px 10px",
         border: "1px solid",
         borderColor: active ? "var(--brand-soft)" : "transparent",
         borderRadius: "var(--r-md)",
@@ -144,15 +144,15 @@ function MessageRow({
       }
     >
       <div style={{ position: "relative", flex: "none" }}>
-        <Avatar id={title} name={title} src={imgSrc || undefined} size={46} />
+        <Avatar id={title} name={title} src={imgSrc || undefined} size={40} />
         {showOnline && (
           <span
             style={{
               position: "absolute",
               right: 0,
               bottom: 0,
-              width: 12,
-              height: 12,
+              width: 11,
+              height: 11,
               borderRadius: "50%",
               background: "var(--online)",
               border: "2px solid var(--surface)",
@@ -192,15 +192,29 @@ function MessageRow({
             </span>
             {titleIcon && <Icon n={titleIcon} s={15} c={titleColor} />}
             {isBadged && (
-              <Icon n="verified" s={14} c="var(--brand)" style={{ flex: "none" }} />
+              <Icon
+                n="verified"
+                s={14}
+                c="var(--brand)"
+                style={{ flex: "none" }}
+              />
             )}
             {isPage && (
-              <span title="Page" style={{ display: "inline-flex", flex: "none" }}>
+              <span
+                title="Page"
+                style={{ display: "inline-flex", flex: "none" }}
+              >
                 <Icon n="flag" s={13} c="var(--text-3)" />
               </span>
             )}
           </div>
-          <div style={{ fontSize: "var(--fs-meta)", color: "var(--text-3)", flex: "none" }}>
+          <div
+            style={{
+              fontSize: "var(--fs-meta)",
+              color: "var(--text-3)",
+              flex: "none",
+            }}
+          >
             {time}
           </div>
         </div>
@@ -211,7 +225,7 @@ function MessageRow({
             overflow: "hidden",
             textOverflow: "ellipsis",
             whiteSpace: "nowrap",
-            marginTop: 2,
+            marginTop: 1,
           }}
           {...(subtitleHtml
             ? { dangerouslySetInnerHTML: { __html: subtitle } }
@@ -496,7 +510,7 @@ function Messages() {
               alignItems: "center",
               justifyContent: "space-between",
               gap: 12,
-              padding: "18px 18px 12px",
+              padding: "16px 16px 16px",
             }}
           >
             <div
@@ -505,8 +519,8 @@ function Messages() {
             >
               <span
                 style={{
-                  width: isMobile ? 34 : 38,
-                  height: isMobile ? 34 : 38,
+                  width: isMobile ? 32 : 34,
+                  height: isMobile ? 32 : 34,
                   borderRadius: "var(--r-sm)",
                   background: "var(--brand-soft)",
                   display: "inline-flex",
@@ -514,7 +528,7 @@ function Messages() {
                   justifyContent: "center",
                 }}
               >
-                <Icon n="forum" s={isMobile ? 16 : 18} c="var(--brand)" />
+                <Icon n="forum" s={isMobile ? 16 : 17} c="var(--brand)" />
               </span>
               <h2
                 style={{
@@ -533,8 +547,8 @@ function Messages() {
             >
               <IconBtn
                 n="edit_square"
-                size={isMobile ? 34 : 38}
-                s={isMobile ? 18 : 20}
+                size={isMobile ? 32 : 34}
+                s={isMobile ? 17 : 19}
                 title="Create chat"
                 onClick={() => setToggleComposeMenu((prev) => !prev)}
               />
@@ -543,7 +557,7 @@ function Messages() {
                   pad={8}
                   style={{
                     position: "absolute",
-                    top: 44,
+                    top: 40,
                     right: 0,
                     minWidth: 180,
                     zIndex: 20,
@@ -569,7 +583,7 @@ function Messages() {
 
           <div
             className="cl-messages-shell__search"
-            style={{ padding: isMobile ? "0 14px 10px" : "0 18px 12px" }}
+            style={{ padding: isMobile ? "0 14px 8px" : "0 16px 10px" }}
           >
             <Field
               icon="search"
@@ -581,7 +595,7 @@ function Messages() {
 
           <div
             className="cl-messages-shell__tabs"
-            style={{ padding: isMobile ? "0 14px 12px" : "0 18px 14px" }}
+            style={{ padding: isMobile ? "0 14px 10px" : "0 16px 10px" }}
           >
             <SegTabs
               tabs={[
@@ -602,10 +616,10 @@ function Messages() {
               flex: 1,
               minHeight: 0,
               overflowY: "auto",
-              padding: isMobile ? "0 12px 12px" : "0 14px 14px",
+              padding: isMobile ? "0 10px 12px" : "0 12px 12px",
               display: "flex",
               flexDirection: "column",
-              gap: isMobile ? 6 : 8,
+              gap: isMobile ? 5 : 6,
             }}
           >
             {isLoading ? (
@@ -851,7 +865,9 @@ function Messages() {
           }}
         >
           <Icon n="chat_bubble_outline" s={42} />
-          <span style={{ fontSize: "var(--fs-body)", fontWeight: 600 }}>No messages</span>
+          <span style={{ fontSize: "var(--fs-body)", fontWeight: 600 }}>
+            No messages
+          </span>
         </div>
       ) : (
         <div

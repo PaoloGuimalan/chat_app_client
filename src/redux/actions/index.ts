@@ -6,6 +6,7 @@ import {
   CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
   CLEAR_PENDING_CALL_ALERTS,
   CLOSE_MINIMIZED_CONVERSATION,
+  COLLAPSE_MINIMIZED_CONVERSATION,
   END_CALL_LIST,
   MEDIA_MY_VIDEO_HOLDER,
   MEDIA_TRACK_HOLDER,
@@ -30,6 +31,7 @@ import {
   SET_MESSAGES_LIST_OVERRIDE,
   SET_MINIMIZED_CONVERSATION,
   SET_MINIMIZED_CONVERSATION_OVERRIDE,
+  EXPAND_MINIMIZED_CONVERSATION,
   SET_MUTATE_ALERTS,
   SET_MUTATE_POSTS_FEED_LIST,
   SET_NOTIFICATIONS_LIST,
@@ -371,6 +373,25 @@ export const setminimizedconversation = (state: any = [], action: any) => {
       return [...finalset, conversation];
     case SET_MINIMIZED_CONVERSATION_OVERRIDE:
       return action.payload.conversations;
+    // Collapsing keeps the entry in place - only its `collapsed` flag and the
+    // bubble metadata change - so expanding puts the window back where it was
+    // in the dock order instead of at the end.
+    case COLLAPSE_MINIMIZED_CONVERSATION:
+      return state.map((mp: any) =>
+        mp.conversationID === action.payload.conversationID
+          ? {
+              ...mp,
+              collapsed: true,
+              bubble: action.payload.bubble ?? mp.bubble,
+            }
+          : mp,
+      );
+    case EXPAND_MINIMIZED_CONVERSATION:
+      return state.map((mp: any) =>
+        mp.conversationID === action.payload.conversationID
+          ? { ...mp, collapsed: false }
+          : mp,
+      );
     case CLOSE_MINIMIZED_CONVERSATION:
       const conversationID = action.payload.conversationID;
       const setToRemove = state.filter(
