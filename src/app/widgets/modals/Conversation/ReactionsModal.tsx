@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Modal from "@/app/reusables/Modal";
 import { IoMdClose } from "react-icons/io";
-import { Avatar, BotFlag, Icon } from "@/reusables/design";
+import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
 
 // A reactor may be a person OR a page (you can react while switched to one),
 // so every row is built from one normalized shape. The middle name arrives as
@@ -119,15 +119,7 @@ function ReactionsModal({
                         these are the same 52px person row. */}
                     <span className="tw-flex tw-flex-1 tw-min-w-0 cl-text-body-sm tw-items-center tw-gap-[4px] tw-text-left">
                       <span className="tw-truncate">{name}</span>
-                      {isRealm && (
-                        <span
-                          title="Page"
-                          className="tw-flex-none"
-                          style={{ display: "inline-flex" }}
-                        >
-                          <Icon n="flag" s={13} c="var(--text-3)" />
-                        </span>
-                      )}
+                      <PageFlag is={isRealm} />
                       <BotFlag type={mp.entityType} />
                     </span>
                     {isMine && (

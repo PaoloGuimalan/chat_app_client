@@ -37,6 +37,7 @@ import {
   Field,
   Icon,
   IconBtn,
+  PageFlag,
   SegTabs,
   useTheme,
 } from "@/reusables/design";
@@ -211,14 +212,7 @@ function MessageRow({
                 style={{ flex: "none" }}
               />
             )}
-            {isPage && (
-              <span
-                title="Page"
-                style={{ display: "inline-flex", flex: "none" }}
-              >
-                <Icon n="flag" s={13} c="var(--text-3)" />
-              </span>
-            )}
+            <PageFlag is={isPage} />
             <BotFlag is={isBot} />
           </div>
           <div

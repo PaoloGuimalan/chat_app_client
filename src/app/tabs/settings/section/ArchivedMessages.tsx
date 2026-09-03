@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { Avatar } from "@/reusables/design/primitives2";
+import {
+  Avatar,
+  BotFlag,
+  PageFlag,
+} from "@/reusables/design/primitives2";
 import { ManualInitConversationListRequest } from "@/reusables/hooks/requests";
 import { isUserOnline, timeSince } from "@/reusables/hooks/reusable";
 import { useEffect, useRef, useState } from "react";
@@ -178,6 +182,7 @@ function ArchivedMessages() {
                                   : msgsurs.profile
                               }
                               size={40}
+                              kind={msgsurs.entityType}
                             />
                           </div>
                           {isUserOnline(activeuserslist, msgsurs.entityID) && (
@@ -185,12 +190,16 @@ function ArchivedMessages() {
                           )}
                         </div>
                         <div id="div_messages_list_name">
-                          <span className="span_messages_list_name">
-                            {msgsurs.fullname.firstName}
-                            {msgsurs.fullname.middleName == "N/A"
-                              ? ""
-                              : ` ${msgsurs.fullname.middleName}`}{" "}
-                            {msgsurs.fullname.lastName}
+                          <span className="span_messages_list_name tw-flex tw-items-center tw-gap-[4px]">
+                            <span className="tw-truncate">
+                              {msgsurs.fullname.firstName}
+                              {msgsurs.fullname.middleName == "N/A"
+                                ? ""
+                                : ` ${msgsurs.fullname.middleName}`}{" "}
+                              {msgsurs.fullname.lastName}
+                            </span>
+                            <PageFlag realmType={msgsurs.realmType} />
+                            <BotFlag type={msgsurs.entityType} />
                           </span>
                           {istypinglist.filter(
                             (flt: any) =>

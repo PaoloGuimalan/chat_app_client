@@ -1,6 +1,7 @@
 import { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
+import { BotFlag, PageFlag } from "@/reusables/design";
 import { ITagging } from "@/reusables/vars/interfaces";
 
 // Renders the "is with A, B and C" tagged-entity summary (users or realms) for
@@ -45,6 +46,22 @@ function TaggingSummary({ tagging }: { tagging: ITagging[] }) {
             color="var(--brand)"
             style={{ verticalAlign: "middle", marginLeft: 2 }}
           />
+        )}
+        {isRealm && (
+          <span
+            style={{ verticalAlign: "middle", marginLeft: 2 }}
+            className="tw-inline-flex"
+          >
+            <PageFlag realmType={details.type} size={14} />
+          </span>
+        )}
+        {mptg.entity.type === "bot" && (
+          <span
+            style={{ verticalAlign: "middle", marginLeft: 2 }}
+            className="tw-inline-flex"
+          >
+            <BotFlag is size={14} />
+          </span>
         )}
       </span>
     );

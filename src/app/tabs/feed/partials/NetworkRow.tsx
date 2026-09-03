@@ -5,6 +5,7 @@ import {
   Card,
   Icon,
   IconBtn,
+  PageFlag,
 } from "@/reusables/design";
 import { NetworkEntityResult } from "@/reusables/vars/interfaces";
 
@@ -161,11 +162,7 @@ function NetworkRow({
           {item.is_verified && (
             <Icon n="verified" s={14} c="var(--brand)" style={{ flex: "none" }} />
           )}
-          {isRealm && (
-            <span title="Page" style={{ display: "inline-flex", flex: "none" }}>
-              <Icon n="flag" s={13} c="var(--text-3)" />
-            </span>
-          )}
+          <PageFlag is={isRealm} />
           <BotFlag is={isBot} />
         </button>
         <div

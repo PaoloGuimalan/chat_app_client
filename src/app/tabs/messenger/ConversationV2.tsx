@@ -16,7 +16,6 @@ import {
   RiInboxUnarchiveFill,
   RiVerifiedBadgeFill,
 } from "react-icons/ri";
-import { PiFlag } from "react-icons/pi";
 import { IoArrowBack, IoDocumentOutline, IoSend } from "react-icons/io5";
 import {
   MdAudiotrack,
@@ -97,7 +96,7 @@ import { FaHashtag, FaLock } from "react-icons/fa6";
 import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { Avatar, BotFlag } from "@/reusables/design";
+import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
 import {
   pushErrorAlert,
@@ -1656,17 +1655,7 @@ function ConversationV2({
                       />
                     )}
                     <BotFlag type={conversationsetup.details.type} />
-                    {/* Only a PAGE. Groups/channels are realms too, but the
-                        lock/hash glyph beside them already says what they
-                        are. Matches the Network row's page flag. */}
-                    {conversationsetup.details.realm_type === "page" && (
-                      <span
-                        title="Page"
-                        style={{ display: "inline-flex", flex: "none" }}
-                      >
-                        <PiFlag size={13} color="var(--text-3)" />
-                      </span>
-                    )}
+                    <PageFlag realmType={conversationsetup.details.realm_type} />
                   </span>
                 ) : (
                   <span className="span_userdetails_name tw-flex tw-items-center tw-gap-[3px]">

@@ -13,7 +13,7 @@ import {
 } from "@/reusables/vars/interfaces";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
-import { Avatar } from "@/reusables/design";
+import { Avatar, BotFlag, Icon, PageFlag } from "@/reusables/design";
 import { RemoveRealmMemberRequest } from "@/reusables/hooks/requests";
 import { MdReport } from "react-icons/md";
 import ReportModal from "@/app/widgets/modals/ReportModal";
@@ -249,16 +249,27 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                                   : null
                               }
                               size={36}
+                              kind={mp.entityType}
                             />
                           </div>
-                          <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis">
-                            <span className="tw-flex tw-flex-1 tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
+                          <div className="tw-flex tw-flex-1 tw-min-w-0 tw-items-center tw-gap-[4px] span_userdetails_ellipsis">
+                            <span className="tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
                               {mp.fullname.firstName}
                               {mp.fullname.middleName == "N/A"
                                 ? ""
                                 : ` ${mp.fullname.middleName}`}{" "}
                               {mp.fullname.lastName}
                             </span>
+                            {mp.isVerified && (
+                              <Icon
+                                n="verified"
+                                s={14}
+                                c="var(--brand)"
+                                style={{ flex: "none" }}
+                              />
+                            )}
+                            <PageFlag realmType={mp.realmType} />
+                            <BotFlag type={mp.entityType} />
                           </div>
                         </div>
                       );

@@ -3,14 +3,16 @@ import { useEffect, useState } from "react";
 import "../../../styles/styles.css";
 import { IoClose } from "react-icons/io5";
 import { BiGroup } from "react-icons/bi";
-import {
-  // useDispatch,
-  useSelector,
-} from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
-import { Avatar } from "@/reusables/design/primitives2";
+import {
+  Avatar,
+  BotFlag,
+  PageFlag,
+} from "@/reusables/design/primitives2";
 import {
   ContactsListReusableRequest,
+  EntitySearchRequest,
   CreateGroupChatRequest,
 } from "../../../reusables/hooks/requests";
 import Modal from "../../reusables/Modal";
@@ -18,6 +20,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
   AuthenticationInterface,
   ContactRowData,
+  EntitySearchResult,
   IContact,
 } from "@/reusables/vars/interfaces";
 import { contactsToUserdetails } from "@/reusables/hooks/reusable";
@@ -27,8 +30,8 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
-  //   const contactslist = useSelector((state: any) => state.contactslist)
-  // const dispatch = useDispatch();
+  const alerts = useSelector((state: any) => state.alerts);
+  const dispatch = useDispatch();
 
   const [contactslist, setcontactslist] = useState<IContact[]>([]);
   const [isLoading, setisLoading] = useState<boolean>(true);
@@ -40,6 +43,13 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
   const [gcprivacy, setgcprivacy] = useState(true);
   const [searchFilter, setsearchFilter] = useState("");
   const [markedMembers, setmarkedMembers] = useState<any[]>([]);
+
+  // GLOBAL search results, kept apart from the contacts list rather than
+  // merged into it: the two answer different questions ("who do I already
+  // know" vs "who exists"), and a merged list cannot say which a row came
+  // from, so the empty state would be wrong for both.
+  const [searchResults, setsearchResults] = useState<EntitySearchResult[]>([]);
+  const [isSearching, setisSearching] = useState<boolean>(false);
 
   const valueToArrayChecker = (userID: any) => {
     const userIDExistInArray = markedMembers.filter(
@@ -85,7 +95,36 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
     ContactsListReusableRequest(setcontactslist, setisLoading);
   }, []);
 
-  const rows: ContactRowData[] = Array.from(
+  // A TYPED QUERY SEARCHES EVERYONE, not just your contacts.
+  //
+  // Membership is entity-based - a page or a bot can be a member exactly as a
+  // person can - so a contacts-only picker made those impossible to add at
+  // creation time, and you had to create the group chat first and add them
+  // afterwards. Debounced because it now costs a request per keystroke.
+  useEffect(() => {
+    const term = searchFilter.trim();
+    if (term === "") {
+      setsearchResults([]);
+      setisSearching(false);
+      return;
+    }
+
+    setisSearching(true);
+    const timer = setTimeout(() => {
+      EntitySearchRequest(
+        { searchdata: term, types: "user,realm,bot", realmTypes: "page" },
+        dispatch,
+        setisSearching,
+        alerts,
+        setsearchResults,
+      );
+    }, 300);
+
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchFilter]);
+
+  const contactRows: ContactRowData[] = Array.from(
     new Map(
       contactslist
         .flatMap((cnts) => {
@@ -124,6 +163,43 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
         .map((row) => [row.entityID, row]),
     ).values(),
   );
+
+  // A search hit as a row. entityID is what the picker keys everything on -
+  // selection and the payload it posts - so that is the field that has to be
+  // right; `id` is the ACCOUNT id, which a realm or bot hit does not have.
+  const searchRows: ContactRowData[] = searchResults
+    .filter(
+      (hit) =>
+        hit.entity_id !==
+        (authentication.active_entity_context?.id ||
+          authentication.user.entity_id),
+    )
+    .map((hit) => {
+      const [firstName, ...rest] = (hit.display_name || hit.handle || "").split(
+        " ",
+      );
+      return {
+        id: hit.id || hit.entity_id,
+        entityID: hit.entity_id,
+        username: hit.handle,
+        firstName: firstName || hit.handle,
+        middleName: "N/A",
+        lastName: rest.join(" "),
+        // ContactRowData.profile is a string; the search payload nulls it.
+        profile: hit.profile ?? "none",
+        isBadged: hit.is_verified,
+        connectionID: "",
+        selfActed: false,
+        involvedUserdetails: null,
+        entityType: hit.type,
+        realmType: hit.realm_type,
+      };
+    });
+
+  // One list, one source - decided by whether a query is typed, never by
+  // merging the two.
+  const rows: ContactRowData[] =
+    searchFilter.trim() !== "" ? searchRows : contactRows;
 
   return (
     <Modal
@@ -228,7 +304,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                     );
                   })}
                 </motion.div>
-                {isLoading ? (
+                {isLoading || isSearching ? (
                   <div className="tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center">
                     <motion.div
                       animate={{
@@ -253,11 +329,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                   >
                     <div className="tw-w-full tw-flex tw-flex-col tw-h-auto">
                       {rows.map((cnts: ContactRowData, i: number) => {
-                        const fullNameFilter = `${cnts.firstName}${
-                          cnts.middleName == "N/A" ? "" : ` ${cnts.middleName}`
-                        } ${cnts.lastName}`;
-                        if (fullNameFilter.includes(searchFilter)) {
-                          return (
+                        return (
                             <motion.div
                               whileHover={{
                                 backgroundColor: "var(--surface-hover)",
@@ -299,21 +371,25 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                         : cnts.profile
                                     }
                                     size={40}
+                                    kind={cnts.entityType}
                                   />
                                 </div>
                               </div>
                               <div className="div_contact_fullname_container">
-                                <span className="span_cncts_fullname_label">
-                                  {cnts.firstName}
-                                  {cnts.middleName == "N/A"
-                                    ? ""
-                                    : ` ${cnts.middleName}`}{" "}
-                                  {cnts.lastName}
+                                <span className="span_cncts_fullname_label tw-flex tw-items-center tw-gap-[4px]">
+                                  <span className="tw-truncate">
+                                    {cnts.firstName}
+                                    {cnts.middleName == "N/A"
+                                      ? ""
+                                      : ` ${cnts.middleName}`}{" "}
+                                    {cnts.lastName}
+                                  </span>
+                                  <PageFlag realmType={cnts.realmType} />
+                                  <BotFlag type={cnts.entityType} />
                                 </span>
                               </div>
                             </motion.div>
                           );
-                        }
                       })}
                     </div>
                   </motion.div>

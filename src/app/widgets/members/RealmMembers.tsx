@@ -1,6 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Avatar, BotFlag } from "@/reusables/design/primitives2";
+import {
+  Avatar,
+  BotFlag,
+  PageFlag,
+} from "@/reusables/design/primitives2";
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -255,8 +259,11 @@ function RealmMembers({
                       <div className="div_contact_fullname_container">
                         <div className="tw-h-full tw-flex tw-flex-col tw-justify-center tw-gap-[4px] tw-flex-1">
                           {cnts.entity.type === "realm" ? (
-                            <span className="span_cncts_fullname_label tw-text-left">
-                              {cnts.entity.details.name}
+                            <span className="span_cncts_fullname_label tw-text-left tw-flex tw-items-center tw-gap-[4px]">
+                              <span className="tw-truncate">
+                                {cnts.entity.details.name}
+                              </span>
+                              <PageFlag realmType={cnts.entity.details.type} />
                             </span>
                           ) : (
                             <span className="span_cncts_fullname_label tw-text-left tw-flex tw-items-center tw-gap-[4px]">

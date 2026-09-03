@@ -21,9 +21,8 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaHashtag } from "react-icons/fa6";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { timeSince } from "@/reusables/hooks/reusable";
-import { Avatar, BotFlag } from "@/reusables/design";
+import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
-import { PiFlag } from "react-icons/pi";
 
 function ConversationInfoModal({
   conversationinfo,
@@ -160,14 +159,7 @@ function ConversationInfoModal({
                         style={{ flex: "none" }}
                       />
                     )}
-                    {userInfo?.realmType === "page" && (
-                      <span
-                        title="Page"
-                        style={{ display: "inline-flex", flex: "none" }}
-                      >
-                        <PiFlag size={14} color="var(--text-3)" />
-                      </span>
-                    )}
+                    <PageFlag realmType={userInfo?.realmType} size={14} />
                     <BotFlag type={userInfo?.entityType} size={14} />
                   </span>
                 </div>
@@ -234,17 +226,7 @@ function ConversationInfoModal({
                                   style={{ flex: "none" }}
                                 />
                               )}
-                              {mp.realmType === "page" && (
-                                <span
-                                  title="Page"
-                                  style={{
-                                    display: "inline-flex",
-                                    flex: "none",
-                                  }}
-                                >
-                                  <PiFlag size={12} color="var(--text-3)" />
-                                </span>
-                              )}
+                              <PageFlag realmType={mp.realmType} size={12} />
                               <BotFlag type={mp.entityType} size={12} />
                             </div>
                           </div>
@@ -926,17 +908,7 @@ function ConversationInfoModal({
                                   style={{ flex: "none" }}
                                 />
                               )}
-                              {mp.realmType === "page" && (
-                                <span
-                                  title="Page"
-                                  style={{
-                                    display: "inline-flex",
-                                    flex: "none",
-                                  }}
-                                >
-                                  <PiFlag size={12} color="var(--text-3)" />
-                                </span>
-                              )}
+                              <PageFlag realmType={mp.realmType} size={12} />
                               <BotFlag type={mp.entityType} size={12} />
                             </div>
                           </div>

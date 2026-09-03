@@ -8,7 +8,7 @@ import { IoClose } from "react-icons/io5";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { CreateChannelRequest } from "@/reusables/hooks/requests";
-import { Avatar } from "@/reusables/design";
+import { Avatar, BotFlag, Icon, PageFlag } from "@/reusables/design";
 
 function CreateChannelModal({
   serverID,
@@ -302,6 +302,7 @@ function CreateChannelModal({
                                             : null
                                         }
                                         size={40}
+                                        kind={cnts.entityType}
                                         style={{
                                           width: 40,
                                           height: 40,
@@ -310,12 +311,30 @@ function CreateChannelModal({
                                     </div>
                                   </div>
                                   <div className="div_contact_fullname_container">
-                                    <span className="span_cncts_fullname_label">
-                                      {cnts.fullname.firstName}
-                                      {cnts.fullname.middleName == "N/A"
-                                        ? ""
-                                        : ` ${cnts.fullname.middleName}`}{" "}
-                                      {cnts.fullname.lastName}
+                                    {/* The candidate list stays the SERVER's
+                                        members - a channel lives inside one,
+                                        so anyone who can be in the channel is
+                                        already in the server. Only the display
+                                        was missing: a bot member looked like a
+                                        person. */}
+                                    <span className="span_cncts_fullname_label tw-flex tw-items-center tw-gap-[4px]">
+                                      <span className="tw-truncate">
+                                        {cnts.fullname.firstName}
+                                        {cnts.fullname.middleName == "N/A"
+                                          ? ""
+                                          : ` ${cnts.fullname.middleName}`}{" "}
+                                        {cnts.fullname.lastName}
+                                      </span>
+                                      {cnts.isVerified && (
+                                        <Icon
+                                          n="verified"
+                                          s={13}
+                                          c="var(--brand)"
+                                          style={{ flex: "none" }}
+                                        />
+                                      )}
+                                      <PageFlag realmType={cnts.realmType} />
+                                      <BotFlag type={cnts.entityType} />
                                     </span>
                                   </div>
                                 </motion.div>

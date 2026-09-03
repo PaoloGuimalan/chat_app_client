@@ -39,7 +39,7 @@ import {
   AuthenticationInterface,
   EntitySearchResult,
 } from "@/reusables/vars/interfaces";
-import { Avatar } from "@/reusables/design";
+import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
 import {
@@ -157,7 +157,7 @@ export function NewPostModal({
     const timeoutRequest = setTimeout(() => {
       if (tagsearch.trim() !== "" && tagsearch.split("@")[1] !== "") {
         EntitySearchRequest(
-          { searchdata: tagsearch, types: "user,realm", realmTypes: "page" },
+          { searchdata: tagsearch, types: "user,realm,bot", realmTypes: "page" },
           dispatch,
           setistagsearching,
           alerts,
@@ -476,7 +476,8 @@ export function NewPostModal({
                         name={entity.display_name}
                         src={entity.profile ?? undefined}
                         size={20}
-                        shape={entity.type === "realm" ? "rounded" : "circle"}
+                        kind={entity.type}
+                        shape={entity.type === "user" ? "circle" : "rounded"}
                       />
                       <span className="cl-tag-chip__name">
                         {entity.display_name}
@@ -488,6 +489,8 @@ export function NewPostModal({
                           style={{ flexShrink: 0 }}
                         />
                       )}
+                      <PageFlag realmType={entity.realm_type} size={12} />
+                      <BotFlag type={entity.type} size={12} />
                       <button
                         type="button"
                         disabled={isuploadingpost}
@@ -559,7 +562,7 @@ export function NewPostModal({
                       disabled={isuploadingpost}
                       value={tagsearch}
                       onChange={(e) => settagsearch(e.target.value)}
-                      placeholder="Search people or pages to tag"
+                      placeholder="Search people, pages or bots to tag"
                     />
                   </div>
                   <div className="cl-tag-results thinscroller">
@@ -593,8 +596,9 @@ export function NewPostModal({
                               name={entity.display_name}
                               src={entity.profile ?? undefined}
                               size={34}
+                              kind={entity.type}
                               shape={
-                                entity.type === "realm" ? "rounded" : "circle"
+                                entity.type === "user" ? "circle" : "rounded"
                               }
                             />
                             <div className="cl-tag-result__meta">
@@ -609,6 +613,11 @@ export function NewPostModal({
                                     style={{ flexShrink: 0 }}
                                   />
                                 )}
+                                <PageFlag
+                                  realmType={entity.realm_type}
+                                  size={14}
+                                />
+                                <BotFlag type={entity.type} size={14} />
                               </span>
                               <span className="cl-tag-result__handle">
                                 {entity.type === "realm"
@@ -633,7 +642,7 @@ export function NewPostModal({
                     ) : (
                       <div className="cl-tag-empty">
                         {tagsearch.trim() === ""
-                          ? "Search for people or pages to tag in this post"
+                          ? "Search for people, pages or bots to tag in this post"
                           : "No results found"}
                       </div>
                     )}

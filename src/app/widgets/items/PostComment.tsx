@@ -258,7 +258,14 @@ function PostComment({
 
           const people = result.people?.results ?? [];
           const realms = result.realms?.results ?? [];
-          const found = [...people, ...realms].filter((mp: any) => mp.handle);
+          // Bots too: the overview endpoint already returns them, and
+          // @mentioning one in a comment is how you ask it something - so
+          // dropping them here hid the only interaction a comment has with a
+          // bot. They carry the same {handle, display_name, profile} shape.
+          const bots = result.bots?.results ?? [];
+          const found = [...people, ...realms, ...bots].filter(
+            (mp: any) => mp.handle,
+          );
           setMentionSuggestions(
             dedupeSuggestions([...localMatches, ...found]).slice(0, 6),
           );

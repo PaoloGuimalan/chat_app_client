@@ -1,7 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Avatar, BotFlag } from "@/reusables/design/primitives2";
+import {
+  Avatar,
+  BotFlag,
+  PageFlag,
+} from "@/reusables/design/primitives2";
 import {
   AuthenticationInterface,
   ContactRowData,
@@ -264,6 +268,7 @@ function ContactMember({
       selfActed: false,
       involvedUserdetails: null,
       entityType: hit.type,
+      realmType: hit.realm_type,
     };
   });
 
@@ -454,6 +459,9 @@ function ContactMember({
                                       : ` ${cnts.entity.details.middle_name}`}{" "}
                                     {cnts.entity.details.last_name}
                                   </span>
+                                  <PageFlag
+                                    realmType={cnts.entity.details.type}
+                                  />
                                   <BotFlag type={cnts.entity.type} />
                                 </span>
                               </div>
@@ -534,6 +542,7 @@ function ContactMember({
                                     : ` ${cnts.middleName}`}{" "}
                                   {cnts.lastName}
                                 </span>
+                                <PageFlag realmType={cnts.realmType} />
                                 <BotFlag type={cnts.entityType} />
                               </span>
                             </div>

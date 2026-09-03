@@ -339,6 +339,13 @@ export interface ServerUsersWithInfo {
     lastName: string;
   };
   profile: string;
+  /** "user" | "realm" | "bot", from GetServerMembers. */
+  entityType?: string | null;
+  /** "page" | "server" | ... for a realm member; absent for a person. */
+  realmType?: string | null;
+  /** The display BADGE - an account's is_badged or a realm's is_verified,
+   *  normalised server-side. Never true for a bot. */
+  isVerified?: boolean;
 }
 
 export interface ServerChannelsListInterface {
@@ -1106,6 +1113,9 @@ export interface ContactRowData {
   connectionID: string;
   selfActed: boolean;
   involvedUserdetails: any;
+  /** A realm counterpart's own type ("page", "group", ...); absent for a
+   *  person or a bot. Only a page is flagged. */
+  realmType?: string | null;
   // Contacts are entity<->entity, so a counterpart can be a page. Optional
   // because other producers of this shape (e.g. CreatePage's member picker)
   // only ever deal with users; treat a missing value as "user".

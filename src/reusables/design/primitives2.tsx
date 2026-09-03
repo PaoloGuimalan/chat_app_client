@@ -57,6 +57,30 @@ export function BotFlag({
   );
 }
 
+/**
+ * The page marker, the sibling of BotFlag.
+ *
+ * Only a PAGE gets it. Groups, servers and channels are realms too, but the
+ * surfaces that list them already say what they are (a hash, a lock, a
+ * heading), so flagging those would label the obvious.
+ */
+export function PageFlag({
+  realmType,
+  is,
+  size = 13,
+}: {
+  realmType?: string | null;
+  is?: boolean;
+  size?: number;
+}) {
+  if (!(is ?? realmType === "page")) return null;
+  return (
+    <span title="Page" style={{ display: "inline-flex", flex: "none" }}>
+      <Icon n="flag" s={size} c="var(--text-3)" />
+    </span>
+  );
+}
+
 export interface AvatarProps {
   id?: string;
   name?: string;
