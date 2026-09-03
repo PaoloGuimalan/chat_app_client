@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Modal from "@/app/reusables/Modal";
 import { IoMdClose } from "react-icons/io";
-import { Avatar, Icon } from "@/reusables/design";
+import { Avatar, BotFlag, Icon } from "@/reusables/design";
 
 // A reactor may be a person OR a page (you can react while switched to one),
 // so every row is built from one normalized shape. The middle name arrives as
@@ -111,6 +111,7 @@ function ReactionsModal({
                           : undefined
                       }
                       size={36}
+                      kind={mp.entityType}
                     />
                   </div>
                   <div className="tw-flex tw-flex-1 tw-min-w-0 span_userdetails_ellipsis tw-items-center tw-gap-[8px]">
@@ -127,6 +128,7 @@ function ReactionsModal({
                           <Icon n="flag" s={13} c="var(--text-3)" />
                         </span>
                       )}
+                      <BotFlag type={mp.entityType} />
                     </span>
                     {isMine && (
                       <span

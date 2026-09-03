@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Avatar } from "@/reusables/design/primitives2";
+import { Avatar, BotFlag } from "@/reusables/design/primitives2";
 import {
   AuthenticationInterface,
   ContactRowData,
@@ -12,14 +12,16 @@ import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { IoClose } from "react-icons/io5";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import {
   ContactsListInitRequest,
+  EntitySearchRequest,
   GetRealmMembersRequest,
 } from "@/reusables/hooks/requests";
 import { genericpaginationstate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
 import { contactsToUserdetails } from "@/reusables/hooks/reusable";
+import { EntitySearchResult } from "@/reusables/vars/interfaces";
 
 function ContactMember({
   parentRealmID,
@@ -43,6 +45,9 @@ function ContactMember({
     (state: any) => state.authentication,
   );
 
+  const dispatch = useDispatch();
+  const alerts = useSelector((state: any) => state.alerts);
+
   const [contacts, setcontacts] = useState<PaginationProp<IContact>>(
     genericpaginationstate,
   );
@@ -50,6 +55,13 @@ function ContactMember({
   const [searchFilter, setsearchFilter] = useState<string>("");
   const [isSaving, _setisSaving] = useState<boolean>(false);
   const [markedMembers, setmarkedMembers] = useState<any[]>([]);
+
+  // GLOBAL search results, kept apart from `contacts` rather than merged into
+  // it. The two answer different questions - "who do I already know" versus
+  // "who exists" - and a merged list cannot say which a row came from, so the
+  // empty state and the pagination would both be wrong.
+  const [searchResults, setsearchResults] = useState<EntitySearchResult[]>([]);
+  const [isSearching, setisSearching] = useState<boolean>(false);
 
   const contactslist: IContact[] = contacts.results;
 
@@ -118,7 +130,40 @@ function ContactMember({
         .catch((err) => {
           console.log(err);
         });
+    } else if (searchProp.trim() !== "") {
+      // A TYPED QUERY SEARCHES EVERYONE, not just contacts.
+      //
+      // This used to re-query the contacts list with a filter, which meant a
+      // realm could only ever gain members you had already connected with -
+      // and the failure read as "no results" rather than "not searchable",
+      // so it looked like the person did not exist.
+      //
+      // Entities, not people: membership is entity-based, so a page can be a
+      // member of a realm exactly as a person can, and a people-only search
+      // would silently make that impossible. Mobile's
+      // realm_add_members_view.dart made this call first; this brings web in
+      // line with it.
+      setisSearching(true);
+      setisLoading(false);
+      EntitySearchRequest(
+        {
+          searchdata: searchProp.trim(),
+          // Bots included: adding one to a realm has worked server-side all
+          // along (POST /m/addnewmember resolves them), but web had no way to
+          // FIND one to add. Mobile's picker searches entities for the same
+          // reason.
+          types: "user,realm,bot",
+          realmTypes: "page",
+        },
+        dispatch,
+        setisSearching,
+        alerts,
+        setsearchResults,
+      );
     } else {
+      // No term: the contacts list is a finite set worth showing unprompted,
+      // and it is the useful default - most additions are people you know.
+      setsearchResults([]);
       ContactsListInitRequest(
         currentPage,
         range,
@@ -126,7 +171,7 @@ function ContactMember({
         setcontacts,
         setisLoading,
         true,
-        searchProp.trim() === "" ? null : searchProp,
+        null,
       );
     }
   };
@@ -197,7 +242,32 @@ function ContactMember({
   const actingEntityID =
     authentication.active_entity_context?.id || authentication.user.entity_id;
 
-  const rows: ContactRowData[] = Array.from(
+  // A search hit rendered as a row. The picker keys everything on entityID -
+  // selection, exclusion and the payload it emits - so that is the field that
+  // has to be right; `id` is the ACCOUNT id, which the endpoint also reads and
+  // which a realm hit simply does not have.
+  const searchRows: ContactRowData[] = searchResults.map((hit) => {
+    const [firstName, ...rest] = (hit.display_name || hit.handle || "").split(" ");
+    return {
+      id: hit.id || hit.entity_id,
+      entityID: hit.entity_id,
+      username: hit.handle,
+      firstName: firstName || hit.handle,
+      middleName: "N/A",
+      lastName: rest.join(" "),
+      // Search normalises "no photo" to null; the row below checks for the
+      // "none" sentinel that contacts carry. Converted here so both sources
+      // reach the same render, rather than teaching the row a second rule.
+      profile: hit.profile ?? "none",
+      isBadged: hit.is_verified,
+      connectionID: "",
+      selfActed: false,
+      involvedUserdetails: null,
+      entityType: hit.type,
+    };
+  });
+
+  const contactRows: ContactRowData[] = Array.from(
     new Map(
       contactslist
         .flatMap((cnts) => {
@@ -234,11 +304,16 @@ function ContactMember({
     ).values(),
   );
 
+  // One list, one source. Which one is decided by whether a query is typed,
+  // never by merging - see the searchResults comment above.
+  const rows: ContactRowData[] =
+    searchFilter.trim() !== "" ? searchRows : contactRows;
+
   return (
     <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-transparent tw-flex">
       <div className="tw-w-full tw-p-[18px] sm:tw-p-[24px] tw-flex tw-flex-col tw-items-start tw-gap-[15px] tw-bg-transparent tw-min-h-0">
         <span className="cl-text-body tw-font-semibold tw-text-[var(--text)]">
-          {label}
+          {searchFilter.trim() !== "" ? "Search results" : label}
         </span>
         <div id="div_modal_input_columns_add_people" className="tw-w-full">
           <div id="div_input_filter_container">
@@ -285,7 +360,7 @@ function ContactMember({
               );
             })}
           </motion.div>
-          {isLoading ? (
+          {isLoading || isSearching ? (
             <div className="tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center tw-max-h-[350px] tw-min-h-[350px]">
               <motion.div
                 animate={{
@@ -366,16 +441,20 @@ function ContactMember({
                                         : cnts.entity.details.profile
                                     }
                                     size={40}
+                                    kind={cnts.entity.type}
                                   />
                                 </div>
                               </div>
                               <div className="div_contact_fullname_container">
-                                <span className="span_cncts_fullname_label">
-                                  {cnts.entity.details.first_name}
-                                  {cnts.entity.details.middle_name == "N/A"
-                                    ? ""
-                                    : ` ${cnts.entity.details.middle_name}`}{" "}
-                                  {cnts.entity.details.last_name}
+                                <span className="span_cncts_fullname_label tw-flex tw-items-center tw-gap-[4px]">
+                                  <span className="tw-truncate">
+                                    {cnts.entity.details.first_name}
+                                    {cnts.entity.details.middle_name == "N/A"
+                                      ? ""
+                                      : ` ${cnts.entity.details.middle_name}`}{" "}
+                                    {cnts.entity.details.last_name}
+                                  </span>
+                                  <BotFlag type={cnts.entity.type} />
                                 </span>
                               </div>
                             </motion.div>
@@ -442,16 +521,20 @@ function ContactMember({
                                       : cnts.profile
                                   }
                                   size={40}
+                                  kind={cnts.entityType}
                                 />
                               </div>
                             </div>
                             <div className="div_contact_fullname_container">
-                              <span className="span_cncts_fullname_label">
-                                {cnts.firstName}
-                                {cnts.middleName == "N/A"
-                                  ? ""
-                                  : ` ${cnts.middleName}`}{" "}
-                                {cnts.lastName}
+                              <span className="span_cncts_fullname_label tw-flex tw-items-center tw-gap-[4px]">
+                                <span className="tw-truncate">
+                                  {cnts.firstName}
+                                  {cnts.middleName == "N/A"
+                                    ? ""
+                                    : ` ${cnts.middleName}`}{" "}
+                                  {cnts.lastName}
+                                </span>
+                                <BotFlag type={cnts.entityType} />
                               </span>
                             </div>
                           </motion.div>

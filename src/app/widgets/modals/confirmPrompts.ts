@@ -35,9 +35,16 @@ export const unfollowPrompt = (
       }
     : {
         title: `Unfollow ${name}?`,
-        message: isRealm
-          ? `You'll stop seeing this ${realmNoun}'s posts in your feed. You can follow again anytime.`
-          : "You'll stop seeing their posts in your feed. You can follow again anytime.",
+        // A bot gets its own line because the usual one is false for it:
+        // bots cannot post, so "you'll stop seeing its posts" describes a
+        // consequence that does not exist. What you actually lose is the bot
+        // appearing in your following list.
+        message:
+          realmNoun === "bot"
+            ? "It will be removed from your following list. You can follow again anytime, and this doesn't affect any chats you share."
+            : isRealm
+              ? `You'll stop seeing this ${realmNoun}'s posts in your feed. You can follow again anytime.`
+              : "You'll stop seeing their posts in your feed. You can follow again anytime.",
         confirmLabel: "Unfollow",
       };
 

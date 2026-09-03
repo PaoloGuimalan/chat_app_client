@@ -699,12 +699,18 @@ function Contacts() {
       {pendingUnfollow && (
         <ConfirmModal
           {...unfollowPrompt(
-            pendingUnfollow.type === "realm"
-              ? pendingUnfollow.display_name
-              : `@${pendingUnfollow.handle}`,
-            pendingUnfollow.type === "realm",
+            // A bot is named, not handled: its display name is what the row
+            // above showed, and "@neon" reads like a person's mention.
+            pendingUnfollow.type === "user"
+              ? `@${pendingUnfollow.handle}`
+              : pendingUnfollow.display_name,
+            // Not "is a realm" so much as "is not a person" - it selects the
+            // noun-carrying wording, which a bot needs as much as a page does.
+            pendingUnfollow.type !== "user",
             false,
-            pendingUnfollow.realm_type || "page",
+            pendingUnfollow.type === "bot"
+              ? "bot"
+              : pendingUnfollow.realm_type || "page",
           )}
           onClose={() => setPendingUnfollow(null)}
           onConfirm={() => {

@@ -123,6 +123,20 @@ export interface IRealmBasicInfo {
   parent: IRealmBasicInfo | null;
 }
 
+/**
+ * A bot's profile.
+ *
+ * Structurally the realm payload - /api/user/auth/<handle>/ maps a bot onto
+ * that shape server-side so one endpoint serves all three kinds - but named
+ * separately because the bot screen reads it, and calling that variable
+ * `realmInfo` inside a bot component is a lie the next reader has to decode.
+ *
+ * `type` is always "bot", `can_connect` always false, and cover_photo /
+ * members / roles are always empty: a bot has no cover to set, no membership
+ * of its own, and nothing to accept a contact request with.
+ */
+export type IBotProfileInfo = IRealmProfileInfo;
+
 export interface IRealmProfileInfo {
   cover_photo: string | null;
   created_by: string;
@@ -154,6 +168,16 @@ export interface IRealmProfileInfo {
   is_member: boolean;
   followers_count: number;
   members: number;
+  /**
+   * Whether this profile can be sent a contact request. Only BOTS send it, and
+   * only ever as false: a bot has no session to see a request in and no accept
+   * endpoint to call, so one would sit pending forever.
+   *
+   * Absent on realms, which are all connectable - so read it as `!== false`
+   * rather than truthy, and nothing needs a migration.
+   */
+  can_connect?: boolean;
+  can_follow?: boolean;
   is_follower: boolean;
   // A Connection is entity<->entity, so a page can be a contact too. Mirrors
   // the `connection` block the user profile returns.
@@ -550,7 +574,10 @@ export interface IContact {
 // are precomputed server-side so the UI renders both kinds identically.
 export interface EntitySearchResult {
   entity_id: string;
-  type: "user" | "realm";
+  // "bot" is in the ENDPOINT's default set, not opt-in - a bot nobody can find
+  // is a bot nobody can add to a group or start a conversation with. Callers
+  // that only want people pass `types` explicitly.
+  type: "user" | "realm" | "bot";
   display_name: string;
   handle: string;
   profile: string | null;
@@ -611,6 +638,30 @@ export interface SearchRealmResult {
   id: string;
 }
 
+// Bots are the third entity kind. The first eleven fields are deliberately
+// identical to what entity/search_views.normalize_bot() emits AND to what
+// GET /api/bot/<handle>/ returns, so one card renders a search hit and a
+// profile header alike.
+export interface SearchBotResult {
+  entity_id: string;
+  type: "bot";
+  display_name: string;
+  handle: string;
+  profile: string | null;
+  // Always false. A bot is not a verified human or page, and borrowing that
+  // badge would say something the badge does not mean.
+  is_verified: false;
+  // What the bot is for. People and realms have no equivalent one-liner, but a
+  // bot without one is indistinguishable from any other bot.
+  description: string;
+  followers_count: number;
+  is_followed: boolean;
+  // Always false - a bot has no privacy gate, so a follow is never pending.
+  // Present so one card can read the same keys for any entity kind.
+  is_follow_pending: false;
+  id: string | null;
+}
+
 export interface SearchPostResult {
   post_id: string;
   caption: string;
@@ -637,6 +688,9 @@ export interface SearchOverviewSection<T> {
 export interface SearchOverview {
   people: SearchOverviewSection<SearchPersonResult>;
   realms: SearchOverviewSection<SearchRealmResult>;
+  // The endpoint has always returned this section; the client simply discarded
+  // it, which is why bots were unfindable despite being fully searchable.
+  bots: SearchOverviewSection<SearchBotResult>;
   posts: SearchOverviewSection<SearchPostResult>;
 }
 
@@ -646,7 +700,10 @@ export interface SearchOverview {
 // extras that are only populated by their own section.
 export interface NetworkEntityResult {
   entity_id: string;
-  type: "user" | "realm";
+  // "bot" appears in FOLLOWING. A bot cannot hold a connection, so it never
+  // appears in connections or follow requests - and it can follow nothing, so
+  // it never appears in followers either.
+  type: "user" | "realm" | "bot";
   display_name: string;
   handle: string;
   profile: string | null;
@@ -655,6 +712,14 @@ export interface NetworkEntityResult {
   id: string;
   /** Realms only. */
   realm_type?: string;
+  /** Bots only - the one-liner saying what the bot is for. */
+  description?: string;
+  /**
+   * Bots only, and always false. A bot cannot accept a contact request, so a
+   * card must not offer one. Sent by the server rather than inferred from
+   * `type` so the reason lives in one place.
+   */
+  can_connect?: boolean;
   /**
    * Realms only. A group's conversationID IS its realm_id, so this is what
    * the groups rail routes to for /messages/<id>.
@@ -1044,7 +1109,9 @@ export interface ContactRowData {
   // Contacts are entity<->entity, so a counterpart can be a page. Optional
   // because other producers of this shape (e.g. CreatePage's member picker)
   // only ever deal with users; treat a missing value as "user".
-  entityType?: "user" | "realm";
+  // "bot" appears when the row came from a global entity search: membership is
+  // entity-based, so a bot can be added to a realm exactly as a page can.
+  entityType?: "user" | "realm" | "bot";
 }
 
 export interface IConversationSetup {

@@ -21,6 +21,7 @@ import {
 import PageLoader from "@/app/reusables/loaders/PageLoader";
 import BrokenLink from "@/app/reusables/catchers/BrokenLink";
 import RealmProfile from "./user/RealmProfile";
+import BotProfile from "./user/BotProfile";
 import { useSelector } from "react-redux";
 import { useTheme } from "@/reusables/design";
 
@@ -115,6 +116,17 @@ function ProfileContainer() {
                     secondaryLabel="Please check and try again."
                   />
                 )
+              ) : realmInfo && type === "bot" ? (
+                // Same route and same fetch as every other profile - only the
+                // LAYOUT differs. Almost nothing on the page screen applies to
+                // a bot: no cover photo to set, no posts to list, no members
+                // or roles. Rendering it through RealmProfile would leave an
+                // empty banner above an empty feed on every bot.
+                <BotProfile
+                  botInfo={realmInfo}
+                  GetProfileInfoProcess={GetProfileInfoProcess}
+                  isSharePage={isSharePath}
+                />
               ) : realmInfo && type === "page" ? (
                 <RealmProfile
                   realmInfo={realmInfo}

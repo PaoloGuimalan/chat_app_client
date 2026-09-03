@@ -1049,6 +1049,29 @@ const SearchRealmsRequest = async (
   });
 };
 
+// The bots section. The overview has always returned it - this is the paginated
+// "See all" behind it, matching the people/realms shape exactly.
+const SearchBotsRequest = async (
+  searchdata: string,
+  page: number,
+  pageSize: number,
+) => {
+  return await Axios.get(
+    `${USER_SERVICE_API}/api/entity/search/v2/bots/${encodeURIComponent(
+      searchdata,
+    )}/`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+      params: { page, page_size: pageSize },
+    },
+  ).then((response) => {
+    // DRF pagination: { count, next, previous, results }
+    return response.data;
+  });
+};
+
 const SearchPostsRequest = async (
   searchdata: string,
   page: number,
@@ -4215,6 +4238,7 @@ export {
   SearchOverviewRequest,
   SearchPeopleRequest,
   SearchRealmsRequest,
+  SearchBotsRequest,
   SearchPostsRequest,
   NetworkOverviewRequest,
   NetworkSectionRequest,

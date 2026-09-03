@@ -498,7 +498,12 @@ function RealmProfile({
             )}
             {authentication.auth && !isSelf && (
               <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
-                {!realmInfo.connection?.is_connection_present ? (
+                {/* can_connect is only sent by bots, and only as false. A bot
+                    has nothing to accept a request WITH, so the button would
+                    exist purely to be refused - `!== false` keeps realms, which
+                    never send the field, exactly as they were. */}
+                {realmInfo.can_connect === false ? null : !realmInfo.connection
+                    ?.is_connection_present ? (
                   <button
                     onClick={AddRealmContactProcess}
                     disabled={isConnectionButtonsLoading}

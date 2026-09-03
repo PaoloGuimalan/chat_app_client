@@ -97,7 +97,7 @@ import { FaHashtag, FaLock } from "react-icons/fa6";
 import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { Avatar } from "@/reusables/design";
+import { Avatar, BotFlag } from "@/reusables/design";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
 import {
   pushErrorAlert,
@@ -1610,7 +1610,12 @@ function ConversationV2({
                 <div id="div_img_cncts_container">
                   <Avatar
                     id={conversationsetup.details.id}
-                    name={`${conversationsetup.details.display_name}`}
+                    // NOT a template literal. `${null}` is the string "null",
+                    // which is what a missing name used to render as - the
+                    // avatar would happily draw "NU" from it. Passed through
+                    // as-is so a real absence stays falsy.
+                    name={conversationsetup.details.display_name}
+                    kind={conversationsetup.details.type}
                     src={
                       conversationsetup.details.profile == "none"
                         ? undefined
@@ -1650,6 +1655,7 @@ function ConversationV2({
                         style={{ flex: "none" }}
                       />
                     )}
+                    <BotFlag type={conversationsetup.details.type} />
                     {/* Only a PAGE. Groups/channels are realms too, but the
                         lock/hash glyph beside them already says what they
                         are. Matches the Network row's page flag. */}
@@ -2872,8 +2878,10 @@ function ConversationV2({
                         name={member.mentionLabel}
                         src={member.profile}
                         size={28}
+                        kind={member.entityType}
                       />
                       <span>{member.displayName}</span>
+                      <BotFlag type={member.entityType} />
                     </button>
                   ))}
                 </div>

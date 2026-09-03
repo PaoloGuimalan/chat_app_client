@@ -1,4 +1,11 @@
-import { Avatar, Btn, Card, Icon, IconBtn } from "@/reusables/design";
+import {
+  Avatar,
+  BotFlag,
+  Btn,
+  Card,
+  Icon,
+  IconBtn,
+} from "@/reusables/design";
 import { NetworkEntityResult } from "@/reusables/vars/interfaces";
 
 export type NetworkRowKind = "connection" | "follower" | "following";
@@ -35,6 +42,9 @@ function NetworkRow({
   onToggleFollow,
 }: NetworkRowProps) {
   const isRealm = item.type === "realm";
+  // Bots appear in FOLLOWING only - they cannot hold a connection and cannot
+  // follow anything, so they reach no other section.
+  const isBot = item.type === "bot";
 
   // Connections show mutuals (the metric that makes a person recognisable);
   // follow rows show the handle, since a mutual count is not what you're
@@ -156,6 +166,7 @@ function NetworkRow({
               <Icon n="flag" s={13} c="var(--text-3)" />
             </span>
           )}
+          <BotFlag is={isBot} />
         </button>
         <div
           style={{

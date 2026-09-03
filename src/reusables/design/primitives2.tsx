@@ -12,14 +12,49 @@ import { Icon } from "./primitives";
 
 import { AV_GRADS, avHash } from "./gradients";
 
-function initials(name = "") {
-  return name
+// `name = ""` only defaults an UNDEFINED argument. A null one - which is what
+// a server row with no name serialises to - passed straight through to
+// .split() and took down every screen that rendered the avatar.
+function initials(name?: string | null) {
+  return (name || "")
     .split(" ")
     .filter(Boolean)
     .map((w) => w[0])
     .slice(0, 2)
     .join("")
     .toUpperCase();
+}
+
+/**
+ * The "this is software" marker that follows a bot's name.
+ *
+ * One component rather than the glyph pasted per list, because it had already
+ * been written five different ways for PAGES (two icon libraries, three
+ * sizes) and a bot appears in more lists than a page does - conversations,
+ * members, reactions, pickers, mentions, search. The value it is deciding on
+ * is the same everywhere, so the decision lives in one place.
+ *
+ * NEVER the verified check: that badge means a verified human or page, and
+ * borrowing it would say something it does not mean.
+ *
+ * Pass whichever the caller has - `type` straight off a payload, or `is` when
+ * the row already computed it.
+ */
+export function BotFlag({
+  type,
+  is,
+  size = 13,
+}: {
+  type?: string | null;
+  is?: boolean;
+  size?: number;
+}) {
+  if (!(is ?? type === "bot")) return null;
+  return (
+    <span title="Bot" style={{ display: "inline-flex", flex: "none" }}>
+      <Icon n="smart_toy" s={size} c="var(--text-3)" />
+    </span>
+  );
 }
 
 export interface AvatarProps {

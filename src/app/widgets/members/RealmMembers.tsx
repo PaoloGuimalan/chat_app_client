@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Avatar } from "@/reusables/design/primitives2";
+import { Avatar, BotFlag } from "@/reusables/design/primitives2";
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -248,6 +248,7 @@ function RealmMembers({
                                 : cnts.entity.details.profile
                             }
                             size={40}
+                            kind={cnts.entity.type}
                           />
                         </div>
                       </div>
@@ -258,12 +259,16 @@ function RealmMembers({
                               {cnts.entity.details.name}
                             </span>
                           ) : (
-                            <span className="span_cncts_fullname_label tw-text-left">
+                            <span className="span_cncts_fullname_label tw-text-left tw-flex tw-items-center tw-gap-[4px]">
                               {cnts.entity.details.first_name}
                               {cnts.entity.details.middle_name == "N/A"
                                 ? ""
                                 : ` ${cnts.entity.details.middle_name}`}{" "}
                               {cnts.entity.details.last_name}
+                              {/* A bot lands in this arm, not the realm one -
+                                  its name is served through first_name, so the
+                                  row needs no bot-specific branch. */}
+                              <BotFlag type={cnts.entity.type} />
                             </span>
                           )}
                           <span className="cl-text-caption tw-font-Inter tw-text-left tw-text-[var(--text-2)]">

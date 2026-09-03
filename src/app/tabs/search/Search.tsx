@@ -19,9 +19,11 @@ import {
   SearchPeopleRequest,
   SearchPostsRequest,
   SearchRealmsRequest,
+  SearchBotsRequest,
   UnfollowRealmRequest,
 } from "@/reusables/hooks/requests";
 import {
+  SearchBotResult,
   AuthenticationInterface,
   IPost,
   SearchOverview,
@@ -49,6 +51,7 @@ import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import PersonCard from "./partials/PersonCard";
 import RealmCard from "./partials/RealmCard";
+import BotCard from "./partials/BotCard";
 import ContentCard from "./partials/ContentCard";
 import {
   ContentCardSkeleton,
@@ -62,19 +65,21 @@ import { notifyRequestError } from "@/reusables/hooks/errormessages";
 // One overview call settles all three section previews per query; each
 // "See all" detail view infinite-scrolls its OWN paginated v2 endpoint.
 
-type DetailKind = "people" | "realms" | "posts";
-type FilterKey = "All" | "People" | "Realms" | "Posts";
+type DetailKind = "people" | "realms" | "bots" | "posts";
+type FilterKey = "All" | "People" | "Realms" | "Bots" | "Posts";
 
 const FILTERS: { key: FilterKey; icon: string }[] = [
   { key: "All", icon: "apps" },
   { key: "People", icon: "group" },
   { key: "Realms", icon: "public" },
+  { key: "Bots", icon: "smart_toy" },
   { key: "Posts", icon: "article" },
 ];
 
 const DETAIL_TITLES: Record<DetailKind, string> = {
   people: "People",
   realms: "Realms",
+  bots: "Bots",
   posts: "Content",
 };
 
@@ -86,6 +91,9 @@ const PEOPLE_PREVIEW_MAX = 8;
 
 const PEOPLE_PAGE_SIZE = 12;
 const REALMS_PAGE_SIZE = 12;
+// Smaller than people/realms: the bot population is tiny next to either, and
+// the server previews only four for the same reason.
+const BOTS_PAGE_SIZE = 12;
 const POSTS_PAGE_SIZE = 10;
 
 function SeeAllButton({ onClick }: { onClick: () => void }) {
@@ -158,6 +166,7 @@ function SearchPage() {
   const [detail, setDetail] = useState<DetailKind | null>(null);
   const [detailPeople, setDetailPeople] = useState<SearchPersonResult[]>([]);
   const [detailRealms, setDetailRealms] = useState<SearchRealmResult[]>([]);
+  const [detailBots, setDetailBots] = useState<SearchBotResult[]>([]);
   const [detailPosts, setDetailPosts] = useState<SearchPostResult[]>([]);
   const [detailPage, setDetailPage] = useState(1);
   const [detailHasNext, setDetailHasNext] = useState(false);
@@ -250,6 +259,11 @@ function SearchPage() {
         .then((response) => apply(setDetailRealms, response))
         .catch((err) => console.log(err))
         .finally(done);
+    } else if (kind === "bots") {
+      SearchBotsRequest(normalizedQuery, pageToLoad, BOTS_PAGE_SIZE)
+        .then((response) => apply(setDetailBots, response))
+        .catch((err) => console.log(err))
+        .finally(done);
     } else {
       SearchPostsRequest(normalizedQuery, pageToLoad, POSTS_PAGE_SIZE)
         .then((response) => apply(setDetailPosts, response))
@@ -262,6 +276,7 @@ function SearchPage() {
     setDetail(kind);
     setDetailPeople([]);
     setDetailRealms([]);
+    setDetailBots([]);
     setDetailPosts([]);
     setDetailPage(1);
     setDetailHasNext(false);
@@ -338,6 +353,14 @@ function SearchPage() {
                   : r,
               ),
             },
+            bots: {
+              ...prev.bots,
+              results: prev.bots.results.map((b) =>
+                b.entity_id === entityID
+                  ? { ...b, is_followed: next.followed }
+                  : b,
+              ),
+            },
           }
         : prev,
     );
@@ -345,6 +368,14 @@ function SearchPage() {
     setDetailRealms((prev) =>
       prev.map((r) =>
         r.entity_id === entityID ? { ...r, is_follower: next.followed } : r,
+      ),
+    );
+    // Bots use `is_followed` (the people key), not `is_follower` (the realm
+    // key) - the two sections genuinely disagree on the field name, and this
+    // is the seam where that matters.
+    setDetailBots((prev) =>
+      prev.map((b) =>
+        b.entity_id === entityID ? { ...b, is_followed: next.followed } : b,
       ),
     );
   };
@@ -485,8 +516,29 @@ function SearchPage() {
       run,
     });
   };
+  // Confirmed on unfollow, the same as people and realms. A follow toggle that
+  // asks on some rows of one result list and not others is the inconsistency
+  // people actually notice - the row above a bot is a page, and both buttons
+  // read "Following". The copy differs (bots have no feed), the gesture does
+  // not. Bots are never private, so there is no pending state to pass.
+  const onToggleBotFollow = (bot: SearchBotResult) => {
+    const run = () => toggleFollowEntity(bot.entity_id, bot.is_followed);
+    if (!bot.is_followed) {
+      run();
+      return;
+    }
+    setPendingUnfollow({
+      prompt: unfollowPrompt(bot.display_name, true, false, "bot"),
+      run,
+    });
+  };
+
   const onOpenPerson = (person: SearchPersonResult) =>
     navigate(`/${person.handle}`);
+  // The same profile shell everything else uses. /api/user/auth/<handle>/
+  // resolves a bot handle and returns the realm-shaped payload, so the
+  // existing layout renders it - no second screen to keep in step.
+  const onOpenBot = (bot: SearchBotResult) => navigate(`/${bot.handle}`);
   // Destination depends on the realm kind: pages have profile routes,
   // servers have their own shell, and a group IS a conversation (its
   // conversationID is the realm id) - members go straight to the thread,
@@ -516,10 +568,12 @@ function SearchPage() {
 
   const showPeople = activeFilter === "All" || activeFilter === "People";
   const showRealms = activeFilter === "All" || activeFilter === "Realms";
+  const showBots = activeFilter === "All" || activeFilter === "Bots";
   const showPosts = activeFilter === "All" || activeFilter === "Posts";
 
   const peopleResults = overview?.people.results ?? [];
   const realmResults = overview?.realms.results ?? [];
+  const botResults = overview?.bots?.results ?? [];
   const postResults = overview?.posts.results ?? [];
 
   const renderPeopleSection = () => (
@@ -583,6 +637,32 @@ function SearchPage() {
           onToggleFollow={onToggleRealmFollow}
           onJoinGroup={onJoinGroup}
           onOpen={onOpenRealm}
+        />
+      ))
+    );
+
+  // A bot has exactly one action, so there is no join/open branching to carry -
+  // the card is simpler than a realm's and the renderer is simpler with it.
+  const renderBotCards = (rail: boolean) =>
+    isOverviewLoading ? (
+      Array.from({ length: 4 }, (_, i) => (
+        <RealmCardSkeleton key={i} rail={rail} />
+      ))
+    ) : botResults.length === 0 ? (
+      <EmptySection
+        icon="smart_toy"
+        title="No bots found"
+        subtitle="Bots you can follow and add to group chats show up here."
+      />
+    ) : (
+      botResults.map((bot) => (
+        <BotCard
+          key={bot.entity_id}
+          bot={bot}
+          rail={rail}
+          followBusy={!!followBusy[bot.entity_id]}
+          onToggleFollow={onToggleBotFollow}
+          onOpen={onOpenBot}
         />
       ))
     );
@@ -739,6 +819,20 @@ function SearchPage() {
                   </HScrollRail>
                 </div>
               )}
+              {showBots && (
+                <div>
+                  <SectionTitle
+                    action={
+                      botResults.length > 0 ? (
+                        <SeeAllButton onClick={() => openDetail("bots")} />
+                      ) : undefined
+                    }
+                  >
+                    Bots
+                  </SectionTitle>
+                  <HScrollRail label="Bots">{renderBotCards(true)}</HScrollRail>
+                </div>
+              )}
               {showPosts && (
                 <div>
                   <SectionTitle
@@ -791,6 +885,28 @@ function SearchPage() {
                   >
                     {renderRealmCards(false)}
                   </div>
+                  {showBots && (
+                    <div style={{ marginTop: 20 }}>
+                      <SectionTitle
+                        action={
+                          botResults.length > 0 ? (
+                            <SeeAllButton onClick={() => openDetail("bots")} />
+                          ) : undefined
+                        }
+                      >
+                        Bots
+                      </SectionTitle>
+                      <div
+                        style={{
+                          display: "grid",
+                          gridTemplateColumns: "repeat(2, 1fr)",
+                          gap: 12,
+                        }}
+                      >
+                        {renderBotCards(false)}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
               {showPosts && (
@@ -919,6 +1035,42 @@ function SearchPage() {
                   onToggleFollow={onToggleRealmFollow}
                   onJoinGroup={onJoinGroup}
                   onOpen={onOpenRealm}
+                />
+              ))}
+              {isDetailLoadingMore &&
+                Array.from({ length: 4 }, (_, i) => (
+                  <RealmCardSkeleton key={`more-${i}`} />
+                ))}
+            </>
+          )}
+        </div>
+      )}
+
+      {detail === "bots" && (
+        <div
+          style={{
+            display: "grid",
+            gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+            gap: 14,
+          }}
+        >
+          {isDetailLoading ? (
+            Array.from({ length: 8 }, (_, i) => <RealmCardSkeleton key={i} />)
+          ) : detailBots.length === 0 ? (
+            <EmptySection
+              icon="public"
+              title="No realms found"
+              subtitle="Servers, groups and pages will show up here."
+            />
+          ) : (
+            <>
+              {detailBots.map((bot) => (
+                <BotCard
+                  key={bot.entity_id}
+                  bot={bot}
+                  followBusy={!!followBusy[bot.entity_id]}
+                                    onToggleFollow={onToggleBotFollow}
+                                    onOpen={onOpenBot}
                 />
               ))}
               {isDetailLoadingMore &&

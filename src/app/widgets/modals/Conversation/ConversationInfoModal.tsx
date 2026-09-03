@@ -21,7 +21,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaHashtag } from "react-icons/fa6";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { timeSince } from "@/reusables/hooks/reusable";
-import { Avatar } from "@/reusables/design";
+import { Avatar, BotFlag } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { PiFlag } from "react-icons/pi";
 
@@ -76,12 +76,14 @@ function ConversationInfoModal({
     fullName: string,
     profile?: string | null,
     size = 40,
+    entityType?: string | null,
   ) => (
     <Avatar
       id={userID}
       name={fullName}
       src={profile && profile !== "none" ? profile : undefined}
       size={size}
+      kind={entityType}
     />
   );
 
@@ -96,7 +98,7 @@ function ConversationInfoModal({
               </span>
             ) : (
               <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1">
-                {conversationinfo.type === "server" ? "Channel" : "Group Chat"}
+                {conversationinfo.type === "channel" ? "Channel" : "Group Chat"}
               </span>
             )}
             <button
@@ -124,6 +126,7 @@ function ConversationInfoModal({
                         : "Conversation",
                       userInfo?.profile,
                       120,
+                      userInfo?.entityType,
                     )}
                   </div>
                   <span className="cl-text-body tw-font-Inter tw-font-semibold tw-flex tw-items-center tw-gap-[4px]">
@@ -165,6 +168,7 @@ function ConversationInfoModal({
                         <PiFlag size={14} color="var(--text-3)" />
                       </span>
                     )}
+                    <BotFlag type={userInfo?.entityType} size={14} />
                   </span>
                 </div>
                 <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start">
@@ -212,6 +216,7 @@ function ConversationInfoModal({
                                 }${mp.fullname.lastName}`,
                                 mp.profile,
                                 36,
+                                mp.entityType,
                               )}
                             </div>
                             <div className="tw-flex tw-flex-1 tw-min-w-0 tw-items-center tw-gap-[4px] span_userdetails_ellipsis">
@@ -240,6 +245,7 @@ function ConversationInfoModal({
                                   <PiFlag size={12} color="var(--text-3)" />
                                 </span>
                               )}
+                              <BotFlag type={mp.entityType} size={12} />
                             </div>
                           </div>
                         );
@@ -902,6 +908,7 @@ function ConversationInfoModal({
                                 }${mp.fullname.lastName}`,
                                 mp.profile,
                                 36,
+                                mp.entityType,
                               )}
                             </div>
                             <div className="tw-flex tw-flex-1 tw-min-w-0 tw-items-center tw-gap-[4px] span_userdetails_ellipsis">
@@ -930,6 +937,7 @@ function ConversationInfoModal({
                                   <PiFlag size={12} color="var(--text-3)" />
                                 </span>
                               )}
+                              <BotFlag type={mp.entityType} size={12} />
                             </div>
                           </div>
                         );
@@ -1117,4 +1125,3 @@ function ConversationInfoModal({
 }
 
 export default ConversationInfoModal;
-

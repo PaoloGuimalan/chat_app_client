@@ -30,12 +30,13 @@ import {
 } from "@/reusables/hooks/localforagehelper";
 import {
   Avatar,
+  BotFlag,
   Btn,
   Card,
+  Chip,
   Field,
   Icon,
   IconBtn,
-  Chip,
   SegTabs,
   useTheme,
 } from "@/reusables/design";
@@ -93,6 +94,7 @@ function MessageRow({
   style,
   isBadged,
   isPage,
+  isBot,
 }: {
   imgSrc: string | null | undefined;
   title: string;
@@ -104,6 +106,10 @@ function MessageRow({
   /** Counterpart is a PAGE. Same flag the Network/Contacts rows already put
    *  on a page connection, so a page reads the same wherever it appears. */
   isPage?: boolean;
+  /** Counterpart is a BOT. Drives both the glyph beside the title and the
+   *  avatar's fallback, so a bot with no picture shows the robot rather than
+   *  initials cut from its name. */
+  isBot?: boolean;
   subtitle: string;
   subtitleColor?: string;
   subtitleHtml?: boolean;
@@ -144,7 +150,13 @@ function MessageRow({
       }
     >
       <div style={{ position: "relative", flex: "none" }}>
-        <Avatar id={title} name={title} src={imgSrc || undefined} size={40} />
+        <Avatar
+          id={title}
+          name={title}
+          src={imgSrc || undefined}
+          size={40}
+          kind={isBot ? "bot" : undefined}
+        />
         {showOnline && (
           <span
             style={{
@@ -207,6 +219,7 @@ function MessageRow({
                 <Icon n="flag" s={13} c="var(--text-3)" />
               </span>
             )}
+            <BotFlag is={isBot} />
           </div>
           <div
             style={{
@@ -678,6 +691,7 @@ function Messages() {
                       // Only a PAGE gets the flag. Groups/channels/servers are
                       // realms too, but titleIcon already says what they are.
                       isPage={msgslst.details.realm_type === "page"}
+                      isBot={msgslst.details.type === "bot"}
                       subtitle={typingHere ? "is typing…" : last.text}
                       subtitleColor={typingHere ? "var(--brand)" : undefined}
                       subtitleHtml={!typingHere && last.html}
