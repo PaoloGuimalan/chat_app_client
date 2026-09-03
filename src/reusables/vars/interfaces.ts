@@ -781,7 +781,7 @@ export interface GroupShortcut {
 // fromUser that works for BOTH user and page senders).
 export interface INotificationSender {
   entity_id: string;
-  type: "user" | "realm";
+  type: "user" | "realm" | "bot";
   display_name: string;
   handle: string;
   profile: string | null;

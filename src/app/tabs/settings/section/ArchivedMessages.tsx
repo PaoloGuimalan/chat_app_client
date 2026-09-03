@@ -5,6 +5,7 @@ import {
   BotFlag,
   PageFlag,
 } from "@/reusables/design/primitives2";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { ManualInitConversationListRequest } from "@/reusables/hooks/requests";
 import { isUserOnline, timeSince } from "@/reusables/hooks/reusable";
 import { useEffect, useRef, useState } from "react";
@@ -198,6 +199,13 @@ function ArchivedMessages() {
                                 : ` ${msgsurs.fullname.middleName}`}{" "}
                               {msgsurs.fullname.lastName}
                             </span>
+                            {msgsurs.isVerified && (
+                              <RiVerifiedBadgeFill
+                                size={13}
+                                color="var(--brand)"
+                                style={{ flexShrink: 0 }}
+                              />
+                            )}
                             <PageFlag realmType={msgsurs.realmType} />
                             <BotFlag type={msgsurs.entityType} />
                           </span>

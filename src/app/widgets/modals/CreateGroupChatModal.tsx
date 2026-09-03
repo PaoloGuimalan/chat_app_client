@@ -10,6 +10,7 @@ import {
   BotFlag,
   PageFlag,
 } from "@/reusables/design/primitives2";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 import {
   ContactsListReusableRequest,
   EntitySearchRequest,
@@ -384,6 +385,13 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                       : ` ${cnts.middleName}`}{" "}
                                     {cnts.lastName}
                                   </span>
+                                  {cnts.isBadged && (
+                                    <RiVerifiedBadgeFill
+                                      size={13}
+                                      color="var(--brand)"
+                                      style={{ flexShrink: 0 }}
+                                    />
+                                  )}
                                   <PageFlag realmType={cnts.realmType} />
                                   <BotFlag type={cnts.entityType} />
                                 </span>

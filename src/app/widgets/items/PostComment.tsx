@@ -37,7 +37,7 @@ import PostCommentLoader from "@/app/reusables/loaders/PostCommentLoader";
 import CommentOptions from "./CommentOptions";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { useSelector } from "react-redux";
-import { Avatar } from "@/reusables/design";
+import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
 import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import DOMPurify from "dompurify";
@@ -715,12 +715,17 @@ function PostComment({
                 >
                   <Avatar
                     id={mp.entity.details.id}
-                    name={`${mp.entity.details.first_name} ${mp.entity.details.last_name}`}
+                    name={
+                      mp.entity.type === "user"
+                        ? `${mp.entity.details.first_name} ${mp.entity.details.last_name}`
+                        : mp.entity.details.name
+                    }
                     src={
                       mp.entity.details.profile == "none"
                         ? undefined
                         : mp.entity.details.profile
                     }
+                    kind={mp.entity.type}
                     size={isThread ? 38 : 46}
                   />
                   <div className="tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-text-left tw-flex-1 tw-min-w-0">
@@ -729,12 +734,19 @@ function PostComment({
                         <span
                           className="cl-comment-section__name tw-break-keep cl-text-caption tw-w-fit tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px] hover:tw-border-[var(--text-2)] tw-text-[var(--text)]"
                           onClick={() => {
+                            // Three kinds, three identifying fields - a bot's
+                            // is `handle`, a realm's is `slug`. Before this,
+                            // a bot fell into the realm branch (anything not
+                            // "user") and read `.slug`, which a bot payload
+                            // does not have - so the row navigated to
+                            // "/undefined" instead of the bot's profile.
                             if (mp.entity.type === "user") {
                               navigate(`/${mp.entity.details.username}`);
-                              return;
+                            } else if (mp.entity.type === "bot") {
+                              navigate(`/${mp.entity.details.handle}`);
+                            } else {
+                              navigate(`/${mp.entity.details.slug}`);
                             }
-
-                            navigate(`/${mp.entity.details.slug}`);
                           }}
                         >
                           {mp.entity.type === "user" ? (
@@ -761,6 +773,15 @@ function PostComment({
                                   size={16}
                                   color="#1c7def"
                                 />
+                              )}
+                              {mp.entity.type === "realm" && (
+                                <PageFlag
+                                  realmType={mp.entity.details.type}
+                                  size={14}
+                                />
+                              )}
+                              {mp.entity.type === "bot" && (
+                                <BotFlag is size={14} />
                               )}
                             </div>
                           )}

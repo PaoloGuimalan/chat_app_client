@@ -1,4 +1,4 @@
-import { Avatar, Btn, Icon } from "@/reusables/design";
+import { Avatar, BotFlag, Btn, Icon, PageFlag } from "@/reusables/design";
 import { timeSince } from "@/reusables/hooks/reusable";
 import {
   INotificationAction,
@@ -182,6 +182,28 @@ function NotificationRow({
             }}
           >
             <Icon n="verified" s={13} c="var(--brand)" />
+          </span>
+        )}
+        {n.fromUser?.type === "realm" && (
+          <span
+            style={{
+              display: "inline-flex",
+              verticalAlign: "text-bottom",
+              margin: "0 1px 0 3px",
+            }}
+          >
+            <PageFlag is size={13} />
+          </span>
+        )}
+        {n.fromUser?.type === "bot" && (
+          <span
+            style={{
+              display: "inline-flex",
+              verticalAlign: "text-bottom",
+              margin: "0 1px 0 3px",
+            }}
+          >
+            <BotFlag is size={13} />
           </span>
         )}{" "}
         <span style={{ color: "var(--text-2)" }}>{details}</span>
