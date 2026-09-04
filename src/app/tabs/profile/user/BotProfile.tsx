@@ -201,6 +201,9 @@ function BotProfile({ botInfo }: BotProfileProps) {
                 >
                   {botInfo.name}
                 </h1>
+                {botInfo.is_verified && (
+                  <Icon n="verified" s={16} c="var(--brand)" style={{ flex: "none" }} />
+                )}
                 <BotFlag is size={16} />
               </div>
 

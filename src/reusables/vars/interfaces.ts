@@ -655,9 +655,9 @@ export interface SearchBotResult {
   display_name: string;
   handle: string;
   profile: string | null;
-  // Always false. A bot is not a verified human or page, and borrowing that
-  // badge would say something the badge does not mean.
-  is_verified: false;
+  // A bot's own verification badge - distinct from an account's
+  // email-confirmation gate and a realm's page-verification flow.
+  is_verified: boolean;
   // What the bot is for. People and realms have no equivalent one-liner, but a
   // bot without one is indistinguishable from any other bot.
   description: string;

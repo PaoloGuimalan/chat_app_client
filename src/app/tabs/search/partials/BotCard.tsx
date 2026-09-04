@@ -23,7 +23,6 @@ interface BotCardProps {
  *    see one in, no accept endpoint to call), so offering Add would be a button
  *    that can only ever fail. The server says so with can_connect: false; this
  *    card simply never renders one.
- *  - NO verified badge, ever. It means a verified human or page.
  *  - The DESCRIPTION carries the meaning. People have a mutual count and realms
  *    have a member count, and neither has an equivalent - but one bot is
  *    indistinguishable from another without the line saying what it does, which
@@ -101,6 +100,9 @@ function BotCard({ bot, followBusy, onToggleFollow, onOpen, rail }: BotCardProps
           >
             {bot.display_name}
           </span>
+          {bot.is_verified && (
+            <Icon n="verified" s={14} c="var(--brand)" style={{ flex: "none" }} />
+          )}
           <BotFlag is />
         </button>
 

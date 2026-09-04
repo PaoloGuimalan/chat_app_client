@@ -8,6 +8,7 @@ import {
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { genericpaginationstate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
 import {
@@ -263,6 +264,9 @@ function RealmMembers({
                               <span className="tw-truncate">
                                 {cnts.entity.details.name}
                               </span>
+                              {cnts.entity.details.is_badged && (
+                                <RiVerifiedBadgeFill size={14} color="var(--brand)" />
+                              )}
                               <PageFlag realmType={cnts.entity.details.type} />
                             </span>
                           ) : (
@@ -272,6 +276,9 @@ function RealmMembers({
                                 ? ""
                                 : ` ${cnts.entity.details.middle_name}`}{" "}
                               {cnts.entity.details.last_name}
+                              {cnts.entity.details.is_badged && (
+                                <RiVerifiedBadgeFill size={14} color="var(--brand)" />
+                              )}
                               {/* A bot lands in this arm, not the realm one -
                                   its name is served through first_name, so the
                                   row needs no bot-specific branch. */}

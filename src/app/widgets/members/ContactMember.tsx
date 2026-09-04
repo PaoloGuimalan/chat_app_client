@@ -16,6 +16,7 @@ import { motion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { IoClose } from "react-icons/io5";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { useDispatch, useSelector } from "react-redux";
 import {
   ContactsListInitRequest,
@@ -459,6 +460,9 @@ function ContactMember({
                                       : ` ${cnts.entity.details.middle_name}`}{" "}
                                     {cnts.entity.details.last_name}
                                   </span>
+                                  {cnts.entity.details.is_badged && (
+                                    <RiVerifiedBadgeFill size={14} color="var(--brand)" />
+                                  )}
                                   <PageFlag
                                     realmType={cnts.entity.details.type}
                                   />
@@ -542,6 +546,9 @@ function ContactMember({
                                     : ` ${cnts.middleName}`}{" "}
                                   {cnts.lastName}
                                 </span>
+                                {cnts.isBadged && (
+                                  <RiVerifiedBadgeFill size={14} color="var(--brand)" />
+                                )}
                                 <PageFlag realmType={cnts.realmType} />
                                 <BotFlag type={cnts.entityType} />
                               </span>
