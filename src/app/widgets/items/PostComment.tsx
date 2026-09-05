@@ -2,6 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 import { commentsliststate } from "@/redux/actions/states";
 import {
+  CommentTypingBroadcastRequest,
   DeleteCommentRequest,
   GetCommentReactionTotalRequest,
   GetCommentsRequest,
@@ -42,6 +43,39 @@ import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import DOMPurify from "dompurify";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
+import {
+  PostActivityEvent,
+  usePostActivityStream,
+} from "@/reusables/hooks/postRealtime";
+
+/**
+ * How long a "typing" ping keeps the indicator up.
+ *
+ * There is deliberately no "stopped typing" event to wait for - one that got
+ * lost would leave the dots on screen forever - so the indicator expires on
+ * its own and an active typist re-broadcasts to keep it alive. Matches the
+ * broadcast throttle below, plus a beat of slack so a re-broadcast that is
+ * merely slow does not make the dots blink.
+ */
+const TYPING_INDICATOR_TTL_MS = 7000;
+
+/** One broadcast per this long while typing - same cadence as the messenger. */
+const TYPING_BROADCAST_THROTTLE_MS = 5000;
+
+/** Someone typing on this post, as the indicator renders them. */
+interface CommentTyper {
+  entity_id: string;
+  handle: string | null;
+  name: string | null;
+  /**
+   * WHICH box they are typing in: null for the post's main comment box, or a
+   * top-level comment's id for that comment's reply box. The same axis a
+   * comment event's `parent_id` names, so "which list is this about" is one
+   * rule rather than two - and what lets the indicator say where the reply is
+   * going to land, not just that somebody is writing.
+   */
+  parent_id: string | null;
+}
 
 // The @handle to type when mentioning an entity. EmbeddedRealmSerializer maps
 // a realm's slug onto `username` precisely so entity-embedding surfaces don't
@@ -68,6 +102,9 @@ function PostComment({
   initialMention,
   onCommentPosted,
   onCommentCountChange,
+  realtime = false,
+  remoteActivity,
+  onPostReaction,
 }: PostCommentProp) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -131,11 +168,221 @@ function PostComment({
     enabled: !isCommentSaving,
   });
 
+  // --- Realtime ------------------------------------------------------------
+  // Who is typing right now, keyed by entity id, and one expiry timer each.
+  // The timers live in a ref rather than in state because they are bookkeeping,
+  // not something the render reads - and rescheduling one must not itself
+  // cause a render.
+  const [typers, setTypers] = useState<Record<string, CommentTyper>>({});
+  const typingTimersRef = useRef<Record<string, ReturnType<typeof setTimeout>>>(
+    {},
+  );
+  // The last stream event a thread might care about, handed down to every open
+  // thread so each can decide whether it is about a row it holds. Only the
+  // top-level instance ever sets this.
+  const [remoteActivitySignal, setRemoteActivitySignal] = useState<{
+    event: PostActivityEvent;
+    nonce: number;
+  } | null>(null);
+  // Throttles our own outgoing typing broadcasts.
+  const lastTypingSentRef = useRef<number>(0);
+
   const navigate = useNavigate();
 
   useEffect(() => {
     GetPostCommentProcess(page, 20);
   }, [post_id, parent_id, page]);
+
+  // Every timer is cleared on unmount - closing the post modal while somebody
+  // is mid-sentence would otherwise leave a timer running against a component
+  // that is gone.
+  useEffect(() => {
+    const timers = typingTimersRef.current;
+    return () => {
+      Object.values(timers).forEach(clearTimeout);
+    };
+  }, []);
+
+  /**
+   * Live activity on this post.
+   *
+   * Held by the TOP-LEVEL instance only. A thread is a nested instance of this
+   * same component, and it is the same post - so letting threads subscribe
+   * would open one more connection per expanded thread and deliver every event
+   * as many times over. Replies reach their thread through `remoteReply`
+   * instead.
+   */
+  usePostActivityStream(post_id, realtime && !isThread, (event) => {
+    if (event.event_type === "typing") {
+      RegisterTyperProcess(event);
+      return;
+    }
+
+    // Our own change, already applied optimistically. Acting on the echo
+    // would refetch for nothing and, for a comment, double the count.
+    if (event.entity?.entity_id === authentication.user.entity_id) return;
+
+    if (event.event_type === "reaction") {
+      if (event.target_type === "post") {
+        // The post's tallies belong to whoever owns the post, not to the
+        // comment section - handed up rather than acted on here.
+        onPostReaction?.();
+        return;
+      }
+
+      if (event.target_type === "comment" && event.comment_id) {
+        // The row may be in this list or in an open thread's, so both the
+        // handler here and the passed-down signal below run the same check.
+        RefreshCommentReactionsProcess(event.comment_id);
+        setRemoteActivitySignal({ event, nonce: Date.now() });
+      }
+
+      return;
+    }
+
+    if (event.event_type !== "comment") return;
+
+    // The post's total counts replies as well as top-level comments (the
+    // backend increments for both), so this fires for either - and only here,
+    // on the one instance that sees every event, so a reply cannot be counted
+    // twice by a thread that also heard about it.
+    onCommentCountChange?.(1);
+
+    if (event.parent_id) {
+      // A reply. Handed to the thread it belongs to; if that thread is closed
+      // nothing listens, which is right - it will be fetched when opened.
+      setRemoteActivitySignal({ event, nonce: Date.now() });
+
+      // The parent row's "View N replies" should still move, since the count
+      // is fetched once with the comment and would otherwise stay behind.
+      setExtraReplies((prev) => ({
+        ...prev,
+        [event.parent_id as string]: (prev[event.parent_id as string] ?? 0) + 1,
+      }));
+
+      return;
+    }
+
+    GetPostCommentOnLoadProcess();
+  });
+
+  /**
+   * A stream event that reached an open THREAD.
+   *
+   * The top-level instance holds the one connection and relays down, so every
+   * open thread sees every relayed event and has to decide whether it is about
+   * a row it actually holds - a reply filed under THIS thread, or a reaction
+   * on a comment in this thread's list.
+   */
+  useEffect(() => {
+    if (!remoteActivity || !isThread) return;
+
+    const event = remoteActivity.event;
+
+    if (event.event_type === "comment") {
+      if (event.parent_id !== parent_id) return;
+      GetPostCommentOnLoadProcess();
+      return;
+    }
+
+    if (
+      event.event_type === "reaction" &&
+      event.target_type === "comment" &&
+      event.comment_id
+    ) {
+      RefreshCommentReactionsProcess(event.comment_id);
+    }
+  }, [remoteActivity]);
+
+  /**
+   * Record that somebody is typing, and in which box.
+   *
+   * Kept ENTIRELY by the top-level instance, including replies. A thread is
+   * only mounted while it is expanded, so letting threads hold their own
+   * typers would mean nobody could see that a collapsed thread is being
+   * answered - which is exactly when knowing would change what you do. The
+   * indicator for a thread is therefore rendered by the row that owns it,
+   * whether or not the replies are on screen.
+   *
+   * ONE entry per entity, because a person types in one box at a time: moving
+   * from the main comment box into a thread replaces their entry rather than
+   * leaving them showing in both.
+   */
+  const RegisterTyperProcess = (event: PostActivityEvent) => {
+    const typer = event.entity;
+    // Your own keystrokes come back to you: the event goes to the post's
+    // channel, and you are on it. Nobody needs telling that they are typing.
+    if (!typer || typer.entity_id === authentication.user.entity_id) return;
+
+    setTypers((prev) => ({
+      ...prev,
+      [typer.entity_id]: {
+        entity_id: typer.entity_id,
+        handle: typer.handle,
+        name: typer.name,
+        parent_id: event.parent_id ?? null,
+      },
+    }));
+
+    // Rescheduled rather than stacked. Each broadcast used to be able to
+    // schedule its own removal, and an earlier one firing after a later one
+    // arrived would clear the indicator out from under someone still typing -
+    // the same trap the mobile messenger fell into.
+    clearTimeout(typingTimersRef.current[typer.entity_id]);
+    typingTimersRef.current[typer.entity_id] = setTimeout(() => {
+      delete typingTimersRef.current[typer.entity_id];
+      setTypers((prev) => {
+        const next = { ...prev };
+        delete next[typer.entity_id];
+        return next;
+      });
+    }, TYPING_INDICATOR_TTL_MS);
+  };
+
+  /**
+   * Re-read one comment's reaction tallies after somebody else reacted to it.
+   *
+   * Silent when the comment is not in THIS instance's list: the relay reaches
+   * every open thread, and only one of them holds any given row.
+   *
+   * Only `preview` is replaced. `entity_reaction` is the VIEWER's own
+   * reaction, which somebody else reacting cannot change - refetching it here
+   * would fight with an optimistic update still in flight.
+   */
+  const RefreshCommentReactionsProcess = (comment_id: string) => {
+    if (!comments.results.some((row) => row.comment_id === comment_id)) return;
+
+    GetCommentReactionTotalRequest(comment_id)
+      .then((response) => {
+        patchComment(comment_id, { preview: response });
+      })
+      .catch((err) => {
+        // The tallies stay as they were until the next fetch of the list -
+        // a stale count is not worth interrupting anyone over.
+        console.log(err);
+      });
+  };
+
+  /**
+   * Tell the post that this person is writing.
+   *
+   * Throttled to one call per TYPING_BROADCAST_THROTTLE_MS, matching the
+   * messenger: an indicator that says "still typing" does not get truer by
+   * being said on every keystroke.
+   *
+   * Fired from THREADS too, carrying this instance's `parent_id` so the
+   * indicator shows under the comment being answered rather than at the foot
+   * of the section.
+   */
+  const BroadcastTypingProcess = (value: string) => {
+    if (!authentication.auth || value.trim() === "") return;
+
+    const now = Date.now();
+    if (now - lastTypingSentRef.current < TYPING_BROADCAST_THROTTLE_MS) return;
+
+    lastTypingSentRef.current = now;
+    CommentTypingBroadcastRequest(post_id, parent_id);
+  };
 
   useEffect(() => {
     if (autoFocusComposer) {
@@ -346,12 +593,14 @@ function PostComment({
     const removed = 1 + (isThread ? 0 : replyCountOf(mp));
 
     // Optimistic: drop the row immediately, restore it if the call fails.
+    //
+    // Same stray .reverse() removed as in patchComment below - and it did
+    // double damage here, because `previous` above holds the SAME array, so
+    // reversing in place corrupted the snapshot the rollback restores from.
     setComments((prev: PaginationProp<IPostComment>) => ({
       ...prev,
       count: Math.max(0, prev.count - 1),
-      results: prev.results
-        .reverse()
-        .filter((flt) => flt.comment_id !== mp.comment_id),
+      results: prev.results.filter((flt) => flt.comment_id !== mp.comment_id),
     }));
     onCommentCountChange?.(-removed);
 
@@ -413,14 +662,18 @@ function PostComment({
   // tallies come back from the server afterwards rather than being guessed
   // here, so a concurrent reaction from someone else lands too.
 
+  // No .reverse() here, deliberately. It used to lead this chain, and
+  // Array#reverse mutates IN PLACE - so patching one row silently flipped the
+  // whole list, which is stored oldest-first (GetPostCommentProcess sorts
+  // newest-first then reverses). Reacting to a comment turned the thread
+  // upside down. It survived because React's StrictMode runs this updater
+  // twice in development, and two flips look like none.
   const patchComment = (comment_id: string, patch: Partial<IPostComment>) => {
     setComments((prev: PaginationProp<IPostComment>) => ({
       ...prev,
-      results: prev.results
-        .reverse()
-        .map((row) =>
-          row.comment_id === comment_id ? { ...row, ...patch } : row,
-        ),
+      results: prev.results.map((row) =>
+        row.comment_id === comment_id ? { ...row, ...patch } : row,
+      ),
     }));
   };
 
@@ -457,6 +710,63 @@ function PostComment({
 
   const reactionTotalOf = (mp: IPostComment) =>
     (mp.preview ?? []).reduce((sum, item) => sum + item.count, 0);
+
+  /**
+   * "@handle is typing...", or who else, in one line.
+   *
+   * Names people rather than saying "someone": the handle is what identifies
+   * an entity here, and a page writing as itself should read as the page. The
+   * display name is the fallback, and only a typer whose identity did not
+   * resolve at all falls through to "Someone".
+   *
+   * `box` is which comment box to describe: null for the post's main one, a
+   * top-level comment's id for that comment's reply box. Both are rendered by
+   * the top-level instance - the section's own at the foot, each comment's
+   * under that comment - so a thread does not have to be expanded, or even
+   * mounted, for somebody replying to it to be visible.
+   */
+  const typingLabelFor = (box: string | null) => {
+    const rows = Object.values(typers).filter((row) => row.parent_id === box);
+    if (rows.length === 0) return null;
+
+    const nameOf = (typer: CommentTyper) =>
+      typer.handle ? `@${typer.handle}` : (typer.name ?? "Someone");
+
+    if (rows.length === 1) return `${nameOf(rows[0])} is typing...`;
+    if (rows.length === 2)
+      return `${nameOf(rows[0])} and ${nameOf(rows[1])} are typing...`;
+
+    return `${nameOf(rows[0])} and ${rows.length - 1} others are typing...`;
+  };
+
+  /**
+   * The dots-and-a-line row. Rendered twice from the same function: at the
+   * foot of the section for the main comment box, and under a comment for its
+   * own reply box.
+   *
+   * Not the messenger's IsTypingLoader - that one is a chat bubble, and a
+   * bubble in a comment list reads as a comment that is still loading.
+   */
+  const renderTypingIndicator = (box: string | null, nested: boolean) => {
+    const label = typingLabelFor(box);
+    if (!label) return null;
+
+    return (
+      <div
+        className={`cl-comment-typing ${
+          nested ? "cl-comment-typing--thread" : ""
+        }`}
+        aria-live="polite"
+      >
+        <span className="cl-comment-typing__dots" aria-hidden="true">
+          <span className="cl-comment-typing__dot" />
+          <span className="cl-comment-typing__dot" />
+          <span className="cl-comment-typing__dot" />
+        </span>
+        <span className="cl-comment-typing__label cl-text-meta">{label}</span>
+      </div>
+    );
+  };
 
   // --- Threads ------------------------------------------------------------
 
@@ -593,6 +903,7 @@ function PostComment({
               value={writeComment}
               onChange={(e) => {
                 setwriteComment(e.target.value);
+                BroadcastTypingProcess(e.target.value);
                 updateMentionSuggestions(
                   e.target.value,
                   e.target.selectionStart ?? e.target.value.length,
@@ -954,6 +1265,18 @@ function PostComment({
                               : null
                           }
                           onCommentCountChange={onCommentCountChange}
+                          // Stream events relayed from the top-level
+                          // instance, which holds the only connection - a
+                          // reply for this thread, or a reaction on one of its
+                          // rows. Each thread checks whether the event is
+                          // about something it actually holds.
+                          //
+                          // Counting stays with whoever fired: a LOCAL reply
+                          // is counted by this thread's own save, a REMOTE one
+                          // by the top-level stream handler, and the stream
+                          // ignores its own echoes - so neither path can count
+                          // the same reply twice.
+                          remoteActivity={remoteActivitySignal}
                           onCommentPosted={() =>
                             setExtraReplies((prev) => ({
                               ...prev,
@@ -963,6 +1286,14 @@ function PostComment({
                         />
                       </div>
                     )}
+
+                    {/* Anyone writing a reply to THIS comment, at the foot of
+                        its thread - where the reply itself will appear.
+                        Deliberately OUTSIDE the `isOpen` block above:
+                        somebody starting a reply to a thread you have
+                        collapsed is exactly when you would want to know it is
+                        happening. */}
+                    {!isThread && renderTypingIndicator(mp.comment_id, true)}
                   </div>
                 </div>
               );
@@ -981,6 +1312,14 @@ function PostComment({
         )}
         {!isLoaded && <PostCommentLoader />}
       </div>
+      {/* The MAIN comment box only - a reply's indicator belongs under the
+          comment being answered, and is rendered there. Sits under the list
+          because the messenger puts its indicator where the next message will
+          land, and the same reasoning applies here.
+
+          Renders nothing in a thread: threads never hold typers (the
+          top-level instance keeps all of them, see RegisterTyperProcess). */}
+      {renderTypingIndicator(null, false)}
       {authentication.auth && isThread && composer}
     </div>
   );

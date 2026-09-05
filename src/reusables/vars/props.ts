@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Dispatch, SetStateAction } from "react";
+import { PostActivityEvent } from "@/reusables/hooks/postRealtime";
 import {
   ConversationInfoInterface,
   ICoordinatesAnchor,
@@ -68,6 +69,50 @@ export interface PostCommentProp {
    * host card update `score.comments_count` without refetching the post.
    */
   onCommentCountChange?: (delta: number) => void;
+  /**
+   * Open a live stream for this post - comments appearing as they are written,
+   * and a "typing" indicator.
+   *
+   * OPT-IN, and off by default, because the connection is per post rather than
+   * per session: the newsfeed renders many post cards at once, and a comment
+   * section that subscribed on mount would leave one live connection behind
+   * per card scrolled past. Only the surfaces that show a single post in full
+   * - the post modal and /post/:id - set this.
+   *
+   * Ignored by a thread (`parent_id` set): a thread is a nested instance of
+   * this same component, and the top-level one is already listening on the
+   * post's channel for all of them.
+   */
+  realtime?: boolean;
+  /**
+   * The last event from the live stream that an open THREAD might need, handed
+   * down from the top-level instance.
+   *
+   * Only the top-level instance holds the post's connection (see `realtime`),
+   * but a reply belongs in a thread's list and a reaction may be on a row a
+   * thread is showing - and those threads are children of this component.
+   * Passing the event down is what lets one connection serve every open
+   * thread; each one decides for itself whether the event is about a row it
+   * holds.
+   *
+   * `nonce` exists so two events of the same kind are two distinct values -
+   * without it the second would compare equal to the first and the thread
+   * would never react to it.
+   */
+  remoteActivity?: {
+    event: PostActivityEvent;
+    nonce: number;
+  } | null;
+  /**
+   * Somebody else reacted to the POST (not to a comment).
+   *
+   * Handed UP, because the post's reaction tallies live on whichever card or
+   * modal owns the post - this component owns comments. It is reported from
+   * here because the stream is held here: the comment section is the one child
+   * mounted on every surface that shows a post in full, which is exactly the
+   * set of surfaces that open the stream.
+   */
+  onPostReaction?: () => void;
 }
 
 export interface PaginationProp<T> {

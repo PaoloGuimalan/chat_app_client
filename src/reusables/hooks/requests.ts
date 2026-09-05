@@ -2236,6 +2236,47 @@ const IsTypingBroadcastRequest = (payload: any) => {
     });
 };
 
+/**
+ * "I am typing a comment on this post."
+ *
+ * The comment-section twin of IsTypingBroadcastRequest above, and deliberately
+ * the same fire-and-forget shape - nothing is stored and nothing is retried,
+ * because a typing ping that arrives late is worse than one that never
+ * arrives. It differs in who it reaches: that one names its recipients from a
+ * conversation's member list, this one publishes to the post's own channel and
+ * reaches whoever has the post open.
+ *
+ * `parent_id` says WHICH box - null for the post's main comment box, or a
+ * top-level comment's id for that comment's reply box - so the indicator lands
+ * where the reply will, rather than at the foot of the section where it says
+ * nothing about which thread is being answered.
+ *
+ * Unsigned, unlike the messenger's: the server takes the post id from the body
+ * and the typer from the auth token, so there is nothing for a signed payload
+ * to protect.
+ */
+const CommentTypingBroadcastRequest = (
+  post_id: string,
+  parent_id: string | null,
+) => {
+  Axios.post(
+    `${API}/posts/commenttypingbroadcast`,
+    {
+      post_id,
+      parent_id,
+    },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  ).catch((err) => {
+    // A missed typing ping is a missing three dots, never a reason to
+    // interrupt someone mid-comment.
+    console.log(err);
+  });
+};
+
 const AddNewMemberRequest = async (payload: any) => {
   const encodedPayload = sign(payload, SECRET);
 
@@ -4276,6 +4317,7 @@ export {
   SetMessageReactionRequest,
   ConversationInfoRequest,
   IsTypingBroadcastRequest,
+  CommentTypingBroadcastRequest,
   AddNewMemberRequest,
   InitServerListRequest,
   InitServerConversationRequest,

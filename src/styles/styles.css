@@ -4230,6 +4230,80 @@ input:checked + .slider:before {
   color: var(--text-2);
 }
 
+/* "@handle is typing..." under the comment list.
+
+   Deliberately NOT the messenger's typing bubble: that one is shaped like a
+   message because it stands where a message will appear. Here the dots sit
+   beside a line of text instead, so the row reads as a note about the section
+   rather than as a comment that is still loading. */
+.cl-comment-typing {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 0 2px;
+  min-height: 18px;
+}
+
+/* The same row under a comment, saying somebody is replying to THAT comment.
+   Indented to sit under the thread's own rule (cl-comment-section--thread
+   insets by 14px behind a 2px border), so it reads as the foot of that thread
+   rather than as a note on the parent comment. */
+.cl-comment-typing--thread {
+  padding-left: 16px;
+}
+
+.cl-comment-typing__dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  /* Reserves the full travel of the bounce, so the label beside the dots does
+     not shift as they move. */
+  height: 10px;
+}
+
+.cl-comment-typing__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 999px;
+  background: var(--text-3);
+  animation: cl-comment-typing-bounce 1.1s infinite ease-in-out;
+}
+
+/* Staggered so the three read as one travelling wave rather than a pulse. */
+.cl-comment-typing__dot:nth-child(2) {
+  animation-delay: 0.16s;
+}
+
+.cl-comment-typing__dot:nth-child(3) {
+  animation-delay: 0.32s;
+}
+
+.cl-comment-typing__label {
+  color: var(--text-2);
+}
+
+@keyframes cl-comment-typing-bounce {
+  0%,
+  60%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  30% {
+    transform: translateY(-4px);
+    opacity: 1;
+  }
+}
+
+/* Someone who has asked for less motion still needs to know the section is
+   live, so the dots stay and only the travel goes. */
+@media (prefers-reduced-motion: reduce) {
+  .cl-comment-typing__dot {
+    animation: none;
+    opacity: 0.7;
+  }
+}
+
 #div_img_search_profiles_container_cncts {
   width: 100%;
   height: 100%;

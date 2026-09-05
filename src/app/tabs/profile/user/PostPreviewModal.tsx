@@ -108,6 +108,20 @@ function PostPreviewModal({
       return;
     }
 
+    RefreshReactionTotalsProcess();
+  };
+
+  /**
+   * Re-read the post's reaction tallies.
+   *
+   * Shared by the viewer's OWN reaction landing and by somebody else's
+   * arriving on the live stream - both mean the same thing, that the numbers
+   * on screen are behind.
+   *
+   * Only `preview` is replaced. `entity_reaction` is the viewer's own choice,
+   * which somebody else reacting cannot change.
+   */
+  const RefreshReactionTotalsProcess = () => {
     GetReactionTotalRequest(post.post_id)
       .then((response) => {
         setPost((prev: IPost | null) => {
@@ -178,428 +192,424 @@ function PostPreviewModal({
   const capsReadingColumn = asPage && isTextOnly;
 
   const shell = (
-        <div
-          style={{ maxWidth: shellMaxWidth }}
-          className={`cl-feed-card cl-feed-card__modal-shell ${
-            asPage
-              ? "cl-feed-card__modal-shell--page tw-w-full tw-h-full tw-rounded-[0px] tw-max-h-full tw-mx-auto"
-              : "custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full"
-          } tw-flex tw-flex-row tw-flex-wrap ${
-            post.is_shared || post.references.length === 0
-              ? ""
-              : "custom:tw-overflow-hidden"
-          } tw-overflow-auto ${
-            window.innerWidth >= 842 ? "x-scroll" : "t-scroll"
-          }`}
+    <div
+      style={{ maxWidth: shellMaxWidth }}
+      className={`cl-feed-card cl-feed-card__modal-shell ${
+        asPage
+          ? "cl-feed-card__modal-shell--page tw-w-full tw-h-full tw-rounded-[0px] tw-max-h-full tw-mx-auto"
+          : "custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full"
+      } tw-flex tw-flex-row tw-flex-wrap ${
+        post.is_shared || post.references.length === 0
+          ? ""
+          : "custom:tw-overflow-hidden"
+      } tw-overflow-auto ${window.innerWidth >= 842 ? "x-scroll" : "t-scroll"}`}
+    >
+      {!post.is_shared && (
+        <Carousel
+          className="tw-bg-[var(--surface-2)] tw-w-full tw-h-full tw-flex-1 tw-min-w-[350px]"
+          showIndicators={false}
+          showThumbs={false}
         >
-          {!post.is_shared && (
-            <Carousel
-              className="tw-bg-[var(--surface-2)] tw-w-full tw-h-full tw-flex-1 tw-min-w-[350px]"
-              showIndicators={false}
-              showThumbs={false}
-            >
-              {post.references.map((mpr: IReference) => {
-                if (mpr.reference_media_type.includes("image")) {
-                  return (
-                    <div
-                      key={mpr.reference_id}
-                      className="tw-h-full tw-bg-[var(--surface-2)]"
-                    >
-                      <CachedImage
-                        src={mpr.reference}
-                        className="tw-w-full tw-h-full tw-object-contain"
-                      />
-                    </div>
-                  );
-                } else if (mpr.reference_media_type.includes("video")) {
-                  return (
-                    <div
-                      key={mpr.reference_id}
-                      className="tw-h-full tw-max-h-full tw-bg-[var(--surface-2)]"
-                    >
-                      <video
-                        controls
-                        src={mpr.reference}
-                        className="tw-w-full tw-h-full"
-                      />
-                    </div>
-                  );
-                } else {
-                  return <></>;
-                }
-              })}
-            </Carousel>
-          )}
-          <div
-            // The SHELL covers the page (see shellMaxWidth), but the reading
-            // column does not: it keeps the width it had when the shell was
-            // capped, and centres inside the wider container. Stretching the
-            // text and comments across a 2560px monitor is not what covering
-            // the page was for.
-            //
-            // Expressed as a CLASS, and as the only max-width class on the
-            // element, because tailwind.config.js sets `important: true` -
-            // every utility carries !important, so an inline style loses to
-            // `custom:tw-max-w-full` and emitting both would leave the winner
-            // to stylesheet order. The `custom:` variant (842px) is the same
-            // breakpoint the old shell cap used, so narrow screens stay
-            // unbounded exactly as before.
-            className={`tw-flex tw-flex-1 tw-max-w-full ${
-              capsReadingColumn
-                ? "custom:tw-max-w-[600px] tw-mx-auto"
-                : post.references.length > 0
-                  ? post.is_shared
-                    ? "custom:tw-max-w-full"
-                    : "custom:tw-max-w-[400px]"
-                  : "custom:tw-max-w-full"
-            } tw-min-w-[350px] cl-feed-card__modal-side ${
-              asPage ? "cl-feed-card__modal-side--page" : ""
-            } tw-flex-col tw-pb-[10px] ${
-              post.is_shared || post.references.length === 0
-                ? ""
-                : "custom:tw-h-full"
-            }`}
-          >
-            <div className="tw-w-[calc(100%-0px)] tw-p-[25px] tw-flex tw-justify-between">
-              <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
-                <Avatar
-                  id={post.entity.details?.slug ?? post.entity.details.username}
-                  name={
-                    post.entity.details?.name ??
-                    `${post.entity.details.first_name} ${post.entity.details.last_name}`
-                  }
-                  src={
-                    post.entity.details.profile
-                      ? post.entity.details.profile !== "none"
-                        ? post.entity.details.profile
-                        : undefined
-                      : post.entity.details.profile !== "none"
-                        ? post.entity.details.profile
-                        : undefined
-                  }
-                  size={35}
-                />
-                <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
-                  <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
-                    <span
-                      className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
-                      onClick={() => {
-                        if (post.entity.type !== "user") {
-                          navigate(`/${post.entity.details.slug}`);
-                          return;
-                        }
-
-                        navigate(`/${post.entity.details.username}`);
-                      }}
-                    >
-                      {post.entity.type !== "user" ? (
-                        <div className="tw-flex tw-items-center tw-gap-[4px]">
-                          <span>{post.entity.details.name}</span>
-                          {post.entity.details.is_verified && (
-                            <RiVerifiedBadgeFill
-                              size={16}
-                              color="var(--brand)"
-                            />
-                          )}
-                        </div>
-                      ) : (
-                        <div className="tw-flex tw-items-center tw-gap-[4px]">
-                          <span>
-                            {post.entity.details.first_name}
-                            {post.entity.details.middle_name == "N/A"
-                              ? ""
-                              : ` ${post.entity.details.middle_name}`}{" "}
-                            {post.entity.details.last_name}
-                          </span>
-                          {post.entity.details.is_badged && (
-                            <RiVerifiedBadgeFill
-                              size={16}
-                              color="var(--brand)"
-                            />
-                          )}
-                        </div>
-                      )}
-                    </span>
-                    &nbsp;
-                    {post.tagging.length > 0 && (
-                      <TaggingSummary tagging={post.tagging} />
-                    )}
-                  </div>
-                  <span className="cl-text-caption">
-                    <PostPrivacyIcon status={post.privacy_status} />
-                    {dateposted}
-                  </span>
+          {post.references.map((mpr: IReference) => {
+            if (mpr.reference_media_type.includes("image")) {
+              return (
+                <div
+                  key={mpr.reference_id}
+                  className="tw-h-full tw-bg-[var(--surface-2)]"
+                >
+                  <CachedImage
+                    src={mpr.reference}
+                    className="tw-w-full tw-h-full tw-object-contain"
+                  />
                 </div>
-              </div>
-              {authentication.auth && (
-                <PostOptions
-                  post={post}
-                  onProcess={() => {}}
-                  onFinish={(type: string) => {
-                    switch (type) {
-                      case "deleted":
-                        setPost((prev) => {
-                          if (prev) {
-                            return {
-                              ...prev,
-                              deleted_at: true,
-                              deleted_by: true,
-                            };
-                          }
-
-                          return prev;
-                        });
-                        break;
-                      case "archived":
-                        setPost((prev) => {
-                          if (prev) {
-                            return {
-                              ...prev,
-                              is_archived: true,
-                            };
-                          }
-
-                          return prev;
-                        });
-                        break;
-                      case "unarchived":
-                        setPost((prev) => {
-                          if (prev) {
-                            return {
-                              ...prev,
-                              is_archived: false,
-                            };
-                          }
-
-                          return prev;
-                        });
-                        break;
-                      default:
-                        break;
+              );
+            } else if (mpr.reference_media_type.includes("video")) {
+              return (
+                <div
+                  key={mpr.reference_id}
+                  className="tw-h-full tw-max-h-full tw-bg-[var(--surface-2)]"
+                >
+                  <video
+                    controls
+                    src={mpr.reference}
+                    className="tw-w-full tw-h-full"
+                  />
+                </div>
+              );
+            } else {
+              return <></>;
+            }
+          })}
+        </Carousel>
+      )}
+      <div
+        // The SHELL covers the page (see shellMaxWidth), but the reading
+        // column does not: it keeps the width it had when the shell was
+        // capped, and centres inside the wider container. Stretching the
+        // text and comments across a 2560px monitor is not what covering
+        // the page was for.
+        //
+        // Expressed as a CLASS, and as the only max-width class on the
+        // element, because tailwind.config.js sets `important: true` -
+        // every utility carries !important, so an inline style loses to
+        // `custom:tw-max-w-full` and emitting both would leave the winner
+        // to stylesheet order. The `custom:` variant (842px) is the same
+        // breakpoint the old shell cap used, so narrow screens stay
+        // unbounded exactly as before.
+        className={`tw-flex tw-flex-1 tw-max-w-full ${
+          capsReadingColumn
+            ? "custom:tw-max-w-[600px] tw-mx-auto"
+            : post.references.length > 0
+              ? post.is_shared
+                ? "custom:tw-max-w-full"
+                : "custom:tw-max-w-[460px]"
+              : "custom:tw-max-w-full"
+        } tw-min-w-[350px] cl-feed-card__modal-side ${
+          asPage ? "cl-feed-card__modal-side--page" : ""
+        } tw-flex-col tw-pb-[10px] ${
+          post.is_shared || post.references.length === 0
+            ? ""
+            : "custom:tw-h-full"
+        }`}
+      >
+        <div className="tw-w-[calc(100%-0px)] tw-p-[25px] tw-flex tw-justify-between">
+          <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
+            <Avatar
+              id={post.entity.details?.slug ?? post.entity.details.username}
+              name={
+                post.entity.details?.name ??
+                `${post.entity.details.first_name} ${post.entity.details.last_name}`
+              }
+              src={
+                post.entity.details.profile
+                  ? post.entity.details.profile !== "none"
+                    ? post.entity.details.profile
+                    : undefined
+                  : post.entity.details.profile !== "none"
+                    ? post.entity.details.profile
+                    : undefined
+              }
+              size={35}
+            />
+            <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
+              <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
+                <span
+                  className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
+                  onClick={() => {
+                    if (post.entity.type !== "user") {
+                      navigate(`/${post.entity.details.slug}`);
+                      return;
                     }
-                    onOptionFinish?.(type);
+
+                    navigate(`/${post.entity.details.username}`);
                   }}
-                  onError={() => {}}
-                />
-              )}
-              {/* Dismissing is a MODAL action: as a page there is nothing
+                >
+                  {post.entity.type !== "user" ? (
+                    <div className="tw-flex tw-items-center tw-gap-[4px]">
+                      <span>{post.entity.details.name}</span>
+                      {post.entity.details.is_verified && (
+                        <RiVerifiedBadgeFill size={16} color="var(--brand)" />
+                      )}
+                    </div>
+                  ) : (
+                    <div className="tw-flex tw-items-center tw-gap-[4px]">
+                      <span>
+                        {post.entity.details.first_name}
+                        {post.entity.details.middle_name == "N/A"
+                          ? ""
+                          : ` ${post.entity.details.middle_name}`}{" "}
+                        {post.entity.details.last_name}
+                      </span>
+                      {post.entity.details.is_badged && (
+                        <RiVerifiedBadgeFill size={16} color="var(--brand)" />
+                      )}
+                    </div>
+                  )}
+                </span>
+                &nbsp;
+                {post.tagging.length > 0 && (
+                  <TaggingSummary tagging={post.tagging} />
+                )}
+              </div>
+              <span className="cl-text-caption">
+                <PostPrivacyIcon status={post.privacy_status} />
+                {dateposted}
+              </span>
+            </div>
+          </div>
+          {authentication.auth && (
+            <PostOptions
+              post={post}
+              onProcess={() => {}}
+              onFinish={(type: string) => {
+                switch (type) {
+                  case "deleted":
+                    setPost((prev) => {
+                      if (prev) {
+                        return {
+                          ...prev,
+                          deleted_at: true,
+                          deleted_by: true,
+                        };
+                      }
+
+                      return prev;
+                    });
+                    break;
+                  case "archived":
+                    setPost((prev) => {
+                      if (prev) {
+                        return {
+                          ...prev,
+                          is_archived: true,
+                        };
+                      }
+
+                      return prev;
+                    });
+                    break;
+                  case "unarchived":
+                    setPost((prev) => {
+                      if (prev) {
+                        return {
+                          ...prev,
+                          is_archived: false,
+                        };
+                      }
+
+                      return prev;
+                    });
+                    break;
+                  default:
+                    break;
+                }
+                onOptionFinish?.(type);
+              }}
+              onError={() => {}}
+            />
+          )}
+          {/* Dismissing is a MODAL action: as a page there is nothing
                   underneath to dismiss to, and the rail already carries the way
                   home - so the slot is simply empty here rather than holding a
                   second one. */}
-              {!asPage && (
-                <button
-                  onClick={onClose}
-                  className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
+          {!asPage && (
+            <button
+              onClick={onClose}
+              className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
+            >
+              <IoMdClose style={{ fontSize: "17px", color: "var(--text)" }} />
+            </button>
+          )}
+        </div>
+        <div
+          className={`tw-w-[calc(100%-0px)] tw-pl-[25px] tw-pr-[25px] tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
+        >
+          <div
+            ref={textContainerRef}
+            className={`tw-w-full tw-flex tw-justify-center ${
+              minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
+            } tw-overflow-y-hidden`}
+          >
+            <span ref={textRef} className={`cl-text-body tw-text-left c1`}>
+              {post.caption}
+            </span>
+          </div>
+          {/* Same renderer the profile feed uses, so a link in a post
+                  shows its preview card here instead of a bare URL. */}
+          {post.link_preview && (
+            <LinkPreviewCard preview={post.link_preview} variant="display" />
+          )}
+          {minimizedCaption && (
+            <button
+              onClick={() => {
+                setminimizedCaption(false);
+              }}
+              className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
+            >
+              Expand
+            </button>
+          )}
+          {!minimizedCaption && post.caption.length >= 600 && (
+            <button
+              onClick={() => {
+                setminimizedCaption(true);
+              }}
+              className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
+            >
+              See less
+            </button>
+          )}
+          {post.is_shared &&
+            post.references.map((mpu: any, i: number) => {
+              return <LoadedPostItem key={i} postID={mpu.reference} />;
+            })}
+        </div>
+        <div className="tw-w-[calc(100%-0px)] tw-pl-[25px] tw-pr-[25px] tw-mt-[10px] tw-pb-[5px]">
+          <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
+            <motion.div
+              initial={{
+                height: toggleActivityCounts > 0 ? "auto" : "0px",
+                paddingTop: toggleActivityCounts > 0 ? "5px" : "0px",
+              }}
+              animate={{
+                height: toggleActivityCounts > 0 ? "auto" : "0px",
+                paddingTop: toggleActivityCounts > 0 ? "5px" : "0px",
+              }}
+              className="tw-w-full tw-flex tw-flex-row tw-gap-[15px] tw-items-center tw-overflow-hidden"
+            >
+              <div className="tw-flex tw-flex-row">
+                {post.preview
+                  .filter((flt) => flt.count > 0)
+                  .map((mp, i) => {
+                    if (emojilist.length > 0) {
+                      return (
+                        <span key={i} className="-tw-mr-[10px]">
+                          {
+                            emojilist.filter(
+                              (flt) => flt.emoji_id === mp.emoji,
+                            )[0].emoji_content
+                          }
+                        </span>
+                      );
+                    }
+                  })}
+              </div>
+              <div className="tw-w-full tw-flex tw-justify-between tw-items-center">
+                {total_reactions > 0 && (
+                  <span className="cl-text-caption tw-text-[var(--text-2)]">
+                    {total_reactions}{" "}
+                    {total_reactions === 1 ? " reaction" : " reactions"}
+                  </span>
+                )}
+                <div className="tw-flex tw-gap-[10px] tw-items-center">
+                  {commentsCount > 0 && (
+                    <span className="cl-text-caption tw-text-[var(--text-2)]">
+                      {commentsCount}{" "}
+                      {commentsCount === 1 ? " comment" : " comments"}
+                    </span>
+                  )}
+                  {shareCount > 0 && (
+                    <span className="cl-text-caption tw-text-[var(--text-2)]">
+                      {shareCount} {shareCount === 1 ? " share" : " shares"}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </motion.div>
+            <hr className="cl-feed-card__divider tw-w-full tw-mb-[5px] tw-z-[0]" />
+            <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
+              <button
+                onMouseEnter={() => {
+                  settoggleEmojis(true);
+                }}
+                onMouseLeave={() => {
+                  settoggleEmojis(false);
+                }}
+                disabled={emojiLoading}
+                className="cl-feed-card__action tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
+              >
+                <motion.div
+                  className="cl-feed-card__reaction-popover tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-shadow-lg tw-bottom-[calc(100%+15px)]"
+                  initial={{
+                    scale: 0,
+                  }}
+                  animate={{
+                    scale: toggleEmojis ? 1 : 0,
+                  }}
                 >
-                  <IoMdClose
-                    style={{ fontSize: "17px", color: "var(--text)" }}
+                  <PostEmojis
+                    post_id={post.post_id}
+                    reaction={post.entity_reaction}
+                    onProcessEmojiSelection={onProcessEmojiSelection}
+                    onSuccessEmojiSelection={onSuccessEmojiSelection}
+                  />
+                </motion.div>
+                {post.entity_reaction ? (
+                  <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
+                    {emojilist.length > 0 &&
+                      (emojilist.filter(
+                        (flt: Emoji) => flt.emoji_id === post.entity_reaction,
+                      )[0].emoji_content ??
+                        "...")}
+                  </div>
+                ) : (
+                  <BiLike
+                    style={{
+                      fontSize: "25px",
+                      color: "var(--text-2)",
+                    }}
+                  />
+                )}
+              </button>
+              <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
+                <LiaComment
+                  style={{ fontSize: "25px", color: "var(--text-2)" }}
+                />
+              </button>
+              <button
+                onClick={onShare}
+                className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
+              >
+                <PiShareFat
+                  style={{ fontSize: "25px", color: "var(--text-2)" }}
+                />
+              </button>
+              {postOwnerUserID === authentication.user.entity_id && (
+                <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
+                  <BsPinMap
+                    style={{
+                      fontSize: "22px",
+                      color: "var(--text-2)",
+                    }}
                   />
                 </button>
               )}
             </div>
-            <div
-              className={`tw-w-[calc(100%-0px)] tw-pl-[25px] tw-pr-[25px] tw-flex tw-flex-col tw-items-center tw-gap-[10px] tw-min-h-[35px] tw-justify-center`}
-            >
-              <div
-                ref={textContainerRef}
-                className={`tw-w-full tw-flex tw-justify-center ${
-                  minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
-                } tw-overflow-y-hidden`}
-              >
-                <span ref={textRef} className={`cl-text-body tw-text-left c1`}>
-                  {post.caption}
-                </span>
-              </div>
-              {/* Same renderer the profile feed uses, so a link in a post
-                  shows its preview card here instead of a bare URL. */}
-              {post.link_preview && (
-                <LinkPreviewCard
-                  preview={post.link_preview}
-                  variant="display"
-                />
-              )}
-              {minimizedCaption && (
-                <button
-                  onClick={() => {
-                    setminimizedCaption(false);
-                  }}
-                  className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
-                >
-                  Expand
-                </button>
-              )}
-              {!minimizedCaption && post.caption.length >= 600 && (
-                <button
-                  onClick={() => {
-                    setminimizedCaption(true);
-                  }}
-                  className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
-                >
-                  See less
-                </button>
-              )}
-              {post.is_shared &&
-                post.references.map((mpu: any, i: number) => {
-                  return <LoadedPostItem key={i} postID={mpu.reference} />;
-                })}
-            </div>
-            <div className="tw-w-[calc(100%-0px)] tw-pl-[25px] tw-pr-[25px] tw-mt-[10px] tw-pb-[5px]">
-              <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
-                <motion.div
-                  initial={{
-                    height: toggleActivityCounts > 0 ? "auto" : "0px",
-                    paddingTop: toggleActivityCounts > 0 ? "5px" : "0px",
-                  }}
-                  animate={{
-                    height: toggleActivityCounts > 0 ? "auto" : "0px",
-                    paddingTop: toggleActivityCounts > 0 ? "5px" : "0px",
-                  }}
-                  className="tw-w-full tw-flex tw-flex-row tw-gap-[15px] tw-items-center tw-overflow-hidden"
-                >
-                  <div className="tw-flex tw-flex-row">
-                    {post.preview
-                      .filter((flt) => flt.count > 0)
-                      .map((mp, i) => {
-                        if (emojilist.length > 0) {
-                          return (
-                            <span key={i} className="-tw-mr-[10px]">
-                              {
-                                emojilist.filter(
-                                  (flt) => flt.emoji_id === mp.emoji,
-                                )[0].emoji_content
-                              }
-                            </span>
-                          );
-                        }
-                      })}
-                  </div>
-                  <div className="tw-w-full tw-flex tw-justify-between tw-items-center">
-                    {total_reactions > 0 && (
-                      <span className="cl-text-caption tw-text-[var(--text-2)]">
-                        {total_reactions}{" "}
-                        {total_reactions === 1 ? " reaction" : " reactions"}
-                      </span>
-                    )}
-                    <div className="tw-flex tw-gap-[10px] tw-items-center">
-                      {commentsCount > 0 && (
-                        <span className="cl-text-caption tw-text-[var(--text-2)]">
-                          {commentsCount}{" "}
-                          {commentsCount === 1 ? " comment" : " comments"}
-                        </span>
-                      )}
-                      {shareCount > 0 && (
-                        <span className="cl-text-caption tw-text-[var(--text-2)]">
-                          {shareCount} {shareCount === 1 ? " share" : " shares"}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </motion.div>
-                <hr className="cl-feed-card__divider tw-w-full tw-mb-[5px] tw-z-[0]" />
-                <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
-                  <button
-                    onMouseEnter={() => {
-                      settoggleEmojis(true);
-                    }}
-                    onMouseLeave={() => {
-                      settoggleEmojis(false);
-                    }}
-                    disabled={emojiLoading}
-                    className="cl-feed-card__action tw-relative tw-inline-block tw-bg-transparent tw-flex-col tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
-                  >
-                    <motion.div
-                      className="cl-feed-card__reaction-popover tw-absolute tw-min-h-[50px] tw-h-full tw-rounded-full tw-shadow-lg tw-bottom-[calc(100%+15px)]"
-                      initial={{
-                        scale: 0,
-                      }}
-                      animate={{
-                        scale: toggleEmojis ? 1 : 0,
-                      }}
-                    >
-                      <PostEmojis
-                        post_id={post.post_id}
-                        reaction={post.entity_reaction}
-                        onProcessEmojiSelection={onProcessEmojiSelection}
-                        onSuccessEmojiSelection={onSuccessEmojiSelection}
-                      />
-                    </motion.div>
-                    {post.entity_reaction ? (
-                      <div className="tw-text-[25px] tw-flex-1 tw-justify-center tw-items-center -tw-mt-[6px]">
-                        {emojilist.length > 0 &&
-                          (emojilist.filter(
-                            (flt: Emoji) =>
-                              flt.emoji_id === post.entity_reaction,
-                          )[0].emoji_content ??
-                            "...")}
-                      </div>
-                    ) : (
-                      <BiLike
-                        style={{
-                          fontSize: "25px",
-                          color: "var(--text-2)",
-                        }}
-                      />
-                    )}
-                  </button>
-                  <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
-                    <LiaComment
-                      style={{ fontSize: "25px", color: "var(--text-2)" }}
-                    />
-                  </button>
-                  <button
-                    onClick={onShare}
-                    className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
-                  >
-                    <PiShareFat
-                      style={{ fontSize: "25px", color: "var(--text-2)" }}
-                    />
-                  </button>
-                  {postOwnerUserID === authentication.user.entity_id && (
-                    <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
-                      <BsPinMap
-                        style={{
-                          fontSize: "22px",
-                          color: "var(--text-2)",
-                        }}
-                      />
-                    </button>
-                  )}
-                </div>
-              </div>
-            </div>
-            <div
-              className={
-                post.is_shared
-                  ? "custom:tw-overflow-y-hidden"
-                  : "custom:tw-overflow-y-auto"
-              }
-            >
-              <PostComment
-                post_id={post.post_id}
-                parent_id={null}
-                onCommentCountChange={(delta) =>
-                  setPost((prev: IPost | null) =>
-                    prev
-                      ? {
-                          ...prev,
-                          score: {
-                            ...prev.score,
-                            comments_count: Math.max(
-                              0,
-                              prev.score.comments_count + delta,
-                            ),
-                          },
-                        }
-                      : prev,
-                  )
-                }
-              />
-            </div>
           </div>
         </div>
+        <div
+          className={
+            post.is_shared
+              ? "custom:tw-overflow-y-hidden"
+              : "custom:tw-overflow-y-auto"
+          }
+        >
+          <PostComment
+            post_id={post.post_id}
+            parent_id={null}
+            // This component IS the post-in-full surface - as an overlay
+            // here, and as /post/:id when asPage. Both are a single post
+            // the reader is sitting on, which is the case a live comment
+            // section is for.
+            realtime
+            // The comment section holds the post's stream (it is the one
+            // child mounted on every full-post surface), so a reaction on the
+            // POST is reported back up to here, where the post state lives.
+            onPostReaction={RefreshReactionTotalsProcess}
+            onCommentCountChange={(delta) =>
+              setPost((prev: IPost | null) =>
+                prev
+                  ? {
+                      ...prev,
+                      score: {
+                        ...prev.score,
+                        comments_count: Math.max(
+                          0,
+                          prev.score.comments_count + delta,
+                        ),
+                      },
+                    }
+                  : prev,
+              )
+            }
+          />
+        </div>
+      </div>
+    </div>
   );
 
   return asPage ? shell : <Modal component={shell} />;
 }
 
 export default PostPreviewModal;
+

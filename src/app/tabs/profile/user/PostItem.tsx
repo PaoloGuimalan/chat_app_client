@@ -177,6 +177,20 @@ function PostItem({
       return;
     }
 
+    RefreshReactionTotalsProcess();
+  };
+
+  /**
+   * Re-read the post's reaction tallies.
+   *
+   * Shared by the viewer's OWN reaction landing and by somebody else's
+   * arriving on the live stream - both mean the same thing, that the numbers
+   * on screen are behind.
+   *
+   * Only `preview` is replaced. `entity_reaction` is the viewer's own choice,
+   * which somebody else reacting cannot change.
+   */
+  const RefreshReactionTotalsProcess = () => {
     GetReactionTotalRequest(postState.post_id)
       .then((response) => {
         setpostState((prev: IPost) => ({
@@ -470,7 +484,7 @@ function PostItem({
                         postState.references.length > 0
                           ? postState.is_shared
                             ? "custom:tw-max-w-full"
-                            : "custom:tw-max-w-[400px]"
+                            : "custom:tw-max-w-[440px]"
                           : "custom:tw-max-w-full"
                       } tw-min-w-[350px] cl-post-item-modal-side tw-flex-col tw-pb-[10px] ${
                         postState.is_shared || postState.references.length === 0
@@ -811,6 +825,16 @@ function PostItem({
                         <PostComment
                           post_id={postState.post_id}
                           parent_id={null}
+                          // Inside the card's OPENED modal, not on the card
+                          // itself - the feed renders many of these and only
+                          // this branch is mounted, so exactly one post is
+                          // ever streaming at a time.
+                          realtime
+                          // The comment section holds the post's stream (it
+                          // is the one child mounted on every full-post
+                          // surface), so a reaction on the POST is reported
+                          // back up to here, where the post state lives.
+                          onPostReaction={RefreshReactionTotalsProcess}
                           onCommentCountChange={(delta) =>
                             setpostState((prev) => ({
                               ...prev,
@@ -1082,3 +1106,4 @@ function PostItem({
 }
 
 export default PostItem;
+
