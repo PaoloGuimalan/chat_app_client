@@ -29,6 +29,7 @@ import { motion, useInView } from "framer-motion";
 import PostEmojis from "@/app/reusables/PostEmojis";
 import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
 import PostComment from "@/app/widgets/items/PostComment";
+import FeedReasonBanner from "@/app/reusables/FeedReasonBanner";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { timeSince } from "@/reusables/hooks/reusable";
@@ -271,6 +272,16 @@ function PostItem({
           }}
           className="cl-post-item-card tw-w-full tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]"
         >
+          {/* Why this post is here at all, above the author row - the same
+              order the sentence reads in ("X commented on this post" THEN the
+              post). Only the newsfeed sends a reason, and only for the cases
+              worth explaining, so this is silent everywhere else. Read off the
+              prop rather than postState: it belongs to the feed row that
+              delivered the post, and nothing this card does to the post
+              changes it. */}
+          {!isSharePreview && mp.feed_reason && (
+            <FeedReasonBanner reason={mp.feed_reason} />
+          )}
           <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
             <div className="tw-w-[35px] tw-h-[35px] tw-mr-[10px]">
               {postAuthorAvatar(35)}

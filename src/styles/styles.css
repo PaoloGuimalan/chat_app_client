@@ -4244,6 +4244,56 @@ input:checked + .slider:before {
   min-height: 18px;
 }
 
+/* "X commented on this post" above a feed card - see FeedReasonBanner.
+
+   Sits above the author row and is deliberately quieter than it: this is why
+   the post reached you, not who wrote it, and it must not compete with the
+   byline underneath. Separated by a rule so the card still starts at the
+   author. */
+.cl-feed-reason {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  /* Pulls back against the card's own 20px top inset (cl-post-item-card).
+     That inset is sized for the AUTHOR row, which is what normally starts the
+     card; this line sits above it and only needs enough room to clear the
+     card edge, so the full inset left it floating. Negative margin rather than
+     a smaller pad on the card: tailwind.config.js sets `important: true`, so
+     every `tw-p-[20px]` carries !important and cannot be overridden from
+     here - and the card's inset should not change for posts that have no
+     reason to show. */
+  margin-top: -8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+  min-width: 0;
+}
+
+.cl-feed-reason__text {
+  color: var(--text-2);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cl-feed-reason__name {
+  padding: 0;
+  border: none;
+  background: transparent;
+  font: inherit;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+}
+
+.cl-feed-reason__name:disabled {
+  cursor: default;
+}
+
+.cl-feed-reason__name:hover:not(:disabled) {
+  text-decoration: underline;
+}
+
 /* The same row under a comment, saying somebody is replying to THAT comment.
    Indented to sit under the thread's own rule (cl-comment-section--thread
    insets by 14px behind a 2px border), so it reads as the foot of that thread

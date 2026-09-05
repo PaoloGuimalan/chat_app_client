@@ -447,6 +447,23 @@ export interface IPost {
   deleted_by: string | null | boolean;
   /** SerializerMethodField from newsfeed/serializers.py, see useLinkPreview's LinkPreviewData */
   link_preview?: any | null;
+  /**
+   * Why this post is in the viewer's feed, for the caption above the card.
+   *
+   * Set only by the newsfeed endpoint, and only when there is something worth
+   * saying: `fanout` - "you follow the author" - is deliberately sent as null,
+   * as is a reason whose entity no longer resolves. Every other surface that
+   * returns a post (profile, search, preview) sends null too, because the
+   * reason belongs to the feed ROW rather than to the post.
+   */
+  feed_reason?: IFeedReason | null;
+}
+
+/** See newsfeed/models.py NewsfeedIndex - `type` is the reason, `entity` is who caused it. */
+export interface IFeedReason {
+  /** "comment" today; unknown values are ignored rather than rendered raw. */
+  type: string;
+  entity: IFlexibleEntity;
 }
 
 export interface IFlexibleEntity {
