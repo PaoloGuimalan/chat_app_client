@@ -371,9 +371,18 @@ function Contacts() {
     navigate(`/messages/${group.target_id}`);
 
   // Presence comes from the active-sessions state, keyed on entity id.
-  // Pages are skipped entirely - a page is never "active now".
+  //
+  // Every entity kind is looked up now, pages and bots included. This used to
+  // return early for anything that was not a user, on the reasoning that a
+  // page is never "active now" - but sessions are keyed on an ENTITY, a page
+  // acting as itself has always written session rows, and developer_service
+  // now writes one for a bot for as long as its event stream is open. What
+  // was actually missing was server-side SCOPE: the presence query joined
+  // user_account on both sides, so a page or bot counterpart was dropped
+  // before it could be reported (server getPresenceScope). An entity the
+  // server does not report on still resolves to "no dot", so dropping the
+  // early return cannot regress anything that used to work.
   const presenceFor = (item: NetworkEntityResult) => {
-    if (item.type !== "user") return { online: false, presence: null };
     const online = isUserOnline(activeuserslist, item.entity_id);
     return {
       online,
