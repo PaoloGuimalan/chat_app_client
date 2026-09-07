@@ -1,0 +1,4 @@
+# Shell scripts must keep LF endings. core.autocrlf=true would otherwise hand
+# Docker a CRLF file, and the container fails at startup with a "not found"
+# error that points at the interpreter rather than the line endings.
+*.sh text eol=lf

@@ -10,8 +10,13 @@ RUN yarn global add serve
 WORKDIR /app
 COPY --from=build /app/dist ./dist
 
+# The template lives outside dist/ so it is never served directly.
+# generate-env.js renders dist/index.html from it at every container start.
+RUN mv /app/dist/index.html /app/index.html.tpl
+COPY generate-env.js /app/generate-env.js
+COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
 EXPOSE 3000
 
-# This command creates a JS file from all envs starting with VITE_ 
-# and then starts the 'serve' tool.
-CMD ["sh", "-c", "echo \"window._env_ = { $(env | grep VITE_ | awk -F= '{print \"\\\"\"$1\"\\\": \\\"\"$2\"\\\",\"}') };\" > ./dist/env-config.js && serve -s dist -l 3000"]
+CMD ["docker-entrypoint.sh"]
