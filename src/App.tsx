@@ -19,6 +19,7 @@ import ConferenceContainer from "./app/conference/ConferenceContainer";
 import PolicyPage from "./app/legal/PolicyPage";
 import DeleteAccount from "./app/legal/DeleteAccount";
 import Support from "./app/legal/Support";
+import envs from "./reusables/hooks/env_configs";
 
 function App() {
   const authentication: AuthenticationInterface = useSelector(
@@ -50,7 +51,7 @@ function App() {
   useEffect(() => {
     AuthCheck(dispatch);
     // console.log("v2.2.1.0");
-    console.log("v2.7.2");
+    console.log(envs.APP_VERSION);
   }, []);
 
   useEffect(() => {
@@ -104,10 +105,7 @@ function App() {
       </div>
       <Routes>
         <Route path="/conference" element={<ConferenceContainer />} />
-        <Route
-          path="/conference/:slug"
-          element={<ConferenceContainer />}
-        />
+        <Route path="/conference/:slug" element={<ConferenceContainer />} />
         {/* PUBLIC, and declared ABOVE the `/*` catch-all below - that route runs
             the whole authentication gate and redirects to /login, so anything
             registered under it is unreachable logged out. These four are the
@@ -121,7 +119,10 @@ function App() {
                                us about user-generated content
             Deliberately separate from the consent modals in Register/Setup,
             which stay exactly as they are; these only share the policies fetch. */}
-        <Route path="/privacy" element={<PolicyPage documentType="privacy" />} />
+        <Route
+          path="/privacy"
+          element={<PolicyPage documentType="privacy" />}
+        />
         <Route path="/terms" element={<PolicyPage documentType="terms" />} />
         <Route path="/delete-account" element={<DeleteAccount />} />
         <Route path="/support" element={<Support />} />

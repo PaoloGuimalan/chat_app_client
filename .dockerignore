@@ -1,1 +1,11 @@
 /node_modules
+.git
+.gitignore
+.env
+.env.*
+!.env.example
+*.exe
+*.exe~
+worker
+GUIDE.md
+README.md
