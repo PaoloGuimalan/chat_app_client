@@ -78,6 +78,7 @@ import SearchPage from "../tabs/search/Search";
 import TopicFeed from "../tabs/feed/TopicFeed";
 import ModerationDetail from "../tabs/moderation/ModerationDetail";
 import { Avatar, Icon, useTheme } from "@/reusables/design";
+import envs from "@/reusables/hooks/env_configs";
 import ConversationV2 from "../tabs/messenger/ConversationV2";
 import ConversationBubbleDock from "../tabs/messenger/partials/ConversationBubbleDock";
 
@@ -873,6 +874,19 @@ function Rail({
         profileSrc={profileSrc}
         profileName={profileName}
       />
+      <div
+        title={`Chatterloop ${envs.APP_VERSION}`}
+        style={{
+          marginTop: 8,
+          fontSize: 9,
+          lineHeight: 1,
+          color: "var(--rail-icon)",
+          opacity: 0.55,
+          letterSpacing: 0.2,
+        }}
+      >
+        {envs.APP_VERSION}
+      </div>
     </nav>
   );
 }

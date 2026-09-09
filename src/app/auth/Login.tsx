@@ -460,6 +460,12 @@ export function BrandPanel() {
       </div>
       <div style={{ position: "relative", fontSize: 12.5, opacity: 0.7 }}>
         © Neon Systems · Chatterloop
+        {/* Nested rather than a sibling: this column is space-between, so a
+            sibling would be pushed to the bottom of the panel instead of
+            sitting under the label. */}
+        <div style={{ fontSize: 11, opacity: 0.75, marginTop: 4, letterSpacing: 0.3 }}>
+          {envs.APP_VERSION}
+        </div>
       </div>
     </div>
   );

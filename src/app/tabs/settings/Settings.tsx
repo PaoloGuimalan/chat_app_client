@@ -11,6 +11,7 @@ import Credentials from "./section/Credentials";
 import DataPrivacy from "./section/DataPrivacy";
 import BlockedAccounts from "./section/BlockedAccounts";
 import DeviceSessions from "./section/DeviceSessions";
+import envs from "@/reusables/hooks/env_configs";
 
 interface SettingsItem {
   key: string;
@@ -337,13 +338,24 @@ function Settings({ isModal }: { isModal: boolean }) {
         >
           Settings
         </h1>
+        {/* marginLeft:auto here rather than on the close button below: this row
+            is the only place both can sit, and two auto margins would split the
+            free space between them instead of pinning both to the right. */}
+        <span
+          title={`Chatterloop ${envs.APP_VERSION}`}
+          style={{
+            marginLeft: "auto",
+            fontSize: 12,
+            fontWeight: 600,
+            opacity: 0.55,
+            letterSpacing: 0.2,
+            whiteSpace: "nowrap",
+          }}
+        >
+          {envs.APP_VERSION}
+        </span>
         {isModal && (
-          <IconBtn
-            n="close"
-            onClick={onBack}
-            title="Close"
-            style={{ marginLeft: "auto" }}
-          />
+          <IconBtn n="close" onClick={onBack} title="Close" />
         )}
       </div>
       <div
