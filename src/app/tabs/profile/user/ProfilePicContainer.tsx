@@ -51,7 +51,7 @@ function ProfilePicContainer({
   }, [authentication.user.userID, userID, isAllowed, type]);
 
   return (
-    <div className="tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center tw-relative">
+    <div className="cl-profile-avatar-col tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center tw-relative">
       <div
         onClick={() => {
           settoggleSelection(!toggleSelection);

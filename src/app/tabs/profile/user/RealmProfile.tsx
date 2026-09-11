@@ -389,7 +389,7 @@ function RealmProfile({
           isAllowed={realmInfo.is_admin}
           getpostprocess={() => {}}
         />
-        <div className="tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[12px] tw-pr-[12px] sm:tw-pl-[40px] sm:tw-pr-[40px]">
+        <div className="cl-profile-picrow tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[12px] tw-pr-[12px] sm:tw-pl-[40px] sm:tw-pr-[40px]">
           <ProfilePicContainer
             userID={realmInfo.id}
             realm_id={realmInfo.realm_id}
@@ -400,9 +400,9 @@ function RealmProfile({
             isAllowed={realmInfo.is_admin}
             getpostprocess={() => {}}
           />
-          <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
-            <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[16px] tw-sm:p-[0px]">
-              <span className="cl-text-hero tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
+          <div className="cl-profile-identity tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
+            <div className="cl-profile-identity__meta tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[16px] tw-sm:p-[0px]">
+              <span className="cl-identity-name cl-text-hero tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
                 <span>{realmInfo.name}</span>
                 {realmInfo.is_verified && (
                   <RiVerifiedBadgeFill size={18} color="var(--brand)" />
@@ -415,38 +415,123 @@ function RealmProfile({
                 @{realmInfo.slug}
               </span>
             </div>
-            {!authentication.auth && (
-              <div className="tw-flex tw-flex-wrap tw-flex-col sm:tw-flex-row tw-items-center sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[10px]">
-                <span className="cl-text-body tw-font-semibold tw-font-Inter">
-                  You are not logged in
-                </span>
-                <button
-                  onClick={() => {
-                    navigate("/login");
-                  }}
-                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                >
-                  Login
-                </button>
-              </div>
-            )}
-            {authentication.auth && (
-              <div className="tw-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[4px] tw-justify-center">
-                {realmInfo.is_admin && (
+            <div className="cl-profile-actions">
+              {!authentication.auth && (
+                <div className="tw-flex tw-flex-wrap tw-flex-col sm:tw-flex-row tw-items-center sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[10px]">
+                  <span className="cl-text-body tw-font-semibold tw-font-Inter">
+                    You are not logged in
+                  </span>
                   <button
                     onClick={() => {
-                      navigate(`/realms/${realmInfo.realm_id}`);
+                      navigate("/login");
                     }}
-                    className="cl-profile-action-button--secondary tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                    className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                   >
-                    Manage
+                    Login
                   </button>
-                )}
-                {!isSelf &&
-                  (realmInfo.is_follower ? (
+                </div>
+              )}
+              {authentication.auth && (
+                <div className="tw-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[4px] tw-justify-center">
+                  {realmInfo.is_admin && (
                     <button
-                      onClick={requestUnfollowRealm}
+                      onClick={() => {
+                        navigate(`/realms/${realmInfo.realm_id}`);
+                      }}
+                      className="cl-profile-action-button--secondary tw-min-w-[80px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                    >
+                      Manage
+                    </button>
+                  )}
+                  {!isSelf &&
+                    (realmInfo.is_follower ? (
+                      <button
+                        onClick={requestUnfollowRealm}
+                        disabled={isConnectionButtonsLoading}
+                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                      >
+                        {isConnectionButtonsLoading ? (
+                          <motion.div
+                            animate={{
+                              rotate: -360,
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                            }}
+                            id="div_loader_request_nano_light"
+                          >
+                            <AiOutlineLoading3Quarters
+                              style={{ fontSize: "15px", color: "var(--brand)" }}
+                            />
+                          </motion.div>
+                        ) : (
+                          <div className="tw-min-w-[80px]">Unfollow</div>
+                        )}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={FollowRealmProcess}
+                        disabled={isConnectionButtonsLoading}
+                        className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                      >
+                        {isConnectionButtonsLoading ? (
+                          <motion.div
+                            animate={{
+                              rotate: -360,
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                            }}
+                            id="div_loader_request_nano_light"
+                          >
+                            <AiOutlineLoading3Quarters
+                              style={{ fontSize: "15px" }}
+                            />
+                          </motion.div>
+                        ) : (
+                          <div className="tw-min-w-[80px]">Follow</div>
+                        )}
+                      </button>
+                    ))}
+                </div>
+              )}
+              {authentication.auth && !isSelf && (
+                <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                  {/* can_connect is only sent by bots, and only as false. A bot
+                      has nothing to accept a request WITH, so the button would
+                      exist purely to be refused - `!== false` keeps realms, which
+                      never send the field, exactly as they were. */}
+                  {realmInfo.can_connect === false ? null : !realmInfo.connection
+                      ?.is_connection_present ? (
+                    <button
+                      onClick={AddRealmContactProcess}
                       disabled={isConnectionButtonsLoading}
+                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                    >
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{
+                            rotate: -360,
+                          }}
+                          transition={{
+                            duration: 1,
+                            repeat: Infinity,
+                          }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        <div className="tw-min-w-[80px]">Add Contact</div>
+                      )}
+                    </button>
+                  ) : realmInfo.connection?.is_connection_handshaked ? (
+                    <button
+                      onClick={requestRemoveRealmConnection}
                       className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                     >
                       {isConnectionButtonsLoading ? (
@@ -458,6 +543,27 @@ function RealmProfile({
                             duration: 1,
                             repeat: Infinity,
                           }}
+                          id="div_loader_request_nano_light"
+                        >
+                          <AiOutlineLoading3Quarters
+                            style={{ fontSize: "15px" }}
+                          />
+                        </motion.div>
+                      ) : (
+                        "Connected"
+                      )}
+                    </button>
+                  ) : realmInfo.connection?.is_user_connection_initiator ? (
+                    // My own outgoing request - withdrawable, not just a status.
+                    <button
+                      onClick={() => realmConnectionProcess("cancel")}
+                      disabled={isConnectionButtonsLoading}
+                      className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                    >
+                      {isConnectionButtonsLoading ? (
+                        <motion.div
+                          animate={{ rotate: -360 }}
+                          transition={{ duration: 1, repeat: Infinity }}
                           id="div_loader_request_nano_light"
                         >
                           <AiOutlineLoading3Quarters
@@ -465,254 +571,150 @@ function RealmProfile({
                           />
                         </motion.div>
                       ) : (
-                        <div className="tw-min-w-[80px]">Unfollow</div>
+                        <div className="tw-min-w-[80px]">Cancel Request</div>
                       )}
                     </button>
                   ) : (
-                    <button
-                      onClick={FollowRealmProcess}
-                      disabled={isConnectionButtonsLoading}
-                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                    >
-                      {isConnectionButtonsLoading ? (
-                        <motion.div
-                          animate={{
-                            rotate: -360,
-                          }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                          }}
-                          id="div_loader_request_nano_light"
-                        >
-                          <AiOutlineLoading3Quarters
-                            style={{ fontSize: "15px" }}
-                          />
-                        </motion.div>
-                      ) : (
-                        <div className="tw-min-w-[80px]">Follow</div>
-                      )}
-                    </button>
-                  ))}
-              </div>
-            )}
-            {authentication.auth && !isSelf && (
-              <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
-                {/* can_connect is only sent by bots, and only as false. A bot
-                    has nothing to accept a request WITH, so the button would
-                    exist purely to be refused - `!== false` keeps realms, which
-                    never send the field, exactly as they were. */}
-                {realmInfo.can_connect === false ? null : !realmInfo.connection
-                    ?.is_connection_present ? (
-                  <button
-                    onClick={AddRealmContactProcess}
-                    disabled={isConnectionButtonsLoading}
-                    className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                  >
-                    {isConnectionButtonsLoading ? (
-                      <motion.div
-                        animate={{
-                          rotate: -360,
-                        }}
-                        transition={{
-                          duration: 1,
-                          repeat: Infinity,
-                        }}
-                        id="div_loader_request_nano_light"
+                    // The page requested me - same accept/decline pair the user
+                    // profile offers.
+                    <Fragment>
+                      <button
+                        onClick={() => realmConnectionProcess("accept")}
+                        disabled={isConnectionButtonsLoading}
+                        className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                       >
-                        <AiOutlineLoading3Quarters
-                          style={{ fontSize: "15px" }}
-                        />
-                      </motion.div>
-                    ) : (
-                      <div className="tw-min-w-[80px]">Add Contact</div>
-                    )}
-                  </button>
-                ) : realmInfo.connection?.is_connection_handshaked ? (
-                  <button
-                    onClick={requestRemoveRealmConnection}
-                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                  >
-                    {isConnectionButtonsLoading ? (
-                      <motion.div
-                        animate={{
-                          rotate: -360,
-                        }}
-                        transition={{
-                          duration: 1,
-                          repeat: Infinity,
-                        }}
-                        id="div_loader_request_nano_light"
+                        {isConnectionButtonsLoading ? (
+                          <motion.div
+                            animate={{
+                              rotate: -360,
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                            }}
+                            id="div_loader_request_nano_light"
+                          >
+                            <AiOutlineLoading3Quarters
+                              style={{ fontSize: "15px" }}
+                            />
+                          </motion.div>
+                        ) : (
+                          <div className="tw-min-w-[80px]">Accept</div>
+                        )}
+                      </button>
+                      <button
+                        onClick={() => realmConnectionProcess("decline")}
+                        disabled={isConnectionButtonsLoading}
+                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                       >
-                        <AiOutlineLoading3Quarters
-                          style={{ fontSize: "15px" }}
-                        />
-                      </motion.div>
-                    ) : (
-                      "Connected"
-                    )}
-                  </button>
-                ) : realmInfo.connection?.is_user_connection_initiator ? (
-                  // My own outgoing request - withdrawable, not just a status.
+                        {isConnectionButtonsLoading ? (
+                          <motion.div
+                            animate={{
+                              rotate: -360,
+                            }}
+                            transition={{
+                              duration: 1,
+                              repeat: Infinity,
+                            }}
+                            id="div_loader_request_nano_light"
+                          >
+                            <AiOutlineLoading3Quarters
+                              style={{ fontSize: "15px" }}
+                            />
+                          </motion.div>
+                        ) : (
+                          <div className="tw-min-w-[80px]">Decline</div>
+                        )}
+                      </button>
+                    </Fragment>
+                  )}
                   <button
-                    onClick={() => realmConnectionProcess("cancel")}
-                    disabled={isConnectionButtonsLoading}
-                    className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                    onClick={() => {
+                      CreateConversationProcess();
+                    }}
+                    className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                   >
-                    {isConnectionButtonsLoading ? (
-                      <motion.div
-                        animate={{ rotate: -360 }}
-                        transition={{ duration: 1, repeat: Infinity }}
-                        id="div_loader_request_nano_light"
-                      >
-                        <AiOutlineLoading3Quarters
-                          style={{ fontSize: "15px", color: "var(--brand)" }}
-                        />
-                      </motion.div>
-                    ) : (
-                      <div className="tw-min-w-[80px]">Cancel Request</div>
-                    )}
+                    Message
                   </button>
-                ) : (
-                  // The page requested me - same accept/decline pair the user
-                  // profile offers.
-                  <Fragment>
-                    <button
-                      onClick={() => realmConnectionProcess("accept")}
-                      disabled={isConnectionButtonsLoading}
-                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                  {!isSelf && (
+                    <div
+                      ref={optionsWrapperRef}
+                      className="cl-profile-actions__menu tw-relative tw-flex tw-items-center"
                     >
-                      {isConnectionButtonsLoading ? (
-                        <motion.div
-                          animate={{
-                            rotate: -360,
-                          }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                          }}
-                          id="div_loader_request_nano_light"
-                        >
-                          <AiOutlineLoading3Quarters
-                            style={{ fontSize: "15px" }}
-                          />
-                        </motion.div>
-                      ) : (
-                        <div className="tw-min-w-[80px]">Accept</div>
-                      )}
-                    </button>
-                    <button
-                      onClick={() => realmConnectionProcess("decline")}
-                      disabled={isConnectionButtonsLoading}
-                      className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                    >
-                      {isConnectionButtonsLoading ? (
-                        <motion.div
-                          animate={{
-                            rotate: -360,
-                          }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                          }}
-                          id="div_loader_request_nano_light"
-                        >
-                          <AiOutlineLoading3Quarters
-                            style={{ fontSize: "15px" }}
-                          />
-                        </motion.div>
-                      ) : (
-                        <div className="tw-min-w-[80px]">Decline</div>
-                      )}
-                    </button>
-                  </Fragment>
-                )}
-                <button
-                  onClick={() => {
-                    CreateConversationProcess();
-                  }}
-                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                >
-                  Message
-                </button>
-                {!isSelf && (
-                  <div
-                    ref={optionsWrapperRef}
-                    className="tw-relative tw-flex tw-items-center"
-                  >
-                    <button
-                      onClick={() => {
-                        setisOptionsToggled((prev) => !prev);
-                      }}
-                      className="tw-ml-[0px] sm:tw-ml-[10px] tw-w-[32px] tw-h-[32px] tw-flex tw-items-center tw-justify-center tw-rounded-full tw-border-none tw-bg-transparent hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer"
-                      aria-label="More options"
-                    >
-                      <BsThreeDots
-                        style={{ fontSize: "17px", color: "var(--text)" }}
-                      />
-                    </button>
-                    {isOptionsToggled && (
-                      <div className="cl-post-options-menu tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[160px] tw-absolute tw-right-[0px] tw-top-[36px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md">
-                        {isPage && (
-                          <Fragment>
-                            <button
-                              disabled={isBlockLoading}
-                              onClick={() => {
-                                blockRealmProcess();
-                              }}
-                              className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
-                            >
-                              <MdBlock
-                                size={15}
-                                style={{
-                                  marginLeft: "-1px",
-                                  marginRight: "4px",
-                                }}
-                              />
-                              <span>
-                                {isBlockLoading
-                                  ? "Blocking…"
-                                  : confirmBlock
-                                    ? "Confirm block"
-                                    : "Block"}
-                              </span>
-                            </button>
-                            {confirmBlock && !isBlockLoading && (
+                      <button
+                        onClick={() => {
+                          setisOptionsToggled((prev) => !prev);
+                        }}
+                        className="tw-ml-[0px] sm:tw-ml-[10px] tw-w-[32px] tw-h-[32px] tw-flex tw-items-center tw-justify-center tw-rounded-full tw-border-none tw-bg-transparent hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer"
+                        aria-label="More options"
+                      >
+                        <BsThreeDots
+                          style={{ fontSize: "17px", color: "var(--text)" }}
+                        />
+                      </button>
+                      {isOptionsToggled && (
+                        <div className="cl-post-options-menu tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[160px] tw-absolute tw-right-[0px] tw-top-[36px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md">
+                          {isPage && (
+                            <Fragment>
                               <button
-                                onClick={() => setconfirmBlock(false)}
-                                className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                                disabled={isBlockLoading}
+                                onClick={() => {
+                                  blockRealmProcess();
+                                }}
+                                className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
                               >
-                                <IoClose
+                                <MdBlock
                                   size={15}
                                   style={{
                                     marginLeft: "-1px",
                                     marginRight: "4px",
                                   }}
                                 />
-                                <span>Cancel block</span>
+                                <span>
+                                  {isBlockLoading
+                                    ? "Blocking…"
+                                    : confirmBlock
+                                      ? "Confirm block"
+                                      : "Block"}
+                                </span>
                               </button>
-                            )}
-                          </Fragment>
-                        )}
-                        <button
-                          onClick={() => {
-                            setisOptionsToggled(false);
-                            setisReportOpen(true);
-                          }}
-                          className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
-                        >
-                          <MdReport
-                            size={15}
-                            style={{ marginLeft: "-1px", marginRight: "4px" }}
-                          />
-                          <span>Report</span>
-                        </button>
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
-            )}
+                              {confirmBlock && !isBlockLoading && (
+                                <button
+                                  onClick={() => setconfirmBlock(false)}
+                                  className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                                >
+                                  <IoClose
+                                    size={15}
+                                    style={{
+                                      marginLeft: "-1px",
+                                      marginRight: "4px",
+                                    }}
+                                  />
+                                  <span>Cancel block</span>
+                                </button>
+                              )}
+                            </Fragment>
+                          )}
+                          <button
+                            onClick={() => {
+                              setisOptionsToggled(false);
+                              setisReportOpen(true);
+                            }}
+                            className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                          >
+                            <MdReport
+                              size={15}
+                              style={{ marginLeft: "-1px", marginRight: "4px" }}
+                            />
+                            <span>Report</span>
+                          </button>
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>
@@ -735,7 +737,7 @@ function RealmProfile({
           }}
         />
       )}
-      <div className="cl-profile-page__content tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[6px] tw-items-stretch md:tw-items-start">
+      <div className="cl-profile-page__content cl-bleed-host tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[6px] tw-items-stretch md:tw-items-start">
         <div className="cl-profile-page__sidebar tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[8px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
           <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex tw-flex-col">
             <div
@@ -784,7 +786,11 @@ function RealmProfile({
           )}
           {realmInfo.is_admin && (
             <Fragment>
-              <Card pad={14} style={{ marginBottom: 0, width: "100%" }}>
+              <Card
+                pad={14}
+                className="cl-bleed"
+                style={{ marginBottom: 0, width: "100%" }}
+              >
                 {toggleNewPostModal.toggle && (
                   <NewPostModal
                     toShare={false}
@@ -905,7 +911,7 @@ function RealmProfile({
                     pad={10}
                     style={{ marginBottom: 8, width: "100%" }}
                     key={mp.post_id}
-                    className="tw-flex tw-justify-center tw-w-full"
+                    className="cl-bleed tw-flex tw-justify-center tw-w-full"
                   >
                     <PostItem key={mp.post_id} isSharePreview={false} mp={mp} />
                   </Card>
@@ -951,7 +957,7 @@ function RealmProfile({
                     pad={10}
                     style={{ marginBottom: 8, width: "100%" }}
                     key={i}
-                    className="tw-flex tw-justify-center tw-w-full"
+                    className="cl-bleed tw-flex tw-justify-center tw-w-full"
                   >
                     <PostItemLoader key={i} />
                   </Card>

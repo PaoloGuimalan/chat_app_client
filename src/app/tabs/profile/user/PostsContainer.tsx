@@ -142,7 +142,11 @@ function PostsContainer({
   return (
     <Fragment>
       {authentication.auth && !hideComposer && (
-        <Card pad={12} style={{ marginBottom: 8, width: "100%" }}>
+        <Card
+          pad={12}
+          className="cl-bleed"
+          style={{ marginBottom: 8, width: "100%" }}
+        >
           {toggleNewPostModal.toggle && (
             <NewPostModal
               toShare={false}
@@ -270,7 +274,7 @@ function PostsContainer({
                 pad={10}
                 style={{ marginBottom: 8, width: "100%" }}
                 key={mp.post_id}
-                className="tw-flex tw-justify-center tw-w-full"
+                className="cl-bleed tw-flex tw-justify-center tw-w-full"
               >
                 <PostItem
                   key={mp.post_id}
@@ -318,7 +322,7 @@ function PostsContainer({
                 pad={10}
                 style={{ marginBottom: 8, width: "100%" }}
                 key={i}
-                className="tw-flex tw-justify-center tw-w-full"
+                className="cl-bleed tw-flex tw-justify-center tw-w-full"
               >
                 <PostItemLoader key={i} />
               </Card>

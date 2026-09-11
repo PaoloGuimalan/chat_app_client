@@ -444,7 +444,7 @@ function Profile({
           isAllowed={true}
           getpostprocess={() => {}} // GetPostProcess
         />
-        <div className="tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[12px] tw-pr-[12px] sm:tw-pl-[40px] sm:tw-pr-[40px]">
+        <div className="cl-profile-picrow tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[12px] tw-pr-[12px] sm:tw-pl-[40px] sm:tw-pr-[40px]">
           <ProfilePicContainer
             userID={profileInfo.id}
             realm_id={null}
@@ -454,9 +454,9 @@ function Profile({
             isAllowed={true}
             getpostprocess={() => {}} // GetPostProcess
           />
-          <div className="tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
-            <div className="tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[16px] tw-sm:p-[0px]">
-              <span className="cl-text-hero tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
+          <div className="cl-profile-identity tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
+            <div className="cl-profile-identity__meta tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[16px] tw-sm:p-[0px]">
+              <span className="cl-identity-name cl-text-hero tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
                 <span>
                   {profileInfo.fullname.firstName}
                   {profileInfo.fullname.middleName == "N/A"
@@ -478,179 +478,64 @@ function Profile({
                 @{profileInfo.userID}
               </span>
             </div>
-            {!authentication.auth && (
-              <div className="tw-flex tw-flex-wrap tw-flex-col sm:tw-flex-row tw-items-center sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[10px]">
-                <span className="cl-text-body tw-font-semibold tw-font-Inter">
-                  You are not logged in
-                </span>
-                <button
-                  onClick={() => {
-                    navigate("/login");
-                  }}
-                  className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                >
-                  Login
-                </button>
-              </div>
-            )}
-            {authentication.auth &&
-              authentication.user.username !== params.userID && (
-                <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] sm:tw-pr-[5px] tw-pr-[0px]">
+            <div className="cl-profile-actions">
+              {!authentication.auth && (
+                <div className="tw-flex tw-flex-wrap tw-flex-col sm:tw-flex-row tw-items-center sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[10px]">
+                  <span className="cl-text-body tw-font-semibold tw-font-Inter">
+                    You are not logged in
+                  </span>
                   <button
-                    disabled={isFollowLoading}
-                    onClick={requestToggleFollow}
-                    className={`${
-                      isFollowing || isFollowPending
-                        ? "cl-profile-action-button--secondary"
-                        : "cl-profile-action-button"
-                    } tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption`}
+                    onClick={() => {
+                      navigate("/login");
+                    }}
+                    className="cl-profile-action-button tw-min-w-[100px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                   >
-                    {isFollowLoading ? (
-                      <motion.div
-                        animate={{ rotate: -360 }}
-                        transition={{ duration: 1, repeat: Infinity }}
-                        id="div_loader_request_nano_light"
-                      >
-                        <AiOutlineLoading3Quarters
-                          style={{ fontSize: "15px" }}
-                        />
-                      </motion.div>
-                    ) : isFollowing ? (
-                      "Following"
-                    ) : isFollowPending ? (
-                      "Requested"
-                    ) : (
-                      "Follow"
-                    )}
+                    Login
                   </button>
                 </div>
               )}
-            {authentication.auth &&
-              authentication.user.username !== params.userID &&
-              profileInfo.connection.is_connection_present !== null && (
-                <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px]">
-                  {/* for add friend button */}
-                  {!profileInfo.connection.is_connection_present ? (
+              {authentication.auth &&
+                authentication.user.username !== params.userID && (
+                  <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] sm:tw-pr-[5px] tw-pr-[0px]">
                     <button
-                      disabled={isConnectionButtonsLoading}
-                      onClick={() => {
-                        initiateConnectionProcess("add");
-                      }}
-                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                      disabled={isFollowLoading}
+                      onClick={requestToggleFollow}
+                      className={`${
+                        isFollowing || isFollowPending
+                          ? "cl-profile-action-button--secondary"
+                          : "cl-profile-action-button"
+                      } tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption`}
                     >
-                      {isConnectionButtonsLoading ? (
+                      {isFollowLoading ? (
                         <motion.div
-                          animate={{
-                            rotate: -360,
-                          }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                          }}
+                          animate={{ rotate: -360 }}
+                          transition={{ duration: 1, repeat: Infinity }}
                           id="div_loader_request_nano_light"
                         >
                           <AiOutlineLoading3Quarters
                             style={{ fontSize: "15px" }}
                           />
                         </motion.div>
+                      ) : isFollowing ? (
+                        "Following"
+                      ) : isFollowPending ? (
+                        "Requested"
                       ) : (
-                        "Add Contact"
+                        "Follow"
                       )}
                     </button>
-                  ) : profileInfo.connection.is_connection_handshaked ? (
-                    <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                  </div>
+                )}
+              {authentication.auth &&
+                authentication.user.username !== params.userID &&
+                profileInfo.connection.is_connection_present !== null && (
+                  <div className="tw-w-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px]">
+                    {/* for add friend button */}
+                    {!profileInfo.connection.is_connection_present ? (
                       <button
                         disabled={isConnectionButtonsLoading}
                         onClick={() => {
-                          setconfirmAction({
-                            prompt: removeConnectionPrompt(
-                              `@${profileInfo.userID}`,
-                              false,
-                            ),
-                            run: () => initiateConnectionProcess("remove"),
-                          });
-                        }}
-                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                      >
-                        {isConnectionButtonsLoading ? (
-                          <motion.div
-                            animate={{
-                              rotate: -360,
-                            }}
-                            transition={{
-                              duration: 1,
-                              repeat: Infinity,
-                            }}
-                            id="div_loader_request_nano_light"
-                          >
-                            <AiOutlineLoading3Quarters
-                              style={{ fontSize: "15px" }}
-                            />
-                          </motion.div>
-                        ) : (
-                          "Connected"
-                        )}
-                      </button>
-                      <button
-                        disabled={isPokeLoading}
-                        onClick={() => {
-                          pokeUserProcess();
-                        }}
-                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                      >
-                        {isPokeLoading ? (
-                          <motion.div
-                            animate={{
-                              rotate: -360,
-                            }}
-                            transition={{
-                              duration: 1,
-                              repeat: Infinity,
-                            }}
-                            id="div_loader_request_nano_light"
-                          >
-                            <AiOutlineLoading3Quarters
-                              style={{ fontSize: "15px" }}
-                            />
-                          </motion.div>
-                        ) : (
-                          "Poke"
-                        )}
-                      </button>
-                    </div>
-                  ) : profileInfo.connection.is_user_connection_initiator ? (
-                    <button
-                      disabled={isConnectionButtonsLoading}
-                      onClick={() => {
-                        initiateConnectionProcess("cancel");
-                      }}
-                      className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                    >
-                      {isConnectionButtonsLoading ? (
-                        <motion.div
-                          animate={{
-                            rotate: -360,
-                          }}
-                          transition={{
-                            duration: 1,
-                            repeat: Infinity,
-                          }}
-                          id="div_loader_request_nano_light"
-                        >
-                          <AiOutlineLoading3Quarters
-                            style={{ fontSize: "15px" }}
-                          />
-                        </motion.div>
-                      ) : (
-                        "Cancel Request"
-                      )}
-                    </button>
-                  ) : (
-                    <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
-                      <button
-                        disabled={isConnectionButtonsLoading}
-                        onClick={() => {
-                          initiateConnectionProcess("accept");
+                          initiateConnectionProcess("add");
                         }}
                         className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                       >
@@ -670,15 +555,77 @@ function Profile({
                             />
                           </motion.div>
                         ) : (
-                          "Accept"
+                          "Add Contact"
                         )}
                       </button>
+                    ) : profileInfo.connection.is_connection_handshaked ? (
+                      <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                        <button
+                          disabled={isConnectionButtonsLoading}
+                          onClick={() => {
+                            setconfirmAction({
+                              prompt: removeConnectionPrompt(
+                                `@${profileInfo.userID}`,
+                                false,
+                              ),
+                              run: () => initiateConnectionProcess("remove"),
+                            });
+                          }}
+                          className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                        >
+                          {isConnectionButtonsLoading ? (
+                            <motion.div
+                              animate={{
+                                rotate: -360,
+                              }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                              }}
+                              id="div_loader_request_nano_light"
+                            >
+                              <AiOutlineLoading3Quarters
+                                style={{ fontSize: "15px" }}
+                              />
+                            </motion.div>
+                          ) : (
+                            "Connected"
+                          )}
+                        </button>
+                        <button
+                          disabled={isPokeLoading}
+                          onClick={() => {
+                            pokeUserProcess();
+                          }}
+                          className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                        >
+                          {isPokeLoading ? (
+                            <motion.div
+                              animate={{
+                                rotate: -360,
+                              }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                              }}
+                              id="div_loader_request_nano_light"
+                            >
+                              <AiOutlineLoading3Quarters
+                                style={{ fontSize: "15px" }}
+                              />
+                            </motion.div>
+                          ) : (
+                            "Poke"
+                          )}
+                        </button>
+                      </div>
+                    ) : profileInfo.connection.is_user_connection_initiator ? (
                       <button
                         disabled={isConnectionButtonsLoading}
                         onClick={() => {
-                          initiateConnectionProcess("decline");
+                          initiateConnectionProcess("cancel");
                         }}
-                        className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                        className="cl-profile-action-button--danger tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                       >
                         {isConnectionButtonsLoading ? (
                           <motion.div
@@ -696,99 +643,154 @@ function Profile({
                             />
                           </motion.div>
                         ) : (
-                          "Decline"
+                          "Cancel Request"
                         )}
                       </button>
-                    </div>
-                  )}
-                </div>
-              )}
-            {authentication.auth &&
-              profileInfo.entityID !== authentication.user.entity_id && (
-                <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
-                  <button
-                    onClick={() => {
-                      if (profileInfo.connection.is_connection_handshaked) {
-                        navigateToConversation(
-                          profileInfo.connection.connection_id,
-                        );
-                      } else {
-                        CreateConversationProcess();
-                      }
-                    }}
-                    className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
-                  >
-                    Message
-                  </button>
-                </div>
-              )}
-            {authentication.auth &&
-              authentication.user.username !== params.userID && (
-                <div
-                  ref={optionsWrapperRef}
-                  className="tw-relative tw-flex tw-items-center sm:tw-pb-[0px] tw-pb-[20px]"
-                >
-                  <button
-                    onClick={() => {
-                      setisOptionsToggled((prev) => !prev);
-                    }}
-                    className="tw-ml-[0px] sm:tw-ml-[10px] tw-w-[32px] tw-h-[32px] tw-flex tw-items-center tw-justify-center tw-rounded-full tw-border-none tw-bg-transparent hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer"
-                    aria-label="More options"
-                  >
-                    <BsThreeDots
-                      style={{ fontSize: "17px", color: "var(--text)" }}
-                    />
-                  </button>
-                  {isOptionsToggled && (
-                    <div className="cl-post-options-menu tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[160px] tw-absolute tw-right-[0px] tw-top-[36px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md">
-                      <button
-                        disabled={isBlockLoading}
-                        onClick={() => {
-                          blockUserProcess();
-                        }}
-                        className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
-                      >
-                        <MdBlock
-                          size={15}
-                          style={{ marginLeft: "-1px", marginRight: "4px" }}
-                        />
-                        <span>
-                          {isBlockLoading
-                            ? "Blocking…"
-                            : confirmBlock
-                              ? "Confirm block"
-                              : "Block"}
-                        </span>
-                      </button>
-                      {confirmBlock && !isBlockLoading && (
+                    ) : (
+                      <div className="tw-flex tw-gap-[5px] tw-flex-wrap tw-justify-center tw-items-center">
                         <button
-                          onClick={() => setconfirmBlock(false)}
-                          className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                          disabled={isConnectionButtonsLoading}
+                          onClick={() => {
+                            initiateConnectionProcess("accept");
+                          }}
+                          className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
                         >
-                          <IoClose
+                          {isConnectionButtonsLoading ? (
+                            <motion.div
+                              animate={{
+                                rotate: -360,
+                              }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                              }}
+                              id="div_loader_request_nano_light"
+                            >
+                              <AiOutlineLoading3Quarters
+                                style={{ fontSize: "15px" }}
+                              />
+                            </motion.div>
+                          ) : (
+                            "Accept"
+                          )}
+                        </button>
+                        <button
+                          disabled={isConnectionButtonsLoading}
+                          onClick={() => {
+                            initiateConnectionProcess("decline");
+                          }}
+                          className="cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                        >
+                          {isConnectionButtonsLoading ? (
+                            <motion.div
+                              animate={{
+                                rotate: -360,
+                              }}
+                              transition={{
+                                duration: 1,
+                                repeat: Infinity,
+                              }}
+                              id="div_loader_request_nano_light"
+                            >
+                              <AiOutlineLoading3Quarters
+                                style={{ fontSize: "15px" }}
+                              />
+                            </motion.div>
+                          ) : (
+                            "Decline"
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              {authentication.auth &&
+                profileInfo.entityID !== authentication.user.entity_id && (
+                  <div className="tw-flex tw-gap-[5px] tw-pl-[5px] tw-flex-wrap tw-justify-center tw-items-center">
+                    <button
+                      onClick={() => {
+                        if (profileInfo.connection.is_connection_handshaked) {
+                          navigateToConversation(
+                            profileInfo.connection.connection_id,
+                          );
+                        } else {
+                          CreateConversationProcess();
+                        }
+                      }}
+                      className="cl-profile-action-button tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption"
+                    >
+                      Message
+                    </button>
+                  </div>
+                )}
+              {authentication.auth &&
+                authentication.user.username !== params.userID && (
+                  <div
+                    ref={optionsWrapperRef}
+                    className="cl-profile-actions__menu tw-relative tw-flex tw-items-center sm:tw-pb-[0px] tw-pb-[20px]"
+                  >
+                    <button
+                      onClick={() => {
+                        setisOptionsToggled((prev) => !prev);
+                      }}
+                      className="tw-ml-[0px] sm:tw-ml-[10px] tw-w-[32px] tw-h-[32px] tw-flex tw-items-center tw-justify-center tw-rounded-full tw-border-none tw-bg-transparent hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer"
+                      aria-label="More options"
+                    >
+                      <BsThreeDots
+                        style={{ fontSize: "17px", color: "var(--text)" }}
+                      />
+                    </button>
+                    {isOptionsToggled && (
+                      <div className="cl-post-options-menu tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[160px] tw-absolute tw-right-[0px] tw-top-[36px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md">
+                        <button
+                          disabled={isBlockLoading}
+                          onClick={() => {
+                            blockUserProcess();
+                          }}
+                          className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                        >
+                          <MdBlock
                             size={15}
                             style={{ marginLeft: "-1px", marginRight: "4px" }}
                           />
-                          <span>Cancel block</span>
+                          <span>
+                            {isBlockLoading
+                              ? "Blocking…"
+                              : confirmBlock
+                                ? "Confirm block"
+                                : "Block"}
+                          </span>
                         </button>
-                      )}
-                      <button
-                        onClick={() => {
-                          setisOptionsToggled(false);
-                          setisReportOpen(true);
-                        }}
-                        className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
-                      >
-                        <MdReport
-                          size={15}
-                          style={{ marginLeft: "-1px", marginRight: "4px" }}
-                        />
-                        <span>Report</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              )}
+                        {confirmBlock && !isBlockLoading && (
+                          <button
+                            onClick={() => setconfirmBlock(false)}
+                            className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                          >
+                            <IoClose
+                              size={15}
+                              style={{ marginLeft: "-1px", marginRight: "4px" }}
+                            />
+                            <span>Cancel block</span>
+                          </button>
+                        )}
+                        <button
+                          onClick={() => {
+                            setisOptionsToggled(false);
+                            setisReportOpen(true);
+                          }}
+                          className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+                        >
+                          <MdReport
+                            size={15}
+                            style={{ marginLeft: "-1px", marginRight: "4px" }}
+                          />
+                          <span>Report</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+            </div>
           </div>
         </div>
       </div>
@@ -813,7 +815,7 @@ function Profile({
           }}
         />
       )}
-      <div className="cl-profile-page__content tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-stretch md:tw-items-start">
+      <div className="cl-profile-page__content cl-bleed-host tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-stretch md:tw-items-start">
         <div className="cl-profile-page__sidebar tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[8px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
           <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex">
             <div className="tw-w-full tw-p-[18px] tw-flex tw-flex-col tw-items-start tw-gap-[12px]">

@@ -119,7 +119,7 @@ function ArchivesContainer({
                 pad={10}
                 style={{ marginBottom: 8, width: "100%" }}
                 key={mp.post_id}
-                className="tw-flex tw-justify-center tw-w-full"
+                className="cl-bleed tw-flex tw-justify-center tw-w-full"
               >
                 <PostItem
                   key={mp.post_id}
@@ -146,7 +146,7 @@ function ArchivesContainer({
                 pad={10}
                 style={{ marginBottom: 8, width: "100%" }}
                 key={i}
-                className="tw-flex tw-justify-center tw-w-full"
+                className="cl-bleed tw-flex tw-justify-center tw-w-full"
               >
                 <ArchivePostItemLoader key={i} />
               </Card>

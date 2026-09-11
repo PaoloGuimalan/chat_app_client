@@ -108,7 +108,7 @@ function SavesContainer({
                 pad={10}
                 style={{ marginBottom: 8, width: "100%" }}
                 key={mp.id}
-                className="tw-flex tw-justify-center tw-w-full"
+                className="cl-bleed tw-flex tw-justify-center tw-w-full"
               >
                 <SavedPostItem key={mp.id} savedPost={mp} />
               </Card>
@@ -132,7 +132,7 @@ function SavesContainer({
                 pad={10}
                 style={{ marginBottom: 8, width: "100%" }}
                 key={i}
-                className="tw-flex tw-justify-center tw-w-full"
+                className="cl-bleed tw-flex tw-justify-center tw-w-full"
               >
                 <SavedPostItemLoader key={i} />
               </Card>

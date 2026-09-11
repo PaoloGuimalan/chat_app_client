@@ -47,14 +47,14 @@ function ProfileCoverContainer({
           onClick={() => {
             settoggleSelection(!toggleSelection);
           }}
-          className="tw-bg-[var(--surface-2)] tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[20px] tw-h-[200px] tw-relative"
+          className="cl-profile-cover tw-bg-[var(--surface-2)] tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[20px] tw-h-[200px] tw-relative"
         >
           <CachedImage
             src={coverphoto}
             onClick={() => {
               settoggleSelection(!toggleSelection);
             }}
-            className="tw-bg-[var(--surface-2)] tw-max-h-full tw-max-w-full tw-w-full tw-h-full tw-object-cover tw-rounded-b-[20px] tw-cursor-pointer"
+            className="cl-profile-cover tw-bg-[var(--surface-2)] tw-max-h-full tw-max-w-full tw-w-full tw-h-full tw-object-cover tw-rounded-b-[20px] tw-cursor-pointer"
           />
           {isUserProfile && (
             <motion.div
@@ -95,7 +95,7 @@ function ProfileCoverContainer({
           onClick={() => {
             settoggleSelection(!toggleSelection);
           }}
-          className="tw-bg-[var(--surface-2)] tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-rounded-b-[20px] tw-cursor-pointer tw-relative"
+          className="cl-profile-cover tw-bg-[var(--surface-2)] tw-w-full tw-flex tw-flex-1 tw-max-w-[1200px] tw-min-h-[200px] tw-rounded-b-[20px] tw-cursor-pointer tw-relative"
         >
           {isUserProfile && (
             <motion.div

@@ -6831,7 +6831,9 @@ input:checked + .slider:before {
   }
 
   .cl-profile-page__hero {
-    border-radius: 0px 0px 16px 16px;
+    border-radius: 0;
+    border-left: 0;
+    border-right: 0;
     box-shadow: none;
   }
 
@@ -8113,4 +8115,346 @@ body::-webkit-scrollbar-thumb:hover,
   border-radius: var(--r-sm);
   border: 1px solid var(--border);
   display: block;
+}
+
+/* ---------------------------------------------------------------------------
+ * Mobile edge-to-edge surfaces (newsfeed + profile).
+ *
+ * On a phone the feed and profile columns read as a stack of floating cards:
+ * ~18-24px of gutter down each side, a 14-20px radius and a shadow around
+ * every one. That chrome earns its keep on a wide screen, where the column
+ * has room to float against the background - on a 390px viewport it spends
+ * roughly a sixth of the width saying "card" instead of showing the post.
+ *
+ * Below 800px - the width Home and Profile already treat as mobile - these
+ * surfaces bleed to both edges instead: no radius, no side borders, no
+ * shadow. The 8px vertical gap between them stays and becomes the only
+ * separator, which is the arrangement Facebook's mobile feed uses.
+ *
+ * Two classes, applied at the call site:
+ *   cl-bleed       - a surface that should run edge to edge.
+ *   cl-bleed-host  - the container whose horizontal padding/width has to get
+ *                    out of the way first, or its children bleed to a gutter
+ *                    rather than to the screen.
+ *
+ * `cl-profile-surface` (the profile's own widget surface) needs no marker of
+ * its own but is matched only under a bleeding host, so the page/realm
+ * profile - which shares the class and has not been converted - keeps its
+ * cards.
+ *
+ * Everything is !important and scoped under .cl-redesign for specificity, for
+ * two separate reasons: Card (primitives2) paints its radius, border, shadow
+ * and width inline, and tailwind.config.js sets `important: true`, so every
+ * tw- utility here is already !important at one class of specificity. The
+ * .cl-redesign prefix costs nothing - it wraps the feed and both profile
+ * entry points, Home and the standalone /share route - and puts these rules
+ * a class ahead of both.
+ * ------------------------------------------------------------------------ */
+@media screen and (max-width: 799px) {
+  .cl-redesign .cl-bleed-host {
+    width: 100% !important;
+    max-width: none !important;
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+  }
+
+  /* Profile holds Tailwind's md: two-column layout down to 768px, while the
+     rest of the app switches to mobile at 800. Left alone, that 32px band
+     would bleed the widgets to the edges of a 400px sidebar instead of the
+     screen. Stacking closes the gap; `position` has to come back with it
+     because the sidebar is md:sticky, which only makes sense beside the feed
+     rather than above it. */
+  .cl-redesign .cl-profile-page__content.cl-bleed-host {
+    flex-direction: column !important;
+  }
+
+  .cl-redesign .cl-bleed-host .cl-profile-page__sidebar {
+    position: static !important;
+    max-width: none !important;
+  }
+
+  .cl-redesign .cl-bleed,
+  .cl-redesign .cl-bleed-host .cl-profile-surface {
+    width: 100% !important;
+    max-width: none !important;
+    border-radius: 0 !important;
+    border-left: 0 !important;
+    border-right: 0 !important;
+    box-shadow: none !important;
+  }
+
+  /* The cover photo carries the hero's curve on its own bottom corners - on
+     the frame AND on the <img>, which has to be clipped separately or the
+     photo squares off a rounded frame. Its HEIGHT is handled in the profile
+     header section below, which switches at a different width than this. */
+  .cl-redesign .cl-profile-cover {
+    border-radius: 0 !important;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * Profile identity header - user profile AND page/realm profile.
+ *
+ * Both screens build the same thing out of the same markup: a cover photo, an
+ * avatar, a name/email/@handle block, and a set of action buttons. The
+ * buttons were the problem. They are not one row in the markup - they are
+ * four or five sibling wrappers, each rendered by its own `&&` and each
+ * carrying its own layout classes (`tw-w-full` here, `tw-pb-[20px]` there,
+ * `tw-pl-[5px]`, `tw-gap-[4px]` in one and `tw-gap-[5px]` in the next). Every
+ * wrapper therefore wrapped on its own, at its own width, with its own gap,
+ * which is why the bar came apart differently at every size: "Following" on
+ * one line, "Connected/Poke" stacked into a column beside it, "Message" and
+ * the overflow dots adrift, and at some widths the whole thing sliding out
+ * from under the hero.
+ *
+ * The fix is structural, and it is the same on both screens: one
+ * `cl-profile-actions` element wraps every group, and the groups themselves
+ * are erased with `display: contents` so that ALL the controls become direct
+ * children of that single flex row. One row, one gap, one wrap rule - so the
+ * bar degrades by wrapping evenly instead of coming apart, and both profiles
+ * behave identically because they are now the same layout.
+ *
+ * Two states, one breakpoint (900px - about where the avatar, a full name and
+ * five controls stop fitting on a line):
+ *
+ *   >= 900px   avatar | name block (grows) | actions (right-aligned)
+ *   <  900px   avatar over name block over actions, all centred
+ *
+ * The old markup switched at Tailwind's `sm:` (650px here), which left
+ * 650-900px trying to run the wide layout in too little room - that is the
+ * band every cluttered screenshot came from. These rules override the `sm:`
+ * utilities across that band rather than editing dozens of class strings.
+ * ------------------------------------------------------------------------ */
+
+.cl-redesign .cl-profile-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 6px;
+  flex: 0 0 auto;
+}
+
+/* The verified badge (and the private-profile lock) sat beside the MIDDLE of
+   a name that had wrapped, floating clear of the last word, because the name
+   wrapper is `tw-flex tw-items-center`: the text and the badge are flex
+   SIBLINGS, so the badge centres itself against the whole two-line block
+   rather than following the text.
+   Normal inline flow is what "put it after the last word" actually means -
+   the badge then rides the final line and wraps with it. `display: block`
+   drops the flex context (so the 5px flex `gap` goes with it, hence the
+   margin), and the badge keeps its own box as an inline-block. */
+.cl-redesign .cl-identity-name {
+  display: block !important;
+}
+
+.cl-redesign .cl-identity-name > svg {
+  display: inline-block;
+  vertical-align: middle;
+  margin-left: 5px;
+  flex: none;
+}
+
+/* The name block carried 16px of its own side padding, which did two jobs
+   badly: in the wide layout it was the only thing separating the name from
+   the avatar (that separation is now a real row gap), and everywhere it took
+   32px off the line the name and badge have to share - enough, on a narrow
+   screen, to push the badge onto a line of its own below the name. The row
+   owns the horizontal spacing; this block just fills it. */
+.cl-redesign .cl-profile-identity__meta {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+}
+
+/* Keeps the header off the bottom edge of the hero. It matters whenever the
+   action bar wraps under the name, because the bar is then the last thing in
+   the header and the hero closes immediately beneath it - the buttons ended
+   up sitting directly on the card's edge with nothing under them. Shared by
+   both layouts so the spacing does not depend on which one is active. */
+.cl-redesign .cl-profile-identity {
+  padding-bottom: 16px;
+}
+
+/* The group wrappers are pure layout scaffolding, so take them out of the box
+   tree entirely and let their buttons join the one row. This is also what
+   neutralises their `tw-w-full` / `tw-pb-[20px]` / `tw-pl-[5px]`: a box that
+   is not generated has no width or padding to apply.
+   The overflow menu is the one exception - it is `position: relative` and
+   anchors an absolutely positioned dropdown, which would escape to the page
+   if its containing block disappeared - so it keeps its box and is matched
+   by neither selector. */
+.cl-redesign .cl-profile-actions > div:not(.cl-profile-actions__menu),
+.cl-redesign
+  .cl-profile-actions
+  > div:not(.cl-profile-actions__menu)
+  > div:not(.cl-profile-actions__menu) {
+  display: contents !important;
+}
+
+/* Sizes the labelled buttons to one height so the bar reads as a single
+   control strip rather than a set of slightly different pills.
+   Matched by descendant, not by `>`: `display: contents` above removes the
+   wrappers from the BOX tree, which is what makes the buttons share one flex
+   row, but it leaves the DOM tree alone - so the buttons are still nested and
+   a child combinator would match none of them. The round 32px overflow
+   button opts back out on the next rule, or it would stretch into an oval. */
+.cl-redesign .cl-profile-actions button {
+  min-height: 34px;
+}
+
+/* The menu wrapper is the one group that keeps its box, so unlike the others
+   its own layout classes still apply - and `tw-pb-[20px]`, left over from
+   when each group was its own stacked row, made it a 52px-tall box in a 34px
+   row. Centred, that floated the dots 9px above every other control. */
+.cl-redesign .cl-profile-actions__menu {
+  padding: 0 !important;
+}
+
+.cl-redesign .cl-profile-actions__menu button {
+  min-height: 0;
+  /* `sm:tw-ml-[10px]` predates the shared row and now just adds itself to the
+     row's own gap, leaving 16px before the dots where every other pair has
+     6px. The row owns the spacing. */
+  margin-left: 0 !important;
+}
+
+/* Long addresses used `tw-break-all`, which breaks at whatever character
+   lands on the edge - "jfavila0942@gmail." / "com". Break between words when
+   that is possible and inside one only when it is not. */
+.cl-redesign .cl-profile-identity__meta > span {
+  word-break: normal !important;
+  overflow-wrap: anywhere;
+}
+
+/* --- Wide: avatar | name | actions, one line ---------------------------- */
+@media screen and (min-width: 900px) {
+  /* `space-between` rather than a `margin-left: auto` on the action bar, and
+     the difference only shows when the bar wraps. It is resolved per FLEX
+     LINE: on a shared line the name sits left and the bar right, which is the
+     intended look - but on a line of its own the bar becomes the only item
+     and lands at the start, tucked under the name. An auto margin would keep
+     shoving it to the right edge instead, which is what left that L-shaped
+     void with the buttons stranded opposite an empty half-row. */
+  .cl-redesign .cl-profile-identity {
+    flex-wrap: wrap !important;
+    align-items: center !important;
+    justify-content: space-between;
+    gap: 10px 12px;
+    height: auto !important;
+  }
+
+  /* The avatar column reserves 180px around an avatar that is 160px wide from
+     `sm:` up, so 20px of it is slack nothing draws in. That slack was enough
+     to decide the row: name (232) + bar (343) + gap left the line 2px short
+     at 941px, so either the name broke across two lines or the bar dropped
+     below. Reclaiming it - with the gap at 12 - buys ~24px and both fit. */
+  .cl-redesign .cl-profile-avatar-col {
+    max-width: 160px !important;
+  }
+
+  /* The name block's own 16px side padding was doing two jobs badly: it was
+     the ONLY thing separating the name from the avatar (the row has no gap of
+     its own), and it cost the name 32px of the width it was short of. Move
+     the separation to a real row gap and the padding disappears, which also
+     means the name text now starts exactly at the block's edge - so the
+     action bar needs no answering inset to line up with it when it wraps. */
+  .cl-redesign .cl-profile-picrow {
+    gap: 20px;
+  }
+
+  .cl-redesign .cl-profile-actions {
+    padding-left: 0;
+  }
+
+  /* 280px is the width this block is BUDGETED at when the row decides whether
+     everything fits - not the width it gets, which is whatever the avatar and
+     the bar leave over (it grows into that). Flex breaks lines on the basis,
+     before any growing, so this number is really a policy: "a name gets 280px
+     or the action bar gives up the row". Sharing the row at any less broke
+     the name across two lines, and a name reads worse broken than a button
+     bar does moved down a line - especially now that the bar lands tucked
+     under the name rather than stranded. */
+  .cl-redesign .cl-profile-identity__meta {
+    flex: 1 1 280px !important;
+    min-width: 0;
+    height: auto !important;
+  }
+
+  .cl-redesign .cl-profile-picrow {
+    height: auto !important;
+    min-height: 150px;
+  }
+}
+
+/* --- Narrow: avatar over name over actions, centred --------------------- */
+@media screen and (max-width: 899px) {
+  /* Block layout, not flex. A flex item's auto height is its max-content
+     height - measured as though it had infinite width - so a wrapping flex
+     child reports the height of ONE line and then lays out several, spilling
+     its buttons through the bottom of the hero. Block layout sizes the box at
+     its real width, so it is as tall as what is in it. This row is a plain
+     vertical stack here anyway, which is exactly what block layout does;
+     `margin` restores the centring `tw-items-center` was providing. */
+  .cl-redesign .cl-profile-picrow {
+    display: block !important;
+    height: auto !important;
+    width: calc(100% - 24px) !important;
+    padding-left: 12px !important;
+    padding-right: 12px !important;
+  }
+
+  .cl-redesign .cl-profile-picrow > * {
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Cancels `sm:tw-min-h-[500px]`, which from 650px up would leave the
+     stacked header floating in half a screen of empty hero.
+     `auto`, NOT 0. The hero is a flex item of the scrolling shell, and a flex
+     item's default `min-height: auto` is the floor that stops it being
+     compressed below its own content. Setting 0 removes that floor, and once
+     the page below is tall enough to overflow the shell's fixed height the
+     hero gets crushed to nothing - cover photo, avatar and action bar all
+     spilling down over the rest of the page. `flex: none` states the same
+     thing directly, so the floor does not depend on the min-height keyword. */
+  .cl-redesign .cl-profile-page__hero {
+    min-height: auto !important;
+    flex: none !important;
+  }
+
+  /* The cover is `tw-flex-1` - `flex: 1 1 0%` - and in a COLUMN flex
+     container flex-basis beats `height`, so its `tw-h-[200px]` never applied
+     and its real height was "whatever free space the hero has". With the
+     hero's min-height gone that is undefined: the cover collapsed to nothing
+     on a short viewport and ran to the photo's own size on a tall one.
+     Opting out of flex sizing lets the declared height - and the empty
+     state's min-height - count again; the cap holds either way. */
+  .cl-redesign .cl-profile-cover {
+    flex: none !important;
+    max-height: 200px !important;
+  }
+
+  .cl-redesign .cl-profile-identity {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    gap: 12px;
+    width: 100% !important;
+    height: auto !important;
+  }
+
+  /* `sm:tw-items-start` left-aligns the name from 650px up, which is wrong
+     once the block is centred under the avatar. */
+  .cl-redesign .cl-profile-identity__meta {
+    align-items: center !important;
+    text-align: center;
+    width: 100% !important;
+    height: auto !important;
+    flex: none !important;
+  }
+
+  .cl-redesign .cl-profile-actions {
+    justify-content: center;
+    width: 100%;
+  }
 }

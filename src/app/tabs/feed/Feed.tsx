@@ -123,6 +123,7 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
       }}
     >
       <div
+        className="cl-bleed-host"
         style={{
           display: "flex",
           flexDirection: "row",
@@ -158,7 +159,7 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
             />
           )}
 
-          <Card pad={14} style={{ marginBottom: 8 }}>
+          <Card pad={14} className="cl-bleed" style={{ marginBottom: 8 }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <Avatar
                 id={authentication.user.userID}
@@ -242,7 +243,11 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
 
           {paginatedPosts.results.length === 0 && postsIsLoaded && (
             <Fragment>
-              <Card pad={20} style={{ marginBottom: 8, textAlign: "center" }}>
+              <Card
+                pad={20}
+                className="cl-bleed"
+                style={{ marginBottom: 8, textAlign: "center" }}
+              >
                 <div
                   style={{
                     fontSize: "var(--fs-hero-sm)",
@@ -276,7 +281,7 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
                 </div>
               </Card>
 
-              <Card pad={20} style={{ marginBottom: 8 }}>
+              <Card pad={20} className="cl-bleed" style={{ marginBottom: 8 }}>
                 <FeatureCardHeader icon="menu_book" title="Chatterloop Diary">
                   Have your daily life written, privately, or let someone see
                   it.
@@ -310,12 +315,12 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
               <Card
                 pad={20}
                 style={{ marginBottom: 8 }}
-                className="tw-flex tw-justify-center"
+                className="cl-bleed tw-flex tw-justify-center"
               >
                 <ServerBanner />
               </Card>
 
-              <Card pad={20} style={{ marginBottom: 8 }}>
+              <Card pad={20} className="cl-bleed" style={{ marginBottom: 8 }}>
                 <FeatureCardHeader icon="map" title="Map Feed">
                   Browse your feed in a new way. Walk, Travel, Drive, Share, and
                   Socialize interactively based on where you are. (In
@@ -351,12 +356,12 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
               <Card
                 pad={20}
                 style={{ marginBottom: 8 }}
-                className="tw-flex tw-justify-center"
+                className="cl-bleed tw-flex tw-justify-center"
               >
                 <PagesBanner />
               </Card>
 
-              <Card pad={20} style={{ marginBottom: 8 }}>
+              <Card pad={20} className="cl-bleed" style={{ marginBottom: 8 }}>
                 <FeatureCardHeader
                   icon="extension"
                   title="Chatterloop Extension"
@@ -385,7 +390,7 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
                     pad={10}
                     style={{ marginBottom: 8 }}
                     key={i}
-                    className="tw-flex tw-justify-center"
+                    className="cl-bleed tw-flex tw-justify-center"
                   >
                     <PostItemLoader />
                   </Card>
@@ -396,7 +401,7 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
                   pad={10}
                   style={{ marginBottom: 8 }}
                   key={i}
-                  className="tw-flex tw-justify-center"
+                  className="cl-bleed tw-flex tw-justify-center"
                 >
                   <PostItem key={i} isSharePreview={false} mp={mp} />
                 </Card>
