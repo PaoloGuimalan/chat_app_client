@@ -7243,15 +7243,22 @@ body::-webkit-scrollbar-thumb:hover,
   align-items: center;
 }
 
+/* Media bubbles hug their content and stop at the shared chat-media cap
+ * (--chat-media-* in theme.css) instead of filling the 70%-wide bubble. The
+ * cap has to sit on the container as well as the media: the bubble above is
+ * `w-fit`, so without it the column would still size itself to the image's
+ * intrinsic width and leave the reaction row floating past the picture. */
 .div_pending_content_container {
-  width: 100%;
+  width: fit-content;
+  max-width: min(100%, var(--chat-media-max-w));
   height: auto;
   border-radius: 7px;
   /* border: solid 1px rgb(233, 233, 233); */
 }
 
 .div_pending_content_container_sending {
-  width: 100%;
+  width: fit-content;
+  max-width: min(100%, var(--chat-media-max-w));
   height: auto;
   border-radius: 7px;
   border: solid 1px rgb(233, 233, 233);
@@ -7266,36 +7273,89 @@ body::-webkit-scrollbar-thumb:hover,
   opacity: 0.5;
 }
 
+/* Images scale down into the cap and keep their ratio; `width: auto` is what
+ * stops a small image (a sticker, a screenshot crop) from being stretched up
+ * to the full bubble width the way `width: 100%` used to. */
 .img_pending_images {
-  width: 100%;
+  display: block;
+  width: auto;
+  height: auto;
+  max-width: 100%;
+  max-height: var(--chat-media-max-h);
+  object-fit: contain;
   border-radius: 7px;
   border: solid 1px rgb(233, 233, 233);
 }
 
+/* Video takes the same box as an image, so it ends up at its real ratio in
+ * either orientation - a landscape clip is bounded by the width, a phone-shot
+ * portrait one by the height - rather than the flat 300px tall it used to be.
+ * `min-width` is the one floor: it keeps the native controls usable on a very
+ * tall clip. A <video> has no intrinsic size until its metadata arrives, so it
+ * lays out at the browser's 300x150 default for that first moment. */
+.cl-chat-video {
+  display: block;
+  width: auto;
+  height: auto;
+  min-width: var(--chat-media-min-w);
+  max-width: 100%;
+  max-height: var(--chat-media-max-h);
+  object-fit: contain;
+  background-color: #000;
+  border-radius: 7px;
+  border: solid 1px rgb(233, 233, 233);
+}
+
+/* Reply previews are a quote, not the message: same rules, smaller box. */
+.div_messages_result_reply .div_pending_content_container,
+.div_messages_result_reply .div_pending_content_container_sending {
+  max-width: min(100%, var(--chat-media-reply-max-w));
+}
+
+.div_messages_result_reply .img_pending_images,
+.div_messages_result_reply .cl-chat-video {
+  max-height: var(--chat-media-reply-max-h);
+}
+
+.div_messages_result_reply .cl-chat-video {
+  min-width: 0;
+}
+
+/* Full-viewport image lightbox (FullscreenImageViewer, which portals this out
+ * of the message tree). `fixed` + `inset` is the whole point: as `absolute` it
+ * sized itself to the nearest positioned ancestor - the conversation pane, or
+ * a single diary thumbnail - so it only ever covered its own component. The
+ * z-index matches the app's modal ceiling; the viewer portals in after any
+ * open modal, so it lands above one it was opened from. */
 #div_fullscreen_image_preview {
   background-color: transparent;
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  width: 100%;
-  height: 100%;
+  position: fixed;
+  inset: 0;
+  padding: 24px;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 10;
+  z-index: 9999;
 }
 
+/* `inset: 0` rather than `width/height: 100%`: the overlay is padded, and a
+ * percentage would be measured from the padding box's static position and
+ * leave the scrim short of the screen edges. */
 #div_fip_onblur {
   background-color: black;
-  width: 100%;
-  height: 100%;
-  opacity: 0.9;
   position: absolute;
+  inset: 0;
+  opacity: 0.9;
 }
 
+/* Bounded by both axes instead of `height: 100%`, so the image fits the screen
+ * whichever way round it is and a small one (a sticker, a crop) is shown at
+ * its own size rather than upscaled to the full height of a desktop monitor. */
 #img_fip {
-  height: 100%;
+  width: auto;
+  height: auto;
   max-width: 100%;
+  max-height: 100%;
   z-index: 1;
   object-fit: contain;
 }
@@ -7308,14 +7368,23 @@ body::-webkit-scrollbar-thumb:hover,
   border: solid 0px;
   border-radius: 40px;
   position: absolute;
-  top: 10px;
-  right: 10px;
+  /* Clears the status bar / notch when the app runs installed. */
+  top: max(10px, env(safe-area-inset-top, 0px));
+  right: max(10px, env(safe-area-inset-right, 0px));
   color: white;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
   /* box-shadow: 0px 0px 5px white; */
+}
+
+/* Same breakpoint the rest of the app steps down on - 24px of gutter is a
+ * meaningful slice of a phone screen. */
+@media screen and (max-width: 900px) {
+  #div_fullscreen_image_preview {
+    padding: 12px;
+  }
 }
 
 .div_seen_container {

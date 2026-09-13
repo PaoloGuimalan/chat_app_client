@@ -103,6 +103,7 @@ import {
   pushResponseAlert,
   resolveErrorMessage,
 } from "@/reusables/hooks/errormessages";
+import FullscreenImageViewer from "@/app/reusables/FullscreenImageViewer";
 
 // {
 //     "conversationid": "26177616789363146166",
@@ -2297,8 +2298,8 @@ function ConversationV2({
                               <video
                                 src={cnvs.content}
                                 controls
-                                className="tw-w-full tw-h-[300px] tw-border-[7px]"
-                                onLoad={() => {
+                                className="cl-chat-video"
+                                onLoadedMetadata={() => {
                                   scrollBottom();
                                 }}
                               />
@@ -2459,35 +2460,13 @@ function ConversationV2({
               </div>
             )}
           </div>
-          {fullImageScreen.toggle && (
-            <div id="div_fullscreen_image_preview">
-              <button
-                id="btn_close_fip"
-                onClick={() => {
-                  setfullImageScreen({
-                    preview: "",
-                    toggle: false,
-                  });
-                }}
-              >
-                <AiOutlineClose
-                  style={{
-                    fontSize: conversationCloseIconSize,
-                  }}
-                />
-              </button>
-              <div
-                id="div_fip_onblur"
-                onClick={() => {
-                  setfullImageScreen({
-                    preview: "",
-                    toggle: false,
-                  });
-                }}
-              />
-              <CachedImage src={fullImageScreen.preview} id="img_fip" />
-            </div>
-          )}
+          <FullscreenImageViewer
+            src={fullImageScreen.toggle ? fullImageScreen.preview : ""}
+            closeIconSize={conversationCloseIconSize}
+            onClose={() => {
+              setfullImageScreen({ preview: "", toggle: false });
+            }}
+          />
           <motion.div
             initial={{
               height: "0px",

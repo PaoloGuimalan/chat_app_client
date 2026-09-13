@@ -153,6 +153,43 @@
   }
 }
 
+/* Chat media scale ---------------------------------------------------------
+ * One cap for every image and video inside a message bubble, shared by the
+ * messenger and by server channels (channels render through the same
+ * ConversationV2 -> ContentHandler path).
+ *
+ * The cap is a box, not a size: media scales down to fit inside it and keeps
+ * its aspect ratio, so a wide photo is bounded by the width and a tall one by
+ * the height. Images smaller than the box keep their natural size - they are
+ * never blown up. Media used to run at `width: 100%` of a 70%-wide bubble, so
+ * one photo could take most of a desktop conversation pane, and video was
+ * pinned to a flat 300px tall on every screen.
+ *
+ * DON'T write a px literal at the call site: use .img_pending_images (image)
+ * or .cl-chat-video (video) and let these steps decide. Reply previews sit
+ * inside .div_messages_result_reply and pick up the --reply steps there.
+ * ------------------------------------------------------------------------ */
+:root {
+  --chat-media-max-w: 320px;
+  --chat-media-max-h: 320px;
+  --chat-media-min-w: 180px; /* keeps video controls usable on tall clips */
+  --chat-media-reply-max-w: 180px;
+  --chat-media-reply-max-h: 120px;
+}
+
+/* Same breakpoint as the type scale above. The vw term keeps media inside the
+ * 70% bubble on narrow phones, where 240px would otherwise be the wider of
+ * the two. */
+@media (max-width: 900px) {
+  :root {
+    --chat-media-max-w: min(240px, 62vw);
+    --chat-media-max-h: 260px;
+    --chat-media-min-w: 140px;
+    --chat-media-reply-max-w: 140px;
+    --chat-media-reply-max-h: 100px;
+  }
+}
+
 .cl-text-micro {
   font-size: var(--fs-micro);
 }

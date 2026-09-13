@@ -14,7 +14,7 @@ import {
 } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { AiOutlineClose } from "react-icons/ai";
+import FullscreenImageViewer from "@/app/reusables/FullscreenImageViewer";
 
 function UploadedAttachment({
   attachment,
@@ -173,35 +173,13 @@ function UploadedAttachment({
             }}
             className="tw-w-full tw-h-full tw-object-cover tw-rounded-[5px]"
           />
-          {fullImageScreen.toggle && (
-            <div id="div_fullscreen_image_preview">
-              <button
-                id="btn_close_fip"
-                onClick={() => {
-                  setfullImageScreen({
-                    preview: "",
-                    toggle: false,
-                  });
-                }}
-              >
-                <AiOutlineClose
-                  style={{
-                    fontSize: "17px",
-                  }}
-                />
-              </button>
-              <div
-                id="div_fip_onblur"
-                onClick={() => {
-                  setfullImageScreen({
-                    preview: "",
-                    toggle: false,
-                  });
-                }}
-              />
-              <CachedImage src={fullImageScreen.preview} id="img_fip" />
-            </div>
-          )}
+          <FullscreenImageViewer
+            src={fullImageScreen.toggle ? fullImageScreen.preview : ""}
+            closeIconSize="17px"
+            onClose={() => {
+              setfullImageScreen({ preview: "", toggle: false });
+            }}
+          />
         </div>
       );
     }

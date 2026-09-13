@@ -1067,9 +1067,8 @@ function ContentHandler({
               <video
                 src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
                 controls
-                style={{ border: "solid 1px #e9e9e9" }}
-                className="tw-rounded-[7px] tw-w-full tw-h-[300px]"
-                onLoad={() => {
+                className="cl-chat-video"
+                onLoadedMetadata={() => {
                   scrollBottom();
                 }}
               />

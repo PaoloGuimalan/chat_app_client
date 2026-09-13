@@ -129,7 +129,7 @@ function ReplyingToPreview({ cnvs, fromOther, yourReply, theme }: any) {
                 <video
                   src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
                   controls
-                  className="tw-w-full tw-h-[300px] tw-border-[7px]"
+                  className="cl-chat-video"
                 />
               </div>
             </motion.div>

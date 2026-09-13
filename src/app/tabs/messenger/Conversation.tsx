@@ -76,6 +76,7 @@ import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { Avatar } from "@/reusables/design";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
+import FullscreenImageViewer from "@/app/reusables/FullscreenImageViewer";
 
 // {
 //     "conversationid": "26177616789363146166",
@@ -1881,8 +1882,8 @@ function Conversation({
                             <video
                               src={cnvs.content}
                               controls
-                              className="tw-w-full tw-h-[300px] tw-border-[7px]"
-                              onLoad={() => {
+                              className="cl-chat-video"
+                              onLoadedMetadata={() => {
                                 scrollBottom();
                               }}
                             />
@@ -1913,7 +1914,7 @@ function Conversation({
                               src={cnvs.content}
                               controls
                               className="tw-w-full tw-border-[7px]"
-                              onLoad={() => {
+                              onLoadedMetadata={() => {
                                 scrollBottom();
                               }}
                             />
@@ -2040,35 +2041,13 @@ function Conversation({
             </div>
           )}
           </div>
-          {fullImageScreen.toggle && (
-            <div id="div_fullscreen_image_preview">
-              <button
-                id="btn_close_fip"
-                onClick={() => {
-                  setfullImageScreen({
-                    preview: "",
-                    toggle: false,
-                  });
-                }}
-              >
-                <AiOutlineClose
-                  style={{
-                    fontSize: conversationCloseIconSize,
-                  }}
-                />
-              </button>
-              <div
-                id="div_fip_onblur"
-                onClick={() => {
-                  setfullImageScreen({
-                    preview: "",
-                    toggle: false,
-                  });
-                }}
-              />
-              <CachedImage src={fullImageScreen.preview} id="img_fip" />
-            </div>
-          )}
+          <FullscreenImageViewer
+            src={fullImageScreen.toggle ? fullImageScreen.preview : ""}
+            closeIconSize={conversationCloseIconSize}
+            onClose={() => {
+              setfullImageScreen({ preview: "", toggle: false });
+            }}
+          />
           <motion.div
             initial={{
               height: "0px",
