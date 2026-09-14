@@ -221,6 +221,9 @@ function GenericRealmItem({
         )}
         <div className="cl-display-card__body tw-w-[calc(100%-30px)] tw-pl-[15px] tw-pr-[15px] tw-flex tw-flex-col tw-items-start tw-gap-[8px] tw-flex-1">
           <Avatar
+            // Same id the follow/message controls above already resolve the
+            // realm by.
+            entityId={mp.entity}
             name={mp.name}
             src={mp.profile && mp.profile !== "none" ? mp.profile : null}
             size={50}

@@ -526,6 +526,7 @@ function CreatePage() {
                               >
                                 <Avatar
                                   id={candidate.id}
+                                  entityId={candidate.entityID}
                                   name={`${candidate.firstName} ${candidate.lastName}`}
                                   src={
                                     candidate.profile &&

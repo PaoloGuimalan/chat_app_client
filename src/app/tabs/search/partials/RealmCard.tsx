@@ -71,6 +71,10 @@ function RealmCard({
         {realm.profile ? (
           <Avatar
             id={realm.entity_id}
+            // A page is online whenever an admin is switched into it, and the
+            // presence scope is entity-generic server-side, so this lights for
+            // the same reason a person's does.
+            entityId={realm.entity_id}
             name={realm.display_name}
             src={realm.profile}
             size={44}

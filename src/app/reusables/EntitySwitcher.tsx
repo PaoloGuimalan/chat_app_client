@@ -136,6 +136,7 @@ function EntitySwitcher({
       >
         <Avatar
           id={profileName}
+          entityId={activeEntity?.id ?? authentication.user.entity_id}
           name={profileName}
           src={profileSrc}
           size={size}

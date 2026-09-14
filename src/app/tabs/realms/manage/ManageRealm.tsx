@@ -91,6 +91,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                 <div className="tw-flex tw-flex-1 tw-items-center tw-gap-[10px] tw-min-w-0">
                   <Avatar
                     id={realm.slug ?? realm.realm_id}
+                    entityId={realm.entity}
                     name={realm.name}
                     src={realm.profile && realm.profile !== "N/A" ? realm.profile : undefined}
                     size={42}
@@ -190,6 +191,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               <div className="tw-flex tw-flex-1 tw-items-center tw-gap-[10px] tw-min-w-0">
                 <Avatar
                   id={realm.slug ?? realm.realm_id}
+                  entityId={realm.entity}
                   name={realm.name}
                   src={realm.profile && realm.profile !== "N/A" ? realm.profile : undefined}
                   size={42}

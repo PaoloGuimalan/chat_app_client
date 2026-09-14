@@ -62,6 +62,7 @@ function FeedReasonBanner({ reason }: { reason: IFeedReason }) {
           one control, not two pieces of information. */}
       <Avatar
         id={details.username ?? details.slug ?? reason.entity.id}
+        entityId={reason.entity.id}
         name={name}
         src={details.profile && details.profile !== "none" ? details.profile : undefined}
         size={20}

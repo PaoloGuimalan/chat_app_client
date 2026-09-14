@@ -552,6 +552,10 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             onNotifications={() => navigate("/notifications")}
             profileSrc={activeAvatar.src}
             profileName={activeAvatar.name}
+            profileEntityId={
+              authentication.active_entity_context?.id ??
+              authentication.user.entity_id
+            }
             theme={theme}
             toggleTheme={toggleTheme}
             messagesBadge={
@@ -912,6 +916,7 @@ function MobileTopBar({
   onNotifications,
   profileSrc,
   profileName,
+  profileEntityId,
   theme,
   toggleTheme,
   messagesBadge,
@@ -923,6 +928,8 @@ function MobileTopBar({
   onNotifications: () => void;
   profileSrc?: string;
   profileName?: string;
+  /** The entity you are acting as, so the rail avatar shows you as active. */
+  profileEntityId?: string;
   theme: string;
   toggleTheme: () => void;
   messagesBadge?: number;
@@ -955,6 +962,7 @@ function MobileTopBar({
       >
         <Avatar
           id={profileName}
+          entityId={profileEntityId}
           name={profileName}
           src={profileSrc}
           size={36}

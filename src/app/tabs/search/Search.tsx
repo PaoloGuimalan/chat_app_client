@@ -31,7 +31,7 @@ import {
   SearchPostResult,
   SearchRealmResult,
 } from "@/reusables/vars/interfaces";
-import { isUserOnline, needsMoreToFill } from "@/reusables/hooks/reusable";
+import { needsMoreToFill } from "@/reusables/hooks/reusable";
 import {
   Card,
   Chip,
@@ -147,7 +147,6 @@ function EmptySection({
 }
 
 function SearchPage() {
-  const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -604,7 +603,6 @@ function SearchPage() {
               key={person.entity_id}
               person={person}
               rail
-              online={isUserOnline(activeuserslist, person.entity_id)}
               followBusy={!!followBusy[person.entity_id]}
               onToggleFollow={onTogglePersonFollow}
               onOpen={onOpenPerson}
@@ -993,7 +991,6 @@ function SearchPage() {
                 <PersonCard
                   key={person.entity_id}
                   person={person}
-                  online={isUserOnline(activeuserslist, person.entity_id)}
                   followBusy={!!followBusy[person.entity_id]}
                   onToggleFollow={onTogglePersonFollow}
                   onOpen={onOpenPerson}

@@ -4370,6 +4370,57 @@ input:checked + .slider:before {
   overflow: hidden;
 }
 
+/* THE PRESENCE DOT MUST NOT BE CLIPPED.
+ *
+ * `Avatar` draws its own dot, absolutely positioned on the rim, so a few px of
+ * it fall outside the avatar's box by design. The wrappers below are circles
+ * with `overflow: hidden`, which cut it off entirely - and because they wrap
+ * nearly every legacy row (conversation header, contacts, members, followers,
+ * archived messages, the group/server/channel pickers, the conversation-info
+ * modal), the dot silently disappeared on most of the app at once.
+ *
+ * This is the same wall the OLD markup hit, which is why every one of those
+ * screens used to render `.div_online_indicator` as a SIBLING of the wrapper,
+ * positioned back over it with negative margins. That worked, but it meant
+ * each screen had to remember to do it, and most did not - which is the
+ * inconsistency this whole change exists to remove.
+ *
+ * Scoped with `:has()` so the wrappers only stop clipping when the thing they
+ * hold is an avatar. Anything else in one of them - a raw <img>, a loader
+ * placeholder - still gets clipped to the circle as before.
+ */
+#div_img_search_profiles_container_cncts:has(> .cl-avatar),
+#div_img_cncts_container:has(> .cl-avatar),
+.cl-profile-avatar-shell:has(> .cl-avatar),
+.cl-display-card__avatar-shell:has(> .cl-avatar) {
+  overflow: visible;
+}
+
+/* ...and it should not draw a second avatar behind the avatar.
+ *
+ * This wrapper is a 48px `--surface-3` disc with a border: it was the
+ * PLACEHOLDER from before `Avatar` existed, back when the child was a bare
+ * <img> that might fail to load or arrive non-square. `Avatar` draws its own
+ * circle and its own gradient-initials fallback, so all the disc does now is
+ * ring every face in grey and hold the row open at 48px however small the
+ * avatar inside it is - which is where the roomy gaps in the members list and
+ * every other `_cncts` row came from.
+ *
+ * Collapsing it to fit lets the avatar's own `size` decide the row height, so
+ * a 36px member avatar makes a 36px row instead of a 48px one. A wrapper
+ * holding anything else - a loading Skeleton, a raw group <img> - keeps the
+ * disc, which is still doing a job there. */
+#div_img_search_profiles_container_cncts:has(> .cl-avatar) {
+  background-color: transparent;
+  border: none;
+  width: auto;
+  height: auto;
+  min-width: 0;
+  min-height: 0;
+  max-width: none;
+  max-height: none;
+}
+
 #div_img_server_back_container_cncts {
   width: 100%;
   height: 100%;
@@ -4820,6 +4871,77 @@ input:checked + .slider:before {
   border: 1px solid var(--border-2);
   color: var(--text-2);
   box-shadow: none;
+}
+
+/* The two strips between the conversation and the composer: the "Replying to
+ * X" preview and the AI Reply Assist row.
+ *
+ * Both had `backgroundColor: "white"` and `color: "black"` written into their
+ * framer-motion `animate` object for the case where you are replying to someone
+ * else's message. An animated value is an inline style, so nothing here could
+ * correct it: in dark mode a white bar with black text sat between a dark
+ * conversation and a dark composer. The components now animate only the
+ * height/padding collapse and carry these classes instead, which means the
+ * colours also follow a live theme switch - an animated `var(--surface-2)`
+ * would have been resolved once when the animation started and then gone stale.
+ *
+ * `--surface-2` rather than `--surface`: the composer is already the page
+ * surface, and the strip needs to read as a layer stacked on it in both themes.
+ *
+ * The id is in the selector because `#div_selected_images_container` sets
+ * `background-color: transparent` and an id beats a bare class. */
+#div_selected_images_container.cl-composer-strip {
+  background-color: var(--surface-2);
+  color: var(--text);
+  /* The hairline is an inset shadow, not a `border-top`: the strip collapses by
+   * animating to `height: 0` with no padding rather than unmounting, and a real
+   * border would keep painting a 1px line above the composer whenever you are
+   * not replying. An inset shadow is clipped to the padding box, so at zero
+   * height it paints nothing. */
+  box-shadow: inset 0 1px 0 var(--border);
+}
+
+/* Replying to your own message keeps the accent tint, applied inline from
+ * `theme.primary` since that is a per-conversation colour and not a token.
+ * Only the label colour on top of it is fixed here. */
+#div_selected_images_container.cl-composer-strip--own {
+  color: var(--on-brand, #ffffff);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
+}
+
+/* The Generate button had no background of its own, so it fell back to the
+ * UA's `buttonface` - a light grey chip with a black label, unchanged in dark
+ * mode. It sits on both strip variants, so it takes the brand fill, which reads
+ * against `--surface-2` and against the accent tint alike. */
+.cl-reply-assist-btn {
+  /* `--brand`, `--brand-600` and `--ease` live in the `.cl-redesign` block of
+   * theme.css rather than on `:root` (only the surface/text tokens are mirrored
+   * onto `:root`), so each carries its literal as a fallback: outside that
+   * subtree an unresolved `var()` makes the whole declaration invalid, which for
+   * `background-color` means transparent - the same invisible chip in reverse. */
+  /* `--brand-600` rather than `--brand`: the label is caption-sized, and white
+   * on `--brand` (#1c7def) measures 4.02:1 - fine for a large control, under AA
+   * for text this small. #1769d1 takes it to 5.3:1. */
+  background-color: var(--brand-600, #1769d1);
+  color: var(--on-brand, #ffffff);
+  border: none;
+  transition: background-color 0.15s var(--ease, cubic-bezier(0.4, 0, 0.2, 1));
+}
+
+.cl-reply-assist-btn:hover {
+  background-color: var(--brand-700, #1257b0);
+}
+
+/* On the strip you get when replying to your own message the fill is
+ * `theme.primary`, so a brand-filled button would be the same colour as the
+ * surface under it - the chip disappeared. It inverts there instead. */
+.cl-composer-strip--own .cl-reply-assist-btn {
+  background-color: var(--on-brand, #ffffff);
+  color: var(--brand-700, #1257b0);
+}
+
+.cl-composer-strip--own .cl-reply-assist-btn:hover {
+  background-color: rgba(255, 255, 255, 0.85);
 }
 
 #div_selected_images_container {

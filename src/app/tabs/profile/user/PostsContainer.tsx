@@ -171,6 +171,10 @@ function PostsContainer({
           <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
             <Avatar
               id={profileInfo.userID}
+              entityId={
+                authentication.active_entity_context?.id ??
+                authentication.user.entity_id
+              }
               name={profileInfo.fullname.firstName}
               src={
                 profileInfo.profile !== "none" ? profileInfo.profile : undefined

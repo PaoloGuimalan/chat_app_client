@@ -104,6 +104,7 @@ function ReactionsModal({
                       // Keyed on the entity so a page's fallback gradient is
                       // stable and distinct from its owner's.
                       id={mp.entityID || mp.userID || String(i)}
+                      entityId={mp.entityID}
                       name={name}
                       src={
                         mp.profile && mp.profile !== "none"

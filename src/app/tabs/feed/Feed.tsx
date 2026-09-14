@@ -163,6 +163,10 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <Avatar
                 id={authentication.user.userID}
+                entityId={
+                  authentication.active_entity_context?.id ??
+                  authentication.user.entity_id
+                }
                 name={activeAvatar.name}
                 src={activeAvatar.src}
                 size={42}

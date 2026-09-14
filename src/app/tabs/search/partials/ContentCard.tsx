@@ -28,6 +28,7 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
       >
         <Avatar
           id={post.author.entity_id}
+          entityId={post.author.entity_id}
           name={post.author.display_name}
           src={post.author.profile ?? undefined}
           size={30}

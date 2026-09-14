@@ -220,6 +220,11 @@ function TopicRow({
             key={face.entity_id}
             className="cl-topic-face"
             id={face.entity_id}
+            // No `entityId`, so no presence dot: these are a decorative
+            // overlapping stack of 22px faces standing for "who is posting in
+            // this topic", not a list of people you can look at one by one. A
+            // dot on each one is noise at that size, and on the stacked pair it
+            // lands on top of the neighbouring face.
             name={face.name}
             // Avatar falls back to a gradient with initials when this is
             // absent AND when the image fails to load, so a dead URL degrades

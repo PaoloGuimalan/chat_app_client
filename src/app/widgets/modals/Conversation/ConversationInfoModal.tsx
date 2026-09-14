@@ -76,9 +76,19 @@ function ConversationInfoModal({
     profile?: string | null,
     size = 40,
     entityType?: string | null,
+    // Appended rather than slotted next to `userID` so the older positional
+    // call sites keep working.
+    //
+    // The group-member lists pass it too. Membership alone does not put someone
+    // in your presence scope - the server excludes group co-members on purpose
+    // - but a co-member who is ALSO a contact or a DM counterpart is in it for
+    // that reason, and those are exactly the people whose dot a reader expects
+    // to see in a member list.
+    entityId?: string | null,
   ) => (
     <Avatar
       id={userID}
+      entityId={entityId}
       name={fullName}
       src={profile && profile !== "none" ? profile : undefined}
       size={size}
@@ -126,6 +136,7 @@ function ConversationInfoModal({
                       userInfo?.profile,
                       120,
                       userInfo?.entityType,
+                      userInfo?.entityID,
                     )}
                   </div>
                   <span className="cl-text-body tw-font-Inter tw-font-semibold tw-flex tw-items-center tw-gap-[4px]">
@@ -193,7 +204,7 @@ function ConversationInfoModal({
                               navigate(`/${mp.userID}`);
                             }}
                             className="cl-conversation-info-modal-member tw-w-full tw-rounded-[6px] tw-flex tw-flex-none tw-items-center tw-gap-[10px] tw-select-none tw-cursor-pointer"
-                            style={{ padding: "8px 10px", minHeight: 52 }}
+                            style={{ padding: "6px 8px", minHeight: 44 }}
                           >
                             <div
                               id="div_img_search_profiles_container_cncts"
@@ -209,6 +220,7 @@ function ConversationInfoModal({
                                 mp.profile,
                                 36,
                                 mp.entityType,
+                                mp.entityID,
                               )}
                             </div>
                             <div className="tw-flex tw-flex-1 tw-min-w-0 tw-items-center tw-gap-[4px] span_userdetails_ellipsis">
@@ -875,7 +887,7 @@ function ConversationInfoModal({
                               navigate(`/${mp.userID}`);
                             }}
                             className="tw-w-full hover:tw-bg-[var(--surface-hover)] tw-rounded-[6px] tw-flex tw-flex-none tw-items-center tw-gap-[10px] tw-select-none tw-cursor-pointer"
-                            style={{ padding: "4px 10px", minHeight: 52 }}
+                            style={{ padding: "6px 8px", minHeight: 44 }}
                           >
                             <div
                               id="div_img_search_profiles_container_cncts"
@@ -891,6 +903,7 @@ function ConversationInfoModal({
                                 mp.profile,
                                 36,
                                 mp.entityType,
+                                mp.entityID,
                               )}
                             </div>
                             <div className="tw-flex tw-flex-1 tw-min-w-0 tw-items-center tw-gap-[4px] span_userdetails_ellipsis">

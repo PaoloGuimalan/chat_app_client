@@ -13,6 +13,15 @@
   --brand-300: #9cc2ff;
   --green: #20bd7c;
   --green-soft: #e2f7ee;
+  /* OPAQUE pale green, and a text weight to go on it - the avatar's last-seen
+   * pill. It cannot use `--green-soft`, which is translucent in dark mode: the
+   * pill sits on top of the portrait rather than on a surface, so a see-through
+   * fill takes its colour from whatever face happens to be behind it.
+   *
+   * `--green` is not the text either. It is only 2.2:1 on this fill - fine as a
+   * shape or an icon, under AA as 9px type. */
+  --green-pale: #e2f7ee;
+  --green-strong: #12734a;
   --gold: #e69500;
   --gold-soft: #fff2db;
   --pink: #ff5b6b;
@@ -96,6 +105,10 @@
   --rail-active-bg: rgba(60, 139, 255, 0.22);
   --brand-soft: rgba(60, 139, 255, 0.16);
   --green-soft: rgba(32, 189, 124, 0.16);
+  /* "Pale" inverts in dark: a dim green ground, with the label brightening
+   * instead of darkening to sit on it. 6.9:1. */
+  --green-pale: #17352c;
+  --green-strong: #35d494;
   --gold-soft: rgba(230, 149, 0, 0.16);
   --pink-soft: rgba(255, 91, 107, 0.16);
   --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);

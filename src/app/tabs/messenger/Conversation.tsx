@@ -1070,6 +1070,18 @@ function Conversation({
     }
   };
 
+  // See the note on the composer strip below: derived once instead of being
+  // re-filtered at each use, and reached with `?.` so a reply to a message that
+  // has been paged out of `conversationList` renders an empty strip rather than
+  // throwing.
+  const replyingToMessage = isReplying.isReply
+    ? conversationList.find(
+        (flt: any) => flt.messageID == isReplying.replyingTo,
+      )
+    : undefined;
+  const replyingToOwnMessage =
+    replyingToMessage?.sender === authentication.user.userID;
+
   return (
     <motion.div
       animate={{
@@ -1288,6 +1300,13 @@ function Conversation({
                     {conversationsetup.type == "single" ? (
                       <Avatar
                         id={conversationsetup.userdetails._id}
+                        // Whatever `userdetails._id` holds in this older
+                        // payload, it is the same key this header's own
+                        // "Active Now" label filters `activeuserslist` by a few
+                        // lines below, so the dot and the label now agree. That
+                        // is the most this component can promise: unlike the v2
+                        // payload it carries no separate `entity_id` to prefer.
+                        entityId={conversationsetup.userdetails._id}
                         name={`${conversationsetup.userdetails.fullname.firstName} ${conversationsetup.userdetails.fullname.lastName}`}
                         src={
                           conversationsetup.userdetails.profile == "none"
@@ -2044,13 +2063,22 @@ function Conversation({
               setfullImageScreen({ preview: "", toggle: false });
             }}
           />
+          {/*
+            Colour is no longer animated. `backgroundColor`/`color` were
+            literals in the framer-motion objects - #dedede with black text for
+            someone else's message - and an animated value is an inline style,
+            so the stylesheet could not correct it and the strip stayed a pale
+            bar between a dark conversation and a dark composer. The collapse is
+            still animated; the colours come from `.cl-composer-strip` and so
+            follow a theme switch live. The accent tint for your own message
+            stays inline, `theme.primary` being a per-conversation colour rather
+            than a token.
+          */}
           <motion.div
             initial={{
               height: "0px",
               paddingTop: "0px",
               paddingBottom: "0px",
-              backgroundColor: "white",
-              color: "white",
               borderRadius: "10px",
             }}
             animate={{
@@ -2058,65 +2086,41 @@ function Conversation({
               paddingTop: isReplying.isReply ? "10px" : "0px",
               paddingBottom: isReplying.isReply ? "10px" : "0px",
               borderRadius: "10px",
-              backgroundColor: isReplying.isReply
-                ? conversationList.filter(
-                    (flt: any) => flt.messageID == isReplying.replyingTo,
-                  )[0].sender === authentication.user.userID
-                  ? theme.primary
-                  : "#dedede"
-                : "white",
-              color: isReplying.isReply
-                ? conversationList.filter(
-                    (flt: any) => flt.messageID == isReplying.replyingTo,
-                  )[0].sender === authentication.user.userID
-                  ? "white"
-                  : "black"
-                : "white",
             }}
+            style={
+              replyingToOwnMessage
+                ? { backgroundColor: theme.primary }
+                : undefined
+            }
             id="div_selected_images_container"
-            className="theme_scroller"
+            className={`theme_scroller cl-composer-strip${
+              replyingToOwnMessage ? " cl-composer-strip--own" : ""
+            }`}
           >
             <div className="tw-w-full tw-flex tw-flex-row">
               <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px] ellipsis-3-lines">
                 <span className="cl-text-caption tw-font-semibold tw-font-inter ellipsis-1-line">
                   {isReplying.isReply &&
-                    (conversationList.filter(
-                      (flt: any) => flt.messageID == isReplying.replyingTo,
-                    )[0].sender === authentication.user.userID
+                    (replyingToOwnMessage
                       ? "Replying to your message"
                       : `Replying to ${getMemberInfo(
-                          conversationList.filter(
-                            (flt: any) =>
-                              flt.messageID == isReplying.replyingTo,
-                          )[0].sender,
+                          replyingToMessage?.sender,
                         )}`)}
                 </span>
                 <span className="cl-text-caption tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
                   {isReplying.isReply &&
-                    (conversationList.filter(
-                      (flt: any) => flt.messageID == isReplying.replyingTo,
-                    )[0].messageType === "text" ? (
+                    (replyingToMessage?.messageType === "text" ? (
                       // Raw message content straight into innerHTML before
                       // this - see the note in ReplyingToPreview. The composer
                       // strip is one clipped line, so it takes the plain-text
                       // form.
                       <span className="tw-whitespace-pre-line">
-                        {messagePreviewText(
-                          conversationList.filter(
-                            (flt: any) =>
-                              flt.messageID == isReplying.replyingTo,
-                          )[0].content,
-                        )}
+                        {messagePreviewText(replyingToMessage?.content)}
                       </span>
                     ) : (
                       `${
                         messageTypeChecker[
-                          conversationList
-                            .filter(
-                              (flt: any) =>
-                                flt.messageID == isReplying.replyingTo,
-                            )[0]
-                            .messageType.split("/")[0]
+                          replyingToMessage?.messageType?.split("/")[0]
                         ] || "a file"
                       }`
                     ))}
@@ -2342,6 +2346,7 @@ function Conversation({
                     >
                       <Avatar
                         id={member._id}
+                        entityId={member.entityID}
                         name={member.mentionLabel}
                         src={member.profile}
                         size={28}

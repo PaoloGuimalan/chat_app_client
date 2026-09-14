@@ -131,6 +131,10 @@ function NotificationRow({
       <div style={{ position: "relative", flex: "none" }}>
         <Avatar
           id={n.fromUser?.entity_id || n.fromUserID}
+          // `fromUserID` is deliberately NOT a fallback here: it is an account
+          // id on older rows, and presence is keyed by entity id, so using it
+          // would not light the dot - it would just look like it should.
+          entityId={n.fromUser?.entity_id}
           name={senderName}
           src={n.fromUser?.profile ?? undefined}
           // So a platform bot reads as the platform rather than as a person

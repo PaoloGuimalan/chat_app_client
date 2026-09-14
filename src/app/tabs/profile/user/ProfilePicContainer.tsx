@@ -10,6 +10,7 @@ import { useSelector } from "react-redux";
 
 function ProfilePicContainer({
   userID,
+  entityId,
   realm_id,
   realm_type,
   profile,
@@ -18,7 +19,10 @@ function ProfilePicContainer({
   isAllowed,
   getpostprocess,
 }: {
+  /** The profile owner's ACCOUNT id - what `isUserProfile` compares. */
   userID: string;
+  /** Their entity id, which is what the avatar's presence dot needs. */
+  entityId?: string | null;
   realm_id: string | null;
   realm_type?: string | null;
   profile: string | null;
@@ -60,6 +64,7 @@ function ProfilePicContainer({
       >
         <Avatar
           id={userID}
+          entityId={entityId}
           name={name}
           src={profile && profile !== "none" ? profile : undefined}
           size={avatarSize}

@@ -15,7 +15,7 @@ import {
 } from "../../../redux/types";
 import CreateGroupChatModal from "../../widgets/modals/CreateGroupChatModal";
 import { conversationsetupstate } from "../../../redux/actions/states";
-import { isUserOnline, timeSince } from "../../../reusables/hooks/reusable";
+import { timeSince } from "../../../reusables/hooks/reusable";
 import { Route, Routes, useLocation, useNavigate } from "react-router-dom";
 import MessageItemLoader from "@/app/reusables/loaders/MessageItemLoader";
 import {
@@ -88,7 +88,7 @@ function MessageRow({
   subtitleHtml,
   time,
   unread,
-  showOnline,
+  entityId,
   showCall,
   active,
   onClick,
@@ -116,7 +116,17 @@ function MessageRow({
   subtitleHtml?: boolean;
   time: string;
   unread: number;
-  showOnline?: boolean;
+  /**
+   * The counterpart entity, for the avatar's presence dot. Omitted for a group
+   * row - a group is not an entity and cannot be online, and the header says
+   * "Members are Active" instead.
+   *
+   * Replaces a `showOnline` boolean the two call sites resolved themselves.
+   * One of them resolved it from `users[]._id`, which is the ACCOUNT id, while
+   * the presence list is keyed by entity id - so the dot on a DM row never lit,
+   * whatever the counterpart was doing.
+   */
+  entityId?: string | null;
   showCall?: boolean;
   active?: boolean;
   onClick: () => void;
@@ -153,25 +163,12 @@ function MessageRow({
       <div style={{ position: "relative", flex: "none" }}>
         <Avatar
           id={title}
+          entityId={entityId}
           name={title}
           src={imgSrc || undefined}
           size={40}
           kind={isBot ? "bot" : undefined}
         />
-        {showOnline && (
-          <span
-            style={{
-              position: "absolute",
-              right: 0,
-              bottom: 0,
-              width: 11,
-              height: 11,
-              borderRadius: "50%",
-              background: "var(--online)",
-              border: "2px solid var(--surface)",
-            }}
-          />
-        )}
       </div>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
@@ -293,7 +290,6 @@ function Messages() {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
-  const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
   );
@@ -691,10 +687,7 @@ function Messages() {
                       subtitleHtml={!typingHere && last.html}
                       time={timestampLabel(msgslst)}
                       unread={msgslst.unread || 0}
-                      showOnline={isUserOnline(
-                        activeuserslist,
-                        msgslst.details.entity_id,
-                      )}
+                      entityId={msgslst.details.entity_id}
                       showCall={callHere}
                       active={active}
                       onClick={() => {
@@ -922,7 +915,7 @@ function Messages() {
                       subtitleHtml={!typingHere && last.html}
                       time={timestampLabel(msgslst)}
                       unread={msgslst.unread || 0}
-                      showOnline={isUserOnline(activeuserslist, msgsurs._id)}
+                      entityId={msgsurs.entityID}
                       showCall={callHere}
                       onClick={() =>
                         navigateToConversation(

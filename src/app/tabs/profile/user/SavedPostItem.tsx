@@ -134,6 +134,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
             savedPost.post.entity.details?.slug ??
             savedPost.post.entity.details.username
           }
+          entityId={savedPost.post.entity.id}
           name={
             savedPost.post.entity.details?.name ??
             `${savedPost.post.entity.details.first_name} ${savedPost.post.entity.details.last_name}`

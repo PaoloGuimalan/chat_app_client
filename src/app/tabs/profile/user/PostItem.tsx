@@ -101,6 +101,7 @@ function PostItem({
       return (
         <Avatar
           id={postState.entity.details.slug}
+          entityId={postState.entity.id}
           name={postState.entity.details.name}
           src={
             postState.entity.details.profile !== "none"
@@ -115,6 +116,7 @@ function PostItem({
     return (
       <Avatar
         id={postState.entity.details.username}
+        entityId={postState.entity.id}
         name={`${postState.entity.details.first_name} ${postState.entity.details.last_name}`}
         src={
           postState.entity.details.profile !== "none"

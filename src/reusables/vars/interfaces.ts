@@ -331,7 +331,14 @@ export interface ChannelsListInterface {
 }
 
 export interface ServerUsersWithInfo {
+  /** The account/realm/bot row's own pk - `COALESCE(u.id, r.id, b.id)`. */
   _id: string;
+  /**
+   * The ENTITY id - `p.id` in the member query (routes/serverrts/index.js).
+   * It was always on the wire and simply missing from this interface, so the
+   * member lists had no typed way to ask for presence and went without a dot.
+   */
+  entityID?: string | null;
   userID: string;
   fullname: {
     firstName: string;

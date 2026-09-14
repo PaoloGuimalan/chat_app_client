@@ -294,6 +294,7 @@ function CreateChannelModal({
                                     <div id="div_img_search_profiles_container_cncts">
                                       <Avatar
                                         id={cnts._id}
+                                        entityId={cnts.entityID}
                                         name={`${cnts.fullname.firstName} ${cnts.fullname.lastName}`}
                                         src={
                                           cnts.profile &&

@@ -440,6 +440,7 @@ function ContactMember({
                                 <div id="div_img_search_profiles_container_cncts">
                                   <Avatar
                                     id={cnts.entity.details.id}
+                                    entityId={cnts.entity.id}
                                     name={`${cnts.entity.details.first_name} ${cnts.entity.details.last_name}`}
                                     src={
                                       cnts.entity.details.profile == "none"
@@ -526,6 +527,7 @@ function ContactMember({
                               <div id="div_img_search_profiles_container_cncts">
                                 <Avatar
                                   id={cnts.id}
+                                  entityId={cnts.entityID}
                                   name={`${cnts.firstName} ${cnts.lastName}`}
                                   src={
                                     cnts.profile == "none"

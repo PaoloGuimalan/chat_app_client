@@ -276,6 +276,7 @@ function PostPreviewModal({
           <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
             <Avatar
               id={post.entity.details?.slug ?? post.entity.details.username}
+              entityId={post.entity.id}
               name={
                 post.entity.details?.name ??
                 `${post.entity.details.first_name} ${post.entity.details.last_name}`

@@ -447,6 +447,7 @@ function Profile({
         <div className="cl-profile-picrow tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[12px] tw-pr-[12px] sm:tw-pl-[40px] sm:tw-pr-[40px]">
           <ProfilePicContainer
             userID={profileInfo.id}
+            entityId={profileInfo.entityID}
             realm_id={null}
             profile={profileInfo.profile}
             name={`${profileInfo.fullname.firstName} ${profileInfo.fullname.lastName}`}

@@ -365,6 +365,7 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
                                 <div id="div_img_search_profiles_container_cncts">
                                   <Avatar
                                     id={cnts.entityID}
+                                    entityId={cnts.entityID}
                                     name={`${cnts.firstName} ${cnts.lastName}`}
                                     src={
                                       cnts.profile == "none"

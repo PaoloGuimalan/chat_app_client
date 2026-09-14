@@ -242,6 +242,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                           >
                             <Avatar
                               id={mp._id}
+                              entityId={mp.entityID}
                               name={`${mp.fullname.firstName} ${mp.fullname.lastName}`}
                               src={
                                 mp.profile && mp.profile !== "none"

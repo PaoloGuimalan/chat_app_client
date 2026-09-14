@@ -156,6 +156,7 @@ function SearchMiniDrawer({
                 <div id="div_img_search_profiles_container">
                   <Avatar
                     id={srch.entity_id}
+                    entityId={srch.entity_id}
                     name={srch.display_name}
                     // v2 normalizes both "none" and "N/A" to null.
                     src={srch.profile ?? undefined}

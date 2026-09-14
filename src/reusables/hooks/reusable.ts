@@ -90,16 +90,77 @@ function needsMoreToFill(el: HTMLElement | null | undefined) {
   return el.scrollHeight <= el.clientHeight + 4;
 }
 
+/**
+ * Is this entity online, per the `activeuserslist` snapshot?
+ *
+ * `userID` is an ENTITY id, not an account id. The `/u/activecontacts` rows
+ * are keyed `_id: session.entityID` (routes/users/index.js), and the
+ * `active_users` SSE frame that patches them in is keyed the same way, so an
+ * account id passed here silently never matches - it reads as "offline"
+ * rather than as an error. `usersWithInfo._id` on a conversation is an account
+ * id and is the usual way to get this wrong.
+ *
+ * The list only ever holds entities in your presence scope - your contacts and
+ * the counterparts of your DMs, never yourself and never group co-members
+ * (server-side, reusables/hooks/presence.js). So "not in the list" is the
+ * normal answer for a stranger, and callers do not need to gate on the
+ * relationship themselves.
+ *
+ * Written as one short-circuiting `.some` rather than filter -> map ->
+ * includes: it is now called once per rendered avatar rather than once per
+ * list, and react-redux re-runs selectors on every dispatch, so the old
+ * version built two throwaway arrays over every contact for each avatar on
+ * screen each time anything at all changed.
+ */
 function isUserOnline(state: any, userID: string) {
-  const filteractiveusers = state.filter(
-    (flt: any) => flt.sessionStatus == true,
+  if (!state || !userID) return false;
+  return state.some(
+    (flt: any) => flt.sessionStatus == true && flt._id === userID,
   );
-  const activeusersmapper = filteractiveusers.map((mp: any) => mp._id);
-  if (activeusersmapper.includes(userID)) {
-    return true;
-  } else {
-    return false;
+}
+
+/**
+ * The raw last-seen stamp for an entity, straight off the presence row, or null.
+ *
+ * Returned as the STRING rather than a parsed Date or an elapsed count so that
+ * a redux selector can hand it back unchanged: a Date would be a fresh object
+ * every call and an elapsed count would change on every dispatch, and either
+ * would re-render every avatar on the screen whenever anything at all happened.
+ *
+ * The value is not one format. The `/u/activecontacts` snapshot fills it from
+ * Mongo's `lastSeen`, so it arrives as an ISO string; the `active_users` SSE
+ * frame fills it from the server's `dateGetter()`, so it arrives Django-shaped
+ * ("2026-07-30 00:00:00.000 +0800"). `minutesSinceLastSeen` reads both.
+ */
+function lastSeenAt(state: any, userID: string): string | null {
+  if (!state || !userID) return null;
+  const row = state.find((flt: any) => flt._id === userID);
+  const raw = row?.sessiondate?.date;
+  return typeof raw === "string" ? raw : null;
+}
+
+/**
+ * Whole minutes since a last-seen stamp, or null when it cannot be read.
+ *
+ * `new Date()` first because it is the only one of the two that honours the
+ * trailing `+0800` on the Django-shaped form - `parseDjangoDate` builds a LOCAL
+ * date from the wall-clock parts and drops the offset, which is silently
+ * correct only while the reader and the server share a timezone. It stays as
+ * the fallback for anything V8 will not take.
+ */
+function minutesSinceLastSeen(raw: string | null | undefined): number | null {
+  if (!raw) return null;
+
+  let ms = new Date(raw).getTime();
+  if (Number.isNaN(ms)) {
+    const parsed = parseDjangoDate(raw);
+    ms = parsed ? parsed.getTime() : NaN;
   }
+  if (Number.isNaN(ms)) return null;
+
+  // A clock skewed a little ahead of the server should read as "just now",
+  // not as a negative age.
+  return Math.max(0, Math.floor((Date.now() - ms) / 60000));
 }
 
 function userSessionStatusFromContacts(state: any, userID: string) {
@@ -651,6 +712,8 @@ export {
   getBase64,
   makeid,
   isUserOnline,
+  lastSeenAt,
+  minutesSinceLastSeen,
   needsMoreToFill,
   formattedDateToWords,
   ordinal_suffix_of,

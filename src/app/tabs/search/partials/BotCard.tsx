@@ -61,6 +61,7 @@ function BotCard({ bot, followBusy, onToggleFollow, onOpen, rail }: BotCardProps
         {bot.profile ? (
           <Avatar
             id={bot.entity_id}
+            entityId={bot.entity_id}
             name={bot.display_name}
             src={bot.profile}
             size={44}

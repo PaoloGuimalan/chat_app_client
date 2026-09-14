@@ -48,7 +48,6 @@ import {
 import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
-  isUserOnline,
   makeid,
   timeSince,
 } from "../../../reusables/hooks/reusable";
@@ -1360,6 +1359,19 @@ function ConversationV2({
     );
   }
 
+  // The message the composer strip is quoting. It was re-derived with an
+  // inline `conversationList.filter(...)[0]` at every use - eight times across
+  // the two strips - and each one read `.sender` off the result without a
+  // guard, so replying to a message that had since been paged out of
+  // `conversationList` threw rather than showing an empty strip.
+  const replyingToMessage = isReplying.isReply
+    ? conversationList.find(
+        (flt: any) => flt.messageID == isReplying.replyingTo,
+      )
+    : undefined;
+  const replyingToOwnMessage =
+    replyingToMessage?.sender === authentication.user.entity_id;
+
   return (
     <>
     {/* Sibling of the shell rather than a child: the shell animates its own
@@ -1611,6 +1623,14 @@ function ConversationV2({
                 <div id="div_img_cncts_container">
                   <Avatar
                     id={conversationsetup.details.id}
+                    // `details.entity_id`, NOT `details.id`. This payload
+                    // carries both, `id` being the account/realm row's own pk,
+                    // and the header's own "Active Now" label a few lines below
+                    // has always read `entity_id`. The dot that used to live
+                    // here read `id`, so the label and the dot disagreed about
+                    // the same person: the header said Active Now beside an
+                    // avatar with no dot on it.
+                    entityId={conversationsetup.details.entity_id}
                     // NOT a template literal. `${null}` is the string "null",
                     // which is what a missing name used to render as - the
                     // avatar would happily draw "NU" from it. Passed through
@@ -1625,10 +1645,6 @@ function ConversationV2({
                     size={isMinimized ? 38 : 40}
                     // ring="unviewed"
                   />
-                  {isUserOnline(
-                    activeuserslist,
-                    conversationsetup.details.id,
-                  ) && <div className="div_online_indicator" />}
                 </div>
               )}
               <div id="div_conversation_user_name">
@@ -2463,13 +2479,24 @@ function ConversationV2({
               setfullImageScreen({ preview: "", toggle: false });
             }}
           />
+          {/*
+            Colour is no longer animated. `backgroundColor` and `color` were in
+            both `initial` and `animate` as the literals "white"/"black" for
+            someone else's message, and a framer-motion animated value is an
+            inline style, so nothing in the stylesheet could correct it: in dark
+            mode a white bar sat between a dark conversation and a dark
+            composer. Only the height/padding collapse is animated now, and the
+            colours come from `.cl-composer-strip`, which reads theme tokens and
+            so follows a theme switch live.
+
+            The accent tint for your own message stays inline because
+            `theme.primary` is the per-conversation colour, not a token.
+          */}
           <motion.div
             initial={{
               height: "0px",
               paddingTop: "0px",
               paddingBottom: "0px",
-              backgroundColor: "white",
-              color: "white",
               borderRadius: "10px",
             }}
             animate={{
@@ -2477,65 +2504,41 @@ function ConversationV2({
               paddingTop: isReplying.isReply ? "10px" : "0px",
               paddingBottom: isReplying.isReply ? "10px" : "0px",
               borderRadius: "0px",
-              backgroundColor: isReplying.isReply
-                ? conversationList.filter(
-                    (flt: any) => flt.messageID == isReplying.replyingTo,
-                  )[0].sender === authentication.user.entity_id
-                  ? theme.primary
-                  : "white"
-                : "white",
-              color: isReplying.isReply
-                ? conversationList.filter(
-                    (flt: any) => flt.messageID == isReplying.replyingTo,
-                  )[0].sender === authentication.user.entity_id
-                  ? "white"
-                  : "black"
-                : "white",
             }}
+            style={
+              replyingToOwnMessage
+                ? { backgroundColor: theme.primary }
+                : undefined
+            }
             id="div_selected_images_container"
-            className="theme_scroller"
+            className={`theme_scroller cl-composer-strip${
+              replyingToOwnMessage ? " cl-composer-strip--own" : ""
+            }`}
           >
             <div className="tw-w-full tw-flex tw-flex-row">
               <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px] ellipsis-3-lines">
                 <span className="cl-text-caption tw-font-semibold tw-font-inter ellipsis-1-line">
                   {isReplying.isReply &&
-                    (conversationList.filter(
-                      (flt: any) => flt.messageID == isReplying.replyingTo,
-                    )[0].sender === authentication.user.entity_id
+                    (replyingToOwnMessage
                       ? "Replying to your message"
                       : `Replying to ${getMemberInfo(
-                          conversationList.filter(
-                            (flt: any) =>
-                              flt.messageID == isReplying.replyingTo,
-                          )[0].sender,
+                          replyingToMessage?.sender,
                         )}`)}
                 </span>
                 <span className="cl-text-caption tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
                   {isReplying.isReply &&
-                    (conversationList.filter(
-                      (flt: any) => flt.messageID == isReplying.replyingTo,
-                    )[0].messageType === "text" ? (
+                    (replyingToMessage?.messageType === "text" ? (
                       // Raw message content straight into innerHTML before
                       // this - see the note in ReplyingToPreview. The composer
                       // strip is one clipped line, so it takes the plain-text
                       // form.
                       <span className="tw-whitespace-pre-line">
-                        {messagePreviewText(
-                          conversationList.filter(
-                            (flt: any) =>
-                              flt.messageID == isReplying.replyingTo,
-                          )[0].content,
-                        )}
+                        {messagePreviewText(replyingToMessage?.content)}
                       </span>
                     ) : (
                       `${
                         messageTypeChecker[
-                          conversationList
-                            .filter(
-                              (flt: any) =>
-                                flt.messageID == isReplying.replyingTo,
-                            )[0]
-                            .messageType.split("/")[0]
+                          replyingToMessage?.messageType?.split("/")[0]
                         ] || "a file"
                       }`
                     ))}
@@ -2551,13 +2554,14 @@ function ConversationV2({
               </button>
             </div>
           </motion.div>
+          {/* Same strip treatment as the reply preview above it: the two sit
+              flush against each other, so they have to pick up the same
+              surface. */}
           <motion.div
             initial={{
               height: "0px",
               paddingTop: "0px",
               paddingBottom: "0px",
-              backgroundColor: "white",
-              color: "white",
               borderRadius: "10px",
             }}
             animate={{
@@ -2565,34 +2569,30 @@ function ConversationV2({
               paddingTop: isReplying.isReply ? "10px" : "0px",
               paddingBottom: isReplying.isReply ? "10px" : "0px",
               borderRadius: "0px",
-              backgroundColor: isReplying.isReply
-                ? conversationList.filter(
-                    (flt: any) => flt.messageID == isReplying.replyingTo,
-                  )[0].sender === authentication.user.entity_id
-                  ? theme.primary
-                  : "white"
-                : "white",
-              color: isReplying.isReply
-                ? conversationList.filter(
-                    (flt: any) => flt.messageID == isReplying.replyingTo,
-                  )[0].sender === authentication.user.entity_id
-                  ? "white"
-                  : "black"
-                : "white",
             }}
+            style={
+              replyingToOwnMessage
+                ? { backgroundColor: theme.primary }
+                : undefined
+            }
             id="div_selected_images_container"
-            className="theme_scroller"
+            className={`theme_scroller cl-composer-strip${
+              replyingToOwnMessage ? " cl-composer-strip--own" : ""
+            }`}
           >
-            <div className="tw-w-full tw-flex tw-flex-row">
+            <div className="tw-w-full tw-flex tw-flex-row tw-items-center">
               <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px] ellipsis-3-lines">
                 <span className="cl-text-caption tw-font-semibold tw-font-inter ellipsis-1-line">
                   Use AI Reply Assist
                 </span>
               </div>
               <div>
+                {/* No background of its own before this, so it fell back to the
+                    UA's `buttonface` - a light grey chip with black label that
+                    stayed light grey in dark mode. */}
                 <button
                   onClick={ReplyAssistProcess}
-                  className="tw-border-none tw-p-[6px] tw-min-w-[80px] tw-rounded-lg tw-font-Inter cl-text-caption tw-cursor-pointer"
+                  className="cl-reply-assist-btn tw-p-[6px] tw-min-w-[80px] tw-rounded-lg tw-font-Inter cl-text-caption tw-cursor-pointer"
                 >
                   Generate
                 </button>
@@ -2842,6 +2842,10 @@ function ConversationV2({
                     >
                       <Avatar
                         id={member._id}
+                        // `_id` is the ACCOUNT id on a conversation member row
+                        // and `entityID` the entity - presence is keyed by the
+                        // latter.
+                        entityId={member.entityID}
                         name={member.mentionLabel}
                         src={member.profile}
                         size={28}

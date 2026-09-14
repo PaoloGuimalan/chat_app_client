@@ -179,6 +179,7 @@ function BotProfile({ botInfo }: BotProfileProps) {
           >
             <Avatar
               id={botInfo.entity}
+              entityId={botInfo.entity}
               name={botInfo.name}
               src={avatarSrc}
               size={76}

@@ -850,6 +850,10 @@ function PostComment({
       <div className="cl-comment-section__composer tw-min-h-[60px] tw-flex tw-items-center tw-gap-[12px] tw-w-full">
         <Avatar
           id={authentication.user.userID}
+          entityId={
+            authentication.active_entity_context?.id ??
+            authentication.user.entity_id
+          }
           name={activeAvatar.name}
           src={activeAvatar.src}
           size={isThread ? 38 : 48}
@@ -882,6 +886,7 @@ function PostComment({
                 >
                   <Avatar
                     id={suggestion.entity_id}
+                    entityId={suggestion.entity_id}
                     name={suggestion.display_name}
                     src={suggestion.profile ?? undefined}
                     size={28}
@@ -1026,6 +1031,11 @@ function PostComment({
                 >
                   <Avatar
                     id={mp.entity.details.id}
+                    // `entity.id` is the entity; `entity.details.id` above it is
+                    // the account/realm row's own pk (EntitySerializer,
+                    // user_service/entity/serializers.py). Presence is keyed by
+                    // the former.
+                    entityId={mp.entity.id}
                     name={
                       mp.entity.type === "user"
                         ? `${mp.entity.details.first_name} ${mp.entity.details.last_name}`

@@ -47,6 +47,10 @@ function ProfilePopup({ coordinates, user }: ProfilePopupProp) {
             {user.userID === authentication.user.userID ? (
               <Avatar
                 id={authentication.user.userID}
+                entityId={
+                  authentication.active_entity_context?.id ??
+                  authentication.user.entity_id
+                }
                 name={activeAvatar.name}
                 src={activeAvatar.src}
                 size={50}

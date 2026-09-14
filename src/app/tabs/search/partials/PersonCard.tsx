@@ -3,7 +3,6 @@ import { SearchPersonResult } from "@/reusables/vars/interfaces";
 
 interface PersonCardProps {
   person: SearchPersonResult;
-  online: boolean;
   followBusy: boolean;
   onToggleFollow: (person: SearchPersonResult) => void;
   onOpen: (person: SearchPersonResult) => void;
@@ -12,10 +11,10 @@ interface PersonCardProps {
 }
 
 // People card per the redesign mockup: centered avatar (+ online dot), name,
-// mutual-connection count, Follow/Following toggle.
+// mutual-connection count, Follow/Following toggle. The dot is the Avatar's
+// own, resolved from `entityId` - the card no longer takes a resolved boolean.
 function PersonCard({
   person,
-  online,
   followBusy,
   onToggleFollow,
   onOpen,
@@ -45,10 +44,10 @@ function PersonCard({
       >
         <Avatar
           id={person.entity_id}
+          entityId={person.entity_id}
           name={person.display_name}
           src={person.profile ?? undefined}
           size={56}
-          online={online}
         />
       </button>
       <button

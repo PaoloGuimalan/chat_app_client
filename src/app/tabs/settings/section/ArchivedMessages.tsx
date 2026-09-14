@@ -7,7 +7,7 @@ import {
 } from "@/reusables/design/primitives2";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { ManualInitConversationListRequest } from "@/reusables/hooks/requests";
-import { isUserOnline, timeSince } from "@/reusables/hooks/reusable";
+import { timeSince } from "@/reusables/hooks/reusable";
 import { useEffect, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BiGroup, BiSolidPhoneCall } from "react-icons/bi";
@@ -27,7 +27,6 @@ function ArchivedMessages() {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
-  const activeuserslist = useSelector((state: any) => state.activeuserslist);
   const istypinglist = useSelector((state: any) => state.istypinglist);
   const previewparticipants: IPreviewParicipants[] = useSelector(
     (state: any) => state.previewparticipants,
@@ -176,6 +175,7 @@ function ArchivedMessages() {
                           <div id="div_img_search_profiles_container_cncts">
                             <Avatar
                               id={msgsurs.entityID}
+                              entityId={msgsurs.entityID}
                               name={`${msgsurs.fullname.firstName} ${msgsurs.fullname.lastName}`}
                               src={
                                 msgsurs.profile == "none"
@@ -186,9 +186,6 @@ function ArchivedMessages() {
                               kind={msgsurs.entityType}
                             />
                           </div>
-                          {isUserOnline(activeuserslist, msgsurs.entityID) && (
-                            <div className="div_online_indicator" />
-                          )}
                         </div>
                         <div id="div_messages_list_name">
                           <span className="span_messages_list_name tw-flex tw-items-center tw-gap-[4px]">

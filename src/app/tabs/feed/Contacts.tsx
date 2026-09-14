@@ -397,13 +397,12 @@ function Contacts() {
     items: NetworkEntityResult[],
   ) =>
     items.map((item) => {
-      const { online, presence } = presenceFor(item);
+      const { presence } = presenceFor(item);
       return (
         <NetworkRow
           key={`${section}-${item.entity_id}`}
           item={item}
           kind={ROW_KIND[section]}
-          online={online}
           presence={presence}
           busy={!!followBusy[item.entity_id]}
           onOpen={onOpenEntity}

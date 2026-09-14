@@ -473,6 +473,7 @@ export function NewPostModal({
                     <span className="cl-tag-chip" key={entity.entity_id}>
                       <Avatar
                         id={entity.entity_id}
+                        entityId={entity.entity_id}
                         name={entity.display_name}
                         src={entity.profile ?? undefined}
                         size={20}
@@ -593,6 +594,7 @@ export function NewPostModal({
                           >
                             <Avatar
                               id={entity.entity_id}
+                              entityId={entity.entity_id}
                               name={entity.display_name}
                               src={entity.profile ?? undefined}
                               size={34}

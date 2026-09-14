@@ -244,6 +244,7 @@ function Followers({ realm }: { realm: IRealmProfileInfo }) {
                               <div id="div_img_search_profiles_container_cncts">
                                 <Avatar
                                   id={cnts.follower.details.id}
+                                  entityId={cnts.follower.id}
                                   name={`${cnts.follower.details.first_name} ${cnts.follower.details.last_name}`}
                                   src={
                                     cnts.follower.details.profile == "none"

@@ -14,8 +14,6 @@ export type NetworkRowKind = "connection" | "follower" | "following";
 interface NetworkRowProps {
   item: NetworkEntityResult;
   kind: NetworkRowKind;
-  /** Users only - pages are never "active now". */
-  online?: boolean;
   /**
    * Presence label from the active-sessions state: "Active now" when online,
    * otherwise how long ago the last session was ("5 minutes ago"). Null when
@@ -35,7 +33,6 @@ interface NetworkRowProps {
 function NetworkRow({
   item,
   kind,
-  online,
   presence,
   busy,
   onOpen,
@@ -109,24 +106,11 @@ function NetworkRow({
       <div style={{ position: "relative", flex: "none" }}>
         <Avatar
           id={item.entity_id}
+          entityId={item.entity_id}
           name={item.display_name}
           src={item.profile ?? undefined}
           size={42}
         />
-        {online && (
-          <span
-            style={{
-              position: "absolute",
-              right: -1,
-              bottom: -1,
-              width: 12,
-              height: 12,
-              borderRadius: "50%",
-              background: "var(--green)",
-              border: "2px solid var(--surface)",
-            }}
-          />
-        )}
       </div>
 
       <div style={{ flex: 1, minWidth: 0 }}>

@@ -392,6 +392,7 @@ function RealmProfile({
         <div className="cl-profile-picrow tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[12px] tw-pr-[12px] sm:tw-pl-[40px] sm:tw-pr-[40px]">
           <ProfilePicContainer
             userID={realmInfo.id}
+            entityId={realmInfo.entity}
             realm_id={realmInfo.realm_id}
             realm_type={realmInfo.type}
             profile={realmInfo.profile}
@@ -810,6 +811,7 @@ function RealmProfile({
                 <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
                   <Avatar
                     id={realmInfo.slug ?? undefined}
+                    entityId={realmInfo.entity}
                     name={realmInfo.name ?? ""}
                     src={realmAvatarSrc}
                     size={42}
