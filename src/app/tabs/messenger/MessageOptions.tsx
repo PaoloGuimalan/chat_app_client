@@ -42,6 +42,18 @@ function MessageOptions({
       });
   };
 
+  /*
+   * NO `tw-bg-transparent tw-border-none tw-h-[30px]` ON THESE BUTTONS
+   * -----------------------------------------------------------------
+   * They used to carry all three, and this project's Tailwind sets
+   * `important: true`, so they compiled to `!important` and silently beat
+   * whatever `.cl-message-actions button` said. That is a bad place to keep a
+   * visual decision: the stylesheet looked like it drew a pill and did not.
+   *
+   * The resting look - bare glyph, no ring - now lives in that CSS rule
+   * instead, so there is one place to change it. Layout and centring come
+   * from there too (`inline-flex`, 28px box).
+   */
   return (
     <div
       className={`cl-message-actions tw-bg-transparent tw-flex tw-flex-1 tw-gap-[1px] ${
@@ -74,7 +86,7 @@ function MessageOptions({
             onClick={() => {
               DeleteMessageProcess();
             }}
-            className="cl-message-options-button cl-message-options-button--danger tw-flex tw-items-center tw-justify-center tw-h-[30px] tw-cursor-pointer tw-bg-transparent tw-border-none"
+            className="cl-message-options-button cl-message-options-button--danger tw-cursor-pointer"
           >
             <MdDelete style={{ fontSize: "15px" }} />
           </button>
@@ -83,7 +95,7 @@ function MessageOptions({
         onClick={() => {
           setisReplying();
         }}
-        className="cl-message-options-button tw-flex tw-items-center tw-justify-center tw-h-[30px] tw-cursor-pointer tw-bg-transparent tw-border-none"
+        className="cl-message-options-button tw-cursor-pointer"
       >
         <BsFillReplyFill style={{ fontSize: "15px" }} />
       </button>
@@ -97,7 +109,7 @@ function MessageOptions({
           }}
           aria-label="Report message"
           title="Report"
-          className="cl-message-options-button tw-flex tw-items-center tw-justify-center tw-h-[30px] tw-cursor-pointer tw-bg-transparent tw-border-none"
+          className="cl-message-options-button tw-cursor-pointer"
         >
           <MdReport style={{ fontSize: "15px" }} />
         </button>

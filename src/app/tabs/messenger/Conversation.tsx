@@ -31,7 +31,6 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
   isUserOnline,
   makeid,
-  sanitizeForStorage,
   timeSince,
 } from "../../../reusables/hooks/reusable";
 import { pickFiles } from "../../../reusables/hooks/pickFiles";
@@ -55,6 +54,8 @@ import {
 } from "../../../redux/types";
 import { useLocation, useNavigate } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
+import MessageContent from "./partials/MessageContent";
+import { messagePreviewText } from "./partials/messagepreview";
 import TabAudioVisualizerCanvas from "./partials/TabAudioVisualizerCanvas";
 import TabAudioVisualizerControl from "./partials/TabAudioVisualizerControl";
 import {
@@ -1820,12 +1821,7 @@ function Conversation({
                             }}
                             className="span_messages_result c1"
                           >
-                            <span
-                              className="tw-whitespace-pre-line"
-                              dangerouslySetInnerHTML={{
-                                __html: sanitizeForStorage(cnvs.content),
-                              }}
-                            />
+                            <MessageContent content={cnvs.content} />
                           </motion.span>
                           <span className="span_sending_label">Sending...</span>
                         </motion.div>
@@ -2100,15 +2096,18 @@ function Conversation({
                     (conversationList.filter(
                       (flt: any) => flt.messageID == isReplying.replyingTo,
                     )[0].messageType === "text" ? (
-                      <span
-                        className="tw-whitespace-pre-line"
-                        dangerouslySetInnerHTML={{
-                          __html: conversationList.filter(
+                      // Raw message content straight into innerHTML before
+                      // this - see the note in ReplyingToPreview. The composer
+                      // strip is one clipped line, so it takes the plain-text
+                      // form.
+                      <span className="tw-whitespace-pre-line">
+                        {messagePreviewText(
+                          conversationList.filter(
                             (flt: any) =>
                               flt.messageID == isReplying.replyingTo,
                           )[0].content,
-                        }}
-                      />
+                        )}
+                      </span>
                     ) : (
                       `${
                         messageTypeChecker[

@@ -1,11 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IoDocumentOutline } from "react-icons/io5";
 import { motion } from "framer-motion";
+import { messagePreviewText } from "./messagepreview";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 
-function ReplyingToPreview({ cnvs, fromOther, yourReply, theme }: any) {
+// `theme` and `fromOther` are gone from the signature: both existed only to
+// decide whether a quote was tinted with the sender's colour, and the quote is
+// no longer tinted by sender at all - see `.cl-message-bubble--quote`. Call
+// sites may still pass them; extra props are harmless.
+function ReplyingToPreview({ cnvs, yourReply }: any) {
   if (cnvs) {
-    const ifFromUser = cnvs.sender === fromOther;
     if (cnvs.isDeleted) {
       return (
         <motion.div className="div_messages_result_reply tw-items-center">
@@ -20,23 +24,15 @@ function ReplyingToPreview({ cnvs, fromOther, yourReply, theme }: any) {
             }}
             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[100%]"
           >
+            {/*
+              No inline colours: `.cl-message-bubble--deleted` already sets a
+              transparent background, a dashed `--border-2` and `--text-3`,
+              with `!important`, so it was winning over these anyway. What was
+              here asked for #dedede text on a white background - about 1.1:1,
+              illegible in either theme - and only the stylesheet was keeping
+              it readable.
+            */}
             <motion.span
-              initial={{
-                backgroundColor: ifFromUser ? "white" : "white",
-                border: ifFromUser
-                  ? "solid 1px rgb(222, 222, 222)"
-                  : "solid 1px rgb(222, 222, 222)",
-                color: "rgb(222, 222, 222)",
-                // marginLeft: "auto" : "0px"
-              }}
-              animate={{
-                backgroundColor: ifFromUser ? "white" : "white",
-                border: ifFromUser
-                  ? "solid 1px rgb(222, 222, 222)"
-                  : "solid 1px rgb(222, 222, 222)",
-                color: "rgb(222, 222, 222)",
-                // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
-              }}
               className="span_messages_result c1 cl-message-bubble cl-message-bubble--deleted tw-flex tw-flex-col tw-gap-[2px]"
             >
               Message deleted
@@ -59,31 +55,28 @@ function ReplyingToPreview({ cnvs, fromOther, yourReply, theme }: any) {
               }}
               className="tw-flex tw-flex-col tw-w-fit tw-max-w-[100%]"
             >
-              <motion.span
-                initial={{
-                  backgroundColor: ifFromUser ? theme.lighten : "#ececec",
-                  border: ifFromUser
-                    ? `solid 1px ${theme.lighten}`
-                    : "solid 1px #ececec",
-                  color: ifFromUser ? "white" : "#878787",
-                  // marginLeft: "auto" : "0px"
-                }}
-                animate={{
-                  backgroundColor: ifFromUser ? theme.lighten : "#ececec",
-                  border: ifFromUser
-                    ? `solid 1px ${theme.lighten}`
-                    : "solid 1px #ececec",
-                  color: ifFromUser ? "white" : "#878787",
-                  // marginLeft: cnvs.sender == authentication.user.userID? "auto" : "0px"
-                }}
-                className="span_messages_result c1"
-              >
-                <span
-                  className="tw-whitespace-pre-line"
-                  dangerouslySetInnerHTML={{
-                    __html: cnvs.content,
-                  }}
-                />
+              {/*
+                Colours live in `.cl-message-bubble--quote` now. They were
+                literals here - #ececec on #878787 for someone else's message,
+                `theme.lighten` with white text for your own - so the quote was
+                a pale box with low-contrast text in light mode and the
+                brightest thing on the screen in dark mode.
+              */}
+              <motion.span className="span_messages_result c1 cl-message-bubble cl-message-bubble--quote">
+                {/*
+                  This was `dangerouslySetInnerHTML` fed raw `cnvs.content` -
+                  no escaping anywhere in the path. Replying to a message
+                  containing `<img src=x onerror=...>` ran it in your own
+                  session, and the sender only had to be someone who could
+                  message you.
+
+                  A quote is a couple of clipped lines, so it takes the
+                  plain-text form rather than the full renderer: a heading or a
+                  code fence reads as debris at this size.
+                */}
+                <span className="tw-whitespace-pre-line">
+                  {messagePreviewText(cnvs.content)}
+                </span>
               </motion.span>
             </motion.div>
           </motion.div>

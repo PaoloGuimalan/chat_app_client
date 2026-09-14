@@ -10,30 +10,21 @@ import { MdOutlineAddReaction } from "react-icons/md";
 import { useEffect, useMemo, useRef, useState } from "react";
 import EmojiPickerHandler from "./EmojiPickerHandler";
 import ReactionsModal from "@/app/widgets/modals/Conversation/ReactionsModal";
-import { timeSince, urlify } from "@/reusables/hooks/reusable";
+import { timeSince } from "@/reusables/hooks/reusable";
 import { SetMessageReactionRequest } from "@/reusables/hooks/requests";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import MessageContent from "./MessageContent";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useTheme } from "@/reusables/design";
-import DOMPurify from "dompurify";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
-const escapeHtml = (value: string) =>
-  value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#39;");
-
-const escapeRegExp = (value: string) =>
-  value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-
-const getDisplayName = (member: any) => {
-  return member?.userID || member?.fullname?.firstName || "someone";
-};
+// `escapeHtml`, `escapeRegExp`, `getDisplayName`, `buildMentionRegex` and
+// `formatConversationHtml` moved into MessageContent.tsx, which renders the
+// same mentions and links as React elements instead of assembling an HTML
+// string. Nothing here needs to escape message text any more - it is never
+// interpolated into markup.
 
 /** Distinct emoji shown in the pill before the rest collapse into "+N". */
 const MAX_PILL_REACTIONS = 3;
@@ -74,35 +65,6 @@ const groupReactions = (reactions: any[]) => {
   }
 
   return groups;
-};
-
-const buildMentionRegex = (members: any[]) => {
-  const labels = members
-    .map((member) => getDisplayName(member))
-    .filter(Boolean)
-    .sort((a, b) => b.length - a.length)
-    .map((label) => escapeRegExp(label));
-
-  if (labels.length === 0) {
-    return null;
-  }
-
-  return new RegExp(`(^|\\s)@(${labels.join("|")})(?=(?:\\s|[.,!?;:])|$)`, "g");
-};
-
-const formatConversationHtml = (content: string, members: any[]) => {
-  let formatted = escapeHtml(content);
-  const mentionRegex = buildMentionRegex(members);
-
-  if (mentionRegex) {
-    formatted = formatted.replace(
-      mentionRegex,
-      (_match, prefix: string, label: string) =>
-        `${prefix}<span class="cl-message-mention">@${label}</span>`,
-    );
-  }
-
-  return DOMPurify.sanitize(urlify(formatted));
 };
 
 function ContentHandler({
@@ -529,12 +491,14 @@ function ContentHandler({
               }
               className="span_messages_result c1 cl-message-bubble cl-message-bubble--text tw-mb-[7px] tw-flex tw-flex-col tw-gap-[2px]"
             >
-              <span
-                className="tw-whitespace-pre-line"
-                dangerouslySetInnerHTML={{
-                  __html: formatConversationHtml(cnvs.content, members ?? []),
-                }}
-              />
+              {/*
+                Was an HTML string through `dangerouslySetInnerHTML`. Bots
+                answer in conversations and channels now, and a bot reply is
+                model prose - so Markdown arrived as literal punctuation in a
+                wall of text. `MessageContent` renders it as elements and keeps
+                what the old pipeline did for mentions and bare URLs.
+              */}
+              <MessageContent content={cnvs.content} members={members ?? []} />
               {cnvs.linkPreview && (
                 <LinkPreviewCard preview={cnvs.linkPreview} variant="display" />
               )}

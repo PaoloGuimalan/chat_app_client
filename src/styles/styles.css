@@ -4788,6 +4788,40 @@ input:checked + .slider:before {
   font-weight: bold;
 }
 
+/* These two labels float on the conversation background rather than inside a
+ * bubble, so they get no help from a surface behind them. In dark mode
+ * `--text-2` (#99a1b1) on the conversation gradient (#151a23 -> #1b2230)
+ * measures 6.76:1 - past AA on paper, but these are 11px and the sender name
+ * is not bold, and at that size it reads as greyed-out rather than secondary.
+ *
+ * `--text` instead, in dark only: light mode's #5b606b on white is already
+ * 6.4:1 at a weight the eye reads as secondary, and brightening there would
+ * make metadata compete with the message. The 11px size and the regular
+ * weight carry the hierarchy on their own. */
+:root[data-theme="dark"] .span_sender_label,
+:root[data-theme="dark"] .span_sender_reply_label,
+.cl-redesign[data-theme="dark"] .span_sender_label,
+.cl-redesign[data-theme="dark"] .span_sender_reply_label {
+  color: var(--text);
+}
+
+/* The quoted message shown above a reply.
+ *
+ * Every colour here used to be a literal in ReplyingToPreview.tsx - #ececec on
+ * #878787 for someone else's message (3.5:1, under AA) and `theme.lighten`
+ * with white text for your own, which on the gold channel theme (#ffc965) is
+ * about 1.8:1. In dark mode the pale box was the brightest thing on screen.
+ *
+ * NOT tinted by who sent it: the quote sits directly beneath a "replied to X"
+ * label that already says whose message it is, so the tint bought nothing and
+ * cost the contrast above. */
+.cl-message-bubble--quote {
+  background: var(--surface-3);
+  border: 1px solid var(--border-2);
+  color: var(--text-2);
+  box-shadow: none;
+}
+
 #div_selected_images_container {
   background-color: transparent;
   width: 100%;
@@ -5005,26 +5039,55 @@ input:checked + .slider:before {
   opacity: 0.85;
 }
 
+/* BARE GLYPHS, NOT PILLS
+ * ----------------------
+ * These were a 28px circle on `--surface-2` with a `--border` outline. Two
+ * problems with that. It never actually rendered: every button in
+ * MessageOptions.tsx also carried `tw-bg-transparent tw-border-none`, and this
+ * project's Tailwind sets `important: true`, so those compiled to
+ * `!important` and won - the icons had been sitting bare on whatever was
+ * behind the bubble all along. And `--surface-2` is the end colour of the
+ * conversation background's own gradient (`--surface` -> `--surface-2`), so
+ * even when forced to render the pill measured 1.09:1 against what was behind
+ * it - a circle you cannot see.
+ *
+ * So the resting state is bare, which is the look that was shipping, and the
+ * fix is the glyph colour instead - see the dark-mode rule below. The 28px box
+ * stays as the hit target.
+ */
 .cl-message-actions button {
   width: 28px;
   height: 28px;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  background: var(--surface-2);
+  border: none;
+  background: transparent;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   transition:
     background-color 0.14s ease,
-    border-color 0.14s ease,
-    transform 0.14s ease;
+    color 0.14s ease;
   color: var(--text-2);
 }
 
+/* Affordance on hover is a colour change and a faint wash, not a ring: at
+ * 28px a bordered circle appearing under the cursor reads as a state change
+ * the icon did not have a moment ago. */
 .cl-message-actions button:hover {
-  background: var(--surface-hover);
-  border-color: var(--border-2);
-  transform: translateY(-1px);
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  color: var(--text);
+}
+
+/* The icons sit on the conversation background with nothing behind them, so
+ * the glyph colour is all the contrast there is. `--text-2` (#99a1b1) on the
+ * dark conversation gradient measures 6.7:1, which passes on paper but reads
+ * as disabled at 15px on a surface this dark - and drops to about 1.5:1 if
+ * anything lighter is ever behind the strip. `--text` takes it to 14.6:1.
+ *
+ * Dark only, for the same reason as the sender labels above: light mode's
+ * #5b606b on white is 6.3:1 and already reads as an available action. */
+:root[data-theme="dark"] .cl-message-actions button,
+.cl-redesign[data-theme="dark"] .cl-message-actions button {
   color: var(--text);
 }
 
