@@ -131,10 +131,20 @@ function NotificationRow({
       <div style={{ position: "relative", flex: "none" }}>
         <Avatar
           id={n.fromUser?.entity_id || n.fromUserID}
+          // Presence on the COMPACT row only. The detail row draws the
+          // notification's type badge at right:-3/bottom:-3 just below, which
+          // is exactly where the presence marker sits - so the two shared one
+          // corner and the badge painted over the dot.
+          //
+          // The badge wins that corner: a notification is about something that
+          // has already happened, so what KIND of event it was tells the
+          // reader more than whether its sender happens to be online now. The
+          // compact row has no badge, so it keeps the marker.
+          //
           // `fromUserID` is deliberately NOT a fallback here: it is an account
           // id on older rows, and presence is keyed by entity id, so using it
           // would not light the dot - it would just look like it should.
-          entityId={n.fromUser?.entity_id}
+          entityId={isDetail ? undefined : n.fromUser?.entity_id}
           name={senderName}
           src={n.fromUser?.profile ?? undefined}
           // So a platform bot reads as the platform rather than as a person
