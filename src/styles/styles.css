@@ -4606,7 +4606,19 @@ input:checked + .slider:before {
   font-weight: 600;
 }
 
-.cl-message-mention {
+/* @mentions and /commands in authored text.
+ *
+ * ONE SET OF COLOUR RULES, TWO TYPOGRAPHIES. Both are tokens inside a message
+ * that address something rather than reading as prose, so both take the same
+ * chip and the same colour at every level below. What separates them is voice:
+ * a mention is bold and proportional and reads as a name, a command is
+ * monospace and reads as the instruction it is.
+ *
+ * The brand-coloured form is the base - what these look like on an ordinary
+ * surface, which for a mention includes a post comment (highlightMentions in
+ * hooks/mentions.ts). */
+.cl-message-mention,
+.cl-message-command {
   color: var(--brand-700);
   font-weight: 700;
   background: color-mix(in srgb, var(--brand-soft) 75%, transparent);
@@ -4616,48 +4628,86 @@ input:checked + .slider:before {
   white-space: nowrap;
 }
 
-.cl-redesign[data-theme="dark"] .cl-message-mention {
+/* The ONLY difference: the typeface. A command was previously 0.92em at
+   weight 600 - the usual trim for monospace, which is optically wider - and
+   next to a mention at 14px/700 in the same bubble it read as the fainter of
+   the two even though every colour was identical. Matching the weight and the
+   size is what makes them one family rather than two chips that happen to
+   share a palette. */
+.cl-message-command {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+}
+
+.cl-redesign[data-theme="dark"] .cl-message-mention,
+.cl-redesign[data-theme="dark"] .cl-message-command {
   color: #cfe0ff;
   background: rgba(60, 139, 255, 0.14);
   border-color: rgba(60, 139, 255, 0.28);
 }
 
-.cl-redesign[data-theme="light"] .cl-message-mention {
+.cl-redesign[data-theme="light"] .cl-message-mention,
+.cl-redesign[data-theme="light"] .cl-message-command {
   color: var(--brand-700);
   background: color-mix(in srgb, var(--brand-soft) 70%, #ffffff 30%);
 }
 
-/* A `/command` in authored text. Shaped like .cl-message-mention - same chip,
-   same radius, same nowrap - because it is the same idea: a token in the
-   message that addresses something rather than reading as prose.
+/* ON ANYTHING FILLED WITH THE ACCENT no fixed colour can work - your own
+   bubble, and the composer strip when you are replying to your own message.
+   Both are filled with `theme.primary`, applied inline, which is the brand
+   blue in a chat and gold in a channel. Dark mode put #cfe0ff over a
+   faint blue tint over blue and the token all but disappeared - and on a gold
+   channel bubble the blue would clash outright.
 
-   Monospace and a neutral tint rather than the brand colour, so a command is
-   distinguishable at a glance from a mention. A mention points at somebody; a
-   command is an instruction, and the two should not be mistaken for each other
-   in a busy thread. */
-.cl-message-command {
-  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-  font-size: 0.92em;
-  font-weight: 600;
-  color: var(--text-1);
-  background: color-mix(in srgb, currentColor 10%, transparent);
-  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
-  border-radius: 6px;
-  padding: 0 4px;
-  white-space: nowrap;
+   Mixed from currentColor instead, so it follows whatever the bubble is
+   filled with - blue, gold, or whatever a server picks next.
+
+   Specificity has to beat the two [data-theme] rules above, which is why the
+   theme class is in the selector rather than the bubble class alone. */
+.cl-redesign
+  :is(.cl-message-bubble--own, .cl-composer-strip--own)
+  :is(.cl-message-mention, .cl-message-command),
+.cl-redesign[data-theme="dark"]
+  :is(.cl-message-bubble--own, .cl-composer-strip--own)
+  :is(.cl-message-mention, .cl-message-command),
+.cl-redesign[data-theme="light"]
+  :is(.cl-message-bubble--own, .cl-composer-strip--own)
+  :is(.cl-message-mention, .cl-message-command) {
+  color: inherit;
+  background: color-mix(in srgb, currentColor 18%, transparent);
+  border-color: color-mix(in srgb, currentColor 32%, transparent);
 }
 
-.cl-redesign[data-theme="dark"] .cl-message-command {
-  color: #e6e1ff;
-  background: rgba(168, 148, 255, 0.16);
-  border-color: rgba(168, 148, 255, 0.3);
+/* IN A CHANNEL, somebody else's message takes the SERVER'S accent rather than
+   the brand blue. A channel is gold throughout - bubbles, ticks, reply rail,
+   header icons - and a blue token was the one thing in it still wearing the
+   app's colour instead of the room's. The Flutter client does the same
+   (CLAccent, which resolves to gold in a channel).
+
+   Not on your OWN bubble: that one is FILLED with the accent, so the rule
+   above keeps applying there. :not() rather than ordering, so this cannot be
+   broken by moving either block.
+
+   The label is --gold-700/-300, never --gold itself: the accent as text on
+   --gold-soft measures about 2.2:1. */
+.cl-redesign
+  .cl-message-bubble--channel:not(.cl-message-bubble--own)
+  :is(.cl-message-mention, .cl-message-command),
+.cl-redesign[data-theme="light"]
+  .cl-message-bubble--channel:not(.cl-message-bubble--own)
+  :is(.cl-message-mention, .cl-message-command) {
+  color: var(--gold-700);
+  background: color-mix(in srgb, var(--gold-soft) 75%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 28%, transparent);
 }
 
-.cl-redesign[data-theme="light"] .cl-message-command {
-  color: #4b3ba6;
-  background: rgba(107, 87, 214, 0.1);
-  border-color: rgba(107, 87, 214, 0.22);
+.cl-redesign[data-theme="dark"]
+  .cl-message-bubble--channel:not(.cl-message-bubble--own)
+  :is(.cl-message-mention, .cl-message-command) {
+  color: var(--gold-300);
+  background: color-mix(in srgb, var(--gold) 16%, transparent);
+  border-color: color-mix(in srgb, var(--gold) 30%, transparent);
 }
+
 
 .cl-message-bubble--deleted {
   background: transparent !important;

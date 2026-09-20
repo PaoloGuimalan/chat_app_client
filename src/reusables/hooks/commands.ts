@@ -37,25 +37,30 @@ export interface ChatCommand {
 /**
  * A "/query" in progress at the cursor, or null.
  *
- * ONLY AT THE START OF THE MESSAGE, matching the server's parser: a slash
- * mid-sentence is a slash, and "and/or" is not a command. Offering a menu
- * there would suggest something that could never run.
+ * ANYWHERE A WORD STARTS, matching the server's parser: "@juanlazy /sum" is
+ * the case people actually type, and anchoring this to the start of the
+ * message left the menu closed for it. The slash must follow whitespace or
+ * begin the message, which is what keeps "and/or" and "/api/v1" from opening
+ * anything.
  *
- * "//" is the escape hatch for writing a slash literally, and is never a
- * command - so it never opens the menu either.
+ * "//" is the escape hatch for writing a slash literally, and never opens the
+ * menu.
+ *
+ * `start` is the index of the slash, so insertCommand replaces from there.
  */
 export const activeCommandQuery = (
   value: string,
   cursorPosition: number = value.length,
 ): { start: number; query: string } | null => {
   const beforeCursor = value.slice(0, Math.max(0, cursorPosition));
-  const match = beforeCursor.match(/^\s*\/([A-Za-z0-9-]*)$/);
+  const match = beforeCursor.match(/(^|\s)\/([A-Za-z0-9-]*)$/);
   if (!match) return null;
 
-  const start = beforeCursor.indexOf("/");
-  if (beforeCursor.startsWith("/", start + 1)) return null;
+  const start = beforeCursor.length - match[2].length - 1;
+  // The escape hatch: a slash immediately before this one.
+  if (start > 0 && beforeCursor[start - 1] === "/") return null;
 
-  return { start, query: match[1] ?? "" };
+  return { start, query: match[2] ?? "" };
 };
 
 /**

@@ -82,7 +82,6 @@ import {
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
 import MessageContent from "./partials/MessageContent";
-import { messagePreviewText } from "./partials/messagepreview";
 import VoiceMessagePlayer from "./partials/VoiceMessagePlayer";
 import TabAudioVisualizerCanvas from "./partials/TabAudioVisualizerCanvas";
 import TabAudioVisualizerControl from "./partials/TabAudioVisualizerControl";
@@ -2633,12 +2632,18 @@ function ConversationV2({
                   {isReplying.isReply &&
                     (replyingToMessage?.messageType === "text" ? (
                       // Raw message content straight into innerHTML before
-                      // this - see the note in ReplyingToPreview. The composer
-                      // strip is one clipped line, so it takes the plain-text
-                      // form.
-                      <span className="tw-whitespace-pre-line">
-                        {messagePreviewText(replyingToMessage?.content)}
-                      </span>
+                      // this - see the note in ReplyingToPreview. `preview`
+                      // keeps the plain-text form the strip has always had -
+                      // it runs the same messagePreviewText - and adds only
+                      // the tokens, which are what the quoted message was
+                      // about. The clipping is the strip's own
+                      // (`ellipsis-3-lines` on the wrapper) and is untouched.
+                      <MessageContent
+                        content={replyingToMessage?.content ?? ""}
+                        members={conversationinfo?.usersWithInfo ?? []}
+                        commands={commandNames}
+                        preview
+                      />
                     ) : (
                       `${
                         messageTypeChecker[

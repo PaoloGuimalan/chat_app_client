@@ -51,6 +51,8 @@
  */
 import { Fragment, ReactNode, useMemo } from "react";
 
+import { messagePreviewText } from "./messagepreview";
+
 /**
  * Just the parts of a conversation member this file reads.
  *
@@ -105,45 +107,26 @@ const buildMentionRegex = (members: MessageMember[]) => {
 };
 
 /**
- * A leading `/command`, exactly as the server parses one.
+ * A `/command`, exactly as the server parses one.
  *
- * ANCHORED TO THE WHOLE MESSAGE, not to a line or a fragment. That is the
- * server's rule (commandParser.js): a slash mid-sentence is a slash, "and/or"
- * is not a command, and neither is a slash starting the second line. Rendering
- * it anywhere else would highlight text that will never run as one.
+ * ANYWHERE A WORD STARTS - the same reach a mention has, and the same reason:
+ * people address a bot the way they address a person, so "@juanlazy
+ * /summarize the thread" is one thought. `(?:^|\s)` is what keeps a slash
+ * INSIDE a word out, so "and/or" and "/api/v1/users" are still not commands.
  *
- * Matched here rather than passed down from the composer because this renders
- * HISTORY too - messages sent before this session, by other people, and by
- * bots. The text is the only thing every one of those has in common.
+ * The lookahead is `(?=$|\s)` and deliberately NOT the mention rule's
+ * punctuation set: "/summarize." is not a command server-side, so it must not
+ * render as one here either.
  *
- * "//" is the escape hatch for writing a slash literally, so it is excluded
- * the same way the parser excludes it.
+ * "//summarize" is the escape hatch and needs no special case - the second
+ * slash is neither a name character nor preceded by whitespace.
+ *
+ * NO `g` FLAG, like every other pattern in this file: the walker runs each
+ * rule against many substrings, and a sticky lastIndex would make matches
+ * start skipping text.
  */
-const LEADING_COMMAND = /^(\s*)(\/(?!\/)[A-Za-z0-9-]{1,32}(?::[A-Za-z0-9._-]{1,50})?)(?=$|\s)/;
-
-/**
- * @param known  the command NAMES available in this conversation. Only these
- *   are highlighted: a chip on a word nothing will answer is a promise the
- *   message cannot keep, and "/lunch tomorrow?" is a sentence, not a command.
- *
- *   Matched on the name alone, not on `name:target`. The menu is already
- *   scoped to this conversation, so a name in it is runnable here; the target
- *   only disambiguates between bots that share the name.
- *
- *   An EMPTY set highlights nothing, which is the right default - it is what
- *   an unloaded menu, a failed fetch and a conversation with no bots all look
- *   like, and none of those should light anything up.
- */
-const splitLeadingCommand = (content: string, known: Set<string>) => {
-  if (known.size === 0) return null;
-  const match = LEADING_COMMAND.exec(content);
-  if (!match) return null;
-
-  const name = match[2].slice(1).split(":")[0].toLowerCase();
-  if (!known.has(name)) return null;
-
-  return { token: match[2], rest: content.slice(match[0].length) };
-};
+const COMMAND_TOKEN =
+  /(^|\s)\/([A-Za-z0-9-]{1,32})(?::([A-Za-z0-9._-]{1,50}))?(?=$|\s)/;
 
 // ------------------------------------------------------------------ inline --
 
@@ -589,60 +572,94 @@ function MessageContent({
   members = [],
   commands = [],
   className = "",
+  preview = false,
 }: {
   content: string;
   members?: MessageMember[];
   /** Command names available in this conversation - see splitLeadingCommand. */
   commands?: string[];
   className?: string;
+  /** Render as a QUOTE: one flattened line, tokens kept - see below. */
+  preview?: boolean;
 }) {
   // Rebuilt only when the member list changes: the mention pattern is derived
   // from every member's display name, and rebuilding it per message would mean
   // recompiling one regex per bubble on every render.
-  const ctx = useMemo<Ctx>(() => {
-    const mentionRegex = buildMentionRegex(members);
-    if (!mentionRegex) return { rules: BASE_RULES };
+  const { ctx, previewCtx } = useMemo(() => {
+    const known = new Set(commands.map((name) => String(name).toLowerCase()));
+    const tokenRules: InlineRule[] = [];
 
-    const mentionRule: InlineRule = {
-      pattern: mentionRegex,
-      render: (m, key) => (
-        <Fragment key={key}>
-          {m[1]}
-          <span className="cl-message-mention">@{m[2]}</span>
-        </Fragment>
-      ),
+    if (known.size > 0) {
+      tokenRules.push({
+        pattern: COMMAND_TOKEN,
+        render: (m, key) => {
+          // Only a command this conversation actually has. A chip on a word
+          // nothing will answer is a promise the message cannot keep, and
+          // "/lunch tomorrow?" is a sentence. Unknown names fall through to
+          // the text they always were.
+          if (!known.has(m[2].toLowerCase())) {
+            return <Fragment key={key}>{m[0]}</Fragment>;
+          }
+          const token = m[3] ? `/${m[2]}:${m[3]}` : `/${m[2]}`;
+          return (
+            <Fragment key={key}>
+              {m[1]}
+              <span className="cl-message-command">{token}</span>
+            </Fragment>
+          );
+        },
+      });
+    }
+
+    const mentionRegex = buildMentionRegex(members);
+    if (mentionRegex) {
+      tokenRules.push({
+        pattern: mentionRegex,
+        render: (m, key) => (
+          <Fragment key={key}>
+            {m[1]}
+            <span className="cl-message-mention">@{m[2]}</span>
+          </Fragment>
+        ),
+      });
+    }
+
+    return {
+      // After the code rule, so a token inside a code span stays literal.
+      ctx: { rules: [BASE_RULES[0], ...tokenRules, ...BASE_RULES.slice(1)] },
+      // A quote's rule set: the tokens and nothing else - see the preview
+      // branch. Built from the same rule objects rather than picked out of the
+      // list by index, which would silently follow BASE_RULES being reordered.
+      previewCtx: { rules: tokenRules },
     };
-    // After the code rule, so an @name inside a code span stays literal.
-    return { rules: [BASE_RULES[0], mentionRule, ...BASE_RULES.slice(1)] };
-  }, [members]);
+  }, [members, commands]);
 
   if (!content?.trim()) return null;
 
-  // A command is rendered like a mention: the token gets a chip, the rest is
-  // ordinary text. Split here rather than added as an inline rule because the
-  // walker feeds each rule successive SUBSTRINGS, so a `^`-anchored pattern
-  // would also match a `/word` that happened to begin one - highlighting a
-  // slash in the middle of a sentence.
-  const knownCommands = useMemo(
-    () => new Set(commands.map((name) => String(name).toLowerCase())),
-    [commands],
-  );
-  const command = splitLeadingCommand(content, knownCommands);
-  if (command) {
-    // Only the first line shares the paragraph; anything below it is a block
-    // of its own, exactly as it would be without the command.
-    const newline = command.rest.indexOf("\n");
-    const firstLine = newline === -1 ? command.rest : command.rest.slice(0, newline);
-    const below = newline === -1 ? "" : command.rest.slice(newline + 1);
+  /*
+   * A QUOTE: one flattened line, with the tokens still shown.
+   *
+   * messagePreviewText first, which is what keeps the composer's strip to a
+   * couple of clipped lines - a heading or a code fence reads as debris at
+   * that size.
+   *
+   * The tokens survive it because they are not formatting: they are what the
+   * message was ABOUT, and a quote of "/summarize the thread" that renders
+   * the command as bare text loses the one word that says what was asked.
+   *
+   * ONLY the token rules run here, not BASE_RULES. Emphasis is already gone
+   * from the flattened text, and the link rules would turn a quoted URL into
+   * something clickable - a strip is a jump-to-message target, and a link
+   * inside it competes with that.
+   */
+  if (preview) {
+    const flat = messagePreviewText(content);
+    if (!flat) return null;
 
     return (
-      <div className={`tw-flex tw-flex-col tw-gap-[6px] ${className}`}>
-        <p className="tw-m-0 tw-break-words tw-leading-[1.5]">
-          <span className="cl-message-command">{command.token}</span>
-          {firstLine ? renderInline(firstLine, "cmd", ctx) : null}
-        </p>
-        {below.trim() ? renderBlocks(below, ctx) : null}
-      </div>
+      <span className={`tw-whitespace-pre-line ${className}`}>
+        {renderInline(flat, "quote", previewCtx)}
+      </span>
     );
   }
 

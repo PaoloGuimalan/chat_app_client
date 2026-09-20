@@ -24,6 +24,12 @@
   --green-strong: #12734a;
   --gold: #e69500;
   --gold-soft: #fff2db;
+  /* The two steps --brand already has, for the same reason: #e69500 as TEXT
+     on --gold-soft measures about 2.2:1, so the accent itself cannot be the
+     label. -700 is the readable form on a light surface, -300 the readable
+     form on a dark one. */
+  --gold-700: #8a5a00;
+  --gold-300: #ffd489;
   --pink: #ff5b6b;
   --pink-soft: #ffe6e9;
   --online: #2ecc71;

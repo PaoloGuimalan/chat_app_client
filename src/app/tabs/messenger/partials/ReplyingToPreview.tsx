@@ -1,14 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IoDocumentOutline } from "react-icons/io5";
 import { motion } from "framer-motion";
-import { messagePreviewText } from "./messagepreview";
+import MessageContent from "./MessageContent";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 
 // `theme` and `fromOther` are gone from the signature: both existed only to
 // decide whether a quote was tinted with the sender's colour, and the quote is
 // no longer tinted by sender at all - see `.cl-message-bubble--quote`. Call
 // sites may still pass them; extra props are harmless.
-function ReplyingToPreview({ cnvs, yourReply }: any) {
+function ReplyingToPreview({ cnvs, yourReply, members, commands }: any) {
   if (cnvs) {
     if (cnvs.isDeleted) {
       return (
@@ -68,15 +68,25 @@ function ReplyingToPreview({ cnvs, yourReply }: any) {
                   no escaping anywhere in the path. Replying to a message
                   containing `<img src=x onerror=...>` ran it in your own
                   session, and the sender only had to be someone who could
-                  message you.
+                  message you. MessageContent has no markup path out of message
+                  content at all, so that is closed by construction.
 
-                  A quote is a couple of clipped lines, so it takes the
-                  plain-text form rather than the full renderer: a heading or a
-                  code fence reads as debris at this size.
+                  THE FULL RENDERER, not the flattened preview. A quote used to
+                  take the plain-text form on the reasoning that a heading or a
+                  code fence is debris at this size - but the messages people
+                  quote most are bot replies, which are model prose: headings,
+                  numbered steps, bold and bullets. Flattened, that arrives as a
+                  wall of run-together sentences, which is harder to read than
+                  the formatting ever was.
+
+                  The COMPOSER STRIP still flattens (see ConversationV2): it is
+                  a clamped two lines, where blocks genuinely cannot render.
                 */}
-                <span className="tw-whitespace-pre-line">
-                  {messagePreviewText(cnvs.content)}
-                </span>
+                <MessageContent
+                  content={cnvs.content}
+                  members={members ?? []}
+                  commands={commands ?? []}
+                />
               </motion.span>
             </motion.div>
           </motion.div>

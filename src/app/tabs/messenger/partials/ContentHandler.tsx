@@ -150,6 +150,12 @@ function ContentHandler({
   // group chat rendered a bare "Seen".
   const conversationKind =
     (conversationsetup as any)?.conversationType ?? conversationsetup?.type;
+  // A channel takes the server's accent rather than the brand blue - see
+  // _accentFor on the Flutter side, which makes the same call. Marked on the
+  // bubble so a mention in somebody else's message can be coloured with it.
+  const isChannelLike =
+    conversationKind === "server" || conversationKind === "channel";
+
   const isGroupLike =
     conversationKind === "group" ||
     conversationKind === "server" ||
@@ -318,6 +324,8 @@ function ContentHandler({
           {cnvs.isReply && (
             <ReplyingToPreview
               cnvs={cnvs.replyedmessage[0]}
+              members={members ?? []}
+              commands={commands ?? []}
               fromOther={authentication.user.userID}
               yourReply={
                 cnvs.sender == authentication.user.entity_id ? true : false
@@ -452,6 +460,8 @@ function ContentHandler({
             {cnvs.isReply && (
               <ReplyingToPreview
                 cnvs={cnvs.replyedmessage[0]}
+                members={members ?? []}
+                commands={commands ?? []}
                 fromOther={authentication.user.userID}
                 yourReply={
                   cnvs.sender == authentication.user.entity_id ? true : false
@@ -502,7 +512,16 @@ function ContentHandler({
                   ? { width: "380px" }
                   : undefined
               }
-              className="span_messages_result c1 cl-message-bubble cl-message-bubble--text tw-mb-[7px] tw-flex tw-flex-col tw-gap-[2px]"
+              // `--own` marks the bubble whose BACKGROUND is the accent -
+              // theme.primary, applied inline just below, and gold rather than
+              // blue in a channel. Styling inside it cannot use a fixed colour,
+              // and this class is what lets the stylesheet know that. Everyone
+              // else's bubble is var(--surface) and needs no such treatment.
+              className={`span_messages_result c1 cl-message-bubble cl-message-bubble--text ${
+                isCurrentUserSender ? "cl-message-bubble--own" : ""
+              } ${
+                isChannelLike ? "cl-message-bubble--channel" : ""
+              } tw-mb-[7px] tw-flex tw-flex-col tw-gap-[2px]`}
             >
               {/*
                 Was an HTML string through `dangerouslySetInnerHTML`. Bots
@@ -763,6 +782,8 @@ function ContentHandler({
             {cnvs.isReply && (
               <ReplyingToPreview
                 cnvs={cnvs.replyedmessage[0]}
+                members={members ?? []}
+                commands={commands ?? []}
                 fromOther={authentication.user.userID}
                 yourReply={
                   cnvs.sender == authentication.user.entity_id ? true : false
@@ -1028,6 +1049,8 @@ function ContentHandler({
             {cnvs.isReply && (
               <ReplyingToPreview
                 cnvs={cnvs.replyedmessage[0]}
+                members={members ?? []}
+                commands={commands ?? []}
                 fromOther={authentication.user.userID}
                 yourReply={
                   cnvs.sender == authentication.user.entity_id ? true : false
@@ -1286,6 +1309,8 @@ function ContentHandler({
             {cnvs.isReply && (
               <ReplyingToPreview
                 cnvs={cnvs.replyedmessage[0]}
+                members={members ?? []}
+                commands={commands ?? []}
                 fromOther={authentication.user.userID}
                 yourReply={
                   cnvs.sender == authentication.user.entity_id ? true : false
@@ -1556,6 +1581,8 @@ function ContentHandler({
             {cnvs.isReply && (
               <ReplyingToPreview
                 cnvs={cnvs.replyedmessage[0]}
+                members={members ?? []}
+                commands={commands ?? []}
                 fromOther={authentication.user.userID}
                 yourReply={
                   cnvs.sender == authentication.user.entity_id ? true : false
