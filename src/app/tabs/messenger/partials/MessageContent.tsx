@@ -104,6 +104,47 @@ const buildMentionRegex = (members: MessageMember[]) => {
   return new RegExp(`(^|\\s)@(${labels.join("|")})(?=(?:\\s|[.,!?;:])|$)`);
 };
 
+/**
+ * A leading `/command`, exactly as the server parses one.
+ *
+ * ANCHORED TO THE WHOLE MESSAGE, not to a line or a fragment. That is the
+ * server's rule (commandParser.js): a slash mid-sentence is a slash, "and/or"
+ * is not a command, and neither is a slash starting the second line. Rendering
+ * it anywhere else would highlight text that will never run as one.
+ *
+ * Matched here rather than passed down from the composer because this renders
+ * HISTORY too - messages sent before this session, by other people, and by
+ * bots. The text is the only thing every one of those has in common.
+ *
+ * "//" is the escape hatch for writing a slash literally, so it is excluded
+ * the same way the parser excludes it.
+ */
+const LEADING_COMMAND = /^(\s*)(\/(?!\/)[A-Za-z0-9-]{1,32}(?::[A-Za-z0-9._-]{1,50})?)(?=$|\s)/;
+
+/**
+ * @param known  the command NAMES available in this conversation. Only these
+ *   are highlighted: a chip on a word nothing will answer is a promise the
+ *   message cannot keep, and "/lunch tomorrow?" is a sentence, not a command.
+ *
+ *   Matched on the name alone, not on `name:target`. The menu is already
+ *   scoped to this conversation, so a name in it is runnable here; the target
+ *   only disambiguates between bots that share the name.
+ *
+ *   An EMPTY set highlights nothing, which is the right default - it is what
+ *   an unloaded menu, a failed fetch and a conversation with no bots all look
+ *   like, and none of those should light anything up.
+ */
+const splitLeadingCommand = (content: string, known: Set<string>) => {
+  if (known.size === 0) return null;
+  const match = LEADING_COMMAND.exec(content);
+  if (!match) return null;
+
+  const name = match[2].slice(1).split(":")[0].toLowerCase();
+  if (!known.has(name)) return null;
+
+  return { token: match[2], rest: content.slice(match[0].length) };
+};
+
 // ------------------------------------------------------------------ inline --
 
 type InlineRule = {
@@ -546,10 +587,13 @@ function renderBlocks(source: string, ctx: Ctx): ReactNode[] {
 function MessageContent({
   content,
   members = [],
+  commands = [],
   className = "",
 }: {
   content: string;
   members?: MessageMember[];
+  /** Command names available in this conversation - see splitLeadingCommand. */
+  commands?: string[];
   className?: string;
 }) {
   // Rebuilt only when the member list changes: the mention pattern is derived
@@ -573,6 +617,34 @@ function MessageContent({
   }, [members]);
 
   if (!content?.trim()) return null;
+
+  // A command is rendered like a mention: the token gets a chip, the rest is
+  // ordinary text. Split here rather than added as an inline rule because the
+  // walker feeds each rule successive SUBSTRINGS, so a `^`-anchored pattern
+  // would also match a `/word` that happened to begin one - highlighting a
+  // slash in the middle of a sentence.
+  const knownCommands = useMemo(
+    () => new Set(commands.map((name) => String(name).toLowerCase())),
+    [commands],
+  );
+  const command = splitLeadingCommand(content, knownCommands);
+  if (command) {
+    // Only the first line shares the paragraph; anything below it is a block
+    // of its own, exactly as it would be without the command.
+    const newline = command.rest.indexOf("\n");
+    const firstLine = newline === -1 ? command.rest : command.rest.slice(0, newline);
+    const below = newline === -1 ? "" : command.rest.slice(newline + 1);
+
+    return (
+      <div className={`tw-flex tw-flex-col tw-gap-[6px] ${className}`}>
+        <p className="tw-m-0 tw-break-words tw-leading-[1.5]">
+          <span className="cl-message-command">{command.token}</span>
+          {firstLine ? renderInline(firstLine, "cmd", ctx) : null}
+        </p>
+        {below.trim() ? renderBlocks(below, ctx) : null}
+      </div>
+    );
+  }
 
   return (
     <div className={`tw-flex tw-flex-col tw-gap-[6px] ${className}`}>

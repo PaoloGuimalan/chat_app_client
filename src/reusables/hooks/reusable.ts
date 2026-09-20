@@ -706,6 +706,31 @@ function getActiveAvatar(authentication: AuthenticationInterface): {
   };
 }
 
+
+/**
+ * Newest-first ordering for a message list.
+ *
+ * NOT `_id`. An ObjectId is a 4-byte timestamp at ONE-SECOND resolution, then
+ * five random bytes that are fixed per PROCESS, then a counter. Two messages
+ * written in the same second by the same process order by the counter - fine.
+ * Written in the same second by DIFFERENT processes - Node saving a message
+ * and worker_service saving a command's reply ~70ms later - they order by
+ * those random bytes: arbitrary, and stable, so one service's messages always
+ * lost. That is what put a command's answer above the command.
+ *
+ * messageDate is millisecond-resolution and stamped by whichever service
+ * created the message, so it orders across processes. `_id` stays as the
+ * tie-break, which keeps the sort total and therefore stable.
+ */
+const compareMessagesDesc = (a: any, b: any) => {
+  const at = new Date(a?.messageDate ?? 0).getTime();
+  const bt = new Date(b?.messageDate ?? 0).getTime();
+  // A message with an unreadable date must not drag the list around; fall
+  // straight through to the id rather than sorting as 1970.
+  if (Number.isFinite(at) && Number.isFinite(bt) && at !== bt) return bt - at;
+  return String(b?._id ?? "").localeCompare(String(a?._id ?? ""));
+};
+
 export {
   importData,
   importNonImageData,
@@ -737,4 +762,5 @@ export {
   getFormattedDate,
   is13YearsOldOrAbove,
   getActiveAvatar,
+  compareMessagesDesc,
 };

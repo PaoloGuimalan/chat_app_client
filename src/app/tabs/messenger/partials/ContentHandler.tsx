@@ -81,7 +81,8 @@ function ContentHandler({
   scrollBottom,
   setunreadmessages,
   theme,
-}: ContentHandlerProp) {
+  commands,
+}: ContentHandlerProp & { commands?: string[] }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -510,7 +511,11 @@ function ContentHandler({
                 wall of text. `MessageContent` renders it as elements and keeps
                 what the old pipeline did for mentions and bare URLs.
               */}
-              <MessageContent content={cnvs.content} members={members ?? []} />
+              <MessageContent
+                content={cnvs.content}
+                members={members ?? []}
+                commands={commands ?? []}
+              />
               {cnvs.linkPreview && (
                 <LinkPreviewCard preview={cnvs.linkPreview} variant="display" />
               )}

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { compareMessagesDesc } from "@/reusables/hooks/reusable";
 import "../../../styles/styles.css";
 import { motion } from "framer-motion";
 import { FcVideoCall, FcAddImage } from "react-icons/fc"; //FcInfo
@@ -545,6 +546,13 @@ function ConversationV2({
       .slice(0, 6);
   }, [conversationMentionMembers, mentionState.query]);
 
+  // Just the names, memoised: MessageContent turns this into a Set per bubble,
+  // and a fresh array each render would rebuild every one of them.
+  const commandNames = useMemo(
+    () => commandMenu.map((command) => command.name),
+    [commandMenu],
+  );
+
   const commandSuggestions = useMemo(
     () => filterCommands(commandMenu, commandState.query),
     [commandMenu, commandState.query],
@@ -967,9 +975,7 @@ function ConversationV2({
                 (obj, index, self) =>
                   index === self.findIndex((t) => t._id === obj._id),
               );
-              const sortedPostsDesc = uniqueById.sort((a, b) =>
-                b._id.localeCompare(a._id),
-              );
+              const sortedPostsDesc = uniqueById.sort(compareMessagesDesc);
               return sortedPostsDesc;
             }
 
@@ -2531,6 +2537,9 @@ function ConversationV2({
                       cnvs={cnvs}
                       conversationsetup={conversationsetup}
                       members={conversationinfo?.usersWithInfo ?? []}
+                      // Only commands that exist HERE are highlighted; the
+                      // menu is already scoped to this conversation.
+                      commands={commandNames}
                       setisReplying={setisReplyingTrigger}
                       setfullImageScreen={setfullImageScreen}
                       scrollBottom={scrollBottom}

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { compareMessagesDesc } from "@/reusables/hooks/reusable";
 import "../../../styles/styles.css";
 import { motion } from "framer-motion";
 import GroupChatIcon from "../../../assets/imgs/group-chat-icon.jpg";
@@ -780,9 +781,7 @@ function Conversation({
                 (obj, index, self) =>
                   index === self.findIndex((t) => t._id === obj._id),
               );
-              const sortedPostsDesc = uniqueById.sort((a, b) =>
-                b._id.localeCompare(a._id),
-              );
+              const sortedPostsDesc = uniqueById.sort(compareMessagesDesc);
               return sortedPostsDesc;
             }
 

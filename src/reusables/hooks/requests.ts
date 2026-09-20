@@ -14,7 +14,9 @@ import store from "../../redux/store";
 import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import { Dispatch } from "react";
-import { convertLoginResponse, generateUUID, generateXNonce } from "./reusable";
+import { convertLoginResponse, generateUUID, generateXNonce,
+  compareMessagesDesc,
+} from "./reusable";
 import { ConvertedResponse } from "../vars/types";
 import { PaginationProp } from "../vars/props";
 import { IContact, INewEntry } from "../vars/interfaces";
@@ -1781,9 +1783,7 @@ const InitConversationRequest = (
             (obj, index, self) =>
               index === self.findIndex((t) => t._id === obj._id),
           );
-          const sortedPostsDesc = uniqueById.sort((a, b) =>
-            b._id.localeCompare(a._id),
-          );
+          const sortedPostsDesc = uniqueById.sort(compareMessagesDesc);
           return sortedPostsDesc;
         });
         // dispatch(decodedResult.messages.reverse());
