@@ -26,6 +26,7 @@ import {
   getSettings,
 } from "./localforagehelper";
 import jwtDecode from "jwt-decode";
+import { ChatCommand } from "./commands";
 import {
   friendlyError,
   pushAlert,
@@ -1644,6 +1645,36 @@ const InitConversationInfoRequest = async (conversationID: string) => {
       ),
     );
   });
+};
+
+/**
+ * The "/command" menu for one conversation.
+ *
+ * Built server-side from whoever is in the room, so a bot removed from the
+ * conversation takes its commands out of the menu and one added brings its
+ * own in. Nothing is cached here for the same reason.
+ *
+ * An empty list on any failure, UNLIKE InitConversationInfoRequest above: a
+ * composer with no menu is a composer where commands must be typed in full,
+ * which is how it worked before this existed - not a reason to show an error
+ * over the message thread.
+ */
+const ConversationCommandsRequest = async (
+  conversationID: string,
+): Promise<ChatCommand[]> => {
+  if (!conversationID) return [];
+  return Axios.get(`${API}/m/conversation/${conversationID}/commands`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+  })
+    .then((response) => {
+      if (response.data?.status && Array.isArray(response.data.commands)) {
+        return response.data.commands as ChatCommand[];
+      }
+      return [];
+    })
+    .catch(() => []);
 };
 
 const InitConversationListV1Request = async (page: number, range: number) => {
@@ -4392,6 +4423,7 @@ export {
   AnswerFollowRequest,
   InitConversationListV1Request,
   InitConversationInfoRequest,
+  ConversationCommandsRequest,
   CreateInitialConversation,
   ReplyAssistRequest,
   LookupAccountForDeletion,

@@ -44,7 +44,14 @@ import {
   SendFilesRequest,
   SendMessageRequest,
   UpdateChatHistoryRequest,
+  ConversationCommandsRequest,
 } from "../../../reusables/hooks/requests";
+import {
+  ChatCommand,
+  activeCommandQuery,
+  filterCommands,
+  commandOwnerLabel,
+} from "../../../reusables/hooks/commands";
 import { useDispatch, useSelector } from "react-redux";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import {
@@ -198,6 +205,25 @@ function ConversationV2({
       });
   }, [conversationID]);
 
+  /*
+   * Load the command menu for this conversation.
+   *
+   * Once per conversation. The membership it is derived from can change while
+   * the conversation is open, but a bot joining or leaving mid-conversation is
+   * rare enough that re-fetching per keystroke would be a request per keystroke
+   * to fix it - and a stale entry fails safely, because the server resolves the
+   * command again when it is actually sent.
+   */
+  useEffect(() => {
+    let cancelled = false;
+    ConversationCommandsRequest(conversationID).then((commands) => {
+      if (!cancelled) setCommandMenu(commands);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [conversationID]);
+
   const getChannelPreviewParticipants = (channelID: string) => {
     return previewparticipants.filter(
       (flt: IPreviewParicipants) => flt.channelID === channelID,
@@ -239,6 +265,26 @@ function ConversationV2({
     start: -1,
   });
   const [mentionActiveIndex, setMentionActiveIndex] = useState(0);
+
+  /*
+   * The conversation's command menu, fetched on open.
+   *
+   * Fetched rather than derived: unlike a mention, a command is a row the
+   * client has never seen. Empty until it lands, and empty forever if the
+   * request fails - which just means commands must be typed in full, the way
+   * they worked before this menu existed.
+   */
+  const [commandMenu, setCommandMenu] = useState<ChatCommand[]>([]);
+  const [commandState, setCommandState] = useState<{
+    open: boolean;
+    query: string;
+    start: number;
+  }>({
+    open: false,
+    query: "",
+    start: -1,
+  });
+  const [commandActiveIndex, setCommandActiveIndex] = useState(0);
   const isCompactConversation = screensizelistener.W <= 799;
   const conversationHeaderIconSize = isCompactConversation ? "19px" : "21px";
   const conversationHeaderActionIconSize = isCompactConversation
@@ -405,6 +451,50 @@ function ConversationV2({
     setMentionActiveIndex(0);
   };
 
+  const closeCommandSuggestions = () => {
+    setCommandState({ open: false, query: "", start: -1 });
+    setCommandActiveIndex(0);
+  };
+
+  const updateCommandSuggestions = (
+    value: string,
+    cursorPosition: number = value.length,
+  ) => {
+    // Nothing to offer, so not even a regex. Most conversations have no bots
+    // in them, and this runs on every keystroke.
+    if (commandMenu.length === 0) return;
+
+    const active = activeCommandQuery(value, cursorPosition);
+    if (!active) {
+      closeCommandSuggestions();
+      return;
+    }
+
+    setCommandState({ open: true, query: active.query, start: active.start });
+    setCommandActiveIndex(0);
+  };
+
+  const insertCommandAtCursor = (command: ChatCommand) => {
+    const textarea = inputMessageRef.current;
+    if (!textarea || commandState.start < 0) return;
+
+    const selectionStart = textarea.selectionStart ?? messageValue.length;
+    const selectionEnd = textarea.selectionEnd ?? selectionStart;
+    // A trailing space so arguments can be typed straight away.
+    const commandText = `${command.insert} `;
+    const before = messageValue.slice(0, commandState.start);
+    const after = messageValue.slice(selectionEnd);
+
+    setmessageValue(`${before}${commandText}${after}`);
+    closeCommandSuggestions();
+
+    requestAnimationFrame(() => {
+      textarea.focus();
+      const nextCursor = (before + commandText).length;
+      textarea.setSelectionRange(nextCursor, nextCursor);
+    });
+  };
+
   const insertMentionAtCursor = (member: any) => {
     const textarea = inputMessageRef.current;
     if (!textarea || mentionState.start < 0) return;
@@ -454,6 +544,11 @@ function ConversationV2({
       })
       .slice(0, 6);
   }, [conversationMentionMembers, mentionState.query]);
+
+  const commandSuggestions = useMemo(
+    () => filterCommands(commandMenu, commandState.query),
+    [commandMenu, commandState.query],
+  );
 
   const [fullImageScreen, setfullImageScreen] = useState<any>({
     preview: "",
@@ -2824,6 +2919,36 @@ function ConversationV2({
               id="div_input_text_content"
               className="cl-conversation-composer"
             >
+              {commandState.open && commandSuggestions.length > 0 && (
+                <div className="cl-mention-suggestion-panel">
+                  {commandSuggestions.map((command, index) => (
+                    <button
+                      key={`${command.bot}:${command.name}`}
+                      type="button"
+                      onMouseDown={(e) => {
+                        e.preventDefault();
+                        insertCommandAtCursor(command);
+                      }}
+                      className={`cl-mention-suggestion-item ${
+                        index === commandActiveIndex
+                          ? "cl-mention-suggestion-item--active"
+                          : ""
+                      }`}
+                    >
+                      {/* The INSERT text, not the bare name: when two bots
+                          share a name this reads "/summarize:neon", which is
+                          exactly what lands in the composer. */}
+                      <span className="tw-font-medium">{command.insert}</span>
+                      <span className="tw-opacity-70 tw-truncate">
+                        {command.description || commandOwnerLabel(command)}
+                      </span>
+                      <span className="tw-ml-auto tw-opacity-50 tw-text-xs">
+                        {commandOwnerLabel(command)}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
               {mentionState.open && mentionSuggestions.length > 0 && (
                 <div className="cl-mention-suggestion-panel">
                   {mentionSuggestions.map((member, index) => (
@@ -2863,6 +2988,39 @@ function ConversationV2({
                 autoComplete="off"
                 id="input_text_content_send"
                 onKeyDown={(e) => {
+                  if (commandState.open && commandSuggestions.length > 0) {
+                    if (e.key === "ArrowDown") {
+                      e.preventDefault();
+                      setCommandActiveIndex((prev) =>
+                        prev + 1 >= commandSuggestions.length ? 0 : prev + 1,
+                      );
+                      return;
+                    }
+
+                    if (e.key === "ArrowUp") {
+                      e.preventDefault();
+                      setCommandActiveIndex((prev) =>
+                        prev - 1 < 0 ? commandSuggestions.length - 1 : prev - 1,
+                      );
+                      return;
+                    }
+
+                    if (e.key === "Enter" && !e.shiftKey) {
+                      e.preventDefault();
+                      insertCommandAtCursor(
+                        commandSuggestions[commandActiveIndex] ??
+                          commandSuggestions[0],
+                      );
+                      return;
+                    }
+
+                    if (e.key === "Escape") {
+                      e.preventDefault();
+                      closeCommandSuggestions();
+                      return;
+                    }
+                  }
+
                   if (mentionState.open && mentionSuggestions.length > 0) {
                     if (e.key === "ArrowDown") {
                       e.preventDefault();
@@ -2907,10 +3065,18 @@ function ConversationV2({
                     target.value,
                     target.selectionStart ?? target.value.length,
                   );
+                  updateCommandSuggestions(
+                    target.value,
+                    target.selectionStart ?? target.value.length,
+                  );
                 }}
                 onKeyUp={(e) => {
                   const target = e.currentTarget;
                   updateMentionSuggestions(
+                    target.value,
+                    target.selectionStart ?? target.value.length,
+                  );
+                  updateCommandSuggestions(
                     target.value,
                     target.selectionStart ?? target.value.length,
                   );
@@ -2934,10 +3100,15 @@ function ConversationV2({
                     e.target.value,
                     e.target.selectionStart ?? e.target.value.length,
                   );
+                  updateCommandSuggestions(
+                    e.target.value,
+                    e.target.selectionStart ?? e.target.value.length,
+                  );
                 }}
                 onBlur={() => {
                   setTimeout(() => {
                     closeMentionSuggestions();
+                    closeCommandSuggestions();
                   }, 120);
                 }}
               ></textarea>

@@ -19,6 +19,10 @@ import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useTheme } from "@/reusables/design";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
+import {
+  isSystemBot,
+  SYSTEM_BOT_DISPLAY_NAME,
+} from "@/reusables/hooks/commands";
 
 // `escapeHtml`, `escapeRegExp`, `getDisplayName`, `buildMentionRegex` and
 // `formatConversationHtml` moved into MessageContent.tsx, which renders the
@@ -116,6 +120,14 @@ function ContentHandler({
   // `_id` alone therefore never hit and every name fell back to "Someone";
   // `_id` is still checked second so other member shapes keep resolving.
   const getMemberInfo = (entityOrUserID: string) => {
+    // System is never in `members` and never can be: it answers built-in
+    // commands in conversations it is not a member of, cannot be added to one,
+    // and cannot be searched for. So the lookup below will never find it, and
+    // without this its messages read as "Someone".
+    if (isSystemBot(String(entityOrUserID))) {
+      return SYSTEM_BOT_DISPLAY_NAME;
+    }
+
     const member = members.filter(
       (flt: any) =>
         String(flt.entityID) === String(entityOrUserID) ||
