@@ -103,7 +103,7 @@ import { FaHashtag, FaLock } from "react-icons/fa6";
 import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
+import { Avatar, BotFlag, Icon, PageFlag } from "@/reusables/design";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
 import {
   pushErrorAlert,
@@ -2990,7 +2990,23 @@ function ConversationV2({
                         size={28}
                         kind={member.entityType}
                       />
-                      <span>{member.displayName}</span>
+                      <span className="tw-truncate">{member.displayName}</span>
+                      {/* The same three markers, in the same order, that
+                          NetworkRow and the notification rows use: verified
+                          first because it qualifies the NAME, then what kind
+                          of entity this is. A page and a bot are both things
+                          you can @mention and neither is a person, which is
+                          exactly what somebody picking from this list needs
+                          to know. */}
+                      {member.isVerified && (
+                        <Icon
+                          n="verified"
+                          s={14}
+                          c="var(--brand)"
+                          style={{ flex: "none" }}
+                        />
+                      )}
+                      <PageFlag is={member.realmType === "page"} />
                       <BotFlag type={member.entityType} />
                     </button>
                   ))}
