@@ -21,15 +21,10 @@ import { IoSend } from "react-icons/io5";
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getUniqueItemsOfObjects } from "@/reusables/hooks/validatevariables";
-import { getActiveAvatar, timeSince, urlify } from "@/reusables/hooks/reusable";
-import {
-  extractMentionHandles,
-  highlightMentions,
-} from "@/reusables/hooks/mentions";
-import {
-  highlightHashtagsInMarkup,
-  useHashtagNavigation,
-} from "@/reusables/hooks/hashtags";
+import { getActiveAvatar, timeSince } from "@/reusables/hooks/reusable";
+import MessageContent from "@/app/tabs/messenger/partials/MessageContent";
+import { extractMentionHandles } from "@/reusables/hooks/mentions";
+import { useHashtagNavigation } from "@/reusables/hooks/hashtags";
 import HashtagField from "@/app/reusables/HashtagField";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
@@ -41,7 +36,6 @@ import { useSelector } from "react-redux";
 import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
 import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
-import DOMPurify from "dompurify";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import {
   PostActivityEvent,
@@ -1123,33 +1117,35 @@ function PostComment({
                         </span>
                       </div>
                       <div className="tw-w-full tw-flex tw-flex-col tw-gap-[4px] tw-mt-[4px]">
-                        {/* Mentions are plain "@handle" text (see
-                            reusables/hooks/mentions.ts) - escaped, highlighted
-                            and linkified here, then sanitized, exactly as the
-                            messenger renders message content. */}
-                        <span
+                        {/* The SAME renderer the messenger uses.
+                            
+                            Was an HTML string through
+                            dangerouslySetInnerHTML - escape, linkify, wrap
+                            mentions, sanitize. Bots answer comments now, and a
+                            bot reply is model prose, so Markdown arrived as
+                            literal punctuation in a wall of text. This is the
+                            change messages already made, for the same reason.
+
+                            A DIV, not a span: the renderer emits block
+                            elements (paragraphs, lists, code blocks) and a
+                            span is not allowed to contain them.
+
+                            `mentions="any"` and `hashtags` are what make it a
+                            comment rather than a message - a comment can
+                            mention anyone, and its "#topic" is a place to go.
+                            The hashtag handlers stay on the container:
+                            useHashtagNavigation reads data-hashtag off the
+                            event target, so nothing has to be bound per tag. */}
+                        <div
                           className="cl-comment-section__text cl-text-body tw-leading-[1.5] tw-break-words tw-text-[var(--text)]"
                           {...hashtagHandlers}
-                          dangerouslySetInnerHTML={{
-                            /* Order matters. highlightMentions escapes the
-                               text and returns markup, urlify then adds
-                               anchors, so hashtags are highlighted LAST and
-                               with the markup-aware variant - it only
-                               transforms text between tags, which is what
-                               stops a "#" inside an href from being wrapped
-                               in a span inside an attribute value. */
-                            __html: DOMPurify.sanitize(
-                              highlightHashtagsInMarkup(
-                                urlify(
-                                  highlightMentions(
-                                    mp.text ?? "",
-                                    "cl-comment-mention",
-                                  ),
-                                ),
-                              ),
-                            ),
-                          }}
-                        />
+                        >
+                          <MessageContent
+                            content={mp.text ?? ""}
+                            mentions="any"
+                            hashtags
+                          />
+                        </div>
                         {mp.link_preview && (
                           <LinkPreviewCard
                             preview={mp.link_preview}

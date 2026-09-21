@@ -4795,6 +4795,54 @@ input:checked + .slider:before {
   z-index: 1;
 }
 
+/* Jump to the newest messages.
+
+   A sibling of #div_conversation_content, not a child: an absolutely
+   positioned element inside a scroll container is positioned against the
+   scrolled content and would ride up out of view. #div_conversation_body is
+   already position:relative, which is what this anchors to.
+
+   z-index clears the content's own z-index:1 and sits under the composer. */
+.cl-jump-to-bottom {
+  position: absolute;
+  right: 16px;
+  bottom: 14px;
+  z-index: 3;
+
+  width: 36px;
+  height: 36px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: var(--surface);
+  color: var(--text);
+  border: 1px solid var(--border);
+  /* Enough lift to read as floating over the transcript rather than as a
+     message in it - the shadow is doing the layering work the flat surface
+     colour cannot. */
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  padding: 0;
+  transition:
+    transform 0.12s ease,
+    background 0.12s ease;
+}
+
+.cl-jump-to-bottom:hover {
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+
+.cl-jump-to-bottom:active {
+  transform: translateY(0);
+}
+
+.cl-jump-to-bottom svg {
+  font-size: 18px;
+}
+
 .div_messages_result {
   background-color: transparent;
   width: 100%;

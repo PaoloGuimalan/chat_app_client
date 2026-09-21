@@ -52,6 +52,7 @@
 import { Fragment, ReactNode, useMemo } from "react";
 
 import { messagePreviewText } from "./messagepreview";
+import { normalizeKey } from "@/reusables/hooks/hashtags";
 
 /**
  * Just the parts of a conversation member this file reads.
@@ -127,6 +128,34 @@ const buildMentionRegex = (members: MessageMember[]) => {
  */
 const COMMAND_TOKEN =
   /(^|\s)\/([A-Za-z0-9-]{1,32})(?::([A-Za-z0-9._-]{1,50}))?(?=$|\s)/;
+
+/**
+ * A mention in a COMMENT: any well-formed "@handle".
+ *
+ * A conversation HAS a member list, so chat can check a handle against it and
+ * leave a stranger's name as plain text. A comment can mention anyone - the
+ * server parses handles out on write purely to notify them - so every token is
+ * highlighted, and one matching nobody is styled but inert. That is the same
+ * deal the server gives it.
+ *
+ * Character-for-character MENTION_SOURCE from reusables/hooks/mentions.ts, and
+ * it has to stay that way: a token this highlights but the server does not
+ * parse is a mention that visibly did nothing. No `g` flag, like every pattern
+ * in this file.
+ */
+const ANY_MENTION = /(^|\s)@([A-Za-z0-9._-]{1,30})(?=$|\s|[.,!?;:])/;
+
+/**
+ * A hashtag, for comments. Chat has no topics, so the rule is absent there
+ * rather than present and inert - a "#" in a message is punctuation.
+ *
+ * Character-for-character HASHTAG_SOURCE from reusables/hooks/hashtags.ts: the
+ * Unicode classes matter (Python's \w matches accented letters and
+ * JavaScript's does not), and the lookbehind is what keeps "didn&#039;t" from
+ * reading as the tag "#039".
+ */
+const HASHTAG = /(?<![&\p{L}\p{N}_])#([\p{L}\p{N}_-]{2,50})/u;
+const HASHTAG_HAS_LETTER = /\p{L}/u;
 
 // ------------------------------------------------------------------ inline --
 
@@ -573,6 +602,8 @@ function MessageContent({
   commands = [],
   className = "",
   preview = false,
+  mentions = "members",
+  hashtags = false,
 }: {
   content: string;
   members?: MessageMember[];
@@ -581,6 +612,14 @@ function MessageContent({
   className?: string;
   /** Render as a QUOTE: one flattened line, tokens kept - see below. */
   preview?: boolean;
+  /**
+   * Which handles count as a mention. "members" checks the conversation's
+   * member list; "any" highlights every well-formed handle, which is what a
+   * comment needs - see ANY_MENTION.
+   */
+  mentions?: "members" | "any";
+  /** Highlight "#topic" as a link to the topic page. Comments only. */
+  hashtags?: boolean;
 }) {
   // Rebuilt only when the member list changes: the mention pattern is derived
   // from every member's display name, and rebuilding it per message would mean
@@ -611,16 +650,48 @@ function MessageContent({
       });
     }
 
-    const mentionRegex = buildMentionRegex(members);
+    const mentionRegex =
+      mentions === "any" ? ANY_MENTION : buildMentionRegex(members);
     if (mentionRegex) {
+      const mentionClass =
+        mentions === "any" ? "cl-comment-mention" : "cl-message-mention";
       tokenRules.push({
         pattern: mentionRegex,
         render: (m, key) => (
           <Fragment key={key}>
             {m[1]}
-            <span className="cl-message-mention">@{m[2]}</span>
+            <span className={mentionClass}>@{m[2]}</span>
           </Fragment>
         ),
+      });
+    }
+
+    if (hashtags) {
+      tokenRules.push({
+        pattern: HASHTAG,
+        render: (m, key) => {
+          // A tag of digits alone is not a topic - and "#2024" in a sentence
+          // is a year. The same guard highlightHashtags applies.
+          if (!HASHTAG_HAS_LETTER.test(m[1])) {
+            return <Fragment key={key}>{m[0]}</Fragment>;
+          }
+          return (
+            <span
+              key={key}
+              className="cl-hashtag"
+              // The NORMALIZED key, not the shown text, so a click routes to
+              // the topic without re-deriving it and getting a different
+              // answer than the server did. useHashtagNavigation reads this
+              // attribute off the event target, so the handler stays on the
+              // container and nothing has to be bound per tag.
+              data-hashtag={normalizeKey(m[1].replace(/[-_]+/g, " "))}
+              role="link"
+              tabIndex={0}
+            >
+              #{m[1]}
+            </span>
+          );
+        },
       });
     }
 
@@ -632,7 +703,7 @@ function MessageContent({
       // list by index, which would silently follow BASE_RULES being reordered.
       previewCtx: { rules: tokenRules },
     };
-  }, [members, commands]);
+  }, [members, commands, mentions, hashtags]);
 
   if (!content?.trim()) return null;
 

@@ -101,7 +101,7 @@ import {
 import IsTypingLoader from "./partials/IsTypingLoader";
 import { FaHashtag, FaLock } from "react-icons/fa6";
 import { conversationsetupstate } from "@/redux/actions/states";
-import { IoMdClose, IoMdSettings } from "react-icons/io";
+import { IoMdArrowDown, IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { Avatar, BotFlag, Icon, PageFlag } from "@/reusables/design";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
@@ -568,6 +568,24 @@ function ConversationV2({
 
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
+
+  // Whether the reader has scrolled far enough back that returning by hand is
+  // a chore. Separate from `autoScroll`, which answers a different question on
+  // a much tighter threshold - see the onScroll handler.
+  const [showJumpToBottom, setShowJumpToBottom] = useState<boolean>(false);
+
+  /** Back to the newest message, and let new ones pull the view down again. */
+  const jumpToBottom = () => {
+    // `column-reverse`, so 0 IS the bottom. Smooth rather than instant: the
+    // jump is a navigation the reader asked for, and landing without the
+    // travel makes it unclear whether anything moved.
+    divcontentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
+    setShowJumpToBottom(false);
+    // Re-armed here rather than waiting for the scroll handler: the smooth
+    // scroll takes a few frames, and a message arriving inside that window
+    // should already be followed.
+    setautoScroll(true);
+  };
   // const inputMessageRef = useRef<HTMLInputElement | null>(null);
   const inputMessageRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -2303,6 +2321,19 @@ function ConversationV2({
                   } else {
                     setautoScroll(true);
                   }
+
+                  // `column-reverse`, so scrollTop is 0 at the NEWEST end and
+                  // negative going back in time - which is why this compares
+                  // against a negative distance rather than scrollHeight.
+                  //
+                  // Measured against the viewport rather than a fixed pixel
+                  // count: "far enough that scrolling back is a chore" is a
+                  // screenful, and a screenful is a different number of pixels
+                  // on a laptop and on a phone.
+                  const away = -e.currentTarget.scrollTop;
+                  setShowJumpToBottom(
+                    away > Math.max(360, e.currentTarget.clientHeight * 0.75),
+                  );
                 }}
               >
                 {isServerConversation && <TabAudioVisualizerCanvas />}
@@ -2573,6 +2604,28 @@ function ConversationV2({
                     </div>
                   )}
               </div>
+            )}
+            {/* JUMP TO BOTTOM.
+
+                A sibling of the scroller, not a child of it: an absolutely
+                positioned element inside a scroll container is positioned
+                against the scrolled content and rides up with it. The body is
+                already `position: relative`, so this stays put.
+
+                Shown on its own threshold rather than on `autoScroll`, which
+                flips after 100px because that is the right distance for
+                deciding whether a NEW message should pull the view down. A
+                button appearing after one notch of scrolling would be noise;
+                this waits until getting back is actually a chore. */}
+            {showJumpToBottom && (
+              <button
+                type="button"
+                className="cl-jump-to-bottom"
+                aria-label="Jump to the newest messages"
+                onClick={jumpToBottom}
+              >
+                <IoMdArrowDown />
+              </button>
             )}
           </div>
           <FullscreenImageViewer
