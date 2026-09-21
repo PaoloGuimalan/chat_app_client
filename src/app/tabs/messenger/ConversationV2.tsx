@@ -1672,8 +1672,7 @@ function ConversationV2({
           }}
           id="div_conversation_content_handler"
           className={`tw-border-[0px] tw-relative ${
-            isMinimized &&
-            "cl-conversation-window-shell tw-shadow-md tw-border-[1px] tw-border-[#dedede]"
+            isMinimized && "cl-conversation-window-shell"
           }`}
           {...composerDragHandlers}
         >

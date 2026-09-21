@@ -5647,12 +5647,50 @@ input:checked + .slider:before {
   width: 100%;
 }
 
+/* The shell fills this box exactly (100% x 100%), so `#div_conversation`'s
+ * `overflow: hidden` - which the docked full-page conversation needs - clips
+ * the floating window's shadow away entirely, leaving a hard rectangular edge.
+ * The shell clips its own content (`overflow: hidden` plus the rounded
+ * corners), so nothing but the shadow escapes here. */
+#div_conversation.cl-conversation-window--minimized {
+  overflow: visible;
+}
+
 .cl-conversation-window--minimized #div_conversation_content_handler {
   border-radius: 18px 18px 16px 16px;
   overflow: hidden;
-  box-shadow: 0 18px 40px rgba(15, 23, 42, 0.14);
   background: var(--surface) !important;
   color: var(--text) !important;
+}
+
+/* The window floats over the app background rather than sitting against a
+ * page, so it carries its own edge and elevation. The border colour follows
+ * the theme token - a fixed light grey read as a white outline in dark mode.
+ *
+ * Both declarations are !important because Tailwind runs with
+ * `important: true` here, so every utility on this element (including the
+ * `tw-border-[0px]` on its base className) carries !important; these have to
+ * match that and then win on specificity. */
+.cl-conversation-window--minimized .cl-conversation-window-shell {
+  border: solid 1px var(--border) !important;
+  /* The same elevation the bubble dock carries, so the two floating layers
+   * along this edge read as one system. */
+  box-shadow:
+    0 10px 30px rgba(15, 23, 42, 0.18),
+    0 2px 8px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* A single drop shadow barely registers on dark's near-black ground, so the
+ * lift is built the same way the bubble dock builds its own: a deep spread
+ * plus a tight contact shadow right under the edge. No inset top highlight
+ * here - unlike the dock, this panel has no padding, so the header sits flush
+ * against the top edge and would paint straight over it. */
+.cl-redesign[data-theme="dark"]
+  .cl-conversation-window--minimized
+  .cl-conversation-window-shell {
+  box-shadow:
+    0 12px 34px rgba(0, 0, 0, 0.6),
+    0 2px 8px rgba(0, 0, 0, 0.4) !important;
 }
 
 .cl-conversation-window--minimized #div_conversation_header {

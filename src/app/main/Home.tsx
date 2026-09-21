@@ -639,7 +639,14 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
               display: "flex",
               flexDirection: "column",
               justifyContent: "center",
-              zIndex: 100,
+              // Above the open windows (100). The dock is the narrower, more
+              // transient layer - its hover card reaches left across whatever
+              // window sits beside it, and a bubble's close button overhangs
+              // the panel - so it has to win. `zIndex` here also opens a
+              // stacking context, which traps the card's own `z-index: 200`
+              // inside this wrapper; it can only outrank the windows by
+              // ranking the wrapper itself.
+              zIndex: 120,
               // A `transform` here would make this the containing block for
               // the hover card, which is positioned `fixed` off measured
               // viewport coordinates - hence centring by flex, not translate.
