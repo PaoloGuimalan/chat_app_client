@@ -20,6 +20,16 @@ function Servers() {
 
   const [serverlist, setserverlist] = useState<any[]>([]);
   const [isLoaded, setisLoaded] = useState<boolean>(false);
+  // Same hover-card treatment as the minimized-conversation dock: a fixed
+  // card positioned off the hovered icon's measured rect, rather than the
+  // native `title` tooltip. The rail sits on the LEFT edge, so the card is
+  // anchored off the icon's right side instead of the dock's left side.
+  const [hoveredRailItem, setHoveredRailItem] = useState<{
+    id: string;
+    label: string;
+    top: number;
+    left: number;
+  } | null>(null);
 
   // The skeleton delay is for the FIRST load only. A live refetch replaces the
   // rail in place - flashing five placeholders because somebody joined a server
@@ -135,23 +145,43 @@ function Servers() {
       >
         <button
           onClick={() => navigate("/")}
-          title="Back"
+          aria-label="Back"
           style={railIconButton}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = "var(--surface-hover)")
-          }
-          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--surface-hover)";
+            const rect = e.currentTarget.getBoundingClientRect();
+            setHoveredRailItem({
+              id: "back",
+              label: "Back",
+              top: rect.top + rect.height / 2,
+              left: rect.right + 10,
+            });
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            setHoveredRailItem(null);
+          }}
         >
           <Icon n="arrow_back" s={22} c="var(--gold)" />
         </button>
         <button
           onClick={() => navigate("/servers")}
-          title="All servers"
+          aria-label="All servers"
           style={railIconButton}
-          onMouseEnter={(e) =>
-            (e.currentTarget.style.background = "var(--surface-hover)")
-          }
-          onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+          onMouseEnter={(e) => {
+            e.currentTarget.style.background = "var(--surface-hover)";
+            const rect = e.currentTarget.getBoundingClientRect();
+            setHoveredRailItem({
+              id: "all-servers",
+              label: "All servers",
+              top: rect.top + rect.height / 2,
+              left: rect.right + 10,
+            });
+          }}
+          onMouseLeave={(e) => {
+            e.currentTarget.style.background = "transparent";
+            setHoveredRailItem(null);
+          }}
         >
           <Icon n="dns" s={22} c="var(--gold)" />
         </button>
@@ -179,7 +209,7 @@ function Servers() {
                   <button
                     key={mp.serverID}
                     onClick={() => navigate(`/servers/${mp.serverID}`)}
-                    title={mp.serverName}
+                    aria-label={mp.serverName}
                     style={{
                       width: 42,
                       height: 42,
@@ -196,10 +226,18 @@ function Servers() {
                     onMouseEnter={(e) => {
                       if (!active)
                         e.currentTarget.style.background = "var(--surface-hover)";
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      setHoveredRailItem({
+                        id: mp.serverID,
+                        label: mp.serverName,
+                        top: rect.top + rect.height / 2,
+                        left: rect.right + 10,
+                      });
                     }}
                     onMouseLeave={(e) => {
                       if (!active)
                         e.currentTarget.style.background = "transparent";
+                      setHoveredRailItem(null);
                     }}
                   >
                     <Avatar
@@ -227,6 +265,16 @@ function Servers() {
               ))}
         </div>
       </div>
+      {hoveredRailItem && (
+        <div
+          className="cl-bubble-dock__card"
+          style={{ top: hoveredRailItem.top, left: hoveredRailItem.left }}
+        >
+          <div className="cl-bubble-dock__card-name">
+            {hoveredRailItem.label}
+          </div>
+        </div>
+      )}
       <Routes>
         <Route path="/" element={<Default />} />
         <Route path="/:serverID/*" element={<Channels />} />

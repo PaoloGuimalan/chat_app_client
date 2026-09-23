@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, type CSSProperties } from "react";
 import { useInView } from "framer-motion";
 import { IoPause, IoPlay } from "react-icons/io5";
 
@@ -7,6 +7,12 @@ interface VoiceMessagePlayerProp {
   isSender: boolean;
   accentColor: string;
   onReady?: () => void;
+  // Merged onto the root's inline style, after the sender/receiver
+  // background+border - lets a caller override something like `.cl-voice-
+  // message`'s shadow (e.g. the quote in ReplyingToPreview, which should not
+  // carry the same lift as the actual message) without a dedicated boolean
+  // prop for every one-off variant.
+  style?: CSSProperties;
 }
 
 const BAR_COUNT = 40;
@@ -38,6 +44,37 @@ const fallbackBars = (seed: string, count: number) => {
     bars.push(MIN_BAR_HEIGHT + ((h % 1000) / 1000) * (1 - MIN_BAR_HEIGHT));
   }
   return bars;
+};
+
+// Keyed by `src`, so the SAME clip always draws the SAME waveform everywhere
+// it appears - most visibly, a voice message and the quoted copy of it above
+// a reply (ReplyingToPreview mounts its own VoiceMessagePlayer instance).
+// Without this, each instance decoded independently: two concurrent fetches
+// of the same file, and whichever one lost a CORS/network race fell back to
+// the seeded-random shape while the other showed the real amplitude reading -
+// same audio, two different-looking waveforms. The in-flight map dedupes the
+// fetch itself, not just the result, so two instances mounting at once still
+// only download the file once.
+const waveformCache = new Map<string, number[]>();
+const waveformInFlight = new Map<string, Promise<number[]>>();
+
+const resolveWaveform = (src: string, count: number, duration: number) => {
+  const cached = waveformCache.get(src);
+  if (cached) return Promise.resolve(cached);
+
+  let promise = waveformInFlight.get(src);
+  if (!promise) {
+    promise =
+      duration > MAX_WAVEFORM_DECODE_SECONDS
+        ? Promise.resolve(fallbackBars(src, count))
+        : decodeWaveform(src, count).catch(() => fallbackBars(src, count));
+    promise.then((bars) => {
+      waveformCache.set(src, bars);
+      waveformInFlight.delete(src);
+    });
+    waveformInFlight.set(src, promise);
+  }
+  return promise;
 };
 
 const decodeWaveform = async (src: string, count: number) => {
@@ -81,6 +118,7 @@ function VoiceMessagePlayer({
   isSender,
   accentColor,
   onReady,
+  style,
 }: VoiceMessagePlayerProp) {
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const waveformRef = useRef<HTMLDivElement | null>(null);
@@ -126,19 +164,10 @@ function VoiceMessagePlayer({
     if (!isInView || hasStartedDecodeRef.current || duration <= 0) return;
     hasStartedDecodeRef.current = true;
 
-    if (duration > MAX_WAVEFORM_DECODE_SECONDS) {
-      setBars(fallbackBars(src, BAR_COUNT));
-      return;
-    }
-
     let cancelled = false;
-    decodeWaveform(src, BAR_COUNT)
-      .then((peaks) => {
-        if (!cancelled) setBars(peaks);
-      })
-      .catch(() => {
-        if (!cancelled) setBars(fallbackBars(src, BAR_COUNT));
-      });
+    resolveWaveform(src, BAR_COUNT, duration).then((bars) => {
+      if (!cancelled) setBars(bars);
+    });
 
     return () => {
       cancelled = true;
@@ -195,6 +224,7 @@ function VoiceMessagePlayer({
         border: isSender
           ? `solid 1px ${accentColor}`
           : "solid 1px var(--border)",
+        ...style,
       }}
     >
       <audio ref={audioRef} src={src} preload="metadata" />

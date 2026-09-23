@@ -5003,14 +5003,21 @@ input:checked + .slider:before {
  * with white text for your own, which on the gold channel theme (#ffc965) is
  * about 1.8:1. In dark mode the pale box was the brightest thing on screen.
  *
- * NOT tinted by who sent it: the quote sits directly beneath a "replied to X"
- * label that already says whose message it is, so the tint bought nothing and
- * cost the contrast above. */
+ * This is the base/neutral look, for quoting someone ELSE's message - the
+ * "replied to X" label already says whose message it is, so a tint would
+ * only cost the contrast above. ReplyingToPreview overrides background/
+ * border/color inline when you're quoting your OWN message (that label never
+ * says "replied to your message", so nothing else marks it as yours).
+ *
+ * `!important` on box-shadow: `.cl-message-bubble` (below, later in this
+ * file) sets `box-shadow: var(--shadow-sm)` at equal specificity, so without
+ * it source order handed the shadow back regardless of what this rule says -
+ * the same fight `--deleted` already has to win with `!important`. */
 .cl-message-bubble--quote {
   background: var(--surface-3);
   border: 1px solid var(--border-2);
   color: var(--text-2);
-  box-shadow: none;
+  box-shadow: none !important;
 }
 
 /* The two strips between the conversation and the composer: the "Replying to
@@ -5609,6 +5616,9 @@ input:checked + .slider:before {
   background: var(--surface-hover);
 }
 
+/* Also reused, unmodified, by the servers rail's hover card (Servers.tsx) -
+   position is entirely inline (top + left instead of top + right), so the
+   class needs no rail-specific variant. */
 .cl-bubble-dock__card {
   position: fixed;
   z-index: 200;

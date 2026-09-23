@@ -311,7 +311,7 @@ function ContentHandler({
           {cnvs.isReply && (
             <span className="span_sender_reply_label">
               replied to{" "}
-              {cnvs.replyedmessage[0].sender === authentication.user.userID
+              {cnvs.replyedmessage[0].sender === selfEntityID
                 ? "your message"
                 : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
             </span>
@@ -326,7 +326,7 @@ function ContentHandler({
               cnvs={cnvs.replyedmessage[0]}
               members={members ?? []}
               commands={commands ?? []}
-              fromOther={authentication.user.userID}
+              fromOther={selfEntityID}
               yourReply={
                 cnvs.sender == authentication.user.entity_id ? true : false
               }
@@ -447,7 +447,7 @@ function ContentHandler({
             {cnvs.isReply && (
               <span className="span_sender_reply_label">
                 replied to{" "}
-                {cnvs.replyedmessage[0].sender === authentication.user.userID
+                {cnvs.replyedmessage[0].sender === selfEntityID
                   ? "your message"
                   : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
@@ -462,7 +462,7 @@ function ContentHandler({
                 cnvs={cnvs.replyedmessage[0]}
                 members={members ?? []}
                 commands={commands ?? []}
-                fromOther={authentication.user.userID}
+                fromOther={selfEntityID}
                 yourReply={
                   cnvs.sender == authentication.user.entity_id ? true : false
                 }
@@ -769,7 +769,7 @@ function ContentHandler({
             {cnvs.isReply && (
               <span className="span_sender_reply_label">
                 replied to{" "}
-                {cnvs.replyedmessage[0].sender === authentication.user.userID
+                {cnvs.replyedmessage[0].sender === selfEntityID
                   ? "your message"
                   : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
@@ -784,7 +784,7 @@ function ContentHandler({
                 cnvs={cnvs.replyedmessage[0]}
                 members={members ?? []}
                 commands={commands ?? []}
-                fromOther={authentication.user.userID}
+                fromOther={selfEntityID}
                 yourReply={
                   cnvs.sender == authentication.user.entity_id ? true : false
                 }
@@ -1036,7 +1036,7 @@ function ContentHandler({
             {cnvs.isReply && (
               <span className="span_sender_reply_label">
                 replied to{" "}
-                {cnvs.replyedmessage[0].sender === authentication.user.userID
+                {cnvs.replyedmessage[0].sender === selfEntityID
                   ? "your message"
                   : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
@@ -1051,7 +1051,7 @@ function ContentHandler({
                 cnvs={cnvs.replyedmessage[0]}
                 members={members ?? []}
                 commands={commands ?? []}
-                fromOther={authentication.user.userID}
+                fromOther={selfEntityID}
                 yourReply={
                   cnvs.sender == authentication.user.entity_id ? true : false
                 }
@@ -1298,7 +1298,7 @@ function ContentHandler({
             {cnvs.isReply && (
               <span className="span_sender_reply_label">
                 replied to{" "}
-                {cnvs.replyedmessage[0].sender === authentication.user.userID
+                {cnvs.replyedmessage[0].sender === selfEntityID
                   ? "your message"
                   : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
@@ -1311,7 +1311,7 @@ function ContentHandler({
                 cnvs={cnvs.replyedmessage[0]}
                 members={members ?? []}
                 commands={commands ?? []}
-                fromOther={authentication.user.userID}
+                fromOther={selfEntityID}
                 yourReply={
                   cnvs.sender == authentication.user.entity_id ? true : false
                 }
@@ -1568,7 +1568,7 @@ function ContentHandler({
             {cnvs.isReply && (
               <span className="span_sender_reply_label">
                 replied to{" "}
-                {cnvs.replyedmessage[0].sender === authentication.user.userID
+                {cnvs.replyedmessage[0].sender === selfEntityID
                   ? "your message"
                   : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
               </span>
@@ -1583,7 +1583,7 @@ function ContentHandler({
                 cnvs={cnvs.replyedmessage[0]}
                 members={members ?? []}
                 commands={commands ?? []}
-                fromOther={authentication.user.userID}
+                fromOther={selfEntityID}
                 yourReply={
                   cnvs.sender == authentication.user.entity_id ? true : false
                 }
