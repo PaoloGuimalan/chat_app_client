@@ -63,6 +63,11 @@ function ReplyTargetPreview({
 
   const thumbnail = live ? card.content?.thumbnail : null;
   const isVideo = !!card.content?.media_type?.startsWith("video");
+  // The thumbnail box is for media. A moment always has some (its box also
+  // shows the expired glyph); a post only when it carries an attachment - a
+  // text post, a share, or one that is gone gets no empty placeholder.
+  const showThumbnail =
+    card.type === "moment" || (card.type === "post" && !!thumbnail);
   const text =
     card.type === "thought" ? card.content?.text : card.content?.caption;
 
@@ -81,7 +86,7 @@ function ReplyTargetPreview({
             opensPost ? "tw-cursor-pointer" : "tw-cursor-default"
           }`}
         >
-          {card.type !== "thought" && (
+          {showThumbnail && (
             <div
               className={`tw-shrink-0 tw-overflow-hidden tw-rounded-[8px] tw-bg-[var(--surface-2)] tw-flex tw-items-center tw-justify-center ${
                 card.type === "moment"
