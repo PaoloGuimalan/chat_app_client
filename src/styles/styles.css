@@ -8955,9 +8955,12 @@ body::-webkit-scrollbar-thumb:hover,
 /* A card that IS the message (a post sent with no note): a normal bubble's
    surface, not the faded quote. */
 .cl-message-bubble--card {
-  background: var(--surface);
-  border: 1px solid var(--border);
+  /* A step off the conversation's own surface, with an edge and a lift - on
+     --surface it had no edge against the thread and read flat. */
+  background: var(--surface-2);
+  border: 1px solid var(--border-2);
   color: var(--text);
+  box-shadow: var(--shadow-md) !important;
 }
 
 /* In a card-only bubble: card, then the reactions pill ON the card's lower

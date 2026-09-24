@@ -34,6 +34,7 @@ import {
   timeAgoLabel,
   timeLeftLabel,
   canUnarchive,
+  naturalEndOf,
 } from "./ephemeral";
 
 /** Below this the side panel stacks under the stage instead of beside it. */
@@ -684,7 +685,7 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                   <Icon n={archive ? "inventory_2" : "timelapse"} s={14} />
                   {archive
                     ? canUnarchive(current)
-                      ? `Archived · ${timeLeftLabel(current.expires_at)}`
+                      ? `Archived · ${timeLeftLabel(naturalEndOf(current))}`
                       : new Date(current.date_posted as any).toLocaleDateString(
                           undefined,
                           { month: "short", day: "numeric" },

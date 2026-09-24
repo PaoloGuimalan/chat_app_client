@@ -137,5 +137,22 @@ export const thoughtMeta = (thought: { content: { mood?: ThoughtMood | null }; e
  * Archived by hand while its 24h were not over: it can still come back to
  * the board (unarchive), until the moment it would have expired anyway.
  */
-export const canUnarchive = (post: { is_archived?: boolean; expires_at?: string | null }) =>
-  !!post.is_archived && !isExpired(post.expires_at);
+export const canUnarchive = (post: {
+  is_archived?: boolean;
+  expires_at?: string | null;
+  date_posted?: string | null;
+}) => {
+  const end = naturalEndOf(post);
+  if (!end || isExpired(end)) return false;
+  // "Archived": the flag, or - archived the earlier way - a timer ended
+  // before its natural end. Unarchiving restores that end for both.
+  const endedEarly =
+    !!post.expires_at && new Date(post.expires_at).getTime() < new Date(end).getTime() - 60_000;
+  return !!post.is_archived || endedEarly;
+};
+
+/** When a moment's 24h are up (posted + 24h) - what it runs until once unarchived. */
+export const naturalEndOf = (post: { date_posted?: string | null }): string | null =>
+  post.date_posted
+    ? new Date(new Date(post.date_posted).getTime() + EPHEMERAL_LIFETIME_MS).toISOString()
+    : null;
