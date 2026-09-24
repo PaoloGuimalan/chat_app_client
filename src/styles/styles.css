@@ -5135,6 +5135,14 @@ input:checked + .slider:before {
   text-overflow: ellipsis;
 }
 
+.ellipsis-2-lines {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .ellipsis-1-line {
   display: -webkit-box;
   -webkit-box-orient: vertical;

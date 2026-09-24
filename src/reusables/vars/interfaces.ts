@@ -1083,6 +1083,48 @@ export interface ISavedPost {
   user: string;
 }
 
+/**
+ * What a message replies to, as stored in `replyingTo`: a bare string is the
+ * id of a MESSAGE (every message reply, and every message written before
+ * moments); an object is a reply to - or a send of - a post, moment or
+ * thought. Read it through normalizeReplyTarget (reusables/hooks/replyTargets)
+ * rather than branching on the shape by hand.
+ */
+export type ReplyTargetType = "message" | "post" | "moment" | "thought";
+export type ReplyingTo = string | { type: ReplyTargetType; id: string };
+
+/**
+ * The server-built card for what a message replies to - `replyedtarget` on a
+ * message from /initConversation, one shape for every target type. `content`
+ * is absent unless there is something to show.
+ */
+export interface ReplyTargetCard {
+  type: ReplyTargetType;
+  id: string;
+  status: "active" | "expired" | "unavailable";
+  author: {
+    entity_id: string;
+    type: string;
+    display_name: string;
+    handle: string;
+    profile: string | null;
+  } | null;
+  content?: {
+    // message
+    message_type?: string;
+    text?: string;
+    url?: string | null;
+    // post / moment
+    caption?: string;
+    thumbnail?: string | null;
+    media_type?: string | null;
+    file_type?: string;
+    shared_post_id?: string | null;
+    // moment / thought
+    expires_at?: string | null;
+  };
+}
+
 export interface IConversation {
   _id: string;
   conversationID: string;
@@ -1095,7 +1137,7 @@ export interface IConversation {
   content: string;
   messageDate: string;
   isReply: boolean;
-  replyingTo: string;
+  replyingTo: ReplyingTo;
   reactions: any[];
   isDeleted: boolean;
   messageType: string;

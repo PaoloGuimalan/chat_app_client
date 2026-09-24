@@ -1536,6 +1536,38 @@ const SendMessageRequest = (params: any) => {
     });
 };
 
+/**
+ * "Send in message": a post into up to 10 of your conversations, each as a
+ * message whose replyingTo is {type: "post", id} (server: /u/sendPost).
+ * Resolves the per-conversation outcome; rejects only when the whole request
+ * fails.
+ */
+const SendPostRequest = async (params: {
+  postID: string;
+  conversationIDs: string[];
+  content?: string;
+}): Promise<{
+  sent: number;
+  results: { conversationID: string; status: boolean; message?: string }[];
+}> => {
+  const encodedPayload = sign(params, SECRET);
+
+  return Axios.post(
+    `${API}/u/sendPost`,
+    { token: encodedPayload },
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => response.data.result)
+    .catch((err) => {
+      console.log(err);
+      throw toRequestError(err);
+    });
+};
+
 const SendFilesRequest = async (params: {
   conversationID: string;
   isReply: boolean;
@@ -4325,6 +4357,7 @@ export {
   AcceptContactRequest,
   ContactsListInitRequest,
   SendMessageRequest,
+  SendPostRequest,
   SendFilesRequest,
   InitConversationRequest,
   InitConversationListRequest,

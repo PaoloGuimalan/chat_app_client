@@ -8,7 +8,6 @@ import {
 } from "@/reusables/hooks/hashtags";
 import { BiLike } from "react-icons/bi";
 import { LiaComment } from "react-icons/lia";
-import { PiShareFat } from "react-icons/pi";
 import { BsFileEarmarkExcel, BsPinMap } from "react-icons/bs";
 import {
   AuthenticationInterface,
@@ -24,6 +23,8 @@ import { Carousel } from "react-responsive-carousel";
 import Modal from "@/app/reusables/Modal";
 import { IoMdClose } from "react-icons/io";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
+import SendPostModal from "@/app/widgets/modals/CreatePost/SendPostModal";
+import SharePostButton from "./SharePostButton";
 import LoadedPostItem from "./LoadedPostItem";
 import { motion, useInView } from "framer-motion";
 import PostEmojis from "@/app/reusables/PostEmojis";
@@ -65,6 +66,8 @@ function PostItem({
     toggle: false,
     withImage: false,
   });
+  const [toggleSendPostModal, settoggleSendPostModal] =
+    useState<boolean>(false);
   const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(mp);
@@ -798,22 +801,17 @@ function PostItem({
                               />
                             </button>
                             {authentication.auth && (
-                              <button
-                                onClick={() => {
+                              <SharePostButton
+                                onShareToFeed={() =>
                                   settoggleNewPostModal({
                                     toggle: true,
                                     withImage: false,
-                                  });
-                                }}
-                                className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
-                              >
-                                <PiShareFat
-                                  style={{
-                                    fontSize: "25px",
-                                    color: "var(--text-2)",
-                                  }}
-                                />
-                              </button>
+                                  })
+                                }
+                                onSendInMessage={() =>
+                                  settoggleSendPostModal(true)
+                                }
+                              />
                             )}
                             {postOwnerUserID === authentication.user.userID && (
                               <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
@@ -960,6 +958,12 @@ function PostItem({
               postState.references.map((mpu: any, i: number) => {
                 return <LoadedPostItem key={i} postID={mpu.reference} />;
               })}
+            {toggleSendPostModal && (
+              <SendPostModal
+                postID={postState.post_id}
+                onClose={() => settoggleSendPostModal(false)}
+              />
+            )}
             {toggleNewPostModal.toggle && (
               <NewPostModal
                 toShare={true}
@@ -1091,16 +1095,12 @@ function PostItem({
                   />
                 </button>
                 {authentication.auth && (
-                  <button
-                    onClick={() => {
-                      settoggleNewPostModal({ toggle: true, withImage: false });
-                    }}
-                    className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
-                  >
-                    <PiShareFat
-                      style={{ fontSize: "25px", color: "var(--text-2)" }}
-                    />
-                  </button>
+                  <SharePostButton
+                    onShareToFeed={() =>
+                      settoggleNewPostModal({ toggle: true, withImage: false })
+                    }
+                    onSendInMessage={() => settoggleSendPostModal(true)}
+                  />
                 )}
                 {postOwnerUserID === authentication.user.userID && (
                   <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">

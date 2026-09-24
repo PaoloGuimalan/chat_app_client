@@ -3,6 +3,8 @@
 import { AnimatePresence, motion, useInView } from "framer-motion";
 import { useSelector } from "react-redux";
 import ReplyingToPreview from "./ReplyingToPreview";
+import ReplyTargetPreview from "./ReplyTargetPreview";
+import { replyCardOf } from "@/reusables/hooks/replyTargets";
 import MessageOptions from "../MessageOptions";
 import { IoDocumentOutline } from "react-icons/io5";
 import { ContentHandlerProp } from "@/reusables/vars/props";
@@ -239,6 +241,69 @@ function ContentHandler({
   };
 
   const isCurrentUserSender = cnvs.sender === authentication.user.entity_id;
+
+  // What this message replies to - a message, or a post / moment / thought
+  // (see reusables/hooks/replyTargets). Every bubble below renders its reply
+  // through these two, which also closes the crash the old inline version
+  // had: it read `replyedmessage[0].sender` unguarded, and a reply whose
+  // parent is not a message - or a message that no longer resolves - has an
+  // empty `replyedmessage`.
+  const replyCard = replyCardOf(cnvs);
+  const repliedMessage = cnvs.replyedmessage?.[0];
+
+  const renderReplyLabel = () => {
+    if (!replyCard) return null;
+
+    if (replyCard.type === "message") {
+      return (
+        <span className="span_sender_reply_label">
+          replied to{" "}
+          {!repliedMessage
+            ? "a message"
+            : repliedMessage.sender === selfEntityID
+              ? "your message"
+              : `${getMemberInfo(repliedMessage.sender)}`}
+        </span>
+      );
+    }
+
+    if (replyCard.type === "post") {
+      return <span className="span_sender_reply_label">sent a post</span>;
+    }
+
+    const owner =
+      replyCard.author?.entity_id === selfEntityID
+        ? "your"
+        : replyCard.author?.display_name
+          ? `${replyCard.author.display_name}'s`
+          : "a";
+    return (
+      <span className="span_sender_reply_label">
+        replied to {owner} {replyCard.type}
+      </span>
+    );
+  };
+
+  const renderReplyPreview = () => {
+    if (!replyCard) return null;
+
+    if (replyCard.type === "message") {
+      return repliedMessage ? (
+        <ReplyingToPreview
+          cnvs={repliedMessage}
+          members={members ?? []}
+          commands={commands ?? []}
+          fromOther={selfEntityID}
+          yourReply={isCurrentUserSender}
+          theme={theme}
+        />
+      ) : null;
+    }
+
+    return (
+      <ReplyTargetPreview card={replyCard} yourReply={isCurrentUserSender} />
+    );
+  };
   const reactionPillStyle =
     isCurrentUserSender && appTheme === "dark"
       ? {
@@ -308,31 +373,13 @@ function ContentHandler({
           }}
           className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
         >
-          {cnvs.isReply && (
-            <span className="span_sender_reply_label">
-              replied to{" "}
-              {cnvs.replyedmessage[0].sender === selfEntityID
-                ? "your message"
-                : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
-            </span>
-          )}
+          {renderReplyLabel()}
           {isGroupLike && selfEntityID != cnvs.sender && (
             <span className="span_sender_label">
               {getMemberInfo(cnvs.sender)}
             </span>
           )}
-          {cnvs.isReply && (
-            <ReplyingToPreview
-              cnvs={cnvs.replyedmessage[0]}
-              members={members ?? []}
-              commands={commands ?? []}
-              fromOther={selfEntityID}
-              yourReply={
-                cnvs.sender == authentication.user.entity_id ? true : false
-              }
-              theme={theme}
-            />
-          )}
+          {renderReplyPreview()}
           <motion.div
             title={
               cnvs.messageDate.time
@@ -444,31 +491,13 @@ function ContentHandler({
             }}
             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
           >
-            {cnvs.isReply && (
-              <span className="span_sender_reply_label">
-                replied to{" "}
-                {cnvs.replyedmessage[0].sender === selfEntityID
-                  ? "your message"
-                  : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
-              </span>
-            )}
+            {renderReplyLabel()}
             {isGroupLike && selfEntityID != cnvs.sender && (
               <span className="span_sender_label tw-font-Inter">
                 {getMemberInfo(cnvs.sender)}
               </span>
             )}
-            {cnvs.isReply && (
-              <ReplyingToPreview
-                cnvs={cnvs.replyedmessage[0]}
-                members={members ?? []}
-                commands={commands ?? []}
-                fromOther={selfEntityID}
-                yourReply={
-                  cnvs.sender == authentication.user.entity_id ? true : false
-                }
-                theme={theme}
-              />
-            )}
+            {renderReplyPreview()}
             <motion.div
               title={
                 cnvs.messageDate.time
@@ -766,31 +795,13 @@ function ContentHandler({
             }}
             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
           >
-            {cnvs.isReply && (
-              <span className="span_sender_reply_label">
-                replied to{" "}
-                {cnvs.replyedmessage[0].sender === selfEntityID
-                  ? "your message"
-                  : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
-              </span>
-            )}
+            {renderReplyLabel()}
             {isGroupLike && selfEntityID != cnvs.sender && (
               <span className="span_sender_label">
                 {getMemberInfo(cnvs.sender)}
               </span>
             )}
-            {cnvs.isReply && (
-              <ReplyingToPreview
-                cnvs={cnvs.replyedmessage[0]}
-                members={members ?? []}
-                commands={commands ?? []}
-                fromOther={selfEntityID}
-                yourReply={
-                  cnvs.sender == authentication.user.entity_id ? true : false
-                }
-                theme={theme}
-              />
-            )}
+            {renderReplyPreview()}
             <div
               className="div_pending_content_container"
               title={
@@ -1033,31 +1044,13 @@ function ContentHandler({
             }}
             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
           >
-            {cnvs.isReply && (
-              <span className="span_sender_reply_label">
-                replied to{" "}
-                {cnvs.replyedmessage[0].sender === selfEntityID
-                  ? "your message"
-                  : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
-              </span>
-            )}
+            {renderReplyLabel()}
             {isGroupLike && selfEntityID != cnvs.sender && (
               <span className="span_sender_label">
                 {getMemberInfo(cnvs.sender)}
               </span>
             )}
-            {cnvs.isReply && (
-              <ReplyingToPreview
-                cnvs={cnvs.replyedmessage[0]}
-                members={members ?? []}
-                commands={commands ?? []}
-                fromOther={selfEntityID}
-                yourReply={
-                  cnvs.sender == authentication.user.entity_id ? true : false
-                }
-                theme={theme}
-              />
-            )}
+            {renderReplyPreview()}
             <div
               className="div_pending_content_container"
               title={
@@ -1295,29 +1288,11 @@ function ContentHandler({
             }}
             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
           >
-            {cnvs.isReply && (
-              <span className="span_sender_reply_label">
-                replied to{" "}
-                {cnvs.replyedmessage[0].sender === selfEntityID
-                  ? "your message"
-                  : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
-              </span>
-            )}
+            {renderReplyLabel()}
             {isGroupLike && selfEntityID != cnvs.sender && (
               <span className="span_sender_label">{cnvs.sender}</span>
             )}
-            {cnvs.isReply && (
-              <ReplyingToPreview
-                cnvs={cnvs.replyedmessage[0]}
-                members={members ?? []}
-                commands={commands ?? []}
-                fromOther={selfEntityID}
-                yourReply={
-                  cnvs.sender == authentication.user.entity_id ? true : false
-                }
-                theme={theme}
-              />
-            )}
+            {renderReplyPreview()}
             <div
               className="tw-w-full"
               title={
@@ -1565,31 +1540,13 @@ function ContentHandler({
             }}
             className="tw-flex tw-flex-col tw-w-full tw-max-w-[70%]"
           >
-            {cnvs.isReply && (
-              <span className="span_sender_reply_label">
-                replied to{" "}
-                {cnvs.replyedmessage[0].sender === selfEntityID
-                  ? "your message"
-                  : `${getMemberInfo(cnvs.replyedmessage[0].sender)}`}
-              </span>
-            )}
+            {renderReplyLabel()}
             {isGroupLike && selfEntityID != cnvs.sender && (
               <span className="span_sender_label">
                 {getMemberInfo(cnvs.sender)}
               </span>
             )}
-            {cnvs.isReply && (
-              <ReplyingToPreview
-                cnvs={cnvs.replyedmessage[0]}
-                members={members ?? []}
-                commands={commands ?? []}
-                fromOther={selfEntityID}
-                yourReply={
-                  cnvs.sender == authentication.user.entity_id ? true : false
-                }
-                theme={theme}
-              />
-            )}
+            {renderReplyPreview()}
             <div className="tw-w-full tw-flex tw-flex-col">
               <div
                 onClick={() => {
