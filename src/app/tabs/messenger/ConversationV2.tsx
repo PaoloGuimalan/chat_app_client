@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
+import { replyCardOf, replyTargetSummary } from "@/reusables/hooks/replyTargets";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { compareMessagesDesc } from "@/reusables/hooks/reusable";
 import "../../../styles/styles.css";
@@ -1489,6 +1490,9 @@ function ConversationV2({
     : undefined;
   const replyingToOwnMessage =
     replyingToMessage?.sender === authentication.user.entity_id;
+  // What that message itself carried, when it was a sent post / a moment or
+  // thought reply (its `replyedtarget`) - for the strip's summary line.
+  const replyingToCard = replyingToMessage ? replyCardOf(replyingToMessage) : null;
 
   return (
     <>
@@ -2682,7 +2686,14 @@ function ConversationV2({
                 </span>
                 <span className="cl-text-caption tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
                   {isReplying.isReply &&
-                    (replyingToMessage?.messageType === "text" ? (
+                    (replyingToMessage?.messageType === "text" &&
+                    !String(replyingToMessage?.content ?? "").trim() &&
+                    replyingToCard &&
+                    replyingToCard.type !== "message" ? (
+                      // A message with no text - a sent post, a moment or
+                      // thought reply: say what it was (the strip was blank).
+                      replyTargetSummary(replyingToCard)
+                    ) : replyingToMessage?.messageType === "text" ? (
                       // Raw message content straight into innerHTML before
                       // this - see the note in ReplyingToPreview. `preview`
                       // keeps the plain-text form the strip has always had -

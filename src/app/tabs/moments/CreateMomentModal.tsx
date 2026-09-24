@@ -68,12 +68,18 @@ export function SharedPostCard({
   /** Drawn inside another shared post: flat, and never nests again. */
   nested?: boolean;
 }) {
-  const reshared = post.file_type === "shared_post"
-    ? (post.references?.find((r: any) => r.reference_media_type?.includes("shared_post")) as any)?.reference
+  // A reshare: the feed marks it `is_shared`, and its reference is the
+  // ORIGINAL post's id (not always typed "shared_post"), so both are checked.
+  const isReshare = post.is_shared || post.file_type === "shared_post";
+  const reshared: string | null = isReshare
+    ? ((post.references?.find((r: any) => r.reference_media_type?.includes("shared_post")) ??
+        post.references?.[0]) as any)?.reference ?? null
     : null;
-  const media = post.references?.find(
-    (r: any) => r.reference_media_type && !r.reference_media_type.includes("shared_post"),
-  ) as any;
+  const media = isReshare
+    ? null
+    : (post.references?.find(
+        (r: any) => r.reference_media_type && !r.reference_media_type.includes("shared_post"),
+      ) as any);
   const isVideo = media?.reference_media_type?.startsWith("video");
   return (
     <div
@@ -109,7 +115,18 @@ export function SharedPostCard({
       {media && (
         <div style={{ height: compact ? 100 : 150, borderRadius: "var(--r-sm)", overflow: "hidden", background: "var(--surface-2)" }}>
           {isVideo ? (
-            <video src={media.reference} muted playsInline preload="metadata" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+            // A real player, not a black box: the small preview (Create
+            // Moment) plays it muted on a loop; the viewer's card has
+            // controls. `#t=0.1` paints a first frame before it loads.
+            <video
+              src={`${media.reference}#t=0.1`}
+              muted
+              playsInline
+              preload="metadata"
+              {...(compact ? { autoPlay: true, loop: true } : { controls: true })}
+              onClick={(e) => e.stopPropagation()}
+              style={{ width: "100%", height: "100%", objectFit: "cover", background: "#000" }}
+            />
           ) : (
             <img src={media.reference} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           )}

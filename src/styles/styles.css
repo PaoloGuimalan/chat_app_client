@@ -8939,3 +8939,15 @@ body::-webkit-scrollbar-thumb:hover,
     animation: none;
   }
 }
+
+/* A sent post / moment or thought reply with no text: the card above it is
+   the message, so its bubble keeps only the time and reactions - no fill, no
+   border, no padding (it was a thin, empty accent pill). !important because
+   the bubble's colours are set inline by framer-motion. */
+.cl-message-bubble--card-only {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  padding: 0 4px !important;
+  min-height: 0 !important;
+}

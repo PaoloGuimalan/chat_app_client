@@ -250,6 +250,12 @@ function ContentHandler({
   // empty `replyedmessage`.
   const replyCard = replyCardOf(cnvs);
   const repliedMessage = cnvs.replyedmessage?.[0];
+  // A sent post / moment reply / thought reply with no text of its own: the
+  // card above IS the message. Its bubble drops its colour and (empty) text -
+  // it used to render as a thin blue pill - and keeps only the time and the
+  // reactions, which still belong to this message.
+  const isCardOnly =
+    !!replyCard && replyCard.type !== "message" && !String(cnvs.content ?? "").trim();
 
   const renderReplyLabel = () => {
     if (!replyCard) return null;
@@ -288,9 +294,19 @@ function ContentHandler({
     if (!replyCard) return null;
 
     if (replyCard.type === "message") {
-      return repliedMessage ? (
+      // Quoting a message that had no text (a sent post, a moment or thought
+      // reply): the server labels it ("Sent a post") - show that, not a
+      // blank quote.
+      const quoted =
+        repliedMessage &&
+        repliedMessage.messageType === "text" &&
+        !String(repliedMessage.content ?? "").trim() &&
+        replyCard.content?.text
+          ? { ...repliedMessage, content: replyCard.content.text }
+          : repliedMessage;
+      return quoted ? (
         <ReplyingToPreview
-          cnvs={repliedMessage}
+          cnvs={quoted}
           members={members ?? []}
           commands={commands ?? []}
           fromOther={selfEntityID}
@@ -547,8 +563,8 @@ function ContentHandler({
               // and this class is what lets the stylesheet know that. Everyone
               // else's bubble is var(--surface) and needs no such treatment.
               className={`span_messages_result c1 cl-message-bubble cl-message-bubble--text ${
-                isCurrentUserSender ? "cl-message-bubble--own" : ""
-              } ${
+                isCurrentUserSender && !isCardOnly ? "cl-message-bubble--own" : ""
+              } ${isCardOnly ? "cl-message-bubble--card-only" : ""} ${
                 isChannelLike ? "cl-message-bubble--channel" : ""
               } tw-mb-[7px] tw-flex tw-flex-col tw-gap-[2px]`}
             >
@@ -559,17 +575,19 @@ function ContentHandler({
                 wall of text. `MessageContent` renders it as elements and keeps
                 what the old pipeline did for mentions and bare URLs.
               */}
-              <MessageContent
-                content={cnvs.content}
-                members={members ?? []}
-                commands={commands ?? []}
-              />
+              {!isCardOnly && (
+                <MessageContent
+                  content={cnvs.content}
+                  members={members ?? []}
+                  commands={commands ?? []}
+                />
+              )}
               {cnvs.linkPreview && (
                 <LinkPreviewCard preview={cnvs.linkPreview} variant="display" />
               )}
               <span
                 className={`cl-message-time ${
-                  cnvs.sender == authentication.user.entity_id
+                  cnvs.sender == authentication.user.entity_id && !isCardOnly
                     ? ""
                     : "cl-message-time--incoming"
                 }`}

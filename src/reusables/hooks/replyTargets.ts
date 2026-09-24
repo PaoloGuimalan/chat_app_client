@@ -78,3 +78,15 @@ export const isReplyCardExpired = (card: ReplyTargetCard, now = Date.now()) =>
 /** "your moment" / "Ana's post" - the noun phrase the reply label ends with. */
 export const replyTargetNoun = (type: ReplyTargetType) =>
   type === "message" ? "message" : type;
+
+/**
+ * One line for what a message with no text of its own carried - a sent post,
+ * or a reply to a moment or thought - for the composer's "Replying to" strip
+ * ("Sent a post · caption", "Moment · caption", "Thought · its text").
+ */
+export const replyTargetSummary = (card: ReplyTargetCard): string => {
+  const words = (card.type === "thought" ? card.content?.text : card.content?.caption)?.trim();
+  const kind =
+    card.type === "post" ? "Sent a post" : card.type === "moment" ? "Moment" : card.type === "thought" ? "Thought" : "Message";
+  return words ? `${kind} · ${words}` : kind;
+};
