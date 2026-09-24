@@ -18,6 +18,7 @@ import type {
 import {
   AUDIENCES,
   MOMENTS_CHANGED_EVENT,
+  canUnarchive,
   entityAvatar,
   entityName,
   timeAgoLabel,
@@ -48,17 +49,21 @@ function MomentViewersPanel({
   moment,
   onDelete,
   onArchive,
+  onUnarchive,
   onChanged,
   archived = false,
 }: {
   moment: IPost;
   onDelete: () => void;
-  /** Ends it now - it moves to your archive. */
+  /** Takes it off the board - it moves to your archive. */
   onArchive: () => void;
+  /** Puts an archived moment back on the board, while its 24h last. */
+  onUnarchive: () => void;
   onChanged: (patch: Partial<IPost>) => void;
   /**
-   * Played from the archive: it has expired, so there is nothing left to
-   * change - but who saw it, reacted and replied is still yours to see.
+   * Played from the archive. Expired: nothing left to change, but who saw
+   * it, reacted and replied is still yours to see. Archived by hand and not
+   * expired yet: it can go back on the board (Unarchive).
    */
   archived?: boolean;
 }) {
@@ -196,6 +201,12 @@ function MomentViewersPanel({
       )}
 
       <div style={{ padding: "12px 16px 14px", borderTop: "1px solid var(--border)", display: "flex", gap: 8 }}>
+        {archived && canUnarchive(moment) && (
+          <button onClick={onUnarchive} style={{ ...footerBtn, background: "var(--brand-soft)", border: "none", color: "var(--brand)" }}>
+            <Icon n="unarchive" s={16} />
+            Unarchive
+          </button>
+        )}
         {!archived && (
           <>
             <button onClick={onArchive} style={{ ...footerBtn, background: "var(--surface)", border: "1px solid var(--border-2)", color: "var(--text)" }}>

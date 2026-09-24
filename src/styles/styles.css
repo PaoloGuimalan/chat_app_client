@@ -8951,3 +8951,28 @@ body::-webkit-scrollbar-thumb:hover,
   padding: 0 4px !important;
   min-height: 0 !important;
 }
+
+/* A card that IS the message (a post sent with no note): a normal bubble's
+   surface, not the faded quote. */
+.cl-message-bubble--card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+/* In a card-only bubble: card, then the reactions pill ON the card's lower
+   edge (as it sits on any bubble), then the time. Selectors outrank the
+   row's own margin utilities (all !important). */
+.cl-message-bubble--card-only > .cl-message-reactions-row {
+  order: 1;
+  margin-top: -12px !important;
+  margin-bottom: 0 !important;
+  padding: 0 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.cl-message-bubble--card-only > .cl-message-time {
+  order: 2;
+  margin-top: 4px;
+}

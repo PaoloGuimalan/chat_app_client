@@ -19,9 +19,15 @@ import { isReplyCardExpired } from "@/reusables/hooks/replyTargets";
 function ReplyTargetPreview({
   card,
   yourReply,
+  asMessage = false,
 }: {
   card: ReplyTargetCard;
   yourReply: boolean;
+  /**
+   * The card IS the message (a post sent with no note), not a quote above
+   * one: drawn at full strength like any bubble - not the faded quote look.
+   */
+  asMessage?: boolean;
 }) {
   const navigate = useNavigate();
 
@@ -76,13 +82,13 @@ function ReplyTargetPreview({
       <motion.div
         initial={{ marginLeft: yourReply ? "auto" : "0px" }}
         animate={{ marginLeft: yourReply ? "auto" : "0px" }}
-        className="tw-flex tw-flex-col tw-w-fit tw-max-w-[100%] tw-opacity-[0.9]"
+        className={`tw-flex tw-flex-col tw-w-fit tw-max-w-[100%] ${asMessage ? "" : "tw-opacity-[0.9]"}`}
       >
         <button
           type="button"
           onClick={openTarget}
           disabled={!opensPost}
-          className={`cl-message-bubble cl-message-bubble--quote tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-text-left tw-w-[260px] tw-max-w-[100%] tw-p-[8px] tw-rounded-[12px] ${
+          className={`cl-message-bubble ${asMessage ? "cl-message-bubble--card" : "cl-message-bubble--quote"} tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-text-left tw-w-[260px] tw-max-w-[100%] tw-p-[8px] tw-rounded-[12px] ${
             opensPost ? "tw-cursor-pointer" : "tw-cursor-default"
           }`}
         >

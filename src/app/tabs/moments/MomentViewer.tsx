@@ -33,6 +33,7 @@ import {
   isExpired,
   timeAgoLabel,
   timeLeftLabel,
+  canUnarchive,
 } from "./ephemeral";
 
 /** Below this the side panel stacks under the stage instead of beside it. */
@@ -175,7 +176,15 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
 
   const entityID = archive ? selfEntityId : params.entityID;
   const isOwn = entityID === selfEntityId;
-  const archivePath = `/${authentication.user.username}?feed=archives`;
+  // Your archive lives on YOUR profile - the page's when you are acting as a
+  // page (its profile is /<slug>, falling back to the realm id like the rest
+  // of the app), your own otherwise.
+  const actingContext = authentication.active_entity_context;
+  const actingProfilePath =
+    actingContext?.entity_type === "realm"
+      ? `/${actingContext.slug || actingContext.realm_id}`
+      : `/${authentication.user.username}`;
+  const archivePath = `${actingProfilePath}?feed=archives`;
   const current = moments?.[index];
   const author = current?.entity;
 
@@ -382,6 +391,18 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
       removeCurrent();
     } catch {
       alert("warning", "We couldn't archive that Moment.");
+    }
+  };
+
+  // Back on the board while its 24h last - and out of the archive being played.
+  const unarchiveCurrent = async () => {
+    if (!current) return;
+    try {
+      await UpdateMomentRequest(current.post_id, { archive: false });
+      alert("success", "Moment is back on your board.");
+      removeCurrent();
+    } catch (err: any) {
+      alert("warning", err?.message || "We couldn't unarchive that Moment.");
     }
   };
 
@@ -662,10 +683,12 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                 >
                   <Icon n={archive ? "inventory_2" : "timelapse"} s={14} />
                   {archive
-                    ? new Date(current.date_posted as any).toLocaleDateString(
-                        undefined,
-                        { month: "short", day: "numeric" },
-                      )
+                    ? canUnarchive(current)
+                      ? `Archived · ${timeLeftLabel(current.expires_at)}`
+                      : new Date(current.date_posted as any).toLocaleDateString(
+                          undefined,
+                          { month: "short", day: "numeric" },
+                        )
                     : timeLeftLabel(current.expires_at)}
                 </span>
               </div>
@@ -927,6 +950,18 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                       zIndex: 5,
                     }}
                   >
+                    {isOwn && archive && canUnarchive(current) && (
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          unarchiveCurrent();
+                        }}
+                        style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", border: "none", background: "transparent", cursor: "pointer", borderRadius: "var(--r-sm)", color: "var(--text)", fontSize: "var(--fs-body-sm)", fontWeight: 600 }}
+                      >
+                        <Icon n="unarchive" s={17} />
+                        Unarchive Moment
+                      </button>
+                    )}
                     {isOwn && !archive && (
                       <button
                         onClick={() => {
@@ -1014,6 +1049,7 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                     moment={current}
                     onDelete={deleteCurrent}
                     onArchive={archiveCurrent}
+                    onUnarchive={unarchiveCurrent}
                     onChanged={updateCurrent}
                     archived={archive}
                   />

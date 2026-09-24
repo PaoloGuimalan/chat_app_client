@@ -132,3 +132,10 @@ export const entityHandle = (entity: AnyEntity): string | undefined => {
 /** "Hungry · 22h left" - the meta line under a thought bubble. */
 export const thoughtMeta = (thought: { content: { mood?: ThoughtMood | null }; expires_at?: string | null }) =>
   [moodOf(thought.content.mood)?.label, timeLeftLabel(thought.expires_at)].filter(Boolean).join(" · ");
+
+/**
+ * Archived by hand while its 24h were not over: it can still come back to
+ * the board (unarchive), until the moment it would have expired anyway.
+ */
+export const canUnarchive = (post: { is_archived?: boolean; expires_at?: string | null }) =>
+  !!post.is_archived && !isExpired(post.expires_at);

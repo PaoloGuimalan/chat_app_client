@@ -297,10 +297,12 @@ function ContentHandler({
     );
   };
 
+  // The card a card-only message is drawn as - inside its own bubble, where
+  // text would be, so the reactions attach to it like to any message.
+  const messageCard: ReplyTargetCard | null = isCardOnly ? postCard ?? replyCard : null;
+
   const renderReplyPreview = () => {
-    if (postCard) {
-      return <ReplyTargetPreview card={postCard} yourReply={isCurrentUserSender} />;
-    }
+    if (isCardOnly) return null;
     if (!replyCard) return null;
 
     if (replyCard.type === "message") {
@@ -592,6 +594,9 @@ function ContentHandler({
                 wall of text. `MessageContent` renders it as elements and keeps
                 what the old pipeline did for mentions and bare URLs.
               */}
+              {messageCard && (
+                <ReplyTargetPreview card={messageCard} yourReply={isCurrentUserSender} asMessage />
+              )}
               {!isCardOnly && (
                 <MessageContent
                   // A post message without its card (an older server) says
@@ -614,7 +619,7 @@ function ContentHandler({
                 {formatMessageClock(cnvs.messageDate)}
               </span>
               <div
-                className={`tw-w-full tw--mb-[15px] tw-mt-[5px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
+                className={`cl-message-reactions-row tw-w-full tw--mb-[15px] tw-mt-[5px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
                   cnvs.sender == authentication.user.entity_id
                     ? "tw-justify-end"
                     : "tw-justify-start"

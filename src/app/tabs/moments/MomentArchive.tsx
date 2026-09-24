@@ -5,6 +5,7 @@ import { Btn, Card, Icon } from "@/reusables/design";
 import { GetMomentArchiveRequest } from "@/reusables/hooks/requests";
 import type { IPost } from "@/reusables/vars/interfaces";
 import MomentThumb from "./MomentThumb";
+import { canUnarchive, timeLeftLabel } from "./ephemeral";
 import { MomentArchiveLoader } from "./MomentLoaders";
 
 // The profile's feed column centres its children; without this every state
@@ -68,6 +69,13 @@ function MomentArchive() {
               <span style={{ position: "absolute", left: 6, bottom: 6, padding: "2px 7px", borderRadius: 999, background: "rgba(0,0,0,.55)", color: "#fff", fontSize: "var(--fs-meta)", fontWeight: 600 }}>
                 {new Date(post.date_posted as any).toLocaleDateString(undefined, { month: "short", day: "numeric" })}
               </span>
+              {/* Archived by hand with time left: it can still go back. */}
+              {canUnarchive(post) && (
+                <span style={{ position: "absolute", top: 6, right: 6, display: "inline-flex", alignItems: "center", gap: 3, padding: "2px 7px", borderRadius: 999, background: "var(--brand)", color: "#fff", fontSize: "var(--fs-meta)", fontWeight: 700 }}>
+                  <Icon n="timelapse" s={12} />
+                  {timeLeftLabel(post.expires_at)}
+                </span>
+              )}
             </button>
           );
         })}
