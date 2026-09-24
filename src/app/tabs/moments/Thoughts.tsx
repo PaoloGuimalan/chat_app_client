@@ -1,10 +1,12 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { CSSProperties, useEffect, useMemo, useState } from "react";
+import { CSSProperties, useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import Modal from "@/app/reusables/Modal";
 import { Avatar, Btn, Chip, Icon, SegTabs } from "@/reusables/design";
 import {
+  CreateInitialConversation,
   CreateThoughtRequest,
   DeletePostRequest,
   GetOwnThoughtRequest,
@@ -15,7 +17,7 @@ import {
   UpdateThoughtRequest,
 } from "@/reusables/hooks/requests";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
-import { getActiveAvatar } from "@/reusables/hooks/reusable";
+import { getActiveAvatar, isUserOnline } from "@/reusables/hooks/reusable";
 import type {
   AuthenticationInterface,
   Emoji,
@@ -38,6 +40,7 @@ import {
   timeAgoLabel,
   timeLeftLabel,
 } from "./ephemeral";
+import { ThoughtsRailLoader } from "./MomentLoaders";
 
 const useAlert = () => {
   const dispatch = useDispatch();
@@ -75,7 +78,7 @@ export function ThoughtBubble({
   style?: CSSProperties;
 }) {
   const m = moodOf(mood);
-  const font = size === "sm" ? 10.5 : size === "lg" ? "var(--fs-body)" : "var(--fs-body-sm)";
+  const font = size === "sm" ? "var(--fs-meta)" : size === "lg" ? "var(--fs-body)" : "var(--fs-body-sm)";
   return (
     <div
       style={{
@@ -93,7 +96,7 @@ export function ThoughtBubble({
         style={{
           fontSize: font, fontWeight: size === "sm" ? 500 : 600, color: "var(--text)", lineHeight: 1.3,
           textAlign: size === "sm" ? "center" : "left", wordBreak: "break-word",
-          display: "-webkit-box", WebkitLineClamp: size === "sm" ? 2 : 3, WebkitBoxOrient: "vertical", overflow: "hidden",
+          display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
         }}
       >
         {text}
@@ -174,7 +177,10 @@ export function ThoughtDetail({
   return (
     <div style={{ width: 330, background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-lg)", padding: 16, display: "flex", flexDirection: "column", gap: 14, ...style }}>
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Avatar id={author?.id} entityId={author?.id} name={entityName(author)} src={entityAvatar(author)} size={44} style={{ boxShadow: "0 0 0 2px var(--surface), 0 0 0 4px var(--brand)" }} />
+        {/* Ring on a round wrapper - Avatar's own box is square. */}
+        <span style={{ display: "inline-flex", borderRadius: "50%", boxShadow: "0 0 0 2px var(--surface), 0 0 0 4px var(--brand)", flex: "none" }}>
+          <Avatar id={author?.id} entityId={author?.id} name={entityName(author)} src={entityAvatar(author)} size={44} />
+        </span>
         <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
           <span style={{ fontSize: "var(--fs-body)", fontWeight: 700, color: "var(--text)" }}>{entityName(author)}</span>
           <span style={{ fontSize: "var(--fs-meta)", color: "var(--text-3)", display: "flex", alignItems: "center", gap: 4 }}>
@@ -344,6 +350,35 @@ export function ThoughtComposerModal({ existing, onClose }: { existing: IThought
   );
 }
 
+/** A round scroll arrow over one end of the rail. */
+function RailArrow({ side, onClick }: { side: "left" | "right"; onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label={side === "left" ? "Scroll left" : "Scroll right"}
+      style={{
+        position: "absolute",
+        top: "calc(50% - 22px)",
+        [side]: 4,
+        zIndex: 3,
+        width: 30,
+        height: 30,
+        borderRadius: "50%",
+        border: "1px solid var(--border)",
+        background: "var(--surface)",
+        color: "var(--text-2)",
+        boxShadow: "var(--shadow-md)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        cursor: "pointer",
+      }}
+    >
+      <Icon n={side === "left" ? "chevron_left" : "chevron_right"} s={20} />
+    </button>
+  );
+}
+
 /**
  * The Thoughts rail at the top of Messages (design 1e): your thought first
  * (edit badge, or "add" when you have none), then your circle's thoughts
@@ -356,30 +391,71 @@ export function ThoughtsRail() {
   const [open, setOpen] = useState<{ thought: IThought; left: number } | null>(null);
   const [composing, setComposing] = useState(false);
 
+  const navigate = useNavigate();
+  const activeUsers = useSelector((state: any) => state.activeuserslist);
   const load = () => GetThoughtsRailRequest().then(setRail).catch(() => setRail({ mine: null, results: [] }));
+
+  // Nobody has a thought up: fill the rail with people instead of leaving it
+  // empty - whoever is online now, or (when nobody is) your most-interacted
+  // connections. The server ranks them; presence is only known here.
+  // Everyone you are connected to - people and pages - after the thoughts:
+  // online first, then the server's rank (most-interacted) within each group.
+  // Presence is only known here, which is why the sort is split this way.
+  const people = useMemo(() => {
+    const withThought = new Set((rail?.results ?? []).map((t) => t.author?.id));
+    const list = (rail?.suggestions ?? []).filter((entity) => !withThought.has(entity.id));
+    const online = list.filter((entity) => isUserOnline(activeUsers, entity.id));
+    const offline = list.filter((entity) => !isUserOnline(activeUsers, entity.id));
+    return [...online, ...offline];
+  }, [rail, activeUsers]);
+
+  // Scroll arrows, shown only when there is more that way.
+  const trackRef = useRef<HTMLDivElement | null>(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+  const updateEdges = () => {
+    const track = trackRef.current;
+    if (!track) return;
+    const left = track.scrollLeft > 4;
+    const right = track.scrollLeft + track.clientWidth < track.scrollWidth - 4;
+    setEdges((prev) => (prev.left === left && prev.right === right ? prev : { left, right }));
+  };
+  useEffect(() => {
+    updateEdges();
+    window.addEventListener("resize", updateEdges);
+    return () => window.removeEventListener("resize", updateEdges);
+  }, [rail, people.length]);
+  const scrollBy = (direction: 1 | -1) =>
+    trackRef.current?.scrollBy({ left: direction * trackRef.current.clientWidth * 0.8, behavior: "smooth" });
+
+  const openChat = async (entityId: string) => {
+    const conversationID = await CreateInitialConversation(entityId);
+    if (conversationID) navigate(`/messages/${conversationID}`);
+  };
   useEffect(() => {
     load();
     window.addEventListener(THOUGHTS_CHANGED_EVENT, load);
     return () => window.removeEventListener(THOUGHTS_CHANGED_EVENT, load);
   }, []);
 
-  if (!rail) return null;
+  if (!rail) return <ThoughtsRailLoader />;
   const item = (key: string, bubble: React.ReactNode, avatarNode: React.ReactNode, label: string, onClick: (e: React.MouseEvent) => void, bold?: boolean) => (
-    <button key={key} onClick={onClick} style={{ width: 70, flex: "none", display: "flex", flexDirection: "column", alignItems: "center", border: "none", background: "transparent", padding: 0, cursor: "pointer" }}>
+    <button key={key} onClick={onClick} style={{ width: 88, flex: "none", display: "flex", flexDirection: "column", alignItems: "center", border: "none", background: "transparent", padding: 0, cursor: "pointer" }}>
       <div style={{ minHeight: 34, display: "flex", alignItems: "flex-end", width: "100%", justifyContent: "center" }}>{bubble}</div>
-      <BubbleTail />
+      {bubble ? <BubbleTail /> : <div style={{ height: 10 }} />}
       {avatarNode}
-      <span style={{ marginTop: 5, maxWidth: 70, fontSize: "var(--fs-meta)", color: "var(--text-2)", fontWeight: bold ? 600 : 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
+      <span style={{ marginTop: 5, maxWidth: 84, fontSize: "var(--fs-meta)", color: "var(--text-2)", fontWeight: bold ? 600 : 500, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{label}</span>
     </button>
   );
 
   return (
-    <div style={{ position: "relative", borderBottom: "1px solid var(--border)", marginBottom: 12 }}>
+    <div style={{ position: "relative", marginBottom: 6 }}>
       {composing && <ThoughtComposerModal existing={rail.mine} onClose={() => setComposing(false)} />}
-      <div className="cl-rail-track" style={{ display: "flex", gap: 4, padding: "0 12px 12px", alignItems: "flex-end", overflowX: "auto" }}>
+      {edges.left && <RailArrow side="left" onClick={() => scrollBy(-1)} />}
+      {edges.right && <RailArrow side="right" onClick={() => scrollBy(1)} />}
+      <div ref={trackRef} onScroll={updateEdges} className="cl-rail-track" style={{ display: "flex", gap: 4, padding: "0 12px 12px", alignItems: "flex-end", overflowX: "auto", scrollbarWidth: "none" }}>
         {item(
           "mine",
-          <ThoughtBubble size="sm" text={rail.mine?.content.text ?? "Share a thought"} style={{ maxWidth: 70, minWidth: 44, color: rail.mine ? undefined : "var(--text-3)" }} />,
+          <ThoughtBubble size="sm" text={rail.mine?.content.text ?? "Share a thought"} style={{ maxWidth: 88, minWidth: 44, color: rail.mine ? undefined : "var(--text-3)" }} />,
           <span style={{ position: "relative" }}>
             <Avatar id={authentication.user.userID} name={self.name} src={self.src} size={52} online={false} />
             <span style={{ position: "absolute", right: -2, bottom: -2, width: 20, height: 20, borderRadius: "50%", background: "var(--surface)", border: "1px solid var(--border)", color: "var(--text-2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -393,7 +469,7 @@ export function ThoughtsRail() {
         {rail.results.map((thought) =>
           item(
             thought.post_id,
-            <ThoughtBubble size="sm" text={thought.content.text} highlighted={open?.thought.post_id === thought.post_id} style={{ maxWidth: 70, minWidth: 44 }} />,
+            <ThoughtBubble size="sm" text={thought.content.text} highlighted={open?.thought.post_id === thought.post_id} style={{ maxWidth: 88, minWidth: 44 }} />,
             <Avatar id={thought.author?.id} entityId={thought.author?.id} name={entityName(thought.author)} src={entityAvatar(thought.author)} size={52} />,
             entityFirstName(thought.author),
             (e) => {
@@ -401,6 +477,15 @@ export function ThoughtsRail() {
               const at = e.currentTarget.getBoundingClientRect();
               setOpen(open?.thought.post_id === thought.post_id ? null : { thought, left: Math.max(0, at.left - host.left - 10) });
             },
+          ),
+        )}
+        {people.map((entity) =>
+          item(
+            `person_${entity.id}`,
+            null,
+            <Avatar id={entity.id} entityId={entity.id} name={entityName(entity)} src={entityAvatar(entity)} size={52} />,
+            entityFirstName(entity),
+            () => openChat(entity.id),
           ),
         )}
       </div>

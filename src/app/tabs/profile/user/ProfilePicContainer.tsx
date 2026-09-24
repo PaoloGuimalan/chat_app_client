@@ -125,12 +125,18 @@ function ProfilePicContainer({
       {thought && (
         <div
           onClick={() => setThoughtOpen(true)}
+          // max-content: an absolutely positioned box shrinks to the space
+          // left in its containing block, and this column is only ~160px, so
+          // the bubble was crushed to a word per line inside the avatar. Sized
+          // by its text instead, it sits over the cover, above-right of the
+          // avatar (the avatar is pulled up 80px into the cover).
           style={{
             position: "absolute",
-            bottom: "calc(100% - 70px)",
-            left: "62%",
+            bottom: "calc(100% + 40px)",
+            left: "58%",
             zIndex: 5,
-            maxWidth: 170,
+            width: "max-content",
+            maxWidth: 210,
             cursor: "pointer",
           }}
         >

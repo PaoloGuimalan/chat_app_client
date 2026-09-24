@@ -1,6 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams, useSearchParams } from "react-router-dom";
 import { Avatar, Icon, useTheme } from "@/reusables/design";
@@ -9,7 +9,9 @@ import {
   GetEntityMomentsRequest,
   GetMomentTrayRequest,
   GetPostPreviewRequest,
+  GetMomentArchiveRequest,
   MarkEphemeralSeenRequest,
+  UpdateMomentRequest,
 } from "@/reusables/hooks/requests";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import type {
@@ -32,6 +34,9 @@ import {
   timeAgoLabel,
   timeLeftLabel,
 } from "./ephemeral";
+
+/** Below this the side panel stacks under the stage instead of beside it. */
+const SIDE_BY_SIDE_MIN_WIDTH = 1000;
 
 /** How long a photo (or a shared post) stays up before the next one. */
 const PHOTO_MS = 6000;
@@ -108,8 +113,13 @@ function ControlBtn({
  * that runs out while it is open is skipped - the device clock is the hard
  * stop, the server only filters what it sends.
  */
-function MomentViewer() {
-  const { entityID } = useParams();
+/**
+ * `archive`: plays YOUR expired moments (Archives > Moments), newest first,
+ * starting at `?post=`. No board ribbon, no author hopping, no expiry skip -
+ * and the viewers panel stays, so who saw an old moment is still visible.
+ */
+function MomentViewer({ archive = false }: { archive?: boolean }) {
+  const params = useParams();
   const [searchParams] = useSearchParams();
   const startPostId = searchParams.get("post");
   const navigate = useNavigate();
@@ -133,7 +143,9 @@ function MomentViewer() {
   const [reporting, setReporting] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
 
+  const entityID = archive ? selfEntityId : params.entityID;
   const isOwn = entityID === selfEntityId;
+  const archivePath = `/${authentication.user.username}?feed=archives`;
   const current = moments?.[index];
   const author = current?.entity;
 
@@ -141,11 +153,36 @@ function MomentViewer() {
     dispatch({ type: SET_MUTATE_ALERTS, payload: { alerts: { type, content } } });
 
   useEffect(() => {
+    if (archive) return;
     GetMomentTrayRequest().then(setTray).catch((err) => console.log(err));
-  }, []);
+  }, [archive]);
+
+  // Archive mode: page through the archive until the opened moment is in
+  // hand (it may be past the first page if "Load more" was used).
+  useEffect(() => {
+    if (!archive) return;
+    let cancelled = false;
+    setMoments(null);
+    (async () => {
+      const list: IPost[] = [];
+      for (let page = 1; page <= 10; page++) {
+        const res = await GetMomentArchiveRequest(page).catch(() => null);
+        if (!res) break;
+        list.push(...(res.results ?? []));
+        if (!res.next || list.some((m) => m.post_id === startPostId)) break;
+      }
+      if (cancelled) return;
+      setMoments(list);
+      setIndex(Math.max(0, list.findIndex((m) => m.post_id === startPostId)));
+      setProgress(0);
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [archive, startPostId]);
 
   useEffect(() => {
-    if (!entityID) return;
+    if (archive || !entityID) return;
     setMoments(null);
     GetEntityMomentsRequest(entityID)
       .then((list) => {
@@ -163,6 +200,11 @@ function MomentViewer() {
   const authorPosition = order.findIndex((entry) => entry.entity.id === entityID);
 
   const goToAuthor = (offset: number) => {
+    if (archive) {
+      // Past the last archived moment: back to the archive grid.
+      if (offset > 0) navigate(archivePath, { replace: true });
+      return;
+    }
     const next = order[authorPosition + offset];
     if (!next || authorPosition < 0) {
       navigate("/", { replace: true });
@@ -216,7 +258,7 @@ function MomentViewer() {
     if (!current || isVideo || stopped) return;
     const started = Date.now() - progress * PHOTO_MS;
     const timer = setInterval(() => {
-      if (isExpired(current.expires_at)) {
+      if (!archive && isExpired(current.expires_at)) {
         next();
         return;
       }
@@ -248,27 +290,45 @@ function MomentViewer() {
       else if (event.key === " ") {
         event.preventDefault();
         setPaused((p) => !p);
-      } else if (event.key === "Escape") navigate("/");
+      } else if (event.key === "Escape") navigate(archive ? archivePath : "/");
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   });
 
+  /** Drops the current moment from what is playing (deleted or archived). */
+  const removeCurrent = () => {
+    if (!current) return;
+    window.dispatchEvent(new CustomEvent(MOMENTS_CHANGED_EVENT));
+    const left = (moments ?? []).filter((m) => m.post_id !== current.post_id);
+    if (left.length === 0) {
+      navigate(archive ? archivePath : "/", { replace: true });
+      return;
+    }
+    setMoments(left);
+    setIndex(Math.min(index, left.length - 1));
+    setProgress(0);
+  };
+
   const deleteCurrent = async () => {
     if (!current || !window.confirm("Delete this Moment? This can't be undone.")) return;
     try {
       await DeletePostRequest([current.post_id]);
-      window.dispatchEvent(new CustomEvent(MOMENTS_CHANGED_EVENT));
-      const left = (moments ?? []).filter((m) => m.post_id !== current.post_id);
-      if (left.length === 0) {
-        navigate("/", { replace: true });
-        return;
-      }
-      setMoments(left);
-      setIndex(Math.min(index, left.length - 1));
-      setProgress(0);
+      removeCurrent();
     } catch {
       alert("warning", "We couldn't delete that Moment.");
+    }
+  };
+
+  // Ends it now - it moves to your Archives, where it would have gone at 24h.
+  const archiveCurrent = async () => {
+    if (!current) return;
+    try {
+      await UpdateMomentRequest(current.post_id, { archive: true });
+      alert("success", "Moment moved to your archive.");
+      removeCurrent();
+    } catch {
+      alert("warning", "We couldn't archive that Moment.");
     }
   };
 
@@ -283,6 +343,46 @@ function MomentViewer() {
   const sharedPost = isSharedMoment(current) ? sharedPosts[media?.reference] : undefined;
   const newCount = order.filter((entry) => entry.has_unseen).length;
 
+  // The side panel is exactly the stage's height and starts at its top -
+  // measured, because the stage's size comes from its aspect ratio and the
+  // viewport, not from anything the panel could align to in CSS.
+  //
+  // Only in the side-by-side layout. Narrower than that, the panel stacks
+  // under the stage and takes its natural height - squeezing both into one
+  // row made the page overflow sideways, and the scrollbar that came and went
+  // with it resized the stage, re-measured, and looped until React gave up
+  // (the white screen on resize).
+  const screenWidth: number = useSelector((state: any) => state.screensizelistener?.W ?? window.innerWidth);
+  const sideBySide = screenWidth >= SIDE_BY_SIDE_MIN_WIDTH;
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const panelSlotRef = useRef<HTMLDivElement | null>(null);
+  const [stageBox, setStageBox] = useState<{ top: number; height: number } | null>(null);
+  const hasStage = !!current && !!author;
+  useLayoutEffect(() => {
+    const stage = stageRef.current;
+    const slot = panelSlotRef.current;
+    if (!sideBySide || !stage || !slot) return;
+    let frame = 0;
+    const measure = () => {
+      cancelAnimationFrame(frame);
+      // Next frame, not inside the observer callback: setting state there is
+      // what trips "ResizeObserver loop" when the layout is still settling.
+      frame = requestAnimationFrame(() => {
+        const s = stage.getBoundingClientRect();
+        const o = slot.getBoundingClientRect();
+        const next = { top: Math.round(s.top - o.top), height: Math.round(s.height) };
+        setStageBox((prev) => (prev && prev.top === next.top && prev.height === next.height ? prev : next));
+      });
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(stage);
+    return () => {
+      cancelAnimationFrame(frame);
+      observer.disconnect();
+    };
+  }, [sideBySide, hasStage]);
+
   return (
     <div className="cl-redesign" data-theme={theme} style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", background: "var(--bg)", minHeight: 0 }}>
       {reporting && current && (
@@ -290,19 +390,23 @@ function MomentViewer() {
       )}
 
       <header style={{ height: "var(--header-h)", flex: "none", display: "flex", alignItems: "center", gap: 16, padding: "0 18px", background: "var(--surface)", borderBottom: "1px solid var(--border)" }}>
-        <button onClick={() => navigate("/")} aria-label="Back" style={{ width: 34, height: 34, borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "transparent", color: "var(--text-2)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        <button onClick={() => navigate(archive ? archivePath : "/")} aria-label="Back" style={{ width: 34, height: 34, borderRadius: "var(--r-sm)", border: "1px solid var(--border)", background: "transparent", color: "var(--text-2)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center" }}>
           <Icon n="arrow_back" s={18} />
         </button>
         <span style={{ fontSize: "var(--fs-heading)", fontWeight: 800, letterSpacing: "-0.03em", color: "var(--text)" }}>Moments</span>
         <div style={{ flex: 1, display: "flex", justifyContent: "center", minWidth: 0 }}>
-          <MomentRibbon
-            entries={order}
-            currentEntityId={entityID ?? ""}
-            onOpen={(entry) => navigate(`/moments/${entry.entity.id}?post=${entry.start_post_id}`, { replace: true })}
-          />
+          {!archive && (
+            <MomentRibbon
+              entries={order}
+              currentEntityId={entityID ?? ""}
+              onOpen={(entry) => navigate(`/moments/${entry.entity.id}?post=${entry.start_post_id}`, { replace: true })}
+            />
+          )}
         </div>
         <span style={{ fontSize: "var(--fs-meta)", color: "var(--text-3)", whiteSpace: "nowrap" }}>
-          {isOwn
+          {archive
+            ? "Archive"
+            : isOwn
             ? "Your Moment"
             : authorPosition >= 0
               ? `${authorPosition + 1} of ${order.length}${newCount ? ` · ${newCount} new` : ""}`
@@ -310,7 +414,7 @@ function MomentViewer() {
         </span>
       </header>
 
-      <div style={{ flex: 1, minHeight: 0, display: "flex", alignItems: "center", justifyContent: "center", gap: 24, padding: 20, overflow: "auto" }}>
+      <div style={{ flex: 1, minHeight: 0, display: "flex", flexDirection: sideBySide ? "row" : "column", alignItems: "center", justifyContent: sideBySide ? "center" : "flex-start", gap: sideBySide ? 24 : 16, padding: sideBySide ? 20 : "16px 12px", overflowX: "hidden", overflowY: "auto" }}>
         {moments !== null && moments.length === 0 && (
           <div style={{ textAlign: "center", color: "var(--text-2)" }}>
             <Icon n="timelapse" s={36} c="var(--text-3)" />
@@ -322,7 +426,7 @@ function MomentViewer() {
         {current && author && (
           <>
             {/* Stage */}
-            <div style={{ width: "min(460px, 100%)", display: "flex", flexDirection: "column", gap: 12 }}>
+            <div style={{ width: "min(460px, 100%)", flex: "none", display: "flex", flexDirection: "column", gap: 12 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <ProgressRing fraction={ringFraction} size={48}>
                   <Avatar id={author.id} entityId={author.id} name={entityName(author)} src={entityAvatar(author)} size={36} />
@@ -338,12 +442,15 @@ function MomentViewer() {
                   </span>
                 </div>
                 <span style={{ display: "inline-flex", alignItems: "center", gap: 4, height: 26, padding: "0 10px", borderRadius: 999, background: "var(--brand-soft)", color: "var(--brand)", fontSize: "var(--fs-meta)", fontWeight: 700, flex: "none" }}>
-                  <Icon n="timelapse" s={14} />
-                  {timeLeftLabel(current.expires_at)}
+                  <Icon n={archive ? "inventory_2" : "timelapse"} s={14} />
+                  {archive
+                    ? new Date(current.date_posted as any).toLocaleDateString(undefined, { month: "short", day: "numeric" })
+                    : timeLeftLabel(current.expires_at)}
                 </span>
               </div>
 
               <div
+                ref={stageRef}
                 onClick={(event) => {
                   // Tap left third = back, the rest = forward, like any stories viewer.
                   const box = (event.currentTarget as HTMLDivElement).getBoundingClientRect();
@@ -362,7 +469,8 @@ function MomentViewer() {
                 </div>
 
                 {isSharedMoment(current) ? (
-                  <div style={{ position: "absolute", left: 24, right: 24, top: 40 }} onClick={(e) => e.stopPropagation()}>
+                  <div style={{ position: "absolute", left: 24, right: 24, top: 40, bottom: 24, display: "flex", flexDirection: "column", justifyContent: "center", pointerEvents: "none" }}>
+                   <div style={{ pointerEvents: "auto", maxHeight: "100%", overflow: "hidden" }} onClick={(e) => e.stopPropagation()}>
                     {sharedPost ? (
                       <SharedPostCard post={sharedPost} onOpen={() => navigate(`/post/${sharedPost.post_id}`)} />
                     ) : sharedPost === null ? (
@@ -370,6 +478,7 @@ function MomentViewer() {
                         This post is no longer available.
                       </div>
                     ) : null}
+                   </div>
                   </div>
                 ) : isVideo ? (
                   <video
@@ -381,7 +490,7 @@ function MomentViewer() {
                     playsInline
                     onTimeUpdate={(e) => {
                       const v = e.currentTarget;
-                      if (isExpired(current.expires_at)) next();
+                      if (!archive && isExpired(current.expires_at)) next();
                       else if (v.duration) setProgress(v.currentTime / v.duration);
                     }}
                     onEnded={next}
@@ -411,6 +520,18 @@ function MomentViewer() {
                 <ControlBtn icon="more_horiz" title="More" onClick={() => setMenuOpen((o) => !o)} />
                 {menuOpen && (
                   <div style={{ position: "absolute", right: 0, bottom: 52, minWidth: 170, padding: 4, borderRadius: "var(--r-md)", border: "1px solid var(--border)", background: "var(--surface)", boxShadow: "var(--shadow-md)", zIndex: 5 }}>
+                    {isOwn && !archive && (
+                      <button
+                        onClick={() => {
+                          setMenuOpen(false);
+                          archiveCurrent();
+                        }}
+                        style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", border: "none", background: "transparent", cursor: "pointer", borderRadius: "var(--r-sm)", color: "var(--text)", fontSize: "var(--fs-body-sm)", fontWeight: 600 }}
+                      >
+                        <Icon n="inventory_2" s={17} />
+                        Archive Moment
+                      </button>
+                    )}
                     <button
                       onClick={() => {
                         setMenuOpen(false);
@@ -427,13 +548,29 @@ function MomentViewer() {
               </div>
             </div>
 
-            {/* Side panel */}
+            {/* Side panel - pinned to the stage's top and height. */}
+            <div
+              ref={panelSlotRef}
+              style={
+                sideBySide
+                  ? { position: "relative", width: 360, flex: "none", alignSelf: "stretch" }
+                  : { width: "min(460px, 100%)", flex: "none" }
+              }
+            >
+              <div
+                style={
+                  sideBySide
+                    ? { position: "absolute", left: 0, right: 0, top: stageBox?.top ?? 0, height: stageBox?.height ?? "auto", display: "flex" }
+                    : { display: "flex", maxHeight: 560 }
+                }
+              >
             {isOwn ? (
               <MomentViewersPanel
                 moment={current}
-                username={authentication.user.username}
                 onDelete={deleteCurrent}
+                onArchive={archiveCurrent}
                 onChanged={updateCurrent}
+                archived={archive}
               />
             ) : (
               <MomentSidePanel
@@ -449,6 +586,8 @@ function MomentViewer() {
                 onTyping={setHoldForInput}
               />
             )}
+              </div>
+            </div>
           </>
         )}
       </div>

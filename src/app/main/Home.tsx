@@ -613,6 +613,8 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
                   because a static first segment outscores a dynamic one - the
                   same reason /settings and /contacts coexist with it. */}
               <Route path="/post/:postID" element={<PostPage />} />
+              {/* Static "archive" outranks the :entityID segment. */}
+              <Route path="/moments/archive" element={<MomentViewer archive />} />
               <Route path="/moments/:entityID" element={<MomentViewer />} />
               {/* Ranked above "/:userID/*" by react-router's specificity
                   scoring - a static first segment beats a dynamic one - so a

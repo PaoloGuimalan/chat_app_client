@@ -8908,3 +8908,34 @@ body::-webkit-scrollbar-thumb:hover,
     width: 100%;
   }
 }
+
+/* Moments loaders (board tiles, archive grid, Thoughts rail). A plain
+   shimmering block rather than react-loading-skeleton: that library's inline
+   <span> + trailing <br> cannot fill an aspect-ratio box, so a 9:16 tile came
+   out as a thin bar at its top. */
+@keyframes cl-moment-shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}
+
+.cl-moment-skeleton {
+  display: block;
+  background: linear-gradient(
+    90deg,
+    var(--surface-3) 25%,
+    var(--surface-hover) 50%,
+    var(--surface-3) 75%
+  );
+  background-size: 200% 100%;
+  animation: cl-moment-shimmer 1.3s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-moment-skeleton {
+    animation: none;
+  }
+}

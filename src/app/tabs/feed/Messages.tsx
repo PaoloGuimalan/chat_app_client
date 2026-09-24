@@ -585,8 +585,6 @@ function Messages() {
             </div>
           </div>
 
-          <ThoughtsRail />
-
           <div
             className="cl-messages-shell__search"
             style={{ padding: isMobile ? "0 14px 8px" : "0 16px 10px" }}
@@ -614,6 +612,10 @@ function Messages() {
               style={{ width: "100%" }}
             />
           </div>
+
+          {/* Thoughts, under search and the list filters - just above the
+              conversations they lead into. */}
+          <ThoughtsRail />
 
           <div
             ref={divcontentRef}

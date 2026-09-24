@@ -454,6 +454,8 @@ export interface IPost {
   details?: { mood?: ThoughtMood; allow_replies?: boolean } | null;
   /** Moment endpoints only: whether the viewer has watched it. */
   seen?: boolean;
+  /** Moments only: see ISharedPreview. */
+  shared_preview?: ISharedPreview | null;
   date_posted: string;
   from_system: boolean;
   deleted_at: string | null | boolean;
@@ -1103,13 +1105,31 @@ export interface IEntityRef {
 }
 
 /** The newest moment of one author, as a board tile draws it. */
+/**
+ * What a shared-post moment draws without fetching the post: its author,
+ * caption and a thumbnail (the shared post's first photo/video, or the
+ * original's when that post is itself a share). `available` false = gone, or
+ * not yours to see - nothing else is sent then.
+ */
+export interface ISharedPreview {
+  post_id: string;
+  available: boolean;
+  author?: IEntityRef;
+  caption?: string;
+  is_share?: boolean;
+  thumbnail?: string | null;
+  media_type?: string | null;
+}
+
 export interface IMomentPreview {
   post_id: string;
   caption: string;
   is_shared: boolean;
   shared_post_id: string | null;
+  /** For a shared post: the shared post's thumbnail (see ISharedPreview). */
   thumbnail: string | null;
   media_type: string | null;
+  shared_preview?: ISharedPreview | null;
   date_posted: string;
   expires_at: string;
 }
@@ -1171,11 +1191,15 @@ export interface IThought {
 export interface IThoughtsRail {
   mine: IThought | null;
   results: IThought[];
+  /** Only when `results` is empty: connections, most-interacted first. */
+  suggestions?: IEntityRef[];
 }
 
 export interface IEphemeralViewer {
   entity: IEntityRef;
   viewed_at: string | null;
+  /** Latest of their view, reaction and reply - what the row's time shows. */
+  last_activity_at?: string | null;
   reaction: { emoji_id: string; emoji: string } | null;
   replied: boolean;
 }

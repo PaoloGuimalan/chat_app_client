@@ -296,7 +296,9 @@ function SendPostModal({
             disabled={sending}
             placeholder="Add a message (optional)"
             rows={2}
-            className="tw-w-full tw-p-[8px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] cl-text-body-sm tw-resize-none"
+            // shrink-0: a flex child under the (tall, scrolling) list, so it
+            // was the one that gave way - squeezed to a sliver of a box.
+            className="tw-shrink-0 tw-min-h-[64px] tw-box-border tw-w-full tw-p-[10px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] cl-text-body-sm tw-resize-none"
           />
 
           <div className="tw-w-full tw-flex tw-justify-end tw-gap-[6px]">

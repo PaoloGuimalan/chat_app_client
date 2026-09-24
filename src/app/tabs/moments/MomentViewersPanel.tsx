@@ -46,33 +46,55 @@ const footerBtn = {
  */
 function MomentViewersPanel({
   moment,
-  username,
   onDelete,
+  onArchive,
   onChanged,
+  archived = false,
 }: {
   moment: IPost;
-  username: string;
   onDelete: () => void;
+  /** Ends it now - it moves to your archive. */
+  onArchive: () => void;
   onChanged: (patch: Partial<IPost>) => void;
+  /**
+   * Played from the archive: it has expired, so there is nothing left to
+   * change - but who saw it, reacted and replied is still yours to see.
+   */
+  archived?: boolean;
 }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const [filter, setFilter] = useState<ViewerFilter>("all");
   const [data, setData] = useState<IEphemeralViewers | null>(null);
+  // Kept apart from the list: switching All / Reacted / Replied reloads the
+  // list, but the tab counts are the same for every filter and must not
+  // flash to 0 while it loads.
+  const [totals, setTotals] = useState<IEphemeralViewers["totals"] | null>(null);
   const [audienceOpen, setAudienceOpen] = useState(false);
   const [saving, setSaving] = useState(false);
 
   const alert = (type: string, content: string) =>
     dispatch({ type: SET_MUTATE_ALERTS, payload: { alerts: { type, content } } });
 
+  // A different moment: its counts are unknown until it loads.
+  useEffect(() => setTotals(null), [moment.post_id]);
+
   useEffect(() => {
+    let cancelled = false;
     setData(null);
     GetEphemeralViewersRequest("moment", moment.post_id, filter)
-      .then(setData)
-      .catch(() => setData({ count: 0, next: null, results: [], totals: { views: 0, reactions: 0, replies: 0 } }));
+      .then((res) => {
+        if (cancelled) return;
+        setData(res);
+        setTotals(res.totals);
+      })
+      .catch(() => !cancelled && setData({ count: 0, next: null, results: [], totals: { views: 0, reactions: 0, replies: 0 } }));
+    return () => {
+      cancelled = true;
+    };
   }, [moment.post_id, filter]);
 
-  const totals = data?.totals;
+  const count = (n: number | undefined) => (n === undefined ? "" : ` · ${n}`);
 
   const saveSettings = async (fields: { privacy_status?: EphemeralAudience; allow_replies?: boolean }) => {
     if (saving) return;
@@ -95,7 +117,7 @@ function MomentViewersPanel({
   };
 
   return (
-    <div style={{ width: 360, alignSelf: "stretch", maxHeight: 700, margin: "auto 0", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column", overflow: "hidden", flex: "none", position: "relative" }}>
+    <div style={{ width: "100%", height: "100%", textAlign: "left", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column", overflow: "hidden", flex: "none", position: "relative" }}>
       <div style={{ padding: "16px 16px 12px", borderBottom: "1px solid var(--border)", display: "flex", flexDirection: "column", gap: 12 }}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
@@ -112,9 +134,9 @@ function MomentViewersPanel({
         </div>
         <SegTabs
           tabs={[
-            { key: "all", label: `All · ${totals?.views ?? 0}` },
-            { key: "reacted", label: `Reacted · ${totals?.reactions ?? 0}` },
-            { key: "replied", label: `Replied · ${totals?.replies ?? 0}` },
+            { key: "all", label: `All${count(totals?.views)}` },
+            { key: "reacted", label: `Reacted${count(totals?.reactions)}` },
+            { key: "replied", label: `Replied${count(totals?.replies)}` },
           ]}
           value={filter}
           onChange={(k) => setFilter(k as ViewerFilter)}
@@ -137,7 +159,7 @@ function MomentViewersPanel({
                 {entityName(viewer.entity)}
               </span>
               <span style={{ fontSize: "var(--fs-meta)", color: "var(--text-3)" }}>
-                {timeAgoLabel(viewer.viewed_at)}
+                {timeAgoLabel(viewer.last_activity_at ?? viewer.viewed_at)}
                 {viewer.replied ? " · replied" : ""}
               </span>
             </div>
@@ -174,14 +196,18 @@ function MomentViewersPanel({
       )}
 
       <div style={{ padding: "12px 16px 14px", borderTop: "1px solid var(--border)", display: "flex", gap: 8 }}>
-        <button onClick={() => navigate(`/${username}?feed=archives`)} style={{ ...footerBtn, background: "var(--surface)", border: "1px solid var(--border-2)", color: "var(--text)" }}>
-          <Icon n="inventory_2" s={16} />
-          Archive
-        </button>
-        <button onClick={() => setAudienceOpen((o) => !o)} style={{ ...footerBtn, background: audienceOpen ? "var(--brand-soft)" : "var(--surface)", border: "1px solid var(--border-2)", color: "var(--text)" }}>
-          <Icon n="group" s={16} />
-          Audience
-        </button>
+        {!archived && (
+          <>
+            <button onClick={onArchive} style={{ ...footerBtn, background: "var(--surface)", border: "1px solid var(--border-2)", color: "var(--text)" }}>
+              <Icon n="inventory_2" s={16} />
+              Archive
+            </button>
+            <button onClick={() => setAudienceOpen((o) => !o)} style={{ ...footerBtn, background: audienceOpen ? "var(--brand-soft)" : "var(--surface)", border: "1px solid var(--border-2)", color: "var(--text)" }}>
+              <Icon n="group" s={16} />
+              Audience
+            </button>
+          </>
+        )}
         <button onClick={onDelete} style={{ ...footerBtn, background: "var(--pink-soft)", border: "none", color: "var(--pink)" }}>
           <Icon n="delete_outline" s={16} />
           Delete

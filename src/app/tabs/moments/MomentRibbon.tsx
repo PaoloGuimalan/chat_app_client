@@ -71,18 +71,28 @@ function MomentRibbon({
                 opacity: current ? 1 : entry.has_unseen ? 0.95 : expiring ? 0.5 : 0.6,
               }}
             >
-              <Avatar
-                id={entry.entity.id}
-                name={entityName(entry.entity)}
-                src={entityAvatar(entry.entity)}
-                size={size}
-                online={false}
+              {/* The ring on a ROUND wrapper - Avatar's own box is square
+                  (it hosts the presence marker), so a shadow on it drew a
+                  box around the face. */}
+              <span
                 style={{
+                  display: "flex",
+                  width: size,
+                  height: size,
+                  borderRadius: "50%",
                   boxShadow: current
                     ? "0 0 0 2px var(--surface), 0 0 0 4px var(--brand)"
                     : "0 0 0 2px var(--surface)",
                 }}
-              />
+              >
+                <Avatar
+                  id={entry.entity.id}
+                  name={entityName(entry.entity)}
+                  src={entityAvatar(entry.entity)}
+                  size={size}
+                  online={false}
+                />
+              </span>
             </button>
           );
         })}

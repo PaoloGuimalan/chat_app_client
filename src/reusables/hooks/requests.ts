@@ -3441,7 +3441,12 @@ const GetEphemeralViewersRequest = (
 /** The author changes a moment's audience or its "allow replies". */
 const UpdateMomentRequest = async (
   postId: string,
-  fields: { privacy_status?: EphemeralAudience; allow_replies?: boolean },
+  fields: {
+    privacy_status?: EphemeralAudience;
+    allow_replies?: boolean;
+    /** End it now: it leaves the board and moves to Archives. */
+    archive?: boolean;
+  },
 ) =>
   Axios.put(`${USER_SERVICE_API}/api/newsfeed/moments/${postId}/`, fields, {
     headers: authHeaders(),

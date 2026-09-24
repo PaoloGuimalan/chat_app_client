@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Modal from "@/app/reusables/Modal";
 import { Avatar, Btn, Icon, SegTabs, Toggle } from "@/reusables/design";
-import { CreateMomentRequest, UploadMediaRequest } from "@/reusables/hooks/requests";
+import { CreateMomentRequest, GetPostPreviewRequest, UploadMediaRequest } from "@/reusables/hooks/requests";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { getActiveAvatar } from "@/reusables/hooks/reusable";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
@@ -22,16 +22,55 @@ import {
 
 type MomentKind = "photo" | "video" | "shared";
 
+/**
+ * The ORIGINAL inside a shared post that is itself a share - one level, the
+ * same nesting a feed post card shows. Fetched on its own; a post that is
+ * gone or hidden says so rather than vanishing.
+ */
+function NestedOriginal({ postId }: { postId: string }) {
+  const [original, setOriginal] = useState<IPost | null | undefined>(undefined);
+  useEffect(() => {
+    let cancelled = false;
+    GetPostPreviewRequest({ postID: postId })
+      .then((post) => !cancelled && setOriginal(post ?? null))
+      .catch(() => !cancelled && setOriginal(null));
+    return () => {
+      cancelled = true;
+    };
+  }, [postId]);
+  if (original === undefined) {
+    return <div style={{ height: 60, borderRadius: "var(--r-sm)", background: "var(--surface-2)" }} />;
+  }
+  if (original === null) {
+    return (
+      <div style={{ padding: 10, borderRadius: "var(--r-sm)", border: "1px solid var(--border)", color: "var(--text-3)", fontSize: "var(--fs-caption)" }}>
+        The original post is no longer available.
+      </div>
+    );
+  }
+  return (
+    <div style={{ border: "1px solid var(--border)", borderRadius: "var(--r-md)", overflow: "hidden" }}>
+      <SharedPostCard post={original} compact nested />
+    </div>
+  );
+}
+
 /** The shared post as the preview and the viewer draw it: a card on a dark stage. */
 export function SharedPostCard({
   post,
   onOpen,
   compact = false,
+  nested = false,
 }: {
   post: IPost;
   onOpen?: () => void;
   compact?: boolean;
+  /** Drawn inside another shared post: flat, and never nests again. */
+  nested?: boolean;
 }) {
+  const reshared = post.file_type === "shared_post"
+    ? (post.references?.find((r: any) => r.reference_media_type?.includes("shared_post")) as any)?.reference
+    : null;
   const media = post.references?.find(
     (r: any) => r.reference_media_type && !r.reference_media_type.includes("shared_post"),
   ) as any;
@@ -40,8 +79,8 @@ export function SharedPostCard({
     <div
       style={{
         background: "var(--surface)",
-        borderRadius: "var(--r-md)",
-        boxShadow: "0 12px 40px rgba(0,0,0,.35)",
+        borderRadius: nested ? 0 : "var(--r-md)",
+        boxShadow: nested ? "none" : "0 12px 40px rgba(0,0,0,.35)",
         padding: compact ? 12 : 14,
         display: "flex",
         flexDirection: "column",
@@ -66,6 +105,7 @@ export function SharedPostCard({
           {post.caption}
         </span>
       )}
+      {reshared && !nested && <NestedOriginal postId={reshared} />}
       {media && (
         <div style={{ height: compact ? 100 : 150, borderRadius: "var(--r-sm)", overflow: "hidden", background: "var(--surface-2)" }}>
           {isVideo ? (
@@ -108,6 +148,11 @@ function CreateMomentModal({
     (state: any) => state.authentication,
   );
   const activeAvatar = getActiveAvatar(authentication);
+  // Narrow screens stack the preview over the form and scroll the whole
+  // modal; side by side they need ~760px, and below that the form was
+  // squeezed until "Share Moment" fell off the edge.
+  const screenWidth: number = useSelector((state: any) => state.screensizelistener?.W ?? window.innerWidth);
+  const compact = screenWidth < 760;
 
   const [kind, setKind] = useState<MomentKind>(sharedPost ? "shared" : "photo");
   const [file, setFile] = useState<File | null>(null);
@@ -196,15 +241,38 @@ function CreateMomentModal({
         // No "cl-redesign" here: Modal portals into the page's themed wrapper,
         // and a bare nested .cl-redesign resets to the LIGHT tokens.
         <div
-          style={{ width: "min(860px, calc(100vw - 24px))", height: "min(640px, calc(100vh - 24px))", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-lg)", display: "flex", overflow: "hidden" }}
+          style={{
+            width: compact ? "calc(100vw - 16px)" : "min(860px, calc(100vw - 24px))",
+            height: compact ? "calc(100vh - 16px)" : "min(640px, calc(100vh - 24px))",
+            background: "var(--surface)",
+            border: "1px solid var(--border)",
+            borderRadius: "var(--r-lg)",
+            boxShadow: "var(--shadow-lg)",
+            display: "flex",
+            flexDirection: compact ? "column" : "row",
+            overflowX: "hidden",
+            overflowY: compact ? "auto" : "hidden",
+          }}
         >
           {/* Preview */}
-          <div style={{ width: 380, flex: "none", background: "var(--surface-2)", display: "flex", alignItems: "center", justifyContent: "center", borderRight: "1px solid var(--border)" }}>
+          <div
+            style={{
+              width: compact ? "100%" : 380,
+              flex: "none",
+              padding: compact ? "14px 0" : 0,
+              background: "var(--surface-2)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              borderRight: compact ? "none" : "1px solid var(--border)",
+              borderBottom: compact ? "1px solid var(--border)" : "none",
+            }}
+          >
             <div
               style={{
-                width: 320,
-                height: 568,
-                maxHeight: "calc(100% - 32px)",
+                width: compact ? 200 : 320,
+                height: compact ? 356 : 568,
+                maxHeight: compact ? undefined : "calc(100% - 32px)",
                 borderRadius: "var(--r-lg)",
                 overflow: "hidden",
                 position: "relative",
@@ -224,7 +292,7 @@ function CreateMomentModal({
               <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg,rgba(0,0,0,.4),rgba(0,0,0,0) 22%,rgba(0,0,0,0) 70%,rgba(0,0,0,.45))", pointerEvents: "none" }} />
               <div style={{ position: "absolute", top: 12, left: 12, right: 12, height: 3, borderRadius: 2, background: "rgba(255,255,255,.5)" }} />
               <div style={{ position: "absolute", top: 24, left: 12, display: "flex", alignItems: "center", gap: 8, color: "#fff" }}>
-                <Avatar id={authentication.user.userID} name={activeAvatar.name} src={activeAvatar.src} size={30} online={false} style={{ boxShadow: "0 0 0 2px #fff" }} />
+                <span style={{ display: "inline-flex", borderRadius: "50%", boxShadow: "0 0 0 2px #fff", flex: "none" }}><Avatar id={authentication.user.userID} name={activeAvatar.name} src={activeAvatar.src} size={30} online={false} /></span>
                 <span style={{ fontSize: "var(--fs-body-sm)", fontWeight: 700 }}>Your Moment</span>
               </div>
               {caption.trim() && (
@@ -264,7 +332,7 @@ function CreateMomentModal({
           </div>
 
           {/* Form */}
-          <div style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column", padding: "20px 22px", overflowY: "auto" }}>
+          <div style={{ flex: compact ? "none" : 1, minWidth: 0, display: "flex", flexDirection: "column", padding: compact ? "16px" : "20px 22px", overflowY: compact ? "visible" : "auto" }}>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <span style={{ width: 34, height: 34, borderRadius: "var(--r-sm)", background: "var(--brand-soft)", display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -331,9 +399,9 @@ function CreateMomentModal({
               <Toggle on={allowReplies} onChange={setAllowReplies} />
             </div>
 
-            <div style={{ marginTop: "auto", display: "flex", alignItems: "center", gap: 8, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
+            <div style={{ marginTop: "auto", display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, paddingTop: 14, borderTop: "1px solid var(--border)" }}>
               <Icon n="timer" s={18} c="var(--text-3)" />
-              <span style={{ flex: 1, fontSize: "var(--fs-caption)", color: "var(--text-2)" }}>
+              <span style={{ flex: "1 1 160px", fontSize: "var(--fs-caption)", color: "var(--text-2)" }}>
                 Disappears from the feed after 24 hours
               </span>
               <Btn variant="outline" onClick={onClose} disabled={sharing}>Cancel</Btn>

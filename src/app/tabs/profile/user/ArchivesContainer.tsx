@@ -14,7 +14,7 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { genericpaginationstate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
-import { Card, SegTabs } from "@/reusables/design";
+import { Card, Icon } from "@/reusables/design";
 import MomentArchive from "@/app/tabs/moments/MomentArchive";
 import PostItem from "./PostItem";
 import ArchivePostItemLoader from "@/app/reusables/loaders/ArchivePostItemLoader";
@@ -183,24 +183,48 @@ function FeedArchive({
   );
 }
 
-/** Archives: your archived feed posts, and your expired Moments. */
+const ARCHIVE_TABS = [
+  { key: "feed", label: "Feed", icon: "article" },
+  { key: "moments", label: "Moments", icon: "timelapse" },
+] as const;
+
+/**
+ * Archives: your archived feed posts, and your expired Moments. The Feed /
+ * Moments bar is the Posts / Saves / Archives bar above it, repeated - same
+ * surface, width, button size and rounding - so the two read as one control.
+ */
 function ArchivesContainer({
   profileInfo,
 }: {
   profileInfo: ProfileUserInfoInterface;
 }) {
-  const [tab, setTab] = useState<string>("feed");
+  const [tab, setTab] = useState<"feed" | "moments">("feed");
+  const screensizelistener = useSelector((state: any) => state.screensizelistener);
+  const isMobileView = screensizelistener.W < 800;
   return (
     <Fragment>
-      <SegTabs
-        tabs={[
-          { key: "feed", label: "Feed", icon: "article" },
-          { key: "moments", label: "Moments", icon: "timelapse" },
-        ]}
-        value={tab}
-        onChange={setTab}
-        style={{ display: "flex", marginBottom: 8 }}
-      />
+      <div className="cl-profile-surface tw-w-full tw-h-fit tw-flex tw-mb-[6px]">
+        <div
+          className="tw-w-full tw-p-[10px] tw-flex tw-flex-row tw-flex-wrap tw-items-center tw-gap-[4px]"
+          style={{ justifyContent: isMobileView ? "center" : "flex-start" }}
+        >
+          {ARCHIVE_TABS.map((t) => (
+            <button
+              key={t.key}
+              data-active={tab === t.key}
+              onClick={() => setTab(t.key)}
+              style={{
+                backgroundColor: tab === t.key ? "var(--brand-soft)" : "transparent",
+                color: tab === t.key ? "var(--brand)" : "var(--text-2)",
+              }}
+              className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
+            >
+              <Icon n={t.icon} s={15} />
+              <span className="cl-text-caption tw-font-semibold">{t.label}</span>
+            </button>
+          ))}
+        </div>
+      </div>
       {tab === "feed" ? (
         <FeedArchive profileInfo={profileInfo} />
       ) : (

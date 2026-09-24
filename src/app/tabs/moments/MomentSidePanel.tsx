@@ -9,16 +9,12 @@ import {
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import type { Emoji, IPost } from "@/reusables/vars/interfaces";
 import { timeAgoLabel, timeLeftLabel } from "./ephemeral";
+import MomentThumb from "./MomentThumb";
 
 /** POST adds a reaction, PUT swaps it, DELETE takes it back. */
 const reactionMethod = (mine: string | null, picked: string) =>
   !mine ? "POST" : mine === picked ? "DELETE" : "PUT";
 
-const thumbOf = (post: IPost) => {
-  const ref = post.references?.[0] as any;
-  if (!ref || post.file_type === "shared_post") return null;
-  return ref.reference_media_type?.startsWith("video") ? null : ref.reference;
-};
 
 /**
  * The viewer's side panel for someone else's moment (design 1b): react, reply
@@ -98,10 +94,8 @@ function MomentSidePanel({
     }
   };
 
-  const thumb = thumbOf(moment);
-
   return (
-    <div style={{ width: 360, alignSelf: "stretch", maxHeight: 700, margin: "auto 0", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column", overflow: "hidden", flex: "none" }}>
+    <div style={{ width: "100%", height: "100%", textAlign: "left", background: "var(--surface)", border: "1px solid var(--border)", borderRadius: "var(--r-lg)", boxShadow: "var(--shadow-sm)", display: "flex", flexDirection: "column", overflow: "hidden", flex: "none" }}>
       <div style={{ padding: "16px 16px 14px", borderBottom: "1px solid var(--border)" }}>
         <span style={{ display: "block", fontSize: "var(--fs-meta)", fontWeight: 600, color: "var(--text-2)", marginBottom: 10 }}>React</span>
         {allowsReplies ? (
@@ -138,7 +132,7 @@ function MomentSidePanel({
         </div>
         <div style={{ background: "var(--surface-2)", border: "1px solid var(--border)", borderRadius: "var(--r-md)", padding: 10, display: "flex", flexDirection: "column", gap: 8 }}>
           <div style={{ alignSelf: "flex-end", display: "flex", alignItems: "center", gap: 8, padding: "6px 10px 6px 6px", borderRadius: 12, background: "var(--brand-soft)", maxWidth: "100%" }}>
-            <span style={{ width: 30, height: 38, borderRadius: 6, flex: "none", background: thumb ? `center / cover no-repeat url("${thumb}")` : "linear-gradient(165deg,#14233b,#3b6fe0)" }} />
+            <MomentThumb post={moment} style={{ width: 30, height: 38, borderRadius: 6 }} iconSize={14} />
             <span style={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
               <span style={{ fontSize: "var(--fs-meta)", fontWeight: 700, color: "var(--brand)" }}>Replying to {authorFirstName}'s Moment</span>
               <span style={{ fontSize: "var(--fs-meta)", color: "var(--text-2)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
@@ -182,7 +176,6 @@ function MomentSidePanel({
         </span>
         {moments.map((item, i) => {
           const now = i === index;
-          const itemThumb = thumbOf(item);
           const isVideo = (item.references?.[0] as any)?.reference_media_type?.startsWith("video");
           return (
             <button
@@ -190,7 +183,7 @@ function MomentSidePanel({
               onClick={() => onJump(i)}
               style={{ display: "flex", alignItems: "center", gap: 12, padding: "6px 8px", borderRadius: "var(--r-sm)", border: "none", cursor: "pointer", textAlign: "left", background: now ? "var(--brand-soft)" : "transparent" }}
             >
-              <span style={{ width: 34, height: 44, borderRadius: 7, flex: "none", boxSizing: "border-box", border: `2px solid ${now ? "var(--brand)" : "transparent"}`, background: itemThumb ? `center / cover no-repeat url("${itemThumb}")` : "linear-gradient(160deg,#14233b,#3b6fe0)" }} />
+              <MomentThumb post={item} style={{ width: 34, height: 44, borderRadius: 7, boxSizing: "border-box", border: `2px solid ${now ? "var(--brand)" : "transparent"}` }} />
               <span style={{ flex: 1, minWidth: 0, display: "flex", flexDirection: "column" }}>
                 <span style={{ fontSize: "var(--fs-body-sm)", fontWeight: now ? 700 : 600, color: "var(--text)", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                   {item.caption || (item.file_type === "shared_post" ? "Shared post" : "Moment")}

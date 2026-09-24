@@ -5,6 +5,7 @@ import { Avatar, Badge, Card, Icon } from "@/reusables/design";
 import { GetMomentTrayRequest } from "@/reusables/hooks/requests";
 import type { IMomentTray, IMomentTrayEntry } from "@/reusables/vars/interfaces";
 import CreateMomentModal from "./CreateMomentModal";
+import { MomentsBoardLoader } from "./MomentLoaders";
 import {
   MOMENTS_CHANGED_EVENT,
   entityAvatar,
@@ -20,11 +21,12 @@ const PLACEHOLDER_BG = "linear-gradient(160deg,#1c7def,#5aa9ff)";
 
 const tileBackground = (entry: IMomentTrayEntry) => {
   const latest = entry.latest;
-  if (latest.is_shared) return SHARED_BG;
+  // A shared post's thumbnail is the shared post's own photo (the server
+  // resolves it); only a text-only share falls back to the gradient.
   if (latest.thumbnail && !latest.media_type?.startsWith("video")) {
     return `center / cover no-repeat url("${latest.thumbnail}")`;
   }
-  return PLACEHOLDER_BG;
+  return latest.is_shared ? SHARED_BG : PLACEHOLDER_BG;
 };
 
 const typeIcon = (entry: IMomentTrayEntry) =>
@@ -76,7 +78,11 @@ function MomentsBoard() {
   const load = () =>
     GetMomentTrayRequest()
       .then(setTray)
-      .catch((err) => console.log(err));
+      .catch((err) => {
+        console.log(err);
+        // An empty board rather than a skeleton that never resolves.
+        setTray((prev) => prev ?? { results: [], new_count: 0, total: 0 });
+      });
 
   useEffect(() => {
     load();
@@ -124,6 +130,9 @@ function MomentsBoard() {
         )}
       </div>
 
+      {tray === null ? (
+        <MomentsBoardLoader />
+      ) : (
       <div className="cl-rail-track" style={{ display: "flex", gap: 8, height: 150, overflowX: "auto" }}>
         {featured && (
           <button
@@ -135,14 +144,18 @@ function MomentsBoard() {
             )}
             <div style={{ position: "absolute", inset: 0, background: "linear-gradient(90deg,rgba(0,0,0,.55) 0%,rgba(0,0,0,.1) 100%)" }} />
             <div style={{ position: "absolute", left: 10, top: 10, right: 10, display: "flex", alignItems: "center", gap: 6, color: "#fff" }}>
-              <Avatar
-                id={featured.entity.id}
-                name={entityFirstName(featured.entity)}
-                src={entityAvatar(featured.entity)}
-                size={24}
-                online={false}
-                style={{ boxShadow: "0 0 0 1.5px #fff" }}
-              />
+              {/* The white ring on a ROUND wrapper: Avatar's own box is
+                  square (it hosts the presence marker), so a shadow on it
+                  drew a white square. */}
+              <span style={{ display: "inline-flex", borderRadius: "50%", boxShadow: "0 0 0 1.5px #fff", flex: "none" }}>
+                <Avatar
+                  id={featured.entity.id}
+                  name={entityFirstName(featured.entity)}
+                  src={entityAvatar(featured.entity)}
+                  size={24}
+                  online={false}
+                />
+              </span>
               <span style={{ fontSize: "var(--fs-caption)", fontWeight: 700 }}>{entityFirstName(featured.entity)}</span>
               {typeIcon(featured) && <Icon n={typeIcon(featured)!} s={15} style={{ marginLeft: "auto" }} />}
             </div>
@@ -195,6 +208,7 @@ function MomentsBoard() {
           </div>
         )}
       </div>
+      )}
     </Card>
   );
 }
