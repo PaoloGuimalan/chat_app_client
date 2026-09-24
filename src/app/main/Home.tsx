@@ -15,6 +15,7 @@ import {
 import Contacts from "../tabs/feed/Contacts";
 import Notifications from "../tabs/feed/Notifications";
 import PostPage from "../tabs/feed/PostPage";
+import MomentViewer from "../tabs/moments/MomentViewer";
 import Messages from "../tabs/feed/Messages";
 import {
   CloseSSENotifications,
@@ -612,6 +613,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
                   because a static first segment outscores a dynamic one - the
                   same reason /settings and /contacts coexist with it. */}
               <Route path="/post/:postID" element={<PostPage />} />
+              <Route path="/moments/:entityID" element={<MomentViewer />} />
               {/* Ranked above "/:userID/*" by react-router's specificity
                   scoring - a static first segment beats a dynamic one - so a
                   topic slug is never mistaken for a username. */}

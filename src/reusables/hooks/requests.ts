@@ -19,7 +19,18 @@ import { convertLoginResponse, generateUUID, generateXNonce,
 } from "./reusable";
 import { ConvertedResponse } from "../vars/types";
 import { PaginationProp } from "../vars/props";
-import { IContact, INewEntry } from "../vars/interfaces";
+import {
+  EphemeralAudience,
+  IContact,
+  IEphemeralViewers,
+  IMomentRing,
+  IMomentTray,
+  INewEntry,
+  IPost,
+  IThought,
+  IThoughtsRail,
+  ThoughtMood,
+} from "../vars/interfaces";
 import { removeNullsFromObject } from "./validatevariables";
 import envs from "./env_configs";
 import {
@@ -1536,19 +1547,60 @@ const SendMessageRequest = (params: any) => {
     });
 };
 
+/** One destination for "Send in message". */
+export type SendPostTarget =
+  | { kind: "entity"; id: string } // a person or page - a chat is opened if needed
+  | { kind: "conversation"; id: string }; // a group chat or server channel
+
+export interface SendPostTargets {
+  direct: {
+    entity_id: string;
+    type: string;
+    display_name: string;
+    handle: string;
+    profile: string | null;
+  }[];
+  groups: { conversation_id: string; display_name: string; profile: string | null }[];
+  channels: {
+    conversation_id: string;
+    display_name: string;
+    server_name: string;
+    server_profile: string | null;
+  }[];
+}
+
 /**
- * "Send in message": a post into up to 10 of your conversations, each as a
- * message whose replyingTo is {type: "post", id} (server: /u/sendPost).
- * Resolves the per-conversation outcome; rejects only when the whole request
+ * Who "Send in message" can reach, filtered by `q`: people and pages (anyone
+ * matching - not only existing chats), your group chats, and the server
+ * channels you are in (server: /u/sendPostTargets).
+ */
+const GetSendPostTargetsRequest = async (q: string): Promise<SendPostTargets> =>
+  Axios.get(`${API}/u/sendPostTargets`, {
+    params: { q },
+    headers: { "x-access-token": localStorage.getItem("authtoken") },
+  })
+    .then((response) => {
+      if (!response.data.status) throw new Error(response.data.message);
+      return response.data.result;
+    })
+    .catch((err) => {
+      throw toRequestError(err);
+    });
+
+/**
+ * "Send in message": a post to up to 10 destinations, each as a message whose
+ * replyingTo is {type: "post", id} (server: /u/sendPost). A person or page
+ * gets a chat opened for them if there is none yet, the same way /m/crtc does.
+ * Resolves the outcome per destination; rejects only when the whole request
  * fails.
  */
 const SendPostRequest = async (params: {
   postID: string;
-  conversationIDs: string[];
+  targets: SendPostTarget[];
   content?: string;
 }): Promise<{
   sent: number;
-  results: { conversationID: string; status: boolean; message?: string }[];
+  results: (SendPostTarget & { status: boolean; message?: string })[];
 }> => {
   const encodedPayload = sign(params, SECRET);
 
@@ -1564,6 +1616,44 @@ const SendPostRequest = async (params: {
     .then((response) => response.data.result)
     .catch((err) => {
       console.log(err);
+      throw toRequestError(err);
+    });
+};
+
+const SendEphemeralReplyRequest = async (params: {
+  authorEntityId: string;
+  kind: "moment" | "thought";
+  postId: string;
+  content: string;
+}) => {
+  const conversationID = await CreateInitialConversation(params.authorEntityId);
+  if (!conversationID) {
+    throw new Error("We couldn't open your chat with them.");
+  }
+  return Axios.post(
+    `${API}/u/sendMessage`,
+    {
+      token: sign(
+        {
+          conversationID,
+          pendingID: `reply_${Date.now()}`,
+          receivers: [],
+          content: params.content,
+          isReply: true,
+          replyingTo: { type: params.kind, id: params.postId },
+          messageType: "text",
+          conversationType: "single",
+        },
+        SECRET,
+      ),
+    },
+    { headers: { "x-access-token": localStorage.getItem("authtoken") } },
+  )
+    .then((response) => {
+      if (!response.data.status) throw new Error(response.data.message);
+      return conversationID as string;
+    })
+    .catch((err) => {
       throw toRequestError(err);
     });
 };
@@ -3284,6 +3374,191 @@ const GetTopRealmsRequest = async (
     });
 };
 
+/* ── Moments & Thoughts ─────────────────────────────────────────────────
+ * Reads, views and edits: user_service newsfeed/moment_views.py.
+ * Creation: Node /posts/moments/create and /posts/thoughts/create (signed
+ * payload, like /posts/createpost). Deleting either is DeletePostRequest.
+ */
+
+const authHeaders = () => ({
+  "x-access-token": localStorage.getItem("authtoken"),
+});
+
+const userServiceGet = async <T,>(path: string): Promise<T> =>
+  Axios.get(`${USER_SERVICE_API}${path}`, { headers: authHeaders() })
+    .then((response) => response.data as T)
+    .catch((err) => {
+      throw toRequestError(err);
+    });
+
+const GetMomentTrayRequest = () =>
+  userServiceGet<IMomentTray>(`/api/newsfeed/moments/tray/`);
+
+/** Rings for a page of avatars, in one call. Absent = no live moment. */
+const GetMomentRingsRequest = async (
+  entityIds: string[],
+): Promise<Record<string, IMomentRing>> => {
+  const ids = [...new Set(entityIds.filter(Boolean))].slice(0, 100);
+  if (ids.length === 0) return {};
+  const data = await userServiceGet<{ results: Record<string, IMomentRing> }>(
+    `/api/newsfeed/moments/status/?entity_ids=${encodeURIComponent(ids.join(","))}`,
+  );
+  return data.results ?? {};
+};
+
+/** One author's live moments, oldest first (play order), each with `seen`. */
+const GetEntityMomentsRequest = async (entityId: string): Promise<IPost[]> => {
+  const data = await userServiceGet<{ results: IPost[] }>(
+    `/api/newsfeed/moments/entity/${entityId}/`,
+  );
+  return data.results ?? [];
+};
+
+const MarkEphemeralSeenRequest = async (
+  kind: "moment" | "thought",
+  postId: string,
+  duration = 0,
+) =>
+  Axios.post(
+    `${USER_SERVICE_API}/api/newsfeed/${kind}s/${postId}/seen/`,
+    { duration },
+    { headers: authHeaders() },
+  ).catch((err) => {
+    // A missed "seen" only leaves a ring blue; never worth interrupting over.
+    console.log(err);
+  });
+
+const GetEphemeralViewersRequest = (
+  kind: "moment" | "thought",
+  postId: string,
+  filter: "all" | "reacted" | "replied" = "all",
+  page = 1,
+) =>
+  userServiceGet<IEphemeralViewers>(
+    `/api/newsfeed/${kind}s/${postId}/viewers/?filter=${filter}&page=${page}`,
+  );
+
+/** The author changes a moment's audience or its "allow replies". */
+const UpdateMomentRequest = async (
+  postId: string,
+  fields: { privacy_status?: EphemeralAudience; allow_replies?: boolean },
+) =>
+  Axios.put(`${USER_SERVICE_API}/api/newsfeed/moments/${postId}/`, fields, {
+    headers: authHeaders(),
+  })
+    .then((response) => response.data)
+    .catch((err) => {
+      throw toRequestError(err);
+    });
+
+const GetMomentArchiveRequest = (page = 1) =>
+  userServiceGet<PaginationProp<IPost>>(
+    `/api/newsfeed/archive/moments/?page=${page}`,
+  );
+
+/**
+ * A new moment: ONE uploaded photo/video (`reference`, from
+ * UploadMediaRequest) OR one shared post (`sharedPostID`).
+ */
+const CreateMomentRequest = async (params: {
+  reference?: {
+    reference: string;
+    referenceMediaType: string;
+    name?: string;
+  } | null;
+  sharedPostID?: string | null;
+  caption: string;
+  privacy: EphemeralAudience;
+  allowReplies: boolean;
+}): Promise<{ post_id: string; expires_at: string }> =>
+  Axios.post(
+    `${API}/posts/moments/create`,
+    {
+      token: sign(
+        {
+          content: {
+            reference: params.reference ?? undefined,
+            sharedPostID: params.sharedPostID ?? undefined,
+            data: params.caption,
+          },
+          privacy: { status: params.privacy },
+          allowReplies: params.allowReplies,
+        },
+        SECRET,
+      ),
+    },
+    { headers: authHeaders() },
+  )
+    .then((response) => {
+      if (!response.data.status) throw new Error(response.data.message);
+      return response.data.result;
+    })
+    .catch((err) => {
+      throw toRequestError(err);
+    });
+
+const GetThoughtsRailRequest = () =>
+  userServiceGet<IThoughtsRail>(`/api/newsfeed/thoughts/rail/`);
+
+/** Live thoughts of these entities, for bubbles over their avatars. */
+const GetThoughtsRequest = async (
+  entityIds: string[],
+): Promise<Record<string, IThought>> => {
+  const ids = [...new Set(entityIds.filter(Boolean))].slice(0, 100);
+  if (ids.length === 0) return {};
+  const data = await userServiceGet<{ results: Record<string, IThought> }>(
+    `/api/newsfeed/thoughts/?entity_ids=${encodeURIComponent(ids.join(","))}`,
+  );
+  return data.results ?? {};
+};
+
+/** Your own thought, with `views` - the edit screen's "seen by N". */
+const GetOwnThoughtRequest = (postId: string) =>
+  userServiceGet<IThought>(`/api/newsfeed/thoughts/${postId}/`);
+
+const CreateThoughtRequest = async (params: {
+  text: string;
+  mood: ThoughtMood | null;
+  privacy: EphemeralAudience;
+}): Promise<{ post_id: string; expires_at: string }> =>
+  Axios.post(
+    `${API}/posts/thoughts/create`,
+    {
+      token: sign(
+        {
+          content: { text: params.text, mood: params.mood },
+          privacy: { status: params.privacy },
+        },
+        SECRET,
+      ),
+    },
+    { headers: authHeaders() },
+  )
+    .then((response) => {
+      if (!response.data.status) throw new Error(response.data.message);
+      return response.data.result;
+    })
+    .catch((err) => {
+      throw toRequestError(err);
+    });
+
+/** Edits a thought IN PLACE - its timer and views stay. */
+const UpdateThoughtRequest = async (
+  postId: string,
+  fields: {
+    text?: string;
+    mood?: ThoughtMood | null;
+    privacy_status?: EphemeralAudience;
+  },
+): Promise<IThought> =>
+  Axios.put(`${USER_SERVICE_API}/api/newsfeed/thoughts/${postId}/`, fields, {
+    headers: authHeaders(),
+  })
+    .then((response) => response.data)
+    .catch((err) => {
+      throw toRequestError(err);
+    });
+
 const DeletePostRequest = async (post_ids: string[]) => {
   return await Axios.delete(`${USER_SERVICE_API}/api/newsfeed/default`, {
     headers: {
@@ -4358,6 +4633,8 @@ export {
   ContactsListInitRequest,
   SendMessageRequest,
   SendPostRequest,
+  GetSendPostTargetsRequest,
+  SendEphemeralReplyRequest,
   SendFilesRequest,
   InitConversationRequest,
   InitConversationListRequest,
@@ -4423,6 +4700,19 @@ export {
   GetMyRealmsRequest,
   GetTopRealmsRequest,
   DeletePostRequest,
+  GetMomentTrayRequest,
+  GetMomentRingsRequest,
+  GetEntityMomentsRequest,
+  MarkEphemeralSeenRequest,
+  GetEphemeralViewersRequest,
+  UpdateMomentRequest,
+  GetMomentArchiveRequest,
+  CreateMomentRequest,
+  GetThoughtsRailRequest,
+  GetThoughtsRequest,
+  GetOwnThoughtRequest,
+  CreateThoughtRequest,
+  UpdateThoughtRequest,
   UpdatePostRequest,
   SavePostRequest,
   UnsavePostRequest,

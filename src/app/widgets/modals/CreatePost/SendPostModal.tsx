@@ -1,30 +1,84 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useMemo, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { useEffect, useState } from "react";
+import { useDispatch } from "react-redux";
 import { IoClose, IoCheckmarkCircle, IoSearch } from "react-icons/io5";
 import { PiPaperPlaneTiltFill } from "react-icons/pi";
 
 import Modal from "@/app/reusables/Modal";
-import { Avatar } from "@/reusables/design";
+import { Avatar, Icon } from "@/reusables/design";
 import {
-  InitConversationListRequest,
+  GetSendPostTargetsRequest,
   SendPostRequest,
+  type SendPostTarget,
+  type SendPostTargets,
 } from "@/reusables/hooks/requests";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
-import type { IConversation } from "@/reusables/vars/interfaces";
 
 // Server-side cap too (SEND_POST_MAX_CONVERSATIONS in /u/sendPost) - this only
 // stops the picker from offering an eleventh.
 const MAX_RECIPIENTS = 10;
 
-// How many conversations the picker loads. The list is recency-ordered, so
-// the ones you are likely to send to are at the top; search narrows it.
-const CONVERSATIONS_TO_LOAD = 50;
+// Searching waits for a pause in typing rather than firing on every key.
+const SEARCH_DELAY_MS = 250;
+
+const keyOf = (target: SendPostTarget) => `${target.kind}:${target.id}`;
+
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <span style={{ padding: "10px 8px 4px", fontSize: "var(--fs-meta)", fontWeight: 700, letterSpacing: "0.02em", textTransform: "uppercase", color: "var(--text-3)" }}>
+      {children}
+    </span>
+  );
+}
+
+function TargetRow({
+  selected,
+  disabled,
+  onToggle,
+  avatar,
+  title,
+  subtitle,
+}: {
+  selected: boolean;
+  disabled: boolean;
+  onToggle: () => void;
+  avatar: React.ReactNode;
+  title: string;
+  subtitle: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      disabled={disabled}
+      className="tw-w-full tw-flex tw-items-center tw-gap-[10px] tw-p-[8px] tw-rounded-[10px] tw-border-none tw-bg-transparent hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer tw-text-left disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed"
+    >
+      {avatar}
+      <div className="tw-flex-1 tw-min-w-0 tw-flex tw-flex-col">
+        <span className="cl-text-body-sm tw-text-[var(--text)] tw-font-semibold ellipsis-1-line">{title}</span>
+        <span className="cl-text-meta tw-text-[var(--text-3)] ellipsis-1-line">{subtitle}</span>
+      </div>
+      {selected ? (
+        <IoCheckmarkCircle style={{ fontSize: "22px", color: "var(--brand)", flex: "none" }} />
+      ) : (
+        <span className="tw-w-[20px] tw-h-[20px] tw-rounded-full tw-border tw-border-[var(--border-2)] tw-flex-none" />
+      )}
+    </button>
+  );
+}
 
 /**
- * "Send in message": pick up to 10 of your conversations - direct, group,
- * server channel or page thread - add an optional note, and the post arrives
- * in each as a message with the post as its reply card.
+ * "Send in message": pick up to 10 destinations and the post arrives in each
+ * as a message with the post as its reply card.
+ *
+ * Three sections, all filtered by the one search field:
+ *   Direct messages  people and pages - anyone, not only existing chats: a
+ *                    chat is opened for someone you have never messaged,
+ *                    the same way starting one from their profile does.
+ *   Group chats      the groups you are a member of.
+ *   Servers          the server channels you are in, labelled with their
+ *                    server.
  *
  * Opened from the post's Share menu, next to "Share to feed". Both count as a
  * share of the post.
@@ -37,53 +91,44 @@ function SendPostModal({
   onClose: () => void;
 }) {
   const dispatch = useDispatch();
-  // The chat list Home already loaded - shown immediately, then replaced by a
-  // longer fetch so the picker is not limited to the first page.
-  const cachedConversations: IConversation[] = useSelector(
-    (state: any) => state.messageslist ?? [],
-  );
 
-  const [conversations, setConversations] =
-    useState<IConversation[]>(cachedConversations);
-  const [loading, setLoading] = useState(cachedConversations.length === 0);
   const [query, setQuery] = useState("");
-  const [selected, setSelected] = useState<string[]>([]);
+  const [targets, setTargets] = useState<SendPostTargets | null>(null);
+  const [loading, setLoading] = useState(true);
+  // Remembers the NAME of what was picked, so a choice stays listed at the
+  // top even after the search changes and its row scrolls out of the results.
+  const [selected, setSelected] = useState<
+    { target: SendPostTarget; title: string; subtitle: string; avatar: any }[]
+  >([]);
   const [note, setNote] = useState("");
   const [sending, setSending] = useState(false);
 
   useEffect(() => {
     let alive = true;
-    InitConversationListRequest(1, CONVERSATIONS_TO_LOAD)
-      .then((response: any) => {
-        if (alive && Array.isArray(response?.items)) {
-          setConversations(response.items);
-        }
-      })
-      .finally(() => alive && setLoading(false));
+    setLoading(true);
+    const timer = setTimeout(() => {
+      GetSendPostTargetsRequest(query.trim())
+        .then((result) => alive && setTargets(result))
+        .catch(() => alive && setTargets({ direct: [], groups: [], channels: [] }))
+        .finally(() => alive && setLoading(false));
+    }, query ? SEARCH_DELAY_MS : 0);
     return () => {
       alive = false;
+      clearTimeout(timer);
     };
-  }, []);
+  }, [query]);
 
-  const visible = useMemo(() => {
-    const needle = query.trim().toLowerCase();
-    if (!needle) return conversations;
-    return conversations.filter((conversation) =>
-      [conversation.details?.display_name, conversation.details?.username]
-        .filter(Boolean)
-        .some((value) => String(value).toLowerCase().includes(needle)),
-    );
-  }, [conversations, query]);
-
+  const selectedKeys = new Set(selected.map((s) => keyOf(s.target)));
   const atLimit = selected.length >= MAX_RECIPIENTS;
 
-  const toggle = (conversationID: string) => {
+  const toggle = (target: SendPostTarget, title: string, subtitle: string, avatar: any) => {
+    const key = keyOf(target);
     setSelected((prev) =>
-      prev.includes(conversationID)
-        ? prev.filter((id) => id !== conversationID)
+      prev.some((s) => keyOf(s.target) === key)
+        ? prev.filter((s) => keyOf(s.target) !== key)
         : prev.length >= MAX_RECIPIENTS
           ? prev
-          : [...prev, conversationID],
+          : [...prev, { target, title, subtitle, avatar }],
     );
   };
 
@@ -94,7 +139,11 @@ function SendPostModal({
     if (sending || selected.length === 0) return;
     setSending(true);
 
-    SendPostRequest({ postID, conversationIDs: selected, content: note.trim() })
+    SendPostRequest({
+      postID,
+      targets: selected.map((s) => s.target),
+      content: note.trim(),
+    })
       .then((result) => {
         const failed = result.results.filter((r) => !r.status).length;
         if (result.sent === 0) {
@@ -107,22 +156,46 @@ function SendPostModal({
             ? `Sent to ${result.sent}, but ${failed} couldn't be reached.`
             : result.sent === 1
               ? "Post sent."
-              : `Post sent to ${result.sent} conversations.`,
+              : `Post sent to ${result.sent} chats.`,
         );
         onClose();
       })
-      .catch(() => alert("warning", "We couldn't send this post."))
+      .catch((err: any) => alert("warning", err?.message || "We couldn't send this post."))
       .finally(() => setSending(false));
   };
+
+  const row = (
+    target: SendPostTarget,
+    title: string,
+    subtitle: string,
+    avatar: React.ReactNode,
+  ) => {
+    const isSelected = selectedKeys.has(keyOf(target));
+    return (
+      <TargetRow
+        key={keyOf(target)}
+        selected={isSelected}
+        disabled={sending || (!isSelected && atLimit)}
+        onToggle={() => toggle(target, title, subtitle, avatar)}
+        avatar={avatar}
+        title={title}
+        subtitle={subtitle}
+      />
+    );
+  };
+
+  const empty =
+    targets &&
+    targets.direct.length === 0 &&
+    targets.groups.length === 0 &&
+    targets.channels.length === 0;
 
   return (
     <Modal
       component={
-        <div className="cl-profile-surface tw-w-[calc(100%-24px)] tw-max-w-[460px] tw-max-h-[80vh] tw-p-[18px] tw-flex tw-flex-col tw-gap-[12px] tw-rounded-[12px]">
+        <div className="cl-profile-surface tw-w-[calc(100%-24px)] tw-max-w-[460px] tw-max-h-[85vh] tw-p-[18px] tw-flex tw-flex-col tw-gap-[12px] tw-rounded-[12px]">
           <div className="tw-w-full tw-flex tw-items-center tw-gap-[8px]">
-            <span className="tw-flex-1 cl-text-body tw-font-semibold">
-              Send in message
-            </span>
+            <span className="tw-flex-1 cl-text-body tw-font-semibold">Send in message</span>
             <button
               onClick={onClose}
               disabled={sending}
@@ -138,77 +211,82 @@ function SendPostModal({
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search conversations"
+              placeholder="Search people, pages, groups and servers"
               className="tw-flex-1 tw-bg-transparent tw-border-none tw-outline-none tw-text-[var(--text)] cl-text-body-sm"
             />
           </label>
 
           <div className="tw-w-full tw-flex tw-justify-between cl-text-meta tw-text-[var(--text-3)]">
-            <span>
-              {selected.length} of {MAX_RECIPIENTS} selected
-            </span>
+            <span>{selected.length} of {MAX_RECIPIENTS} selected</span>
             {atLimit && <span>{MAX_RECIPIENTS} max</span>}
           </div>
 
-          <div className="tw-w-full tw-flex-1 tw-min-h-[120px] tw-overflow-y-auto tw-flex tw-flex-col tw-gap-[2px]">
-            {loading && conversations.length === 0 ? (
+          <div className="tw-w-full tw-flex-1 tw-min-h-[160px] tw-overflow-y-auto tw-flex tw-flex-col tw-gap-[2px]">
+            {selected.length > 0 && (
+              <>
+                <SectionLabel>Selected</SectionLabel>
+                {selected.map((s) => row(s.target, s.title, s.subtitle, s.avatar))}
+              </>
+            )}
+
+            {loading && !targets ? (
+              <span className="cl-text-caption tw-text-[var(--text-3)] tw-p-[8px]">Loading…</span>
+            ) : empty ? (
               <span className="cl-text-caption tw-text-[var(--text-3)] tw-p-[8px]">
-                Loading conversations…
-              </span>
-            ) : visible.length === 0 ? (
-              <span className="cl-text-caption tw-text-[var(--text-3)] tw-p-[8px]">
-                {query ? "No conversations match." : "You have no conversations yet."}
+                {query ? "No one matches that search." : "Search for someone to send this to."}
               </span>
             ) : (
-              visible.map((conversation) => {
-                const isSelected = selected.includes(conversation.conversationID);
-                const disabled = !isSelected && atLimit;
-                const isDirect = conversation.conversationType === "single";
-                return (
-                  <button
-                    key={conversation.conversationID}
-                    type="button"
-                    onClick={() => toggle(conversation.conversationID)}
-                    disabled={disabled || sending}
-                    className="tw-w-full tw-flex tw-items-center tw-gap-[10px] tw-p-[8px] tw-rounded-[10px] tw-border-none tw-bg-transparent hover:tw-bg-[var(--surface-hover)] tw-cursor-pointer tw-text-left disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed"
-                  >
-                    <Avatar
-                      src={
-                        conversation.details?.profile === "none"
-                          ? null
-                          : conversation.details?.profile
-                      }
-                      name={conversation.details?.display_name}
-                      id={conversation.conversationID}
-                      // Presence only for a person or page; a group or a
-                      // channel has no entity to be online.
-                      entityId={isDirect ? conversation.details?.entity_id : null}
-                      size={36}
-                    />
-                    <div className="tw-flex-1 tw-min-w-0 tw-flex tw-flex-col">
-                      <span className="cl-text-body-sm tw-text-[var(--text)] tw-font-semibold ellipsis-1-line">
-                        {conversation.details?.display_name}
-                      </span>
-                      <span className="cl-text-meta tw-text-[var(--text-3)]">
-                        {isDirect
-                          ? "Direct message"
-                          : conversation.conversationType === "group"
-                            ? "Group"
-                            : conversation.conversationType === "channel"
-                              ? "Server channel"
-                              : conversation.conversationType}
-                      </span>
-                    </div>
-                    {isSelected ? (
-                      <IoCheckmarkCircle
-                        style={{ fontSize: "22px", color: "var(--brand)" }}
-                      />
-                    ) : (
-                      <span className="tw-w-[20px] tw-h-[20px] tw-rounded-full tw-border tw-border-[var(--border-2)]" />
-                    )}
-                  </button>
-                );
-              })
+              targets && (
+                <>
+                  {targets.direct.length > 0 && (
+                    <>
+                      <SectionLabel>{query ? "People & pages" : "Direct messages"}</SectionLabel>
+                      {targets.direct
+                        .filter((d) => !selectedKeys.has(`entity:${d.entity_id}`))
+                        .map((d) =>
+                          row(
+                            { kind: "entity", id: d.entity_id },
+                            d.display_name,
+                            d.type === "realm" ? `Page · @${d.handle}` : `@${d.handle}`,
+                            <Avatar id={d.entity_id} entityId={d.entity_id} name={d.display_name} src={d.profile} size={36} kind={d.type} />,
+                          ),
+                        )}
+                    </>
+                  )}
+                  {targets.groups.length > 0 && (
+                    <>
+                      <SectionLabel>Group chats</SectionLabel>
+                      {targets.groups
+                        .filter((g) => !selectedKeys.has(`conversation:${g.conversation_id}`))
+                        .map((g) =>
+                          row(
+                            { kind: "conversation", id: g.conversation_id },
+                            g.display_name,
+                            "Group",
+                            <Avatar id={g.conversation_id} name={g.display_name} src={g.profile} size={36} shape="rounded" />,
+                          ),
+                        )}
+                    </>
+                  )}
+                  {targets.channels.length > 0 && (
+                    <>
+                      <SectionLabel>Servers</SectionLabel>
+                      {targets.channels
+                        .filter((c) => !selectedKeys.has(`conversation:${c.conversation_id}`))
+                        .map((c) =>
+                          row(
+                            { kind: "conversation", id: c.conversation_id },
+                            `# ${c.display_name}`,
+                            c.server_name ? `Server · ${c.server_name}` : "Server channel",
+                            <span style={{ width: 36, height: 36, borderRadius: "var(--r-sm)", background: "var(--gold-soft)", color: "var(--gold-700)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
+                              <Icon n="dns" s={19} />
+                            </span>,
+                          ),
+                        )}
+                    </>
+                  )}
+                </>
+              )
             )}
           </div>
 
@@ -235,11 +313,7 @@ function SendPostModal({
               className="cl-profile-action-button tw-flex tw-items-center tw-gap-[6px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-px-[12px] tw-rounded-[12px] cl-text-caption disabled:tw-opacity-[0.6] disabled:tw-cursor-not-allowed"
             >
               <PiPaperPlaneTiltFill />
-              {sending
-                ? "Sending…"
-                : selected.length > 1
-                  ? `Send to ${selected.length}`
-                  : "Send"}
+              {sending ? "Sending…" : selected.length > 1 ? `Send to ${selected.length}` : "Send"}
             </button>
           </div>
         </div>

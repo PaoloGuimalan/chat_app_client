@@ -25,6 +25,7 @@ import { IoMdClose } from "react-icons/io";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import SendPostModal from "@/app/widgets/modals/CreatePost/SendPostModal";
 import SharePostButton from "./SharePostButton";
+import CreateMomentModal from "@/app/tabs/moments/CreateMomentModal";
 import LoadedPostItem from "./LoadedPostItem";
 import { motion, useInView } from "framer-motion";
 import PostEmojis from "@/app/reusables/PostEmojis";
@@ -68,6 +69,7 @@ function PostItem({
   });
   const [toggleSendPostModal, settoggleSendPostModal] =
     useState<boolean>(false);
+  const [toggleAddToMoment, settoggleAddToMoment] = useState<boolean>(false);
   const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(mp);
@@ -811,6 +813,9 @@ function PostItem({
                                 onSendInMessage={() =>
                                   settoggleSendPostModal(true)
                                 }
+                                onAddToMoment={() =>
+                                  settoggleAddToMoment(true)
+                                }
                               />
                             )}
                             {postOwnerUserID === authentication.user.userID && (
@@ -958,6 +963,12 @@ function PostItem({
               postState.references.map((mpu: any, i: number) => {
                 return <LoadedPostItem key={i} postID={mpu.reference} />;
               })}
+            {toggleAddToMoment && (
+              <CreateMomentModal
+                sharedPost={postState}
+                onClose={() => settoggleAddToMoment(false)}
+              />
+            )}
             {toggleSendPostModal && (
               <SendPostModal
                 postID={postState.post_id}
@@ -1100,6 +1111,7 @@ function PostItem({
                       settoggleNewPostModal({ toggle: true, withImage: false })
                     }
                     onSendInMessage={() => settoggleSendPostModal(true)}
+                    onAddToMoment={() => settoggleAddToMoment(true)}
                   />
                 )}
                 {postOwnerUserID === authentication.user.userID && (

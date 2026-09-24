@@ -14,11 +14,12 @@ import { useSelector } from "react-redux";
 import { useParams } from "react-router-dom";
 import { genericpaginationstate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
-import { Card } from "@/reusables/design";
+import { Card, SegTabs } from "@/reusables/design";
+import MomentArchive from "@/app/tabs/moments/MomentArchive";
 import PostItem from "./PostItem";
 import ArchivePostItemLoader from "@/app/reusables/loaders/ArchivePostItemLoader";
 
-function ArchivesContainer({
+function FeedArchive({
   profileInfo,
 }: {
   profileInfo: ProfileUserInfoInterface;
@@ -178,6 +179,33 @@ function ArchivesContainer({
           <AiOutlineLoading3Quarters style={{ fontSize: "20px" }} />
         </motion.div>
       </motion.div>
+    </Fragment>
+  );
+}
+
+/** Archives: your archived feed posts, and your expired Moments. */
+function ArchivesContainer({
+  profileInfo,
+}: {
+  profileInfo: ProfileUserInfoInterface;
+}) {
+  const [tab, setTab] = useState<string>("feed");
+  return (
+    <Fragment>
+      <SegTabs
+        tabs={[
+          { key: "feed", label: "Feed", icon: "article" },
+          { key: "moments", label: "Moments", icon: "timelapse" },
+        ]}
+        value={tab}
+        onChange={setTab}
+        style={{ display: "flex", marginBottom: 8 }}
+      />
+      {tab === "feed" ? (
+        <FeedArchive profileInfo={profileInfo} />
+      ) : (
+        <MomentArchive />
+      )}
     </Fragment>
   );
 }

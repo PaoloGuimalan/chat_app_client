@@ -448,6 +448,12 @@ export interface IPost {
   is_live: boolean;
   is_archived: boolean;
   on_feed: string;
+  /** Moments and thoughts: when they stop being live. Null for feed posts. */
+  expires_at?: string | null;
+  /** Kind-specific settings: a thought's `mood`, a moment's `allow_replies`. */
+  details?: { mood?: ThoughtMood; allow_replies?: boolean } | null;
+  /** Moment endpoints only: whether the viewer has watched it. */
+  seen?: boolean;
   date_posted: string;
   from_system: boolean;
   deleted_at: string | null | boolean;
@@ -1081,6 +1087,104 @@ export interface ISavedPost {
   };
   saved_at: string;
   user: string;
+}
+
+/* ── Moments & Thoughts ─────────────────────────────────────────────────
+ * Server: user_service newsfeed/moment_views.py (reads, views, edits) and
+ * Node /posts/moments/create, /posts/thoughts/create (creation).
+ */
+
+/** An entity as EntitySerializer returns it - `details` is the account,
+ *  realm or bot row it stands for. */
+export interface IEntityRef {
+  id: string;
+  type: string;
+  details: any;
+}
+
+/** The newest moment of one author, as a board tile draws it. */
+export interface IMomentPreview {
+  post_id: string;
+  caption: string;
+  is_shared: boolean;
+  shared_post_id: string | null;
+  thumbnail: string | null;
+  media_type: string | null;
+  date_posted: string;
+  expires_at: string;
+}
+
+/** One author on the Moments board. */
+export interface IMomentTrayEntry {
+  entity: IEntityRef;
+  is_self: boolean;
+  moment_count: number;
+  unseen_count: number;
+  has_unseen: boolean;
+  /** Where the viewer opens this author: first unseen, else first. */
+  start_post_id: string;
+  latest_at: string;
+  latest: IMomentPreview;
+}
+
+export interface IMomentTray {
+  results: IMomentTrayEntry[];
+  /** Authors with something unseen - the board's "N new". */
+  new_count: number;
+  total: number;
+}
+
+/** For drawing a Moment ring on any avatar. */
+export interface IMomentRing {
+  has_moment: boolean;
+  has_unseen: boolean;
+  start_post_id: string;
+}
+
+export type ThoughtMood =
+  | "chilling"
+  | "busy"
+  | "focused"
+  | "traveling"
+  | "celebrating"
+  | "resting"
+  | "hungry";
+
+/** Who a moment or thought is shown to. ("Close" is designed but hidden
+ *  until a close-friends list exists.) */
+export type EphemeralAudience = "public" | "connections";
+
+export interface IThought {
+  post_id: string;
+  entity_id: string;
+  content: { text: string; mood: ThoughtMood | null };
+  privacy_status: string;
+  date_posted: string;
+  expires_at: string;
+  author?: IEntityRef;
+  /** Only on your own thought, from thoughts/<id>/ - the "seen by N". */
+  views?: number;
+  /** Your reaction to someone else's thought (emoji id), if any. */
+  my_reaction?: string | null;
+}
+
+export interface IThoughtsRail {
+  mine: IThought | null;
+  results: IThought[];
+}
+
+export interface IEphemeralViewer {
+  entity: IEntityRef;
+  viewed_at: string | null;
+  reaction: { emoji_id: string; emoji: string } | null;
+  replied: boolean;
+}
+
+export interface IEphemeralViewers {
+  count: number;
+  next: string | null;
+  results: IEphemeralViewer[];
+  totals: { views: number; reactions: number; replies: number };
 }
 
 /**

@@ -43,6 +43,7 @@ import {
 } from "@/reusables/design";
 import MessagesDefault from "../messenger/MessagesDefault";
 import ConversationV2 from "../messenger/ConversationV2";
+import { ThoughtsRail } from "../moments/Thoughts";
 
 const TYPE_CHECKER: Record<string, string> = {
   video: "a video",
@@ -583,6 +584,8 @@ function Messages() {
               )}
             </div>
           </div>
+
+          <ThoughtsRail />
 
           <div
             className="cl-messages-shell__search"

@@ -81,7 +81,13 @@ function Profile({
 
   const [isConnectionButtonsLoading, setisConnectionButtonsLoading] =
     useState<boolean>(false);
-  const [feedmode, setfeedmode] = useState<string>("posts");
+  // "?feed=archives" (e.g. from a Moment's "Archive" button) opens straight
+  // on the Archives tab.
+  const [feedmode, setfeedmode] = useState<string>(() =>
+    new URLSearchParams(window.location.search).get("feed") === "archives"
+      ? "archives"
+      : "posts",
+  );
 
   // Follow is entity->entity now, so a person can be followed exactly like a
   // page. Mirrored into local state so the button flips without a refetch.

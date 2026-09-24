@@ -26,7 +26,9 @@ import { motion } from "framer-motion";
 import PostEmojis from "@/app/reusables/PostEmojis";
 import { BiLike } from "react-icons/bi";
 import { LiaComment } from "react-icons/lia";
-import { PiShareFat } from "react-icons/pi";
+import SharePostButton from "./SharePostButton";
+import SendPostModal from "@/app/widgets/modals/CreatePost/SendPostModal";
+import CreateMomentModal from "@/app/tabs/moments/CreateMomentModal";
 import { BsPinMap } from "react-icons/bs";
 
 interface PostPreviewModalProps {
@@ -77,6 +79,8 @@ function PostPreviewModal({
   );
   const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
+  const [sendingPost, setSendingPost] = useState<boolean>(false);
+  const [addingToMoment, setAddingToMoment] = useState<boolean>(false);
 
   const textRef = useRef<HTMLSpanElement | null>(null);
   const textContainerRef = useRef<HTMLDivElement | null>(null);
@@ -547,14 +551,27 @@ function PostPreviewModal({
                   style={{ fontSize: "25px", color: "var(--text-2)" }}
                 />
               </button>
-              <button
-                onClick={onShare}
-                className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]"
-              >
-                <PiShareFat
-                  style={{ fontSize: "25px", color: "var(--text-2)" }}
+              {/* The same Share menu as a feed card: the repost goes through
+                  the parent's composer (onShare); sending into chats and
+                  adding to a Moment are handled here, so every surface that
+                  opens a post - its page, search, saved posts - gets all three. */}
+              <SharePostButton
+                onShareToFeed={onShare}
+                onSendInMessage={() => setSendingPost(true)}
+                onAddToMoment={() => setAddingToMoment(true)}
+              />
+              {sendingPost && (
+                <SendPostModal
+                  postID={post.post_id}
+                  onClose={() => setSendingPost(false)}
                 />
-              </button>
+              )}
+              {addingToMoment && (
+                <CreateMomentModal
+                  sharedPost={post}
+                  onClose={() => setAddingToMoment(false)}
+                />
+              )}
               {postOwnerUserID === authentication.user.entity_id && (
                 <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
                   <BsPinMap

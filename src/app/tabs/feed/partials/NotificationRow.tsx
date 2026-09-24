@@ -15,6 +15,8 @@ import "@/styles/styles.css";
 // type -> small badge icon on the avatar (detail rows), per the mockup.
 const TYPE_ICONS: Record<string, { icon: string; color: string }> = {
   post_reaction: { icon: "favorite", color: "var(--pink)" },
+  moment_reaction: { icon: "favorite", color: "var(--pink)" },
+  thought_reaction: { icon: "favorite", color: "var(--pink)" },
   post_comment: { icon: "mode_comment", color: "var(--green)" },
   tag_notification: { icon: "alternate_email", color: "var(--gold)" },
   shared_post_notification: { icon: "cached", color: "var(--brand)" },

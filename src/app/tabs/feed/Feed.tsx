@@ -15,6 +15,8 @@ import PagesBanner from "./banners/PagesBanner";
 import { Btn, Card, Icon, useTheme } from "@/reusables/design";
 import { Avatar } from "@/reusables/design/primitives2";
 import { getActiveAvatar } from "@/reusables/hooks/reusable";
+import MomentsBoard from "../moments/MomentsBoard";
+import CreateMomentModal from "../moments/CreateMomentModal";
 
 /**
  * `sidebar` renders to the RIGHT of the 680px column, inside this component's
@@ -35,6 +37,7 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
     useState<PaginationProp<IPost>>(postsliststate);
   const posts: IPost[] = paginatedPosts.results;
 
+  const [creatingMoment, setCreatingMoment] = useState(false);
   const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
     toggle: false,
     withImage: false,
@@ -159,6 +162,12 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
             />
           )}
 
+          {creatingMoment && (
+            <CreateMomentModal onClose={() => setCreatingMoment(false)} />
+          )}
+
+          <MomentsBoard />
+
           <Card pad={14} className="cl-bleed" style={{ marginBottom: 8 }}>
             <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
               <Avatar
@@ -229,6 +238,32 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
               >
                 <Icon n="image" s={20} c="var(--green)" />
                 Photo
+              </button>
+              <button
+                onClick={() => setCreatingMoment(true)}
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: 6,
+                  height: 34,
+                  padding: "0 12px",
+                  border: "none",
+                  background: "transparent",
+                  borderRadius: "var(--r-sm)",
+                  cursor: "pointer",
+                  color: "var(--text-2)",
+                  fontSize: "var(--fs-body-sm)",
+                  fontWeight: 600,
+                }}
+                onMouseEnter={(e) =>
+                  (e.currentTarget.style.background = "var(--surface-hover)")
+                }
+                onMouseLeave={(e) =>
+                  (e.currentTarget.style.background = "transparent")
+                }
+              >
+                <Icon n="timelapse" s={20} c="var(--brand)" />
+                Moment
               </button>
               <Btn
                 size="sm"
