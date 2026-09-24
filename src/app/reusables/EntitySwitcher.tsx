@@ -134,12 +134,15 @@ function EntitySwitcher({
           borderRadius: "50%",
         }}
       >
+        {/* No presence here: this is the account switcher, not a person in
+            a list - no green dot, no "Nm" pill. (Presence is resolved from
+            entityId inside Avatar, so it is left out on purpose.) */}
         <Avatar
           id={profileName}
-          entityId={activeEntity?.id ?? authentication.user.entity_id}
           name={profileName}
           src={profileSrc}
           size={size}
+          online={false}
         />
       </button>
 

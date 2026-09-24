@@ -60,7 +60,12 @@ function lastMessagePreview(
   if (msgslst.isDeleted) {
     return { text: `${senderPrefix}[Deleted message]` };
   }
-  if (msgslst.messageType === "text" || msgslst.messageType === "notif") {
+  // "post": a post sent with no note - the list text is "Sent a post".
+  if (
+    msgslst.messageType === "text" ||
+    msgslst.messageType === "notif" ||
+    msgslst.messageType === "post"
+  ) {
     return { text: `${senderPrefix}${msgslst.content || ""}`, html: true };
   }
   if (

@@ -2686,7 +2686,12 @@ function ConversationV2({
                 </span>
                 <span className="cl-text-caption tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
                   {isReplying.isReply &&
-                    (replyingToMessage?.messageType === "text" &&
+                    (replyingToMessage?.messageType === "post" ? (
+                      // A post sent with no note: say which post.
+                      (replyingToMessage as any)?.postcard
+                        ? replyTargetSummary((replyingToMessage as any).postcard)
+                        : "Sent a post"
+                    ) : replyingToMessage?.messageType === "text" &&
                     !String(replyingToMessage?.content ?? "").trim() &&
                     replyingToCard &&
                     replyingToCard.type !== "message" ? (

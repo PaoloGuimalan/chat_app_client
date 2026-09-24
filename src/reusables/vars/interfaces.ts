@@ -1238,6 +1238,11 @@ export interface ReplyTargetCard {
     profile: string | null;
   } | null;
   content?: {
+    /**
+     * message: when the quoted message had no text of its own (a sent post,
+     * a moment or thought reply) - the card it carried, drawn as the quote.
+     */
+    attached?: ReplyTargetCard;
     // message
     message_type?: string;
     text?: string;

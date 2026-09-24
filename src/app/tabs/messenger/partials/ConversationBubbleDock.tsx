@@ -33,7 +33,8 @@ function previewText(conversation: any, selfEntityID: string): string {
   }
   if (
     conversation.messageType === "text" ||
-    conversation.messageType === "notif"
+    conversation.messageType === "notif" ||
+    conversation.messageType === "post"
   ) {
     const parsed = new DOMParser().parseFromString(
       conversation.content || "",

@@ -1,20 +1,22 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import CachedImage from "@/app/reusables/cachers/CachedImage";
-import {
+import { ProfileUserInfoInterface,
   AuthenticationInterface,
   IPost,
   IRealmProfileInfo,
 } from "@/reusables/vars/interfaces";
 // import { IoArrowBack } from "react-icons/io5";
 import { useNavigate, useParams } from "react-router-dom";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { Fragment, useEffect, useMemo, useRef, useState } from "react";
 import ProfileCoverContainer from "./ProfileCoverContainer";
 import ProfilePicContainer from "./ProfilePicContainer";
 import { motion } from "framer-motion";
 import { PaginationProp } from "@/reusables/vars/props";
 import { postsliststate } from "@/redux/actions/states";
 import PostItem from "./PostItem";
+import SavesContainer from "./SavesContainer";
+import ArchivesContainer from "./ArchivesContainer";
 import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 import { FaFileAlt } from "react-icons/fa";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -45,6 +47,14 @@ import {
 import { PiShareFat } from "react-icons/pi";
 import { SET_MINIMIZED_CONVERSATION } from "@/redux/types";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
+
+
+type RealmFeedMode = "posts" | "saves" | "archives";
+const REALM_FEED_TABS: { key: RealmFeedMode; label: string }[] = [
+  { key: "posts", label: "Posts" },
+  { key: "saves", label: "Saves" },
+  { key: "archives", label: "Archives" },
+];
 
 function RealmProfile({
   realmInfo,
@@ -107,6 +117,19 @@ function RealmProfile({
   // than the personal account, or the page itself) is this exact page -
   // not just "do I administer it". A page can't follow or message itself.
   const isSelf = authentication.active_entity_context.id === realmInfo.entity;
+
+  // Which list the feed column shows - only the page's own acting admin gets
+  // the choice. "?feed=archives" (a Moment's Archive link) opens on Archives.
+  const [feedmode, setfeedmode] = useState<RealmFeedMode>(() => {
+    const feed = new URLSearchParams(window.location.search).get("feed");
+    return feed === "archives" || feed === "saves" ? feed : "posts";
+  });
+  const isMobileView = screensizelistener.W < 800;
+  // The containers only use it to know when to refetch; one per page.
+  const feedProfileInfo = useMemo(
+    () => ({ id: realmInfo.entity }) as unknown as ProfileUserInfoInterface,
+    [realmInfo.entity],
+  );
 
   // A "page" is the standalone, followable realm type; servers/groups/channels
   // are membership spaces you leave rather than block. Both are reportable -
@@ -769,6 +792,36 @@ function RealmProfile({
           </div>
         </div>
         <div className="cl-profile-page__feed tw-w-full tw-pb-[16px] tw-flex tw-flex-col tw-items-center tw-gap-[0px]">
+          {/* Posts / Saves / Archives - the user profile's bar, for the page
+              you are acting as (saved and archived lists are the ACTING
+              entity's own, so the server returns this page's). */}
+          {isSelf && (
+            <div className="cl-profile-surface cl-profile-page__feed-nav tw-w-full tw-h-fit tw-flex tw-mb-[6px]">
+              <div
+                className="tw-w-full tw-p-[10px] tw-flex tw-flex-row tw-flex-wrap tw-items-center tw-gap-[4px]"
+                style={{ justifyContent: isMobileView ? "center" : "flex-start" }}
+              >
+                {REALM_FEED_TABS.map((t) => (
+                  <button
+                    key={t.key}
+                    data-active={feedmode === t.key}
+                    onClick={() => setfeedmode(t.key)}
+                    style={{
+                      backgroundColor: feedmode === t.key ? "var(--brand-soft)" : "transparent",
+                      color: feedmode === t.key ? "var(--brand)" : "var(--text-2)",
+                    }}
+                    className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
+                  >
+                    <span className="cl-text-caption tw-font-semibold">{t.label}</span>
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+          {feedmode === "saves" && isSelf && <SavesContainer profileInfo={feedProfileInfo} />}
+          {feedmode === "archives" && isSelf && <ArchivesContainer profileInfo={feedProfileInfo} />}
+          {(feedmode === "posts" || !isSelf) && (
+            <Fragment>
           {toggleNewPostModal.toggle && realmInfo.is_admin && (
             <NewPostModal
               toShare={false}
@@ -966,6 +1019,8 @@ function RealmProfile({
                 );
               })}
             </div>
+          )}
+            </Fragment>
           )}
         </div>
       </div>

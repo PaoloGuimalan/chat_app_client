@@ -18,7 +18,7 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import MessageContent from "./MessageContent";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
-import { AuthenticationInterface } from "@/reusables/vars/interfaces";
+import { AuthenticationInterface, ReplyTargetCard } from "@/reusables/vars/interfaces";
 import { useTheme } from "@/reusables/design";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import {
@@ -254,10 +254,17 @@ function ContentHandler({
   // card above IS the message. Its bubble drops its colour and (empty) text -
   // it used to render as a thin blue pill - and keeps only the time and the
   // reactions, which still belong to this message.
+  // A post sent with no note is its own message type ("post"): its card,
+  // server-built as `postcard`, is the whole message. Older stored sends (an
+  // empty text reply to a post) still take the same path via replyCard.
+  const isPostMessage = cnvs.messageType === "post";
+  const postCard: ReplyTargetCard | null = isPostMessage ? ((cnvs as any).postcard ?? null) : null;
   const isCardOnly =
-    !!replyCard && replyCard.type !== "message" && !String(cnvs.content ?? "").trim();
+    !!postCard ||
+    (!!replyCard && replyCard.type !== "message" && !String(cnvs.content ?? "").trim());
 
   const renderReplyLabel = () => {
+    if (postCard) return <span className="span_sender_reply_label">sent a post</span>;
     if (!replyCard) return null;
 
     if (replyCard.type === "message") {
@@ -291,9 +298,19 @@ function ContentHandler({
   };
 
   const renderReplyPreview = () => {
+    if (postCard) {
+      return <ReplyTargetPreview card={postCard} yourReply={isCurrentUserSender} />;
+    }
     if (!replyCard) return null;
 
     if (replyCard.type === "message") {
+      // Quoting a message that had no text of its own - a sent post, a
+      // moment or thought reply: the quote IS the card it carried.
+      if (replyCard.content?.attached) {
+        return (
+          <ReplyTargetPreview card={replyCard.content.attached} yourReply={isCurrentUserSender} />
+        );
+      }
       // Quoting a message that had no text (a sent post, a moment or thought
       // reply): the server labels it ("Sent a post") - show that, not a
       // blank quote.
@@ -475,7 +492,7 @@ function ContentHandler({
       </motion.div>
     );
   } else {
-    if (cnvs.messageType == "text") {
+    if (cnvs.messageType == "text" || isPostMessage) {
       return (
         <motion.div ref={ref} className="div_messages_result tw-items-center">
           {cnvs.sender === authentication.user.entity_id && (
@@ -577,7 +594,9 @@ function ContentHandler({
               */}
               {!isCardOnly && (
                 <MessageContent
-                  content={cnvs.content}
+                  // A post message without its card (an older server) says
+                  // what it is rather than showing the post id.
+                  content={isPostMessage ? "Sent a post" : cnvs.content}
                   members={members ?? []}
                   commands={commands ?? []}
                 />
