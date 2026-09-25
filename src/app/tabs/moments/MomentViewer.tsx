@@ -35,12 +35,20 @@ import {
   timeLeftLabel,
   canUnarchive,
   naturalEndOf,
+  isStillPhoto,
+  posterOf,
+  STILL_PHOTO_MS,
 } from "./ephemeral";
 
 /** Below this the side panel stacks under the stage instead of beside it. */
 const SIDE_BY_SIDE_MIN_WIDTH = 1000;
 
-/** How long a photo (or a shared post) stays up before the next one. */
+/**
+ * How long a photo uploaded as an image (the web's) or a shared post stays
+ * up - the same 6s the app uses. A device-encoded still photo uses its own
+ * length (STILL_PHOTO_MS); a video, or a photo with sound, plays for its own
+ * length.
+ */
 const PHOTO_MS = 6000;
 
 const mediaOf = (post: IPost | undefined) =>
@@ -309,19 +317,24 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
       .catch(() => setSharedPosts((map) => ({ ...map, [sharedId]: null })));
   }, [current?.post_id]);
 
-  const isVideo = !!mediaOf(current)?.reference_media_type?.startsWith("video");
+  // A photo without sound is a 30s still video: shown as its poster for its
+  // whole length (the same picture, without loading the file). A photo WITH
+  // sound, or a video, plays as a video.
+  const stillPhoto = isStillPhoto(current);
+  const photoMs = stillPhoto ? current?.details?.duration_ms || STILL_PHOTO_MS : PHOTO_MS;
+  const isVideo = !stillPhoto && !!mediaOf(current)?.reference_media_type?.startsWith("video");
   const stopped = paused || holdForInput || menuOpen || reporting;
 
   // Photos and shared posts: a timer. Videos drive progress themselves.
   useEffect(() => {
     if (!current || isVideo || stopped) return;
-    const started = Date.now() - progress * PHOTO_MS;
+    const started = Date.now() - progress * photoMs;
     const timer = setInterval(() => {
       if (!archive && isExpired(current.expires_at)) {
         next();
         return;
       }
-      const fraction = (Date.now() - started) / PHOTO_MS;
+      const fraction = (Date.now() - started) / photoMs;
       if (fraction >= 1) {
         clearInterval(timer);
         next();
@@ -330,7 +343,7 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
       }
     }, 60);
     return () => clearInterval(timer);
-  }, [current?.post_id, isVideo, stopped]);
+  }, [current?.post_id, isVideo, stopped, photoMs]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -804,6 +817,8 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                     key={current.post_id}
                     ref={videoRef}
                     src={media?.reference}
+                    // The poster while it buffers - not a black frame.
+                    poster={posterOf(current) ?? undefined}
                     muted={muted}
                     autoPlay
                     playsInline
@@ -825,7 +840,7 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                 ) : (
                   <img
                     key={current.post_id}
-                    src={media?.reference}
+                    src={stillPhoto ? posterOf(current) ?? media?.reference : media?.reference}
                     alt=""
                     style={{
                       position: "absolute",
@@ -886,9 +901,11 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                 >
                   {isSharedMoment(current)
                     ? "shared post"
-                    : isVideo
-                      ? "video"
-                      : "photo"}
+                    : // what it was MADE from: a photo with sound plays as
+                      // a video but is still a photo
+                      current.details?.source === "photo" || !isVideo
+                      ? "photo"
+                      : "video"}
                 </span>
               </div>
 

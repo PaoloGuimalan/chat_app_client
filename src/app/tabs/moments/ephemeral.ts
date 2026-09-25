@@ -156,3 +156,19 @@ export const naturalEndOf = (post: { date_posted?: string | null }): string | nu
   post.date_posted
     ? new Date(new Date(post.date_posted).getTime() + EPHEMERAL_LIFETIME_MS).toISOString()
     : null;
+
+/** A device-encoded moment's poster (the still for tiles, buffering). */
+export const posterOf = (post: { details?: { poster?: { url?: string } | null } | null } | null | undefined) =>
+  post?.details?.poster?.url || null;
+
+/** How long a still photo moment (a photo without sound) lasts. */
+export const STILL_PHOTO_MS = 30_000;
+
+/**
+ * A photo moment without sound: stored as a 30s still video and shown for
+ * its whole length - as its POSTER image, which looks the same (it is a
+ * still, silent) without loading the video file at all.
+ */
+export const isStillPhoto = (
+  post: { details?: { source?: string; has_audio?: boolean } | null } | null | undefined,
+) => post?.details?.source === "photo" && !post?.details?.has_audio;

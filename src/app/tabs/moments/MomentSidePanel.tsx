@@ -176,7 +176,10 @@ function MomentSidePanel({
         </span>
         {moments.map((item, i) => {
           const now = i === index;
-          const isVideo = (item.references?.[0] as any)?.reference_media_type?.startsWith("video");
+          // A photo (even encoded as a video) is not shown with a play icon.
+          const isVideo = item.details?.source
+            ? item.details.source === "video"
+            : (item.references?.[0] as any)?.reference_media_type?.startsWith("video");
           return (
             <button
               key={item.post_id}

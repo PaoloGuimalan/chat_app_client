@@ -29,12 +29,18 @@ const tileBackground = (entry: IMomentTrayEntry) => {
   return latest.is_shared ? SHARED_BG : PLACEHOLDER_BG;
 };
 
+// Encoded moments carry `source` (their thumbnail is a poster image, so the
+// media type no longer says "video"); older ones only their media type.
 const typeIcon = (entry: IMomentTrayEntry) =>
   entry.latest.is_shared
     ? "repeat"
-    : entry.latest.media_type?.startsWith("video")
-      ? "play_circle"
-      : null;
+    : entry.latest.source
+      ? entry.latest.source === "video"
+        ? "play_circle"
+        : null
+      : entry.latest.media_type?.startsWith("video")
+        ? "play_circle"
+        : null;
 
 /** The first frame of a video moment, drawn under its tile's gradient. */
 function VideoFrame({ src }: { src: string }) {

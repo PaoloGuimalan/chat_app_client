@@ -450,8 +450,13 @@ export interface IPost {
   on_feed: string;
   /** Moments and thoughts: when they stop being live. Null for feed posts. */
   expires_at?: string | null;
-  /** Kind-specific settings: a thought's `mood`, a moment's `allow_replies`. */
-  details?: { mood?: ThoughtMood; allow_replies?: boolean } | null;
+  /**
+   * Kind-specific settings: a thought's `mood`, a moment's `allow_replies`;
+   * and for a moment encoded on the device (the app's editor) what it was
+   * made from, whether it has sound, its poster (the still every tile shows)
+   * and its length. See IMomentMediaDetails.
+   */
+  details?: ({ mood?: ThoughtMood; allow_replies?: boolean } & IMomentMediaDetails) | null;
   /** Moment endpoints only: whether the viewer has watched it. */
   seen?: boolean;
   /** Moments only: see ISharedPreview. */
@@ -1121,6 +1126,19 @@ export interface ISharedPreview {
   media_type?: string | null;
 }
 
+/**
+ * A moment encoded on the device: always an MP4, with a poster image, and it
+ * always plays to its end - a PHOTO without sound is a 30s still (viewers can
+ * show its poster for the length), a photo WITH sound runs for its audio, a
+ * video for itself.
+ */
+export interface IMomentMediaDetails {
+  source?: "photo" | "video";
+  has_audio?: boolean;
+  poster?: { url: string; w?: number; h?: number } | null;
+  duration_ms?: number;
+}
+
 export interface IMomentPreview {
   post_id: string;
   caption: string;
@@ -1130,6 +1148,10 @@ export interface IMomentPreview {
   thumbnail: string | null;
   media_type: string | null;
   shared_preview?: ISharedPreview | null;
+  /** Encoded on the device: see IMomentMediaDetails (thumbnail is then the poster). */
+  source?: "photo" | "video" | null;
+  has_audio?: boolean | null;
+  duration_ms?: number | null;
   date_posted: string;
   expires_at: string;
 }

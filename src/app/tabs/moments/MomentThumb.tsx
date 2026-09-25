@@ -2,6 +2,7 @@
 import type { CSSProperties } from "react";
 import { Icon } from "@/reusables/design";
 import type { IPost } from "@/reusables/vars/interfaces";
+import { posterOf } from "./ephemeral";
 
 const SHARED_BG = "linear-gradient(165deg,#14233b,#3b6fe0)";
 const FILL: CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" };
@@ -16,8 +17,14 @@ const FILL: CSSProperties = { position: "absolute", inset: 0, width: "100%", hei
 function MomentThumb({ post, style, iconSize = 16 }: { post: IPost; style?: CSSProperties; iconSize?: number }) {
   const shared = post.file_type === "shared_post";
   const ref = post.references?.[0] as any;
-  const src: string | null | undefined = shared ? post.shared_preview?.thumbnail : ref?.reference;
-  const type: string | null | undefined = shared ? post.shared_preview?.media_type : ref?.reference_media_type;
+  // Encoded on the device: its poster is the still - never load the video.
+  const poster = posterOf(post);
+  const src: string | null | undefined = shared ? post.shared_preview?.thumbnail : poster ?? ref?.reference;
+  const type: string | null | undefined = shared
+    ? post.shared_preview?.media_type
+    : poster
+      ? "image/jpeg"
+      : ref?.reference_media_type;
   const isVideo = !!type?.startsWith("video");
   return (
     <span style={{ position: "relative", display: "inline-block", overflow: "hidden", flex: "none", background: SHARED_BG, ...style }}>
