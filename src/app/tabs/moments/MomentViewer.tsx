@@ -625,10 +625,12 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
 
         {current && author && (
           <>
-            {/* Stage */}
+            {/* Stage - as wide as a 9:16 moment that fits the height allows,
+                so the moment fills it the way it fills a phone. */}
             <div
               style={{
-                width: "min(460px, 100%)",
+                width:
+                  "min(460px, 100%, max(300px, calc((100vh - var(--header-h) - 190px) * 9 / 16)))",
                 flex: "none",
                 display: "flex",
                 flexDirection: "column",
@@ -720,8 +722,8 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                 style={{
                   position: "relative",
                   width: "100%",
-                  aspectRatio: "4 / 5",
-                  maxHeight: "calc(100vh - var(--header-h) - 190px)",
+                  // The shape Moments are made in (the app renders 9:16).
+                  aspectRatio: "9 / 16",
                   borderRadius: "var(--r-lg)",
                   overflow: "hidden",
                   background: isSharedMoment(current)
