@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Dispatch, SetStateAction } from "react";
+import { CSSProperties, Dispatch, SetStateAction } from "react";
 import { PostActivityEvent } from "@/reusables/hooks/postRealtime";
 import {
   ConversationInfoInterface,
@@ -154,4 +154,7 @@ export interface CachedImageProp {
   id?: string;
   onLoad?: () => void;
   onClick?: () => void;
+  // For sizes that are computed at runtime (a fitted post image). `tw-*`
+  // classes are all !important, so a computed size has to come this way.
+  style?: CSSProperties;
 }

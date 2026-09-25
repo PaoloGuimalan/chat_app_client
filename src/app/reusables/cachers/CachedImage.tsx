@@ -5,7 +5,7 @@ import DefaultProfile from "../../../assets/imgs/default.png";
 
 const CachedImage = forwardRef(
   (
-    { src, className, id, onLoad, onClick }: CachedImageProp,
+    { src, className, id, onLoad, onClick, style }: CachedImageProp,
     ref?: LegacyRef<HTMLImageElement>,
   ) => {
     const [workingURL, setworkingURL] = useState<string | null | undefined>(
@@ -31,6 +31,7 @@ const CachedImage = forwardRef(
           id={id}
           title="Tap to Refresh"
           className={`${className} img-placeholder`}
+          style={style}
           onLoad={onLoad}
           onClick={() => {
             setonError(false);
@@ -41,6 +42,7 @@ const CachedImage = forwardRef(
           ref={ref || null}
           id={id}
           className={className}
+          style={style}
           src={workingURL}
           onLoad={onLoad}
           onClick={onClick}

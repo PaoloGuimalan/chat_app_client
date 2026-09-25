@@ -27,6 +27,7 @@ import SendPostModal from "@/app/widgets/modals/CreatePost/SendPostModal";
 import SharePostButton from "./SharePostButton";
 import CreateMomentModal from "@/app/tabs/moments/CreateMomentModal";
 import LoadedPostItem from "./LoadedPostItem";
+import FittedPostMedia from "./FittedPostMedia";
 import { motion, useInView } from "framer-motion";
 import PostEmojis from "@/app/reusables/PostEmojis";
 import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
@@ -872,28 +873,35 @@ function PostItem({
               />
             )}
             {postState.references.length > 0 && !postState.is_shared && (
-              <div className="cl-feed-card__media-grid tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px] tw-min-h-[400px]">
+              <div
+                className={`cl-feed-card__media-grid tw-w-[calc(100%+40px)] tw-flex tw-flex-row tw-flex-wrap tw-gap-[2px] ${
+                  // A lone photo or video is as tall as its own shape; the
+                  // grid's floor would pad a landscape one out with empty space.
+                  postState.references.length === 1 &&
+                  /image|video/.test(postState.references[0].reference_media_type)
+                    ? ""
+                    : "tw-min-h-[400px]"
+                }`}
+              >
                 {" "}
                 {/**tw-bg-[var(--surface-2)]*/}
                 {postState.references.map((mpu: IReference, i: number) => {
                   if (i <= 3) {
                     if (mpu.reference_media_type.includes("image")) {
                       if (postState.references.length === 1) {
+                        // Alone, a photo spans the card at its own height (up
+                        // to a cap), rather than a fixed 500px-tall crop.
                         return (
-                          <div
+                          <FittedPostMedia
+                            key={mpu.reference_id}
+                            kind="image"
+                            src={mpu.reference}
                             onClick={() => {
                               if (!isSharePreview && !postState.is_archived) {
                                 settogglePostCarousel(true);
                               }
                             }}
-                            key={mpu.reference_id}
-                            className="tw-flex tw-max-h-[500px] tw-flex-1 tw-bg-[var(--surface-2)] tw-min-w-[100px] lg:tw-min-w-[200px]"
-                          >
-                            <CachedImage
-                              src={mpu.reference}
-                              className="tw-w-full tw-h-full tw-object-cover"
-                            />
-                          </div>
+                          />
                         );
                       } else {
                         return (
@@ -914,6 +922,17 @@ function PostItem({
                         );
                       }
                     } else if (mpu.reference_media_type.includes("video")) {
+                      if (postState.references.length === 1) {
+                        // Alone, a video spans the card at its own height (up
+                        // to a cap), rather than the grid's 400px tile.
+                        return (
+                          <FittedPostMedia
+                            key={mpu.reference_id}
+                            kind="video"
+                            src={mpu.reference}
+                          />
+                        );
+                      }
                       return (
                         <div
                           key={mpu.reference_id}
