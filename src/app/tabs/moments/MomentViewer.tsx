@@ -829,12 +829,14 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                         setProgress(v.currentTime / v.duration);
                     }}
                     onEnded={next}
+                    // Whole, as the app shows it: an edit made on a phone is
+                    // framed by its author - cropping it would cut that off.
                     style={{
                       position: "absolute",
                       inset: 0,
                       width: "100%",
                       height: "100%",
-                      objectFit: "cover",
+                      objectFit: "contain",
                     }}
                   />
                 ) : (
@@ -847,7 +849,7 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                       inset: 0,
                       width: "100%",
                       height: "100%",
-                      objectFit: "cover",
+                      objectFit: "contain",
                     }}
                   />
                 )}
