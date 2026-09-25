@@ -84,6 +84,11 @@
   --shadow-lg: 0 8px 30px rgba(20, 30, 55, 0.14);
   --scrim: rgba(15, 20, 35, 0.45);
   --glass: rgba(255, 255, 255, 0.72);
+  /* Loading skeletons: a clear step darker than the page AND a card, with a
+     lighter sweep - the surface and border tones sit within a shade of
+     --bg here, which left skeletons all but invisible. */
+  --skeleton: #bcc5d2;
+  --skeleton-shine: #d6dce5;
 }
 
 :root[data-theme="dark"],
@@ -105,6 +110,8 @@
   --text: #e8ebf1;
   --text-2: #99a1b1;
   --text-3: #6b7488;
+  --skeleton: #262f3f;
+  --skeleton-shine: #313c50;
   --rail: linear-gradient(180deg, #14233b 0%, #0f1a2e 100%);
   --rail-icon: rgba(255, 255, 255, 0.62);
   --rail-icon-active: #ffffff;

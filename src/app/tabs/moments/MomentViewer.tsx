@@ -17,10 +17,16 @@ import { SET_MUTATE_ALERTS } from "@/redux/types";
 import type {
   AuthenticationInterface,
   IMomentTray,
+  IMomentTrayEntry,
   IPost,
 } from "@/reusables/vars/interfaces";
 import ReportModal from "@/app/widgets/modals/ReportModal";
 import { SharedPostCard } from "./CreateMomentModal";
+import {
+  MomentControlsLoader,
+  MomentPanelLoader,
+  MomentStageLoader,
+} from "./MomentLoaders";
 import MomentRibbon from "./MomentRibbon";
 import MomentSidePanel from "./MomentSidePanel";
 import MomentViewersPanel from "./MomentViewersPanel";
@@ -40,8 +46,33 @@ import {
   STILL_PHOTO_MS,
 } from "./ephemeral";
 
-/** Below this the side panel stacks under the stage instead of beside it. */
+/**
+ * Below this the side panel stacks under the stage instead of beside it.
+ * At or above it the page has no header: back, title and the author ribbon
+ * move to a rail left of the stage and the playback controls into the side
+ * panel, so the height they took goes to the moment.
+ */
 const SIDE_BY_SIDE_MIN_WIDTH = 1000;
+
+/** Width of the upright timeline beside the stage: the playing author's
+ * ringed avatar and a little air. */
+const RAIL_WIDTH = 44;
+
+/** An entry of the controls' "more" menu. */
+const menuItem = {
+  width: "100%",
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  padding: "8px 10px",
+  border: "none",
+  background: "transparent",
+  cursor: "pointer",
+  borderRadius: "var(--r-sm)",
+  color: "var(--text)",
+  fontSize: "var(--fs-body-sm)",
+  fontWeight: 600,
+} as const;
 
 /**
  * How long a photo uploaded as an image (the web's) or a shared post stays
@@ -106,6 +137,37 @@ function ProgressRing({
   );
 }
 
+const titleStyle = {
+  fontSize: "var(--fs-heading)",
+  fontWeight: 800,
+  letterSpacing: "-0.03em",
+  color: "var(--text)",
+} as const;
+
+function BackButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button
+      onClick={onClick}
+      aria-label="Back"
+      style={{
+        width: 34,
+        height: 34,
+        flex: "none",
+        borderRadius: "var(--r-sm)",
+        border: "1px solid var(--border)",
+        background: "transparent",
+        color: "var(--text-2)",
+        cursor: "pointer",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+      }}
+    >
+      <Icon n="arrow_back" s={18} />
+    </button>
+  );
+}
+
 function ControlBtn({
   icon,
   onClick,
@@ -142,10 +204,15 @@ function ControlBtn({
 
 /**
  * The Moment viewer (designs 1b / 1c): plays one author's moments inside the
- * app, oldest first. A header timeline places every author along the last
- * 24h; the stage shows the moment with previous / pause / next / mute; the
- * side panel is React + Reply + "More from X today" for someone else's
- * moment, and the Viewers list with Archive / Audience / Delete for yours.
+ * app, oldest first. A timeline places every author along the last 24h; the
+ * stage shows the moment with previous / pause / next / mute; the side panel
+ * is React + Reply + "More from X today" for someone else's moment, and the
+ * Viewers list with Archive / Audience / Delete for yours.
+ *
+ * Narrow screens stack it: a header (back, title, timeline), the stage with
+ * its controls under it, the panel below. Wide ones give the moment the
+ * height: no header - back, title and an upright timeline sit in a rail left
+ * of the stage - and the controls dock at the foot of the side panel.
  *
  * Photos and shared posts advance after 6s, videos when they end. A moment
  * that runs out while it is open is skipped - the device clock is the hard
@@ -438,9 +505,10 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
     : undefined;
   const newCount = order.filter((entry) => entry.has_unseen).length;
 
-  // The side panel is exactly the stage's height and starts at its top -
-  // measured, because the stage's size comes from its aspect ratio and the
-  // viewport, not from anything the panel could align to in CSS.
+  // The side panel (and, beside the stage, the author rail) spans exactly the
+  // stage COLUMN - from the author row's top to the stage's bottom - measured,
+  // because the stage's size comes from its aspect ratio and the viewport,
+  // not from anything the panel could align to in CSS.
   //
   // Only in the side-by-side layout. Narrower than that, the panel stacks
   // under the stage and takes its natural height - squeezing both into one
@@ -452,6 +520,7 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
   );
   const sideBySide = screenWidth >= SIDE_BY_SIDE_MIN_WIDTH;
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const columnRef = useRef<HTMLDivElement | null>(null);
   const panelSlotRef = useRef<HTMLDivElement | null>(null);
   const [stageBox, setStageBox] = useState<{
     top: number;
@@ -459,7 +528,7 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
   } | null>(null);
   const hasStage = !!current && !!author;
   useLayoutEffect(() => {
-    const stage = stageRef.current;
+    const stage = columnRef.current;
     const slot = panelSlotRef.current;
     if (!sideBySide || !stage || !slot) return;
     let frame = 0;
@@ -490,6 +559,163 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
     };
   }, [sideBySide, hasStage]);
 
+  const openAuthor = (entry: IMomentTrayEntry) =>
+    navigate(`/moments/${entry.entity.id}?post=${entry.start_post_id}`, {
+      replace: true,
+    });
+  const statusLabel = archive
+    ? "Archive"
+    : isOwn
+      ? "Your Moment"
+      : authorPosition >= 0
+        ? `${authorPosition + 1} of ${order.length}${newCount ? ` · ${newCount} new` : ""}`
+        : "";
+  const goBack = () => navigate(archive ? archivePath : "/");
+
+  // The stage column - author row + 9:16 stage (+ controls, narrow) - and the
+  // side column, shared by the real viewer and its loading skeleton so the
+  // skeleton stands exactly where the moment will.
+  //
+  // The stage is as wide as a 9:16 moment that fits the height allows, so it
+  // fills it the way it fills a phone. Wide screens have no header and no
+  // controls row under it, so only the padding and the author row are taken
+  // off; it may shrink (flex) when the row runs out of width.
+  const columnStyle: React.CSSProperties = sideBySide
+    ? {
+        width: "min(560px, max(300px, calc((100vh - 110px) * 9 / 16)))",
+        flex: "0 1 auto",
+        minWidth: 260,
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+      }
+    : {
+        width:
+          "min(460px, 100%, max(300px, calc((100vh - var(--header-h) - 190px) * 9 / 16)))",
+        flex: "none",
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+      };
+  const sideSlotStyle: React.CSSProperties = sideBySide
+    ? { position: "relative", width: 360, flex: "none", alignSelf: "stretch" }
+    : { width: "min(460px, 100%)", flex: "none" };
+  // Pinned to the stage column on wide screens: the panel fills what the
+  // controls under it leave.
+  const sideInnerStyle: React.CSSProperties = sideBySide
+    ? {
+        position: "absolute",
+        left: 0,
+        right: 0,
+        top: stageBox?.top ?? 0,
+        height: stageBox?.height ?? "100%",
+        display: "flex",
+        flexDirection: "column",
+        gap: 12,
+      }
+    : { display: "flex", maxHeight: 560 };
+
+  // Previous / play / next, sound and the "more" menu. Under the stage on
+  // narrow screens; above the side panel on wide ones, so the space under the
+  // stage goes to the moment itself. The menu opens away from the edge the
+  // bar sits on: up from under the stage, down from the top of the panel.
+  const controlsBar = current ? (
+    <div
+      style={{
+        alignSelf: "center",
+        position: "relative",
+        display: "flex",
+        alignItems: "center",
+        gap: 4,
+        padding: 5,
+        background: "var(--surface)",
+        border: "1px solid var(--border)",
+        borderRadius: 999,
+        boxShadow: "var(--shadow-md)",
+        flex: "none",
+      }}
+    >
+      <ControlBtn icon="skip_previous" title="Previous" onClick={prev} />
+      <ControlBtn
+        icon={paused ? "play_arrow" : "pause"}
+        title={paused ? "Play" : "Pause"}
+        primary
+        onClick={() => setPaused((p) => !p)}
+      />
+      <ControlBtn icon="skip_next" title="Next" onClick={next} />
+      <span
+        style={{
+          width: 1,
+          height: 22,
+          background: "var(--border)",
+          margin: "0 4px",
+        }}
+      />
+      <ControlBtn
+        icon={muted ? "volume_off" : "volume_up"}
+        title={muted ? "Unmute" : "Mute"}
+        onClick={() => setMuted((m) => !m)}
+      />
+      <ControlBtn
+        icon="more_horiz"
+        title="More"
+        onClick={() => setMenuOpen((o) => !o)}
+      />
+      {menuOpen && (
+        <div
+          style={{
+            position: "absolute",
+            right: 0,
+            ...(sideBySide ? { top: 52 } : { bottom: 52 }),
+            minWidth: 170,
+            padding: 4,
+            borderRadius: "var(--r-md)",
+            border: "1px solid var(--border)",
+            background: "var(--surface)",
+            boxShadow: "var(--shadow-md)",
+            zIndex: 5,
+          }}
+        >
+          {isOwn && archive && canUnarchive(current) && (
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                unarchiveCurrent();
+              }}
+              style={menuItem}
+            >
+              <Icon n="unarchive" s={17} />
+              Unarchive Moment
+            </button>
+          )}
+          {isOwn && !archive && (
+            <button
+              onClick={() => {
+                setMenuOpen(false);
+                archiveCurrent();
+              }}
+              style={menuItem}
+            >
+              <Icon n="inventory_2" s={17} />
+              Archive Moment
+            </button>
+          )}
+          <button
+            onClick={() => {
+              setMenuOpen(false);
+              if (isOwn) deleteCurrent();
+              else setReporting(true);
+            }}
+            style={{ ...menuItem, color: "var(--pink)" }}
+          >
+            <Icon n={isOwn ? "delete_outline" : "flag"} s={17} />
+            {isOwn ? "Delete Moment" : "Report Moment"}
+          </button>
+        </div>
+      )}
+    </div>
+  ) : null;
+
   return (
     <div
       className="cl-redesign"
@@ -512,98 +738,192 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
         />
       )}
 
-      <header
-        style={{
-          height: "var(--header-h)",
-          flex: "none",
-          display: "flex",
-          alignItems: "center",
-          gap: 16,
-          padding: "0 18px",
-          background: "var(--surface)",
-          borderBottom: "1px solid var(--border)",
-        }}
-      >
-        <button
-          onClick={() => navigate(archive ? archivePath : "/")}
-          aria-label="Back"
+      {/* Narrow screens only - on wide ones all of this lives in the rail
+          left of the stage, and the header's height goes to the moment. */}
+      {!sideBySide && (
+        <header
           style={{
-            width: 34,
-            height: 34,
-            borderRadius: "var(--r-sm)",
-            border: "1px solid var(--border)",
-            background: "transparent",
-            color: "var(--text-2)",
-            cursor: "pointer",
+            height: "var(--header-h)",
+            flex: "none",
             display: "flex",
             alignItems: "center",
-            justifyContent: "center",
+            gap: 16,
+            padding: "0 18px",
+            background: "var(--surface)",
+            borderBottom: "1px solid var(--border)",
           }}
         >
-          <Icon n="arrow_back" s={18} />
-        </button>
-        <span
-          style={{
-            fontSize: "var(--fs-heading)",
-            fontWeight: 800,
-            letterSpacing: "-0.03em",
-            color: "var(--text)",
-          }}
-        >
-          Moments
-        </span>
-        <div
-          style={{
-            flex: 1,
-            display: "flex",
-            justifyContent: "center",
-            minWidth: 0,
-          }}
-        >
-          {!archive && (
-            <MomentRibbon
-              entries={order}
-              currentEntityId={entityID ?? ""}
-              onOpen={(entry) =>
-                navigate(
-                  `/moments/${entry.entity.id}?post=${entry.start_post_id}`,
-                  { replace: true },
-                )
-              }
-            />
-          )}
-        </div>
-        <span
-          style={{
-            fontSize: "var(--fs-meta)",
-            color: "var(--text-3)",
-            whiteSpace: "nowrap",
-          }}
-        >
-          {archive
-            ? "Archive"
-            : isOwn
-              ? "Your Moment"
-              : authorPosition >= 0
-                ? `${authorPosition + 1} of ${order.length}${newCount ? ` · ${newCount} new` : ""}`
-                : ""}
-        </span>
-      </header>
+          <BackButton onClick={goBack} />
+          <span style={titleStyle}>Moments</span>
+          <div
+            style={{
+              flex: 1,
+              display: "flex",
+              justifyContent: "center",
+              minWidth: 0,
+            }}
+          >
+            {!archive && (
+              <MomentRibbon
+                entries={order}
+                currentEntityId={entityID ?? ""}
+                onOpen={openAuthor}
+              />
+            )}
+          </div>
+          <span
+            style={{
+              fontSize: "var(--fs-meta)",
+              color: "var(--text-3)",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {statusLabel}
+          </span>
+        </header>
+      )}
 
       <div
-        style={{
-          flex: 1,
-          minHeight: 0,
-          display: "flex",
-          flexDirection: sideBySide ? "row" : "column",
-          alignItems: "center",
-          justifyContent: sideBySide ? "center" : "flex-start",
-          gap: sideBySide ? 24 : 16,
-          padding: sideBySide ? 20 : "16px 12px",
-          overflowX: "hidden",
-          overflowY: "auto",
-        }}
+        style={
+          sideBySide
+            ? {
+                flex: 1,
+                minHeight: 0,
+                display: "grid",
+                // The back / title block keeps the page's left edge. The
+                // moment is centred in the page while there is room for both,
+                // and slides right - never under the block - when there isn't.
+                gridTemplateColumns: "minmax(150px, 1fr) minmax(0, auto) minmax(0, 1fr)",
+                columnGap: 16,
+                padding: 20,
+                overflowX: "hidden",
+                overflowY: "auto",
+              }
+            : {
+                flex: 1,
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "center",
+                justifyContent: "flex-start",
+                gap: 16,
+                padding: "16px 12px",
+                overflowX: "hidden",
+                overflowY: "auto",
+              }
+        }
       >
+        {/* Wide screens: what the header's left end held - back, title and
+            where you are - on the page's edge. */}
+        {sideBySide && (
+          <div
+            style={{
+              gridColumn: 1,
+              alignSelf: "start",
+              justifySelf: "start",
+              maxWidth: "100%",
+              display: "flex",
+              alignItems: "center",
+              gap: 12,
+            }}
+          >
+            <BackButton onClick={goBack} />
+            {/* Beside the button: the title, and where you are under it. */}
+            <div
+              style={{
+                minWidth: 0,
+                display: "flex",
+                flexDirection: "column",
+                alignItems: "flex-start",
+                gap: 1,
+              }}
+            >
+              <span style={titleStyle}>Moments</span>
+              {statusLabel && (
+                <span
+                  style={{
+                    fontSize: "var(--fs-meta)",
+                    color: "var(--text-3)",
+                    whiteSpace: "nowrap",
+                  }}
+                >
+                  {statusLabel}
+                </span>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* The moment group: rail, stage, side column. On narrow screens this
+            wrapper steps out of the way (display: contents) and its children
+            stack in the body as before. */}
+        <div
+          style={
+            sideBySide
+              ? {
+                  gridColumn: 2,
+                  minWidth: 0,
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 24,
+                }
+              : { display: "contents" }
+          }
+        >
+        {/* The authors' 24h timeline, upright beside the stage (wide
+            screens) - what the header's middle held. Spans the stage column
+            like the side panel does. */}
+        {sideBySide && !archive && (
+          <div
+            style={{
+              position: "relative",
+              width: RAIL_WIDTH,
+              flex: "none",
+              alignSelf: "stretch",
+            }}
+          >
+            <div
+              style={{
+                position: "absolute",
+                left: 0,
+                right: 0,
+                top: stageBox?.top ?? 0,
+                height: stageBox?.height ?? "100%",
+                display: "flex",
+                justifyContent: "center",
+              }}
+            >
+              {order.length > 0 && (
+                <MomentRibbon
+                  vertical
+                  entries={order}
+                  currentEntityId={entityID ?? ""}
+                  onOpen={openAuthor}
+                />
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Loading - on opening, and on moving to the next person: the stage
+            and the panel as skeletons, in the places the real ones take. */}
+        {moments === null && (
+          <>
+            <div ref={columnRef} style={columnStyle}>
+              <MomentStageLoader />
+              {!sideBySide && <MomentControlsLoader />}
+            </div>
+            <div ref={panelSlotRef} style={sideSlotStyle}>
+              <div style={sideInnerStyle}>
+                {sideBySide && <MomentControlsLoader />}
+                <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
+                  <MomentPanelLoader />
+                </div>
+              </div>
+            </div>
+          </>
+        )}
+
         {moments !== null && moments.length === 0 && (
           <div style={{ textAlign: "center", color: "var(--text-2)" }}>
             <Icon n="timelapse" s={36} c="var(--text-3)" />
@@ -626,17 +946,11 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
         {current && author && (
           <>
             {/* Stage - as wide as a 9:16 moment that fits the height allows,
-                so the moment fills it the way it fills a phone. */}
-            <div
-              style={{
-                width:
-                  "min(460px, 100%, max(300px, calc((100vh - var(--header-h) - 190px) * 9 / 16)))",
-                flex: "none",
-                display: "flex",
-                flexDirection: "column",
-                gap: 12,
-              }}
-            >
+                so the moment fills it the way it fills a phone. On wide
+                screens there is no header and no controls row under it, so
+                only the padding and the author row are taken off; it may
+                shrink (flex) when the row runs out of width. */}
+            <div ref={columnRef} style={columnStyle}>
               <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <ProgressRing fraction={ringFraction} size={48}>
                   <Avatar
@@ -913,159 +1227,17 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                 </span>
               </div>
 
-              <div
-                style={{
-                  alignSelf: "center",
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 4,
-                  padding: 5,
-                  background: "var(--surface)",
-                  border: "1px solid var(--border)",
-                  borderRadius: 999,
-                  boxShadow: "var(--shadow-md)",
-                }}
-              >
-                <ControlBtn
-                  icon="skip_previous"
-                  title="Previous"
-                  onClick={prev}
-                />
-                <ControlBtn
-                  icon={paused ? "play_arrow" : "pause"}
-                  title={paused ? "Play" : "Pause"}
-                  primary
-                  onClick={() => setPaused((p) => !p)}
-                />
-                <ControlBtn icon="skip_next" title="Next" onClick={next} />
-                <span
-                  style={{
-                    width: 1,
-                    height: 22,
-                    background: "var(--border)",
-                    margin: "0 4px",
-                  }}
-                />
-                <ControlBtn
-                  icon={muted ? "volume_off" : "volume_up"}
-                  title={muted ? "Unmute" : "Mute"}
-                  onClick={() => setMuted((m) => !m)}
-                />
-                <ControlBtn
-                  icon="more_horiz"
-                  title="More"
-                  onClick={() => setMenuOpen((o) => !o)}
-                />
-                {menuOpen && (
-                  <div
-                    style={{
-                      position: "absolute",
-                      right: 0,
-                      bottom: 52,
-                      minWidth: 170,
-                      padding: 4,
-                      borderRadius: "var(--r-md)",
-                      border: "1px solid var(--border)",
-                      background: "var(--surface)",
-                      boxShadow: "var(--shadow-md)",
-                      zIndex: 5,
-                    }}
-                  >
-                    {isOwn && archive && canUnarchive(current) && (
-                      <button
-                        onClick={() => {
-                          setMenuOpen(false);
-                          unarchiveCurrent();
-                        }}
-                        style={{ width: "100%", display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", border: "none", background: "transparent", cursor: "pointer", borderRadius: "var(--r-sm)", color: "var(--text)", fontSize: "var(--fs-body-sm)", fontWeight: 600 }}
-                      >
-                        <Icon n="unarchive" s={17} />
-                        Unarchive Moment
-                      </button>
-                    )}
-                    {isOwn && !archive && (
-                      <button
-                        onClick={() => {
-                          setMenuOpen(false);
-                          archiveCurrent();
-                        }}
-                        style={{
-                          width: "100%",
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 8,
-                          padding: "8px 10px",
-                          border: "none",
-                          background: "transparent",
-                          cursor: "pointer",
-                          borderRadius: "var(--r-sm)",
-                          color: "var(--text)",
-                          fontSize: "var(--fs-body-sm)",
-                          fontWeight: 600,
-                        }}
-                      >
-                        <Icon n="inventory_2" s={17} />
-                        Archive Moment
-                      </button>
-                    )}
-                    <button
-                      onClick={() => {
-                        setMenuOpen(false);
-                        if (isOwn) deleteCurrent();
-                        else setReporting(true);
-                      }}
-                      style={{
-                        width: "100%",
-                        display: "flex",
-                        alignItems: "center",
-                        gap: 8,
-                        padding: "8px 10px",
-                        border: "none",
-                        background: "transparent",
-                        cursor: "pointer",
-                        borderRadius: "var(--r-sm)",
-                        color: "var(--pink)",
-                        fontSize: "var(--fs-body-sm)",
-                        fontWeight: 600,
-                      }}
-                    >
-                      <Icon n={isOwn ? "delete_outline" : "flag"} s={17} />
-                      {isOwn ? "Delete Moment" : "Report Moment"}
-                    </button>
-                  </div>
-                )}
-              </div>
+              {/* Under the stage on narrow screens; above the side panel on
+                  wide ones. */}
+              {!sideBySide && controlsBar}
             </div>
 
-            {/* Side panel - pinned to the stage's top and height. */}
-            <div
-              ref={panelSlotRef}
-              style={
-                sideBySide
-                  ? {
-                      position: "relative",
-                      width: 360,
-                      flex: "none",
-                      alignSelf: "stretch",
-                    }
-                  : { width: "min(460px, 100%)", flex: "none" }
-              }
-            >
-              <div
-                style={
-                  sideBySide
-                    ? {
-                        position: "absolute",
-                        left: 0,
-                        right: 0,
-                        top: stageBox?.top ?? 0,
-                        height: stageBox?.height ?? "auto",
-                        display: "flex",
-                      }
-                    : { display: "flex", maxHeight: 560 }
-                }
-              >
+            {/* Side column - pinned to the stage column's top and height:
+                (wide screens) the controls, then the panel under them. */}
+            <div ref={panelSlotRef} style={sideSlotStyle}>
+              <div style={sideInnerStyle}>
+                {sideBySide && controlsBar}
+                <div style={{ flex: 1, minHeight: 0, display: "flex" }}>
                 {isOwn ? (
                   <MomentViewersPanel
                     moment={current}
@@ -1091,10 +1263,12 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                     onTyping={setHoldForInput}
                   />
                 )}
+                </div>
               </div>
             </div>
           </>
         )}
+        </div>
       </div>
     </div>
   );

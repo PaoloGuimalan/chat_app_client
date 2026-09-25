@@ -181,8 +181,10 @@ function MomentViewersPanel({
         ))}
       </div>
 
+      {/* The footer is the popup's anchor: it opens just above it. */}
+      <div style={{ position: "relative", borderTop: "1px solid var(--border)", padding: "12px 16px 14px" }}>
       {audienceOpen && (
-        <div style={{ position: "absolute", left: 12, right: 12, bottom: 64, padding: 12, borderRadius: "var(--r-md)", border: "1px solid var(--border)", background: "var(--surface)", boxShadow: "var(--shadow-md)", display: "flex", flexDirection: "column", gap: 8, zIndex: 3 }}>
+        <div style={{ position: "absolute", left: 12, right: 12, bottom: "calc(100% + 8px)", padding: 12, borderRadius: "var(--r-md)", border: "1px solid var(--border)", background: "var(--surface)", boxShadow: "var(--shadow-md)", display: "flex", flexDirection: "column", gap: 8, zIndex: 3 }}>
           <span style={{ fontSize: "var(--fs-meta)", fontWeight: 600, color: "var(--text-2)" }}>Who can see this</span>
           <SegTabs
             tabs={AUDIENCES.map((a) => ({ key: a.key, label: a.label, icon: a.icon }))}
@@ -200,7 +202,7 @@ function MomentViewersPanel({
         </div>
       )}
 
-      <div style={{ padding: "12px 16px 14px", borderTop: "1px solid var(--border)", display: "flex", gap: 8 }}>
+      <div style={{ display: "flex", gap: 8 }}>
         {archived && canUnarchive(moment) && (
           <button onClick={onUnarchive} style={{ ...footerBtn, background: "var(--brand-soft)", border: "none", color: "var(--brand)" }}>
             <Icon n="unarchive" s={16} />
@@ -223,6 +225,7 @@ function MomentViewersPanel({
           <Icon n="delete_outline" s={16} />
           Delete
         </button>
+      </div>
       </div>
     </div>
   );
