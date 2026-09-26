@@ -5290,13 +5290,22 @@ input:checked + .slider:before {
   min-width: 0;
 }
 
+/* A set width rather than its bars' width: 40 bars at 3px with 2px gaps
+ * (VoiceMessagePlayer's BAR_* constants). In a narrow bubble - the minimized
+ * conversation window - it shrinks from there, and the player draws only the
+ * bars that fit; the bars never set the width, so the two cannot feed back
+ * into each other. space-between spreads them over the leftover pixel or
+ * two, and the clip is the last resort below the fewest bars it will draw. */
 .cl-voice-message__waveform {
   flex: 0 1 auto;
+  width: 198px;
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 2px;
   height: 28px;
   min-width: 0;
+  overflow: hidden;
   cursor: pointer;
   touch-action: none;
 }

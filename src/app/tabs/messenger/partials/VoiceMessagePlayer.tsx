@@ -1,4 +1,10 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { useInView } from "framer-motion";
 import { IoPause, IoPlay } from "react-icons/io5";
 
@@ -17,6 +23,30 @@ interface VoiceMessagePlayerProp {
 
 const BAR_COUNT = 40;
 const MIN_BAR_HEIGHT = 0.12;
+// Must match `.cl-voice-message__bar`'s width and the waveform's gap in
+// styles.css - together they make the waveform's full width (198px).
+const BAR_WIDTH = 3;
+const BAR_GAP = 2;
+// Fewer than this stops reading as a waveform; below it the strip clips.
+const MIN_VISIBLE_BARS = 8;
+
+// How many bars fit a waveform `width` px wide.
+const barsThatFit = (width: number) =>
+  Math.max(
+    MIN_VISIBLE_BARS,
+    Math.min(BAR_COUNT, Math.floor((width + BAR_GAP) / (BAR_WIDTH + BAR_GAP))),
+  );
+
+// The waveform squeezed to `count` bars, each the loudest of the bars it
+// stands for - so a peak survives the squeeze instead of averaging away.
+const resampleBars = (bars: number[], count: number) => {
+  if (count >= bars.length) return bars;
+  return Array.from({ length: count }, (_, i) => {
+    const start = Math.floor((i * bars.length) / count);
+    const end = Math.floor(((i + 1) * bars.length) / count);
+    return Math.max(...bars.slice(start, Math.max(end, start + 1)));
+  });
+};
 // Beyond this, skip downloading/decoding the full file for a real waveform
 // (an hours-long recording can decode to hundreds of MB of raw PCM) and use
 // the generated fallback shape instead - still fixed-width, just not a true
@@ -130,6 +160,25 @@ function VoiceMessagePlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [bars, setBars] = useState<number[]>(() =>
     Array(BAR_COUNT).fill(MIN_BAR_HEIGHT),
+  );
+  // How many of the bars the waveform has room for. It used to draw all 40
+  // at a fixed 3px whatever its width, so in a narrow bubble (the minimized
+  // conversation window) they spilled out over the time and past the bubble.
+  const [fitCount, setFitCount] = useState(BAR_COUNT);
+
+  useEffect(() => {
+    const waveform = waveformRef.current;
+    if (!waveform) return;
+    const measure = () => setFitCount(barsThatFit(waveform.clientWidth));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(waveform);
+    return () => observer.disconnect();
+  }, []);
+
+  const shownBars = useMemo(
+    () => resampleBars(bars, fitCount),
+    [bars, fitCount],
   );
 
   useEffect(() => {
@@ -247,8 +296,8 @@ function VoiceMessagePlayer({
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
         >
-          {bars.map((amplitude, index) => {
-            const barPosition = (index / bars.length) * 100;
+          {shownBars.map((amplitude, index) => {
+            const barPosition = (index / shownBars.length) * 100;
             const isPlayed = barPosition <= progressPercent;
             return (
               <span
