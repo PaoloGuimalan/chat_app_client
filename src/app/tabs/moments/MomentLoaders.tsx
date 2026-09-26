@@ -90,8 +90,9 @@ export function ThoughtsRailLoader() {
   return (
     <div style={{ display: "flex", gap: 4, padding: "0 12px 12px", overflow: "hidden", marginBottom: 6 }}>
       {Array.from({ length: 5 }, (_, i) => (
-        <div key={i} style={{ width: 88, flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 6 }}>
-          <Bone style={{ width: 64, height: 30, borderRadius: 14 }} />
+        <div key={i} style={{ position: "relative", width: 88, flex: "none", display: "flex", flexDirection: "column", alignItems: "center", gap: 6, paddingTop: 27 }}>
+          {/* Pinned to the top over the avatar, as the loaded rail draws a thought. */}
+          <Bone style={{ position: "absolute", top: 0, left: 12, zIndex: 1, width: 64, height: 30, borderRadius: 14 }} />
           <Bone style={{ width: 52, height: 52, borderRadius: "50%" }} />
           <Bone style={{ width: 50, height: 10, borderRadius: 5 }} />
         </div>

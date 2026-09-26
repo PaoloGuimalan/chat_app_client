@@ -1658,6 +1658,43 @@ const SendEphemeralReplyRequest = async (params: {
     });
 };
 
+/**
+ * One text message into a chat, resolving once the server has stored it.
+ * SendMessageRequest fires and forgets, because the conversation screen has
+ * already drawn the pending bubble; "New message" has no bubble to fall back
+ * on, so it needs to know whether each send went through.
+ */
+const SendTextMessageRequest = async (params: {
+  conversationID: string;
+  conversationType: string;
+  content: string;
+}) =>
+  Axios.post(
+    `${API}/u/sendMessage`,
+    {
+      token: sign(
+        {
+          conversationID: params.conversationID,
+          pendingID: `new_${Date.now()}`,
+          receivers: [],
+          content: params.content,
+          isReply: false,
+          replyingTo: "",
+          messageType: "text",
+          conversationType: params.conversationType,
+        },
+        SECRET,
+      ),
+    },
+    { headers: { "x-access-token": localStorage.getItem("authtoken") } },
+  )
+    .then((response) => {
+      if (!response.data.status) throw new Error(response.data.message);
+    })
+    .catch((err) => {
+      throw toRequestError(err);
+    });
+
 const SendFilesRequest = async (params: {
   conversationID: string;
   isReply: boolean;
@@ -4640,6 +4677,7 @@ export {
   SendPostRequest,
   GetSendPostTargetsRequest,
   SendEphemeralReplyRequest,
+  SendTextMessageRequest,
   SendFilesRequest,
   InitConversationRequest,
   InitConversationListRequest,

@@ -18,6 +18,11 @@ export const MOMENTS_CHANGED_EVENT = "moments_changed";
 /** Fired after your own thought is posted, edited or deleted. */
 export const THOUGHTS_CHANGED_EVENT = "thoughts_changed";
 
+/** Asks the Thoughts rail to open your thought's composer - it holds your
+ *  current thought, so it is the one that knows whether this is a share or
+ *  an edit. Fired by the Messages page's action hub. */
+export const OPEN_THOUGHT_COMPOSER_EVENT = "open_thought_composer";
+
 /** A moment or thought lives 24h. Server: EPHEMERAL_LIFETIME. */
 export const EPHEMERAL_LIFETIME_MS = 24 * 60 * 60 * 1000;
 

@@ -28,6 +28,7 @@ import type {
 } from "@/reusables/vars/interfaces";
 import {
   AUDIENCES,
+  OPEN_THOUGHT_COMPOSER_EVENT,
   THOUGHTS_CHANGED_EVENT,
   THOUGHT_EMOJIS,
   THOUGHT_MAX_LENGTH,
@@ -778,6 +779,14 @@ export function ThoughtComposerModal({
   );
 }
 
+/**
+ * The room every rail item keeps above its avatar, with the thought pinned to
+ * the top of it. Sized so a two-line thought ("Share a thought") ends just
+ * above the avatar's middle; a longer one grows DOWN over the avatar rather
+ * than making the rail taller.
+ */
+const RAIL_BUBBLE_ROOM = 27;
+
 /** A round scroll arrow over one end of the rail. */
 function RailArrow({
   side,
@@ -885,8 +894,13 @@ export function ThoughtsRail() {
   };
   useEffect(() => {
     load();
+    const compose = () => setComposing(true);
     window.addEventListener(THOUGHTS_CHANGED_EVENT, load);
-    return () => window.removeEventListener(THOUGHTS_CHANGED_EVENT, load);
+    window.addEventListener(OPEN_THOUGHT_COMPOSER_EVENT, compose);
+    return () => {
+      window.removeEventListener(THOUGHTS_CHANGED_EVENT, load);
+      window.removeEventListener(OPEN_THOUGHT_COMPOSER_EVENT, compose);
+    };
   }, []);
 
   if (!rail) return <ThoughtsRailLoader />;
@@ -902,6 +916,7 @@ export function ThoughtsRail() {
       key={key}
       onClick={onClick}
       style={{
+        position: "relative",
         width: 88,
         flex: "none",
         display: "flex",
@@ -909,22 +924,31 @@ export function ThoughtsRail() {
         alignItems: "center",
         border: "none",
         background: "transparent",
-        padding: 0,
+        padding: `${RAIL_BUBBLE_ROOM}px 0 0`,
         cursor: "pointer",
       }}
     >
-      <div
-        style={{
-          minHeight: 34,
-          display: "flex",
-          alignItems: "flex-end",
-          width: "100%",
-          justifyContent: "center",
-        }}
-      >
-        {bubble}
-      </div>
-      {bubble ? <BubbleTail /> : <div style={{ height: 10 }} />}
+      {bubble && (
+        // Pinned to the top and drawn over the avatar, so a thought never
+        // makes the rail taller - a longer one just reaches further down.
+        // (It used to sit in a band above the avatar that every item
+        // reserved, and that grew with the longest thought.)
+        <div
+          style={{
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            zIndex: 1,
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+          }}
+        >
+          {bubble}
+          <BubbleTail />
+        </div>
+      )}
       {avatarNode}
       <span
         style={{
@@ -977,7 +1001,9 @@ export function ThoughtsRail() {
               color: rail.mine ? undefined : "var(--text-3)",
             }}
           />,
-          <span style={{ position: "relative" }}>
+          // Flex, not inline: an inline box adds a text line's descender
+          // under the avatar, which set it a few px off the others in the row.
+          <span style={{ position: "relative", display: "flex" }}>
             <Avatar
               id={authentication.user.userID}
               name={self.name}

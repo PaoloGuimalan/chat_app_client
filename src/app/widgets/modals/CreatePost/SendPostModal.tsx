@@ -2,14 +2,17 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
 import { useDispatch } from "react-redux";
+import { useNavigate } from "react-router-dom";
 import { IoClose, IoCheckmarkCircle, IoSearch } from "react-icons/io5";
 import { PiPaperPlaneTiltFill } from "react-icons/pi";
 
 import Modal from "@/app/reusables/Modal";
 import { Avatar, Icon } from "@/reusables/design";
 import {
+  CreateInitialConversation,
   GetSendPostTargetsRequest,
   SendPostRequest,
+  SendTextMessageRequest,
   type SendPostTarget,
   type SendPostTargets,
 } from "@/reusables/hooks/requests";
@@ -23,6 +26,18 @@ const MAX_RECIPIENTS = 10;
 const SEARCH_DELAY_MS = 250;
 
 const keyOf = (target: SendPostTarget) => `${target.kind}:${target.id}`;
+
+// What /u/sendMessage calls each section's chats: a person or page is a DM, a
+// server channel's conversation is "channel" (listed for a post only).
+type ChatType = "single" | "group" | "channel";
+
+type Picked = {
+  target: SendPostTarget;
+  chatType: ChatType;
+  title: string;
+  subtitle: string;
+  avatar: any;
+};
 
 function SectionLabel({ children }: { children: string }) {
   return (
@@ -72,6 +87,11 @@ function TargetRow({
  * "Send in message": pick up to 10 destinations and the post arrives in each
  * as a message with the post as its reply card.
  *
+ * Without a `postID` it is "New message" instead (NewMessageModal, from the
+ * Messages page's action hub): the same picker minus Servers, but the message
+ * is required and is what gets sent - an ordinary text message into each chat,
+ * opening a DM first for anyone you have never messaged.
+ *
  * Three sections, all filtered by the one search field:
  *   Direct messages  people and pages - anyone, not only existing chats: a
  *                    chat is opened for someone you have never messaged,
@@ -87,19 +107,20 @@ function SendPostModal({
   postID,
   onClose,
 }: {
-  postID: string;
+  /** The post to send. Left out, this is "New message". */
+  postID?: string;
   onClose: () => void;
 }) {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
+  const isPost = !!postID;
 
   const [query, setQuery] = useState("");
   const [targets, setTargets] = useState<SendPostTargets | null>(null);
   const [loading, setLoading] = useState(true);
   // Remembers the NAME of what was picked, so a choice stays listed at the
   // top even after the search changes and its row scrolls out of the results.
-  const [selected, setSelected] = useState<
-    { target: SendPostTarget; title: string; subtitle: string; avatar: any }[]
-  >([]);
+  const [selected, setSelected] = useState<Picked[]>([]);
   const [note, setNote] = useState("");
   const [sending, setSending] = useState(false);
 
@@ -121,23 +142,73 @@ function SendPostModal({
   const selectedKeys = new Set(selected.map((s) => keyOf(s.target)));
   const atLimit = selected.length >= MAX_RECIPIENTS;
 
-  const toggle = (target: SendPostTarget, title: string, subtitle: string, avatar: any) => {
-    const key = keyOf(target);
+  const toggle = (picked: Picked) => {
+    const key = keyOf(picked.target);
     setSelected((prev) =>
       prev.some((s) => keyOf(s.target) === key)
         ? prev.filter((s) => keyOf(s.target) !== key)
         : prev.length >= MAX_RECIPIENTS
           ? prev
-          : [...prev, { target, title, subtitle, avatar }],
+          : [...prev, picked],
     );
   };
 
   const alert = (type: string, content: string) =>
     dispatch({ type: SET_MUTATE_ALERTS, payload: { alerts: { type, content } } });
 
+  // A new message needs its text; a post can go without a note.
+  const canSend =
+    !sending && selected.length > 0 && (isPost || note.trim() !== "");
+
+  // One chat at a time, in the order picked - the same way /u/sendPost walks
+  // its targets. A person or page gets their DM found or made first.
+  const sendMessage = async () => {
+    const content = note.trim();
+    const reached: string[] = [];
+    for (const s of selected) {
+      try {
+        const conversationID =
+          s.target.kind === "entity"
+            ? await CreateInitialConversation(s.target.id)
+            : s.target.id;
+        if (!conversationID) continue;
+        await SendTextMessageRequest({
+          conversationID,
+          conversationType: s.chatType,
+          content,
+        });
+        reached.push(conversationID);
+      } catch {
+        // Counted below as one that couldn't be reached.
+      }
+    }
+
+    const failed = selected.length - reached.length;
+    if (reached.length === 0) {
+      alert("warning", "We couldn't send your message.");
+      return;
+    }
+    alert(
+      failed > 0 ? "warning" : "success",
+      failed > 0
+        ? `Sent to ${reached.length}, but ${failed} couldn't be reached.`
+        : reached.length === 1
+          ? "Message sent."
+          : `Message sent to ${reached.length} chats.`,
+    );
+    onClose();
+    // A single chat: open it, as starting a chat from a profile does.
+    if (selected.length === 1) navigate(`/messages/${reached[0]}`);
+  };
+
   const send = () => {
-    if (sending || selected.length === 0) return;
+    if (!canSend) return;
     setSending(true);
+
+    if (!postID) {
+      sendMessage().finally(() => setSending(false));
+      return;
+    }
 
     SendPostRequest({
       postID,
@@ -164,38 +235,37 @@ function SendPostModal({
       .finally(() => setSending(false));
   };
 
-  const row = (
-    target: SendPostTarget,
-    title: string,
-    subtitle: string,
-    avatar: React.ReactNode,
-  ) => {
-    const isSelected = selectedKeys.has(keyOf(target));
+  const row = (picked: Picked) => {
+    const isSelected = selectedKeys.has(keyOf(picked.target));
     return (
       <TargetRow
-        key={keyOf(target)}
+        key={keyOf(picked.target)}
         selected={isSelected}
         disabled={sending || (!isSelected && atLimit)}
-        onToggle={() => toggle(target, title, subtitle, avatar)}
-        avatar={avatar}
-        title={title}
-        subtitle={subtitle}
+        onToggle={() => toggle(picked)}
+        avatar={picked.avatar}
+        title={picked.title}
+        subtitle={picked.subtitle}
       />
     );
   };
+
+  // Server channels take a shared post, but not a new message: starting a
+  // conversation means a person, a page or a group.
+  const channels = isPost ? (targets?.channels ?? []) : [];
 
   const empty =
     targets &&
     targets.direct.length === 0 &&
     targets.groups.length === 0 &&
-    targets.channels.length === 0;
+    channels.length === 0;
 
   return (
     <Modal
       component={
         <div className="cl-profile-surface tw-w-[calc(100%-24px)] tw-max-w-[460px] tw-max-h-[85vh] tw-p-[18px] tw-flex tw-flex-col tw-gap-[12px] tw-rounded-[12px]">
           <div className="tw-w-full tw-flex tw-items-center tw-gap-[8px]">
-            <span className="tw-flex-1 cl-text-body tw-font-semibold">Send in message</span>
+            <span className="tw-flex-1 cl-text-body tw-font-semibold">{isPost ? "Send in message" : "New message"}</span>
             <button
               onClick={onClose}
               disabled={sending}
@@ -211,7 +281,7 @@ function SendPostModal({
             <input
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search people, pages, groups and servers"
+              placeholder={isPost ? "Search people, pages, groups and servers" : "Search people, pages and groups"}
               className="tw-flex-1 tw-bg-transparent tw-border-none tw-outline-none tw-text-[var(--text)] cl-text-body-sm"
             />
           </label>
@@ -225,7 +295,7 @@ function SendPostModal({
             {selected.length > 0 && (
               <>
                 <SectionLabel>Selected</SectionLabel>
-                {selected.map((s) => row(s.target, s.title, s.subtitle, s.avatar))}
+                {selected.map(row)}
               </>
             )}
 
@@ -233,7 +303,7 @@ function SendPostModal({
               <span className="cl-text-caption tw-text-[var(--text-3)] tw-p-[8px]">Loading…</span>
             ) : empty ? (
               <span className="cl-text-caption tw-text-[var(--text-3)] tw-p-[8px]">
-                {query ? "No one matches that search." : "Search for someone to send this to."}
+                {query ? "No one matches that search." : isPost ? "Search for someone to send this to." : "Search for someone to message."}
               </span>
             ) : (
               targets && (
@@ -244,12 +314,13 @@ function SendPostModal({
                       {targets.direct
                         .filter((d) => !selectedKeys.has(`entity:${d.entity_id}`))
                         .map((d) =>
-                          row(
-                            { kind: "entity", id: d.entity_id },
-                            d.display_name,
-                            d.type === "realm" ? `Page · @${d.handle}` : `@${d.handle}`,
-                            <Avatar id={d.entity_id} entityId={d.entity_id} name={d.display_name} src={d.profile} size={36} kind={d.type} />,
-                          ),
+                          row({
+                            target: { kind: "entity", id: d.entity_id },
+                            chatType: "single",
+                            title: d.display_name,
+                            subtitle: d.type === "realm" ? `Page · @${d.handle}` : `@${d.handle}`,
+                            avatar: <Avatar id={d.entity_id} entityId={d.entity_id} name={d.display_name} src={d.profile} size={36} kind={d.type} />,
+                          }),
                         )}
                     </>
                   )}
@@ -259,29 +330,33 @@ function SendPostModal({
                       {targets.groups
                         .filter((g) => !selectedKeys.has(`conversation:${g.conversation_id}`))
                         .map((g) =>
-                          row(
-                            { kind: "conversation", id: g.conversation_id },
-                            g.display_name,
-                            "Group",
-                            <Avatar id={g.conversation_id} name={g.display_name} src={g.profile} size={36} shape="rounded" />,
-                          ),
+                          row({
+                            target: { kind: "conversation", id: g.conversation_id },
+                            chatType: "group",
+                            title: g.display_name,
+                            subtitle: "Group",
+                            avatar: <Avatar id={g.conversation_id} name={g.display_name} src={g.profile} size={36} shape="rounded" />,
+                          }),
                         )}
                     </>
                   )}
-                  {targets.channels.length > 0 && (
+                  {channels.length > 0 && (
                     <>
                       <SectionLabel>Servers</SectionLabel>
-                      {targets.channels
+                      {channels
                         .filter((c) => !selectedKeys.has(`conversation:${c.conversation_id}`))
                         .map((c) =>
-                          row(
-                            { kind: "conversation", id: c.conversation_id },
-                            `# ${c.display_name}`,
-                            c.server_name ? `Server · ${c.server_name}` : "Server channel",
-                            <span style={{ width: 36, height: 36, borderRadius: "var(--r-sm)", background: "var(--gold-soft)", color: "var(--gold-700)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
-                              <Icon n="dns" s={19} />
-                            </span>,
-                          ),
+                          row({
+                            target: { kind: "conversation", id: c.conversation_id },
+                            chatType: "channel",
+                            title: `# ${c.display_name}`,
+                            subtitle: c.server_name ? `Server · ${c.server_name}` : "Server channel",
+                            avatar: (
+                              <span style={{ width: 36, height: 36, borderRadius: "var(--r-sm)", background: "var(--gold-soft)", color: "var(--gold-700)", display: "flex", alignItems: "center", justifyContent: "center", flex: "none" }}>
+                                <Icon n="dns" s={19} />
+                              </span>
+                            ),
+                          }),
                         )}
                     </>
                   )}
@@ -294,7 +369,8 @@ function SendPostModal({
             value={note}
             onChange={(e) => setNote(e.target.value)}
             disabled={sending}
-            placeholder="Add a message (optional)"
+            placeholder={isPost ? "Add a message (optional)" : "Write a message"}
+            aria-required={!isPost}
             rows={2}
             // shrink-0: a flex child under the (tall, scrolling) list, so it
             // was the one that gave way - squeezed to a sliver of a box.
@@ -311,7 +387,7 @@ function SendPostModal({
             </button>
             <button
               onClick={send}
-              disabled={sending || selected.length === 0}
+              disabled={!canSend}
               className="cl-profile-action-button tw-flex tw-items-center tw-gap-[6px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-px-[12px] tw-rounded-[12px] cl-text-caption disabled:tw-opacity-[0.6] disabled:tw-cursor-not-allowed"
             >
               <PiPaperPlaneTiltFill />
@@ -322,6 +398,11 @@ function SendPostModal({
       }
     />
   );
+}
+
+/** "New message": the Send-in-message picker, with the message required. */
+export function NewMessageModal({ onClose }: { onClose: () => void }) {
+  return <SendPostModal onClose={onClose} />;
 }
 
 export default SendPostModal;
