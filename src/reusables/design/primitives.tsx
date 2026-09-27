@@ -1,3 +1,4 @@
+import { AiOutlineEye, AiOutlineEyeInvisible } from "react-icons/ai";
 /* Shared primitives for the redesigned screens. Self-contained, theme-aware
  * via CSS custom properties from theme.css. Used by Login, Register,
  * Verification, and (incrementally) the rest of the app as it migrates. */
@@ -7,6 +8,7 @@ import {
   InputHTMLAttributes,
   MouseEvent,
   ReactNode,
+  useState,
 } from "react";
 
 export interface IconProps {
@@ -175,9 +177,12 @@ export function IconBtn({
 export interface FieldProps extends InputHTMLAttributes<HTMLInputElement> {
   icon?: string;
   label?: string;
+  /** A password field with an eye button to show or hide what's typed. */
+  revealable?: boolean;
 }
 
-export function Field({ icon, label, ...rest }: FieldProps) {
+export function Field({ icon, label, revealable, type, ...rest }: FieldProps) {
+  const [shown, setShown] = useState(false);
   return (
     <label style={{ display: "block", width: "100%" }}>
       {label && (
@@ -215,8 +220,10 @@ export function Field({ icon, label, ...rest }: FieldProps) {
         {icon && <Icon n={icon} s={16} c="var(--text-3)" />}
         <input
           {...rest}
+          type={revealable && shown ? "text" : type}
           style={{
             flex: 1,
+            minWidth: 0,
             height: "100%",
             border: "none",
             outline: "none",
@@ -225,6 +232,32 @@ export function Field({ icon, label, ...rest }: FieldProps) {
             fontSize: "var(--fs-label)",
           }}
         />
+        {revealable && (
+          <button
+            type="button"
+            aria-label={shown ? "Hide password" : "Show password"}
+            title={shown ? "Hide password" : "Show password"}
+            onClick={(e) => {
+              e.preventDefault();
+              setShown((v) => !v);
+            }}
+            style={{
+              display: "flex",
+              alignItems: "center",
+              padding: 0,
+              border: "none",
+              background: "transparent",
+              color: "var(--text-3)",
+              cursor: "pointer",
+            }}
+          >
+            {shown ? (
+              <AiOutlineEyeInvisible size={17} />
+            ) : (
+              <AiOutlineEye size={17} />
+            )}
+          </button>
+        )}
       </span>
     </label>
   );

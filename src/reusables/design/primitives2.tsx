@@ -342,6 +342,10 @@ export function Avatar({
           style={{
             width: size,
             height: size,
+            // The global `img { max-width: 100% }` squeezed it oval in a
+            // tight row (the user menu): it keeps its size.
+            maxWidth: "none",
+            flexShrink: 0,
             borderRadius,
             objectFit: "cover",
             boxShadow: ringShadow(ring),

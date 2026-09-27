@@ -73,7 +73,19 @@ function Register() {
   const [day, setday] = useState("");
   const [year, setyear] = useState("");
   const [gender, setgender] = useState<"" | Gender>("");
+  // Days to pick from in any order: every day there can be before a month
+  // is picked, the month's days once it is (a leap year's until the year is
+  // picked, so Feb 29 is there).
+  const dayOptions: number[] =
+    month != ""
+      ? getDaysInMonth(month, year != "" ? year : 2000)
+      : Array.from({ length: 31 }, (_, i) => i + 1);
+  // A day the month or year picked later doesn't have is cleared.
+  useEffect(() => {
+    if (day != "" && !dayOptions.includes(Number(day))) setday("");
+  }, [month, year]);
   const [password, setpassword] = useState("");
+  const [confirmPassword, setconfirmPassword] = useState("");
   const [agreed, setagreed] = useState(false);
   const [isWaitingRequest, setisWaitingRequest] = useState(false);
   const [termsUrl, settermsUrl] = useState<string>("");
@@ -103,6 +115,20 @@ function Register() {
 
   const processregister = () => {
     setisWaitingRequest(true);
+    if (password !== confirmPassword) {
+      dispatch({
+        type: SET_ALERTS,
+        payload: {
+          alerts: {
+            id: alerts.length,
+            type: "warning",
+            content: "Passwords do not match.",
+          },
+        },
+      });
+      setisWaitingRequest(false);
+      return;
+    }
     if (agreed) {
       if (
         checkIfValid([
@@ -319,13 +345,11 @@ function Register() {
                 </SelectField>
                 <SelectField value={day} onChange={setday}>
                   <option value="">Day</option>
-                  {month != "" && year != ""
-                    ? getDaysInMonth(month, year).map((val) => (
-                        <option key={val} value={val}>
-                          {val}
-                        </option>
-                      ))
-                    : null}
+                  {dayOptions.map((val) => (
+                    <option key={val} value={val}>
+                      {val}
+                    </option>
+                  ))}
                 </SelectField>
                 <SelectField value={year} onChange={setyear}>
                   <option value="">Year</option>
@@ -373,9 +397,19 @@ function Register() {
               icon="lock"
               label="Password"
               type="password"
+              revealable
               placeholder="••••••••"
               value={password}
               onChange={(e) => setpassword(e.target.value)}
+            />
+            <Field
+              icon="lock"
+              label="Confirm password"
+              type="password"
+              revealable
+              placeholder="••••••••"
+              value={confirmPassword}
+              onChange={(e) => setconfirmPassword(e.target.value)}
             />
           </div>
 

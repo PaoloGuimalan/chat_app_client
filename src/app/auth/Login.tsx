@@ -217,6 +217,7 @@ function Login() {
                 icon="lock"
                 label="Password"
                 type="password"
+                revealable
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setpassword(e.target.value)}

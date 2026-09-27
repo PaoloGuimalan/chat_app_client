@@ -121,7 +121,12 @@ function EntitySwitcher({
   const activeEntity = authentication.active_entity_context;
 
   return (
-    <div ref={wrapperRef} style={{ position: "relative", marginTop: 4 }}>
+    // Never squeezed by a row it sits in (the user menu's): squeezed, the
+    // avatar went oval.
+    <div
+      ref={wrapperRef}
+      style={{ position: "relative", marginTop: 4, flexShrink: 0 }}
+    >
       <button
         className="cl-main-rail__profile"
         title="Profile"
@@ -132,6 +137,9 @@ function EntitySwitcher({
           cursor: "pointer",
           padding: 0,
           borderRadius: "50%",
+          display: "block",
+          lineHeight: 0,
+          flexShrink: 0,
         }}
       >
         {/* No presence here: this is the account switcher, not a person in
