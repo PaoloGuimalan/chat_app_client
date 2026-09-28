@@ -21,7 +21,7 @@ import {
 } from "@/app/tabs/moments/Thoughts";
 import { motion } from "framer-motion";
 import { BsFilePerson } from "react-icons/bs";
-import { BiSolidImageAdd } from "react-icons/bi";
+import { BiSolidImageAdd, BiSolidMoviePlay } from "react-icons/bi";
 import UploadProfileMedia from "@/app/widgets/modals/CreatePost/UploadProfileMedia";
 import { useSelector } from "react-redux";
 
@@ -97,14 +97,23 @@ function ProfilePicContainer({
     return isAllowed;
   }, [authentication.user.userID, userID, isAllowed, type]);
 
+  const hasMoment = !!(ring?.has_moment && entityId);
+
+  const openMoment = () => {
+    if (!ring || !entityId) return;
+    settoggleSelection(false);
+    navigate(`/moments/${entityId}?post=${ring.start_post_id}`);
+  };
+
   return (
     <div className="cl-profile-avatar-col tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center tw-relative">
       <div
         onClick={() => {
-          // A live Moment opens the viewer; the photo menu is still one tap
-          // away for the owner through the menu when there is none.
-          if (ring?.has_moment && entityId) {
-            navigate(`/moments/${entityId}?post=${ring.start_post_id}`);
+          // The owner (or a realm's admin) always gets the menu - a live
+          // Moment is one of its items - so it never hides the photo options.
+          // A visitor has nothing else to pick: their tap opens the Moment.
+          if (hasMoment && !isUserProfile) {
+            openMoment();
             return;
           }
           settoggleSelection(!toggleSelection);
@@ -178,6 +187,17 @@ function ProfilePicContainer({
           className="cl-profile-cover-menu tw-absolute tw-bottom-0 tw-overflow-y-hidden"
         >
           <div className="tw-p-[10px] tw-w-[calc(100%-0px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
+            {hasMoment && (
+              <motion.button
+                onClick={openMoment}
+                className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
+              >
+                <BiSolidMoviePlay color="var(--text-2)" size={22} />
+                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text)]">
+                  View Moment
+                </span>
+              </motion.button>
+            )}
             {profile !== "none" && (
               <motion.button className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]">
                 <BsFilePerson color="var(--text-2)" size={22} />
