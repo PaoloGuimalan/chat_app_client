@@ -61,7 +61,13 @@ function CreateChannelModal({
         type: channelType,
       },
       setisCreateChannelToggle,
-    ).then(() => {
+    ).then((created) => {
+      // Refused or failed: the request has already said why - give the form
+      // back so it can be corrected or closed.
+      if (!created) {
+        setisSaving(false);
+        return;
+      }
       if (channelType === "voice") {
         setTimeout(() => {
           refreshChannelsList();

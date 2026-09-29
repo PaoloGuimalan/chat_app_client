@@ -347,7 +347,12 @@ function Channels() {
                 />
               )}
               {serverdetails?.channels &&
-                serverdetails?.channels.length > 0 && (
+                serverdetails?.channels.length > 0 &&
+                // Only for people the server will let create one - it used
+                // to show for every member, and a refused create left the
+                // modal spinning.
+                (serverdetails.can_create_channel ??
+                  serverdetails.is_admin) && (
                   <button
                     onClick={() => {
                       settoggleserveraddchannelmodal(

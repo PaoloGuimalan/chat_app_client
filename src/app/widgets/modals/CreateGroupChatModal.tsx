@@ -79,7 +79,10 @@ function CreateGroupChatModal({ setisCreateGCToggle }: any) {
         otherUsers: markedMembersFinal,
       },
       setisCreateGCToggle,
-    );
+    ).then((created) => {
+      // Refused or failed: the request has already said why.
+      if (!created) setisSaving(false);
+    });
     // setisCreateGCToggle(false);
     // dispatch({
     //   type: SET_MUTATE_ALERTS,

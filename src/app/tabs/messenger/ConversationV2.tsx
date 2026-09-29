@@ -107,10 +107,13 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { Avatar, BotFlag, Icon, PageFlag } from "@/reusables/design";
 import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
 import {
+  pushAlert,
   pushErrorAlert,
   pushResponseAlert,
   resolveErrorMessage,
 } from "@/reusables/hooks/errormessages";
+
+const CALL_NOT_RUNG = "We couldn't ring them. Please try calling again.";
 import FullscreenImageViewer from "@/app/reusables/FullscreenImageViewer";
 
 // {
@@ -1275,9 +1278,18 @@ function ConversationV2({
           conversationsetup.conversationType == "single"
             ? authentication.user.profile || "none"
             : "none",
-      }).finally(() => {
-        callRequestInFlightRef.current.delete(callKey);
-      });
+      })
+        .then((rang) => {
+          if (rang === false) {
+            pushAlert(dispatch, "warning", CALL_NOT_RUNG, alerts);
+          }
+        })
+        // The call window opens regardless, so without this a refused ring
+        // left the caller "calling" into a room nobody was told about.
+        .catch((err) => pushErrorAlert(dispatch, err, CALL_NOT_RUNG, alerts))
+        .finally(() => {
+          callRequestInFlightRef.current.delete(callKey);
+        });
     }
 
     dispatch({
@@ -1347,18 +1359,36 @@ function ConversationV2({
           });
         }
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch((err) =>
+        pushErrorAlert(
+          dispatch,
+          err,
+          "We couldn't leave this conversation. Please try again.",
+          alerts,
+        ),
+      );
+  };
+
+  const CHAT_HISTORY_FAILED: Record<string, string> = {
+    archive: "We couldn't archive this conversation.",
+    unarchive: "We couldn't unarchive this conversation.",
   };
 
   const UpdateChatHistoryProcess = (action: string) => {
     settoggleMenu(false);
+    const failed =
+      CHAT_HISTORY_FAILED[action] ?? "We couldn't update this conversation.";
     UpdateChatHistoryRequest({
       conversationID: conversationID,
       action,
     })
-      .then(() => {
+      .then((response) => {
+        // A refusal used to be treated as success: the conversation vanished
+        // from the list while the server still had it where it was.
+        if (response?.status === false) {
+          pushResponseAlert(dispatch, response, failed, alerts);
+          return;
+        }
         if (isMinimized) {
           dispatch({
             type: CLOSE_MINIMIZED_CONVERSATION,
@@ -1397,9 +1427,7 @@ function ConversationV2({
           });
         }
       })
-      .catch((err) => {
-        console.log(err);
-      });
+      .catch((err) => pushErrorAlert(dispatch, err, failed, alerts));
   };
 
   const goBackToConversationList = () => {

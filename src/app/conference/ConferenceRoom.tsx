@@ -19,7 +19,10 @@ import {
   CloseSSENotifications,
   SSENotificationsTRequest,
 } from "@/reusables/hooks/sse";
-import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
+import {
+  notifyRequestError,
+  resolveErrorMessage,
+} from "@/reusables/hooks/errormessages";
 
 function ConferenceRoom() {
   const authentication: AuthenticationInterface = useSelector(
@@ -496,6 +499,11 @@ function ConferenceRoom() {
       if (meetingWindowState.canJoin) {
         setHasJoined(true);
       }
+    } catch (err) {
+      // An expired or revoked invite is refused with a reason worth reading;
+      // without this catch it was an unhandled rejection and a button that
+      // simply stopped spinning.
+      notifyRequestError(err, "We couldn't accept that invitation.");
     } finally {
       setIsInviteUpdating(false);
     }
@@ -520,6 +528,8 @@ function ConferenceRoom() {
       });
 
       setInviteInfo(response?.result ?? roomInviteForUser);
+    } catch (err) {
+      notifyRequestError(err, "We couldn't send your request to join.");
     } finally {
       setIsInviteUpdating(false);
     }

@@ -1,8 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { UpdateRealmMediaRequest } from "@/reusables/hooks/requests";
+import {
+  notifyRequestError,
+  notifyResponseFailure,
+} from "@/reusables/hooks/errormessages";
 import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { useRef, useState } from "react";
+
+const MEDIA_NOT_SAVED = "We couldn't update that photo. Please try again.";
 
 function Media({ realm }: { realm: IRealmProfileInfo }) {
   const [selectedProfile, setselectedProfile] = useState<File | null>(null);
@@ -60,6 +66,14 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
       .then((response) => {
         setisSaving(false);
 
+        // Refused (realm.media.update) or rejected: say why. This used to
+        // read response.details off the refusal, throw, and land in a catch
+        // that only logged.
+        if (!response?.status) {
+          notifyResponseFailure(response, MEDIA_NOT_SAVED);
+          return;
+        }
+
         if (response.details.media_type === "profile") {
           setselectedProfile(null);
           setrealmState((prev: IRealmProfileInfo) => {
@@ -82,7 +96,7 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
       })
       .catch((err) => {
         setisSaving(false);
-        console.log(err);
+        notifyRequestError(err, MEDIA_NOT_SAVED);
       });
   };
 

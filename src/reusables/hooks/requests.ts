@@ -8,6 +8,7 @@ import {
   SET_CONTACTS_LIST_OVERRIDE,
   SET_NOTIFICATIONS_LIST,
   SET_NOTIFICATIONS_LIST_OVERRIDE,
+  SET_PENDING_MESSAGES_LIST,
 } from "../../redux/types";
 import { authenticationstate } from "../../redux/actions/states";
 import store from "../../redux/store";
@@ -42,6 +43,8 @@ import jwtDecode from "jwt-decode";
 import { ChatCommand } from "./commands";
 import {
   friendlyError,
+  notifyRequestError,
+  notifyResponseFailure,
   pushAlert,
   pushErrorAlert,
   pushResponseAlert,
@@ -1497,10 +1500,17 @@ const ContactsListInitRequest = (
       setisLoading(false);
     })
     .catch((err) => {
-      console.log(err);
+      // Never leave the list spinning. Only a screen waiting on the result
+      // (isState - a component's own list) is told why; the store-refresh
+      // form is the SSE handler's background top-up, which must not raise an
+      // alert every time it misses.
+      setisLoading(false);
+      if (isState) notifyRequestError(err, "We couldn't load your contacts.");
+      else console.log(err);
     });
 };
 
+/** The contact picker in the create-group/server/page modals. */
 const ContactsListReusableRequest = (dispatch: any, setisLoading: any) => {
   Axios.get(`${USER_SERVICE_API}/api/user/contacts`, {
     headers: {
@@ -1515,15 +1525,40 @@ const ContactsListReusableRequest = (dispatch: any, setisLoading: any) => {
       setisLoading(false);
     })
     .catch((err) => {
-      console.log(err);
+      // It used to leave the picker spinning forever.
+      setisLoading(false);
+      notifyRequestError(err, "We couldn't load your contacts.");
     });
 };
 
-const SendMessageRequest = (params: any) => {
+const MESSAGE_NOT_SENT = "Your message wasn't sent. Please try again.";
+
+/**
+ * Takes a failed send's optimistic bubbles back out of the thread.
+ *
+ * A pending message is only ever cleared by the real one arriving (matched on
+ * pendingID), which a refused send never produces - so without this the
+ * bubble sat there "sending" forever, over a message the server had already
+ * turned down.
+ */
+const dropPendingMessages = (pendingIDs: string[]) => {
+  const current: any[] = (store.getState() as any).pendingmessageslist ?? [];
+  store.dispatch({
+    type: SET_PENDING_MESSAGES_LIST,
+    payload: {
+      pendingmessageslist: current.filter(
+        (pending: any) => !pendingIDs.includes(pending.pendingID),
+      ),
+    },
+  });
+};
+
+/** Resolves true once the server accepted the message. Reports a refusal. */
+const SendMessageRequest = (params: any): Promise<boolean> => {
   const payload = params;
   const encodedPayload = sign(payload, SECRET);
 
-  Axios.post(
+  return Axios.post(
     `${API}/u/sendMessage`,
     {
       token: encodedPayload,
@@ -1535,15 +1570,15 @@ const SendMessageRequest = (params: any) => {
     },
   )
     .then((response) => {
-      if (response.data.status) {
-        // console.log(response.data)
-      } else {
-        // console.log(response.data.message)
-      }
-      // setmessageValue("")
+      if (response.data.status) return true;
+      dropPendingMessages([params.pendingID]);
+      notifyResponseFailure(response, MESSAGE_NOT_SENT);
+      return false;
     })
     .catch((err) => {
-      console.log(err);
+      dropPendingMessages([params.pendingID]);
+      notifyRequestError(err, MESSAGE_NOT_SENT);
+      return false;
     });
 };
 
@@ -1713,15 +1748,32 @@ const SendFilesRequest = async (params: {
   );
   params.files.forEach((f) => formData.append("files", f.file, f.file.name));
 
+  // Reports its own failure rather than throwing: every caller fires it and
+  // moves on, so a rejection here was an unhandled one, and the files'
+  // pending bubbles stayed "sending" forever.
+  const pendingIDs = params.files.map((f) => f.pendingID);
+  const FILES_NOT_SENT =
+    params.files.length === 1
+      ? "Your file wasn't sent. Please try again."
+      : "Your files weren't sent. Please try again.";
+
   return await Axios.post(`${API}/u/sendFiles`, formData, {
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
     },
   })
-    .then((response) => response)
+    .then((response) => {
+      if (response.data?.status === false) {
+        dropPendingMessages(pendingIDs);
+        notifyResponseFailure(response, FILES_NOT_SENT);
+        return false;
+      }
+      return response;
+    })
     .catch((err) => {
-      console.log(err);
-      throw toRequestError(err);
+      dropPendingMessages(pendingIDs);
+      notifyRequestError(err, FILES_NOT_SENT);
+      return false;
     });
 };
 
@@ -1969,14 +2021,22 @@ const InitConversationRequest = (
   // })
 };
 
-const CreateGroupChatRequest = (params: any, setisCreateGCToggle: any) => {
-  const payload = params;
-  const encodedPayload = sign(payload, SECRET);
-
+/**
+ * The shared shape of the three "create a realm from a modal" requests - a
+ * group chat, a server, a channel. Closes the modal on success; on a refusal
+ * or a failure, says why and resolves false so the modal can stop its
+ * spinner. They used to do neither, which left the modal loading forever.
+ */
+const createFromModal = (
+  path: string,
+  params: any,
+  setModalOpen: (open: boolean) => void,
+  failedMessage: string,
+): Promise<boolean> =>
   Axios.post(
-    `${API}/u/createContactGroupChat`,
+    `${API}${path}`,
     {
-      token: encodedPayload,
+      token: sign(params, SECRET),
     },
     {
       headers: {
@@ -1986,38 +2046,32 @@ const CreateGroupChatRequest = (params: any, setisCreateGCToggle: any) => {
   )
     .then((response) => {
       if (response.data.status) {
-        setisCreateGCToggle(false);
+        setModalOpen(false);
+        return true;
       }
+      notifyResponseFailure(response, failedMessage);
+      return false;
     })
     .catch((err) => {
-      console.log(err);
+      notifyRequestError(err, failedMessage);
+      return false;
     });
-};
 
-const CreateServerRequest = (params: any, setisCreateGCToggle: any) => {
-  const payload = params;
-  const encodedPayload = sign(payload, SECRET);
+const CreateGroupChatRequest = (params: any, setisCreateGCToggle: any) =>
+  createFromModal(
+    "/u/createContactGroupChat",
+    params,
+    setisCreateGCToggle,
+    "We couldn't create that group chat.",
+  );
 
-  Axios.post(
-    `${API}/u/createserver`,
-    {
-      token: encodedPayload,
-    },
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
-    },
-  )
-    .then((response) => {
-      if (response.data.status) {
-        setisCreateGCToggle(false);
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-    });
-};
+const CreateServerRequest = (params: any, setisCreateGCToggle: any) =>
+  createFromModal(
+    "/u/createserver",
+    params,
+    setisCreateGCToggle,
+    "We couldn't create that server.",
+  );
 
 const CreateConferenceRequest = async (params: any) => {
   const payload = params;
@@ -2580,35 +2634,16 @@ const AddNewMemberToServer = async (payload: any) => {
     });
 };
 
-const CreateChannelRequest = async (
-  payloadprop: any,
-  setisCreateGCToggle: any,
-) => {
-  const payload = payloadprop;
-  const encodedPayload = sign(payload, SECRET);
-
-  await Axios.post(
-    `${API}/u/createchannel`,
-    {
-      token: encodedPayload,
-    },
-    {
-      headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
-      },
-    },
-  )
-    .then((response) => {
-      if (response.data.status) {
-        setisCreateGCToggle(false);
-        return true;
-      }
-    })
-    .catch((err) => {
-      console.log(err);
-      return false;
-    });
-};
+// A member without realm.channel.create is refused with a 403 and a readable
+// reason, which createFromModal now shows - it used to be swallowed here and
+// the modal spun forever.
+const CreateChannelRequest = (payloadprop: any, setisCreateGCToggle: any) =>
+  createFromModal(
+    "/u/createchannel",
+    payloadprop,
+    setisCreateGCToggle,
+    "We couldn't create that channel.",
+  );
 
 const GetMembersListInServer = (
   serverID: string,
@@ -3719,13 +3754,10 @@ const UpdateRealmMediaRequest = async (payload: {
       },
     },
   )
-    .then((response) => {
-      if (response.data.status) {
-        return response.data;
-      } else {
-        return false;
-      }
-    })
+    // The body either way, so a refusal's `message` reaches the caller -
+    // returning `false` for one threw that reason away. Callers check
+    // `.status`.
+    .then((response) => response.data)
     .catch((err) => {
       console.log(err);
       throw toRequestError(err);
@@ -4581,10 +4613,10 @@ const UpdateProfilePrivacyRequest = async (
       return false;
     })
     .catch((err) => {
-      console.log(err.message);
-      pushAlert(
+      // pushErrorAlert, not a fixed string, so a refusal says WHY.
+      pushErrorAlert(
         dispatch,
-        "error",
+        err,
         "We couldn't update your privacy setting.",
         currentAlertState,
       );
@@ -4607,12 +4639,24 @@ const CreateInitialConversation = async (otherEntityID: string) => {
       if (response.data.status) {
         return response.data.conversationID;
       }
+      // Every "Message" button funnels through here, and starting a chat is
+      // a permission the server enforces (conversations.create) - a refusal
+      // used to make the button simply do nothing.
+      notifyResponseFailure(response, "We couldn't open that chat.");
+      return undefined;
     })
     .catch((err) => {
-      console.log(err);
+      notifyRequestError(err, "We couldn't open that chat.");
+      return undefined;
     });
 };
 
+/**
+ * Resolves the server's own `{status, message}` either way - a refusal
+ * included - and throws a presentable RequestError on failure, which is
+ * exactly what its caller reads. It used to resolve nothing on a refusal, so
+ * the caller's `response.status` threw and the server's reason was lost.
+ */
 const ReplyAssistRequest = async (
   conversationID: string,
   messageID: string,
@@ -4626,13 +4670,9 @@ const ReplyAssistRequest = async (
       },
     },
   )
-    .then((response) => {
-      if (response.data.status) {
-        return response.data;
-      }
-    })
+    .then((response) => response.data)
     .catch((err) => {
-      console.log(err);
+      throw toRequestError(err);
     });
 };
 

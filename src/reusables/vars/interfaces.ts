@@ -368,6 +368,13 @@ export interface ServerChannelsListInterface {
   createdBy: string;
   privacy: boolean;
   is_admin: boolean;
+  /**
+   * Whether I may create channels here - the same permission check
+   * /u/createchannel applies (realm.channel.create), so the create button
+   * only appears for people that route will accept. Absent from servers
+   * that predate it; fall back to is_admin, which matches the default roles.
+   */
+  can_create_channel?: boolean;
   channels: ChannelsListInterface[];
   usersWithInfo: ServerUsersWithInfo[];
 }

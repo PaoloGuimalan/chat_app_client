@@ -151,7 +151,18 @@ function UploadProfileMedia({
             });
             getpostprocess();
           } else {
+            // Refused (realm.media.update) or rejected - it used to close
+            // the spinner and say nothing.
             setisuploadingpost(false);
+            dispatch({
+              type: SET_MUTATE_ALERTS,
+              payload: {
+                alerts: {
+                  type: "warning",
+                  content: resolveResponseMessage(response, UPLOAD_FAILED),
+                },
+              },
+            });
           }
           return;
         }

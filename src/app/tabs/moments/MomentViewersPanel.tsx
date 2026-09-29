@@ -116,9 +116,9 @@ function MomentViewersPanel({
   };
 
   const messageViewer = async (entityId: string) => {
+    // CreateInitialConversation reports its own failure.
     const conversationID = await CreateInitialConversation(entityId);
     if (conversationID) navigate(`/messages/${conversationID}`);
-    else alert("warning", "We couldn't open that chat.");
   };
 
   return (

@@ -79,7 +79,10 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
         otherUsers: markedMembersFinal,
       },
       setisCreateServerToggle,
-    );
+    ).then((created) => {
+      // Refused or failed: the request has already said why.
+      if (!created) setisSaving(false);
+    });
     // setisCreateServerToggle(false);
     // dispatch({
     //   type: SET_MUTATE_ALERTS,

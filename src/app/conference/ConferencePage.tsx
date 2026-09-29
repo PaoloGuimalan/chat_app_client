@@ -26,7 +26,7 @@ import { useTheme } from "@/reusables/design/ThemeProvider";
 import { SET_ALERTS, SET_REMOVE_IS_TYPING_LIST } from "@/redux/types";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import ConferenceRoom from "./ConferenceRoom";
-import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
+import { notify, resolveErrorMessage } from "@/reusables/hooks/errormessages";
 
 function ConferencePage() {
   const authentication: AuthenticationInterface = useSelector(
@@ -187,6 +187,22 @@ function ConferencePage() {
         );
 
         const inviteResponses = await Promise.allSettled(inviteRequests);
+
+        // The meeting exists either way, so a failed invite must not stop
+        // it - but the host should know who was never invited rather than
+        // assume everyone was.
+        const failedInvites = inviteResponses.filter(
+          (mp) => mp.status === "rejected",
+        ).length;
+        if (failedInvites > 0) {
+          notify(
+            "warning",
+            failedInvites === inviteResponses.length
+              ? "The meeting was created, but the invitations couldn't be sent."
+              : `The meeting was created, but ${failedInvites} of ${inviteResponses.length} invitations couldn't be sent.`,
+          );
+        }
+
         const inviteResultPayload = inviteResponses
           .filter(
             (mp): mp is PromiseFulfilledResult<any> =>
