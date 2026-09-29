@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { Icon } from "@/reusables/design";
 import {
@@ -11,9 +12,12 @@ import type { Emoji, IPost } from "@/reusables/vars/interfaces";
 import { timeAgoLabel, timeLeftLabel } from "./ephemeral";
 import MomentThumb from "./MomentThumb";
 
-/** POST adds a reaction, PUT swaps it, DELETE takes it back. */
-const reactionMethod = (mine: string | null, picked: string) =>
-  !mine ? "POST" : mine === picked ? "DELETE" : "PUT";
+/**
+ * A reaction's burst, where its button was: the glyph floating up and a ring
+ * spreading (styles.css, `cl-moment-react-*`). Each tap on your reaction adds
+ * one - they overlap, so it can be spammed, as in the app.
+ */
+type Burst = { key: number; glyph: string; x: number; y: number; size: number; drift: number };
 
 
 /**
@@ -47,6 +51,10 @@ function MomentSidePanel({
   const [draft, setDraft] = useState("");
   const [sending, setSending] = useState(false);
   const [reacting, setReacting] = useState(false);
+  const [bursts, setBursts] = useState<Burst[]>([]);
+  /** The last burst's key - re-keys your reaction's glyph so it pops again. */
+  const [popped, setPopped] = useState(0);
+  const burstCount = useRef(0);
 
   const allowsReplies = moment.details?.allow_replies !== false;
   const mine = moment.entity_reaction ?? null;
@@ -58,16 +66,42 @@ function MomentSidePanel({
   const alert = (type: string, content: string) =>
     dispatch({ type: SET_MUTATE_ALERTS, payload: { alerts: { type, content } } });
 
-  const react = async (emoji: Emoji) => {
-    if (reacting || !allowsReplies) return;
-    const method = reactionMethod(mine, emoji.emoji_id);
-    const nextMine = method === "DELETE" ? null : emoji.emoji_id;
+  const burst = (emoji: Emoji, button: HTMLElement) => {
+    const box = button.getBoundingClientRect();
+    // Sized from the button's own glyph, like the app's.
+    const size = parseFloat(getComputedStyle(button).fontSize) || 20;
+    const key = ++burstCount.current;
+    setPopped(key);
+    setBursts((all) => [
+      // A cap, however fast the taps come.
+      ...all.slice(-15),
+      {
+        key,
+        glyph: emoji.emoji_content,
+        x: box.left + box.width / 2,
+        y: box.top + box.height / 2,
+        size,
+        drift: Math.round((Math.random() - 0.5) * 28),
+      },
+    ]);
+  };
+
+  /**
+   * One reaction per moment, as in the app: the first tap sends it; tapping
+   * it again only plays the burst again (as often as you like); the others
+   * are locked once one is chosen - it can't be changed or taken back here.
+   */
+  const react = async (emoji: Emoji, button: HTMLElement) => {
+    if (!allowsReplies) return;
+    if (mine && mine !== emoji.emoji_id) return;
+    burst(emoji, button);
+    if (mine || reacting) return;
     setReacting(true);
-    onReacted(nextMine);
+    onReacted(emoji.emoji_id);
     try {
-      await ReactionSaveRequest({ post_id: moment.post_id, emoji_id: emoji.emoji_id, method });
+      await ReactionSaveRequest({ post_id: moment.post_id, emoji_id: emoji.emoji_id, method: "POST" });
     } catch (err: any) {
-      onReacted(mine);
+      onReacted(null);
       alert("warning", err?.message || "We couldn't save that reaction.");
     } finally {
       setReacting(false);
@@ -102,15 +136,22 @@ function MomentSidePanel({
           <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(6, Math.max(1, palette.length))}, 1fr)`, gap: 6 }}>
             {palette.map((emoji) => {
               const on = mine === emoji.emoji_id;
+              const locked = mine != null && !on;
               return (
                 <button
                   key={emoji.emoji_id}
-                  onClick={() => react(emoji)}
+                  onClick={(e) => react(emoji, e.currentTarget)}
                   title={emoji.emoji_title}
-                  disabled={reacting}
-                  style={{ height: 44, borderRadius: "var(--r-sm)", background: on ? "var(--brand-soft)" : "var(--surface-2)", border: `1px solid ${on ? "var(--brand)" : "var(--border)"}`, fontSize: 20, cursor: "pointer" }}
+                  disabled={locked}
+                  style={{ height: 44, borderRadius: "var(--r-sm)", background: on ? "var(--brand-soft)" : "var(--surface-2)", border: `1px solid ${on ? "var(--brand)" : "var(--border)"}`, fontSize: 20, cursor: locked ? "default" : "pointer", opacity: locked ? 0.35 : 1, transition: "opacity .25s" }}
                 >
-                  {emoji.emoji_content}
+                  {on ? (
+                    <span key={popped} className={popped ? "cl-moment-react-pop" : undefined} style={{ display: "inline-block" }}>
+                      {emoji.emoji_content}
+                    </span>
+                  ) : (
+                    emoji.emoji_content
+                  )}
                 </button>
               );
             })}
@@ -204,6 +245,29 @@ function MomentSidePanel({
           );
         })}
       </div>
+      {bursts.length > 0 &&
+        createPortal(
+          // Over everything: the panel clips its edges, and the glyph floats
+          // well above its button.
+          bursts.map((b) => (
+            <div
+              key={b.key}
+              aria-hidden
+              className="cl-moment-react-burst"
+              style={{ left: b.x, top: b.y, ["--burst-drift" as any]: `${b.drift}px` }}
+            >
+              <span className="cl-moment-react-ring" style={{ width: b.size * 2.2, height: b.size * 2.2 }} />
+              <span
+                className="cl-moment-react-float"
+                style={{ fontSize: b.size * 1.6 }}
+                onAnimationEnd={() => setBursts((all) => all.filter((x) => x.key !== b.key))}
+              >
+                {b.glyph}
+              </span>
+            </div>
+          )),
+          document.body,
+        )}
     </div>
   );
 }

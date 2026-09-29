@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { Avatar } from "@/reusables/design/primitives2";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   GetMomentRingsRequest,
@@ -23,7 +23,9 @@ import { motion } from "framer-motion";
 import { BsFilePerson } from "react-icons/bs";
 import { BiSolidImageAdd, BiSolidMoviePlay } from "react-icons/bi";
 import UploadProfileMedia from "@/app/widgets/modals/CreatePost/UploadProfileMedia";
+import FullscreenImageViewer from "@/app/reusables/FullscreenImageViewer";
 import { useSelector } from "react-redux";
+import { useCloseOnOutside } from "./useCloseOnOutside";
 
 function ProfilePicContainer({
   userID,
@@ -57,7 +59,10 @@ function ProfilePicContainer({
 
   const [toggleSelection, settoggleSelection] = useState<boolean>(false);
   const [toggleUploadModal, settoggleUploadModal] = useState<boolean>(false);
+  const [viewingPhoto, setViewingPhoto] = useState(false);
   const navigate = useNavigate();
+  const column = useRef<HTMLDivElement>(null);
+  useCloseOnOutside(column, toggleSelection, () => settoggleSelection(false));
   const [ring, setRing] = useState<IMomentRing | null>(null);
   const [thought, setThought] = useState<IThought | null>(null);
   const [thoughtOpen, setThoughtOpen] = useState(false);
@@ -98,6 +103,9 @@ function ProfilePicContainer({
   }, [authentication.user.userID, userID, isAllowed, type]);
 
   const hasMoment = !!(ring?.has_moment && entityId);
+  const hasPhoto = !!profile && profile !== "none";
+  // Visitors get the menu too - just what there is to see.
+  const hasMenu = isUserProfile || hasMoment || hasPhoto;
 
   const openMoment = () => {
     if (!ring || !entityId) return;
@@ -106,17 +114,16 @@ function ProfilePicContainer({
   };
 
   return (
-    <div className="cl-profile-avatar-col tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center tw-relative">
+    <div
+      ref={column}
+      className="cl-profile-avatar-col tw-bg-transparent tw-w-full tw-max-w-[180px] tw-flex tw-justify-center tw-relative"
+    >
       <div
         onClick={() => {
-          // The owner (or a realm's admin) always gets the menu - a live
-          // Moment is one of its items - so it never hides the photo options.
-          // A visitor has nothing else to pick: their tap opens the Moment.
-          if (hasMoment && !isUserProfile) {
-            openMoment();
-            return;
-          }
-          settoggleSelection(!toggleSelection);
+          // Everyone gets the menu - a live Moment is one of its items, so it
+          // never hides the photo. The owner (or a realm's admin) can also
+          // upload; a visitor can only look.
+          if (hasMenu) settoggleSelection(!toggleSelection);
         }}
         className="cl-profile-avatar-shell tw-cursor-pointer tw-w-full tw-max-w-[120px] tw-h-[120px] sm:tw-max-w-[160px] sm:tw-h-[160px] tw-flex tw-items-center tw-justify-center tw-rounded-[160px] tw-relative tw--mt-[80px]"
       >
@@ -176,7 +183,7 @@ function ProfilePicContainer({
             />
           </div>
         ))}
-      {isUserProfile && (
+      {hasMenu && (
         <motion.div
           initial={{
             height: "0px",
@@ -184,41 +191,58 @@ function ProfilePicContainer({
           animate={{
             height: toggleSelection ? "auto" : "0px",
           }}
-          className="cl-profile-cover-menu tw-absolute tw-bottom-0 tw-overflow-y-hidden"
+          // As wide as its longest label: squeezed to the avatar's column,
+          // "Upload New Photo" broke onto two lines.
+          className="cl-profile-cover-menu tw-absolute tw-bottom-0 tw-w-max tw-overflow-y-hidden"
         >
-          <div className="tw-p-[10px] tw-w-[calc(100%-0px)] tw-flex tw-flex-col tw-gap-[2px] tw-items-start">
+          <div className="tw-p-[10px] tw-flex tw-flex-col tw-gap-[2px] tw-items-stretch">
             {hasMoment && (
               <motion.button
                 onClick={openMoment}
-                className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
+                className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-pr-[10px] tw-min-h-[30px] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
               >
                 <BiSolidMoviePlay color="var(--text-2)" size={22} />
-                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text)]">
+                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text)] tw-whitespace-nowrap">
                   View Moment
                 </span>
               </motion.button>
             )}
-            {profile !== "none" && (
-              <motion.button className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]">
+            {hasPhoto && (
+              <motion.button
+                onClick={() => {
+                  settoggleSelection(false);
+                  setViewingPhoto(true);
+                }}
+                className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-pr-[10px] tw-min-h-[30px] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
+              >
                 <BsFilePerson color="var(--text-2)" size={22} />
-                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text)]">
+                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text)] tw-whitespace-nowrap">
                   View Photo
                 </span>
               </motion.button>
             )}
-            <motion.button
-              onClick={() => {
-                settoggleUploadModal(true);
-              }}
-              className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-min-h-[30px] tw-w-[calc(100%-0px)] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
-            >
-              <BiSolidImageAdd color="var(--text-2)" size={25} />
-              <span className="tw-font-Inter cl-text-caption tw-text-[var(--text)]">
-                Upload New Photo
-              </span>
-            </motion.button>
+            {isUserProfile && (
+              <motion.button
+                onClick={() => {
+                  settoggleSelection(false);
+                  settoggleUploadModal(true);
+                }}
+                className="cl-profile-cover-menu__item tw-cursor-pointer tw-p-[4px] tw-pr-[10px] tw-min-h-[30px] tw-text-left tw-flex tw-items-center tw-gap-[4px]"
+              >
+                <BiSolidImageAdd color="var(--text-2)" size={25} />
+                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text)] tw-whitespace-nowrap">
+                  Upload New Photo
+                </span>
+              </motion.button>
+            )}
           </div>
         </motion.div>
+      )}
+      {viewingPhoto && hasPhoto && (
+        <FullscreenImageViewer
+          src={profile!}
+          onClose={() => setViewingPhoto(false)}
+        />
       )}
       {toggleUploadModal && (
         <UploadProfileMedia

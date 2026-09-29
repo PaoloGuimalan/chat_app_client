@@ -8992,3 +8992,86 @@ body::-webkit-scrollbar-thumb:hover,
   order: 2;
   margin-top: 4px;
 }
+
+/* A Moment reaction's burst (MomentSidePanel) - as the app's ReactionBurst:
+   the glyph pops, a ring spreads from it, and a larger copy floats up and
+   fades. Every tap adds one; they overlap. */
+.cl-moment-react-burst {
+  position: fixed;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+  z-index: 10000;
+}
+
+.cl-moment-react-ring {
+  position: absolute;
+  left: 0;
+  top: 0;
+  border: 2px solid var(--brand);
+  border-radius: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  animation: cl-moment-react-ring 0.6s ease-out forwards;
+}
+
+.cl-moment-react-float {
+  position: absolute;
+  left: 0;
+  top: 0;
+  line-height: 1;
+  opacity: 0;
+  animation: cl-moment-react-float 0.95s cubic-bezier(0.33, 1, 0.68, 1) forwards;
+}
+
+.cl-moment-react-pop {
+  animation: cl-moment-react-pop 0.5s ease-out forwards;
+}
+
+@keyframes cl-moment-react-ring {
+  from {
+    transform: translate(-50%, -50%) scale(1);
+    opacity: 0.9;
+  }
+  to {
+    transform: translate(-50%, -50%) scale(2);
+    opacity: 0;
+  }
+}
+
+@keyframes cl-moment-react-float {
+  0% {
+    transform: translate(-50%, -50%) translateY(8px) scale(0.5);
+    opacity: 0;
+  }
+  18% {
+    opacity: 1;
+  }
+  100% {
+    transform: translate(-50%, -50%) translate(var(--burst-drift, 0px), -104px)
+      scale(1.6);
+    opacity: 0;
+  }
+}
+
+@keyframes cl-moment-react-pop {
+  0% {
+    transform: scale(1);
+  }
+  35% {
+    transform: scale(1.55);
+  }
+  65% {
+    transform: scale(0.92);
+  }
+  100% {
+    transform: scale(1.12);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-moment-react-ring,
+  .cl-moment-react-float,
+  .cl-moment-react-pop {
+    animation-duration: 0.01s;
+  }
+}
