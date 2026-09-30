@@ -978,7 +978,7 @@ function Conversation({
         callDisplayName:
           conversationsetup.type == "single"
             ? `${callerName}`
-            : `${conversationsetup.groupdetails.groupName} (Group)`,
+            : `${conversationsetup.groupdetails.groupName}`,
         conversationType: conversationsetup.type,
         conversationID,
         caller,
@@ -987,7 +987,12 @@ function Conversation({
         // userdetails.profile is the person being rung, so their alert showed
         // them their own face under our name.
         displayImage:
-          conversationsetup.type == "single" ? callerImage : "none",
+          conversationsetup.type == "single"
+            ? callerImage
+            : conversationsetup.groupdetails?.profile &&
+                !["none", "N/A"].includes(conversationsetup.groupdetails.profile)
+              ? conversationsetup.groupdetails.profile
+              : "none",
       }).finally(() => {
         callRequestInFlightRef.current.delete(callKey);
       });

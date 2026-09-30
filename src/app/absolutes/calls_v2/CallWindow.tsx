@@ -31,6 +31,29 @@ import {
 } from "@/reusables/hooks/requests";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { buildCallTiles, CallStage, RemoteAudio } from "./stage";
+import { Avatar } from "@/reusables/design/primitives2";
+
+/**
+ * Who a call is with, as its header shows it: the group, or the other person.
+ * An outgoing call carries the conversation's own details; an incoming one
+ * what the caller announced it as.
+ */
+function callIdentity(data: any): { name: string; image: string | null } {
+  const clean = (value: unknown): string | null => {
+    const text = typeof value === "string" ? value.trim() : "";
+    return text && text !== "none" && text !== "N/A" ? text : null;
+  };
+  const name =
+    clean(data?.details?.display_name) ??
+    clean(data?.groupdetails?.groupName) ??
+    clean(String(data?.callDisplayName ?? "").replace(/\s*\(Group\)$/, "")) ??
+    "Call";
+  const image =
+    clean(data?.details?.profile) ??
+    clean(data?.groupdetails?.profile) ??
+    clean(data?.displayImage);
+  return { name, image };
+}
 import envs from "@/reusables/hooks/env_configs";
 import { useReconnect } from "@/reusables/hooks/useReconnect";
 import { useCallPresence } from "@/reusables/hooks/callPresence";
@@ -131,6 +154,8 @@ function CallWindow({ data, lineNum }: any) {
   // while the call was still connecting, or joining muted, changed only the
   // icon. The producer was then created live: shown muted, heard by everyone,
   // until an unmute and mute again finally reached it.
+  const identity = useMemo(() => callIdentity(data), [data]);
+
   const enableMicRef = useRef(enableMic);
   enableMicRef.current = enableMic;
   const enableCameraRef = useRef(enableCamera);
@@ -1327,7 +1352,17 @@ function CallWindow({ data, lineNum }: any) {
       ref={windowRef}
     >
       <div id="div_top_nav_call_window">
-        <span id="span_call_displayname">{data.callDisplayName}</span>
+        <div className="tw-flex tw-items-center tw-gap-2 tw-min-w-0">
+          <Avatar
+            id={data.conversationID}
+            name={identity.name}
+            src={identity.image}
+            size={28}
+          />
+          <span id="span_call_displayname" className="tw-truncate">
+            {identity.name}
+          </span>
+        </div>
         <button
           onClick={toggleWindowFullscreen}
           aria-label="Toggle fullscreen"

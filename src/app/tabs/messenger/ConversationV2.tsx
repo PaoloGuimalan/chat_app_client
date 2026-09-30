@@ -1271,10 +1271,12 @@ function ConversationV2({
       callRequestInFlightRef.current.add(callKey);
       CallRequest({
         callType: type,
+        // A group call is announced as the group - its name alone, the way
+        // every ring screen and push shows it.
         callDisplayName:
           conversationsetup.conversationType == "single"
             ? `${callerName}`
-            : `${conversationsetup?.details.display_name} (Group)`,
+            : `${conversationsetup?.details.display_name}`,
         conversationType: conversationsetup.conversationType,
         conversationID,
         caller,
@@ -1286,8 +1288,15 @@ function ConversationV2({
         // read off authentication.user for exactly that reason. This one read
         // conversationsetup.details.profile, which is the person we are
         // ringing, so their alert showed them their own face under our name.
+        //
+        // A group call shows the GROUP's picture (initials when it has none).
         displayImage:
-          conversationsetup.conversationType == "single" ? callerImage : "none",
+          conversationsetup.conversationType == "single"
+            ? callerImage
+            : conversationsetup?.details?.profile &&
+                !["none", "N/A"].includes(conversationsetup.details.profile)
+              ? conversationsetup.details.profile
+              : "none",
       })
         .then((rang) => {
           if (rang === false) {

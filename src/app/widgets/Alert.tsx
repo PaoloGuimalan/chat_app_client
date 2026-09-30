@@ -2,7 +2,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useRef, useState } from "react";
 import "../../App.css";
-import GroupChatIcon from "../../assets/imgs/group-chat-icon.jpg";
 import { Avatar } from "../../reusables/design/primitives2";
 import { motion } from "framer-motion";
 import {
@@ -28,7 +27,6 @@ import {
   isInAnyCall,
   subscribeCallPresence,
 } from "../../reusables/hooks/callPresence";
-import CachedImage from "../reusables/cachers/CachedImage";
 
 function Alert({ al }: any) {
   const alerts = useSelector((state: any) => state.alerts);
@@ -339,19 +337,24 @@ function Alert({ al }: any) {
       </div>
       <div id="div_alert_content_container_ic">
         <div id="div_img_alert_container">
-          {al.callmetadata.conversationType == "single" ? (
-            <Avatar
-              id={al.callmetadata.caller}
-              src={
-                al.callmetadata.displayImage == "none"
-                  ? undefined
-                  : al.callmetadata.displayImage
-              }
-              size={50}
-            />
-          ) : (
-            <CachedImage src={GroupChatIcon} className="img_gc_profiles_ntfs" />
-          )}
+          {/* Whoever the call is announced as - the caller, or the group -
+              by their picture, or their initials when they have none. */}
+          <Avatar
+            id={al.callmetadata.conversationID}
+            name={
+              String(al.callmetadata.callDisplayName || "").replace(
+                /\s*\(Group\)$/,
+                "",
+              ) || al.callmetadata.caller?.name
+            }
+            src={
+              !al.callmetadata.displayImage ||
+              ["none", "N/A"].includes(al.callmetadata.displayImage)
+                ? undefined
+                : al.callmetadata.displayImage
+            }
+            size={50}
+          />
         </div>
         <p id="p_alert_content_ic">{al.content}</p>
       </div>
