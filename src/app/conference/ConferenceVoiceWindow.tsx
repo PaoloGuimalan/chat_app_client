@@ -160,6 +160,44 @@ function ConferenceVoiceWindow({
 
   const audioProducerRef = useRef<any>(null);
   const videoProducerRef = useRef<any>(null);
+
+  // The mic and camera FOLLOW enableMic / enableCamera: applied whenever the
+  // state changes, and again whenever a producer is created (startStreaming
+  // reads the refs below). The buttons used to pause/resume the producer
+  // themselves, which did nothing while there was no producer yet - muting
+  // while the call was still connecting, or joining muted, changed only the
+  // icon. The producer was then created live: shown muted, heard by everyone,
+  // until an unmute and mute again finally reached it.
+  const enableMicRef = useRef(enableMic);
+  enableMicRef.current = enableMic;
+  const enableCameraRef = useRef(enableCamera);
+  enableCameraRef.current = enableCamera;
+
+  useEffect(() => {
+    // The track as well as the producer, so a muted mic is silent even before
+    // there is a producer - and a producer created on a disabled track starts
+    // paused.
+    mediaStream?.getAudioTracks().forEach((track) => {
+      track.enabled = enableMic;
+    });
+    const producer = audioProducerRef.current;
+    if (!producer || producer.closed) return;
+    if (enableMic) {
+      producer.resume();
+    } else {
+      producer.pause();
+    }
+  }, [enableMic, mediaStream]);
+
+  useEffect(() => {
+    const producer = videoProducerRef.current;
+    if (!producer || producer.closed) return;
+    if (enableCamera) {
+      producer.resume();
+    } else {
+      producer.pause();
+    }
+  }, [enableCamera]);
   const screenProducerRef = useRef<any>(null);
   const screenAudioProducerRef = useRef<any>(null);
   const encodingsRef = useRef<{ camera: any[]; screenshare: any[] } | null>(
@@ -875,7 +913,8 @@ function ConferenceVoiceWindow({
               encodings: encodingsRef.current?.camera,
               appData: { source: "camera" },
             });
-            if ((data.type || data.callType) !== "video") {
+            // Off before this producer existed - see enableCameraRef.
+            if (!enableCameraRef.current) {
               videoProducerRef.current.pause();
             }
             console.log("Video producer created!", videoProducerRef.current.id);
@@ -892,6 +931,10 @@ function ConferenceVoiceWindow({
               kind: audioTrack.kind,
               appData: { source: "microphone" },
             });
+            // Muted before this producer existed - see enableMicRef.
+            if (!enableMicRef.current) {
+              audioProducerRef.current.pause();
+            }
             console.log("Audio producer created!", audioProducerRef.current.id);
           }
         } catch (e) {
@@ -1620,33 +1663,13 @@ function ConferenceVoiceWindow({
         </div>
         <div id="div_voice_controls">
           <button
-            onClick={async () => {
-              const nextEnableMic = !enableMic;
-              setenableMic(nextEnableMic);
-              if (audioProducerRef.current) {
-                if (enableMic) {
-                  await audioProducerRef.current.pause();
-                } else {
-                  await audioProducerRef.current.resume();
-                }
-              }
-            }}
+            onClick={() => setenableMic((on) => !on)}
             className={`btn_call_controls ${enableMic ? "" : "btn_call_controls_enable"}`}
           >
             {enableMic ? <BsFillMicFill /> : <BsFillMicMuteFill />}
           </button>
           <button
-            onClick={async () => {
-              const nextEnableCamera = !enableCamera;
-              setenableCamera(nextEnableCamera);
-              if (videoProducerRef.current) {
-                if (enableCamera) {
-                  await videoProducerRef.current.pause();
-                } else {
-                  await videoProducerRef.current.resume();
-                }
-              }
-            }}
+            onClick={() => setenableCamera((on) => !on)}
             className={`btn_call_controls ${enableCamera ? "" : "btn_call_controls_enable"}`}
           >
             {enableCamera ? <BsCameraVideoFill /> : <BsCameraVideoOffFill />}
