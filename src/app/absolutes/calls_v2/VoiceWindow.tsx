@@ -40,6 +40,12 @@ function VoiceWindow({ data }: any) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  // The name this device joins the room under. A switched-to page joins as
+  // the page, not as the person behind it.
+  const activeEntity = authentication.active_entity_context;
+  const callUsername = activeEntity?.is_switched
+    ? activeEntity.slug || activeEntity.realm_id || authentication.user.username
+    : authentication.user.username;
 
   const navigate = useNavigate();
 
@@ -211,7 +217,7 @@ function VoiceWindow({ data }: any) {
         connectRecvTransportState.instance ||
         data.instance,
       clientId: clientIdRef.current,
-      username: authentication.user.username,
+      username: callUsername,
       muted: !enableMic,
       cameraOff: !enableCamera,
     }).finally(() => {
@@ -224,7 +230,7 @@ function VoiceWindow({ data }: any) {
     connectTransportState.instance,
     connectRecvTransportState.instance,
     data.instance,
-    authentication.user.username,
+    callUsername,
     enableMic,
     enableCamera,
   ]);
@@ -988,7 +994,7 @@ function VoiceWindow({ data }: any) {
                 ((leftClientId && leftClientId !== clientIdRef.current) ||
                   (!leftClientId &&
                     leftUsername &&
-                    leftUsername !== authentication.user.username))
+                    leftUsername !== callUsername))
               ) {
                 setTimeout(() => {
                   leaveCallProcess();
@@ -1173,7 +1179,7 @@ function VoiceWindow({ data }: any) {
         members,
         instance: data.instance,
         clientId: clientIdRef.current,
-        username: authentication.user.username,
+        username: callUsername,
         muted: !enableMic,
         cameraOff: !enableCamera,
       });

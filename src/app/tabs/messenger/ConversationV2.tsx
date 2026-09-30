@@ -1238,8 +1238,15 @@ function ConversationV2({
       return;
     }
 
+    // A switched-to page calls as the page: its name is what the callee's
+    // ring and call screen show.
+    const activeEntity = authentication.active_entity_context;
+    const callerName =
+      activeEntity?.is_switched && activeEntity.name
+        ? activeEntity.name
+        : authentication.user.fullName.firstName;
     const caller = {
-      name: authentication.user.fullName.firstName,
+      name: callerName,
       entityID: authentication.user.entity_id,
     };
     const callKey = `${conversationID}-${type}`;
@@ -1261,7 +1268,7 @@ function ConversationV2({
         callType: type,
         callDisplayName:
           conversationsetup.conversationType == "single"
-            ? `${authentication.user.fullName.firstName}`
+            ? `${callerName}`
             : `${conversationsetup?.details.display_name} (Group)`,
         conversationType: conversationsetup.conversationType,
         conversationID,

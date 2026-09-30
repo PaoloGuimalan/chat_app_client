@@ -209,8 +209,10 @@ function MomentsBoard() {
         ))}
 
         {tray && entries.length === 0 && (
-          <div style={{ alignSelf: "center", paddingLeft: 8, color: "var(--text-3)", fontSize: "var(--fs-caption)", maxWidth: 260 }}>
-            No Moments from your circle yet. Moments disappear after 24 hours.
+          <div style={{ flex: 1, alignSelf: "center", display: "flex", justifyContent: "center", padding: "0 8px" }}>
+            <span style={{ maxWidth: 260, textAlign: "center", color: "var(--text-3)", fontSize: "var(--fs-caption)" }}>
+              No Moments from your circle yet. Moments disappear after 24 hours.
+            </span>
           </div>
         )}
       </div>
