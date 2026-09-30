@@ -12,6 +12,7 @@ import {
 import { IoMdClose, IoMdCloseCircle } from "react-icons/io";
 import { BiSolidPhoneCall } from "react-icons/bi";
 import { HiPhoneMissedCall } from "react-icons/hi";
+import { BsCameraVideoFill, BsTelephoneFill } from "react-icons/bs";
 import { useDispatch, useSelector } from "react-redux";
 import { callalert } from "../../reusables/hooks/soundmodules";
 import alert_incoming_call from "../../assets/sounds/alert_call_tune.mp3";
@@ -298,6 +299,26 @@ function Alert({ al }: any) {
     });
   };
 
+  const isVideoCall = al.callmetadata?.callType === "video";
+  const isGroupCall =
+    al.callmetadata?.conversationType &&
+    al.callmetadata.conversationType !== "single";
+  const callerName: string = al.callmetadata?.caller?.name || "";
+  const callName: string =
+    String(al.callmetadata?.callDisplayName || "").replace(
+      /\s*\(Group\)$/,
+      "",
+    ) ||
+    callerName ||
+    "Someone";
+  const callSubtitle = isGroupCall
+    ? callerName
+      ? `${callerName} is calling the group`
+      : "Group call"
+    : isVideoCall
+      ? "wants to video call you"
+      : "is calling you";
+
   return al.type == "incomingcall" ? (
     <motion.div
       initial={{
@@ -307,56 +328,55 @@ function Alert({ al }: any) {
         marginLeft: timerUnToggle ? "0px" : "-800px",
         display: displayUntoggle ? "flex" : "none",
       }}
-      className={`div_alerts_prompt ${al.type} tw-z-[3]`}
+      className="cl-call-alert tw-z-[3]"
+      role="alertdialog"
+      aria-label={`Incoming ${isVideoCall ? "video" : "voice"} call from ${callName}`}
     >
-      <div id="div_header_alert">
-        {alertIcons[al.type].component}
-        <span id="span_header_label_ic">
-          {alertIcons[al.type].title} (
-          {al.callmetadata.callType == "audio" ? "Audio" : "Video"})
-        </span>
-        <div id="div_close_alert_container_ic">
-          <button
-            onClick={() => {
-              // initMediaDevices(al.callmetadata);
-              initializeCall(al.callmetadata);
-            }}
-            id="btn_close_alert"
-          >
-            <BiSolidPhoneCall style={{ fontSize: "25px", color: "#45EF56" }} />
-          </button>
-          <button
-            onClick={() => {
-              rejectCallProcess("rejected");
-            }}
-            id="btn_close_alert"
-          >
-            <HiPhoneMissedCall style={{ fontSize: "25px", color: "red" }} />
-          </button>
-        </div>
+      <div className="cl-call-alert__kind">
+        {isVideoCall ? <BsCameraVideoFill /> : <BsTelephoneFill />}
+        <span>Incoming {isVideoCall ? "video" : "voice"} call</span>
+        <span className="cl-call-alert__live" aria-hidden="true" />
       </div>
-      <div id="div_alert_content_container_ic">
-        <div id="div_img_alert_container">
-          {/* Whoever the call is announced as - the caller, or the group -
-              by their picture, or their initials when they have none. */}
+      <div className="cl-call-alert__who">
+        {/* Whoever the call is announced as - the caller, or the group - by
+            their picture, or their initials when they have none. */}
+        <div className="cl-call-alert__avatar">
           <Avatar
             id={al.callmetadata.conversationID}
-            name={
-              String(al.callmetadata.callDisplayName || "").replace(
-                /\s*\(Group\)$/,
-                "",
-              ) || al.callmetadata.caller?.name
-            }
+            name={callName}
             src={
               !al.callmetadata.displayImage ||
               ["none", "N/A"].includes(al.callmetadata.displayImage)
                 ? undefined
                 : al.callmetadata.displayImage
             }
-            size={50}
+            size={48}
           />
         </div>
-        <p id="p_alert_content_ic">{al.content}</p>
+        <div className="cl-call-alert__text">
+          <span className="cl-call-alert__name">{callName}</span>
+          <span className="cl-call-alert__sub">{callSubtitle}</span>
+        </div>
+      </div>
+      {/* Join on the left, Decline on the right - the same order as the
+          mobile app's ring screen and notification. */}
+      <div className="cl-call-alert__actions">
+        <button
+          type="button"
+          className="cl-call-alert__btn cl-call-alert__btn--join"
+          onClick={() => initializeCall(al.callmetadata)}
+        >
+          <BiSolidPhoneCall />
+          Join
+        </button>
+        <button
+          type="button"
+          className="cl-call-alert__btn cl-call-alert__btn--decline"
+          onClick={() => rejectCallProcess("rejected")}
+        >
+          <HiPhoneMissedCall />
+          Decline
+        </button>
       </div>
     </motion.div>
   ) : (
