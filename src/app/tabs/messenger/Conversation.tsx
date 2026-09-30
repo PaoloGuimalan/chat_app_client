@@ -949,6 +949,11 @@ function Conversation({
       activeEntity?.is_switched && activeEntity.name
         ? activeEntity.name
         : authentication.user.fullName.firstName;
+    // And the page's picture - the callee's ring screen, the incoming-call push
+    // and the missed call all show whatever this says.
+    const callerImage = activeEntity?.is_switched
+      ? activeEntity.profile || "none"
+      : authentication.user.profile || "none";
     const caller = {
       name: callerName,
       userID: authentication.user.userID,
@@ -982,9 +987,7 @@ function Conversation({
         // userdetails.profile is the person being rung, so their alert showed
         // them their own face under our name.
         displayImage:
-          conversationsetup.type == "single"
-            ? authentication.user.profile || "none"
-            : "none",
+          conversationsetup.type == "single" ? callerImage : "none",
       }).finally(() => {
         callRequestInFlightRef.current.delete(callKey);
       });

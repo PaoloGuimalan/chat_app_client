@@ -46,6 +46,9 @@ function VoiceWindow({ data }: any) {
   const callUsername = activeEntity?.is_switched
     ? activeEntity.slug || activeEntity.realm_id || authentication.user.username
     : authentication.user.username;
+  const callProfile = activeEntity?.is_switched
+    ? activeEntity.profile || "none"
+    : authentication.user.profile;
 
   const navigate = useNavigate();
 
@@ -372,7 +375,7 @@ function VoiceWindow({ data }: any) {
     async (instance: string | null) => {
       await VoiceRequest({
         userID: authentication.user.userID,
-        profile: authentication.user.profile,
+        profile: callProfile,
         clientID: clientIdRef.current,
         channelID: conversationID,
         recipients: members,

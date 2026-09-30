@@ -1245,6 +1245,11 @@ function ConversationV2({
       activeEntity?.is_switched && activeEntity.name
         ? activeEntity.name
         : authentication.user.fullName.firstName;
+    // And the page's picture - the callee's ring screen, the incoming-call push
+    // and the missed call all show whatever this says.
+    const callerImage = activeEntity?.is_switched
+      ? activeEntity.profile || "none"
+      : authentication.user.profile || "none";
     const caller = {
       name: callerName,
       entityID: authentication.user.entity_id,
@@ -1282,9 +1287,7 @@ function ConversationV2({
         // conversationsetup.details.profile, which is the person we are
         // ringing, so their alert showed them their own face under our name.
         displayImage:
-          conversationsetup.conversationType == "single"
-            ? authentication.user.profile || "none"
-            : "none",
+          conversationsetup.conversationType == "single" ? callerImage : "none",
       })
         .then((rang) => {
           if (rang === false) {
