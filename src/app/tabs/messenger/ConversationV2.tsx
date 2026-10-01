@@ -115,6 +115,7 @@ import {
 
 const CALL_NOT_RUNG = "We couldn't ring them. Please try calling again.";
 import FullscreenImageViewer from "@/app/reusables/FullscreenImageViewer";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
 
 // {
 //     "conversationid": "26177616789363146166",
@@ -2488,10 +2489,10 @@ function ConversationV2({
                             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
                           >
                             <div className="div_pending_content_container_sending">
-                              <video
+                              <VideoPlayer
                                 src={cnvs.content}
-                                controls
-                                className="cl-chat-video"
+                                className="cl-chat-video-frame"
+                                videoClassName="cl-chat-video"
                                 onLoadedMetadata={() => {
                                   scrollBottom();
                                 }}
@@ -2549,7 +2550,7 @@ function ConversationV2({
                             }}
                             className="tw-flex tw-flex-col tw-w-full tw-max-w-[70%]"
                           >
-                            <div className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-bg-[#e4e4e4] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]">
+                            <div className="cl-message-file-card tw-w-[calc(100%-20px)] tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]">
                               <div className="tw-w-full tw-max-w-[40px]">
                                 <IoDocumentOutline
                                   style={{ fontSize: conversationFileIconSize }}

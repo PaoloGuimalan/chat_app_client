@@ -6,7 +6,7 @@ import ReplyingToPreview from "./ReplyingToPreview";
 import ReplyTargetPreview from "./ReplyTargetPreview";
 import { replyCardOf } from "@/reusables/hooks/replyTargets";
 import MessageOptions from "../MessageOptions";
-import { IoDocumentOutline } from "react-icons/io5";
+import FileMessageCard from "./FileMessageCard";
 import { ContentHandlerProp } from "@/reusables/vars/props";
 import { MdOutlineAddReaction } from "react-icons/md";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -21,6 +21,7 @@ import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { AuthenticationInterface, ReplyTargetCard } from "@/reusables/vars/interfaces";
 import { useTheme } from "@/reusables/design";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
 import {
   isSystemBot,
   SYSTEM_BOT_DISPLAY_NAME,
@@ -357,7 +358,8 @@ function ContentHandler({
       ? {
           backgroundColor: "rgba(255, 255, 255, 0.03)",
           border: "1px dashed var(--border-2)",
-          color: "var(--text-2)",
+          // The border's colour - see `.cl-message-bubble--deleted` (dark).
+          color: "var(--border-2)",
         }
       : {
           backgroundColor: "transparent",
@@ -1103,10 +1105,10 @@ function ContentHandler({
                     : timeSince(cnvs.messageDate)
               }
             >
-              <video
+              <VideoPlayer
                 src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
-                controls
-                className="cl-chat-video"
+                className="cl-chat-video-frame"
+                videoClassName="cl-chat-video"
                 onLoadedMetadata={() => {
                   scrollBottom();
                 }}
@@ -1590,24 +1592,8 @@ function ContentHandler({
             )}
             {renderReplyPreview()}
             <div className="tw-w-full tw-flex tw-flex-col">
-              <div
-                onClick={() => {
-                  if (cnvs.content.includes("storage.googleapis.com")) {
-                    window.open(
-                      cnvs.content.split("%%%")[0].replace("###", "%23%23%23"),
-                      "_blank",
-                    );
-                  } else {
-                    window.open(cnvs.content, "_blank");
-                  }
-                }}
-                className="cl-message-file-card tw-w-full tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
-                style={{
-                  backgroundColor: "var(--surface-2)",
-                  color: "var(--text)",
-                  border: "1px solid var(--border)",
-                  boxSizing: "border-box",
-                }}
+              <FileMessageCard
+                content={cnvs.content}
                 title={
                   cnvs.messageDate.time
                     ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`
@@ -1615,18 +1601,7 @@ function ContentHandler({
                       ? timeSince(cnvs.messageDate.date)
                       : timeSince(cnvs.messageDate)
                 }
-              >
-                <div className="tw-w-full tw-max-w-[40px]">
-                  <IoDocumentOutline style={{ fontSize: "40px" }} />
-                </div>
-                <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold">
-                  {cnvs.content.includes("storage.googleapis.com")
-                    ? cnvs.content.split("%%%")[1]
-                    : cnvs.content.split("/")[
-                        cnvs.content.split("/").length - 1
-                      ]}
-                </span>
-              </div>
+              />
               <div
                 className={`tw-w-[calc(100%-14px)] tw-pl-[7px] tw-pr-[7px] tw-mb-[4px] tw--mt-[7px] tw-bg-transparent tw-flex tw-flex-row tw-items-center ${
                   cnvs.sender == authentication.user.entity_id

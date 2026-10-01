@@ -23,6 +23,11 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { timeSince } from "@/reusables/hooks/reusable";
 import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
+import {
+  fileMessageName,
+  fileMessageUrl,
+} from "@/app/tabs/messenger/partials/fileMessage";
 
 function ConversationInfoModal({
   conversationinfo,
@@ -327,13 +332,13 @@ function ConversationInfoModal({
                           } else if (mp.fileType.includes("video")) {
                             // console.log(mp.fileDetails.data.split("%%")[0])
                             return (
-                              <video
-                                controls
+                              <VideoPlayer
                                 key={i}
                                 src={mp.fileDetails.data
                                   .split("%%%")[0]
                                   .replace("###", "%23%23%23")}
-                                className="cl-conversation-info-modal-media tw-w-full tw-flex tw-flex-1 tw-max-h-[200px] tw-object-cover tw-bg-black"
+                                className="tw-w-full tw-flex-1"
+                                videoClassName="cl-conversation-info-modal-media tw-w-full tw-max-h-[200px] tw-object-cover tw-bg-black"
                               />
                             );
                           }
@@ -388,9 +393,7 @@ function ConversationInfoModal({
                                 key={i}
                                 onClick={() => {
                                   window.open(
-                                    mp.fileDetails.data
-                                      .split("%%%")[0]
-                                      .replace("###", "%23%23%23"),
+                                    fileMessageUrl(mp.fileDetails.data),
                                     "_blank",
                                   );
                                 }}
@@ -407,7 +410,7 @@ function ConversationInfoModal({
                                   />
                                 </div>
                                 <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left">
-                                  {mp.fileDetails.data.split("%%%")[1]}
+                                  {fileMessageName(mp.fileDetails.data)}
                                 </span>
                               </div>
                             );
@@ -1010,13 +1013,13 @@ function ConversationInfoModal({
                           } else if (mp.fileType.includes("video")) {
                             // console.log(mp.fileDetails.data.split("%%")[0])
                             return (
-                              <video
-                                controls
+                              <VideoPlayer
                                 key={i}
                                 src={mp.fileDetails.data
                                   .split("%%%")[0]
                                   .replace("###", "%23%23%23")}
-                                className="tw-w-full tw-flex tw-flex-1 tw-max-h-[200px] tw-object-cover tw-bg-black"
+                                className="tw-w-full tw-flex-1"
+                                videoClassName="tw-w-full tw-max-h-[200px] tw-object-cover tw-bg-black"
                               />
                             );
                           }
@@ -1071,9 +1074,7 @@ function ConversationInfoModal({
                                 key={i}
                                 onClick={() => {
                                   window.open(
-                                    mp.fileDetails.data
-                                      .split("%%%")[0]
-                                      .replace("###", "%23%23%23"),
+                                    fileMessageUrl(mp.fileDetails.data),
                                     "_blank",
                                   );
                                 }}
@@ -1090,7 +1091,7 @@ function ConversationInfoModal({
                                   />
                                 </div>
                                 <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left">
-                                  {mp.fileDetails.data.split("%%%")[1]}
+                                  {fileMessageName(mp.fileDetails.data)}
                                 </span>
                               </div>
                             );

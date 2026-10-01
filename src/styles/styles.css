@@ -4727,9 +4727,14 @@ input:checked + .slider:before {
   opacity: 0.9;
 }
 
+/* Dark: the label and its time take the dashed border's own colour, so the
+ * tombstone reads as one outline. `--text-2` was light grey, and the
+ * conversation's gradient (#div_conversation_content) runs to a near-white
+ * at the bottom even in dark - lower in the thread the text vanished while
+ * the border stayed. */
 .cl-redesign[data-theme="dark"] .cl-message-bubble--deleted {
   background: rgba(255, 255, 255, 0.03) !important;
-  color: var(--text-2) !important;
+  color: var(--border-2) !important;
 }
 
 .cl-message-bubble--deleted .cl-message-time {
@@ -4737,7 +4742,7 @@ input:checked + .slider:before {
 }
 
 .cl-redesign[data-theme="dark"] .cl-message-bubble--deleted .cl-message-time {
-  color: var(--text-3);
+  color: var(--border-2);
 }
 
 .cl-message-time--deleted {
@@ -4746,7 +4751,7 @@ input:checked + .slider:before {
 }
 
 .cl-redesign[data-theme="dark"] .cl-message-time--deleted {
-  color: var(--text-2) !important;
+  color: var(--border-2) !important;
 }
 
 .cl-redesign[data-theme="light"] .cl-message-time--deleted {
@@ -5415,11 +5420,26 @@ input:checked + .slider:before {
   opacity: 0.82;
 }
 
+/* A file message wears a received bubble's surface: --surface with an edge
+ * and a lift. It used to be --surface-2, which in light mode IS the
+ * conversation's background (#div_conversation_content), so the card was
+ * only a faint hairline on the thread. Dark keeps the look it already had. */
 .cl-message-file-card {
   min-height: 64px;
   border-radius: 14px;
   padding: 8px 12px !important;
   gap: 4px !important;
+  background-color: var(--surface);
+  border: 1px solid var(--border-2);
+  box-shadow: var(--shadow-sm);
+  color: var(--text);
+  box-sizing: border-box;
+}
+
+.cl-redesign[data-theme="dark"] .cl-message-file-card {
+  background-color: var(--surface-2);
+  border-color: var(--border);
+  box-shadow: none;
 }
 
 .cl-message-file-card svg {
@@ -7680,7 +7700,7 @@ body::-webkit-scrollbar-thumb:hover,
 /* Video takes the same box as an image, so it ends up at its real ratio in
  * either orientation - a landscape clip is bounded by the width, a phone-shot
  * portrait one by the height - rather than the flat 300px tall it used to be.
- * `min-width` is the one floor: it keeps the native controls usable on a very
+ * `min-width` is the one floor: it keeps the player's chips usable on a very
  * tall clip. A <video> has no intrinsic size until its metadata arrives, so it
  * lays out at the browser's 300x150 default for that first moment. */
 .cl-chat-video {
@@ -7691,6 +7711,15 @@ body::-webkit-scrollbar-thumb:hover,
   max-width: 100%;
   max-height: var(--chat-media-max-h);
   object-fit: contain;
+  background-color: #000;
+}
+
+/* The VideoPlayer box around a .cl-chat-video. The corner and border live
+ * here, not on the video, because the box is what clips the player's progress
+ * line - on the video they left the line square under a rounded frame. */
+.cl-chat-video-frame {
+  width: fit-content;
+  max-width: 100%;
   background-color: #000;
   border-radius: 7px;
   border: solid 1px rgb(233, 233, 233);
@@ -7774,6 +7803,297 @@ body::-webkit-scrollbar-thumb:hover,
 @media screen and (max-width: 900px) {
   #div_fullscreen_image_preview {
     padding: 12px;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+ * VideoPlayer - every post, chat and attachment video.
+ *
+ * The chips are dark-on-video in both themes, as they sit on the picture, not
+ * on a surface. Progress and buffered arrive as --cl-video-progress and
+ * --cl-video-buffered (0..1), written by the player every frame; they drive
+ * transforms so a playing video never re-lays anything out.
+ *
+ * Size steps (cl-video--xs/sm/md/lg) come from the box's short side - see
+ * sizeOf in VideoPlayer.tsx for which chips each one keeps.
+ * ------------------------------------------------------------------------ */
+.cl-video {
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  outline: none;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Inset: a clipping ancestor (a card, a carousel) would cut an outset ring. */
+.cl-video:focus-visible {
+  outline: 2px solid var(--brand, #1c7def);
+  outline-offset: -2px;
+}
+
+.cl-video__media {
+  display: block;
+}
+
+.cl-video__badge {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 52px;
+  height: 52px;
+  transform: translate(-50%, -50%);
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+}
+
+.cl-video--md .cl-video__badge {
+  width: 44px;
+  height: 44px;
+}
+
+.cl-video--sm .cl-video__badge {
+  width: 36px;
+  height: 36px;
+}
+
+.cl-video--xs .cl-video__badge {
+  width: 28px;
+  height: 28px;
+}
+
+.cl-video__badge svg {
+  width: 46%;
+  height: 46%;
+}
+
+/* A triangle's weight sits left of its box's centre. */
+.cl-video__badge--play svg {
+  margin-left: 8%;
+}
+
+.cl-video__chip {
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  border-radius: 999px;
+}
+
+.cl-video__time {
+  position: absolute;
+  left: 10px;
+  bottom: 14px;
+  padding: 2px 8px;
+  font-size: var(--fs-meta);
+  font-weight: 600;
+  line-height: 1.45;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.cl-video__actions {
+  position: absolute;
+  right: 8px;
+  bottom: 12px;
+  display: flex;
+  gap: 6px;
+}
+
+/* Every property spelled out: legacy `button` rules in this file would
+ * otherwise leak a border, padding or font in. */
+.cl-video__button {
+  width: 30px;
+  height: 30px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.cl-video__button:hover {
+  background: rgba(0, 0, 0, 0.75);
+}
+
+.cl-video__button:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 1px;
+}
+
+.cl-video__button svg {
+  width: 16px;
+  height: 16px;
+}
+
+.cl-video--sm .cl-video__actions {
+  right: 6px;
+  bottom: 10px;
+}
+
+.cl-video--sm .cl-video__button {
+  width: 26px;
+  height: 26px;
+}
+
+.cl-video--sm .cl-video__button svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* The hit area is 16px tall; the line inside it is 3px at rest. */
+.cl-video__scrub {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 16px;
+  display: flex;
+  align-items: flex-end;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.cl-video__bar {
+  position: relative;
+  width: 100%;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.28);
+  transition: height 0.12s ease;
+}
+
+.cl-video:hover .cl-video__bar,
+.cl-video.is-scrubbing .cl-video__bar {
+  height: 6px;
+}
+
+.cl-video__buffered,
+.cl-video__fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+}
+
+.cl-video__buffered {
+  background: rgba(255, 255, 255, 0.3);
+  transform: scaleX(var(--cl-video-buffered, 0));
+}
+
+.cl-video__fill {
+  background: var(--brand, #1c7def);
+  transform: scaleX(var(--cl-video-progress, 0));
+}
+
+.cl-video__knob {
+  position: absolute;
+  top: 50%;
+  left: calc(var(--cl-video-progress, 0) * 100%);
+  width: 12px;
+  height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 999px;
+  background: #fff;
+  transform: scale(0);
+  transition: transform 0.12s ease;
+}
+
+.cl-video:hover .cl-video__knob,
+.cl-video.is-scrubbing .cl-video__knob {
+  transform: scale(1);
+}
+
+/* No hover on touch: a slightly thicker line instead, as the only cue. */
+@media (hover: none) {
+  .cl-video__bar {
+    height: 4px;
+  }
+}
+
+.cl-video__unavailable {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 8px;
+  text-align: center;
+  background: var(--surface-2, #f6f8fb);
+  color: var(--text-3, #8b909b);
+  font-size: var(--fs-caption);
+  cursor: default;
+}
+
+/* The full-screen viewer (FullscreenVideoViewer): the image lightbox's shell -
+ * see #div_fullscreen_image_preview above - with the player sized to the
+ * video's own shape, as large as fits, so its line runs along the video's
+ * bottom edge and a click on the scrim around it closes. */
+.cl-video-viewer {
+  --cl-viewer-pad: 24px;
+  position: fixed;
+  inset: 0;
+  padding: var(--cl-viewer-pad);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 9999;
+}
+
+.cl-video-viewer__scrim {
+  position: absolute;
+  inset: 0;
+  background-color: black;
+  opacity: 0.9;
+}
+
+.cl-video-viewer__close {
+  position: absolute;
+  top: max(10px, env(safe-area-inset-top, 0px));
+  right: max(10px, env(safe-area-inset-right, 0px));
+  z-index: 2;
+  width: 40px;
+  height: 40px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 40px;
+  background-color: #909090;
+  color: white;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.cl-video-viewer__player {
+  z-index: 1;
+  aspect-ratio: var(--cl-video-ratio, 1.7778);
+  width: min(
+    100%,
+    calc((100dvh - 2 * var(--cl-viewer-pad)) * var(--cl-video-ratio, 1.7778))
+  );
+  max-height: 100%;
+}
+
+.cl-video-viewer__media {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background-color: #000;
+}
+
+@media screen and (max-width: 900px) {
+  .cl-video-viewer {
+    --cl-viewer-pad: 12px;
   }
 }
 

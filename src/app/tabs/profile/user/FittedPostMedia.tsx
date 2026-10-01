@@ -1,5 +1,6 @@
 import { CSSProperties, useRef, useState } from "react";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
 
 /**
  * The tallest a post's only photo or video may stand in a feed card. A
@@ -27,11 +28,18 @@ function FittedPostMedia({
   kind,
   src,
   onClick,
+  autoPlay = false,
 }: {
   kind: "image" | "video";
   src: string;
   /** Images open the post's carousel. */
   onClick?: () => void;
+  /**
+   * A video plays by itself as it scrolls into view, as on mobile. Off for a
+   * post being previewed (a reshare's original, the share composer), which
+   * the mobile app also leaves still.
+   */
+  autoPlay?: boolean;
 }) {
   const [ratio, setRatio] = useState(DEFAULT_RATIO);
   const imageRef = useRef<HTMLImageElement>(null);
@@ -56,15 +64,14 @@ function FittedPostMedia({
   return (
     <div className="tw-flex tw-w-full tw-bg-[var(--surface-2)]">
       {kind === "video" ? (
-        <video
-          controls
-          playsInline
-          preload="metadata"
+        <VideoPlayer
           src={src}
+          autoPlayInView={autoPlay}
           onLoadedMetadata={(e) =>
             learn(e.currentTarget.videoWidth, e.currentTarget.videoHeight)
           }
-          style={style}
+          style={{ width: "100%" }}
+          videoStyle={style}
         />
       ) : (
         <CachedImage

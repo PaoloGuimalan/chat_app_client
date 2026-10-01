@@ -1,23 +1,26 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IoDocumentOutline } from "react-icons/io5";
 import { motion } from "framer-motion";
 import MessageContent from "./MessageContent";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
+import FileMessageCard from "./FileMessageCard";
 
-// Quotes with a colour-bearing container (text, file, voice) are tinted by
-// whether the QUOTED message was yours - same `theme.primary` treatment the
-// real bubble uses - not by `yourReply`, which answers a different question
-// (who sent the REPLY, not who sent the quote). This used to be dropped for
-// text/file on the reasoning that the "replied to X" label above already says
-// whose message it is, so the tint "bought nothing" - true for telling apart
-// two OTHER people, but it also meant your own quoted message never looked
-// like yours, which read as broken rather than intentional. `fromOther` is
-// the current viewer's own entity id, compared against the quoted message's
-// `sender` - same field/value the "replied to X" label already keys on.
-// Image/video quotes stay untouched: the real bubbles for those types carry
-// no sender colour either (just the media itself), so there is nothing to
-// match here.
+// A quote draws its message the way the message itself is drawn. Text and
+// voice quotes are tinted by whether the QUOTED message was yours - same
+// `theme.primary` treatment the real bubble uses - not by `yourReply`, which
+// answers a different question (who sent the REPLY, not who sent the quote).
+// This used to be dropped for text on the reasoning that the "replied to X"
+// label above already says whose message it is, so the tint "bought nothing" -
+// true for telling apart two OTHER people, but it also meant your own quoted
+// message never looked like yours, which read as broken rather than
+// intentional. `fromOther` is the current viewer's own entity id, compared
+// against the quoted message's `sender` - same field/value the "replied to X"
+// label already keys on.
+// Image, video and file quotes take no tint: their real messages carry no
+// sender colour either (the media itself, or a neutral file card), so there
+// is nothing to match. A file quote used to be accent-filled when yours,
+// which made it look like no file message in the thread.
 function ReplyingToPreview({
   cnvs,
   yourReply,
@@ -28,6 +31,13 @@ function ReplyingToPreview({
 }: any) {
   const quotedByMe = cnvs && cnvs.sender === fromOther;
   const accent = theme?.primary ?? "var(--brand)";
+  // The quote sits on the side of the REPLY it heads. The media, voice and
+  // file quotes were pinned right, so above somebody else's reply (left)
+  // they hung on the far side of the column.
+  const side = {
+    marginLeft: yourReply ? "auto" : "0px",
+    alignItems: yourReply ? "flex-end" : "flex-start",
+  };
 
   if (cnvs) {
     if (cnvs.isDeleted) {
@@ -142,14 +152,8 @@ function ReplyingToPreview({
         return (
           <motion.div className="div_messages_result_reply tw-items-center">
             <motion.div
-              initial={{
-                marginLeft: "auto",
-                alignItems: "flex-end",
-              }}
-              animate={{
-                marginLeft: "auto",
-                alignItems: "flex-end",
-              }}
+              initial={side}
+              animate={side}
               className="tw-flex tw-flex-col tw-w-fit tw-max-w-[100%]"
             >
               <div className="div_pending_content_container_sending">
@@ -165,21 +169,15 @@ function ReplyingToPreview({
         return (
           <motion.div className="div_messages_result_reply tw-items-center">
             <motion.div
-              initial={{
-                marginLeft: "auto",
-                alignItems: "flex-end",
-              }}
-              animate={{
-                marginLeft: "auto",
-                alignItems: "flex-end",
-              }}
+              initial={side}
+              animate={side}
               className="tw-flex tw-flex-col tw-w-fit tw-max-w-[100%]"
             >
               <div className="div_pending_content_container_sending">
-                <video
+                <VideoPlayer
                   src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
-                  controls
-                  className="cl-chat-video"
+                  className="cl-chat-video-frame"
+                  videoClassName="cl-chat-video"
                 />
               </div>
             </motion.div>
@@ -189,14 +187,8 @@ function ReplyingToPreview({
         return (
           <motion.div className="div_messages_result_reply tw-items-center">
             <motion.div
-              initial={{
-                marginLeft: "auto",
-                alignItems: "flex-end",
-              }}
-              animate={{
-                marginLeft: "auto",
-                alignItems: "flex-end",
-              }}
+              initial={side}
+              animate={side}
               // `tw-w-fit`, not a fixed width: VoiceMessagePlayer sizes itself
               // to its own waveform, same as the actual message bubble -
               // matching that intrinsic size IS matching "the same
@@ -227,36 +219,12 @@ function ReplyingToPreview({
         return (
           <motion.div className="div_messages_result_reply tw-items-center">
             <motion.div
-              initial={{
-                marginLeft: "auto",
-                alignItems: "flex-end",
-              }}
-              animate={{
-                marginLeft: "auto",
-                alignItems: "flex-end",
-              }}
+              initial={side}
+              animate={side}
               className="tw-opacity-[0.8] tw-flex tw-flex-col tw-w-[250px] tw-max-w-[100%]"
             >
-              {/*
-                Was a hardcoded `#e4e4e4` regardless of theme or who sent it -
-                invisible in dark mode's own near-black surface, and could
-                never read as "yours" the way the real file bubble does.
-              */}
-              <div
-                className="tw-w-[calc(100%-20px)] tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
-                style={{
-                  backgroundColor: quotedByMe ? accent : "var(--surface-3)",
-                  border: `1px solid ${quotedByMe ? accent : "var(--border-2)"}`,
-                  color: quotedByMe ? "white" : "var(--text)",
-                }}
-              >
-                <div className="tw-w-full tw-max-w-[40px]">
-                  <IoDocumentOutline style={{ fontSize: "40px" }} />
-                </div>
-                <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold">
-                  {cnvs.content.split("%%%")[1]}
-                </span>
-              </div>
+              {/* The message's own card - see FileMessageCard. */}
+              <FileMessageCard content={cnvs.content} quote />
             </motion.div>
           </motion.div>
         );

@@ -13,6 +13,7 @@ import {
   FaTimes,
 } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
 
 function PendingAttachmentItem({
   attachment,
@@ -173,16 +174,12 @@ function PendingAttachmentItem({
           className="tw-relative tw-rounded-[5px] tw-border tw-border-gray-200 tw-bg-gray-50 hover:tw-bg-gray-100 tw-transition-colors"
           style={{ width: `${size.width}px`, height: `${size.height}px` }}
         >
-          <video
+          <VideoPlayer
             ref={videoRef}
-            controls
-            className="tw-w-full tw-h-full tw-object-cover tw-rounded-[5px]"
-            preload="metadata"
-          >
-            <source src={attachment.reference} type="video/mp4" />
-            <source src={attachment.reference} type="video/webm" />
-            <source src={attachment.reference} type="video/ogg" />
-          </video>
+            src={attachment.reference}
+            className="tw-w-full tw-h-full tw-rounded-[5px]"
+            videoClassName="tw-w-full tw-h-full tw-object-cover"
+          />
           {onRemove && (
             <button
               type="button"

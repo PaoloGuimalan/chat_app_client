@@ -28,6 +28,7 @@ import SharePostButton from "./SharePostButton";
 import CreateMomentModal from "@/app/tabs/moments/CreateMomentModal";
 import LoadedPostItem from "./LoadedPostItem";
 import FittedPostMedia from "./FittedPostMedia";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
 import { motion, useInView } from "framer-motion";
 import PostEmojis from "@/app/reusables/PostEmojis";
 import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
@@ -485,10 +486,14 @@ function PostItem({
                                 key={mpr.reference_id}
                                 className="tw-h-full tw-max-h-full tw-bg-black"
                               >
-                                <video
-                                  controls
+                                {/* Carries on from the feed copy, which the
+                                    comment button opens this over. */}
+                                <VideoPlayer
                                   src={mpr.reference}
+                                  continuePlayback
+                                  pauseWhenHidden
                                   className="tw-w-full tw-h-full"
+                                  videoClassName="tw-w-full tw-h-full"
                                 />
                               </div>
                             );
@@ -930,18 +935,21 @@ function PostItem({
                             key={mpu.reference_id}
                             kind="video"
                             src={mpu.reference}
+                            autoPlay={!isSharePreview}
                           />
                         );
                       }
+                      // In a grid it waits for a click, as on mobile: only a
+                      // post's lone video plays by itself.
                       return (
                         <div
                           key={mpu.reference_id}
                           className="tw-flex tw-h-[400px] tw-flex-1 tw-bg-[var(--surface-2)] tw-min-w-[100px] lg:tw-min-w-[200px]"
                         >
-                          <video
-                            controls
+                          <VideoPlayer
                             src={mpu.reference}
-                            className="tw-w-full tw-h-full tw-object-cover"
+                            className="tw-w-full tw-h-full"
+                            videoClassName="tw-w-full tw-h-full tw-object-cover"
                           />
                         </div>
                       );

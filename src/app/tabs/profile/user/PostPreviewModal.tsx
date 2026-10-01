@@ -30,6 +30,7 @@ import SharePostButton from "./SharePostButton";
 import SendPostModal from "@/app/widgets/modals/CreatePost/SendPostModal";
 import CreateMomentModal from "@/app/tabs/moments/CreateMomentModal";
 import { BsPinMap } from "react-icons/bs";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
 
 interface PostPreviewModalProps {
   post: IPost;
@@ -233,10 +234,12 @@ function PostPreviewModal({
                   key={mpr.reference_id}
                   className="tw-h-full tw-max-h-full tw-bg-[var(--surface-2)]"
                 >
-                  <video
-                    controls
+                  <VideoPlayer
                     src={mpr.reference}
+                    continuePlayback
+                    pauseWhenHidden
                     className="tw-w-full tw-h-full"
+                    videoClassName="tw-w-full tw-h-full"
                   />
                 </div>
               );

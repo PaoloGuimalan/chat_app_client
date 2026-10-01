@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { AiOutlineClose } from "react-icons/ai";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
 
 function PostMediaPreview({ mp, setmedialist }: any) {
   const mutatePostText = (caption: string) => {
@@ -57,7 +58,11 @@ function PostMediaPreview({ mp, setmedialist }: any) {
           className="tw-w-full tw-min-h-[50px] tw-font-inter tw-resize-none tw-border-none tw-outline-none thinscroller tw-font-Inter"
           placeholder="Type your caption"
         />
-        <video src={mp.reference} controls className="tw-w-full" />
+        <VideoPlayer
+          src={mp.reference}
+          className="tw-w-full"
+          videoStyle={{ width: "100%" }}
+        />
       </div>
     );
   }

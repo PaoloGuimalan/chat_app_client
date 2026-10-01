@@ -2,6 +2,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import Modal from "@/app/reusables/Modal";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
 import { Avatar, Btn, Icon, SegTabs, Toggle } from "@/reusables/design";
 import { CreateMomentRequest, GetPostPreviewRequest, UploadMediaRequest } from "@/reusables/hooks/requests";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
@@ -114,19 +115,30 @@ export function SharedPostCard({
       {reshared && !nested && <NestedOriginal postId={reshared} />}
       {media && (
         <div style={{ height: compact ? 100 : 150, borderRadius: "var(--r-sm)", overflow: "hidden", background: "var(--surface-2)" }}>
-          {isVideo ? (
+          {isVideo && compact ? (
             // A real player, not a black box: the small preview (Create
-            // Moment) plays it muted on a loop; the viewer's card has
-            // controls. `#t=0.1` paints a first frame before it loads.
+            // Moment) plays it muted on a loop; the viewer's card is the
+            // app's player, starting muted. `#t=0.1` paints a first frame
+            // before it loads.
             <video
               src={`${media.reference}#t=0.1`}
               muted
               playsInline
               preload="metadata"
-              {...(compact ? { autoPlay: true, loop: true } : { controls: true })}
+              autoPlay
+              loop
               onClick={(e) => e.stopPropagation()}
               style={{ width: "100%", height: "100%", objectFit: "cover", background: "#000" }}
             />
+          ) : isVideo ? (
+            <div style={{ width: "100%", height: "100%" }} onClick={(e) => e.stopPropagation()}>
+              <VideoPlayer
+                src={`${media.reference}#t=0.1`}
+                startMuted
+                style={{ width: "100%", height: "100%", background: "#000" }}
+                videoStyle={{ width: "100%", height: "100%", objectFit: "cover" }}
+              />
+            </div>
           ) : (
             <img src={media.reference} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
           )}

@@ -2,6 +2,7 @@
 import DOMPurify from "dompurify";
 import { Avatar, Icon } from "@/reusables/design";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
 import { highlightHashtags } from "@/reusables/hooks/hashtags";
 
 /**
@@ -204,14 +205,19 @@ function RemovedPostPreview({ content }: { content: RemovedPostContent }) {
             if (isVideo(mime)) {
               return (
                 <Flagged key={key} on={isFlagged}>
-                <video
-                  src={reference.reference}
-                  // Controls but no autoplay: a removed video should be
-                  // playable for review, not play itself at somebody.
-                  controls
-                  preload="metadata"
+                <VideoPlayer
+                  src={reference.reference || ""}
+                  // No autoplay: a removed video should be playable for
+                  // review, not play itself at somebody. The box carries
+                  // the frame (it clips the player's line to the corner),
+                  // the video the 320px cap less that frame's border.
                   className="cl-moderation-media"
                   style={{ background: "#000" }}
+                  videoStyle={{
+                    width: "100%",
+                    maxHeight: "calc(320px - 2px)",
+                    objectFit: "cover",
+                  }}
                 />
                 </Flagged>
               );

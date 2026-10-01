@@ -13,6 +13,7 @@ import {
   FaPause,
 } from "react-icons/fa";
 import { useState, useRef, useEffect } from "react";
+import VideoPlayer from "@/app/reusables/VideoPlayer";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import FullscreenImageViewer from "@/app/reusables/FullscreenImageViewer";
 
@@ -191,16 +192,12 @@ function UploadedAttachment({
           className="tw-relative tw-rounded-[5px] tw-border tw-border-gray-200 tw-bg-gray-50 hover:tw-bg-gray-100 tw-transition-colors"
           style={{ width: `${size.width}px`, height: `${size.height}px` }}
         >
-          <video
+          <VideoPlayer
             ref={videoRef}
-            controls
-            className="tw-w-full tw-h-full tw-object-cover tw-rounded-[5px]"
-            preload="metadata"
-          >
-            <source src={attachment.url} type="video/mp4" />
-            <source src={attachment.url} type="video/webm" />
-            <source src={attachment.url} type="video/ogg" />
-          </video>
+            src={attachment.url}
+            className="tw-w-full tw-h-full tw-rounded-[5px]"
+            videoClassName="tw-w-full tw-h-full tw-object-cover"
+          />
         </div>
       );
     }
