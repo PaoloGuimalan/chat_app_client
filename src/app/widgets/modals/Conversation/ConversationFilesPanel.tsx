@@ -1,4 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type CSSProperties,
+} from "react";
 import { IoDocumentOutline, IoPlay } from "react-icons/io5";
 import {
   ConversationFileItem,
@@ -75,6 +81,66 @@ type OpenViewer =
   | null;
 
 const VIDEO_FALLBACK_RATIO = 16 / 9;
+
+/**
+ * An Audio-tab clip's look: a tint of the brand rather than a surface step.
+ * The player's own received-bubble surface is the modal's colour exactly, and
+ * in the light theme --surface-2 is within a shade of it too - either one
+ * disappeared into the panel. The tint reads as its own thing in both themes,
+ * and the waveform's grey track stays legible on it. Same corners as a Files
+ * row, and flat, like one.
+ */
+const AUDIO_ROW_STYLE: CSSProperties = {
+  backgroundColor: "color-mix(in srgb, var(--brand) 9%, var(--surface))",
+  border: "1px solid color-mix(in srgb, var(--brand) 24%, var(--border))",
+  borderRadius: "var(--r-sm)",
+  boxShadow: "none",
+};
+
+/** Local calendar day, so a group is a day where the reader is. */
+const dayKey = (date: Date) =>
+  `${date.getFullYear()}-${date.getMonth()}-${date.getDate()}`;
+
+/** "Today", "Yesterday", else "Jul 16, 2026". */
+const dayLabel = (date: Date) => {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  if (dayKey(date) === dayKey(today)) return "Today";
+  if (dayKey(date) === dayKey(yesterday)) return "Yesterday";
+  return date.toLocaleDateString(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  });
+};
+
+interface DayGroup {
+  key: string;
+  label: string;
+  items: ConversationFileItem[];
+}
+
+/**
+ * Consecutive items of one day, in the order they came. The list is newest
+ * first, so each day is one run - and a page that ends mid-day just carries
+ * on into the same group when the next one lands.
+ */
+const groupByDay = (items: ConversationFileItem[]): DayGroup[] => {
+  const groups: DayGroup[] = [];
+  for (const item of items) {
+    const date = item.sentAt ? new Date(item.sentAt) : null;
+    const valid = date && !isNaN(date.getTime());
+    const key = valid ? dayKey(date) : "undated";
+    const last = groups[groups.length - 1];
+    if (last && last.key === key) {
+      last.items.push(item);
+    } else {
+      groups.push({ key, label: valid ? dayLabel(date) : "Earlier", items: [item] });
+    }
+  }
+  return groups;
+};
 
 interface ConversationFilesPanelProps {
   conversationID: string;
@@ -263,18 +329,28 @@ function ConversationFilesPanel({
           </button>
         );
       case "audio":
+        // No date of its own: its day group's label says it once for all of
+        // them. The exact time is still a hover away.
         return (
-          <div key={item.messageID} className="cl-conversation-files__audio">
+          <div
+            key={item.messageID}
+            className="cl-conversation-files__audio"
+            title={
+              item.sentAt
+                ? new Date(item.sentAt).toLocaleString(undefined, {
+                    dateStyle: "medium",
+                    timeStyle: "short",
+                  })
+                : undefined
+            }
+          >
             <VoiceMessagePlayer
               src={url}
               isSender={false}
               accentColor="var(--brand)"
+              fullWidth
+              style={AUDIO_ROW_STYLE}
             />
-            {sent && (
-              <span className="cl-text-caption cl-conversation-files__meta">
-                {sent}
-              </span>
-            )}
           </div>
         );
       default:
@@ -305,7 +381,12 @@ function ConversationFilesPanel({
 
   const renderSkeletons = (count: number) =>
     Array.from({ length: count }, (_, i) =>
-      activeTab.grid ? (
+      active === "audio" ? (
+        <span
+          key={`skeleton-${i}`}
+          className="cl-conversation-files__skeleton cl-conversation-files__skeleton--audio"
+        />
+      ) : activeTab.grid ? (
         <span
           key={`skeleton-${i}`}
           className="cl-conversation-files__skeleton cl-conversation-files__skeleton--tile"
@@ -360,6 +441,35 @@ function ConversationFilesPanel({
             >
               Try again
             </button>
+          </div>
+        ) : active === "audio" ? (
+          // Grouped by day: one label per day over that day's clips, which
+          // sit side by side when there's room, and a wider gap between days.
+          <div className="cl-conversation-files__days" aria-busy={current.loading}>
+            {groupByDay(current.items).map((group) => (
+              <section
+                key={group.key}
+                className="cl-conversation-files__day"
+                aria-label={group.label}
+              >
+                <span className="cl-conversation-files__day-label cl-text-caption">
+                  {group.label}
+                </span>
+                <div className="cl-conversation-files__day-items">
+                  {group.items.map(renderItem)}
+                </div>
+              </section>
+            ))}
+            {(initialLoading || loadingMore) && (
+              <div className="cl-conversation-files__day" aria-hidden="true">
+                {initialLoading && (
+                  <span className="cl-conversation-files__skeleton cl-conversation-files__skeleton--day-label" />
+                )}
+                <div className="cl-conversation-files__day-items">
+                  {renderSkeletons(initialLoading ? 4 : 2)}
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div

@@ -5315,6 +5315,22 @@ input:checked + .slider:before {
   touch-action: none;
 }
 
+/* fullWidth: a list row rather than a bubble. The waveform takes whatever the
+ * row has left; the player draws more bars to fill it (FULL_WIDTH_BAR_COUNT),
+ * and space-between evens out the remainder. */
+.cl-voice-message--full {
+  width: 100%;
+}
+
+.cl-voice-message--full .cl-voice-message__body {
+  flex: 1 1 auto;
+}
+
+.cl-voice-message--full .cl-voice-message__waveform {
+  flex: 1 1 auto;
+  width: auto;
+}
+
 .cl-voice-message__bar {
   flex: 0 0 auto;
   width: 3px;
@@ -6184,9 +6200,58 @@ input:checked + .slider:before {
 }
 
 .cl-conversation-files__audio {
+  width: 100%;
+  min-width: 0;
+}
+
+/* Audio, grouped by day. The groups are invisible containers: a day's label
+   with a hairline running out to the right, then that day's clips as full-
+   width rows (like the Files tab's), and a wider gap between one day and the
+   next than between clips of the same day. */
+.cl-conversation-files__days {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 18px;
+  padding-top: 2px;
+}
+
+.cl-conversation-files__day {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cl-conversation-files__day-label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.cl-conversation-files__day-label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.cl-conversation-files__day-items {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.cl-conversation-files__skeleton--audio {
+  width: 100%;
+  height: 52px;
+  border-radius: var(--r-sm);
+}
+
+.cl-conversation-files__skeleton--day-label {
+  width: 84px;
+  height: 10px;
+  border-radius: 4px;
 }
 
 .cl-conversation-files__empty {

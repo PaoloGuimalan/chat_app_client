@@ -19,9 +19,18 @@ interface VoiceMessagePlayerProp {
   // carry the same lift as the actual message) without a dedicated boolean
   // prop for every one-off variant.
   style?: CSSProperties;
+  /**
+   * Stretches to its container's width - a list row (the conversation info
+   * modal's Audio tab) rather than a bubble. The waveform grows with it and
+   * draws more bars to fill the room, instead of spreading 40 bars thin.
+   */
+  fullWidth?: boolean;
 }
 
 const BAR_COUNT = 40;
+// A full-width player's resolution: enough thin bars for a wide row. It is
+// resampled down to what fits, like the bubble's 40.
+const FULL_WIDTH_BAR_COUNT = 96;
 const MIN_BAR_HEIGHT = 0.12;
 // Must match `.cl-voice-message__bar`'s width and the waveform's gap in
 // styles.css - together they make the waveform's full width (198px).
@@ -30,11 +39,11 @@ const BAR_GAP = 2;
 // Fewer than this stops reading as a waveform; below it the strip clips.
 const MIN_VISIBLE_BARS = 8;
 
-// How many bars fit a waveform `width` px wide.
-const barsThatFit = (width: number) =>
+// How many of `max` bars fit a waveform `width` px wide.
+const barsThatFit = (width: number, max: number) =>
   Math.max(
     MIN_VISIBLE_BARS,
-    Math.min(BAR_COUNT, Math.floor((width + BAR_GAP) / (BAR_WIDTH + BAR_GAP))),
+    Math.min(max, Math.floor((width + BAR_GAP) / (BAR_WIDTH + BAR_GAP))),
   );
 
 // The waveform squeezed to `count` bars, each the loudest of the bars it
@@ -89,20 +98,23 @@ const waveformCache = new Map<string, number[]>();
 const waveformInFlight = new Map<string, Promise<number[]>>();
 
 const resolveWaveform = (src: string, count: number, duration: number) => {
-  const cached = waveformCache.get(src);
+  // Per resolution too: bars can be resampled DOWN but never up, so a
+  // full-width player cannot reuse a bubble's 40.
+  const key = `${count}|${src}`;
+  const cached = waveformCache.get(key);
   if (cached) return Promise.resolve(cached);
 
-  let promise = waveformInFlight.get(src);
+  let promise = waveformInFlight.get(key);
   if (!promise) {
     promise =
       duration > MAX_WAVEFORM_DECODE_SECONDS
         ? Promise.resolve(fallbackBars(src, count))
         : decodeWaveform(src, count).catch(() => fallbackBars(src, count));
     promise.then((bars) => {
-      waveformCache.set(src, bars);
-      waveformInFlight.delete(src);
+      waveformCache.set(key, bars);
+      waveformInFlight.delete(key);
     });
-    waveformInFlight.set(src, promise);
+    waveformInFlight.set(key, promise);
   }
   return promise;
 };
@@ -149,7 +161,9 @@ function VoiceMessagePlayer({
   accentColor,
   onReady,
   style,
+  fullWidth = false,
 }: VoiceMessagePlayerProp) {
+  const barCount = fullWidth ? FULL_WIDTH_BAR_COUNT : BAR_COUNT;
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const waveformRef = useRef<HTMLDivElement | null>(null);
   const hasStartedDecodeRef = useRef(false);
@@ -159,22 +173,23 @@ function VoiceMessagePlayer({
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [bars, setBars] = useState<number[]>(() =>
-    Array(BAR_COUNT).fill(MIN_BAR_HEIGHT),
+    Array(barCount).fill(MIN_BAR_HEIGHT),
   );
   // How many of the bars the waveform has room for. It used to draw all 40
   // at a fixed 3px whatever its width, so in a narrow bubble (the minimized
   // conversation window) they spilled out over the time and past the bubble.
-  const [fitCount, setFitCount] = useState(BAR_COUNT);
+  const [fitCount, setFitCount] = useState(barCount);
 
   useEffect(() => {
     const waveform = waveformRef.current;
     if (!waveform) return;
-    const measure = () => setFitCount(barsThatFit(waveform.clientWidth));
+    const measure = () =>
+      setFitCount(barsThatFit(waveform.clientWidth, barCount));
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(waveform);
     return () => observer.disconnect();
-  }, []);
+  }, [barCount]);
 
   const shownBars = useMemo(
     () => resampleBars(bars, fitCount),
@@ -214,14 +229,14 @@ function VoiceMessagePlayer({
     hasStartedDecodeRef.current = true;
 
     let cancelled = false;
-    resolveWaveform(src, BAR_COUNT, duration).then((bars) => {
+    resolveWaveform(src, barCount, duration).then((bars) => {
       if (!cancelled) setBars(bars);
     });
 
     return () => {
       cancelled = true;
     };
-  }, [isInView, duration, src]);
+  }, [isInView, duration, src, barCount]);
 
   const togglePlayback = () => {
     const audio = audioRef.current;
@@ -267,7 +282,7 @@ function VoiceMessagePlayer({
 
   return (
     <div
-      className="cl-voice-message"
+      className={`cl-voice-message${fullWidth ? " cl-voice-message--full" : ""}`}
       style={{
         backgroundColor: isSender ? accentColor : "var(--surface)",
         border: isSender
@@ -298,7 +313,11 @@ function VoiceMessagePlayer({
         >
           {shownBars.map((amplitude, index) => {
             const barPosition = (index / shownBars.length) * 100;
-            const isPlayed = barPosition <= progressPercent;
+            // Strictly past the start: with `<=` alone the first bar (at 0)
+            // read as played before anything was, a dark tick at the head of
+            // every untouched waveform.
+            const isPlayed =
+              progressPercent > 0 && barPosition <= progressPercent;
             return (
               <span
                 key={index}
