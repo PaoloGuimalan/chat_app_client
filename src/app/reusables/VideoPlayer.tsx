@@ -642,8 +642,12 @@ const VideoPlayer = forwardRef<HTMLVideoElement, VideoPlayerProps>(
  * Rendered BESIDE the inline player's box, not in it: React events bubble
  * through portals, and a click in here would otherwise also toggle the
  * player underneath.
+ *
+ * Exported for surfaces that show a video as a THUMBNAIL rather than a player
+ * (the conversation info modal's Videos grid): they open it straight from a
+ * click, with `initial` at the start and playing.
  */
-function FullscreenVideoViewer({
+export function FullscreenVideoViewer({
   src,
   initial,
   ratio,

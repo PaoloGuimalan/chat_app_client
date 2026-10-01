@@ -1428,6 +1428,8 @@ function Conversation({
               {toggleConversationInfoModal && conversationinfo && (
                 <ConversationInfoModal
                   conversationinfo={conversationinfo}
+                  conversationID={conversationsetup.conversationid}
+                  conversationType={conversationsetup.type}
                   onclose={settoggleConversationInfoModal}
                 />
               )}

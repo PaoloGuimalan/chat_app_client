@@ -29,6 +29,13 @@ export interface ContentHandlerProp {
 
 export interface ConversationInfoModalProp {
   conversationinfo: ConversationInfoInterface;
+  /**
+   * The id and type the conversation was opened with - the same pair its
+   * conversationinfo was fetched with. The files tabs page from
+   * /m/conversationfiles with them.
+   */
+  conversationID: string;
+  conversationType: string;
   onclose: any;
 }
 

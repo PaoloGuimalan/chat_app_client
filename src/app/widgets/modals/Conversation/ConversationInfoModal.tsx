@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Modal from "@/app/reusables/Modal";
 import { ConversationInfoModalProp } from "@/reusables/vars/props";
@@ -9,28 +8,30 @@ import ServerIcon from "../../../../assets/imgs/servericon.png";
 import { useSelector } from "react-redux";
 import {
   AuthenticationInterface,
-  ConversationFilesInterface,
-  IContact,
   UserWithInfoConversationInterface,
-  UsersInConversation,
 } from "@/reusables/vars/interfaces";
 import { useMemo, useState } from "react";
 import { motion } from "framer-motion";
-import { IoClose, IoDocumentOutline } from "react-icons/io5";
-import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FaHashtag } from "react-icons/fa6";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { timeSince } from "@/reusables/hooks/reusable";
 import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
-import VideoPlayer from "@/app/reusables/VideoPlayer";
-import {
-  fileMessageName,
-  fileMessageUrl,
-} from "@/app/tabs/messenger/partials/fileMessage";
+import ConversationFilesPanel from "./ConversationFilesPanel";
+
+/** "First Middle Last", skipping the "N/A" middle-name sentinel. */
+const fullNameOf = (fullname: UserWithInfoConversationInterface["fullname"]) =>
+  [
+    fullname.firstName,
+    fullname.middleName === "N/A" ? "" : fullname.middleName,
+    fullname.lastName,
+  ]
+    .filter((part) => part && part.trim())
+    .join(" ");
 
 function ConversationInfoModal({
   conversationinfo,
+  conversationID,
+  conversationType,
   onclose,
 }: ConversationInfoModalProp) {
   const authentication: AuthenticationInterface = useSelector(
@@ -39,41 +40,24 @@ function ConversationInfoModal({
   const navigate = useNavigate();
 
   const [toggleMemberDropper, settoggleMemberDropper] = useState<boolean>(true);
-  const [toggledfiles, settoggledfiles] = useState<string>("media");
 
-  const [contactslist, __] = useState<any[]>([]);
-  const [searchFilter, _] = useState("");
-  const [isLoading, ___] = useState<boolean>(true);
-  const [expandcontacts, ____] = useState<boolean>(false);
-  const [markedMembers, setmarkedMembers] = useState<any[]>([]);
+  const isSingle = conversationinfo.type === "single";
 
-  const valueToArrayChecker = (userID: any) => {
-    const userIDExistInArray = markedMembers.filter(
-      (flt: any) => flt.id == userID,
-    );
+  // The OTHER party in a direct message. usersWithInfo includes you, so it is
+  // matched by exclusion rather than by position.
+  const userInfo = useMemo(
+    () =>
+      conversationinfo.usersWithInfo.find(
+        (flt) => flt.entityID !== authentication.user.entity_id,
+      ) || null,
+    [authentication.user.entity_id, conversationinfo.usersWithInfo],
+  );
 
-    return userIDExistInArray.length > 0 ? true : false;
-  };
-
-  const removeFromList = (userID: any) => {
-    const userIDnotSimilar = markedMembers.filter(
-      (flt: any) => flt.id != userID,
-    );
-
-    setmarkedMembers(userIDnotSimilar);
-  };
-
-  const userInfo = useMemo(() => {
-    const info = conversationinfo.usersWithInfo.filter(
-      (flt) => flt.entityID !== authentication.user.entity_id,
-    );
-
-    if (info.length > 0) {
-      return info[0];
-    }
-
-    return null;
-  }, [authentication.user.entity_id, conversationinfo.usersWithInfo]);
+  const groupProfile =
+    conversationinfo.conversationInfo?.profile &&
+    conversationinfo.conversationInfo.profile !== "N/A"
+      ? conversationinfo.conversationInfo.profile
+      : null;
 
   const renderUserAvatar = (
     userID: string,
@@ -81,9 +65,6 @@ function ConversationInfoModal({
     profile?: string | null,
     size = 40,
     entityType?: string | null,
-    // Appended rather than slotted next to `userID` so the older positional
-    // call sites keep working.
-    //
     // The group-member lists pass it too. Membership alone does not put someone
     // in your presence scope - the server excludes group co-members on purpose
     // - but a co-member who is ALSO a contact or a DM counterpart is in it for
@@ -104,1006 +85,155 @@ function ConversationInfoModal({
   return (
     <Modal
       component={
-        <div className="div_modal_container cl-conversation-info-modal tw-max-w-[800px] tw-max-h-[550px] tw-items-center">
+        <div className="div_modal_container cl-conversation-info-modal tw-max-w-[800px] tw-items-center">
           <div className="tw-w-[calc(100%-20px)] tw-p-[10px] tw-pl-[10px] tw-pr-[10px] tw-pt-[7px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
-            {conversationinfo.type == "single" ? (
-              <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1">
-                Conversation
-              </span>
-            ) : (
-              <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1">
-                {conversationinfo.type === "channel" ? "Channel" : "Group Chat"}
-              </span>
-            )}
+            <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1">
+              {isSingle
+                ? "Conversation"
+                : conversationinfo.type === "channel"
+                  ? "Channel"
+                  : "Group Chat"}
+            </span>
             <button
               onClick={() => {
                 onclose(false);
               }}
+              aria-label="Close"
               className="cl-conversation-info-modal-close tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
             >
               <IoMdClose style={{ fontSize: "17px" }} />
             </button>
           </div>
-          {conversationinfo.type === "single" ? (
-            <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-flex tw-h-[calc(100%-70px)] tw-flex-col lg:tw-flex-row tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-y-scroll lg:tw-overflow-y-none thinscroller">
-              <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-items-center tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-flex-col tw-items-center tw-gap-[10px]">
-                  <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
-                    {renderUserAvatar(
-                      userInfo?.userID || "conversation-user",
-                      userInfo
-                        ? `${userInfo.fullname.firstName} ${
-                            userInfo.fullname.middleName === "N/A"
-                              ? ""
-                              : `${userInfo.fullname.middleName} `
-                          }${userInfo.fullname.lastName}`
-                        : "Conversation",
-                      userInfo?.profile,
-                      120,
-                      userInfo?.entityType,
-                      userInfo?.entityID,
-                    )}
-                  </div>
-                  <span className="cl-text-body tw-font-Inter tw-font-semibold tw-flex tw-items-center tw-gap-[4px]">
-                    {
-                      conversationinfo.usersWithInfo.filter(
-                        (flt: any) =>
-                          flt.entityID !== authentication.user.entity_id,
-                      )[0].fullname.firstName
-                    }
-                    {conversationinfo.usersWithInfo.filter(
-                      (flt: any) =>
-                        flt.entityID !== authentication.user.entity_id,
-                    )[0].fullname.middleName !== "N/A"
-                      ? ` ${
-                          conversationinfo.usersWithInfo.filter(
-                            (flt: any) =>
-                              flt.entityID !== authentication.user.entity_id,
-                          )[0].fullname.middleName
-                        } `
-                      : " "}
-                    {
-                      conversationinfo.usersWithInfo.filter(
-                        (flt: any) =>
-                          flt.entityID !== authentication.user.entity_id,
-                      )[0].fullname.lastName
-                    }
-                    {userInfo?.isVerified && (
-                      <RiVerifiedBadgeFill
-                        size={16}
-                        color="var(--brand)"
-                        style={{ flex: "none" }}
-                      />
-                    )}
-                    <PageFlag realmType={userInfo?.realmType} size={14} />
-                    <BotFlag type={userInfo?.entityType} size={14} />
-                  </span>
-                </div>
-                <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start">
-                  <button
-                    onClick={() => {
-                      settoggleMemberDropper(!toggleMemberDropper);
-                    }}
-                    className="cl-conversation-info-modal-members tw-font-Inter tw-border-[0px] tw-h-[35px] cl-text-body tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
-                    style={{ color: "var(--text)" }}
-                  >
-                    <span className="cl-conversation-info-modal-members__label">
-                      Members
-                    </span>
-                  </button>
-                  <motion.div
-                    initial={{
-                      height: "0px",
-                    }}
-                    animate={{
-                      height: toggleMemberDropper ? "auto" : "0px",
-                    }}
-                    className="tw-w-[calc(100%-40px)] tw-flex tw-gap-[5px] tw-flex-col tw-overflow-y-hidden tw-bg-transparent tw-items-start tw-pl-[20px] tw-pr-[20px]"
-                  >
-                    {conversationinfo.usersWithInfo.map(
-                      (mp: UserWithInfoConversationInterface, i: number) => {
-                        return (
-                          <div
-                            key={i}
-                            onClick={() => {
-                              navigate(`/${mp.userID}`);
-                            }}
-                            className="cl-conversation-info-modal-member tw-w-full tw-rounded-[6px] tw-flex tw-flex-none tw-items-center tw-gap-[10px] tw-select-none tw-cursor-pointer"
-                            style={{ padding: "6px 8px", minHeight: 44 }}
-                          >
-                            <div
-                              id="div_img_search_profiles_container_cncts"
-                              className="tw-flex-none"
-                            >
-                              {renderUserAvatar(
-                                mp.userID,
-                                `${mp.fullname.firstName} ${
-                                  mp.fullname.middleName === "N/A"
-                                    ? ""
-                                    : `${mp.fullname.middleName} `
-                                }${mp.fullname.lastName}`,
-                                mp.profile,
-                                36,
-                                mp.entityType,
-                                mp.entityID,
-                              )}
-                            </div>
-                            <div className="tw-flex tw-flex-1 tw-min-w-0 tw-items-center tw-gap-[4px] span_userdetails_ellipsis">
-                              <span className="tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
-                                {mp.fullname.firstName}
-                                {mp.fullname.middleName == "N/A"
-                                  ? ""
-                                  : ` ${mp.fullname.middleName}`}{" "}
-                                {mp.fullname.lastName}
-                              </span>
-                              {mp.isVerified && (
-                                <RiVerifiedBadgeFill
-                                  size={14}
-                                  color="var(--brand)"
-                                  style={{ flex: "none" }}
-                                />
-                              )}
-                              <PageFlag realmType={mp.realmType} size={12} />
-                              <BotFlag type={mp.entityType} size={12} />
-                            </div>
-                          </div>
-                        );
-                      },
-                    )}
-                  </motion.div>
-                </div>
-              </div>
-              <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-p-[10px] tw-pr-[0px] tw-pt-[0px]">
-                <div className="tw-w-full tw-flex tw-items-center tw-h-[30px] tw-pb-[5px]">
-                  <motion.button
-                    onClick={() => {
-                      settoggledfiles("media");
-                    }}
-                    animate={{
-                      borderColor:
-                        toggledfiles === "media"
-                          ? "var(--brand)"
-                          : "transparent",
-                    }}
-                    style={{
-                      color:
-                        toggledfiles === "media"
-                          ? "var(--text)"
-                          : "var(--text-2)",
-                    }}
-                    className="cl-conversation-info-modal-tab tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
-                  >
-                    Media
-                  </motion.button>
-                  <motion.button
-                    onClick={() => {
-                      settoggledfiles("audio");
-                    }}
-                    animate={{
-                      borderColor:
-                        toggledfiles === "audio"
-                          ? "var(--brand)"
-                          : "transparent",
-                    }}
-                    style={{
-                      color:
-                        toggledfiles === "audio"
-                          ? "var(--text)"
-                          : "var(--text-2)",
-                    }}
-                    className="cl-conversation-info-modal-tab tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
-                  >
-                    Audio
-                  </motion.button>
-                  <motion.button
-                    onClick={() => {
-                      settoggledfiles("files");
-                    }}
-                    animate={{
-                      borderColor:
-                        toggledfiles === "files"
-                          ? "var(--brand)"
-                          : "transparent",
-                    }}
-                    style={{
-                      color:
-                        toggledfiles === "files"
-                          ? "var(--text)"
-                          : "var(--text-2)",
-                    }}
-                    className="cl-conversation-info-modal-tab tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
-                  >
-                    Files
-                  </motion.button>
-                </div>
-                {toggledfiles === "media" && (
-                  <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[2px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                    {conversationinfo.conversationfiles.map(
-                      (mp: ConversationFilesInterface, i: number) => {
-                        if (mp.fileDetails.data) {
-                          if (mp.fileType.includes("image")) {
-                            return (
-                              <CachedImage
-                                key={i}
-                                src={mp.fileDetails.data}
-                                className="cl-conversation-info-modal-media tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black"
-                              />
-                            );
-                          } else if (mp.fileType.includes("video")) {
-                            // console.log(mp.fileDetails.data.split("%%")[0])
-                            return (
-                              <VideoPlayer
-                                key={i}
-                                src={mp.fileDetails.data
-                                  .split("%%%")[0]
-                                  .replace("###", "%23%23%23")}
-                                className="tw-w-full tw-flex-1"
-                                videoClassName="cl-conversation-info-modal-media tw-w-full tw-max-h-[200px] tw-object-cover tw-bg-black"
-                              />
-                            );
-                          }
-                        }
-                      },
-                    )}
-                  </div>
-                )}
-                {toggledfiles === "audio" && (
-                  <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[5px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                    {conversationinfo.conversationfiles.map(
-                      (mp: ConversationFilesInterface, i: number) => {
-                        if (mp.fileDetails.data) {
-                          if (mp.fileType.includes("audio")) {
-                            return (
-                              <div
-                                key={i}
-                                className="cl-conversation-info-modal-audio-item tw-w-full"
-                                title={
-                                  mp.dateUploaded.time
-                                    ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
-                                    : timeSince(mp.dateUploaded.date)
-                                }
-                              >
-                                <audio
-                                  src={mp.fileDetails.data
-                                    .split("%%%")[0]
-                                    .replace("###", "%23%23%23")}
-                                  controls
-                                  className="tw-w-full tw-border-[7px]"
-                                />
-                              </div>
-                            );
-                          }
-                        }
-                      },
-                    )}
-                  </div>
-                )}
-                {toggledfiles === "files" && (
-                  <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[5px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                    {conversationinfo.conversationfiles.map(
-                      (mp: ConversationFilesInterface, i: number) => {
-                        if (mp.fileDetails.data) {
-                          if (
-                            !mp.fileType.includes("image") &&
-                            !mp.fileType.includes("video") &&
-                            !mp.fileType.includes("audio")
-                          ) {
-                            return (
-                              <div
-                                key={i}
-                                onClick={() => {
-                                  window.open(
-                                    fileMessageUrl(mp.fileDetails.data),
-                                    "_blank",
-                                  );
-                                }}
-                                className="cl-conversation-info-modal-file tw-w-[calc(100%-20px)] tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
-                                title={
-                                  mp.dateUploaded.time
-                                    ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
-                                    : timeSince(mp.dateUploaded.date)
-                                }
-                              >
-                                <div className="tw-w-full tw-max-w-[40px]">
-                                  <IoDocumentOutline
-                                    style={{ fontSize: "40px" }}
-                                  />
-                                </div>
-                                <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left">
-                                  {fileMessageName(mp.fileDetails.data)}
-                                </span>
-                              </div>
-                            );
-                          }
-                        }
-                      },
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-          ) : (
-            <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-flex tw-h-[calc(100%-70px)] tw-flex-col lg:tw-flex-row tw-flex-1 tw-pl-[10px] tw-pr-[10px] tw-overflow-y-scroll lg:tw-overflow-y-none thinscroller">
-              <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-items-center tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-flex-col tw-items-center tw-gap-[10px]">
-                  {conversationinfo.type === "channel" ? (
-                    <FaHashtag style={{ fontSize: "120px" }} />
-                  ) : (
+          {/* Narrow: one column that scrolls as a whole (files under members).
+              lg: two columns, each scrolling on its own. */}
+          <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-flex tw-flex-1 tw-min-h-0 tw-flex-col lg:tw-flex-row tw-pl-[10px] tw-pr-[10px] tw-overflow-y-auto lg:tw-overflow-y-hidden thinscroller">
+            <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-none lg:tw-flex-1 tw-items-center lg:tw-min-h-0 lg:tw-overflow-y-auto thinscroller">
+              <div className="tw-bg-transparent tw-w-[calc(100%-20px)] tw-p-[10px] tw-flex tw-flex-col tw-items-center tw-gap-[10px]">
+                {isSingle ? (
+                  <>
                     <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
-                      <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
-                        <CachedImage
-                          src={
-                            conversationinfo.conversationInfo &&
-                            conversationinfo.conversationInfo?.profile &&
-                            conversationinfo.conversationInfo?.profile !== "N/A"
-                              ? conversationinfo.conversationInfo?.profile
-                              : conversationinfo.type === "server"
-                                ? ServerIcon
-                                : GroupChatIcon
-                          }
-                          id={
-                            conversationinfo.conversationInfo &&
-                            conversationinfo.conversationInfo?.profile &&
-                            conversationinfo.conversationInfo?.profile !== "N/A"
-                              ? "img_actual_profile_main"
-                              : ""
-                          }
-                          className={
-                            conversationinfo.conversationInfo &&
-                            conversationinfo.conversationInfo?.profile &&
-                            conversationinfo.conversationInfo?.profile !== "N/A"
-                              ? ""
-                              : "img_gc_profiles_ntfs"
-                          }
-                        />
-                      </div>
+                      {renderUserAvatar(
+                        userInfo?.userID || "conversation-user",
+                        userInfo ? fullNameOf(userInfo.fullname) : "Conversation",
+                        userInfo?.profile,
+                        120,
+                        userInfo?.entityType,
+                        userInfo?.entityID,
+                      )}
                     </div>
-                  )}
-                  <span className="cl-text-body tw-font-Inter tw-font-semibold">
-                    {conversationinfo.conversationInfo?.groupName}
-                  </span>
-                </div>
-                <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start">
-                  <button
-                    onClick={() => {
-                      settoggleMemberDropper(!toggleMemberDropper);
-                    }}
-                    className="cl-conversation-info-modal-members tw-font-Inter tw-border-[0px] tw-h-[35px] cl-text-body tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
-                    style={{ color: "var(--text)" }}
-                  >
-                    <span className="cl-conversation-info-modal-members__label">
-                      Members
+                    <span className="cl-text-body tw-font-Inter tw-font-semibold tw-flex tw-items-center tw-gap-[4px]">
+                      {userInfo ? fullNameOf(userInfo.fullname) : "Conversation"}
+                      {userInfo?.isVerified && (
+                        <RiVerifiedBadgeFill
+                          size={16}
+                          color="var(--brand)"
+                          style={{ flex: "none" }}
+                        />
+                      )}
+                      <PageFlag realmType={userInfo?.realmType} size={14} />
+                      <BotFlag type={userInfo?.entityType} size={14} />
                     </span>
-                  </button>
-                  <motion.div
-                    initial={{
-                      height: "0px",
-                    }}
-                    animate={{
-                      height: toggleMemberDropper ? "auto" : "0px",
-                    }}
-                    className="tw-w-[calc(100%-40px)] tw-flex tw-gap-[0px] tw-flex-col tw-overflow-y-hidden tw-bg-transparent tw-items-start tw-pl-[20px] tw-pr-[20px]"
-                  >
-                    {expandcontacts && (
-                      <motion.div
-                        animate={{
-                          minHeight: markedMembers.length > 0 ? "40px" : "0px",
-                          height: markedMembers.length > 0 ? "40px" : "0px",
-                        }}
-                        id="div_selected_container"
-                        className="scrollervert"
-                      >
-                        {markedMembers.map((mrkm: any, i: number) => {
-                          return (
-                            <div key={i} className="div_selected_holder">
-                              <span className="span_selected_label">
-                                {mrkm.fullName}
-                              </span>
-                              <button
-                                className="btn_remove_selected"
-                                onClick={() => {
-                                  removeFromList(mrkm.id);
-                                }}
-                              >
-                                <IoClose
-                                  style={{ fontSize: "17px", color: "white" }}
-                                />
-                              </button>
-                            </div>
-                          );
-                        })}
-                      </motion.div>
-                    )}
-                    <motion.div
-                      className="tw-w-full tw-flex tw-flex-col"
-                      initial={{
-                        height: "0px",
-                      }}
-                      animate={{
-                        height: expandcontacts ? "400px" : "0px",
-                      }}
-                    >
-                      {isLoading ? (
-                        <div className="tw-w-full tw-flex tw-overflow-y-hidden tw-h-[400px] tw-items-center tw-justify-center">
-                          <motion.div
-                            animate={{
-                              rotate: -360,
-                            }}
-                            transition={{
-                              duration: 1,
-                              repeat: Infinity,
-                            }}
-                            id="div_loader_request"
-                          >
-                            <AiOutlineLoading3Quarters
-                              style={{ fontSize: "28px" }}
-                            />
-                          </motion.div>
+                  </>
+                ) : (
+                  <>
+                    {conversationinfo.type === "channel" ? (
+                      <FaHashtag style={{ fontSize: "120px" }} />
+                    ) : (
+                      <div className="tw-w-full tw-max-w-[120px] tw-h-[120px] tw-flex tw-items-center tw-justify-center">
+                        <div className="tw-w-full tw-h-full tw-flex tw-items-center tw-justify-center tw-rounded-[120px] div_conversationinfomodalimg">
+                          <CachedImage
+                            src={
+                              groupProfile ??
+                              (conversationinfo.type === "server"
+                                ? ServerIcon
+                                : GroupChatIcon)
+                            }
+                            id={groupProfile ? "img_actual_profile_main" : ""}
+                            className={groupProfile ? "" : "img_gc_profiles_ntfs"}
+                          />
                         </div>
-                      ) : (
-                        <motion.div
-                          id="div_contacts_select_container"
-                          className="scroller tw-h-[400px]"
-                          // animate={{
-                          //     maxHeight: markedMembers.length > 0 ? "calc(100% - 520px)" : "calc(100% - 440px)"
-                          // }}
+                      </div>
+                    )}
+                    <span className="cl-text-body tw-font-Inter tw-font-semibold">
+                      {conversationinfo.conversationInfo?.groupName}
+                    </span>
+                  </>
+                )}
+              </div>
+              <div className="tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-items-start">
+                <button
+                  onClick={() => {
+                    settoggleMemberDropper(!toggleMemberDropper);
+                  }}
+                  className="cl-conversation-info-modal-members tw-font-Inter tw-border-[0px] tw-h-[35px] cl-text-body tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
+                  style={{ color: "var(--text)" }}
+                >
+                  <span className="cl-conversation-info-modal-members__label">
+                    Members
+                  </span>
+                </button>
+                <motion.div
+                  initial={{
+                    height: "0px",
+                  }}
+                  animate={{
+                    height: toggleMemberDropper ? "auto" : "0px",
+                  }}
+                  className="tw-w-[calc(100%-40px)] tw-flex tw-gap-[5px] tw-flex-col tw-overflow-y-hidden tw-bg-transparent tw-items-start tw-pl-[20px] tw-pr-[20px]"
+                >
+                  {conversationinfo.usersWithInfo.map(
+                    (mp: UserWithInfoConversationInterface, i: number) => {
+                      const name = fullNameOf(mp.fullname);
+                      return (
+                        <div
+                          key={mp.entityID || i}
+                          onClick={() => {
+                            navigate(`/${mp.userID}`);
+                          }}
+                          className="cl-conversation-info-modal-member tw-w-full tw-rounded-[6px] tw-flex tw-flex-none tw-items-center tw-gap-[10px] tw-select-none tw-cursor-pointer"
+                          style={{ padding: "6px 8px", minHeight: 44 }}
                         >
-                          <div className="tw-w-full tw-flex tw-flex-col tw-h-auto">
-                            {contactslist.map(
-                              (cnts: IContact | any, i: number) => {
-                                if (conversationinfo.type === "server") {
-                                  const fullNameFilter = `${
-                                    cnts.fullname.firstName
-                                  }${
-                                    cnts.fullname.middleName == "N/A"
-                                      ? ""
-                                      : ` ${cnts.fullname.middleName}`
-                                  } ${cnts.fullname.lastName}`;
-                                  const checkmemberslist =
-                                    conversationinfo.users.map(
-                                      (mp: UsersInConversation) => mp._id,
-                                    );
-                                  if (!checkmemberslist.includes(cnts._id)) {
-                                    if (fullNameFilter.includes(searchFilter)) {
-                                      return (
-                                        <motion.div
-                                          whileHover={{
-                                            backgroundColor: "#e6e6e6",
-                                          }}
-                                          key={i}
-                                          className="div_cncts_cards"
-                                        >
-                                          <input
-                                            type="checkbox"
-                                            checked={valueToArrayChecker(
-                                              cnts._id,
-                                            )}
-                                            onChange={() => {
-                                              if (
-                                                !valueToArrayChecker(cnts._id)
-                                              ) {
-                                                setmarkedMembers([
-                                                  ...markedMembers,
-                                                  {
-                                                    id: cnts._id,
-                                                    userID: cnts.userID,
-                                                    fullName: `${
-                                                      cnts.fullname.firstName
-                                                    }${
-                                                      cnts.fullname
-                                                        .middleName == "N/A"
-                                                        ? ""
-                                                        : ` ${cnts.fullname.middleName}`
-                                                    } ${
-                                                      cnts.fullname.lastName
-                                                    }`,
-                                                  },
-                                                ]);
-                                              } else {
-                                                removeFromList(cnts._id);
-                                              }
-                                            }}
-                                            className="checkbox_selector_people"
-                                          />
-                                          <div id="div_img_cncts_container">
-                                            <div
-                                              id="div_img_search_profiles_container_cncts"
-                                              className="tw-flex-none"
-                                            >
-                                              {renderUserAvatar(
-                                                cnts._id,
-                                                `${cnts.fullname.firstName} ${
-                                                  cnts.fullname.middleName ===
-                                                  "N/A"
-                                                    ? ""
-                                                    : `${cnts.fullname.middleName} `
-                                                }${cnts.fullname.lastName}`,
-                                                cnts.profile,
-                                              )}
-                                            </div>
-                                          </div>
-                                          <div className="div_contact_fullname_container">
-                                            <span className="tw-flex tw-flex-1 cl-text-body-sm">
-                                              {cnts.fullname.firstName}
-                                              {cnts.fullname.middleName == "N/A"
-                                                ? ""
-                                                : ` ${cnts.fullname.middleName}`}{" "}
-                                              {cnts.fullname.lastName}
-                                            </span>
-                                          </div>
-                                        </motion.div>
-                                      );
-                                    } else {
-                                      return null;
-                                    }
-                                  }
-                                } else {
-                                  if (cnts.type == "single") {
-                                    if (cnts.action_by && cnts.involved_user) {
-                                      if (
-                                        cnts.action_by.id ===
-                                          authentication.user.entity_id &&
-                                        conversationinfo.usersWithInfo.filter(
-                                          (flt: any) =>
-                                            flt._id === cnts.involved_user.id,
-                                        ).length === 0
-                                      ) {
-                                        const checkmemberslist =
-                                          conversationinfo.users.map(
-                                            (mp: UsersInConversation) => mp._id,
-                                          );
-                                        if (
-                                          checkmemberslist.includes(
-                                            cnts.involved_user.id,
-                                          )
-                                        ) {
-                                          return null;
-                                        }
-                                        const fullNameFilter = `${
-                                          cnts.involved_user.first_name
-                                        }${
-                                          cnts.involved_user.middle_name ==
-                                          "N/A"
-                                            ? ""
-                                            : ` ${cnts.involved_user.middle_name}`
-                                        } ${cnts.involved_user.last_name}`;
-                                        if (
-                                          fullNameFilter.includes(searchFilter)
-                                        ) {
-                                          return (
-                                            <motion.div
-                                              whileHover={{
-                                                backgroundColor: "#e6e6e6",
-                                              }}
-                                              key={i}
-                                              className="div_cncts_cards"
-                                            >
-                                              <input
-                                                type="checkbox"
-                                                checked={valueToArrayChecker(
-                                                  cnts.involved_user.id,
-                                                )}
-                                                onChange={() => {
-                                                  if (
-                                                    !valueToArrayChecker(
-                                                      cnts.involved_user.id,
-                                                    )
-                                                  ) {
-                                                    setmarkedMembers([
-                                                      ...markedMembers,
-                                                      {
-                                                        id: cnts.involved_user
-                                                          .id,
-                                                        userID:
-                                                          cnts.involved_user
-                                                            .username,
-                                                        fullName: `${
-                                                          cnts.involved_user
-                                                            .first_name
-                                                        }${
-                                                          cnts.involved_user
-                                                            .middle_name ==
-                                                          "N/A"
-                                                            ? ""
-                                                            : ` ${cnts.involved_user.middle_name}`
-                                                        } ${
-                                                          cnts.involved_user
-                                                            .last_name
-                                                        }`,
-                                                      },
-                                                    ]);
-                                                  } else {
-                                                    removeFromList(
-                                                      cnts.involved_user.id,
-                                                    );
-                                                  }
-                                                }}
-                                                className="checkbox_selector_people"
-                                              />
-                                              <div id="div_img_cncts_container">
-                                                <div
-                                                  id="div_img_search_profiles_container_cncts"
-                                                  className="tw-flex-none"
-                                                >
-                                                  {renderUserAvatar(
-                                                    cnts.involved_user.id,
-                                                    `${cnts.involved_user.first_name} ${
-                                                      cnts.involved_user
-                                                        .middle_name === "N/A"
-                                                        ? ""
-                                                        : `${cnts.involved_user.middle_name} `
-                                                    }${cnts.involved_user.last_name}`,
-                                                    cnts.involved_user.profile,
-                                                  )}
-                                                </div>
-                                              </div>
-                                              <div className="div_contact_fullname_container">
-                                                <span className="tw-flex tw-flex-1 cl-text-body-sm">
-                                                  {
-                                                    cnts.involved_user
-                                                      .first_name
-                                                  }
-                                                  {cnts.involved_user
-                                                    .middle_name == "N/A"
-                                                    ? ""
-                                                    : ` ${cnts.involved_user.middle_name}`}{" "}
-                                                  {cnts.involved_user.last_name}
-                                                </span>
-                                              </div>
-                                            </motion.div>
-                                          );
-                                        } else {
-                                          return null;
-                                        }
-                                      } else {
-                                        const checkmemberslist =
-                                          conversationinfo.users.map(
-                                            (mp: UsersInConversation) => mp._id,
-                                          );
-                                        if (
-                                          checkmemberslist.includes(
-                                            cnts.action_by.id,
-                                          )
-                                        ) {
-                                          return null;
-                                        }
-                                        if (
-                                          conversationinfo.usersWithInfo.filter(
-                                            (flt: any) =>
-                                              flt._id === cnts.action_by.id,
-                                          ).length === 0
-                                        ) {
-                                          const fullNameFilter = `${
-                                            cnts.action_by.first_name
-                                          }${
-                                            cnts.action_by.middle_name == "N/A"
-                                              ? ""
-                                              : ` ${cnts.action_by.middle_name}`
-                                          } ${cnts.action_by.last_name}`;
-                                          if (
-                                            fullNameFilter.includes(
-                                              searchFilter,
-                                            )
-                                          ) {
-                                            return (
-                                              <motion.div
-                                                whileHover={{
-                                                  backgroundColor: "#e6e6e6",
-                                                }}
-                                                key={i}
-                                                className="div_cncts_cards"
-                                              >
-                                                <input
-                                                  type="checkbox"
-                                                  checked={valueToArrayChecker(
-                                                    cnts.action_by.id,
-                                                  )}
-                                                  onChange={() => {
-                                                    if (
-                                                      !valueToArrayChecker(
-                                                        cnts.action_by.id,
-                                                      )
-                                                    ) {
-                                                      setmarkedMembers([
-                                                        ...markedMembers,
-                                                        {
-                                                          id: cnts.action_by.id,
-                                                          userID:
-                                                            cnts.action_by
-                                                              .username,
-                                                          fullName: `${
-                                                            cnts.action_by
-                                                              .first_name
-                                                          }${
-                                                            cnts.action_by
-                                                              .middle_name ==
-                                                            "N/A"
-                                                              ? ""
-                                                              : ` ${cnts.action_by.middle_name}`
-                                                          } ${
-                                                            cnts.action_by
-                                                              .last_name
-                                                          }`,
-                                                        },
-                                                      ]);
-                                                    } else {
-                                                      removeFromList(
-                                                        cnts.action_by.id,
-                                                      );
-                                                    }
-                                                  }}
-                                                  className="checkbox_selector_people"
-                                                />
-                                                <div id="div_img_cncts_container">
-                                                  <div
-                                                    id="div_img_search_profiles_container_cncts"
-                                                    className="tw-flex-none"
-                                                  >
-                                                    {renderUserAvatar(
-                                                      cnts.action_by.id,
-                                                      `${cnts.action_by.first_name} ${
-                                                        cnts.action_by
-                                                          .middle_name === "N/A"
-                                                          ? ""
-                                                          : `${cnts.action_by.middle_name} `
-                                                      }${cnts.action_by.last_name}`,
-                                                      cnts.action_by.profile,
-                                                    )}
-                                                  </div>
-                                                </div>
-                                                <div className="div_contact_fullname_container">
-                                                  <span className="tw-flex tw-flex-1 cl-text-body-sm">
-                                                    {cnts.action_by.first_name}
-                                                    {cnts.action_by
-                                                      .middle_name == "N/A"
-                                                      ? ""
-                                                      : ` ${cnts.action_by.middle_name}`}{" "}
-                                                    {cnts.action_by.last_name}
-                                                  </span>
-                                                </div>
-                                              </motion.div>
-                                            );
-                                          } else {
-                                            return null;
-                                          }
-                                        }
-                                      }
-                                    } else {
-                                      return null;
-                                    }
-                                  } else {
-                                    return null;
-                                  }
-                                }
-                              },
+                          <div
+                            id="div_img_search_profiles_container_cncts"
+                            className="tw-flex-none"
+                          >
+                            {renderUserAvatar(
+                              mp.userID,
+                              name,
+                              mp.profile,
+                              36,
+                              mp.entityType,
+                              mp.entityID,
                             )}
                           </div>
-                        </motion.div>
-                      )}
-                    </motion.div>
-                    {conversationinfo.usersWithInfo.map(
-                      (mp: UserWithInfoConversationInterface, i: number) => {
-                        return (
-                          <div
-                            key={i}
-                            onClick={() => {
-                              navigate(`/${mp.userID}`);
-                            }}
-                            className="tw-w-full hover:tw-bg-[var(--surface-hover)] tw-rounded-[6px] tw-flex tw-flex-none tw-items-center tw-gap-[10px] tw-select-none tw-cursor-pointer"
-                            style={{ padding: "6px 8px", minHeight: 44 }}
-                          >
-                            <div
-                              id="div_img_search_profiles_container_cncts"
-                              className="tw-flex-none"
-                            >
-                              {renderUserAvatar(
-                                mp.userID,
-                                `${mp.fullname.firstName} ${
-                                  mp.fullname.middleName === "N/A"
-                                    ? ""
-                                    : `${mp.fullname.middleName} `
-                                }${mp.fullname.lastName}`,
-                                mp.profile,
-                                36,
-                                mp.entityType,
-                                mp.entityID,
-                              )}
-                            </div>
-                            <div className="tw-flex tw-flex-1 tw-min-w-0 tw-items-center tw-gap-[4px] span_userdetails_ellipsis">
-                              <span className="tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
-                                {mp.fullname.firstName}
-                                {mp.fullname.middleName == "N/A"
-                                  ? ""
-                                  : ` ${mp.fullname.middleName}`}{" "}
-                                {mp.fullname.lastName}
-                              </span>
-                              {mp.isVerified && (
-                                <RiVerifiedBadgeFill
-                                  size={14}
-                                  color="var(--brand)"
-                                  style={{ flex: "none" }}
-                                />
-                              )}
-                              <PageFlag realmType={mp.realmType} size={12} />
-                              <BotFlag type={mp.entityType} size={12} />
-                            </div>
+                          <div className="tw-flex tw-flex-1 tw-min-w-0 tw-items-center tw-gap-[4px] span_userdetails_ellipsis">
+                            <span className="tw-min-w-0 tw-truncate cl-text-body-sm tw-text-left">
+                              {name}
+                            </span>
+                            {mp.isVerified && (
+                              <RiVerifiedBadgeFill
+                                size={14}
+                                color="var(--brand)"
+                                style={{ flex: "none" }}
+                              />
+                            )}
+                            <PageFlag realmType={mp.realmType} size={12} />
+                            <BotFlag type={mp.entityType} size={12} />
                           </div>
-                        );
-                      },
-                    )}
-                  </motion.div>
-                </div>
-              </div>
-              <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-1 tw-p-[10px] tw-pr-[0px] tw-pt-[0px]">
-                <div className="tw-w-full tw-flex tw-items-center tw-h-[30px] tw-pb-[5px]">
-                  <motion.button
-                    onClick={() => {
-                      settoggledfiles("media");
-                    }}
-                    animate={{
-                      borderColor:
-                        toggledfiles === "media"
-                          ? "var(--brand)"
-                          : "transparent",
-                    }}
-                    style={{
-                      color:
-                        toggledfiles === "media"
-                          ? "var(--text)"
-                          : "var(--text-2)",
-                    }}
-                    className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
-                  >
-                    Media
-                  </motion.button>
-                  <motion.button
-                    onClick={() => {
-                      settoggledfiles("audio");
-                    }}
-                    animate={{
-                      borderColor:
-                        toggledfiles === "audio"
-                          ? "var(--brand)"
-                          : "transparent",
-                    }}
-                    style={{
-                      color:
-                        toggledfiles === "audio"
-                          ? "var(--text)"
-                          : "var(--text-2)",
-                    }}
-                    className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
-                  >
-                    Audio
-                  </motion.button>
-                  <motion.button
-                    onClick={() => {
-                      settoggledfiles("files");
-                    }}
-                    animate={{
-                      borderColor:
-                        toggledfiles === "files"
-                          ? "var(--brand)"
-                          : "transparent",
-                    }}
-                    style={{
-                      color:
-                        toggledfiles === "files"
-                          ? "var(--text)"
-                          : "var(--text-2)",
-                    }}
-                    className="tw-font-Inter tw-border-[0px] tw-border-b-[2px] tw-p-[5px] tw-font-semibold tw-min-w-[70px] tw-bg-transparent tw-cursor-pointer"
-                  >
-                    Files
-                  </motion.button>
-                </div>
-                {toggledfiles === "media" && (
-                  <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[2px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                    {conversationinfo.conversationfiles.map(
-                      (mp: ConversationFilesInterface, i: number) => {
-                        if (mp.fileDetails.data) {
-                          if (mp.fileType.includes("image")) {
-                            return (
-                              <CachedImage
-                                key={i}
-                                src={mp.fileDetails.data}
-                                className="tw-w-full tw-flex tw-flex-1 tw-max-h-[150px] tw-object-cover tw-bg-black"
-                              />
-                            );
-                          } else if (mp.fileType.includes("video")) {
-                            // console.log(mp.fileDetails.data.split("%%")[0])
-                            return (
-                              <VideoPlayer
-                                key={i}
-                                src={mp.fileDetails.data
-                                  .split("%%%")[0]
-                                  .replace("###", "%23%23%23")}
-                                className="tw-w-full tw-flex-1"
-                                videoClassName="tw-w-full tw-max-h-[200px] tw-object-cover tw-bg-black"
-                              />
-                            );
-                          }
-                        }
-                      },
-                    )}
-                  </div>
-                )}
-                {toggledfiles === "audio" && (
-                  <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[5px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                    {conversationinfo.conversationfiles.map(
-                      (mp: ConversationFilesInterface, i: number) => {
-                        if (mp.fileDetails.data) {
-                          if (mp.fileType.includes("audio")) {
-                            return (
-                              <div
-                                key={i}
-                                className="cl-conversation-info-modal-audio-item tw-w-full"
-                                title={
-                                  mp.dateUploaded.time
-                                    ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
-                                    : timeSince(mp.dateUploaded.date)
-                                }
-                              >
-                                <audio
-                                  src={mp.fileDetails.data
-                                    .split("%%%")[0]
-                                    .replace("###", "%23%23%23")}
-                                  controls
-                                  className="tw-w-full tw-border-[7px]"
-                                />
-                              </div>
-                            );
-                          }
-                        }
-                      },
-                    )}
-                  </div>
-                )}
-                {toggledfiles === "files" && (
-                  <div className="tw-bg-transparent tw-flex tw-flex-wrap tw-flex-row tw-gap-[5px] tw-overflow-y-none lg:tw-overflow-y-auto thinscroller">
-                    {conversationinfo.conversationfiles.map(
-                      (mp: ConversationFilesInterface, i: number) => {
-                        if (mp.fileDetails.data) {
-                          if (
-                            !mp.fileType.includes("image") &&
-                            !mp.fileType.includes("video") &&
-                            !mp.fileType.includes("audio")
-                          ) {
-                            return (
-                              <div
-                                key={i}
-                                onClick={() => {
-                                  window.open(
-                                    fileMessageUrl(mp.fileDetails.data),
-                                    "_blank",
-                                  );
-                                }}
-                                className="cl-conversation-info-modal-file tw-w-[calc(100%-20px)] tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
-                                title={
-                                  mp.dateUploaded.time
-                                    ? `${mp.dateUploaded.date} ${mp.dateUploaded.time}`
-                                    : timeSince(mp.dateUploaded.date)
-                                }
-                              >
-                                <div className="tw-w-full tw-max-w-[40px]">
-                                  <IoDocumentOutline
-                                    style={{ fontSize: "40px" }}
-                                  />
-                                </div>
-                                <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold tw-text-left">
-                                  {fileMessageName(mp.fileDetails.data)}
-                                </span>
-                              </div>
-                            );
-                          }
-                        }
-                      },
-                    )}
-                  </div>
-                )}
+                        </div>
+                      );
+                    },
+                  )}
+                </motion.div>
               </div>
             </div>
-          )}
+            <div className="tw-bg-transparent tw-flex tw-flex-col tw-flex-none lg:tw-flex-1 tw-p-[10px] tw-pr-[0px] tw-pt-[0px] lg:tw-min-h-0 lg:tw-overflow-y-auto thinscroller">
+              <ConversationFilesPanel
+                conversationID={conversationID}
+                conversationType={conversationType}
+              />
+            </div>
+          </div>
         </div>
       }
     />

@@ -259,21 +259,30 @@ export interface UserWithInfoConversationInterface {
   __v: 0;
 }
 
-export interface ConversationFilesInterface {
-  _id: any;
-  fileID: string;
-  foreignID: any[];
-  fileDetails: {
-    data: string;
-  };
-  fileOrigin: string;
-  fileType: string;
-  action: string;
-  dateUploaded: {
-    time: string;
-    date: string;
-  };
-  __v: 0;
+/** What /m/conversationfiles can be filtered by - one per info-modal tab. */
+export type ConversationFileKind = "image" | "video" | "audio" | "file";
+
+/** One file shared in a conversation, from /m/conversationfiles. */
+export interface ConversationFileItem {
+  messageID: string;
+  /** Entity id of whoever sent it. */
+  sender: string;
+  kind: ConversationFileKind;
+  /** The message's messageType - "image", or a real mime type. */
+  mimeType: string;
+  /**
+   * The RAW stored reference: a bare URL, or the legacy "url%%%name". Read it
+   * through fileMessageUrl / fileMessageName.
+   */
+  content: string;
+  /** ISO date the message was sent. */
+  sentAt: string;
+}
+
+export interface ConversationFilesPage {
+  items: ConversationFileItem[];
+  /** Hand back for the next page; null when there is nothing older. */
+  nextCursor: string | null;
 }
 
 export interface ConversationInfoInterface {
@@ -288,7 +297,6 @@ export interface ConversationInfoInterface {
   __v: any;
   conversationInfo?: ConversationDetails;
   usersWithInfo: UserWithInfoConversationInterface[];
-  conversationfiles: ConversationFilesInterface[];
   chatHistory: {
     _id: string;
     conversationID: string;

@@ -21,6 +21,8 @@ import { convertLoginResponse, generateUUID, generateXNonce,
 import { ConvertedResponse } from "../vars/types";
 import { PaginationProp } from "../vars/props";
 import {
+  ConversationFileKind,
+  ConversationFilesPage,
   EphemeralAudience,
   IContact,
   IEphemeralViewers,
@@ -2456,6 +2458,52 @@ const ConversationInfoRequest = async (params: any) => {
     });
 };
 
+/**
+ * One page of the files shared in a conversation - the info modal's Photos /
+ * Videos / Audio / Files tabs. Separate from ConversationInfoRequest on
+ * purpose: the list can be long, so it is only fetched when the modal is
+ * actually opened, and then a page at a time.
+ *
+ * `cursor` is the previous page's `nextCursor`; a null `nextCursor` back
+ * means there is nothing older. Throws on failure so the tab can say so
+ * instead of showing an empty list.
+ */
+const ConversationFilesRequest = async (params: {
+  conversationID: string;
+  type: string;
+  kinds: ConversationFileKind[];
+  cursor?: string | null;
+  limit?: number;
+}): Promise<ConversationFilesPage> => {
+  return Axios.get(
+    `${API}/m/conversationfiles/${params.conversationID}/${params.type}`,
+    {
+      params: {
+        types: params.kinds.join(","),
+        limit: params.limit,
+        cursor: params.cursor || undefined,
+      },
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
+    .then((response) => {
+      if (!response.data?.status) {
+        throw new Error(
+          response.data?.message || "Cannot load conversation files",
+        );
+      }
+      return {
+        items: Array.isArray(response.data.items) ? response.data.items : [],
+        nextCursor: response.data.nextCursor || null,
+      };
+    })
+    .catch((err) => {
+      throw toRequestError(err);
+    });
+};
+
 const IsTypingBroadcastRequest = (payload: any) => {
   const encodedPayload = sign(payload, SECRET);
 
@@ -4740,6 +4788,7 @@ export {
   ReactToMessageRequest,
   SetMessageReactionRequest,
   ConversationInfoRequest,
+  ConversationFilesRequest,
   IsTypingBroadcastRequest,
   CommentTypingBroadcastRequest,
   AddNewMemberRequest,
