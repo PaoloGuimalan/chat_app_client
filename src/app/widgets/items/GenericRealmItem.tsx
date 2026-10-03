@@ -220,16 +220,20 @@ function GenericRealmItem({
           <div className="cl-display-card__cover tw-w-full tw-flex tw-max-w-[1500px] tw-h-[120px]" />
         )}
         <div className="cl-display-card__body tw-w-[calc(100%-30px)] tw-pl-[15px] tw-pr-[15px] tw-flex tw-flex-col tw-items-start tw-gap-[8px] tw-flex-1">
-          <Avatar
-            // Same id the follow/message controls above already resolve the
-            // realm by.
-            entityId={mp.entity}
-            name={mp.name}
-            src={mp.profile && mp.profile !== "none" ? mp.profile : null}
-            size={50}
-            shape="rounded"
-            className="cl-display-card__avatar-shell tw-cursor-pointer tw-relative tw--mt-[30px]"
-          />
+          {/* The shell is the white frame (50px with a 5px border); the
+              avatar sits inside it at 40px. Given the shell's class itself,
+              the 50px image overflowed the frame's border. */}
+          <div className="cl-display-card__avatar-shell tw-cursor-pointer tw-relative tw--mt-[30px] tw-flex tw-items-center tw-justify-center">
+            <Avatar
+              // Same id the follow/message controls above already resolve the
+              // realm by.
+              entityId={mp.entity}
+              name={mp.name}
+              src={mp.profile && mp.profile !== "none" ? mp.profile : null}
+              size={40}
+              shape="rounded"
+            />
+          </div>
           <div className="tw-w-[calc(100%-10px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-flex-1 tw-min-w-0">
             <span
               className="cl-display-card__title tw-min-w-0 tw-w-full tw-flex tw-items-center tw-gap-[4px] tw-overflow-hidden cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
