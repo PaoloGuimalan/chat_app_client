@@ -270,11 +270,10 @@ export interface ConversationFileItem {
   kind: ConversationFileKind;
   /** The message's messageType - "image", or a real mime type. */
   mimeType: string;
-  /**
-   * The RAW stored reference: a bare URL, or the legacy "url%%%name". Read it
-   * through fileMessageUrl / fileMessageName.
-   */
+  /** The stored value - the file's URL. Show the file through `attachment`. */
   content: string;
+  /** Name, type, size - see app/tabs/messenger/partials/fileMessage.ts. */
+  attachment?: import("@/app/tabs/messenger/partials/fileMessage").MessageAttachment | null;
   /** ISO date the message was sent. */
   sentAt: string;
 }

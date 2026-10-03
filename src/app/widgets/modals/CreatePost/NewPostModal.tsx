@@ -41,7 +41,7 @@ import {
 } from "@/reusables/vars/interfaces";
 import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
-import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
+import { limitFor } from "@/reusables/vars/uploads";
 import {
   resolveErrorMessage,
   resolveResponseMessage,
@@ -191,14 +191,14 @@ export function NewPostModal({
       });
     }
 
-    const oversized = files.some((file) => file.size > MAX_UPLOAD_BYTES);
+    const oversized = files.some((file) => file.size > limitFor("post_media").maxBytes);
     if (oversized) {
       dispatch({
         type: SET_MUTATE_ALERTS,
         payload: {
           alerts: {
             type: "warning",
-            content: `Cannot upload files greater than ${MAX_UPLOAD_LABEL}`,
+            content: `Cannot upload files greater than ${limitFor("post_media").label}`,
           },
         },
       });
@@ -208,7 +208,7 @@ export function NewPostModal({
       .filter(
         (file) =>
           (file.type.includes("image") || file.type.includes("video")) &&
-          file.size <= MAX_UPLOAD_BYTES,
+          file.size <= limitFor("post_media").maxBytes,
       )
       .forEach((file) => {
         setmedialist((prev: any) => [

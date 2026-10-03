@@ -36,6 +36,8 @@ import {
 } from "../vars/interfaces";
 import { removeNullsFromObject } from "./validatevariables";
 import envs from "./env_configs";
+import { uploadFiles, UploadError, UploadedFile } from "./mediaUpload";
+import type { UploadFeature } from "../vars/uploads";
 import {
   clearViewPosts,
   getAllViewCache,
@@ -1738,18 +1740,9 @@ const SendFilesRequest = async (params: {
   replyingTo: string | null;
   conversationType: string | undefined;
   files: { file: File; pendingID: string }[];
+  /** "voice_note" for a recorded voice message; everything else is "message". */
+  purpose?: "message" | "voice_note";
 }) => {
-  const formData = new FormData();
-  formData.append("conversationID", params.conversationID);
-  formData.append("isReply", String(!!params.isReply));
-  formData.append("replyingTo", params.replyingTo || "");
-  formData.append("conversationType", params.conversationType || "");
-  formData.append(
-    "pendingIDs",
-    JSON.stringify(params.files.map((f) => f.pendingID)),
-  );
-  params.files.forEach((f) => formData.append("files", f.file, f.file.name));
-
   // Reports its own failure rather than throwing: every caller fires it and
   // moves on, so a rejection here was an unhandled one, and the files'
   // pending bubbles stayed "sending" forever.
@@ -1759,24 +1752,43 @@ const SendFilesRequest = async (params: {
       ? "Your file wasn't sent. Please try again."
       : "Your files weren't sent. Please try again.";
 
-  return await Axios.post(`${API}/u/sendFiles`, formData, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
-    },
-  })
-    .then((response) => {
-      if (response.data?.status === false) {
-        dropPendingMessages(pendingIDs);
-        notifyResponseFailure(response, FILES_NOT_SENT);
-        return false;
-      }
-      return response;
-    })
-    .catch((err) => {
-      dropPendingMessages(pendingIDs);
-      notifyRequestError(err, FILES_NOT_SENT);
-      return false;
+  try {
+    // The bytes go straight to storage - each pending bubble shows its own
+    // progress (useUploadProgress keyed by pendingID) - and only then does the
+    // server turn each upload into a message, under the id it reserved.
+    const uploaded = await uploadFiles({
+      purpose: params.purpose || "message",
+      files: params.files.map((f) => f.file),
+      context: { conversationID: params.conversationID },
+      progressKeys: pendingIDs,
     });
+
+    const response = await Axios.post(
+      `${API}/u/sendFiles`,
+      {
+        conversationID: params.conversationID,
+        uploadIDs: uploaded.map((u) => u.uploadID),
+        pendingIDs,
+        isReply: !!params.isReply,
+        replyingTo: params.replyingTo || "",
+        conversationType: params.conversationType || "",
+      },
+      { headers: { "x-access-token": localStorage.getItem("authtoken") } },
+    );
+    if (response.data?.status === false) {
+      dropPendingMessages(pendingIDs);
+      notifyResponseFailure(response, FILES_NOT_SENT);
+      return false;
+    }
+    return response;
+  } catch (err) {
+    dropPendingMessages(pendingIDs);
+    notifyRequestError(
+      err instanceof UploadError ? uploadRequestError(err) : err,
+      FILES_NOT_SENT,
+    );
+    return false;
+  }
 };
 
 const ManualInitConversationListRequest = async (
@@ -2303,37 +2315,56 @@ const CreatePostRequest = async (payload: any) => {
 /// post media and diary attachments alike.
 export type UploadAction = "profile" | "cover_photo" | "post" | "entry";
 
+// What each UploadAction counts against in the server's upload limits.
+const ACTION_FEATURE: Record<UploadAction, UploadFeature> = {
+  post: "post_media",
+  entry: "diary",
+  profile: "avatar",
+  cover_photo: "cover",
+};
+
+/** An UploadError in the shape the request helpers describe and alert on. */
+const uploadRequestError = (err: any) =>
+  err instanceof UploadError
+    ? toRequestError(
+        { response: { status: err.status, data: { message: err.message } } },
+        err.message,
+      )
+    : toRequestError(err);
+
+/**
+ * Uploads straight to storage (reusables/hooks/mediaUpload.ts) and answers in
+ * the shape /posts/upload always did - { data: { status, result: [{ fileID,
+ * fileName, fileType, fileDetails: { data } }] } } - so its callers didn't
+ * have to change.
+ */
 const UploadMediaRequest = async (
   files: { file: File; caption?: string; referenceMediaType?: string }[],
   action: UploadAction,
+  onProgress?: (fraction: number) => void,
 ) => {
-  const formData = new FormData();
-  files.forEach((f) => formData.append("media", f.file, f.file.name));
-  formData.append(
-    "captions",
-    JSON.stringify(files.map((f) => f.caption || "")),
-  );
-  formData.append(
-    "referenceMediaTypes",
-    JSON.stringify(files.map((f) => f.referenceMediaType || f.file.type)),
-  );
-  // Plain scalar, NOT JSON.stringify'd like the two fields above - those are
-  // real arrays with one entry per file, this is a single value covering the
-  // whole request. The server reads fields.action[0] because multiparty hands
-  // every field back as an array, not because it is encoded.
-  formData.append("action", action);
-
-  return await Axios.post(`${API}/posts/upload`, formData, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
-    },
-  })
-    .then((response) => {
-      return response;
-    })
-    .catch((err) => {
-      throw toRequestError(err);
+  try {
+    const uploaded = await uploadFiles({
+      purpose: ACTION_FEATURE[action],
+      files: files.map((f) => f.file),
+      onProgress,
     });
+    return {
+      data: {
+        status: true,
+        result: uploaded.map((u: UploadedFile, i: number) => ({
+          fileID: u.uploadID,
+          fileName: u.name,
+          fileType: u.mime,
+          fileDetails: { data: u.fileUrl },
+          caption: files[i]?.caption || "",
+          size: u.size,
+        })),
+      },
+    };
+  } catch (err) {
+    throw uploadRequestError(err);
+  }
 };
 
 const GetPostRequest = async (params: any, archive?: boolean) => {
@@ -3334,20 +3365,35 @@ const CreatePageRequest = async (payload: {
   profile: File;
   cover_photo: File;
 }) => {
-  const formData = new FormData();
-  formData.append("pageName", payload.pageName);
-  formData.append("pageDescription", payload.pageDescription);
-  formData.append("email", payload.email);
-  formData.append("slug", payload.slug);
-  formData.append("otherUsers", JSON.stringify(payload.otherUsers));
-  formData.append("profile", payload.profile);
-  formData.append("cover_photo", payload.cover_photo);
+  // Both images go straight to storage first; the page is then created from
+  // their upload ids.
+  let profile: UploadedFile, cover: UploadedFile;
+  try {
+    [[profile], [cover]] = await Promise.all([
+      uploadFiles({ purpose: "avatar", files: [payload.profile] }),
+      uploadFiles({ purpose: "cover", files: [payload.cover_photo] }),
+    ]);
+  } catch (err) {
+    throw uploadRequestError(err);
+  }
 
-  return await Axios.post(`${envs.CHATTERLOOP_API}/u/createpage`, formData, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/u/createpage`,
+    {
+      pageName: payload.pageName,
+      pageDescription: payload.pageDescription,
+      email: payload.email,
+      slug: payload.slug,
+      otherUsers: payload.otherUsers,
+      profileUploadID: profile.uploadID,
+      coverUploadID: cover.uploadID,
     },
-  })
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+    },
+  )
     .then((response) => {
       if (response.data.status) {
         return response.data;
@@ -3787,15 +3833,26 @@ const UpdateRealmMediaRequest = async (payload: {
   media_type: "profile" | "cover_photo";
   image: File;
 }) => {
-  const formData = new FormData();
-  formData.append("realm_id", payload.realm_id);
-  formData.append("realm_type", payload.realm_type);
-  formData.append("media_type", payload.media_type);
-  formData.append("image", payload.image);
+  // The image goes straight to storage, uploaded for this realm; the realm
+  // is then pointed at it by upload id.
+  let uploaded: UploadedFile;
+  try {
+    [uploaded] = await uploadFiles({
+      purpose: payload.media_type === "profile" ? "avatar" : "cover",
+      files: [payload.image],
+      context: { realmID: payload.realm_id },
+    });
+  } catch (err) {
+    throw uploadRequestError(err);
+  }
 
   return await Axios.post(
     `${envs.CHATTERLOOP_API}/realms/upload-media`,
-    formData,
+    {
+      realm_id: payload.realm_id,
+      media_type: payload.media_type,
+      uploadID: uploaded.uploadID,
+    },
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),

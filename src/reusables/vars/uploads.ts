@@ -1,44 +1,157 @@
 import envs from "@/reusables/hooks/env_configs";
 
-// The one upload size cap, for every surface that attaches a file.
+// Upload limits per feature, as the SERVER enforces them.
 //
-// One constant because the number has to match the SERVER's - the multipart
-// parsers on /posts/upload and /users/sendFiles both reject anything larger
-// (server/reusables/vars/uploads.js). A client check that is more permissive
-// than the server's just means the user waits for the whole upload before
-// being told no; five separate copies of it here (post composer, profile/cover
-// media, diary attachments, and both conversation views) means they eventually
-// disagree with each other too.
+// The source of truth is the platform settings table (core_variable, edited in
+// the Django admin), served by GET /media/config. loadMediaConfig() fetches it
+// on every app boot; until it answers - or if it never does - the defaults
+// below apply. They mirror the server's own defaults
+// (server/reusables/media/config.js), so a client that couldn't load the
+// config still agrees with a server that couldn't either.
 //
-// Env-driven via VITE_MAX_UPLOAD_FILE_SIZE_MB so a deployment can change the
-// limit without a code change, with a hardcoded fallback so a missing or
-// malformed value can never leave the app with no cap - or with a cap of 0,
-// which would silently reject every file. Set it to the same value as the
-// server's MAX_UPLOAD_FILE_SIZE_MB.
-const DEFAULT_MAX_UPLOAD_MB = 100;
+// The server checks again at upload time and storage refuses a wrong size on
+// its own, so a stale limit here only means the user hears "too big" a step
+// later - never that something too big gets through.
 
-function resolveMaxUploadMb(): number {
-  const raw = envs.MAX_UPLOAD_FILE_SIZE_MB;
-  if (raw === undefined || raw === null || String(raw).trim() === "") {
-    return DEFAULT_MAX_UPLOAD_MB;
-  }
+export type UploadFeature =
+  | "message"
+  | "voice_note"
+  | "post_media"
+  | "moment"
+  | "moment_poster"
+  | "diary"
+  | "avatar"
+  | "cover"
+  | "comment";
 
-  // Vite hands every env value over as a string; Number("") is 0 and
-  // Number("100mb") is NaN, so both have to fall back rather than become a cap
-  // that rejects everything.
-  const parsed = Number(raw);
-  if (!Number.isFinite(parsed) || parsed <= 0) {
-    console.warn(
-      `[uploads] VITE_MAX_UPLOAD_FILE_SIZE_MB="${raw}" is not a positive ` +
-        `number; falling back to ${DEFAULT_MAX_UPLOAD_MB}MB`,
-    );
-    return DEFAULT_MAX_UPLOAD_MB;
-  }
-  return parsed;
+export interface UploadLimit {
+  maxMB: number;
+  types: string[];
 }
 
-export const MAX_UPLOAD_MB = resolveMaxUploadMb();
-export const MAX_UPLOAD_BYTES = Math.floor(MAX_UPLOAD_MB * 1024 * 1024);
+export interface UploadTransfer {
+  multipartThresholdMB: number;
+  partSizeMB: number;
+  concurrency: number;
+}
 
-/** For user-facing copy - "Cannot upload files greater than 100mb". */
-export const MAX_UPLOAD_LABEL = `${MAX_UPLOAD_MB}mb`;
+const DEFAULT_LIMITS: Record<UploadFeature, UploadLimit> = {
+  message: { maxMB: 100, types: ["*"] },
+  voice_note: { maxMB: 25, types: ["audio/*"] },
+  post_media: { maxMB: 100, types: ["image/*", "video/*"] },
+  moment: { maxMB: 100, types: ["image/*", "video/mp4"] },
+  moment_poster: { maxMB: 10, types: ["image/jpeg", "image/png"] },
+  diary: { maxMB: 100, types: ["*"] },
+  avatar: { maxMB: 10, types: ["image/*"] },
+  cover: { maxMB: 10, types: ["image/*"] },
+  comment: { maxMB: 10, types: ["image/*"] },
+};
+
+const DEFAULT_TRANSFER: UploadTransfer = {
+  multipartThresholdMB: 16,
+  partSizeMB: 8,
+  concurrency: 4,
+};
+
+// The last config this browser loaded, so a reload starts with real limits
+// rather than the defaults.
+const STORAGE_KEY = "chatterloop:media-config";
+
+let limits: Record<string, UploadLimit> = { ...DEFAULT_LIMITS };
+let transfer: UploadTransfer = { ...DEFAULT_TRANSFER };
+
+const isPositive = (n: unknown): n is number =>
+  typeof n === "number" && Number.isFinite(n) && n > 0;
+
+const apply = (raw: any) => {
+  if (raw?.limits && typeof raw.limits === "object") {
+    const next: Record<string, UploadLimit> = { ...DEFAULT_LIMITS };
+    for (const [feature, value] of Object.entries<any>(raw.limits)) {
+      if (isPositive(value?.maxMB)) {
+        next[feature] = {
+          maxMB: value.maxMB,
+          types:
+            Array.isArray(value.types) && value.types.length
+              ? value.types
+              : ["*"],
+        };
+      }
+    }
+    limits = next;
+  }
+  if (raw?.transfer && typeof raw.transfer === "object") {
+    const t = raw.transfer;
+    transfer = {
+      multipartThresholdMB: isPositive(t.multipartThresholdMB)
+        ? t.multipartThresholdMB
+        : DEFAULT_TRANSFER.multipartThresholdMB,
+      partSizeMB: Math.max(
+        isPositive(t.partSizeMB) ? t.partSizeMB : DEFAULT_TRANSFER.partSizeMB,
+        5,
+      ),
+      concurrency: Math.min(
+        Math.max(isPositive(t.concurrency) ? Math.round(t.concurrency) : 4, 1),
+        8,
+      ),
+    };
+  }
+};
+
+try {
+  const cached = localStorage.getItem(STORAGE_KEY);
+  if (cached) apply(JSON.parse(cached));
+} catch {
+  // No storage, or a corrupt entry - the defaults stand.
+}
+
+/** Fetches the limits; call once on app boot. Never throws. */
+export const loadMediaConfig = async (): Promise<void> => {
+  try {
+    const response = await fetch(`${envs.CHATTERLOOP_API}/media/config`);
+    if (!response.ok) return;
+    const body = await response.json();
+    apply(body);
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify({ limits: body.limits, transfer: body.transfer }),
+      );
+    } catch {
+      // Storage full or blocked - this session still has the fresh values.
+    }
+  } catch {
+    // Offline or the server is down: keep what we have.
+  }
+};
+
+export const limitFor = (feature: UploadFeature) => {
+  const limit = limits[feature] ?? DEFAULT_LIMITS[feature];
+  return {
+    ...limit,
+    maxBytes: Math.floor(limit.maxMB * 1024 * 1024),
+    /** For user-facing copy - "Files here can be at most 100MB". */
+    label: `${limit.maxMB}MB`,
+  };
+};
+
+export const transferSettings = (): UploadTransfer => transfer;
+
+/** Whether `mime` matches any of the patterns ("*", "image/*", "video/mp4"). */
+export const typeAllowed = (mime: string, types: string[]) => {
+  const value = (mime || "").toLowerCase();
+  return types.some((pattern) => {
+    const p = pattern.toLowerCase();
+    if (p === "*" || p === "*/*") return true;
+    if (p.endsWith("/*")) return value.startsWith(p.slice(0, -1));
+    return value === p;
+  });
+};
+
+/** "2.4 MB", "830 KB" - for file cards. */
+export const formatFileSize = (bytes?: number | null) => {
+  if (!bytes || bytes <= 0) return "";
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`;
+  const mb = bytes / (1024 * 1024);
+  return `${mb < 10 ? mb.toFixed(1) : Math.round(mb)} MB`;
+};

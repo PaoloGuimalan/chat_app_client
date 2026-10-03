@@ -7,7 +7,7 @@ import { Avatar, Btn, Icon, SegTabs, Toggle } from "@/reusables/design";
 import { CreateMomentRequest, GetPostPreviewRequest, UploadMediaRequest } from "@/reusables/hooks/requests";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { getActiveAvatar } from "@/reusables/hooks/reusable";
-import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
+import { limitFor } from "@/reusables/vars/uploads";
 import type {
   AuthenticationInterface,
   EphemeralAudience,
@@ -210,8 +210,8 @@ function CreateMomentModal({
       alert("warning", kind === "video" ? "Pick a video for a video Moment." : "Pick a photo for a photo Moment.");
       return;
     }
-    if (picked.size > MAX_UPLOAD_BYTES) {
-      alert("warning", `Files must be ${MAX_UPLOAD_LABEL} or smaller.`);
+    if (picked.size > limitFor("post_media").maxBytes) {
+      alert("warning", `Files must be ${limitFor("post_media").label} or smaller.`);
       return;
     }
     setFile(picked);

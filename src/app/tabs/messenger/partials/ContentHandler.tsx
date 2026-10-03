@@ -7,6 +7,7 @@ import ReplyTargetPreview from "./ReplyTargetPreview";
 import { replyCardOf } from "@/reusables/hooks/replyTargets";
 import MessageOptions from "../MessageOptions";
 import FileMessageCard from "./FileMessageCard";
+import { messageFileUrl } from "./fileMessage";
 import { ContentHandlerProp } from "@/reusables/vars/props";
 import { MdOutlineAddReaction } from "react-icons/md";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -1106,7 +1107,7 @@ function ContentHandler({
               }
             >
               <VideoPlayer
-                src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
+                src={messageFileUrl(cnvs)}
                 className="cl-chat-video-frame"
                 videoClassName="cl-chat-video"
                 onLoadedMetadata={() => {
@@ -1348,7 +1349,7 @@ function ContentHandler({
               }
             >
               <VoiceMessagePlayer
-                src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
+                src={messageFileUrl(cnvs)}
                 isSender={isCurrentUserSender}
                 accentColor={theme.primary}
                 onReady={scrollBottom}
@@ -1593,7 +1594,7 @@ function ContentHandler({
             {renderReplyPreview()}
             <div className="tw-w-full tw-flex tw-flex-col">
               <FileMessageCard
-                content={cnvs.content}
+                message={cnvs}
                 title={
                   cnvs.messageDate.time
                     ? `${cnvs.messageDate.date} ${cnvs.messageDate.time}`

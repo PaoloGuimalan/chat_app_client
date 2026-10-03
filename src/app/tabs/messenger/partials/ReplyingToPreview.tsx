@@ -5,6 +5,7 @@ import CachedImage from "@/app/reusables/cachers/CachedImage";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
 import VideoPlayer from "@/app/reusables/VideoPlayer";
 import FileMessageCard from "./FileMessageCard";
+import { messageFileUrl } from "./fileMessage";
 
 // A quote draws its message the way the message itself is drawn. Text and
 // voice quotes are tinted by whether the QUOTED message was yours - same
@@ -175,7 +176,7 @@ function ReplyingToPreview({
             >
               <div className="div_pending_content_container_sending">
                 <VideoPlayer
-                  src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
+                  src={messageFileUrl(cnvs)}
                   className="cl-chat-video-frame"
                   videoClassName="cl-chat-video"
                 />
@@ -205,7 +206,7 @@ function ReplyingToPreview({
                 renders with (VoiceMessagePlayer).
               */}
               <VoiceMessagePlayer
-                src={cnvs.content.split("%%%")[0].replace("###", "%23%23%23")}
+                src={messageFileUrl(cnvs)}
                 isSender={quotedByMe}
                 accentColor={accent}
                 // Only the actual message keeps `.cl-voice-message`'s lift -
@@ -224,7 +225,7 @@ function ReplyingToPreview({
               className="tw-opacity-[0.8] tw-flex tw-flex-col tw-w-[250px] tw-max-w-[100%]"
             >
               {/* The message's own card - see FileMessageCard. */}
-              <FileMessageCard content={cnvs.content} quote />
+              <FileMessageCard message={cnvs} quote />
             </motion.div>
           </motion.div>
         );

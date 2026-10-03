@@ -10,6 +10,7 @@ import Register from "./app/auth/Register";
 import Verification from "./app/auth/Verification";
 import { useEffect, useRef, useState } from "react";
 import { AuthCheck } from "./reusables/hooks/requests";
+import { loadMediaConfig } from "./reusables/vars/uploads";
 import Alert from "./app/widgets/Alert";
 import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER } from "./redux/types";
 import ProfileContainer from "./app/tabs/profile/ProfileContainer";
@@ -49,6 +50,8 @@ function App() {
   };
 
   useEffect(() => {
+    // Upload limits per feature, from the server - refreshed every boot.
+    loadMediaConfig();
     AuthCheck(dispatch);
     // console.log("v2.2.1.0");
     console.log(envs.APP_VERSION);

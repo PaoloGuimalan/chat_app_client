@@ -1,6 +1,6 @@
 import type { CSSProperties } from "react";
 import { IoDocumentOutline } from "react-icons/io5";
-import { fileMessageName, fileMessageUrl } from "./fileMessage";
+import { MessageAttachment, messageFile } from "./fileMessage";
 
 /**
  * A file message: document icon and file name on `.cl-message-file-card`,
@@ -11,13 +11,15 @@ import { fileMessageName, fileMessageUrl } from "./fileMessage";
  * `%%%` form (a bare-URL file quoted as an empty card), and filled your own
  * file with the accent, which the real file message never does - neither
  * side's file is tinted.
+ *
+ * Name and size come from the message's `attachment` (see fileMessage.ts).
  */
 function FileMessageCard({
-  content,
+  message,
   title,
   quote = false,
 }: {
-  content: string;
+  message: { content?: string; attachment?: MessageAttachment | null };
   title?: string;
   /** Above a reply: sits flush, without the message's lift. */
   quote?: boolean;
@@ -25,20 +27,28 @@ function FileMessageCard({
   const style: CSSProperties | undefined = quote
     ? { boxShadow: "none" }
     : undefined;
+  const file = messageFile(message);
 
   return (
     <div
-      onClick={() => window.open(fileMessageUrl(content), "_blank")}
-      className="cl-message-file-card tw-cursor-pointer tw-w-full tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]"
+      onClick={() => file.available && window.open(file.url, "_blank")}
+      className={`cl-message-file-card tw-w-full tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px] ${
+        file.available ? "tw-cursor-pointer" : "tw-opacity-60"
+      }`}
       style={style}
       title={title}
     >
       <div className="tw-w-full tw-max-w-[40px]">
         <IoDocumentOutline style={{ fontSize: "40px" }} />
       </div>
-      <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold">
-        {fileMessageName(content)}
-      </span>
+      <div className="tw-flex tw-flex-col tw-min-w-0">
+        <span className="cl-text-caption tw-break-all ellipsis-3-lines tw-font-semibold">
+          {file.name}
+        </span>
+        <span className="cl-text-micro tw-opacity-70">
+          {file.available ? file.sizeLabel : "No longer available"}
+        </span>
+      </div>
     </div>
   );
 }

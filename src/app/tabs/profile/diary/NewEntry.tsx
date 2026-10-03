@@ -37,7 +37,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import PendingAttachmentItem from "./PendingAttachmentItem";
-import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
+import { limitFor } from "@/reusables/vars/uploads";
 import {
   notifyRequestError,
   resolveErrorMessage,
@@ -328,21 +328,21 @@ function NewEntry({ reload }: { reload: (new_entry: IEntry) => void }) {
 
 
   const addAttachmentFiles = (files: File[]) => {
-    const oversized = files.some((file) => file.size > MAX_UPLOAD_BYTES);
+    const oversized = files.some((file) => file.size > limitFor("diary").maxBytes);
     if (oversized) {
       dispatch({
         type: SET_MUTATE_ALERTS,
         payload: {
           alerts: {
             type: "warning",
-            content: `Cannot upload files greater than ${MAX_UPLOAD_LABEL}`,
+            content: `Cannot upload files greater than ${limitFor("diary").label}`,
           },
         },
       });
     }
 
     files
-      .filter((file) => file.size <= MAX_UPLOAD_BYTES)
+      .filter((file) => file.size <= limitFor("diary").maxBytes)
       .forEach((file) => {
         setmedialist((prev: any) => [
           ...prev,

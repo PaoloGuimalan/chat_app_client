@@ -105,7 +105,8 @@ import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdArrowDown, IoMdClose, IoMdSettings } from "react-icons/io";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import { Avatar, BotFlag, Icon, PageFlag } from "@/reusables/design";
-import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
+import { limitFor } from "@/reusables/vars/uploads";
+import SendingLabel from "./partials/SendingLabel";
 import {
   pushAlert,
   pushErrorAlert,
@@ -1048,21 +1049,21 @@ function ConversationV2({
 
 
   const addFilesToComposer = (files: File[]) => {
-    const oversized = files.some((file) => file.size > MAX_UPLOAD_BYTES);
+    const oversized = files.some((file) => file.size > limitFor("message").maxBytes);
     if (oversized) {
       dispatch({
         type: SET_MUTATE_ALERTS,
         payload: {
           alerts: {
             type: "warning",
-            content: `Cannot upload files greater than ${MAX_UPLOAD_LABEL}`,
+            content: `Cannot upload files greater than ${limitFor("message").label}`,
           },
         },
       });
     }
 
     files
-      .filter((file) => file.size <= MAX_UPLOAD_BYTES)
+      .filter((file) => file.size <= limitFor("message").maxBytes)
       .forEach((file) => {
         const entry = {
           id: `${Date.now()}_${makeid(6)}`,
@@ -1118,6 +1119,7 @@ function ConversationV2({
       replyingTo: isReplying.replyingTo,
       conversationType: conversationType,
       files: [{ file, pendingID }],
+      purpose: "voice_note",
     });
   };
 
@@ -2469,9 +2471,7 @@ function ConversationV2({
                                 }}
                               />
                             </div>
-                            <span className="span_sending_label">
-                              ...Sending
-                            </span>
+                            <SendingLabel pendingID={cnvs.pendingID} />
                           </motion.div>
                         </motion.div>
                       );
@@ -2502,9 +2502,7 @@ function ConversationV2({
                                 }}
                               />
                             </div>
-                            <span className="span_sending_label">
-                              ...Sending
-                            </span>
+                            <SendingLabel pendingID={cnvs.pendingID} />
                           </motion.div>
                         </motion.div>
                       );
@@ -2531,9 +2529,7 @@ function ConversationV2({
                               accentColor={theme.primary}
                               onReady={scrollBottom}
                             />
-                            <span className="span_sending_label">
-                              ...Sending
-                            </span>
+                            <SendingLabel pendingID={cnvs.pendingID} />
                           </motion.div>
                         </motion.div>
                       );
@@ -2564,9 +2560,7 @@ function ConversationV2({
                                 {cnvs.name}
                               </span>
                             </div>
-                            <span className="span_sending_label">
-                              ...Sending
-                            </span>
+                            <SendingLabel pendingID={cnvs.pendingID} />
                           </motion.div>
                         </motion.div>
                       );

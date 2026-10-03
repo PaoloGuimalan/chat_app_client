@@ -20,7 +20,7 @@ import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { pickFiles } from "@/reusables/hooks/pickFiles";
 import { useDragAndDrop } from "@/reusables/hooks/useDragAndDrop";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { MAX_UPLOAD_BYTES, MAX_UPLOAD_LABEL } from "@/reusables/vars/uploads";
+import { limitFor } from "@/reusables/vars/uploads";
 import {
   CreatePostRequest,
   UpdateRealmMediaRequest,
@@ -87,13 +87,13 @@ function UploadProfileMedia({
       return;
     }
 
-    if (file.size > MAX_UPLOAD_BYTES) {
+    if (file.size > limitFor(type === "profile" ? "avatar" : "cover").maxBytes) {
       dispatch({
         type: SET_MUTATE_ALERTS,
         payload: {
           alerts: {
             type: "warning",
-            content: `Cannot upload files greater than ${MAX_UPLOAD_LABEL}`,
+            content: `Cannot upload files greater than ${limitFor(type === "profile" ? "avatar" : "cover").label}`,
           },
         },
       });

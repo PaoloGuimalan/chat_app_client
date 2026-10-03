@@ -16,8 +16,7 @@ import FullscreenImageViewer from "@/app/reusables/FullscreenImageViewer";
 import { FullscreenVideoViewer } from "@/app/reusables/VideoPlayer";
 import VoiceMessagePlayer from "@/app/tabs/messenger/partials/VoiceMessagePlayer";
 import {
-  fileMessageName,
-  fileMessageUrl,
+  messageFile,
 } from "@/app/tabs/messenger/partials/fileMessage";
 
 /**
@@ -289,7 +288,8 @@ function ConversationFilesPanel({
   };
 
   const renderItem = (item: ConversationFileItem) => {
-    const url = fileMessageUrl(item.content);
+    const file = messageFile(item);
+    const url = file.url;
     const sent = item.sentAt ? timeSince(item.sentAt) : "";
 
     switch (item.kind) {
@@ -366,11 +366,13 @@ function ConversationFilesPanel({
             </span>
             <span className="tw-flex tw-flex-col tw-min-w-0 tw-flex-1">
               <span className="cl-text-title cl-conversation-files__name">
-                {fileMessageName(item.content)}
+                {file.name}
               </span>
-              {sent && (
+              {(sent || file.sizeLabel) && (
                 <span className="cl-text-caption cl-conversation-files__meta">
-                  {sent}
+                  {[file.available ? file.sizeLabel : "No longer available", sent]
+                    .filter(Boolean)
+                    .join(" · ")}
                 </span>
               )}
             </span>
