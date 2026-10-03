@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
 import envs from "./env_configs";
 import { firstPartyClient } from "./requests";
+import { stripImageMetadata } from "./imageMetadata";
 import {
   UploadFeature,
   limitFor,
@@ -11,10 +12,12 @@ import {
 // Direct uploads: the bytes go straight from the browser to storage, never
 // through our server.
 //
+//   0. strip a photo's location and camera details (imageMetadata.ts)
 //   1. ask   POST /media/uploads - one signed link, or one per part for big
 //            files (server/routes/media/index.js)
 //   2. send  PUT each link - several parts at once, each retried on its own
 //   3. done  POST /media/uploads/complete - the server checks what arrived
+//            and joins a big file's parts from storage's own list of them
 //
 // The links go to the storage provider, not to us, so they're sent with a
 // plain XMLHttpRequest: no app headers or tokens, and upload progress (which
@@ -96,14 +99,14 @@ export const useUploadProgress = (key?: string | null): number | null =>
 
 // ---- sending bytes ----
 
-/** One PUT; resolves the response's ETag. Rejects with the HTTP status. */
+/** One PUT. Rejects with the HTTP status. */
 const put = (
   target: Target,
   body: Blob,
   onBytes: (loaded: number) => void,
   signal?: AbortSignal,
 ) =>
-  new Promise<string>((resolve, reject) => {
+  new Promise<void>((resolve, reject) => {
     const xhr = new XMLHttpRequest();
     xhr.open(target.method || "PUT", target.url);
     for (const [name, value] of Object.entries(target.headers || {})) {
@@ -112,7 +115,7 @@ const put = (
     xhr.upload.onprogress = (e) => onBytes(e.loaded);
     xhr.onload = () =>
       xhr.status >= 200 && xhr.status < 300
-        ? resolve(xhr.getResponseHeader("ETag") || "")
+        ? resolve()
         : reject(new UploadError(`Upload failed (${xhr.status})`, xhr.status));
     xhr.onerror = () => reject(new UploadError("Network error"));
     xhr.onabort = () => reject(new UploadError("Upload cancelled", 0));
@@ -122,7 +125,7 @@ const put = (
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
-/** Sends one file to its link(s). Resolves the parts' ETags (multipart). */
+/** Sends one file to its link(s). */
 const sendFile = async (
   asked: AskedUpload,
   file: File,
@@ -131,7 +134,7 @@ const sendFile = async (
 ) => {
   if (asked.mode === "single") {
     await put(asked as Target, file, onBytes, signal);
-    return undefined;
+    return;
   }
 
   const partSize = asked.partSize!;
@@ -139,7 +142,6 @@ const sendFile = async (
   const loaded = new Map<number, number>();
   const report = () =>
     onBytes([...loaded.values()].reduce((sum, n) => sum + n, 0));
-  const etags: { n: number; etag: string }[] = [];
 
   const sendPart = async (part: PartTarget) => {
     const start = (part.n - 1) * partSize;
@@ -147,7 +149,7 @@ const sendFile = async (
     let target: Target = part;
     for (let attempt = 1; ; attempt++) {
       try {
-        const etag = await put(
+        await put(
           target,
           blob,
           (n) => {
@@ -156,7 +158,6 @@ const sendFile = async (
           },
           signal,
         );
-        etags.push({ n: part.n, etag });
         return;
       } catch (err: any) {
         if (signal?.aborted || attempt >= PART_ATTEMPTS) throw err;
@@ -186,7 +187,6 @@ const sendFile = async (
     },
   );
   await Promise.all(workers);
-  return etags;
 };
 
 /**
@@ -213,6 +213,8 @@ export const uploadFiles = async ({
   signal?: AbortSignal;
 }): Promise<UploadedFile[]> => {
   const limit = limitFor(purpose);
+  // Before anything else: the size declared below is the stripped file's.
+  files = await Promise.all(files.map(stripImageMetadata));
   for (const file of files) {
     if (file.size > limit.maxBytes) {
       throw new UploadError(`Files here can be at most ${limit.label}`, 413);
@@ -252,10 +254,10 @@ export const uploadFiles = async ({
 
   try {
     const finished = await Promise.all(
-      asked.map(async (upload, i) => ({
-        uploadID: upload.uploadID,
-        parts: await sendFile(upload, files[i], (n) => tick(i, n), signal),
-      })),
+      asked.map(async (upload, i) => {
+        await sendFile(upload, files[i], (n) => tick(i, n), signal);
+        return { uploadID: upload.uploadID };
+      }),
     );
 
     let results: any[];

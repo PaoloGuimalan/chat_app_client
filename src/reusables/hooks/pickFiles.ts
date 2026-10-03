@@ -4,8 +4,7 @@
  * Click-to-upload counterpart to useDragAndDrop - opens the native file
  * picker and resolves the selection as a plain File[], so every upload
  * surface can feed both the click path and the drag-drop path into the same
- * File[]-based state. Replaces importData/importNonImageData's base64
- * dual-callback shape.
+ * File[]-based state.
  */
 
 interface PickFilesOptions {
