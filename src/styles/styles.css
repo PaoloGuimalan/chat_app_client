@@ -8002,7 +8002,6 @@ body::-webkit-scrollbar-thumb:hover,
   max-width: min(100%, var(--chat-media-max-w));
   height: auto;
   border-radius: 7px;
-  border: solid 1px rgb(233, 233, 233);
   opacity: 0.5;
 }
 
@@ -8025,7 +8024,6 @@ body::-webkit-scrollbar-thumb:hover,
   max-height: var(--chat-media-max-h);
   object-fit: contain;
   border-radius: 7px;
-  border: solid 1px rgb(233, 233, 233);
 }
 
 /* Video takes the same box as an image, so it ends up at its real ratio in
@@ -8045,15 +8043,14 @@ body::-webkit-scrollbar-thumb:hover,
   background-color: #000;
 }
 
-/* The VideoPlayer box around a .cl-chat-video. The corner and border live
- * here, not on the video, because the box is what clips the player's progress
- * line - on the video they left the line square under a rounded frame. */
+/* The VideoPlayer box around a .cl-chat-video. The corner lives here, not on
+ * the video, because the box is what clips the player's progress line - on the
+ * video it left the line square under a rounded frame. */
 .cl-chat-video-frame {
   width: fit-content;
   max-width: 100%;
   background-color: #000;
   border-radius: 7px;
-  border: solid 1px rgb(233, 233, 233);
 }
 
 /* Reply previews are a quote, not the message: same rules, smaller box. */
