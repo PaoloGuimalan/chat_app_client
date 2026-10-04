@@ -8,7 +8,13 @@ let socket: any | null;
 
 const socketMapConnect = async () => {
   if (!socket) {
-    socket = connect(`${API}/map`);
+    // socket.io reads the URL's path as the namespace, not as a route, so the
+    // API's gateway prefix (api.chatterloop.app/<prefix>) has to go in `path`
+    // instead - otherwise the handshake hits /socket.io at the host root.
+    const apiUrl = new URL(API);
+    socket = connect(`${apiUrl.origin}/map`, {
+      path: `${apiUrl.pathname.replace(/\/$/, "")}/socket.io`,
+    });
     return true;
   } else {
     return true;
