@@ -1,20 +1,27 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   DeletePostRequest,
+  RemovePostTagRequest,
   SavePostRequest,
   UnsavePostRequest,
   UpdatePostRequest,
 } from "@/reusables/hooks/requests";
-import { AuthenticationInterface, IPost } from "@/reusables/vars/interfaces";
+import {
+  AuthenticationInterface,
+  IPost,
+  ITagging,
+} from "@/reusables/vars/interfaces";
 import { useEffect, useRef, useState } from "react";
 import { BsThreeDots } from "react-icons/bs";
 import { GoBookmarkSlashFill } from "react-icons/go";
-import { FaArchive } from "react-icons/fa";
+import { FaArchive, FaUserTag } from "react-icons/fa";
 import { IoBookmark } from "react-icons/io5";
 import { MdDelete, MdReport } from "react-icons/md";
+import { TbTagOff } from "react-icons/tb";
 import { useSelector } from "react-redux";
 import { RiInboxUnarchiveFill } from "react-icons/ri";
 import ReportModal from "@/app/widgets/modals/ReportModal";
+import EditTagsModal from "@/app/widgets/modals/EditTagsModal";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 function PostOptions({
@@ -22,11 +29,14 @@ function PostOptions({
   onProcess,
   onFinish,
   onError,
+  onTaggingChange,
 }: {
   post: IPost;
   onProcess: () => void;
   onFinish: (type: string) => void;
   onError: () => void;
+  /** The tags left after one was removed, so the post can redraw "is with". */
+  onTaggingChange?: (tagging: ITagging[]) => void;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -36,12 +46,19 @@ function PostOptions({
   const [postState, setpostState] = useState<IPost>(post);
   const [isSaving, setisSaving] = useState<boolean>(false);
   const [isReportOpen, setisReportOpen] = useState<boolean>(false);
+  const [isEditTagsOpen, setisEditTagsOpen] = useState<boolean>(false);
 
   // Reporting your own post is meaningless, and the server rejects it anyway
   // (the post resolves to your own entity) - so don't offer it. This is the
   // same ownership check the archive/delete items already use, which covers
   // posts published *as* a page you administer too.
   const isOwnPost = post.entity.id === authentication.user.entity_id;
+
+  // Tags are entity-keyed, so acting as a page means the PAGE's tag.
+  const tagging = post.tagging ?? [];
+  const isTaggedInPost = tagging.some(
+    (tag) => tag.entity.id === authentication.user.entity_id,
+  );
 
   const wrapperRef = useRef<HTMLDivElement>(null);
 
@@ -91,6 +108,18 @@ function PostOptions({
             ? "We couldn't archive that post."
             : "We couldn't restore that post.",
         );
+      });
+  };
+
+  const RemoveMyTagProcess = () => {
+    setisOptionsToggled(false);
+    RemovePostTagRequest(post.post_id, authentication.user.entity_id)
+      .then((remaining) => {
+        onTaggingChange?.(remaining);
+      })
+      .catch((err) => {
+        console.log(err);
+        notifyRequestError(err, "We couldn't remove your tag.");
       });
   };
 
@@ -159,6 +188,30 @@ function PostOptions({
                 <span>Unsave</span>
               </button>
             ))}
+          {isTaggedInPost && !isOwnPost && (
+            <button
+              onClick={RemoveMyTagProcess}
+              className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent tw-whitespace-nowrap"
+            >
+              <TbTagOff
+                size={16}
+                style={{ marginLeft: "-2px", marginRight: "3px" }}
+              />
+              <span>Remove tag</span>
+            </button>
+          )}
+          {isOwnPost && tagging.length > 0 && (
+            <button
+              onClick={() => {
+                setisOptionsToggled(false);
+                setisEditTagsOpen(true);
+              }}
+              className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent tw-whitespace-nowrap"
+            >
+              <FaUserTag size={14} style={{ marginRight: "4px" }} />
+              <span>Edit tags</span>
+            </button>
+          )}
           {isOwnPost &&
             (post.is_archived ? (
               <button
@@ -223,6 +276,14 @@ function PostOptions({
           targetType="post"
           targetId={post.post_id}
           onClose={() => setisReportOpen(false)}
+        />
+      )}
+      {isEditTagsOpen && (
+        <EditTagsModal
+          postId={post.post_id}
+          tagging={tagging}
+          onChange={(remaining) => onTaggingChange?.(remaining)}
+          onClose={() => setisEditTagsOpen(false)}
         />
       )}
     </div>

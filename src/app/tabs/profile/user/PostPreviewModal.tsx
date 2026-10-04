@@ -348,6 +348,9 @@ function PostPreviewModal({
           {authentication.auth && (
             <PostOptions
               post={post}
+              onTaggingChange={(tagging) =>
+                setPost((prev) => (prev ? { ...prev, tagging } : prev))
+              }
               onProcess={() => {}}
               onFinish={(type: string) => {
                 switch (type) {

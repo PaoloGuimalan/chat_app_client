@@ -30,6 +30,7 @@ import {
   IMomentTray,
   INewEntry,
   IPost,
+  ITagging,
   IThought,
   IThoughtsRail,
   ThoughtMood,
@@ -3807,6 +3808,30 @@ const UnsavePostRequest = async (post_id: string) => {
     });
 };
 
+/**
+ * Takes one tag off a post - your own (you were tagged) or anyone's (you wrote
+ * the post); the server refuses anyone else. Resolves with the tags that
+ * remain, in the post's own `tagging` shape.
+ */
+const RemovePostTagRequest = async (
+  post_id: string,
+  entity_id: string,
+): Promise<ITagging[]> => {
+  return await Axios.delete(`${USER_SERVICE_API}/api/newsfeed/tags`, {
+    headers: {
+      "x-access-token": localStorage.getItem("authtoken"),
+    },
+    data: {
+      post_id,
+      entity_id,
+    },
+  })
+    .then((response) => response.data.data as ITagging[])
+    .catch((err) => {
+      throw toRequestError(err);
+    });
+};
+
 const GetSavedPostsRequest = async (params: any) => {
   const page = params.page;
   const range = params.range;
@@ -4905,6 +4930,7 @@ export {
   UpdatePostRequest,
   SavePostRequest,
   UnsavePostRequest,
+  RemovePostTagRequest,
   GetSavedPostsRequest,
   UpdateRealmMediaRequest,
   UpdateRealmRequest,

@@ -349,6 +349,9 @@ function PostItem({
             {authentication.auth && (
               <PostOptions
                 post={postState}
+                onTaggingChange={(tagging) =>
+                  setpostState((prev) => ({ ...prev, tagging }))
+                }
                 onProcess={() => {
                   setisProcessing(true);
                 }}
@@ -583,6 +586,9 @@ function PostItem({
                         {authentication.auth && (
                           <PostOptions
                             post={postState}
+                            onTaggingChange={(tagging) =>
+                              setpostState((prev) => ({ ...prev, tagging }))
+                            }
                             onProcess={() => {
                               setisProcessing(true);
                             }}

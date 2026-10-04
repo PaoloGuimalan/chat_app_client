@@ -2,7 +2,20 @@ import { Fragment } from "react";
 import { useNavigate } from "react-router-dom";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { BotFlag, PageFlag } from "@/reusables/design";
-import { ITagging } from "@/reusables/vars/interfaces";
+import { IFlexibleEntity, ITagging } from "@/reusables/vars/interfaces";
+
+/** The display name of a tagged entity - a person's full name, a realm's name. */
+export function taggedEntityName(entity: IFlexibleEntity): string {
+  const details = entity.details;
+  if (entity.type === "realm") return details.name || details.slug || "";
+  return `${details.first_name || ""}${
+    details.middle_name && details.middle_name !== "N/A"
+      ? ` ${details.middle_name}`
+      : ""
+  } ${details.last_name || ""}`
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
 // Renders the "is with A, B and C" tagged-entity summary (users or realms) for
 // a post header. Kept as inline flow (no block elements) so multiple tags wrap
@@ -20,15 +33,7 @@ function TaggingSummary({ tagging }: { tagging: ITagging[] }) {
   const renderTag = (mptg: ITagging, key: string) => {
     const isRealm = mptg.entity.type === "realm";
     const details = mptg.entity.details;
-    const name = isRealm
-      ? details.name || details.slug || ""
-      : `${details.first_name || ""}${
-          details.middle_name && details.middle_name !== "N/A"
-            ? ` ${details.middle_name}`
-            : ""
-        } ${details.last_name || ""}`
-          .replace(/\s+/g, " ")
-          .trim();
+    const name = taggedEntityName(mptg.entity);
     const badged = isRealm ? details.is_verified : details.is_badged;
 
     return (
