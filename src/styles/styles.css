@@ -4718,6 +4718,39 @@ input:checked + .slider:before {
   border-color: color-mix(in srgb, var(--gold) 30%, transparent);
 }
 
+/* Link preview card (LinkPreviewCard.tsx) - on a page, a post, or anyone
+   else's bubble it is a raised panel in the page's own tokens. */
+.cl-link-preview {
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+
+.cl-link-preview__title {
+  color: var(--text);
+}
+
+.cl-link-preview__meta {
+  color: var(--text-2);
+}
+
+/* On your OWN bubble those tokens drew a page-coloured panel pasted onto the
+   accent - in dark mode a near-black slab inside a blue bubble. Mixed from
+   currentColor like the mention chip above, so it is a tint of whatever fills
+   the bubble: blue in a chat, gold in a channel. The secondary text matches
+   the bubble's own timestamp (white at 78%). */
+.cl-message-bubble--own .cl-link-preview {
+  background: color-mix(in srgb, currentColor 14%, transparent);
+  border-color: color-mix(in srgb, currentColor 24%, transparent);
+}
+
+.cl-message-bubble--own .cl-link-preview__title {
+  color: inherit;
+}
+
+.cl-message-bubble--own .cl-link-preview__meta {
+  color: color-mix(in srgb, currentColor 78%, transparent);
+}
+
 
 .cl-message-bubble--deleted {
   background: transparent !important;

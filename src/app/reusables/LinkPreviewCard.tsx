@@ -118,18 +118,18 @@ function LinkPreviewCard({
           />
         )}
         {preview.site_name && (
-          <span className="tw-text-[11px] tw-uppercase tw-tracking-wide tw-text-[var(--text-2)] tw-truncate">
+          <span className="cl-link-preview__meta tw-text-[11px] tw-uppercase tw-tracking-wide tw-truncate">
             {preview.site_name}
           </span>
         )}
       </div>
       {preview.title && (
-        <span className="tw-text-[13px] tw-font-semibold tw-text-[var(--text)] tw-line-clamp-2">
+        <span className="cl-link-preview__title tw-text-[13px] tw-font-semibold tw-line-clamp-2">
           {preview.title}
         </span>
       )}
       {preview.description && (
-        <span className="tw-text-[12px] tw-text-[var(--text-2)] tw-line-clamp-2">
+        <span className="cl-link-preview__meta tw-text-[12px] tw-line-clamp-2">
           {preview.description}
         </span>
       )}
@@ -139,8 +139,12 @@ function LinkPreviewCard({
   // With a playable embed, only the info text links out (clicking the
   // media area plays instead of navigating) - without one, the whole card
   // is a link, same as before.
+  //
+  // Colours come from the cl-link-preview classes (styles.css), not tw-
+  // utilities: those are !important here, and the card has to restyle itself
+  // when it sits on your own accent-filled message bubble.
   const cardInner = (
-    <div className="tw-w-full tw-flex tw-flex-col tw-overflow-hidden tw-rounded-[var(--r-md)] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)]">
+    <div className="cl-link-preview tw-w-full tw-flex tw-flex-col tw-overflow-hidden tw-rounded-[var(--r-md)] tw-border">
       {hasEmbed && layout === "portrait" ? (
         <div className="tw-w-full tw-flex tw-justify-center tw-pt-[10px]">
           {mediaArea}
