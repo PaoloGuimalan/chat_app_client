@@ -2,6 +2,7 @@
 /* eslint-disable no-case-declarations */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { PaginationProp } from "@/reusables/vars/props";
+import { TypingEntry, typingKey } from "@/reusables/hooks/typing";
 import {
   CHECK_AND_ADD_NEW_CALL_LIST_WINDOW,
   CLEAR_PENDING_CALL_ALERTS,
@@ -326,22 +327,32 @@ export const setpostsfeedlist = (state: any[] = [], action: any) => {
   }
 };
 
-export const setistypinglist = (state: any[] = [], action: any) => {
+// One entry per (person, conversation) - see hooks/typing. Both filters used
+// to be `userID !== x && conversationID !== x`, which dropped every entry that
+// shared EITHER field: a second person typing in a group wiped the first, and
+// one person typing anywhere wiped their typing in every other conversation.
+export const setistypinglist = (state: TypingEntry[] = [], action: any) => {
   switch (action.type) {
-    case SET_IS_TYPING_LIST:
-      const filtrationstatus = state.filter(
-        (flt: any) =>
-          flt.userID !== action.payload.istyping.userID &&
-          flt.conversationID !== action.payload.istyping.conversationID,
+    case SET_IS_TYPING_LIST: {
+      const entry: TypingEntry = {
+        ...action.payload.istyping,
+        receivedAt: Date.now(),
+      };
+      const key = typingKey(entry);
+      return [...state.filter((flt) => typingKey(flt) !== key), entry];
+    }
+    case SET_REMOVE_IS_TYPING_LIST: {
+      // Only the ping its timer was started for. A person still typing has
+      // re-pinged since, and that newer entry must outlive the old timer.
+      const entry: TypingEntry = action.payload.istyping;
+      const key = typingKey(entry);
+      return state.filter(
+        (flt) =>
+          typingKey(flt) !== key ||
+          (entry.receivedAt !== undefined &&
+            flt.receivedAt !== entry.receivedAt),
       );
-      return [...filtrationstatus, action.payload.istyping];
-    case SET_REMOVE_IS_TYPING_LIST:
-      const filtrationstatusremove = state.filter(
-        (flt: any) =>
-          flt.userID !== action.payload.istyping.userID &&
-          flt.conversationID !== action.payload.istyping.conversationID,
-      );
-      return filtrationstatusremove;
+    }
     default:
       return state;
   }

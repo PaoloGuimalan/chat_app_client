@@ -37,6 +37,7 @@ import {
   useTheme,
 } from "@/reusables/design";
 import MessagesDefault from "../messenger/MessagesDefault";
+import { typersIn, typingLabel } from "@/reusables/hooks/typing";
 import ConversationV2 from "../messenger/ConversationV2";
 import { ThoughtsRail } from "../moments/Thoughts";
 
@@ -432,11 +433,8 @@ function Messages() {
             ) : (
               <>
                 {visibleMessages.flatMap((msgslst: IConversation) => {
-                  const typingHere =
-                    istypinglist.filter(
-                      (flt: any) =>
-                        flt.conversationID === msgslst.conversationID,
-                    ).length > 0;
+                  const typers = typersIn(istypinglist, msgslst.conversationID);
+                  const typingHere = typers.length > 0;
                   const callHere =
                     getChannelPreviewParticipants(msgslst.conversationID)
                       .length > 0;
@@ -462,7 +460,14 @@ function Messages() {
                       // realms too, but titleIcon already says what they are.
                       isPage={msgslst.details.realm_type === "page"}
                       isBot={msgslst.details.type === "bot"}
-                      subtitle={typingHere ? "is typing…" : last.text}
+                      subtitle={
+                        typingHere
+                          ? typingLabel(
+                              typers,
+                              msgslst.conversationType !== "single",
+                            )
+                          : last.text
+                      }
                       subtitleColor={typingHere ? "var(--brand)" : undefined}
                       subtitleHtml={!typingHere && last.html}
                       time={timestampLabel(msgslst)}
@@ -673,10 +678,8 @@ function Messages() {
           }}
         >
           {messageslist.flatMap((msgslst: any, i: number) => {
-            const typingHere =
-              istypinglist.filter(
-                (flt: any) => flt.conversationID === msgslst.conversationID,
-              ).length > 0;
+            const typers = typersIn(istypinglist, msgslst.conversationID);
+            const typingHere = typers.length > 0;
             const callHere =
               getChannelPreviewParticipants(msgslst.conversationID).length > 0;
 
@@ -736,7 +739,7 @@ function Messages() {
                   title={msgslst.groupdetails.groupName}
                   titleColor="var(--brand)"
                   titleIcon="group"
-                  subtitle={typingHere ? "someone is typing…" : last.text}
+                  subtitle={typingHere ? typingLabel(typers, true) : last.text}
                   subtitleColor={typingHere ? "var(--brand)" : undefined}
                   subtitleHtml={!typingHere && last.html}
                   time={timestampLabel(msgslst)}
@@ -770,7 +773,7 @@ function Messages() {
                   title={title}
                   titleColor="var(--gold)"
                   titleIcon="dns"
-                  subtitle={typingHere ? "someone is typing…" : last.text}
+                  subtitle={typingHere ? typingLabel(typers, true) : last.text}
                   subtitleColor={typingHere ? "var(--brand)" : undefined}
                   subtitleHtml={!typingHere && last.html}
                   time={timestampLabel(msgslst)}

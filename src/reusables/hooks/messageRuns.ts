@@ -2,8 +2,9 @@
 
 /*
  * Message RUNS - consecutive messages from one sender, drawn as a single block
- * in group-like conversations: the sender's avatar and name go on the FIRST
- * message of the run, and the rest are indented to line up under it.
+ * in group-like conversations: the sender's name goes on the FIRST message of
+ * the run and their avatar beside the LAST, and every message in it is
+ * indented to line up with the others.
  *
  * The Flutter client makes the same call (lib/core/utils/message_runs.dart)
  * and the two must stay in step, or the same thread groups differently on web
@@ -54,4 +55,58 @@ export const startsSenderRun = (message: any, older: any): boolean => {
     return true;
   }
   return false;
+};
+
+/**
+ * Whether `message` closes its run, given the message drawn directly BELOW it
+ * (the next newer one), or nothing when it is the newest one loaded. The same
+ * rule read from the other side: a run ends wherever the next one starts.
+ */
+export const endsSenderRun = (message: any, newer: any): boolean =>
+  !newer || startsSenderRun(newer, message);
+
+/**
+ * Where each member's "seen" avatar sits: under the NEWEST message they have
+ * seen, keyed by messageID, in a newest-first list.
+ *
+ * EVERY seener gets exactly one avatar except the viewer - `selfIDs`, which
+ * should hold both the personal entity and the one being acted as, since a
+ * seen is recorded against whichever was acting. That includes the sender:
+ * they have seen what they wrote, and the server lists them as a seener of it
+ * (counted here too, for older messages stored without that).
+ *
+ * Walks newest to oldest and places each entity the first time it turns up,
+ * so the avatar follows whoever has read furthest down. System lines are
+ * skipped as anchors - nobody "reads" a join notice.
+ *
+ * `canonical` maps an id to the one a person is known by. Older messages
+ * recorded seeners by ACCOUNT id (the server's commented-out `seeners: userID`
+ * lines), and without folding those onto the entity id one member would get
+ * two avatars - and the viewer could appear as a seener of their own thread.
+ */
+export const seenAvatarAnchors = (
+  newestFirst: any[],
+  selfIDs: (string | null | undefined)[],
+  canonical: (id: string) => string = (id) => id,
+): Map<string, string[]> => {
+  const anchors = new Map<string, string[]>();
+  const placed = new Set<string>(
+    selfIDs
+      .filter((id): id is string => !!id)
+      .map((id) => canonical(String(id))),
+  );
+
+  for (const message of newestFirst) {
+    if (isSystemLine(message) || !message?.messageID) continue;
+    for (const raw of [...(message.seeners ?? []), message.sender]) {
+      if (raw === null || raw === undefined || raw === "") continue;
+      const id = canonical(String(raw));
+      if (placed.has(id)) continue;
+      placed.add(id);
+      const list = anchors.get(message.messageID) ?? [];
+      list.push(id);
+      anchors.set(message.messageID, list);
+    }
+  }
+  return anchors;
 };

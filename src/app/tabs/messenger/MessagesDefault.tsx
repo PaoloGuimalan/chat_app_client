@@ -11,6 +11,7 @@ import type {
 import { NewMessageModal } from "@/app/widgets/modals/CreatePost/SendPostModal";
 import { OPEN_THOUGHT_COMPOSER_EVENT } from "../moments/ephemeral";
 import { lastMessagePreview, timestampLabel } from "./conversationPreview";
+import { TypingEntry, typersIn, typingLabel } from "@/reusables/hooks/typing";
 
 /** As many 52px faces as fit the hub's 460px on one line. */
 const ACTIVE_LIMIT = 7;
@@ -321,15 +322,13 @@ function MessagesDefault({
             ) : (
               <>
                 {unread.slice(0, UNREAD_LIMIT).map((c) => {
-                  const typing = istypinglist.some(
-                    (t: any) => t.conversationID === c.conversationID,
-                  );
+                  const typers = typersIn(istypinglist, c.conversationID);
                   return (
                     <UnreadRow
                       key={c.conversationID}
                       conversation={c}
                       me={me}
-                      typing={typing}
+                      typers={typers}
                       onClick={() => open(c)}
                     />
                   );
@@ -468,15 +467,16 @@ function SectionHead({ title, aside }: { title: string; aside?: ReactNode }) {
 function UnreadRow({
   conversation: c,
   me,
-  typing,
+  typers,
   onClick,
 }: {
   conversation: IConversation;
   me: string;
-  typing: boolean;
+  typers: TypingEntry[];
   onClick: () => void;
 }) {
   const last = lastMessagePreview(c, me);
+  const typing = typers.length > 0;
   const ellipsis = {
     overflow: "hidden",
     textOverflow: "ellipsis",
@@ -553,7 +553,11 @@ function UnreadRow({
           }}
           {...(!typing && last.html
             ? { dangerouslySetInnerHTML: { __html: last.text } }
-            : { children: typing ? "is typing…" : last.text })}
+            : {
+                children: typing
+                  ? typingLabel(typers, c.conversationType !== "single")
+                  : last.text,
+              })}
         />
       </span>
       <span

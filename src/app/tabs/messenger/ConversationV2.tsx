@@ -1,7 +1,15 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { replyCardOf, replyTargetSummary } from "@/reusables/hooks/replyTargets";
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { compareMessagesDesc } from "@/reusables/hooks/reusable";
 import "../../../styles/styles.css";
 import { motion } from "framer-motion";
@@ -82,7 +90,12 @@ import {
 } from "../../../redux/types";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
-import { startsSenderRun } from "@/reusables/hooks/messageRuns";
+import {
+  endsSenderRun,
+  seenAvatarAnchors,
+  startsSenderRun,
+} from "@/reusables/hooks/messageRuns";
+import SeenReceipts, { SeenFace } from "./partials/SeenReceipts";
 import MessageContent from "./partials/MessageContent";
 import VoiceMessagePlayer from "./partials/VoiceMessagePlayer";
 import TabAudioVisualizerCanvas from "./partials/TabAudioVisualizerCanvas";
@@ -253,6 +266,13 @@ function ConversationV2({
     [conversationsetup],
   );
   const isServerConversation = conversationType === "channel";
+  // Groups and channels draw senders' avatars, the typers' faces and the
+  // "seen" faces; a DM draws none of them - its header already says who the
+  // other person is (see ContentHandler's showsSenderIdentity).
+  const isGroupLikeConversation =
+    conversationType === "group" ||
+    conversationType === "channel" ||
+    conversationType === "server";
   // A single conversation whose other participant is a realm-type entity
   // (e.g. a Page/business account) rather than a regular user or bot.
   const isRealmDM =
@@ -395,6 +415,79 @@ function ConversationV2({
     conversationType,
     conversationinfo?.usersWithInfo,
   ]);
+
+  // The "seen" faces, by messageID: each member under the newest message they
+  // have read (see seenAvatarAnchors). Recomputed whenever the thread is
+  // refetched - which is what a member reading something triggers, over the
+  // messages_list SSE event - and SeenReceipts animates each face that moved.
+  const seenFacesByMessage = useMemo(() => {
+    const faces = new Map<string, SeenFace[]>();
+    if (!isGroupLikeConversation) return faces;
+
+    const byEntity = new Map<string, any>();
+    // Account id -> entity id, for seeners recorded the old way.
+    const entityOfAccount = new Map<string, string>();
+    for (const member of conversationinfo?.usersWithInfo ?? []) {
+      const entityID = String(member.entityID ?? member._id);
+      byEntity.set(entityID, member);
+      if (member._id) entityOfAccount.set(String(member._id), entityID);
+    }
+    const anchors = seenAvatarAnchors(
+      conversationList,
+      [
+        authentication.user?.entity_id,
+        authentication.active_entity_context?.id,
+        authentication.user?.userID,
+      ],
+      (id) => entityOfAccount.get(id) ?? id,
+    );
+    anchors.forEach((entityIDs, messageID) => {
+      // Everyone who has seen it gets a face - a seener missing from the
+      // member list (left since, or a list that has not caught up) is drawn
+      // from initials rather than dropped.
+      const row: SeenFace[] = entityIDs.map((entityID) => {
+        const member = byEntity.get(entityID);
+        return {
+          entityID,
+          name: member
+            ? [member.fullname?.firstName, member.fullname?.lastName]
+                .filter(Boolean)
+                .join(" ") || "Someone"
+            : "Someone",
+          colorKey: member?.userID || entityID,
+          profile: member?.profile,
+          kind: member?.entityType,
+        };
+      });
+      if (row.length > 0) faces.set(messageID, row);
+    });
+    return faces;
+  }, [
+    authentication.active_entity_context?.id,
+    authentication.user?.entity_id,
+    conversationList,
+    conversationinfo?.usersWithInfo,
+    isGroupLikeConversation,
+  ]);
+
+  // Which members had a seen face on the previous render, for this thread -
+  // read during render (so it still holds the PREVIOUS set) and refreshed
+  // after it. Lets SeenReceipts tell a face that moved from one that is new.
+  const shownSeenFacesRef = useRef<{ conversationID: string; ids: Set<string> }>({
+    conversationID: "",
+    ids: new Set(),
+  });
+  const seenFacesShownBefore =
+    shownSeenFacesRef.current.conversationID === conversationID
+      ? shownSeenFacesRef.current.ids
+      : undefined;
+  useEffect(() => {
+    const ids = new Set<string>();
+    seenFacesByMessage.forEach((row) =>
+      row.forEach((face) => ids.add(face.entityID)),
+    );
+    shownSeenFacesRef.current = { conversationID: conversationID ?? "", ids };
+  }, [conversationID, seenFacesByMessage]);
 
   const getMemberInfo = (userID: string) => {
     if (!conversationinfo) {
@@ -2395,7 +2488,14 @@ function ConversationV2({
                 }}
               >
                 {isServerConversation && <TabAudioVisualizerCanvas />}
-                {filteredistypinglist.length > 0 && <IsTypingLoader />}
+                {filteredistypinglist.length > 0 && (
+                  <IsTypingLoader
+                    typers={filteredistypinglist}
+                    members={conversationinfo?.usersWithInfo ?? []}
+                    showAvatars={isGroupLikeConversation}
+                    avatarSize={isMinimized ? 28 : 32}
+                  />
+                )}
                 {pendingmessageslist
                   .filter(
                     (flt: any) =>
@@ -2610,26 +2710,39 @@ function ConversationV2({
                     </div>
                   )}
                 {conversationList.map((cnvs, i) => {
+                  const seenFaces = seenFacesByMessage.get(cnvs.messageID);
                   return (
-                    <ContentHandler
-                      key={cnvs.messageID}
-                      i={i}
-                      cnvs={cnvs}
-                      conversationsetup={conversationsetup}
-                      members={conversationinfo?.usersWithInfo ?? []}
-                      // Only commands that exist HERE are highlighted; the
-                      // menu is already scoped to this conversation.
-                      commands={commandNames}
-                      // The list is newest-first (rendered column-reverse),
-                      // so the message drawn just ABOVE this one is i + 1.
-                      startsRun={startsSenderRun(cnvs, conversationList[i + 1])}
-                      avatarSize={isMinimized ? 28 : 32}
-                      setisReplying={setisReplyingTrigger}
-                      setfullImageScreen={setfullImageScreen}
-                      scrollBottom={scrollBottom}
-                      setunreadmessages={setunreadmessages}
-                      theme={theme}
-                    />
+                    <Fragment key={cnvs.messageID}>
+                      {/* BEFORE the message in the DOM: the thread is
+                          column-reverse, so this draws under it. */}
+                      {seenFaces && (
+                        <SeenReceipts
+                          conversationID={conversationID}
+                          faces={seenFaces}
+                          shownBefore={seenFacesShownBefore}
+                        />
+                      )}
+                      <ContentHandler
+                        i={i}
+                        cnvs={cnvs}
+                        conversationsetup={conversationsetup}
+                        members={conversationinfo?.usersWithInfo ?? []}
+                        // Only commands that exist HERE are highlighted; the
+                        // menu is already scoped to this conversation.
+                        commands={commandNames}
+                        // The list is newest-first (rendered column-reverse),
+                        // so the message drawn just ABOVE this one is i + 1
+                        // and the one just BELOW it is i - 1.
+                        startsRun={startsSenderRun(cnvs, conversationList[i + 1])}
+                        endsRun={endsSenderRun(cnvs, conversationList[i - 1])}
+                        avatarSize={isMinimized ? 28 : 32}
+                        setisReplying={setisReplyingTrigger}
+                        setfullImageScreen={setfullImageScreen}
+                        scrollBottom={scrollBottom}
+                        setunreadmessages={setunreadmessages}
+                        theme={theme}
+                      />
+                    </Fragment>
                   );
                 })}
                 {conversationList.length > 0 &&

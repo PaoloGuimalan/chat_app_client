@@ -88,6 +88,7 @@ function ContentHandler({
   theme,
   commands,
   startsRun = true,
+  endsRun = true,
   avatarSize = 32,
 }: ContentHandlerProp & { commands?: string[] }) {
   const authentication: AuthenticationInterface = useSelector(
@@ -251,13 +252,13 @@ function ContentHandler({
   const isCurrentUserSender = cnvs.sender === authentication.user.entity_id;
 
   // Group-like conversations draw someone else's consecutive messages as one
-  // block (see hooks/messageRuns): avatar and name on the run's first message,
-  // the rest indented under them. Your own messages carry neither, and neither
-  // does a DM - its header already says who the other person is.
+  // block (see hooks/messageRuns): the name over the run's first message and
+  // the avatar beside its last, the way a phone chat app does it. Your own
+  // messages carry neither, and neither does a DM - its header already says
+  // who the other person is.
   const showsSenderIdentity = isGroupLike && !isCurrentUserSender;
 
-  // Above the reply label rather than below it, so it sits level with the
-  // avatar beside it.
+  // Above the reply label, so the run opens with who is speaking.
   const renderSenderLabel = () =>
     showsSenderIdentity && startsRun ? (
       <span className="span_sender_label tw-font-Inter">
@@ -265,12 +266,12 @@ function ContentHandler({
       </span>
     ) : null;
 
-  // The avatar column. Every message in a run reserves it and only the first
-  // fills it, which is what keeps the rest of the run's bubbles lined up under
-  // the first one.
+  // The avatar column. Every message in a run reserves it and only the LAST
+  // fills it - pinned to the bottom of the row, level with that message's
+  // bubble - which is what keeps the run's bubbles lined up with each other.
   const renderSenderAvatar = () => {
     if (!showsSenderIdentity) return null;
-    if (!startsRun) {
+    if (!endsRun) {
       return (
         <div
           aria-hidden
@@ -311,7 +312,10 @@ function ContentHandler({
     );
 
     return (
-      <div className="cl-message-sender-avatar" style={{ width: avatarSize }}>
+      <div
+        className="cl-message-sender-avatar cl-message-sender-avatar--end"
+        style={{ width: avatarSize }}
+      >
         {member?.userID ? (
           // Same destination as the info modal's member rows.
           <button
@@ -530,33 +534,8 @@ function ContentHandler({
               {formatMessageClock(cnvs.messageDate)}
             </span>
           </motion.div>
-          {isGroupLike
-            ? i === 0 &&
-              otherSeeners.length > 0 && ( //conversationList.length - 1 == i
-                <motion.div
-                  initial={{
-                    justifyContent:
-                      cnvs.sender == authentication.user.entity_id
-                        ? "flex-end"
-                        : "flex-start",
-                  }}
-                  animate={{
-                    justifyContent:
-                      cnvs.sender == authentication.user.entity_id
-                        ? "flex-end"
-                        : "flex-start",
-                  }}
-                  className="div_seen_container"
-                >
-                  <span className="span_seenby">Seen by </span>
-                  {otherSeeners.map((mp: any, i: number) => (
-                    <span className="span_seenby" key={i}>
-                      {getMemberInfo(mp)}
-                    </span>
-                  ))}
-                </motion.div>
-              )
-            : i === 0 &&
+          {!isGroupLike &&
+              i === 0 &&
               otherSeeners.length > 0 && (
                 <motion.div
                   initial={{
@@ -826,33 +805,8 @@ function ContentHandler({
                 </div>
               </div>
             </motion.div>
-            {isGroupLike
-              ? i === 0 &&
-                otherSeeners.length > 0 && (
-                  <motion.div
-                    initial={{
-                      justifyContent:
-                        cnvs.sender == authentication.user.entity_id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                    animate={{
-                      justifyContent:
-                        cnvs.sender == authentication.user.entity_id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                    className="div_seen_container"
-                  >
-                    <span className="span_seenby">Seen by </span>
-                    {otherSeeners.map((mp: any, i: number) => (
-                      <span className="span_seenby" key={i}>
-                        {getMemberInfo(mp)}
-                      </span>
-                    ))}
-                  </motion.div>
-                )
-              : i === 0 &&
+            {!isGroupLike &&
+              i === 0 &&
                 otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
@@ -1072,33 +1026,8 @@ function ContentHandler({
                 </div>
               </div>
             </div>
-            {isGroupLike
-              ? i === 0 &&
-                otherSeeners.length > 0 && (
-                  <motion.div
-                    initial={{
-                      justifyContent:
-                        cnvs.sender == authentication.user.entity_id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                    animate={{
-                      justifyContent:
-                        cnvs.sender == authentication.user.entity_id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                    className="div_seen_container"
-                  >
-                    <span className="span_seenby">Seen by </span>
-                    {otherSeeners.map((mp: any, i: number) => (
-                      <span className="span_seenby" key={i}>
-                        {getMemberInfo(mp)}
-                      </span>
-                    ))}
-                  </motion.div>
-                )
-              : i === 0 &&
+            {!isGroupLike &&
+              i === 0 &&
                 otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
@@ -1313,33 +1242,8 @@ function ContentHandler({
                 </div>
               </div>
             </div>
-            {isGroupLike
-              ? i === 0 &&
-                otherSeeners.length > 0 && (
-                  <motion.div
-                    initial={{
-                      justifyContent:
-                        cnvs.sender == authentication.user.entity_id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                    animate={{
-                      justifyContent:
-                        cnvs.sender == authentication.user.entity_id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                    className="div_seen_container"
-                  >
-                    <span className="span_seenby">Seen by </span>
-                    {otherSeeners.map((mp: any, i: number) => (
-                      <span className="span_seenby" key={i}>
-                        {getMemberInfo(mp)}
-                      </span>
-                    ))}
-                  </motion.div>
-                )
-              : i === 0 &&
+            {!isGroupLike &&
+              i === 0 &&
                 otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
@@ -1552,33 +1456,8 @@ function ContentHandler({
                 </div>
               </div>
             </div>
-            {isGroupLike
-              ? i === 0 &&
-                otherSeeners.length > 0 && (
-                  <motion.div
-                    initial={{
-                      justifyContent:
-                        cnvs.sender == authentication.user.entity_id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                    animate={{
-                      justifyContent:
-                        cnvs.sender == authentication.user.entity_id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                    className="div_seen_container"
-                  >
-                    <span className="span_seenby">Seen by </span>
-                    {otherSeeners.map((mp: any, i: number) => (
-                      <span className="span_seenby" key={i}>
-                        {getMemberInfo(mp)}
-                      </span>
-                    ))}
-                  </motion.div>
-                )
-              : i === 0 &&
+            {!isGroupLike &&
+              i === 0 &&
                 otherSeeners.length > 0 && (
                   <motion.div
                     initial={{
@@ -1798,33 +1677,8 @@ function ContentHandler({
                 </div>
               </div>
             </div>
-            {isGroupLike
-              ? i === 0 &&
-                otherSeeners.length > 0 && (
-                  <motion.div
-                    initial={{
-                      justifyContent:
-                        cnvs.sender == authentication.user.entity_id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                    animate={{
-                      justifyContent:
-                        cnvs.sender == authentication.user.entity_id
-                          ? "flex-end"
-                          : "flex-start",
-                    }}
-                    className="div_seen_container"
-                  >
-                    <span className="span_seenby">Seen by </span>
-                    {otherSeeners.map((mp: any, i: number) => (
-                      <span className="span_seenby" key={i}>
-                        {getMemberInfo(mp)}
-                      </span>
-                    ))}
-                  </motion.div>
-                )
-              : i === 0 &&
+            {!isGroupLike &&
+              i === 0 &&
                 otherSeeners.length > 0 && (
                   <motion.div
                     initial={{

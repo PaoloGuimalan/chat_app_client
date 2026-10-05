@@ -55,7 +55,7 @@ import {
 } from "../../../redux/types";
 import { useLocation, useNavigate } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
-import { startsSenderRun } from "@/reusables/hooks/messageRuns";
+import { endsSenderRun, startsSenderRun } from "@/reusables/hooks/messageRuns";
 import MessageContent from "./partials/MessageContent";
 import { messagePreviewText } from "./partials/messagepreview";
 import TabAudioVisualizerCanvas from "./partials/TabAudioVisualizerCanvas";
@@ -2041,6 +2041,7 @@ function Conversation({
                     conversationsetup={conversationsetup}
                     members={conversationinfo?.usersWithInfo ?? []}
                     startsRun={startsSenderRun(cnvs, conversationList[i + 1])}
+                    endsRun={endsSenderRun(cnvs, conversationList[i - 1])}
                     setisReplying={setisReplyingTrigger}
                     setfullImageScreen={setfullImageScreen}
                     scrollBottom={scrollBottom}

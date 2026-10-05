@@ -5008,15 +5008,78 @@ input:checked + .slider:before {
 }
 
 /* The sender avatar column of a group-like conversation (ContentHandler's
- * renderSenderAvatar). Pinned to the TOP of the row so the avatar sits level
- * with the sender's name - the text and deleted rows centre their children
- * vertically for the hover actions, which would otherwise drop a run's avatar
- * to the middle of a tall bubble. Width is set inline from the avatar size;
- * the slot is empty on every message of a run but the first. */
+ * renderSenderAvatar). Width is set inline from the avatar size; the slot is
+ * empty on every message of a run but the LAST, where `--end` pins the avatar
+ * to the bottom of the row so it sits level with that message's bubble. The
+ * text and deleted rows centre their children vertically for the hover
+ * actions, which would otherwise float it to the middle of a tall bubble.
+ * The margin is the gap every bubble keeps under itself for its reactions
+ * pill (`tw-mb-[7px]`), so the avatar lines up with the bubble's edge, not
+ * the pill's. */
 .cl-message-sender-avatar {
   flex: none;
   align-self: flex-start;
   display: flex;
+}
+
+.cl-message-sender-avatar--end {
+  align-self: flex-end;
+  margin-bottom: 7px;
+}
+
+/* "Seen" avatars under the newest message each member has read (ConversationV2
+ * renders a row before each message in the DOM, which the column-reverse thread
+ * puts BELOW it). Right-aligned whoever sent the message, pulled up into the
+ * thread's 10px gap so it reads as belonging to the message above. Each face
+ * carries a framer `layoutId`, so when a member reads further the face slides
+ * down to its new message rather than blinking from one to the other. */
+.cl-seen-receipts {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 2px;
+  margin-top: -6px;
+  min-height: 16px;
+}
+
+.cl-seen-receipts__more {
+  font-size: var(--fs-micro);
+  color: var(--text-3);
+  padding-left: 2px;
+}
+
+/* Who is typing, beside the typing bubble: one face at the run avatar's size,
+ * or a small cluster inside that same square when several people are typing
+ * (IsTypingLoader's CLUSTER places each slot). Never wider than the avatar
+ * column, so the bubble starts where every message bubble does. */
+.cl-typing-avatars {
+  position: relative;
+  flex: none;
+  align-self: flex-end;
+}
+
+.cl-typing-avatars__slot {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+}
+
+/* Ringed in the thread's colour, so overlapping faces read as separate
+ * people rather than one blob. */
+.cl-typing-avatars__slot--ringed {
+  box-shadow: 0 0 0 1.5px var(--surface-2);
+  background: var(--surface-2);
+}
+
+.cl-typing-avatars__more {
+  background: var(--surface-3);
+  box-shadow: 0 0 0 1.5px var(--surface-2);
+  color: var(--text-2);
+  font-size: var(--fs-micro);
+  font-weight: 600;
+  line-height: 1;
 }
 
 .cl-message-sender-avatar__button {

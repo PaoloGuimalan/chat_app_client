@@ -26,12 +26,14 @@ export interface ContentHandlerProp {
   setunreadmessages: Dispatch<SetStateAction<string[]>>;
   theme: any;
   /**
-   * Whether this message opens its sender's run (see hooks/messageRuns). In a
-   * group-like conversation only the first message of a run carries the
-   * sender's avatar and name. Defaults to true, so a caller that does not
-   * work it out labels every message rather than none.
+   * Whether this message opens / closes its sender's run (see
+   * hooks/messageRuns). In a group-like conversation the first message of a
+   * run carries the sender's name and the last carries their avatar. Both
+   * default to true, so a caller that does not work them out labels every
+   * message rather than none.
    */
   startsRun?: boolean;
+  endsRun?: boolean;
   /** Diameter of the sender avatar in group-like conversations. */
   avatarSize?: number;
 }

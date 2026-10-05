@@ -22,6 +22,7 @@ import {
 } from "@/reusables/vars/interfaces";
 import GroupChatIcon from "../../../../assets/imgs/group-chat-icon.jpg";
 import ServerIcon from "../../../../assets/imgs/servericon.png";
+import { typersIn, typingLabel } from "@/reusables/hooks/typing";
 
 function ArchivedMessages() {
   const authentication: AuthenticationInterface = useSelector(
@@ -333,7 +334,10 @@ function ArchivedMessages() {
                           flt.conversationID === msgslst.conversationID,
                       ).length > 0 ? (
                         <span className="span_messages_list_name">
-                          someone is typing...
+                          {typingLabel(
+                            typersIn(istypinglist, msgslst.conversationID),
+                            true,
+                          )}
                         </span>
                       ) : msgslst.isDeleted ? (
                         <span className="span_messages_list_name">
@@ -461,7 +465,10 @@ function ArchivedMessages() {
                           flt.conversationID === msgslst.conversationID,
                       ).length > 0 ? (
                         <span className="span_messages_list_name">
-                          someone is typing...
+                          {typingLabel(
+                            typersIn(istypinglist, msgslst.conversationID),
+                            true,
+                          )}
                         </span>
                       ) : msgslst.isDeleted ? (
                         <span className="span_messages_list_name">
