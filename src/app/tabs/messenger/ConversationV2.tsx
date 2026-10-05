@@ -82,6 +82,7 @@ import {
 } from "../../../redux/types";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import ContentHandler from "./partials/ContentHandler";
+import { startsSenderRun } from "@/reusables/hooks/messageRuns";
 import MessageContent from "./partials/MessageContent";
 import VoiceMessagePlayer from "./partials/VoiceMessagePlayer";
 import TabAudioVisualizerCanvas from "./partials/TabAudioVisualizerCanvas";
@@ -2619,6 +2620,10 @@ function ConversationV2({
                       // Only commands that exist HERE are highlighted; the
                       // menu is already scoped to this conversation.
                       commands={commandNames}
+                      // The list is newest-first (rendered column-reverse),
+                      // so the message drawn just ABOVE this one is i + 1.
+                      startsRun={startsSenderRun(cnvs, conversationList[i + 1])}
+                      avatarSize={isMinimized ? 28 : 32}
                       setisReplying={setisReplyingTrigger}
                       setfullImageScreen={setfullImageScreen}
                       scrollBottom={scrollBottom}

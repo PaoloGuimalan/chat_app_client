@@ -5007,6 +5007,32 @@ input:checked + .slider:before {
   color: var(--text-2);
 }
 
+/* The sender avatar column of a group-like conversation (ContentHandler's
+ * renderSenderAvatar). Pinned to the TOP of the row so the avatar sits level
+ * with the sender's name - the text and deleted rows centre their children
+ * vertically for the hover actions, which would otherwise drop a run's avatar
+ * to the middle of a tall bubble. Width is set inline from the avatar size;
+ * the slot is empty on every message of a run but the first. */
+.cl-message-sender-avatar {
+  flex: none;
+  align-self: flex-start;
+  display: flex;
+}
+
+.cl-message-sender-avatar__button {
+  display: flex;
+  padding: 0;
+  border: none;
+  background: transparent;
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.cl-message-sender-avatar__button:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
+}
+
 .span_sender_reply_label {
   font-size: 11px;
   text-align: right;

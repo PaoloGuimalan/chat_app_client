@@ -20,13 +20,14 @@ import MessageContent from "./MessageContent";
 import VoiceMessagePlayer from "./VoiceMessagePlayer";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { AuthenticationInterface, ReplyTargetCard } from "@/reusables/vars/interfaces";
-import { useTheme } from "@/reusables/design";
+import { Avatar, useTheme } from "@/reusables/design";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import VideoPlayer from "@/app/reusables/VideoPlayer";
 import {
   isSystemBot,
   SYSTEM_BOT_DISPLAY_NAME,
 } from "@/reusables/hooks/commands";
+import { useNavigate } from "react-router-dom";
 
 // `escapeHtml`, `escapeRegExp`, `getDisplayName`, `buildMentionRegex` and
 // `formatConversationHtml` moved into MessageContent.tsx, which renders the
@@ -86,11 +87,14 @@ function ContentHandler({
   setunreadmessages,
   theme,
   commands,
+  startsRun = true,
+  avatarSize = 32,
 }: ContentHandlerProp & { commands?: string[] }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
   const { theme: appTheme } = useTheme();
+  const navigate = useNavigate();
 
   const [toggleEmojiPicker, settoggleEmojiPicker] = useState<boolean>(false);
   const [reactions, setreactions] = useState<any[]>(
@@ -124,6 +128,13 @@ function ContentHandler({
   // the usersWithInfo projection in server routes/messages). Matching on
   // `_id` alone therefore never hit and every name fell back to "Someone";
   // `_id` is still checked second so other member shapes keep resolving.
+  const findMember = (entityOrUserID: string) =>
+    members.find(
+      (flt: any) =>
+        String(flt.entityID) === String(entityOrUserID) ||
+        String(flt._id) === String(entityOrUserID),
+    );
+
   const getMemberInfo = (entityOrUserID: string) => {
     // System is never in `members` and never can be: it answers built-in
     // commands in conversations it is not a member of, cannot be added to one,
@@ -133,14 +144,9 @@ function ContentHandler({
       return SYSTEM_BOT_DISPLAY_NAME;
     }
 
-    const member = members.filter(
-      (flt: any) =>
-        String(flt.entityID) === String(entityOrUserID) ||
-        String(flt._id) === String(entityOrUserID),
-    );
-
-    if (member.length > 0) {
-      return member[0].fullname.firstName;
+    const member = findMember(entityOrUserID);
+    if (member) {
+      return member.fullname.firstName;
     }
 
     return "Someone";
@@ -243,6 +249,86 @@ function ContentHandler({
   };
 
   const isCurrentUserSender = cnvs.sender === authentication.user.entity_id;
+
+  // Group-like conversations draw someone else's consecutive messages as one
+  // block (see hooks/messageRuns): avatar and name on the run's first message,
+  // the rest indented under them. Your own messages carry neither, and neither
+  // does a DM - its header already says who the other person is.
+  const showsSenderIdentity = isGroupLike && !isCurrentUserSender;
+
+  // Above the reply label rather than below it, so it sits level with the
+  // avatar beside it.
+  const renderSenderLabel = () =>
+    showsSenderIdentity && startsRun ? (
+      <span className="span_sender_label tw-font-Inter">
+        {getMemberInfo(cnvs.sender)}
+      </span>
+    ) : null;
+
+  // The avatar column. Every message in a run reserves it and only the first
+  // fills it, which is what keeps the rest of the run's bubbles lined up under
+  // the first one.
+  const renderSenderAvatar = () => {
+    if (!showsSenderIdentity) return null;
+    if (!startsRun) {
+      return (
+        <div
+          aria-hidden
+          className="cl-message-sender-avatar"
+          style={{ width: avatarSize }}
+        />
+      );
+    }
+
+    const isSystem = isSystemBot(String(cnvs.sender));
+    const member = isSystem ? undefined : findMember(cnvs.sender);
+    const name = isSystem
+      ? SYSTEM_BOT_DISPLAY_NAME
+      : member
+        ? [member.fullname.firstName, member.fullname.lastName]
+            .filter(Boolean)
+            .join(" ")
+        : "Someone";
+    const avatar = (
+      <Avatar
+        // Same gradient key as the conversation info modal's member list, so
+        // a member without a picture gets the same colour in both places.
+        id={member?.userID || cnvs.sender}
+        entityId={cnvs.sender}
+        name={name}
+        src={
+          member?.profile && member.profile !== "none"
+            ? member.profile
+            : undefined
+        }
+        kind={isSystem ? "bot" : member?.entityType}
+        size={avatarSize}
+        // The presence dot's ring takes its colour from `style.background`,
+        // and the thread sits on --surface-2, not the --surface the ring
+        // defaults to. The radius keeps that background inside the circle.
+        style={{ background: "var(--surface-2)", borderRadius: "50%" }}
+      />
+    );
+
+    return (
+      <div className="cl-message-sender-avatar" style={{ width: avatarSize }}>
+        {member?.userID ? (
+          // Same destination as the info modal's member rows.
+          <button
+            type="button"
+            aria-label={`Open ${name}'s profile`}
+            title={name}
+            onClick={() => navigate(`/${member.userID}`)}
+            className="cl-message-sender-avatar__button"
+          >
+            {avatar}
+          </button>
+        ) : (
+          avatar
+        )}
+      </div>
+    );
+  };
 
   // What this message replies to - a message, or a post / moment / thought
   // (see reusables/hooks/replyTargets). Every bubble below renders its reply
@@ -392,6 +478,7 @@ function ContentHandler({
   if (cnvs.isDeleted) {
     return (
       <motion.div ref={ref} className="div_messages_result tw-items-center">
+        {renderSenderAvatar()}
         <motion.div
           initial={{
             marginLeft:
@@ -411,12 +498,8 @@ function ContentHandler({
           }}
           className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
         >
+          {renderSenderLabel()}
           {renderReplyLabel()}
-          {isGroupLike && selfEntityID != cnvs.sender && (
-            <span className="span_sender_label">
-              {getMemberInfo(cnvs.sender)}
-            </span>
-          )}
           {renderReplyPreview()}
           <motion.div
             title={
@@ -510,6 +593,7 @@ function ContentHandler({
               }}
             />
           )}
+          {renderSenderAvatar()}
           <motion.div
             initial={{
               marginLeft:
@@ -529,12 +613,8 @@ function ContentHandler({
             }}
             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
           >
+            {renderSenderLabel()}
             {renderReplyLabel()}
-            {isGroupLike && selfEntityID != cnvs.sender && (
-              <span className="span_sender_label tw-font-Inter">
-                {getMemberInfo(cnvs.sender)}
-              </span>
-            )}
             {renderReplyPreview()}
             <motion.div
               title={
@@ -821,6 +901,7 @@ function ContentHandler({
               }}
             />
           )}
+          {renderSenderAvatar()}
           <motion.div
             initial={{
               marginLeft:
@@ -840,12 +921,8 @@ function ContentHandler({
             }}
             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
           >
+            {renderSenderLabel()}
             {renderReplyLabel()}
-            {isGroupLike && selfEntityID != cnvs.sender && (
-              <span className="span_sender_label">
-                {getMemberInfo(cnvs.sender)}
-              </span>
-            )}
             {renderReplyPreview()}
             <div
               className="div_pending_content_container"
@@ -1070,6 +1147,7 @@ function ContentHandler({
               }}
             />
           )}
+          {renderSenderAvatar()}
           <motion.div
             initial={{
               marginLeft:
@@ -1089,12 +1167,8 @@ function ContentHandler({
             }}
             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
           >
+            {renderSenderLabel()}
             {renderReplyLabel()}
-            {isGroupLike && selfEntityID != cnvs.sender && (
-              <span className="span_sender_label">
-                {getMemberInfo(cnvs.sender)}
-              </span>
-            )}
             {renderReplyPreview()}
             <div
               className="div_pending_content_container"
@@ -1314,6 +1388,7 @@ function ContentHandler({
               }}
             />
           )}
+          {renderSenderAvatar()}
           <motion.div
             initial={{
               marginLeft:
@@ -1333,10 +1408,8 @@ function ContentHandler({
             }}
             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
           >
+            {renderSenderLabel()}
             {renderReplyLabel()}
-            {isGroupLike && selfEntityID != cnvs.sender && (
-              <span className="span_sender_label">{cnvs.sender}</span>
-            )}
             {renderReplyPreview()}
             <div
               className="tw-w-full"
@@ -1566,6 +1639,7 @@ function ContentHandler({
               }}
             />
           )}
+          {renderSenderAvatar()}
           <motion.div
             initial={{
               marginLeft:
@@ -1585,12 +1659,8 @@ function ContentHandler({
             }}
             className="tw-flex tw-flex-col tw-w-full tw-max-w-[70%]"
           >
+            {renderSenderLabel()}
             {renderReplyLabel()}
-            {isGroupLike && selfEntityID != cnvs.sender && (
-              <span className="span_sender_label">
-                {getMemberInfo(cnvs.sender)}
-              </span>
-            )}
             {renderReplyPreview()}
             <div className="tw-w-full tw-flex tw-flex-col">
               <FileMessageCard
