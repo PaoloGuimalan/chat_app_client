@@ -1708,7 +1708,10 @@ function ConferenceVoiceWindow({
         style={{ flex: 1, minWidth: 0 }}
       >
         <div id="div_top_nav_call_window">
-          <span id="span_call_displayname">{data.callDisplayName}</span>
+          {/* A conference has no callDisplayName - its name is the group's. */}
+          <span id="span_call_displayname">
+            {data.callDisplayName || data.groupdetails?.groupName}
+          </span>
           {/* <button
           onClick={() => {
             // sendVideoData()

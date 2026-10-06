@@ -311,7 +311,7 @@ function ConferencePage() {
                   <span className="tw-text-[18px] sm:tw-text-[20px] tw-font-semibold tw-tracking-[-0.02em]">
                     Conference
                   </span>
-                  <span className="tw-text-[12px] sm:tw-text-[13px] tw-text-[var(--text-2)] tw-truncate">
+                  <span className="tw-text-[12px] sm:tw-text-[13px] tw-text-[var(--text-2)] tw-truncate tw-max-w-full">
                     Create or join meetings from one place.
                   </span>
                 </div>
@@ -470,8 +470,8 @@ function ConferencePage() {
                     </div>
                   ) : (
                     <div className="tw-flex tw-items-center tw-justify-between tw-gap-[12px] tw-rounded-[var(--r-md)] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px]">
-                      <div className="tw-flex tw-flex-col tw-items-start">
-                        <span className="tw-text-[14px] tw-font-semibold">
+                      <div className="tw-flex tw-flex-col tw-items-start tw-min-w-0">
+                        <span className="tw-text-[14px] tw-font-semibold tw-truncate tw-max-w-full">
                           {authentication.user.fullName.firstName}{" "}
                           {authentication.user.fullName.lastName}
                         </span>
@@ -484,7 +484,7 @@ function ConferencePage() {
                         onClick={() =>
                           navigate(`/${authentication.user.username}`)
                         }
-                        className="tw-h-[40px] tw-px-[14px] tw-rounded-[var(--r-md)] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] tw-font-semibold tw-cursor-pointer"
+                        className="tw-h-[40px] tw-px-[14px] tw-rounded-[var(--r-md)] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] tw-font-semibold tw-cursor-pointer tw-whitespace-nowrap tw-shrink-0"
                       >
                         View profile
                       </button>

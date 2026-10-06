@@ -76,6 +76,20 @@ function Setup() {
   const [month, setmonth] = useState<string>("");
   const [day, setday] = useState<string>("");
   const [year, setyear] = useState<string>("");
+  // Days to pick from in any order, as on Register: every day there can be
+  // before a month is picked, the month's days once it is (a leap year's
+  // until the year is picked, so Feb 29 is there). The list used to stay
+  // empty until BOTH month and year were chosen, so picking the day first -
+  // or the year last - was impossible.
+  const dayOptions: number[] =
+    month != ""
+      ? getDaysInMonth(month, year != "" ? year : 2000)
+      : Array.from({ length: 31 }, (_, i) => i + 1);
+  // A day the month or year picked later doesn't have is cleared.
+  useEffect(() => {
+    if (day != "" && !dayOptions.includes(Number(day))) setday("");
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [month, year]);
   const [gender, setgender] = useState<"" | Gender>("");
   const [policyAgreed, setpolicyAgreed] = useState<boolean>(false);
   const [termsUrl, settermsUrl] = useState<string>("");
@@ -376,13 +390,11 @@ function Setup() {
                   </SelectField>
                   <SelectField value={day} onChange={setday}>
                     <option value="">Day</option>
-                    {month != "" && year != ""
-                      ? getDaysInMonth(month, year).map((val) => (
-                          <option key={val} value={val}>
-                            {val}
-                          </option>
-                        ))
-                      : null}
+                    {dayOptions.map((val) => (
+                      <option key={val} value={val}>
+                        {val}
+                      </option>
+                    ))}
                   </SelectField>
                   <SelectField value={year} onChange={setyear}>
                     <option value="">Year</option>

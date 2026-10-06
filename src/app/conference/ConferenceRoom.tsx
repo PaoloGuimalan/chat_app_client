@@ -707,8 +707,12 @@ function ConferenceRoom() {
         data-theme={theme}
         className="cl-redesign tw-w-full tw-h-[100dvh] tw-bg-[var(--bg)] tw-text-[var(--text)] tw-overflow-hidden tw-flex tw-flex-col"
       >
-        <div className="tw-flex-1 tw-min-h-0 tw-flex tw-items-center tw-justify-center tw-p-[16px] sm:tw-p-[24px]">
-          <div className="tw-w-full tw-max-w-[1180px] tw-grid tw-grid-cols-1 lg:tw-grid-cols-[1.3fr_0.9fr] tw-gap-[16px]">
+        {/* Scrolls, and centres with margin:auto rather than align-items.
+            The page is one screen tall with overflow hidden, so centring the
+            cards cut off their top and bottom - on a phone, where they stack
+            taller than the screen, the Join button could not be reached. */}
+        <div className="tw-flex-1 tw-min-h-0 tw-overflow-y-auto tw-flex tw-justify-center tw-p-[16px] sm:tw-p-[24px]">
+          <div className="tw-w-full tw-max-w-[1180px] tw-my-auto tw-grid tw-grid-cols-1 lg:tw-grid-cols-[1.3fr_0.9fr] tw-gap-[16px]">
             <div className="tw-rounded-[24px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-md)] tw-p-[18px] sm:tw-p-[24px] tw-flex tw-flex-col tw-gap-[16px]">
               <div className="tw-flex tw-items-center tw-justify-between tw-gap-[12px]">
                 <div className="tw-flex tw-items-center tw-gap-[12px] tw-min-w-0">
@@ -716,7 +720,7 @@ function ConferenceRoom() {
                     <FiVideo size={22} />
                   </div>
                   <div className="tw-flex tw-flex-col tw-items-start tw-min-w-0">
-                    <span className="tw-text-[18px] sm:tw-text-[22px] tw-font-semibold tw-tracking-[-0.02em] tw-truncate">
+                    <span className="tw-text-[18px] sm:tw-text-[22px] tw-font-semibold tw-tracking-[-0.02em] tw-truncate tw-max-w-full">
                       {roomData.groupdetails?.groupName || "Conference"}
                     </span>
                     <span className="tw-text-[12px] sm:tw-text-[13px] tw-text-[var(--text-2)]">
@@ -729,7 +733,7 @@ function ConferenceRoom() {
                 </span>
               </div>
 
-              <div className="tw-flex-1 tw-min-h-[260px] tw-rounded-[24px] tw-bg-[var(--surface-1)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-p-[24px]">
+              <div className="tw-flex-1 tw-min-h-[180px] sm:tw-min-h-[260px] tw-rounded-[24px] tw-bg-[var(--surface-1)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-p-[24px]">
                 <div className="tw-w-[84px] tw-h-[84px] tw-rounded-[28px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-flex tw-items-center tw-justify-center tw-text-[var(--brand)] tw-shadow-[var(--shadow-sm)]">
                   <FiVideo size={34} />
                 </div>
@@ -837,7 +841,9 @@ function ConferenceRoom() {
                       </span>
                     </div>
                   )}
-                <div className="tw-rounded-[20px] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px] tw-flex tw-flex-col tw-gap-[8px] tw-shadow-[var(--shadow-sm)]">
+                {/* Phones: these repeat the toggles just above - left out to keep the
+                    Join button near. */}
+                <div className="tw-rounded-[20px] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px] tw-hidden sm:tw-flex tw-flex-col tw-gap-[8px] tw-shadow-[var(--shadow-sm)]">
                   <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                     Microphone
                   </span>
@@ -847,7 +853,7 @@ function ConferenceRoom() {
                       : "Will join muted"}
                   </span>
                 </div>
-                <div className="tw-rounded-[20px] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px] tw-flex tw-flex-col tw-gap-[8px] tw-shadow-[var(--shadow-sm)]">
+                <div className="tw-rounded-[20px] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px] tw-hidden sm:tw-flex tw-flex-col tw-gap-[8px] tw-shadow-[var(--shadow-sm)]">
                   <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                     Camera
                   </span>
