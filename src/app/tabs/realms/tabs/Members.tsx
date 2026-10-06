@@ -189,6 +189,7 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
                   realmType={invitable}
                   realmName={realm.name}
                   reloadKey={inviteReload}
+                  excludeIDs={memberIDs}
                 />
               </div>
             )}

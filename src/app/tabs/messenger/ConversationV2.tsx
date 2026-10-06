@@ -171,6 +171,7 @@ function ConversationV2({
   theme,
   isMinimized,
   setIsChatOpen,
+  fallbackSetup,
 }: any) {
   const { conversationID: conversationIDPath } = useParams();
 
@@ -213,7 +214,11 @@ function ConversationV2({
     setconversationLoadError(null);
     InitConversationInfoRequest(conversationID)
       .then((response) => {
-        setconversationsetup(response);
+        // `fallbackSetup`: a host that already knows what this conversation
+        // is - the conference room - hands one over for the case the server
+        // has nothing yet. /m/conversation answers null until the first
+        // message exists, and a conference's chat starts empty.
+        setconversationsetup(response ?? fallbackSetup ?? null);
         setswitchingcontext(false);
       })
       .catch((err) => {
@@ -277,7 +282,9 @@ function ConversationV2({
   const isGroupLikeConversation =
     conversationType === "group" ||
     conversationType === "channel" ||
-    conversationType === "server";
+    conversationType === "server" ||
+    // A conference's chat is a room of many people, like a group's.
+    conversationType === "conference";
   // A single conversation whose other participant is a realm-type entity
   // (e.g. a Page/business account) rather than a regular user or bot.
   const isRealmDM =
@@ -515,13 +522,19 @@ function ConversationV2({
     shownSeenFacesRef.current = { conversationID: conversationID ?? "", ids };
   }, [conversationID, seenFacesByMessage]);
 
-  const getMemberInfo = (userID: string) => {
+  const getMemberInfo = (entityOrUserID: string) => {
     if (!conversationinfo) {
       return "Someone";
     }
 
+    // A message's sender is an ENTITY id, and usersWithInfo keys `_id` on the
+    // account/realm pk with the entity id beside it as `entityID` - so
+    // matching `_id` alone never found anyone, and every "Replying to" strip
+    // read "Replying to Someone". Same lookup as ContentHandler's findMember.
     const member = conversationinfo.usersWithInfo.filter(
-      (flt) => flt._id === userID,
+      (flt: any) =>
+        String(flt.entityID) === String(entityOrUserID) ||
+        String(flt._id) === String(entityOrUserID),
     );
 
     if (member.length > 0) {
@@ -943,9 +956,17 @@ function ConversationV2({
         messageIDs: unreadmessages,
       })
         .then((response) => {
-          setunreadmessages((prev) =>
-            prev.filter((flt) => !response.seen.includes(flt)),
-          );
+          // The request resolves 0 on a refusal, which has no `seen` - reading
+          // it blanked the whole thread. And the list is only replaced when
+          // something actually left it: a fresh array every time re-ran this
+          // effect every 500ms for as long as any id stayed unconfirmed.
+          const seen: string[] = Array.isArray(response?.seen)
+            ? response.seen
+            : [];
+          setunreadmessages((prev) => {
+            const next = prev.filter((flt) => !seen.includes(flt));
+            return next.length === prev.length ? prev : next;
+          });
         })
         .catch((err) => {
           console.log(err);

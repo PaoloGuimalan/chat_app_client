@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { Avatar, Btn, Icon, useTheme } from "@/reusables/design";
 import {
   GetRealmInviteRequest,
@@ -9,6 +9,7 @@ import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
 import PageLoader from "@/app/reusables/loaders/PageLoader";
 import BrokenLink from "@/app/reusables/catchers/BrokenLink";
 import {
+  conferenceLink,
   entityDisplay,
   IRealmInvite,
   inviteDestination,
@@ -23,9 +24,9 @@ import "@/styles/styles.css";
  * community/invite_rules.py invite_route). It says who invited you to what,
  * and takes the answer; accepting goes on to the realm.
  *
- * A conference has a page of its own for this - its lobby takes
- * ?invite_token= and lets guests in - so a conference invite opened here is
- * handed on to it rather than answered twice over.
+ * A conference is joined from its own lobby, which takes ?invite_token=, so a
+ * conference invite here leads there with a plain link - "Join conference" -
+ * and spells the address out underneath, to open or copy.
  *
  * Logged out, App.tsx carries this path through /login (and sign-up) and back.
  */
@@ -57,12 +58,6 @@ function InvitePage() {
         const found: IRealmInvite | null = response?.result ?? null;
         if (!found || found.kind !== "invite") {
           setIsBroken(true);
-        } else if (found.realm_type === "conference" && found.realm_slug) {
-          navigate(
-            `/conference/${found.realm_slug}?invite_token=${encodeURIComponent(token)}`,
-            { replace: true },
-          );
-          return;
         } else {
           setInvite(found);
         }
@@ -102,6 +97,7 @@ function InvitePage() {
 
   const inviter = invite ? entityDisplay(invite.inviter) : null;
   const destination = invite ? inviteDestination(invite) : null;
+  const conference = invite ? conferenceLink(invite) : null;
   const realmPicture =
     invite?.realm_profile &&
     invite.realm_profile !== "none" &&
@@ -154,12 +150,20 @@ function InvitePage() {
               >
                 {answering === "declined" ? "Declining…" : "Decline"}
               </Btn>
-              <Btn
-                disabled={answering !== null}
-                onClick={() => answer("accepted")}
-              >
-                {answering === "accepted" ? "Accepting…" : "Accept"}
-              </Btn>
+              {conference ? (
+                // Accepted in the lobby, where joining happens.
+                <Link className="cl-invite-page__join" to={conference}>
+                  <Icon n="videocam" s={17} c="#fff" />
+                  Join conference
+                </Link>
+              ) : (
+                <Btn
+                  disabled={answering !== null}
+                  onClick={() => answer("accepted")}
+                >
+                  {answering === "accepted" ? "Accepting…" : "Accept"}
+                </Btn>
+              )}
             </div>
           ) : (
             <div className="cl-invite-page__settled">
@@ -181,11 +185,27 @@ function InvitePage() {
                     ? "You declined this invite."
                     : "This invite was withdrawn."}
               </span>
-              {invite.status === "accepted" && destination && (
+              {invite.status === "accepted" && destination && !conference && (
                 <Btn size="sm" onClick={() => navigate(destination)}>
                   Open
                 </Btn>
               )}
+            </div>
+          )}
+
+          {/* The conference's address, spelled out - to open, or to copy
+              into another browser. */}
+          {conference && invite.status !== "declined" && invite.status !== "revoked" && (
+            <div className="cl-invite-page__link">
+              {invite.status === "accepted" && (
+                <Link className="cl-invite-page__join" to={conference}>
+                  <Icon n="videocam" s={17} c="#fff" />
+                  Open conference
+                </Link>
+              )}
+              <Link to={conference} className="cl-invite-page__url">
+                {`${window.location.host}/conference/${invite.realm_slug}`}
+              </Link>
             </div>
           )}
 

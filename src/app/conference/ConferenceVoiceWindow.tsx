@@ -22,7 +22,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 // import { END_CALL_LIST } from "@/redux/types";
-import Conversation from "../tabs/messenger/Conversation";
+import ConversationV2 from "../tabs/messenger/ConversationV2";
 import { Device } from "mediasoup-client";
 import {
   ConsumeRequest,
@@ -54,9 +54,12 @@ import envs from "@/reusables/hooks/env_configs";
 import { useNavigate } from "react-router-dom";
 import { useReconnect } from "@/reusables/hooks/useReconnect";
 import { useCallPresence } from "@/reusables/hooks/callPresence";
-import { useTheme } from "@/reusables/design";
+import { Avatar, useTheme } from "@/reusables/design";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import InvitePeople from "@/app/widgets/invites/InvitePeople";
+
+// The chat panel's accent - the one it always had.
+const CONFERENCE_CHAT_THEME = { primary: "#4994ec", lighten: "#82b6ec" };
 
 function ConferenceVoiceWindow({
   data,
@@ -124,6 +127,18 @@ function ConferenceVoiceWindow({
       { member_id: string; role: string; account_id: string; entityID: string }
     >
   >(new Map());
+  // Everyone in the conference, joined to the call or not - the People
+  // panel lists them all, those not in the call yet drawn pale.
+  const [conferenceMembers, setConferenceMembers] = useState<
+    {
+      entityID: string;
+      username: string;
+      name: string;
+      profile: string | undefined;
+      type: string;
+      role: string;
+    }[]
+  >([]);
   const [roleMenuFor, setRoleMenuFor] = useState<string | null>(null);
   const [updatingRoleFor, setUpdatingRoleFor] = useState<string | null>(null);
   // Every participant fetches the member list (for role labels), so we can
@@ -246,23 +261,30 @@ function ConferenceVoiceWindow({
     }
   }, [data, authentication, isGroupCall]);
 
-  const conferenceConversationSetup = useMemo(
+  // The chat panel is the same thread every other conversation uses
+  // (ConversationV2), so it moves and reads like one - the slide-in, the
+  // pending sends with their reply preview, the composer strips, the senders'
+  // faces. This is only what it falls back to while the room has no messages:
+  // the server has no conversation to describe until the first one is sent.
+  const conferenceFallbackSetup = useMemo(
     () => ({
-      conversationid: conversationID,
-      type: "conference",
-      userdetails: {
-        userID: "",
-        fullname: { firstName: "", middleName: "", lastName: "" },
-        profile: "",
-      },
-      groupdetails: {
-        ...(data.groupdetails || {}),
-        groupName:
+      _id: conversationID,
+      conversationID: conversationID,
+      conversationType: "conference",
+      participant_ids: data.groupdetails?.receivers || data.recepients || members,
+      createdAt: null,
+      updatedAt: null,
+      details: {
+        id: conversationID,
+        entity_id: data.groupdetails?.entityID ?? "",
+        username: data.groupdetails?.slug ?? null,
+        display_name:
           data.groupdetails?.groupName || data.callDisplayName || "Conference",
         profile: data.groupdetails?.profile ?? "none",
-        receivers: data.groupdetails?.receivers || data.recepients || members,
-        serverID: null,
+        privacy: false,
+        realm_type: "conference",
       },
+      voice_participants: [],
     }),
     [conversationID, data, members],
   );
@@ -381,6 +403,29 @@ function ConferenceVoiceWindow({
         if (!Array.isArray(results)) {
           return;
         }
+        setConferenceMembers(
+          results
+            .filter((member: any) => member?.entity?.id)
+            .map((member: any) => {
+              const d = member.entity.details ?? {};
+              const fullName = [d.first_name, d.last_name]
+                .filter((part: any) => part && part !== "N/A")
+                .join(" ")
+                .trim();
+              const picture =
+                d.profile && d.profile !== "none" && d.profile !== "N/A"
+                  ? d.profile
+                  : undefined;
+              return {
+                entityID: String(member.entity.id),
+                username: d.username || d.slug || "",
+                name: fullName || d.name || d.username || d.slug || "Someone",
+                profile: picture,
+                type: member.entity.type,
+                role: member.role,
+              };
+            }),
+        );
         setMemberRoleMap(() => {
           const next = new Map<
             string,
@@ -1615,6 +1660,23 @@ function ConferenceVoiceWindow({
       .map(({ ownerClientId }) => ownerClientId)
       .filter((ownerClientId) => Boolean(ownerClientId)),
   );
+  // The People panel's members, by the username the call knows them by, and
+  // the ones not in the call - everyone in the conference but you and
+  // whoever has joined.
+  const memberByUsername = new Map(
+    conferenceMembers
+      .filter((member) => member.username)
+      .map((member) => [member.username, member]),
+  );
+  const joinedUsernames = new Set(
+    joinedParticipants.map((participant) => participant.username),
+  );
+  const notJoinedMembers = conferenceMembers.filter(
+    (member) =>
+      member.entityID !== String(authentication.user.entity_id) &&
+      member.username !== authentication.user.username &&
+      !joinedUsernames.has(member.username),
+  );
   const waitingParticipants = joinedParticipants.filter(
     (participant) => !videoOwnerIds.has(participant.clientId),
   );
@@ -1741,9 +1803,10 @@ function ConferenceVoiceWindow({
           }
         >
           <div className="tw-flex-1 tw-min-h-0 tw-flex tw-bg-white">
-            <Conversation
-              conversationsetup={conferenceConversationSetup}
-              theme={{ primary: "#4994ec", lighten: "#82b6ec" }}
+            <ConversationV2
+              conversationID={conversationID}
+              fallbackSetup={conferenceFallbackSetup}
+              theme={CONFERENCE_CHAT_THEME}
               setIsChatOpen={setIsChatOpen}
             />
           </div>
@@ -1853,15 +1916,28 @@ function ConferenceVoiceWindow({
               </div>
             )}
             <div className="tw-flex tw-flex-col tw-gap-[8px]">
-              <span className="tw-text-[12px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--text-2)]">
-                In call ({joinedParticipants.length + 1})
-              </span>
+              {/* Everyone in the conference: you and whoever is in the call,
+                  then the members who have not joined it yet, drawn pale. */}
+              <div className="tw-flex tw-flex-row tw-items-baseline tw-justify-between tw-gap-[8px]">
+                <span className="tw-text-[12px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--text-2)]">
+                  Participants ({joinedParticipants.length + 1 + notJoinedMembers.length})
+                </span>
+                <span className="tw-text-[11px] tw-font-Inter tw-text-[var(--text-3)]">
+                  {joinedParticipants.length + 1} in call
+                </span>
+              </div>
               <div className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] tw-bg-[var(--brand-soft)]">
-                <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[var(--brand)] tw-text-white tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
-                  {(authentication.user.username || "Y")
-                    .charAt(0)
-                    .toUpperCase()}
-                </div>
+                <Avatar
+                  id={authentication.user.entity_id || authentication.user.username}
+                  name={authentication.user.username || "You"}
+                  src={
+                    authentication.user.profile &&
+                    authentication.user.profile !== "none"
+                      ? authentication.user.profile
+                      : undefined
+                  }
+                  size={34}
+                />
                 <span className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
                   {authentication.user.username} (You)
                 </span>
@@ -1891,9 +1967,22 @@ function ConferenceVoiceWindow({
                     key={participant.clientId}
                     className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] hover:tw-bg-[var(--surface-hover)]"
                   >
-                    <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[var(--surface-3)] tw-text-[var(--text-2)] tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
-                      {(participant.username || "?").charAt(0).toUpperCase()}
-                    </div>
+                    <Avatar
+                      id={
+                        memberByUsername.get(participant.username)?.entityID ||
+                        participant.username ||
+                        participant.clientId
+                      }
+                      entityId={memberByUsername.get(participant.username)?.entityID}
+                      name={
+                        memberByUsername.get(participant.username)?.name ||
+                        participant.username ||
+                        "?"
+                      }
+                      src={memberByUsername.get(participant.username)?.profile}
+                      kind={memberByUsername.get(participant.username)?.type}
+                      size={34}
+                    />
                     <span className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
                       @{participant.username}
                     </span>
@@ -1982,6 +2071,35 @@ function ConferenceVoiceWindow({
                   </div>
                 );
               })}
+              {notJoinedMembers.map((member) => (
+                <div
+                  key={member.entityID}
+                  className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] tw-opacity-[0.45]"
+                  title="Not in the call yet"
+                >
+                  <Avatar
+                    id={member.entityID}
+                    entityId={member.entityID}
+                    name={member.name}
+                    src={member.profile}
+                    kind={member.type}
+                    size={34}
+                  />
+                  <div className="tw-flex tw-flex-col tw-flex-1 tw-min-w-0">
+                    <span className="tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
+                      {member.username ? `@${member.username}` : member.name}
+                    </span>
+                    <span className="tw-text-[11px] tw-text-[var(--text-3)] tw-font-Inter tw-truncate">
+                      Not joined yet
+                    </span>
+                  </div>
+                  {member.role === "admin" && (
+                    <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[var(--brand-soft)] tw-rounded-full tw-px-[6px] tw-py-[2px]">
+                      Admin
+                    </span>
+                  )}
+                </div>
+              ))}
             </div>
           </div>
         </motion.div>

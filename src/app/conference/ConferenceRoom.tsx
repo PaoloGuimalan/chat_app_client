@@ -286,26 +286,34 @@ function ConferenceRoom() {
     Boolean(roomCreatorUserID) &&
     String(roomCreatorUserID) === String(authentication.user.username);
   const roomInvites = Array.isArray(roomData?.invites) ? roomData.invites : [];
-  const roomInviteForUser = useMemo(() => {
-    if (!normalizedUserEmail) {
-      return null;
-    }
-
-    return (
-      roomInvites.find((invite: any) => {
-        const targetEmail = invite?.target_email
-          ? String(invite.target_email).trim().toLowerCase()
-          : "";
-
-        return targetEmail === normalizedUserEmail;
-      }) ?? null
-    );
-  }, [normalizedUserEmail, roomInvites]);
+  const selfEntityID = authentication.user.entity_id;
+  // An invite is yours when it went to your address OR to you by name. One
+  // sent by @username or picked from search stores no email at all - only
+  // the person (target_entity) - so matching on the address alone told
+  // those invitees the invite "belongs to another account".
+  const inviteIsForMe = (invite: any) => {
+    if (!invite) return false;
+    const email = invite.target_email
+      ? String(invite.target_email).trim().toLowerCase()
+      : "";
+    if (email && email === normalizedUserEmail) return true;
+    const entityID = invite.target_entity?.id ?? invite.target_entity_id ?? null;
+    return Boolean(entityID) && String(entityID) === String(selfEntityID);
+  };
+  const roomInviteForUser = useMemo(
+    () => roomInvites.find(inviteIsForMe) ?? null,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [normalizedUserEmail, selfEntityID, roomInvites],
+  );
   const inviteTargetEmail = inviteInfo?.target_email
     ? String(inviteInfo.target_email).trim().toLowerCase()
     : "";
-  const inviteMatchesUser =
-    Boolean(inviteTargetEmail) && inviteTargetEmail === normalizedUserEmail;
+  const inviteMatchesUser = inviteIsForMe(inviteInfo);
+  // Who the invite names, for the lines below - its address, or the person.
+  const inviteTargetLabel =
+    inviteTargetEmail ||
+    inviteInfo?.target_entity?.details?.username ||
+    "another account";
   const invitePending =
     inviteInfo?.status === "pending" &&
     inviteMatchesUser &&
@@ -322,12 +330,7 @@ function ConferenceRoom() {
   const effectiveInviteInfo = inviteInfo ?? roomInviteForUser;
   const effectiveInviteKind = String(effectiveInviteInfo?.kind ?? "");
   const effectiveInviteIsRequest = effectiveInviteKind === "request";
-  const effectiveInviteTargetEmail = effectiveInviteInfo?.target_email
-    ? String(effectiveInviteInfo.target_email).trim().toLowerCase()
-    : "";
-  const effectiveInviteMatchesUser =
-    Boolean(effectiveInviteTargetEmail) &&
-    effectiveInviteTargetEmail === normalizedUserEmail;
+  const effectiveInviteMatchesUser = inviteIsForMe(effectiveInviteInfo);
   const effectiveInvitePending =
     effectiveInviteInfo?.status === "pending" &&
     effectiveInviteMatchesUser &&
@@ -394,14 +397,14 @@ function ConferenceRoom() {
     if ((inviteToken && inviteBlocked) || effectiveInviteBlocked) {
       return {
         title: "Invitation belongs to another account",
-        description: `Signed in as ${normalizedUserEmail || "this user"}, but this invite is for ${inviteTargetEmail}.`,
+        description: `Signed in as ${normalizedUserEmail || "this user"}, but this invite is for ${inviteTargetLabel}.`,
       };
     }
 
     if (inviteToken && invitePending) {
       return {
         title: "Invitation pending",
-        description: `Ready for ${inviteTargetEmail}. You can accept it before joining.`,
+        description: `Ready for ${inviteTargetEmail || "you"}. You can accept it before joining.`,
       };
     }
 
@@ -477,6 +480,7 @@ function ConferenceRoom() {
     invitePending,
     inviteRequiresSignIn,
     inviteTargetEmail,
+    inviteTargetLabel,
     inviteToken,
     isInviteLoading,
     roomIsPrivate,

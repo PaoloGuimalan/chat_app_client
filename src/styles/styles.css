@@ -3391,6 +3391,30 @@ input:checked + .slider:before {
   font-size: var(--fs-body-sm);
 }
 
+/* People suggested while a name is typed. In the flow, not floating: the
+   panel sits in overflow-hidden cards (members tab, conference People), which
+   would clip a dropdown. Rows are post tagging's (.cl-tag-result). */
+.cl-invite-people__suggest {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 260px;
+  overflow-y: auto;
+  padding: 4px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+}
+
+.cl-invite-people__suggest--member {
+  opacity: 0.55;
+  cursor: default;
+}
+
+.cl-invite-people__suggest--member:hover {
+  background: transparent;
+}
+
 .cl-invite-people__feedback {
   font-size: var(--fs-caption);
 }
@@ -3529,6 +3553,47 @@ input:checked + .slider:before {
 .cl-invite-page__error {
   font-size: var(--fs-caption);
   color: var(--pink);
+}
+
+/* "Join conference" - a real link (it navigates), drawn as the primary
+   button. Both link rules are scoped under .cl-invite-page: theme.css has
+   `.cl-redesign a { color: inherit }`, which one class alone loses to. */
+.cl-invite-page .cl-invite-page__join {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 16px;
+  border-radius: var(--r-sm);
+  background: var(--brand);
+  color: #fff;
+  font-size: var(--fs-body-sm);
+  font-weight: 650;
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(28, 125, 239, 0.3);
+  transition: filter 0.14s var(--ease);
+}
+
+.cl-invite-page .cl-invite-page__join:hover {
+  filter: brightness(0.95);
+}
+
+.cl-invite-page__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.cl-invite-page .cl-invite-page__url {
+  max-width: 100%;
+  font-size: var(--fs-caption);
+  color: var(--brand);
+  text-decoration: underline;
+  overflow-wrap: anywhere;
 }
 
 /* A grouped notification's expand control (GroupedNotificationRow.tsx): the

@@ -170,7 +170,8 @@ function ContentHandler({
   const isGroupLike =
     conversationKind === "group" ||
     conversationKind === "server" ||
-    conversationKind === "channel";
+    conversationKind === "channel" ||
+    conversationKind === "conference";
 
   // Seeners/sender are entity ids, so "is this me" must compare against
   // entity_id - comparing to userID (an account id) never matched, which left

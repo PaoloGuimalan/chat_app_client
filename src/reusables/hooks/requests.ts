@@ -23,6 +23,7 @@ import { PaginationProp } from "../vars/props";
 import {
   ConversationFileKind,
   ConversationFilesPage,
+  EntitySearchResult,
   EphemeralAudience,
   IContact,
   IEphemeralViewers,
@@ -830,6 +831,32 @@ const EntitySearchRequest = (
         currentAlertState,
       );
     });
+};
+
+/**
+ * The same entity search, as suggestions while somebody types - a promise
+ * that can be cancelled. Each keystroke aborts the last request, so a slow
+ * answer for "ju" can never land on top of the answer for "juan". Quiet on
+ * failure: a suggestion list that cannot load just stays empty.
+ */
+const EntitySuggestRequest = async (
+  query: string,
+  {
+    types = "user,realm",
+    realmTypes = "page",
+    signal,
+  }: { types?: string; realmTypes?: string; signal?: AbortSignal } = {},
+): Promise<EntitySearchResult[]> => {
+  const response = await Axios.get(
+    `${USER_SERVICE_API}/api/entity/search/${encodeURIComponent(
+      query,
+    )}/?page=1&page_size=8&types=${types}&realm_types=${realmTypes}`,
+    {
+      headers: { "x-access-token": localStorage.getItem("authtoken") },
+      signal,
+    },
+  );
+  return Array.isArray(response.data?.results) ? response.data.results : [];
 };
 
 // --- Search v2 (redesigned Search page) ---------------------------------
@@ -4906,6 +4933,7 @@ export {
   VerifyCodeRequest,
   SearchRequest,
   EntitySearchRequest,
+  EntitySuggestRequest,
   SearchOverviewRequest,
   SearchPeopleRequest,
   SearchRealmsRequest,

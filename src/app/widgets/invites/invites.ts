@@ -97,6 +97,18 @@ export const inviteDestination = (invite: IRealmInvite): string | null => {
   }
 };
 
+/**
+ * A conference invite's way in: the conference's own lobby, carrying the
+ * token. The lobby shows the invite, takes the answer and lets you join -
+ * guests included - so this is where a conference invite should lead.
+ */
+export const conferenceLink = (invite: IRealmInvite): string | null =>
+  invite.realm_type === "conference" && invite.realm_slug
+    ? `/conference/${invite.realm_slug}?invite_token=${encodeURIComponent(
+        invite.invite_token,
+      )}`
+    : null;
+
 /** "to follow" / "as an admin" - what a pending invite is for, in a list. */
 export const invitePurposeLabel = (invite: IRealmInvite) =>
   invite.purpose === "follow"
