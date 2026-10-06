@@ -114,6 +114,16 @@ import {
   IPreviewParicipants,
 } from "@/reusables/vars/interfaces";
 import IsTypingLoader from "./partials/IsTypingLoader";
+import PendingReplyHeader from "./partials/PendingReplyHeader";
+import ComposerStrip from "./partials/ComposerStrip";
+import { useThreadScroll } from "@/reusables/hooks/useThreadScroll";
+import {
+  newUnreadVisit,
+  recordFirstSight,
+  UnreadVisit,
+  unreadDividerLabel,
+  unreadDividerOf,
+} from "@/reusables/hooks/unreadDivider";
 import { FaHashtag, FaLock } from "react-icons/fa6";
 import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdArrowDown, IoMdClose, IoMdSettings } from "react-icons/io";
@@ -346,16 +356,22 @@ function ConversationV2({
   const [conversationList, setconversationList] = useState<any[]>([]);
   const [totalMessages, settotalMessages] = useState<number>(0);
   const [isLoading, setisLoading] = useState<boolean>(true);
-  const [autoScroll, setautoScroll] = useState<boolean>(true);
   const [isReplying, setisReplying] = useState<any>({
     isReply: false,
     replyingTo: "",
   });
+  // What the composer's reply strips last quoted - see replyingToMessage.
+  const shownReplyToRef = useRef<string>("");
   const [isalreadytyping, setisalreadytyping] = useState<boolean>(false);
   // base holds an object URL (from URL.createObjectURL(file)) for preview;
   // file is the real File sent to the server. Revoke base on removal/send.
   const [imgList, setimgList] = useState<any[]>([]);
   const [nonImgList, setnonImgList] = useState<any[]>([]);
+  // The picked files the composer strip last showed - see shownImgList.
+  const shownAttachmentsRef = useRef<{ img: any[]; nonImg: any[] }>({
+    img: [],
+    nonImg: [],
+  });
 
   const [page, setpage] = useState<number>(1);
   const [range, setrange] = useState<number>(20);
@@ -469,6 +485,52 @@ function ConversationV2({
     conversationinfo?.usersWithInfo,
     isGroupLikeConversation,
   ]);
+
+  // Where reading stopped when this visit opened the thread: the "N unread
+  // messages" divider (see unreadDivider). Recorded during render, keyed by
+  // the conversation, and only from the first load on - the render right
+  // after a switch still holds the LAST thread's list, and isLoading going
+  // true is what says the new one has been asked for. Recording is
+  // idempotent, so a repeated render records nothing new.
+  const unreadVisitRef = useRef<{
+    key: string;
+    sawLoading: boolean;
+    visit: UnreadVisit;
+  }>({ key: "", sawLoading: false, visit: newUnreadVisit() });
+  if (unreadVisitRef.current.key !== conversationIdentityKey) {
+    unreadVisitRef.current = {
+      key: conversationIdentityKey,
+      sawLoading: false,
+      visit: newUnreadVisit(),
+    };
+  }
+  const unreadVisit = unreadVisitRef.current;
+  if (isLoading) {
+    unreadVisit.sawLoading = true;
+  } else if (unreadVisit.sawLoading) {
+    recordFirstSight(
+      conversationList,
+      unreadVisit.visit,
+      new Set(
+        [
+          authentication.user?.entity_id,
+          authentication.active_entity_context?.id,
+          authentication.user?.userID,
+        ]
+          .filter(Boolean)
+          .map(String),
+      ),
+    );
+  }
+  const unreadDivider =
+    unreadVisit.sawLoading && !isLoading
+      ? unreadDividerOf(
+          conversationList,
+          unreadVisit.visit,
+          // The same test the lazy loader renders on: older pages remain.
+          totalMessages > page * range,
+        )
+      : null;
 
   // Which members had a seen face on the previous render, for this thread -
   // read during render (so it still holds the PREVIOUS set) and refreshed
@@ -669,23 +731,16 @@ function ConversationV2({
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
 
-  // Whether the reader has scrolled far enough back that returning by hand is
-  // a chore. Separate from `autoScroll`, which answers a different question on
-  // a much tighter threshold - see the onScroll handler.
-  const [showJumpToBottom, setShowJumpToBottom] = useState<boolean>(false);
-
-  /** Back to the newest message, and let new ones pull the view down again. */
-  const jumpToBottom = () => {
-    // `column-reverse`, so 0 IS the bottom. Smooth rather than instant: the
-    // jump is a navigation the reader asked for, and landing without the
-    // travel makes it unclear whether anything moved.
-    divcontentRef.current?.scrollTo({ top: 0, behavior: "smooth" });
-    setShowJumpToBottom(false);
-    // Re-armed here rather than waiting for the scroll handler: the smooth
-    // scroll takes a few frames, and a message arriving inside that window
-    // should already be followed.
-    setautoScroll(true);
-  };
+  // Following new messages, the slide-in, and the jump button - see
+  // useThreadScroll. Scoped to THIS thread: the old scroll looked the newest
+  // message up with a page-wide `document.querySelectorAll`, so with a mini
+  // window or the conference chat open it scrolled whichever thread came
+  // first in the DOM.
+  const thread = useThreadScroll(divcontentRef);
+  const { showJumpToBottom, jumpToBottom } = thread;
+  // Handed to media loaders, which call it once their size is known. The
+  // hook's ResizeObserver already catches those; kept as the explicit path.
+  const scrollBottom = thread.follow;
   // const inputMessageRef = useRef<HTMLInputElement | null>(null);
   const inputMessageRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -741,24 +796,6 @@ function ConversationV2({
     ConversationInfoProcess();
   }, [conversationIdentityKey, switchingcontext, conversationsetup]);
 
-  const scrollBottom = () => {
-    const items = document.querySelectorAll(".div_messages_result");
-    const last = items[0];
-
-    if (!isLoading) {
-      if (divcontentRef) {
-        if (autoScroll) {
-          if (last) {
-            last.scrollIntoView({
-              behavior: "instant",
-              block: "end",
-            });
-          }
-        }
-      }
-    }
-  };
-
   useEffect(() => {
     let currentView = false;
     if (divcontentRef) {
@@ -778,10 +815,9 @@ function ConversationV2({
         };
       }
     }
-
-    scrollBottom();
+    // Following new messages is useThreadScroll's layout effect now - it
+    // runs on every commit, before paint, which the slide-in needs.
   }, [
-    autoScroll,
     conversationIdentityKey,
     messageslist,
     divcontentRef,
@@ -809,6 +845,10 @@ function ConversationV2({
     });
   };
 
+  // What a send replies to, carried on its PENDING copy too, so the bubble
+  // shows its quote while it sends instead of growing one on confirm.
+  const pendingReplyTarget = isReplying.isReply ? isReplying.replyingTo : "";
+
   const sendMessageProcess = () => {
     if (!conversationsetup) return;
 
@@ -822,6 +862,7 @@ function ConversationV2({
           pendingID: pendingID,
           content: messageValue,
           type: "text",
+          replyingTo: pendingReplyTarget,
         });
         SendMessageRequest({
           conversationID: conversationID,
@@ -839,6 +880,7 @@ function ConversationV2({
           pendingID: pendingID,
           content: messageValue,
           type: "text",
+          replyingTo: pendingReplyTarget,
         });
         SendMessageRequest({
           conversationID: conversationID,
@@ -862,6 +904,7 @@ function ConversationV2({
         referenceMediaType: mp.type,
         type: mp.type,
         name: mp.name,
+        replyingTo: pendingReplyTarget,
       }));
 
       addMultiplePendingMessage([
@@ -900,6 +943,7 @@ function ConversationV2({
     setconversationList([]);
     setconversationinfo(null);
     setpage(1);
+    thread.reset();
     dispatch({
       type: SET_PENDING_MESSAGES_LIST,
       payload: {
@@ -1205,6 +1249,7 @@ function ConversationV2({
       pendingID: pendingID,
       content: URL.createObjectURL(blob),
       type: "audio/webm",
+      replyingTo: pendingReplyTarget,
     });
 
     SendFilesRequest({
@@ -1627,9 +1672,25 @@ function ConversationV2({
   // the two strips - and each one read `.sender` off the result without a
   // guard, so replying to a message that had since been paged out of
   // `conversationList` threw rather than showing an empty strip.
-  const replyingToMessage = isReplying.isReply
+  //
+  // It outlives the reply: a send or a cancel clears `isReplying` at once,
+  // and the strips used to empty - and drop the accent fill - in that same
+  // frame, then collapse as a blank bar. Holding the last target lets them
+  // close WITH their content; the next reply replaces it.
+  if (isReplying.isReply) shownReplyToRef.current = isReplying.replyingTo;
+  // The same for the picked-files strip: a send or the last removal empties
+  // the lists at once, so the strip draws the last files it had while it
+  // closes. Safe to keep showing: a send hands the same object URLs to the
+  // pending bubbles, and a removed file's <img> keeps its decoded picture
+  // after the revoke.
+  if (imgList.length > 0 || nonImgList.length > 0) {
+    shownAttachmentsRef.current = { img: imgList, nonImg: nonImgList };
+  }
+  const shownImgList = shownAttachmentsRef.current.img;
+  const shownNonImgList = shownAttachmentsRef.current.nonImg;
+  const replyingToMessage = shownReplyToRef.current
     ? conversationList.find(
-        (flt: any) => flt.messageID == isReplying.replyingTo,
+        (flt: any) => flt.messageID == shownReplyToRef.current,
       )
     : undefined;
   const replyingToOwnMessage =
@@ -2464,29 +2525,17 @@ function ConversationV2({
               <div
                 id="div_conversation_content"
                 ref={divcontentRef}
-                onScroll={(e) => {
-                  // console.log((e.currentTarget.scrollHeight - e.currentTarget.offsetHeight) - 100, e.currentTarget.scrollTop) OLD
-                  // console.log(0 - 100, e.currentTarget.scrollTop) NEW
-                  if (0 - 100 > e.currentTarget.scrollTop) {
-                    setautoScroll(false);
-                  } else {
-                    setautoScroll(true);
-                  }
-
-                  // `column-reverse`, so scrollTop is 0 at the NEWEST end and
-                  // negative going back in time - which is why this compares
-                  // against a negative distance rather than scrollHeight.
-                  //
-                  // Measured against the viewport rather than a fixed pixel
-                  // count: "far enough that scrolling back is a chore" is a
-                  // screenful, and a screenful is a different number of pixels
-                  // on a laptop and on a phone.
-                  const away = -e.currentTarget.scrollTop;
-                  setShowJumpToBottom(
-                    away > Math.max(360, e.currentTarget.clientHeight * 0.75),
-                  );
-                }}
+                onScroll={thread.onScroll}
               >
+                {/* The thread's bottom edge. FIRST child, so column-reverse
+                    draws it under everything - typing bubble, pending sends,
+                    the seen faces under the newest message - and scrolling it
+                    into view is "to the bottom" whatever the newest item is. */}
+                <section
+                  ref={thread.anchorRef}
+                  className="cl-thread-bottom-anchor"
+                  aria-hidden="true"
+                />
                 {isServerConversation && <TabAudioVisualizerCanvas />}
                 {filteredistypinglist.length > 0 && (
                   <IsTypingLoader
@@ -2505,12 +2554,28 @@ function ConversationV2({
                         .map((mp) => mp.pendingID)
                         .includes(flt.pendingID),
                   )
-                  .map((cnvs: any, i: number) => {
+                  // Oldest first in the store, but the thread is column-reverse:
+                  // the newest send must come FIRST in the DOM to sit lowest.
+                  .reverse()
+                  .map((cnvs: any) => {
+                    const replyHeader = cnvs.replyingTo ? (
+                      <PendingReplyHeader
+                        target={
+                          conversationList.find(
+                            (mp: any) => mp.messageID == cnvs.replyingTo,
+                          ) ?? null
+                        }
+                        members={conversationinfo?.usersWithInfo ?? []}
+                        commands={commandNames}
+                        theme={theme}
+                        selfEntityID={authentication.user.entity_id}
+                      />
+                    ) : null;
                     if (cnvs.type == "text") {
                       return (
                         <motion.div
-                          key={i}
-                          className="div_messages_result tw-items-center"
+                          key={cnvs.pendingID}
+                          className="div_messages_result tw-items-center cl-pending-message"
                         >
                           <motion.div
                             initial={{
@@ -2523,6 +2588,7 @@ function ConversationV2({
                             }}
                             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
                           >
+                            {replyHeader}
                             <motion.span
                               initial={{
                                 backgroundColor: theme.lighten,
@@ -2549,8 +2615,8 @@ function ConversationV2({
                     } else if (cnvs.type == "image") {
                       return (
                         <motion.div
-                          key={i}
-                          className="div_messages_result tw-items-center"
+                          key={cnvs.pendingID}
+                          className="div_messages_result tw-items-center cl-pending-message"
                         >
                           <motion.div
                             initial={{
@@ -2563,6 +2629,7 @@ function ConversationV2({
                             }}
                             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
                           >
+                            {replyHeader}
                             <div className="div_pending_content_container_sending">
                               <CachedImage
                                 src={cnvs.content}
@@ -2579,8 +2646,8 @@ function ConversationV2({
                     } else if (cnvs.type.includes("video")) {
                       return (
                         <motion.div
-                          key={i}
-                          className="div_messages_result tw-items-center"
+                          key={cnvs.pendingID}
+                          className="div_messages_result tw-items-center cl-pending-message"
                         >
                           <motion.div
                             initial={{
@@ -2593,6 +2660,7 @@ function ConversationV2({
                             }}
                             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
                           >
+                            {replyHeader}
                             <div className="div_pending_content_container_sending">
                               <VideoPlayer
                                 src={cnvs.content}
@@ -2610,8 +2678,8 @@ function ConversationV2({
                     } else if (cnvs.type.includes("audio")) {
                       return (
                         <motion.div
-                          key={i}
-                          className="div_messages_result tw-items-center"
+                          key={cnvs.pendingID}
+                          className="div_messages_result tw-items-center cl-pending-message"
                         >
                           <motion.div
                             initial={{
@@ -2624,6 +2692,7 @@ function ConversationV2({
                             }}
                             className="tw-flex tw-flex-col tw-w-fit tw-max-w-[70%]"
                           >
+                            {replyHeader}
                             <VoiceMessagePlayer
                               src={cnvs.content}
                               isSender={true}
@@ -2637,8 +2706,8 @@ function ConversationV2({
                     } else {
                       return (
                         <motion.div
-                          key={i}
-                          className="div_messages_result tw-items-center"
+                          key={cnvs.pendingID}
+                          className="div_messages_result tw-items-center cl-pending-message"
                         >
                           <motion.div
                             initial={{
@@ -2651,6 +2720,7 @@ function ConversationV2({
                             }}
                             className="tw-flex tw-flex-col tw-w-full tw-max-w-[70%]"
                           >
+                            {replyHeader}
                             <div className="cl-message-file-card tw-w-[calc(100%-20px)] tw-h-[70px] tw-rounded-[7px] tw-flex tw-flex-row tw-items-center tw-pl-[10px] tw-pr-[10px] tw-gap-[5px]">
                               <div className="tw-w-full tw-max-w-[40px]">
                                 <IoDocumentOutline
@@ -2711,6 +2781,13 @@ function ConversationV2({
                   )}
                 {conversationList.map((cnvs, i) => {
                   const seenFaces = seenFacesByMessage.get(cnvs.messageID);
+                  // The divider sits right above the oldest unread message,
+                  // and breaks a sender run that crosses it: the unread side
+                  // opens with the name, the read side closes with the face.
+                  const firstUnread = unreadDivider?.messageID === cnvs.messageID;
+                  const lastRead =
+                    !!unreadDivider &&
+                    conversationList[i - 1]?.messageID === unreadDivider.messageID;
                   return (
                     <Fragment key={cnvs.messageID}>
                       {/* BEFORE the message in the DOM: the thread is
@@ -2733,8 +2810,13 @@ function ConversationV2({
                         // The list is newest-first (rendered column-reverse),
                         // so the message drawn just ABOVE this one is i + 1
                         // and the one just BELOW it is i - 1.
-                        startsRun={startsSenderRun(cnvs, conversationList[i + 1])}
-                        endsRun={endsSenderRun(cnvs, conversationList[i - 1])}
+                        startsRun={
+                          startsSenderRun(cnvs, conversationList[i + 1]) ||
+                          firstUnread
+                        }
+                        endsRun={
+                          endsSenderRun(cnvs, conversationList[i - 1]) || lastRead
+                        }
                         avatarSize={isMinimized ? 28 : 32}
                         setisReplying={setisReplyingTrigger}
                         setfullImageScreen={setfullImageScreen}
@@ -2742,6 +2824,17 @@ function ConversationV2({
                         setunreadmessages={setunreadmessages}
                         theme={theme}
                       />
+                      {/* AFTER the message in the DOM, so it draws above it. */}
+                      {firstUnread && unreadDivider && (
+                        <div
+                          role="separator"
+                          className="cl-unread-divider"
+                        >
+                          <span className="cl-unread-divider__label cl-text-meta">
+                            {unreadDividerLabel(unreadDivider.count)}
+                          </span>
+                        </div>
+                      )}
                     </Fragment>
                   );
                 })}
@@ -2779,7 +2872,7 @@ function ConversationV2({
                 against the scrolled content and rides up with it. The body is
                 already `position: relative`, so this stays put.
 
-                Shown on its own threshold rather than on `autoScroll`, which
+                Shown on its own threshold rather than on "following", which
                 flips after 100px because that is the right distance for
                 deciding whether a NEW message should pull the view down. A
                 button appearing after one notch of scrolling would be noise;
@@ -2808,32 +2901,21 @@ function ConversationV2({
             someone else's message, and a framer-motion animated value is an
             inline style, so nothing in the stylesheet could correct it: in dark
             mode a white bar sat between a dark conversation and a dark
-            composer. Only the height/padding collapse is animated now, and the
-            colours come from `.cl-composer-strip`, which reads theme tokens and
-            so follows a theme switch live.
+            composer. Only the open/close is animated now (see ComposerStrip
+            for why that is height alone), and the colours come from
+            `.cl-composer-strip`, which reads theme tokens and so follows a
+            theme switch live.
 
             The accent tint for your own message stays inline because
             `theme.primary` is the per-conversation colour, not a token.
           */}
-          <motion.div
-            initial={{
-              height: "0px",
-              paddingTop: "0px",
-              paddingBottom: "0px",
-              borderRadius: "10px",
-            }}
-            animate={{
-              height: isReplying.isReply ? "auto" : "0px",
-              paddingTop: isReplying.isReply ? "10px" : "0px",
-              paddingBottom: isReplying.isReply ? "10px" : "0px",
-              borderRadius: "0px",
-            }}
+          <ComposerStrip
+            open={isReplying.isReply}
             style={
               replyingToOwnMessage
                 ? { backgroundColor: theme.primary }
                 : undefined
             }
-            id="div_selected_images_container"
             className={`theme_scroller cl-composer-strip${
               replyingToOwnMessage ? " cl-composer-strip--own" : ""
             }`}
@@ -2841,16 +2923,14 @@ function ConversationV2({
             <div className="tw-w-full tw-flex tw-flex-row">
               <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px] ellipsis-3-lines">
                 <span className="cl-text-caption tw-font-semibold tw-font-inter ellipsis-1-line">
-                  {isReplying.isReply &&
-                    (replyingToOwnMessage
+                  {(replyingToOwnMessage
                       ? "Replying to your message"
                       : `Replying to ${getMemberInfo(
                           replyingToMessage?.sender,
                         )}`)}
                 </span>
                 <span className="cl-text-caption tw-font-inter tw-w-full tw-text-left ellipsis-3-lines">
-                  {isReplying.isReply &&
-                    (replyingToMessage?.messageType === "post" ? (
+                  {(replyingToMessage?.messageType === "post" ? (
                       // A post sent with no note: say which post.
                       (replyingToMessage as any)?.postcard
                         ? replyTargetSummary((replyingToMessage as any).postcard)
@@ -2894,29 +2974,17 @@ function ConversationV2({
                 <AiOutlineClose />
               </button>
             </div>
-          </motion.div>
+          </ComposerStrip>
           {/* Same strip treatment as the reply preview above it: the two sit
               flush against each other, so they have to pick up the same
               surface. */}
-          <motion.div
-            initial={{
-              height: "0px",
-              paddingTop: "0px",
-              paddingBottom: "0px",
-              borderRadius: "10px",
-            }}
-            animate={{
-              height: isReplying.isReply ? "auto" : "0px",
-              paddingTop: isReplying.isReply ? "10px" : "0px",
-              paddingBottom: isReplying.isReply ? "10px" : "0px",
-              borderRadius: "0px",
-            }}
+          <ComposerStrip
+            open={isReplying.isReply}
             style={
               replyingToOwnMessage
                 ? { backgroundColor: theme.primary }
                 : undefined
             }
-            id="div_selected_images_container"
             className={`theme_scroller cl-composer-strip${
               replyingToOwnMessage ? " cl-composer-strip--own" : ""
             }`}
@@ -2939,24 +3007,16 @@ function ConversationV2({
                 </button>
               </div>
             </div>
-          </motion.div>
-          <motion.div
-            initial={{
-              height: "0px",
-              paddingTop: "0px",
-              paddingBottom: "0px",
-            }}
-            animate={{
-              height: imgList.length || nonImgList.length > 0 ? "auto" : "0px",
-              paddingTop:
-                imgList.length || nonImgList.length > 0 ? "10px" : "0px",
-              paddingBottom:
-                imgList.length || nonImgList.length > 0 ? "10px" : "0px",
-            }}
-            id="div_selected_images_container"
-            className="theme_scroller"
+          </ComposerStrip>
+          {/* Picked files, waiting for send. Same strip as the reply preview,
+              and the same two fixes: height alone animates, and it closes
+              holding the last files it showed (shownImgList) rather than
+              emptying first - see ComposerStrip. */}
+          <ComposerStrip
+            open={imgList.length > 0 || nonImgList.length > 0}
+            innerClassName="cl-composer-strip__inner--files theme_scroller"
           >
-            {nonImgList.map((nonimgl: any, i: number) => {
+            {shownNonImgList.map((nonimgl: any, i: number) => {
               if (nonimgl.type.includes("video")) {
                 return (
                   <div key={`nonimg_${i}`} className="div_img_selected_preview">
@@ -3039,7 +3099,7 @@ function ConversationV2({
                 );
               }
             })}
-            {imgList.map((imgl, i) => {
+            {shownImgList.map((imgl, i) => {
               return (
                 <div key={i} className="div_img_selected_preview">
                   <div className="div_btn_remove_container">
@@ -3059,7 +3119,7 @@ function ConversationV2({
                 </div>
               );
             })}
-          </motion.div>
+          </ComposerStrip>
           <motion.div
             initial={{
               height: "0px",

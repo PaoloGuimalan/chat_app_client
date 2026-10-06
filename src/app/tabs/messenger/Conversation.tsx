@@ -73,6 +73,7 @@ import {
   IPreviewParicipants,
 } from "@/reusables/vars/interfaces";
 import IsTypingLoader from "./partials/IsTypingLoader";
+import { useThreadScroll } from "@/reusables/hooks/useThreadScroll";
 import { FaHashtag, FaLock } from "react-icons/fa6";
 import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdClose, IoMdSettings } from "react-icons/io";
@@ -211,7 +212,6 @@ function Conversation({
   const [conversationList, setconversationList] = useState<any[]>([]);
   const [totalMessages, settotalMessages] = useState<number>(0);
   const [isLoading, setisLoading] = useState<boolean>(true);
-  const [autoScroll, setautoScroll] = useState<boolean>(true);
   const [isReplying, setisReplying] = useState<any>({
     isReply: false,
     replyingTo: "",
@@ -402,6 +402,11 @@ function Conversation({
 
   const divcontentRef = useRef<HTMLDivElement | null>(null);
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
+  // Following new messages and the slide-in - see useThreadScroll. This
+  // thread has no jump button, so only the following half is used.
+  const thread = useThreadScroll(divcontentRef);
+  // Handed to media loaders, which call it once their size is known.
+  const scrollBottom = thread.follow;
   // const inputMessageRef = useRef<HTMLInputElement | null>(null);
   const inputMessageRef = useRef<HTMLTextAreaElement | null>(null);
 
@@ -451,24 +456,6 @@ function Conversation({
     ConversationInfoProcess();
   }, [conversationIdentityKey]);
 
-  const scrollBottom = () => {
-    const items = document.querySelectorAll(".div_messages_result");
-    const last = items[0];
-
-    if (!isLoading) {
-      if (divcontentRef) {
-        if (autoScroll) {
-          if (last) {
-            last.scrollIntoView({
-              behavior: "instant",
-              block: "end",
-            });
-          }
-        }
-      }
-    }
-  };
-
   useEffect(() => {
     let currentView = false;
     if (divcontentRef) {
@@ -488,10 +475,8 @@ function Conversation({
         };
       }
     }
-
-    scrollBottom();
+    // Following new messages is useThreadScroll's layout effect now.
   }, [
-    autoScroll,
     conversationIdentityKey,
     messageslist,
     divcontentRef,
@@ -608,6 +593,7 @@ function Conversation({
     setconversationList([]);
     setconversationinfo(null);
     setpage(1);
+    thread.reset();
     dispatch({
       type: SET_PENDING_MESSAGES_LIST,
       payload: {
@@ -1805,16 +1791,15 @@ function Conversation({
             <div
               id="div_conversation_content"
               ref={divcontentRef}
-              onScroll={(e) => {
-                // console.log((e.currentTarget.scrollHeight - e.currentTarget.offsetHeight) - 100, e.currentTarget.scrollTop) OLD
-                // console.log(0 - 100, e.currentTarget.scrollTop) NEW
-                if (0 - 100 > e.currentTarget.scrollTop) {
-                  setautoScroll(false);
-                } else {
-                  setautoScroll(true);
-                }
-              }}
+              onScroll={thread.onScroll}
             >
+              {/* The thread's bottom edge. FIRST child, so column-reverse
+                  draws it under everything. */}
+              <section
+                ref={thread.anchorRef}
+                className="cl-thread-bottom-anchor"
+                aria-hidden="true"
+              />
               {isServerConversation && <TabAudioVisualizerCanvas />}
               {filteredistypinglist.length > 0 && <IsTypingLoader />}
               {pendingmessageslist

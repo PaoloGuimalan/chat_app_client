@@ -481,7 +481,11 @@ function ContentHandler({
 
   if (cnvs.isDeleted) {
     return (
-      <motion.div ref={ref} className="div_messages_result tw-items-center">
+      <motion.div
+        ref={ref}
+        data-message-id={cnvs.messageID}
+        className="div_messages_result tw-items-center"
+      >
         {renderSenderAvatar()}
         <motion.div
           initial={{
@@ -561,7 +565,11 @@ function ContentHandler({
   } else {
     if (cnvs.messageType == "text" || isPostMessage) {
       return (
-        <motion.div ref={ref} className="div_messages_result tw-items-center">
+        <motion.div
+          ref={ref}
+          data-message-id={cnvs.messageID}
+          className="div_messages_result tw-items-center"
+        >
           {cnvs.sender === authentication.user.entity_id && (
             <MessageOptions
               conversationID={cnvs.conversationID}
@@ -843,6 +851,7 @@ function ContentHandler({
       return (
         <motion.div
           ref={ref}
+          data-message-id={cnvs.messageID}
           className="div_pending_images div_messages_result"
         >
           {cnvs.sender === authentication.user.entity_id && (
@@ -1064,6 +1073,7 @@ function ContentHandler({
       return (
         <motion.div
           ref={ref}
+          data-message-id={cnvs.messageID}
           className="div_pending_images div_messages_result"
         >
           {cnvs.sender === authentication.user.entity_id && (
@@ -1280,6 +1290,7 @@ function ContentHandler({
       return (
         <motion.div
           ref={ref}
+          data-message-id={cnvs.messageID}
           className="div_pending_audios div_messages_result"
         >
           {cnvs.sender === authentication.user.entity_id && (
@@ -1495,6 +1506,7 @@ function ContentHandler({
         <div
           key={i}
           ref={ref}
+          data-message-id={cnvs.messageID}
           className="tw-w-full tw-pt-[5px] tw-pb-[10px] div_messages_result tw-justify-center"
         >
           <span className="cl-conversation-system-message tw-w-full tw-text-center">
@@ -1506,6 +1518,7 @@ function ContentHandler({
       return (
         <motion.div
           ref={ref}
+          data-message-id={cnvs.messageID}
           className="div_pending_images div_messages_result"
         >
           {cnvs.sender === authentication.user.entity_id && (

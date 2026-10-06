@@ -4827,10 +4827,95 @@ input:checked + .slider:before {
   flex-direction: column-reverse;
   border-radius: 0px;
   overflow-y: auto;
-  gap: 10px;
+  /* A variable so the bottom anchor below can cancel exactly this gap; the
+     minimized window and the phone layout set the variable, not `gap`. */
+  --cl-thread-gap: 10px;
+  gap: var(--cl-thread-gap);
   padding: 16px 16px 8px;
   position: relative;
   z-index: 1;
+}
+
+/* The thread's bottom edge, as an element: scrollBottom() in the conversation
+   scrolls THIS into view (the <section> pattern from NeonRemote's chat).
+
+   The first child of the column-reverse thread, so it sits under everything,
+   including the seen faces and reaction pills that hang below the newest
+   bubble - scrolling to the newest bubble itself stopped short of those.
+   Zero height, and the negative margin swallows the one flex gap it would
+   otherwise add above itself (column-reverse: the top side faces the next
+   message). The scroll margin is larger than any bottom padding of the
+   thread, so a scroll to it is clamped at the real bottom, padding included. */
+.cl-thread-bottom-anchor {
+  display: block;
+  flex: none;
+  height: 0;
+  margin: 0;
+  margin-top: calc(-1 * var(--cl-thread-gap, 10px));
+  scroll-margin-bottom: 24px;
+  pointer-events: none;
+}
+
+/* A send appearing in the thread. The thread's glide (useThreadScroll)
+   carries it up from below the edge whenever the thread can scroll; this
+   eases it in as well, which is all the motion there is in a thread too
+   short to scroll. Only the PENDING copy animates: the sent message that
+   replaces it must not arrive a second time. */
+@keyframes cl-pending-message-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.cl-pending-message {
+  animation: cl-pending-message-in 200ms ease-out both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cl-pending-message {
+    animation: none;
+  }
+}
+
+/* "N unread messages": where reading stopped when the conversation was
+   opened (hooks/unreadDivider.ts). Neutral, not the accent: it marks a
+   place in the thread rather than asking for anything, and a blue line read
+   as one more interactive thing. Grey on light; on dark the label goes to
+   the full text colour and the hairline to --text-2, since the light-mode
+   greys sink into the dark thread. */
+.cl-unread-divider {
+  --cl-unread-line: var(--text-3);
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin: 2px 0;
+  color: var(--text-2);
+  font-weight: 600;
+}
+
+.cl-redesign[data-theme="dark"] .cl-unread-divider {
+  --cl-unread-line: var(--text-2);
+  color: var(--text);
+}
+
+.cl-unread-divider::before,
+.cl-unread-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--cl-unread-line);
+  opacity: 0.6;
+}
+
+.cl-unread-divider__label {
+  white-space: nowrap;
 }
 
 /* Jump to the newest messages.
@@ -5178,6 +5263,27 @@ input:checked + .slider:before {
 /* Replying to your own message keeps the accent tint, applied inline from
  * `theme.primary` since that is a per-conversation colour and not a token.
  * Only the label colour on top of it is fixed here. */
+/* The strip's padding, on an inner box rather than the strip itself - see
+ * ComposerStrip.tsx for why animating it alongside the height made the strip
+ * jerk open. 10px tall as the strip's own animated padding was; the sides
+ * are the `#div_selected_images_container` sides it used to inherit. */
+.cl-composer-strip__inner {
+  flex: 1;
+  min-width: 0;
+  padding: 10px 18px;
+}
+
+/* The picked-files strip: a row of previews that scrolls sideways, which
+ * `#div_selected_images_container` itself used to be - the strip is now
+ * `overflow: hidden` so its height can animate. */
+.cl-composer-strip__inner--files {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
 #div_selected_images_container.cl-composer-strip--own {
   color: var(--on-brand, #ffffff);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.18);
@@ -5935,7 +6041,7 @@ input:checked + .slider:before {
 
 .cl-conversation-window--minimized #div_conversation_content {
   padding: 12px 12px 8px;
-  gap: 8px;
+  --cl-thread-gap: 8px;
 }
 
 .cl-conversation-window--minimized #div_send_controls {
@@ -7676,7 +7782,7 @@ input:checked + .slider:before {
   }
 
   #div_conversation_content {
-    gap: 8px;
+    --cl-thread-gap: 8px;
     padding: 12px 12px 6px;
   }
 
@@ -7762,6 +7868,14 @@ input:checked + .slider:before {
 
   #div_selected_images_container {
     padding: 10px 12px;
+    gap: 6px;
+  }
+
+  .cl-composer-strip__inner {
+    padding: 10px 12px;
+  }
+
+  .cl-composer-strip__inner--files {
     gap: 6px;
   }
 
