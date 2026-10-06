@@ -1326,6 +1326,86 @@ const NotificationsSectionV2Request = async (
   });
 };
 
+// --- Notifications, grouped ----------------------------------------------
+// The same sections as rows the way the reader sees them: one row for
+// "Maya and 4 others reacted to your post", expanding to the five.
+//
+// Falls back to the ungrouped routes, every notification its own group, when
+// the grouped ones are not there - so this ships safely ahead of the server.
+
+/** An ungrouped section, every notification a group of one. */
+const asSingleGroups = (section: any) =>
+  section
+    ? {
+        groups: (section.items ?? []).map((n: any) => ({
+          key: String(n.notificationID),
+          count: 1,
+          unread: n.isRead ? 0 : 1,
+          actorCount: 1,
+          action: null,
+          items: [n],
+        })),
+        total: section.total ?? 0,
+        unread: section.unread ?? 0,
+        next: !!section.next,
+      }
+    : null;
+
+const NotificationsGroupedOverviewRequest = async (
+  previewRange: number = 8,
+) => {
+  try {
+    const response = await Axios.get(
+      `${API}/u/v2/notifications/grouped/overview`,
+      {
+        headers: {
+          "x-access-token": localStorage.getItem("authtoken"),
+          range: previewRange,
+        },
+      },
+    );
+    if (response.data.status) {
+      return jwt_decode(response.data.result) as any;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+  const ungrouped = await NotificationsOverviewV2Request(previewRange);
+  if (!ungrouped) return null;
+  return {
+    activity: asSingleGroups(ungrouped.activity),
+    connections: asSingleGroups(ungrouped.connections),
+    system: asSingleGroups(ungrouped.system),
+  };
+};
+
+const NotificationsGroupedSectionRequest = async (
+  section: "activity" | "connections" | "system",
+  page: number,
+  range: number,
+) => {
+  try {
+    const response = await Axios.get(
+      `${API}/u/v2/notifications/grouped/${section}`,
+      {
+        headers: {
+          "x-access-token": localStorage.getItem("authtoken"),
+          page,
+          range,
+        },
+      },
+    );
+    if (response.data.status) {
+      return jwt_decode(response.data.result) as any;
+    }
+  } catch (err) {
+    console.log(err);
+  }
+  return asSingleGroups(
+    await NotificationsSectionV2Request(section, page, range),
+  );
+};
+
 const ReadNotificationsRequest = () => {
   Axios.post(
     `${API}/u/readnotifications`,
@@ -4839,6 +4919,8 @@ export {
   NotificationInitRequest,
   NotificationsOverviewV2Request,
   NotificationsSectionV2Request,
+  NotificationsGroupedOverviewRequest,
+  NotificationsGroupedSectionRequest,
   ReadNotificationsRequest,
   DeclineContactRequest,
   AcceptContactRequest,

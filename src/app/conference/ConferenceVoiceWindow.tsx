@@ -56,6 +56,7 @@ import { useReconnect } from "@/reusables/hooks/useReconnect";
 import { useCallPresence } from "@/reusables/hooks/callPresence";
 import { useTheme } from "@/reusables/design";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
+import InvitePeople from "@/app/widgets/invites/InvitePeople";
 
 function ConferenceVoiceWindow({
   data,
@@ -1775,6 +1776,22 @@ function ConferenceVoiceWindow({
             </button>
           </div>
           <div className="tw-flex-1 tw-min-h-0 tw-overflow-y-auto t-scroll tw-px-[14px] tw-py-[12px] tw-flex tw-flex-col tw-gap-[18px]">
+            {/* Invite from inside the room - by email (no account needed:
+                the link opens this conference lobby) or by username. Hosts
+                only: the server checks realm.invite.create either way. */}
+            {effectiveCanManage && realmId && (
+              <div className="tw-rounded-[10px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-overflow-hidden tw-flex-shrink-0">
+                <InvitePeople
+                  realmId={realmId}
+                  realmType="conference"
+                  realmName={
+                    data.groupdetails?.groupName ||
+                    data.callDisplayName ||
+                    "this conference"
+                  }
+                />
+              </div>
+            )}
             {effectiveCanManage && (
               <div className="tw-flex tw-flex-col tw-gap-[8px]">
                 <div className="tw-flex tw-flex-row tw-items-center tw-justify-between">

@@ -26,6 +26,7 @@ const TYPE_ICONS: Record<string, { icon: string; color: string }> = {
   info_contact_accept: { icon: "how_to_reg", color: "var(--green)" },
   info_contact_decline: { icon: "close", color: "var(--text-3)" },
   poke: { icon: "touch_app", color: "var(--gold)" },
+  realm_invite: { icon: "group_add", color: "var(--brand)" },
 };
 
 interface NotificationRowProps {

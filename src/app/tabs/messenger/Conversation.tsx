@@ -1,6 +1,14 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  Fragment,
+  memo,
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { compareMessagesDesc } from "@/reusables/hooks/reusable";
 import "../../../styles/styles.css";
 import { motion } from "framer-motion";
@@ -74,6 +82,8 @@ import {
 } from "@/reusables/vars/interfaces";
 import IsTypingLoader from "./partials/IsTypingLoader";
 import { useThreadScroll } from "@/reusables/hooks/useThreadScroll";
+import { useUnreadDivider } from "@/reusables/hooks/unreadDivider";
+import UnreadDividerLine from "./partials/UnreadDividerLine";
 import { FaHashtag, FaLock } from "react-icons/fa6";
 import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdClose, IoMdSettings } from "react-icons/io";
@@ -225,6 +235,21 @@ function Conversation({
   const [page, setpage] = useState<number>(1);
   const [range, setrange] = useState<number>(20);
   const [incrementer, setincrementer] = useState<number>(1);
+
+  // Where reading stopped when this visit opened the thread: the "N unread
+  // messages" divider (see hooks/unreadDivider).
+  const unreadDivider = useUnreadDivider({
+    conversationKey: conversationIdentityKey,
+    isLoading,
+    list: conversationList,
+    // The same test the lazy loader renders on: older pages remain.
+    hasOlder: totalMessages > page * range,
+    selfIds: [
+      authentication.user?.entity_id,
+      authentication.active_entity_context?.id,
+      authentication.user?.userID,
+    ],
+  });
 
   const [toggleConversationInfoModal, settoggleConversationInfoModal] =
     useState<boolean>(false);
@@ -2018,21 +2043,37 @@ function Conversation({
                   </div>
                 )}
               {conversationList.map((cnvs, i) => {
+                // The divider sits right above the oldest unread message and
+                // breaks a sender run that crosses it - as in ConversationV2.
+                const firstUnread = unreadDivider?.messageID === cnvs.messageID;
+                const lastRead =
+                  !!unreadDivider &&
+                  conversationList[i - 1]?.messageID === unreadDivider.messageID;
                 return (
-                  <ContentHandler
-                    key={cnvs.messageID}
-                    i={i}
-                    cnvs={cnvs}
-                    conversationsetup={conversationsetup}
-                    members={conversationinfo?.usersWithInfo ?? []}
-                    startsRun={startsSenderRun(cnvs, conversationList[i + 1])}
-                    endsRun={endsSenderRun(cnvs, conversationList[i - 1])}
-                    setisReplying={setisReplyingTrigger}
-                    setfullImageScreen={setfullImageScreen}
-                    scrollBottom={scrollBottom}
-                    setunreadmessages={setunreadmessages}
-                    theme={theme}
-                  />
+                  <Fragment key={cnvs.messageID}>
+                    <ContentHandler
+                      i={i}
+                      cnvs={cnvs}
+                      conversationsetup={conversationsetup}
+                      members={conversationinfo?.usersWithInfo ?? []}
+                      startsRun={
+                        startsSenderRun(cnvs, conversationList[i + 1]) ||
+                        firstUnread
+                      }
+                      endsRun={
+                        endsSenderRun(cnvs, conversationList[i - 1]) || lastRead
+                      }
+                      setisReplying={setisReplyingTrigger}
+                      setfullImageScreen={setfullImageScreen}
+                      scrollBottom={scrollBottom}
+                      setunreadmessages={setunreadmessages}
+                      theme={theme}
+                    />
+                    {/* AFTER the message in the DOM, so it draws above it. */}
+                    {firstUnread && unreadDivider && (
+                      <UnreadDividerLine count={unreadDivider.count} />
+                    )}
+                  </Fragment>
                 );
               })}
               {conversationList.length > 0 && totalMessages > page * range && (

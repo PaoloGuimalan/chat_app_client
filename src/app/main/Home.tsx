@@ -15,6 +15,7 @@ import {
 import Contacts from "../tabs/feed/Contacts";
 import Notifications from "../tabs/feed/Notifications";
 import PostPage from "../tabs/feed/PostPage";
+import InvitePage from "../widgets/invites/InvitePage";
 import MomentViewer from "../tabs/moments/MomentViewer";
 import Messages from "../tabs/feed/Messages";
 import {
@@ -613,6 +614,9 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
                   because a static first segment outscores a dynamic one - the
                   same reason /settings and /contacts coexist with it. */}
               <Route path="/post/:postID" element={<PostPage />} />
+              {/* Where an invite's notification, push and email lead. Static
+                  first segment, so never mistaken for a username. */}
+              <Route path="/invite/:token" element={<InvitePage />} />
               {/* Static "archive" outranks the :entityID segment. */}
               <Route path="/moments/archive" element={<MomentViewer archive />} />
               <Route path="/moments/:entityID" element={<MomentViewer />} />

@@ -1,4 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useRef } from "react";
+
 /**
  * The "unread messages" divider: where reading stopped when the reader
  * opened the conversation.
@@ -111,3 +113,53 @@ export const unreadDividerOf = (
 
 export const unreadDividerLabel = (count: number) =>
   `${count} unread message${count === 1 ? "" : "s"}`;
+
+/**
+ * The divider for a mounted thread, recorded during render.
+ *
+ * Keyed by the conversation, and only from the first load on: the render
+ * right after a switch still holds the LAST thread's list, and `isLoading`
+ * going true is what says the new one has been asked for. Recording is
+ * idempotent, so a repeated render records nothing new. Call it before any
+ * early return - it holds a ref.
+ */
+export const useUnreadDivider = ({
+  conversationKey,
+  isLoading,
+  list,
+  hasOlder,
+  selfIds,
+}: {
+  conversationKey: string;
+  isLoading: boolean;
+  /** Newest-first. */
+  list: any[];
+  hasOlder: boolean;
+  /** Every id the reader may appear under - see firstSightOf. */
+  selfIds: (string | null | undefined)[];
+}): UnreadDivider | null => {
+  const ref = useRef<{ key: string; sawLoading: boolean; visit: UnreadVisit }>({
+    key: "",
+    sawLoading: false,
+    visit: newUnreadVisit(),
+  });
+  if (ref.current.key !== conversationKey) {
+    ref.current = {
+      key: conversationKey,
+      sawLoading: false,
+      visit: newUnreadVisit(),
+    };
+  }
+  const state = ref.current;
+  if (isLoading) {
+    state.sawLoading = true;
+    return null;
+  }
+  if (!state.sawLoading) return null;
+  recordFirstSight(
+    list,
+    state.visit,
+    new Set(selfIds.filter(Boolean).map(String)),
+  );
+  return unreadDividerOf(list, state.visit, hasOlder);
+};

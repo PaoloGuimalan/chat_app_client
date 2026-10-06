@@ -35,6 +35,7 @@ function ContactMember({
   label,
   excludeIDs,
   onAdd,
+  actionLabel = "Add",
 }: {
   parentRealmID: string | null;
   isRealm: boolean;
@@ -42,9 +43,16 @@ function ContactMember({
   label: string;
   excludeIDs: string[];
   onAdd: (
-    markedMembers: { id: string; userID: string; fullName: string }[],
+    markedMembers: {
+      id: string;
+      entityID: string;
+      userID: string;
+      fullName: string;
+    }[],
     callback: () => void,
   ) => void;
+  /** The confirm button - "Invite" where the people picked are asked first. */
+  actionLabel?: string;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -591,7 +599,7 @@ function ContactMember({
                 });
               }}
             >
-              Add
+              {actionLabel}
             </button>
             <button
               className="btns_create_cancel"

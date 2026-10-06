@@ -6,12 +6,13 @@ import {
   AcceptContactRequest,
   AnswerFollowRequest,
   DeclineContactRequest,
-  NotificationsOverviewV2Request,
-  NotificationsSectionV2Request,
+  NotificationsGroupedOverviewRequest,
+  NotificationsGroupedSectionRequest,
   ReadNotificationsRequest,
 } from "../../../reusables/hooks/requests";
 import {
   INotificationAction,
+  INotificationGroup,
   INotificationV2,
   NotificationSectionKey,
 } from "@/reusables/vars/interfaces";
@@ -24,6 +25,7 @@ import { SET_ALERTS } from "@/redux/types";
 import { needsMoreToFill } from "@/reusables/hooks/reusable";
 import { Card, Icon, IconBtn, useTheme } from "@/reusables/design";
 import NotificationRow from "./partials/NotificationRow";
+import GroupedNotificationRow from "./partials/GroupedNotificationRow";
 import { NotificationRowSkeleton } from "./partials/NotificationSkeletons";
 
 // Redesigned Notifications page ("ChatterLoop Upgrade" -
@@ -70,8 +72,12 @@ const SECTION_DEFS: {
 const RANGE = 10;
 const MOBILE_PREVIEW = 3;
 
+// Rows are GROUPS: one notification, or several of the same action on the
+// same thing ("Maya and 4 others reacted to your post") - see
+// GroupedNotificationRow. total/next count groups; unread counts
+// notifications, as it always has.
 interface SectionState {
-  items: INotificationV2[];
+  groups: INotificationGroup[];
   total: number;
   unread: number;
   page: number;
@@ -80,7 +86,7 @@ interface SectionState {
 }
 
 const EMPTY_SECTION: SectionState = {
-  items: [],
+  groups: [],
   total: 0,
   unread: 0,
   page: 1,
@@ -165,6 +171,16 @@ function Notifications() {
   const [isLoading, setIsLoading] = useState(true);
   const [detail, setDetail] = useState<NotificationSectionKey | null>(null);
   const [isDisabledByRequest, setIsDisabledByRequest] = useState(false);
+  // Which groups are open, by group key - which the server keeps stable across
+  // refetches, so a new reaction does not snap an open group shut.
+  const [expanded, setExpanded] = useState<Set<string>>(new Set());
+  const toggleGroup = (key: string) =>
+    setExpanded((prev) => {
+      const next = new Set(prev);
+      if (next.has(key)) next.delete(key);
+      else next.add(key);
+      return next;
+    });
 
   // Auto-read on open is kept behavior (user decision) - fire once per
   // visit, after the first successful overview load. The topbar badge
@@ -181,11 +197,11 @@ function Notifications() {
   const isMobile = screensizelistener.W < 760;
 
   const fetchOverview = () => {
-    NotificationsOverviewV2Request(RANGE)
+    NotificationsGroupedOverviewRequest(RANGE)
       .then((result) => {
         if (result) {
           const toState = (s: any): SectionState => ({
-            items: s.items,
+            groups: s?.groups ?? [],
             total: s.total,
             unread: s.unread,
             page: 1,
@@ -226,13 +242,21 @@ function Notifications() {
       ...prev,
       [key]: { ...prev[key], loadingMore: true },
     }));
-    NotificationsSectionV2Request(key, current.page + 1, RANGE)
+    NotificationsGroupedSectionRequest(key, current.page + 1, RANGE)
       .then((result) => {
         setSections((prev) => ({
           ...prev,
           [key]: result
             ? {
-                items: [...prev[key].items, ...result.items],
+                // A notification arriving between pages can move a group
+                // onto the next page - it is already here, so skip it.
+                groups: [
+                  ...prev[key].groups,
+                  ...(result.groups ?? []).filter(
+                    (g: INotificationGroup) =>
+                      !prev[key].groups.some((have) => have.key === g.key),
+                  ),
+                ],
                 total: result.total,
                 // Keep the locally-known unread count - after the auto-read
                 // the server already reports 0, which would blank the badge
@@ -260,7 +284,11 @@ function Notifications() {
       const zero = (s: SectionState): SectionState => ({
         ...s,
         unread: 0,
-        items: s.items.map((n) => ({ ...n, isRead: true })),
+        groups: s.groups.map((g) => ({
+          ...g,
+          unread: 0,
+          items: g.items.map((n) => ({ ...n, isRead: true })),
+        })),
       });
       return {
         activity: zero(prev.activity),
@@ -276,9 +304,14 @@ function Notifications() {
     setSections((prev) => {
       const flip = (s: SectionState): SectionState => ({
         ...s,
-        items: s.items.map((n) =>
-          n.referenceID === referenceID ? { ...n, referenceStatus: true } : n,
-        ),
+        groups: s.groups.map((g) => ({
+          ...g,
+          items: g.items.map((n) =>
+            n.referenceID === referenceID
+              ? { ...n, referenceStatus: true }
+              : n,
+          ),
+        })),
       });
       return {
         activity: flip(prev.activity),
@@ -474,19 +507,34 @@ function Notifications() {
     limit?: number,
   ) => {
     const s = sections[key];
-    const items = limit ? s.items.slice(0, limit) : s.items;
-    return items.map((n) => (
-      <NotificationRow
-        key={n.notificationID}
-        notification={n}
-        size={size}
-        actionBusy={isDisabledByRequest}
-        onAccept={acceptRequestProcess}
-        onDecline={declineRequestProcess}
-        onAction={runActionProcess}
-        onOpen={openNotificationProcess}
-      />
-    ));
+    const groups = limit ? s.groups.slice(0, limit) : s.groups;
+    return groups.map((g) =>
+      g.count > 1 ? (
+        <GroupedNotificationRow
+          key={g.key}
+          group={g}
+          size={size}
+          expanded={expanded.has(g.key)}
+          onToggle={toggleGroup}
+          actionBusy={isDisabledByRequest}
+          onAccept={acceptRequestProcess}
+          onDecline={declineRequestProcess}
+          onAction={runActionProcess}
+          onOpen={openNotificationProcess}
+        />
+      ) : g.items[0] ? (
+        <NotificationRow
+          key={g.key}
+          notification={g.items[0]}
+          size={size}
+          actionBusy={isDisabledByRequest}
+          onAccept={acceptRequestProcess}
+          onDecline={declineRequestProcess}
+          onAction={runActionProcess}
+          onOpen={openNotificationProcess}
+        />
+      ) : null,
+    );
   };
 
   const renderMainView = () => (
@@ -601,7 +649,7 @@ function Notifications() {
                     { length: isMobile ? MOBILE_PREVIEW : 6 },
                     (_, i) => <NotificationRowSkeleton key={i} />,
                   )
-                ) : s.items.length === 0 ? (
+                ) : s.groups.length === 0 ? (
                   <SectionEmptyState
                     icon={def.icon}
                     emptyText={def.emptyText}
@@ -695,7 +743,7 @@ function Notifications() {
             width: "100%",
           }}
         >
-          {sections[detailDef.key].items.length === 0 && !isLoading ? (
+          {sections[detailDef.key].groups.length === 0 && !isLoading ? (
             <div
               style={{
                 width: "100%",

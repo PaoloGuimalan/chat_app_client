@@ -117,13 +117,8 @@ import IsTypingLoader from "./partials/IsTypingLoader";
 import PendingReplyHeader from "./partials/PendingReplyHeader";
 import ComposerStrip from "./partials/ComposerStrip";
 import { useThreadScroll } from "@/reusables/hooks/useThreadScroll";
-import {
-  newUnreadVisit,
-  recordFirstSight,
-  UnreadVisit,
-  unreadDividerLabel,
-  unreadDividerOf,
-} from "@/reusables/hooks/unreadDivider";
+import { useUnreadDivider } from "@/reusables/hooks/unreadDivider";
+import UnreadDividerLine from "./partials/UnreadDividerLine";
 import { FaHashtag, FaLock } from "react-icons/fa6";
 import { conversationsetupstate } from "@/redux/actions/states";
 import { IoMdArrowDown, IoMdClose, IoMdSettings } from "react-icons/io";
@@ -487,50 +482,19 @@ function ConversationV2({
   ]);
 
   // Where reading stopped when this visit opened the thread: the "N unread
-  // messages" divider (see unreadDivider). Recorded during render, keyed by
-  // the conversation, and only from the first load on - the render right
-  // after a switch still holds the LAST thread's list, and isLoading going
-  // true is what says the new one has been asked for. Recording is
-  // idempotent, so a repeated render records nothing new.
-  const unreadVisitRef = useRef<{
-    key: string;
-    sawLoading: boolean;
-    visit: UnreadVisit;
-  }>({ key: "", sawLoading: false, visit: newUnreadVisit() });
-  if (unreadVisitRef.current.key !== conversationIdentityKey) {
-    unreadVisitRef.current = {
-      key: conversationIdentityKey,
-      sawLoading: false,
-      visit: newUnreadVisit(),
-    };
-  }
-  const unreadVisit = unreadVisitRef.current;
-  if (isLoading) {
-    unreadVisit.sawLoading = true;
-  } else if (unreadVisit.sawLoading) {
-    recordFirstSight(
-      conversationList,
-      unreadVisit.visit,
-      new Set(
-        [
-          authentication.user?.entity_id,
-          authentication.active_entity_context?.id,
-          authentication.user?.userID,
-        ]
-          .filter(Boolean)
-          .map(String),
-      ),
-    );
-  }
-  const unreadDivider =
-    unreadVisit.sawLoading && !isLoading
-      ? unreadDividerOf(
-          conversationList,
-          unreadVisit.visit,
-          // The same test the lazy loader renders on: older pages remain.
-          totalMessages > page * range,
-        )
-      : null;
+  // messages" divider (see unreadDivider).
+  const unreadDivider = useUnreadDivider({
+    conversationKey: conversationIdentityKey,
+    isLoading,
+    list: conversationList,
+    // The same test the lazy loader renders on: older pages remain.
+    hasOlder: totalMessages > page * range,
+    selfIds: [
+      authentication.user?.entity_id,
+      authentication.active_entity_context?.id,
+      authentication.user?.userID,
+    ],
+  });
 
   // Which members had a seen face on the previous render, for this thread -
   // read during render (so it still holds the PREVIOUS set) and refreshed
@@ -2826,14 +2790,7 @@ function ConversationV2({
                       />
                       {/* AFTER the message in the DOM, so it draws above it. */}
                       {firstUnread && unreadDivider && (
-                        <div
-                          role="separator"
-                          className="cl-unread-divider"
-                        >
-                          <span className="cl-unread-divider__label cl-text-meta">
-                            {unreadDividerLabel(unreadDivider.count)}
-                          </span>
-                        </div>
+                        <UnreadDividerLine count={unreadDivider.count} />
                       )}
                     </Fragment>
                   );

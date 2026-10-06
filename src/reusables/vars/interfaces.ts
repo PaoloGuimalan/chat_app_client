@@ -896,6 +896,37 @@ export interface NotificationSectionData {
   next: boolean;
 }
 
+/**
+ * One row of the GROUPED notifications list: a single notification, or
+ * several of the same action on the same thing - "Maya and 4 others reacted
+ * to your post" - or, in Connections, everything from one person. What may
+ * group, and how rows with buttons keep them, is decided by the server:
+ * server/reusables/models/notificationgroups.js.
+ */
+export interface INotificationGroup {
+  /** Stable across refetches, so an expanded group stays expanded. */
+  key: string;
+  count: number;
+  /** Unread NOTIFICATIONS in the group. */
+  unread: number;
+  /** Distinct people behind it. */
+  actorCount: number;
+  /** The sentence after the people ("reacted to your post"); null for a
+   *  single, which keeps its own stored sentence. */
+  action: string | null;
+  /** Newest first, at most 20 - `count` says how many there are in all. */
+  items: INotificationV2[];
+}
+
+export interface NotificationGroupSectionData {
+  groups: INotificationGroup[];
+  /** GROUPS, not notifications - it drives paging. */
+  total: number;
+  /** NOTIFICATIONS, as the ungrouped endpoints count them. */
+  unread: number;
+  next: boolean;
+}
+
 export type NotificationSectionKey = "activity" | "connections" | "system";
 
 export interface NotificationsOverviewV2 {

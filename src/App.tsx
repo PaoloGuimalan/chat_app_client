@@ -182,7 +182,9 @@ function App() {
               authentication.auth ? (
                 authentication.user.isVerified ? (
                   authentication.user.isComplete ? (
-                    <Navigate to="/" />
+                    // Back to where they came in - an emailed invite, say,
+                    // which is what sent a new person to sign up at all.
+                    <Navigate to={nextPathState ? nextPathState : "/"} />
                   ) : (
                     <Setup />
                   )
@@ -204,7 +206,7 @@ function App() {
               authentication.auth ? (
                 authentication.user.isVerified ? (
                   authentication.user.isComplete ? (
-                    <Navigate to="/" />
+                    <Navigate to={nextPathState ? nextPathState : "/"} />
                   ) : (
                     <Setup />
                   )
@@ -226,7 +228,7 @@ function App() {
               authentication.auth ? (
                 authentication.user.isVerified ? (
                   authentication.user.isComplete ? (
-                    <Navigate to="/" />
+                    <Navigate to={nextPathState ? nextPathState : "/"} />
                   ) : (
                     <Setup />
                   )

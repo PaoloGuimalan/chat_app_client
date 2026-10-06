@@ -3319,6 +3319,267 @@ input:checked + .slider:before {
   align-items: center;
 }
 
+/* "Invite people" (widgets/invites/InvitePeople.tsx). */
+.cl-invite-people {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  padding: 16px;
+  text-align: left;
+}
+
+.cl-invite-people__head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.cl-invite-people__title {
+  font-size: var(--fs-section-title);
+  font-weight: 700;
+  color: var(--text);
+}
+
+.cl-invite-people__intro {
+  margin: 0;
+  font-size: var(--fs-caption);
+  color: var(--text-2);
+}
+
+.cl-invite-people__choices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* Each tab group keeps its width - when both no longer fit on a line, the
+   role tabs move to the next one, rather than squeezing "Help run" onto two. */
+.cl-invite-people__choices > * {
+  flex: none;
+}
+
+.cl-invite-people__choices button {
+  white-space: nowrap;
+}
+
+.cl-invite-people__form {
+  display: flex;
+  gap: 8px;
+}
+
+.cl-invite-people__field {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  background: var(--surface-2);
+}
+
+.cl-invite-people__field input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  color: var(--text);
+  font-size: var(--fs-body-sm);
+}
+
+.cl-invite-people__feedback {
+  font-size: var(--fs-caption);
+}
+
+.cl-invite-people__feedback--ok {
+  color: var(--green-strong);
+}
+
+.cl-invite-people__feedback--muted {
+  color: var(--text-2);
+}
+
+.cl-invite-people__feedback--error {
+  color: var(--pink);
+}
+
+.cl-invite-people__pending {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 4px;
+}
+
+.cl-invite-people__pending-title {
+  font-size: var(--fs-meta);
+  font-weight: 700;
+  color: var(--text-3);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.cl-invite-people__pending-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.cl-invite-people__pending-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.cl-invite-people__pending-name {
+  font-size: var(--fs-body-sm);
+  font-weight: 650;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cl-invite-people__pending-meta {
+  font-size: var(--fs-meta);
+  color: var(--text-3);
+}
+
+/* An invite at its own URL (InvitePage.tsx): one centred card. */
+.cl-invite-page {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  background: var(--bg);
+  color: var(--text);
+}
+
+.cl-invite-page__card {
+  width: 100%;
+  max-width: 420px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 28px 22px 24px;
+  text-align: center;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.cl-invite-page__faces {
+  position: relative;
+  margin-bottom: 6px;
+}
+
+/* The inviter, tucked onto the realm's corner. */
+.cl-invite-page__inviter {
+  position: absolute;
+  right: -8px;
+  bottom: -6px;
+  display: inline-flex;
+  border-radius: 50%;
+  box-shadow: 0 0 0 3px var(--surface);
+}
+
+.cl-invite-page__title {
+  margin: 0;
+  font-size: var(--fs-heading);
+  font-weight: 700;
+  color: var(--text);
+  overflow-wrap: anywhere;
+}
+
+.cl-invite-page__sentence {
+  margin: 0;
+  font-size: var(--fs-body);
+  line-height: 1.45;
+  color: var(--text-2);
+}
+
+.cl-invite-page__actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.cl-invite-page__settled {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 8px;
+  font-size: var(--fs-body-sm);
+  color: var(--text-2);
+}
+
+.cl-invite-page__error {
+  font-size: var(--fs-caption);
+  color: var(--pink);
+}
+
+/* A grouped notification's expand control (GroupedNotificationRow.tsx): the
+   count of what is folded in, and a chevron that turns over when open. */
+.cl-notification-group-toggle {
+  flex: none;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  height: 28px;
+  padding: 0 4px 0 9px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.cl-notification-group-toggle:hover {
+  background: var(--surface-hover);
+}
+
+.cl-notification-group-toggle__count {
+  font-size: var(--fs-meta);
+  font-weight: 700;
+}
+
+/* The group's members, hung under it on a hairline so they read as its
+   contents rather than as the next rows of the list. */
+.cl-notification-group-members {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin: 4px 0 2px 22px;
+  padding-left: 10px;
+  border-left: 2px solid var(--border);
+}
+
+.cl-notification-group-more {
+  padding: 4px 9px 6px;
+  font-size: var(--fs-meta);
+  color: var(--text-3);
+}
+
+/* "· 2 to answer" - a request is waiting inside a collapsed group. */
+.cl-notification-group-answer {
+  color: var(--brand);
+  font-weight: 600;
+}
+
 .cl-notification-row__avatar {
   flex: none;
 }
