@@ -29,20 +29,50 @@ export interface ConferenceIdentity {
   isPage: boolean;
 }
 
+type AuthState = { authentication: AuthenticationInterface };
+
+/**
+ * You as yourself, whichever entity is acting. The account fields (name,
+ * username, picture, email) are always the personal account's; its entity id
+ * is NOT `user.entity_id` - after a switch and the reload that follows,
+ * session restore signs the ACTING entity into the usertoken
+ * (`/auth/jwtchecker`), so that holds the page's id. `personal_entity_id` is
+ * the one that always names you.
+ */
+export function personalIdentity(
+  authentication: AuthenticationInterface,
+): ConferenceIdentity {
+  const user = authentication.user;
+  const fullName = [user.fullName?.firstName, user.fullName?.lastName]
+    .filter((part) => part && part !== "N/A")
+    .join(" ");
+  return {
+    entityID: String(
+      authentication.active_entity_context?.personal_entity_id ||
+        user.entity_id ||
+        "",
+    ),
+    handle: user.username ?? "",
+    name: fullName || user.username || "You",
+    profile: user.profile && user.profile !== "none" ? user.profile : undefined,
+    email: user.email ? String(user.email).trim().toLowerCase() : "",
+    isPage: false,
+  };
+}
+
 export function useConferenceIdentity(): ConferenceIdentity {
   const authentication = useSelector(
-    (state: { authentication: AuthenticationInterface }) => state.authentication,
+    (state: AuthState) => state.authentication,
   );
-  const user = authentication.user;
   const active = authentication.active_entity_context;
 
   return useMemo(() => {
-    const isPage = Boolean(
-      active?.id &&
-        active.entity_type === "realm" &&
-        String(active.id) !== String(user.entity_id),
-    );
-    if (isPage) {
+    // The server's word for it - the active entity's type. This compared the
+    // active id with `user.entity_id`, which after a reload IS the page's id
+    // too (see personalIdentity), so a page was never seen as one: it joined
+    // the call, sat in the People panel and showed on the landing page as its
+    // admin.
+    if (active?.id && active.entity_type === "realm") {
       return {
         entityID: String(active.id),
         handle: active.slug || active.realm_id || String(active.id),
@@ -55,16 +85,6 @@ export function useConferenceIdentity(): ConferenceIdentity {
         isPage: true,
       };
     }
-    const fullName = [user.fullName?.firstName, user.fullName?.lastName]
-      .filter((part) => part && part !== "N/A")
-      .join(" ");
-    return {
-      entityID: String(user.entity_id ?? ""),
-      handle: user.username ?? "",
-      name: fullName || user.username || "You",
-      profile: user.profile && user.profile !== "none" ? user.profile : undefined,
-      email: user.email ? String(user.email).trim().toLowerCase() : "",
-      isPage: false,
-    };
-  }, [active, user]);
+    return personalIdentity(authentication);
+  }, [active, authentication]);
 }

@@ -439,6 +439,46 @@ const SwitchBackToSelfRequest = (
     });
 };
 
+export interface SwitchablePage {
+  realm_id: string;
+  entity_id: string;
+  name: string;
+  slug: string | null;
+  profile: string | null;
+}
+
+// The pages this account may act as - read off the account, not the acting
+// entity. /api/realm/my-list answers for the acting entity, so while switched
+// into one page it lists that page alone. Falls back to it for a user_service
+// that predates /entity/pages, where that is the best there is.
+const GetSwitchablePagesRequest = async (): Promise<SwitchablePage[]> => {
+  const headers = { "x-access-token": localStorage.getItem("authtoken") };
+  try {
+    const response = await Axios.get(
+      `${USER_SERVICE_API}/api/user/entity/pages`,
+      { headers },
+    );
+    if (response.data?.status && Array.isArray(response.data.result?.pages)) {
+      return response.data.result.pages;
+    }
+  } catch (err: any) {
+    if (err?.response?.status !== 404) throw err;
+  }
+  const response = await Axios.get(`${USER_SERVICE_API}/api/realm/my-list`, {
+    headers,
+    params: { page: 1, page_size: 50, type: "page" },
+  });
+  return (response.data?.results ?? [])
+    .filter((realm: any) => realm.is_admin)
+    .map((realm: any) => ({
+      realm_id: realm.id,
+      entity_id: String(realm.entity?.id ?? realm.entity ?? ""),
+      name: realm.name,
+      slug: realm.slug ?? null,
+      profile: realm.profile ?? null,
+    }));
+};
+
 const ThirdPartyAuthenticationRequest = (
   params: any,
   dispatch: Dispatch<any>,
@@ -4917,6 +4957,7 @@ export {
   GetAllowedModulesRequest,
   SwitchEntityRequest,
   SwitchBackToSelfRequest,
+  GetSwitchablePagesRequest,
   JoinRoomRequest,
   CreateTransportRequest,
   TransportConnectRequest,

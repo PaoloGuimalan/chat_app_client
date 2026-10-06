@@ -8,6 +8,7 @@ import { FiArrowRight, FiVideo, FiVideoOff } from "react-icons/fi";
 import { BsFillMicFill, BsFillMicMuteFill } from "react-icons/bs";
 import ConferenceVoiceWindow from "./ConferenceVoiceWindow";
 import { useConferenceIdentity } from "./identity";
+import IdentitySwitcher from "./IdentitySwitcher";
 import {
   ConversationInfoRequest,
   CreateRealmInviteRequest,
@@ -827,6 +828,9 @@ function ConferenceRoom() {
               </div>
 
               <div className="tw-flex tw-flex-col tw-gap-[12px]">
+                {/* Who walks in - yourself or a page - and the chance to be the
+                    other before you do. */}
+                <IdentitySwitcher label="Joining as" className="tw-rounded-[20px]" />
                 <div className="tw-rounded-[20px] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px] tw-flex tw-flex-col tw-gap-[8px] tw-shadow-[var(--shadow-sm)]">
                   <span className="tw-text-[12px] tw-text-[var(--text-2)]">
                     Room status

@@ -497,6 +497,33 @@ function ConferenceVoiceWindow({
     fetchMemberRoles();
   }, [realmId]);
 
+  // A public conference makes whoever joins a member there and then (Node's
+  // isRealmMember) and tells nobody, so a newcomer - a page, as often as not
+  // - had no row here: no name, no badge, no menu. Someone in the call the
+  // list has never heard of means the list is behind, so read it again; once
+  // per newcomer, so one it never returns cannot loop.
+  const refetchedForRef = useRef<Set<string>>(new Set());
+  useEffect(() => {
+    if (!membersLoaded) {
+      return;
+    }
+    const unknown = joinedParticipants
+      .map((participant) =>
+        participant.entityID ? String(participant.entityID) : "",
+      )
+      .filter(
+        (entityID) =>
+          entityID &&
+          !memberByEntity.has(entityID) &&
+          !refetchedForRef.current.has(entityID),
+      );
+    if (unknown.length === 0) {
+      return;
+    }
+    unknown.forEach((entityID) => refetchedForRef.current.add(entityID));
+    fetchMemberRoles();
+  }, [joinedParticipants, memberByEntity, membersLoaded, fetchMemberRoles]);
+
   // Keyed by entity, not username: a page member has a slug or nothing.
   const changeMemberRole = useCallback(
     async (entityID: string, nextRole: "admin" | "member") => {
@@ -1707,13 +1734,16 @@ function ConferenceVoiceWindow({
   // A participant's member row: by the entity the server stamped on them,
   // else by the username their client sent. The members not in the call are
   // everyone in the conference but you and whoever has joined.
+  // Never the username once the server named the entity: a page's client
+  // used to send its admin's username, and the fallback then put the ADMIN's
+  // row - and their Remove - on the page.
   const memberFor = (participant: {
     username: string;
     entityID?: string | null;
   }) =>
-    (participant.entityID
+    participant.entityID
       ? memberByEntity.get(String(participant.entityID))
-      : undefined) ?? memberRoleMap.get(participant.username);
+      : memberRoleMap.get(participant.username);
   const joinedEntityIDs = new Set(
     joinedParticipants
       .map((participant) => memberFor(participant)?.entityID)
@@ -2028,11 +2058,18 @@ function ConferenceVoiceWindow({
                       {joinedParticipants.map((participant) => {
                         const status = participantStatuses.get(participant.clientId);
                         const memberInfo = memberFor(participant);
+                        // "Is this me" by entity - the server stamped it. The
+                        // username is what their client sent, and a page's
+                        // used to be its admin's: the admin, in the call as
+                        // themselves, saw no menu on the page at all.
+                        const isSelf = participant.entityID
+                          ? String(participant.entityID) === me.entityID
+                          : participant.username === selfUsername;
                         const canManageThisMember = Boolean(
                           effectiveCanManage &&
                           memberInfo?.member_id &&
                           memberInfo.entityID !== me.entityID &&
-                          participant.username !== selfUsername &&
+                          !isSelf &&
                           canActOnRole(memberInfo?.role),
                         );
                         return (
