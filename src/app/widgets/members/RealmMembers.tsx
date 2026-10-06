@@ -26,6 +26,7 @@ function RealmMembers({
   onList,
   realmNoun,
   myRole,
+  compact = false,
 }: {
   realm_id: string;
   hide: string[];
@@ -38,6 +39,11 @@ function RealmMembers({
    * the write routes apply, so this agrees with what they will allow.
    */
   myRole?: string | null;
+  /**
+   * The manage modal's layout: no heading of its own (its tab names it) and
+   * no fixed 350px box - the list fills the panel and scrolls inside it.
+   */
+  compact?: boolean;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -186,15 +192,25 @@ function RealmMembers({
 
   return (
     <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-transparent tw-flex">
-      <div className="tw-w-full tw-p-[18px] sm:tw-p-[24px] tw-flex tw-flex-col tw-items-start tw-gap-[15px] tw-bg-transparent tw-min-h-0">
-        <span className="cl-text-body tw-font-semibold tw-text-[var(--text)]">
-          Members
-        </span>
+      <div
+        className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-bg-transparent tw-min-h-0 ${
+          compact
+            ? "tw-p-[12px] tw-gap-[10px]"
+            : "tw-p-[18px] sm:tw-p-[24px] tw-gap-[15px]"
+        }`}
+      >
+        {!compact && (
+          <span className="cl-text-body tw-font-semibold tw-text-[var(--text)]">
+            Members
+          </span>
+        )}
         <div id="div_modal_input_columns_add_people" className="tw-w-full">
           <div id="div_input_filter_container">
-            <span id="span_input_label">
-              Remove, Promote, or Demote Members
-            </span>
+            {!compact && (
+              <span id="span_input_label">
+                Remove, Promote, or Demote Members
+              </span>
+            )}
             <input
               id="input_searchfilter"
               value={searchFilter}
@@ -203,11 +219,15 @@ function RealmMembers({
                 debouncedFetch(1, e.target.value);
               }}
               type="text"
-              placeholder="Type a name of a user"
+              placeholder={compact ? "Search members" : "Type a name of a user"}
             />
           </div>
           {isLoading ? (
-            <div className="tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center tw-max-h-[350px] tw-min-h-[350px]">
+            <div
+              className={`tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center ${
+                compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
+              }`}
+            >
               <motion.div
                 animate={{
                   rotate: -360,
@@ -227,7 +247,11 @@ function RealmMembers({
               className="scroller tw-pr-[8px]"
               ref={divcontentRef}
             >
-              <div className="tw-w-full tw-flex tw-flex-col tw-max-h-[350px] tw-min-h-[350px] tw-gap-[8px]">
+              <div
+                className={`tw-w-full tw-flex tw-flex-col tw-gap-[8px] ${
+                  compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
+                }`}
+              >
                 {memberslist.map((cnts: IRealmMember) => {
                   return (
                     <motion.div

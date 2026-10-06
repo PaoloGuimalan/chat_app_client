@@ -20,6 +20,7 @@ import Media from "../tabs/Media";
 import Members from "../tabs/Members";
 import Followers from "../tabs/Followers";
 import { Avatar } from "@/reusables/design";
+import { hasMediaTab } from "./manageTabs";
 
 function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
   const screensizelistener = useSelector(
@@ -35,6 +36,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
 
   const [isMenuToggled, setisMenuToggled] = useState<boolean>(true);
   const activePath = location.pathname;
+  const showMedia = hasMediaTab(realm);
 
   const navButtonClass = (target: string) =>
     `tw-w-full tw-flex tw-items-center tw-justify-between tw-gap-[12px] tw-px-[14px] tw-py-[11px] tw-border-none tw-rounded-[var(--r-md)] tw-cursor-pointer tw-transition-colors ${
@@ -129,16 +131,18 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                     Profile Details
                   </span>
                 </button>
-                <button
-                  onClick={() => {
-                    navigate(`/realms/${realm.id}/media`);
-                  }}
-                  className={navButtonClass(`/realms/${realm.id}/media`)}
-                >
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                    Media
-                  </span>
-                </button>
+                {showMedia && (
+                  <button
+                    onClick={() => {
+                      navigate(`/realms/${realm.id}/media`);
+                    }}
+                    className={navButtonClass(`/realms/${realm.id}/media`)}
+                  >
+                    <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+                      Media
+                    </span>
+                  </button>
+                )}
                 <button
                   onClick={() => {
                     navigate(`/realms/${realm.id}/members`);
@@ -229,16 +233,18 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                   Profile Details
                 </span>
               </button>
-              <button
-                onClick={() => {
-                  navigate(`/realms/${realm.id}/media`);
-                }}
-                className={navButtonClass(`/realms/${realm.id}/media`)}
-              >
-                <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                  Media
-                </span>
-              </button>
+              {showMedia && (
+                <button
+                  onClick={() => {
+                    navigate(`/realms/${realm.id}/media`);
+                  }}
+                  className={navButtonClass(`/realms/${realm.id}/media`)}
+                >
+                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+                    Media
+                  </span>
+                </button>
+              )}
               <button
                 onClick={() => {
                   navigate(`/realms/${realm.id}/members`);
@@ -268,7 +274,16 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
           <Routes>
             <Route path="/" element={<Dashboard />} />
             <Route path="/details" element={<Details realm={realm} />} />
-            <Route path="/media" element={<Media realm={realm} />} />
+            <Route
+              path="/media"
+              element={
+                showMedia ? (
+                  <Media realm={realm} />
+                ) : (
+                  <Navigate to={`/realms/${realm.id}/`} />
+                )
+              }
+            />
             <Route path="/members" element={<Members realm={realm} />} />
             <Route
               path="/followers"

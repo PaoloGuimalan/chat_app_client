@@ -7,6 +7,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { FiArrowRight, FiVideo, FiVideoOff } from "react-icons/fi";
 import { BsFillMicFill, BsFillMicMuteFill } from "react-icons/bs";
 import ConferenceVoiceWindow from "./ConferenceVoiceWindow";
+import { useConferenceIdentity } from "./identity";
 import {
   ConversationInfoRequest,
   CreateRealmInviteRequest,
@@ -28,6 +29,9 @@ function ConferenceRoom() {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
+  // You as the conference sees you - yourself, or the page you are switched
+  // into. Everything below that asks "is this me" asks it of this.
+  const me = useConferenceIdentity();
   const alerts = useSelector((state: any) => state.alerts);
   const dispatch = useDispatch();
   const params = useParams();
@@ -173,8 +177,9 @@ function ConferenceRoom() {
       callType: "video",
       isGroup: true,
       caller: {
-        name: authentication.user.fullName.firstName,
+        name: me.name,
         userID: authentication.user.userID,
+        entityID: me.entityID,
       },
       recepients: receivers,
       groupdetails: {
@@ -195,7 +200,8 @@ function ConferenceRoom() {
       instance: roomInfo.instance ?? null,
     };
   }, [
-    authentication.user.fullName.firstName,
+    me.name,
+    me.entityID,
     authentication.user.userID,
     lobbyCameraEnabled,
     lobbyMicEnabled,
@@ -254,9 +260,10 @@ function ConferenceRoom() {
     };
   }, [roomData, currentTime]);
 
-  const normalizedUserEmail = authentication.user.email
-    ? String(authentication.user.email).trim().toLowerCase()
-    : "";
+  // Your own address - none while acting as a page, whose invites are
+  // matched by the entity the server resolved them to (its @slug, or its
+  // contact email - community/invites.py).
+  const normalizedUserEmail = me.email;
   const roomIsPrivate = Boolean(
     roomInfo?.groupdetails?.privacy ??
     roomInfo?.conversationInfo?.privacy ??
@@ -284,13 +291,13 @@ function ConferenceRoom() {
     null;
   const hostIsCreator =
     Boolean(roomCreatorUserID) &&
-    String(roomCreatorUserID) === String(authentication.user.username);
+    String(roomCreatorUserID) === String(me.handle);
   const roomInvites = Array.isArray(roomData?.invites) ? roomData.invites : [];
-  const selfEntityID = authentication.user.entity_id;
-  // An invite is yours when it went to your address OR to you by name. One
-  // sent by @username or picked from search stores no email at all - only
-  // the person (target_entity) - so matching on the address alone told
-  // those invitees the invite "belongs to another account".
+  const selfEntityID = me.entityID;
+  // An invite is yours when it went to your address OR to you - the acting
+  // entity, a page included. One sent by @handle or picked from search stores
+  // no email at all, only the entity (target_entity), so matching on the
+  // address alone told those invitees it "belongs to another account".
   const inviteIsForMe = (invite: any) => {
     if (!invite) return false;
     const email = invite.target_email
@@ -310,9 +317,12 @@ function ConferenceRoom() {
     : "";
   const inviteMatchesUser = inviteIsForMe(inviteInfo);
   // Who the invite names, for the lines below - its address, or the person.
+  const inviteTargetDetails = inviteInfo?.target_entity?.details;
   const inviteTargetLabel =
     inviteTargetEmail ||
-    inviteInfo?.target_entity?.details?.username ||
+    (inviteTargetDetails?.username && `@${inviteTargetDetails.username}`) ||
+    (inviteTargetDetails?.slug && `@${inviteTargetDetails.slug}`) ||
+    inviteTargetDetails?.name ||
     "another account";
   const invitePending =
     inviteInfo?.status === "pending" &&
@@ -397,7 +407,11 @@ function ConferenceRoom() {
     if ((inviteToken && inviteBlocked) || effectiveInviteBlocked) {
       return {
         title: "Invitation belongs to another account",
-        description: `Signed in as ${normalizedUserEmail || "this user"}, but this invite is for ${inviteTargetLabel}.`,
+        description: `${
+          me.isPage
+            ? `You're acting as ${me.name}`
+            : `Signed in as ${normalizedUserEmail || "this user"}`
+        }, but this invite is for ${inviteTargetLabel}.`,
       };
     }
 
@@ -485,6 +499,8 @@ function ConferenceRoom() {
     isInviteLoading,
     roomIsPrivate,
     normalizedUserEmail,
+    me.isPage,
+    me.name,
     selfIsMember,
   ]);
 
@@ -521,13 +537,15 @@ function ConferenceRoom() {
       roomData?.data?.conversationInfo?.realm_id ??
       null;
 
-    if (!realmId || !normalizedUserEmail) return;
+    // Any entity may ask - the server takes the requester from the token. This
+    // used to stop here without an email, so a page's request went nowhere.
+    if (!realmId) return;
 
     setIsInviteUpdating(true);
     try {
       const response = await CreateRealmInviteRequest({
         realm_id: realmId,
-        target_email: normalizedUserEmail,
+        ...(normalizedUserEmail ? { target_email: normalizedUserEmail } : {}),
         kind: "request",
       });
 
@@ -564,17 +582,22 @@ function ConferenceRoom() {
         : [];
     const selfInMemberList = memberList.some(
       (member: any) =>
-        String(member?.userID) === String(authentication.user.username) ||
-        String(member?._id) === String(authentication.user.userID),
+        String(member?.entityID) === String(me.entityID) ||
+        String(member?.userID) === String(me.handle),
     );
 
-    setSelfIsAdmin(Boolean(roomInfo?.is_admin));
+    // The server sends the flags under data, as is_member just below - this
+    // read roomInfo.is_admin, which is never there, so admins who hadn't
+    // created the room were never treated as admins here.
+    setSelfIsAdmin(
+      Boolean(roomInfo?.is_admin) || Boolean(roomInfo?.data?.is_admin),
+    );
     setSelfIsMember(
       Boolean(roomInfo?.data.is_member) ||
         Boolean(roomInfo?.data.is_admin) ||
         selfInMemberList,
     );
-  }, [roomInfo, authentication.user.username, authentication.user.userID]);
+  }, [roomInfo, me.entityID, me.handle]);
 
   // Realtime: conference membership/access changed (role change, member
   // added/removed, or this user's join request resolved). These are signals
@@ -931,7 +954,7 @@ function ConferenceRoom() {
           data={roomData}
           realmId={realmId}
           canManageRequests={hostIsCreator || selfIsAdmin}
-          selfUsername={authentication.user.username}
+          selfUsername={me.handle}
         />
       </div>
     </div>

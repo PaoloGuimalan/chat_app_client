@@ -6,6 +6,7 @@ import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { motion } from "framer-motion";
+import { Btn } from "@/reusables/design";
 
 function Details({ realm }: { realm: IRealmProfileInfo }) {
   const [realmState, setrealmState] = useState<IRealmProfileInfo>(realm);
@@ -19,11 +20,16 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
       voice: ["name"], // "privacy" for future, need add every user in server when set to public
       page: ["name", "description", "email", "slug"],
       server: ["name", "description", "privacy"],
+      // Public meetings can be joined directly, private ones need approval -
+      // the same choice the conference page offers when creating one.
+      conference: ["name", "privacy"],
     };
 
     const isChannel = realmState.type === "group" && realmState.parent;
 
-    return formPreset[isChannel ? "channel" : realmState.type];
+    // A type with no preset gets its name: reading an unknown type used to
+    // crash the tab (a conference had none).
+    return formPreset[isChannel ? "channel" : realmState.type] ?? ["name"];
   }, [realmState]);
 
   const stateDifference = useMemo(
@@ -208,25 +214,29 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
                   </select>
                 </div>
               )}
-              <div className="tw-flex tw-justify-end tw-gap-[10px] tw-w-full tw-pt-[8px]">
-                <button
+              {/* A row of its own across both columns: as a grid cell beside
+                  Name it stretched to the field-plus-label height, which made
+                  the buttons twice as tall as they should be. */}
+              <div className="tw-flex tw-items-center tw-justify-end tw-gap-[8px] tw-w-full md:tw-col-span-2">
+                <Btn
+                  variant="outline"
                   disabled={isSaving}
                   onClick={() => {
                     setrealmState(realm);
                   }}
-                  className="tw-min-w-[92px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--surface-2)] tw-text-[var(--text)] tw-rounded-[var(--r-md)] tw-text-[13px] hover:tw-bg-[var(--surface-hover)] tw-transition-colors"
+                  style={{ minWidth: 80 }}
                 >
                   Reset
-                </button>
-                <button
+                </Btn>
+                <Btn
                   onClick={SaveDetailsProcess}
                   disabled={
                     Object.keys(stateDifference).length === 0 || isSaving
                   }
-                  className="tw-min-w-[92px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--brand)] tw-text-white tw-rounded-[var(--r-md)] tw-text-[13px] disabled:tw-opacity-[0.65] tw-transition-colors"
+                  style={{ minWidth: 80 }}
                 >
-                  Save
-                </button>
+                  {isSaving ? "Saving…" : "Save"}
+                </Btn>
               </div>
             </div>
           </div>

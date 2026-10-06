@@ -277,7 +277,10 @@ function VoiceWindow({ data }: any) {
   ]);
 
   const leaveCallProcess = useCallback(
-    ({ keepalive = false }: { keepalive?: boolean } = {}) => {
+    ({
+      keepalive = false,
+      unmounting = false,
+    }: { keepalive?: boolean; unmounting?: boolean } = {}) => {
       if (hasLeftRef.current) {
         return;
       }
@@ -338,7 +341,13 @@ function VoiceWindow({ data }: any) {
       //       callID: data.conversationid || conversationID,
       //     },
       //   });
-      navigate(`/servers/${data.groupdetails.serverID}`);
+      // Back to the server only when the call is left from here. Unmounting
+      // means the route already moved on - Manage in the channel menu, or any
+      // other link - and navigating now would override it, landing on the
+      // server page instead of where the user went.
+      if (!unmounting) {
+        navigate(`/servers/${data.groupdetails.serverID}`);
+      }
     },
     [
       cleanupLocalCallResources,
@@ -1248,7 +1257,7 @@ function VoiceWindow({ data }: any) {
 
   useEffect(() => {
     return () => {
-      leaveCallProcessRef.current?.();
+      leaveCallProcessRef.current?.({ unmounting: true });
     };
   }, []);
 

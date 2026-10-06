@@ -17,6 +17,11 @@ import { TypingEntry, typersIn, typingLabel } from "@/reusables/hooks/typing";
 const ACTIVE_LIMIT = 7;
 /** It is a summary of the list beside it, so it shows only the first few. */
 const UNREAD_LIMIT = 5;
+/** The unread box never drops below its three loading rows (30px faces in
+ *  7px padding) plus its own 4px padding and 1px border, so the hub doesn't
+ *  shrink - and, centred as it is, jump - once the list lands or turns out
+ *  empty. */
+const UNREAD_MIN_HEIGHT = 3 * (30 + 2 * 7) + 2 * 4 + 2 * 1;
 
 type Action = {
   icon: string;
@@ -206,76 +211,111 @@ function MessagesDefault({
               )
             }
           />
-          {loading ? (
-            <div style={{ display: "flex", gap: 12 }}>
-              {Array.from({ length: 5 }, (_, i) => (
-                <span
-                  key={i}
-                  className="cl-moment-skeleton"
-                  style={{ width: 40, height: 40, borderRadius: "50%" }}
-                />
-              ))}
-            </div>
-          ) : activeNow.length === 0 ? (
+          {/* The row is as tall as a face with its name in every state, so
+              the hub doesn't shrink when nobody is online: an invisible
+              face-and-name holds the height, and the skeleton is drawn in
+              the same shape. */}
+          <div style={{ display: "flex", alignItems: "center" }}>
             <span
-              style={{ fontSize: "var(--fs-caption)", color: "var(--text-3)" }}
-            >
-              Nobody you chat with is online right now.
-            </span>
-          ) : (
-            <div
+              aria-hidden
               style={{
+                width: 0,
+                visibility: "hidden",
                 display: "flex",
-                flexWrap: "wrap",
-                columnGap: 12,
-                rowGap: 10,
+                flexDirection: "column",
+                gap: 4,
               }}
             >
-              {shownActive.map((c) => (
-                <button
-                  key={c.conversationID}
-                  onClick={() => open(c)}
-                  title={`Message ${c.details.display_name}`}
+              <span style={{ height: 40 }} />
+              <span style={{ fontSize: "var(--fs-meta)" }}>&nbsp;</span>
+            </span>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              {loading ? (
+                <div style={{ display: "flex", gap: 12 }}>
+                  {Array.from({ length: 5 }, (_, i) => (
+                    <span
+                      key={i}
+                      style={{
+                        width: 52,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 8,
+                      }}
+                    >
+                      <span
+                        className="cl-moment-skeleton"
+                        style={{ width: 40, height: 40, borderRadius: "50%" }}
+                      />
+                      <span
+                        className="cl-moment-skeleton"
+                        style={{ width: 30, height: 8, borderRadius: 999 }}
+                      />
+                    </span>
+                  ))}
+                </div>
+              ) : activeNow.length === 0 ? (
+                <span
+                  style={{ fontSize: "var(--fs-caption)", color: "var(--text-3)" }}
+                >
+                  Nobody you chat with is online right now.
+                </span>
+              ) : (
+                <div
                   style={{
-                    width: 52,
                     display: "flex",
-                    flexDirection: "column",
-                    alignItems: "center",
-                    gap: 4,
-                    padding: 0,
-                    border: "none",
-                    background: "transparent",
-                    cursor: "pointer",
+                    flexWrap: "wrap",
+                    columnGap: 12,
+                    rowGap: 10,
                   }}
                 >
-                  <Avatar
-                    id={c.details.entity_id}
-                    entityId={c.details.entity_id}
-                    name={c.details.display_name}
-                    src={
-                      c.details.profile === "none" ? undefined : c.details.profile
-                    }
-                    size={40}
-                    kind={c.details.type === "bot" ? "bot" : undefined}
-                    // Rings the presence dot in the pane's colour, not a card's.
-                    style={{ background: "var(--surface-2)" }}
-                  />
-                  <span
-                    style={{
-                      maxWidth: 52,
-                      fontSize: "var(--fs-meta)",
-                      color: "var(--text-2)",
-                      whiteSpace: "nowrap",
-                      overflow: "hidden",
-                      textOverflow: "ellipsis",
-                    }}
-                  >
-                    {c.details.display_name.split(" ")[0]}
-                  </span>
-                </button>
-              ))}
+                  {shownActive.map((c) => (
+                    <button
+                      key={c.conversationID}
+                      onClick={() => open(c)}
+                      title={`Message ${c.details.display_name}`}
+                      style={{
+                        width: 52,
+                        display: "flex",
+                        flexDirection: "column",
+                        alignItems: "center",
+                        gap: 4,
+                        padding: 0,
+                        border: "none",
+                        background: "transparent",
+                        cursor: "pointer",
+                      }}
+                    >
+                      <Avatar
+                        id={c.details.entity_id}
+                        entityId={c.details.entity_id}
+                        name={c.details.display_name}
+                        src={
+                          c.details.profile === "none" ? undefined : c.details.profile
+                        }
+                        size={40}
+                        kind={c.details.type === "bot" ? "bot" : undefined}
+                        // Rings the presence dot in the pane's colour, not a card's.
+                        style={{ background: "var(--surface-2)" }}
+                      />
+                      <span
+                        style={{
+                          maxWidth: 52,
+                          fontSize: "var(--fs-meta)",
+                          color: "var(--text-2)",
+                          whiteSpace: "nowrap",
+                          overflow: "hidden",
+                          textOverflow: "ellipsis",
+                        }}
+                      >
+                        {c.details.display_name.split(" ")[0]}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
-          )}
+          </div>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
@@ -301,6 +341,7 @@ function MessagesDefault({
               padding: 4,
               display: "flex",
               flexDirection: "column",
+              minHeight: UNREAD_MIN_HEIGHT,
             }}
           >
             {loading ? (
@@ -308,8 +349,10 @@ function MessagesDefault({
             ) : unread.length === 0 ? (
               <div
                 style={{
+                  flex: 1,
                   display: "flex",
                   alignItems: "center",
+                  justifyContent: "center",
                   gap: 8,
                   padding: "10px 8px",
                   fontSize: "var(--fs-caption)",

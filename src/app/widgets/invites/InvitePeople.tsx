@@ -414,7 +414,13 @@ function InvitePeople({
             disabled={sending}
           />
         </div>
-        <Btn type="submit" disabled={!canSend}>
+        {/* Stretched to the field's height - Btn's md size is 34px, the
+            field 40px. */}
+        <Btn
+          type="submit"
+          disabled={!canSend}
+          style={{ height: "auto", alignSelf: "stretch" }}
+        >
           {sending ? "Sending…" : "Invite"}
         </Btn>
       </form>

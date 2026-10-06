@@ -16,6 +16,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { RemoveRealmMemberRequest } from "@/reusables/hooks/requests";
 import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
 import { leaveRealmPrompt } from "@/app/widgets/modals/confirmPrompts";
+import ManageRealmModal from "@/app/tabs/realms/manage/ManageRealmModal";
 import {
   pushAlert,
   resolveErrorMessage,
@@ -61,6 +62,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
   const [toggleMenu, settoggleMenu] = useState<boolean>(false);
   const [isLeaving, setisLeaving] = useState<boolean>(false);
   const [isLeaveConfirmOpen, setisLeaveConfirmOpen] = useState<boolean>(false);
+  const [isManageOpen, setisManageOpen] = useState<boolean>(false);
 
   const backPath = useMemo(
     () =>
@@ -340,11 +342,11 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                 {conversationsetup.groupdetails.is_admin && (
                   <motion.button
                     className="cl-conversation-menu-action cl-conversation-menu-action--accent cl-conversation-menu-action--server tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
+                    // A modal, not the /realms page: leaving this route
+                    // unmounts the channel and ends the call.
                     onClick={() => {
                       settoggleMenu(false);
-                      navigate(
-                        `/realms/${conversationsetup.groupdetails.groupID}`,
-                      );
+                      setisManageOpen(true);
                     }}
                   >
                     <IoMdSettings style={{ fontSize: "18px" }} />
@@ -390,6 +392,12 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
           </div>
         </motion.div>
       </motion.div>
+      {isManageOpen && (
+        <ManageRealmModal
+          realmId={conversationsetup.groupdetails.groupID}
+          onClose={() => setisManageOpen(false)}
+        />
+      )}
       {isLeaveConfirmOpen && (
         <ConfirmModal
           {...leaveRealmPrompt(

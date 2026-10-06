@@ -2,7 +2,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import "../../styles/styles.css";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
 // import { RxEnterFullScreen } from "react-icons/rx";
 import {
   BsFillMicFill,
@@ -10,14 +10,11 @@ import {
   BsCameraVideoFill,
   BsCameraVideoOffFill,
   BsFillChatDotsFill,
-  BsThreeDots,
 } from "react-icons/bs";
 import { MdScreenShare, MdStopScreenShare } from "react-icons/md";
 import { HiPhoneMissedCall } from "react-icons/hi";
 import { IoMdClose } from "react-icons/io";
 import { FiUsers, FiCheck, FiX } from "react-icons/fi";
-import { FaCircleArrowUp, FaCircleArrowDown } from "react-icons/fa6";
-import { IoPersonRemove } from "react-icons/io5";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -57,9 +54,44 @@ import { useCallPresence } from "@/reusables/hooks/callPresence";
 import { Avatar, useTheme } from "@/reusables/design";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import InvitePeople from "@/app/widgets/invites/InvitePeople";
+import MemberActionsMenu from "./MemberActionsMenu";
+import { useConferenceIdentity } from "./identity";
 
 // The chat panel's accent - the one it always had.
 const CONFERENCE_CHAT_THEME = { primary: "#4994ec", lighten: "#82b6ec" };
+
+// The chat / People drawer beside the call.
+const SIDE_PANEL_W = 360;
+const DRAWER_TRANSITION = { duration: 0.3, ease: [0.2, 0, 0, 1] };
+// Swapping chat for People (or back) inside the open drawer.
+const PANEL_SWAP = {
+  initial: { opacity: 0, x: 16 },
+  animate: { opacity: 1, x: 0 },
+  exit: { opacity: 0, x: 16 },
+  transition: { duration: 0.2, ease: [0.2, 0, 0, 1] },
+};
+
+type ConferenceMember = {
+  member_id: string;
+  account_id: string;
+  entityID: string;
+  username: string;
+  name: string;
+  profile: string | undefined;
+  type: string;
+  role: string;
+};
+
+// The owner's and admins' label in the People panel. The owner had none, so
+// it read as an ordinary member - and was offered "Promote to Admin".
+function RoleBadge({ role }: { role: string | undefined }) {
+  if (role !== "owner" && role !== "admin") return null;
+  return (
+    <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[var(--brand-soft)] tw-rounded-full tw-px-[6px] tw-py-[2px] tw-flex-shrink-0">
+      {role === "owner" ? "Owner" : "Admin"}
+    </span>
+  );
+}
 
 function ConferenceVoiceWindow({
   data,
@@ -72,6 +104,9 @@ function ConferenceVoiceWindow({
   );
 
   const { theme: conferenceTheme } = useTheme();
+  // You in this call: yourself, or the page you are switched into - see
+  // identity.ts. The call, the member list and the People panel all key on it.
+  const me = useConferenceIdentity();
 
   const navigate = useNavigate();
 
@@ -103,8 +138,12 @@ function ConferenceVoiceWindow({
     [],
   );
   const [consumers, setConsumers] = useState<Map<string, any>>(new Map());
+  // entityID is the server's - the acting entity from each participant's own
+  // token - where the username is only what their client sent. It is what
+  // a participant is matched to a member by; the username is the fallback
+  // for a server that does not send it yet.
   const [joinedParticipants, setJoinedParticipants] = useState<
-    { clientId: string; username: string }[]
+    { clientId: string; username: string; entityID?: string | null }[]
   >([]);
   const [pendingProducerIds, setPendingProducerIds] = useState<string[]>([]);
   const [participantStatuses, setParticipantStatuses] = useState<
@@ -119,37 +158,51 @@ function ConferenceVoiceWindow({
   const [updatingRequestToken, setUpdatingRequestToken] = useState<
     string | null
   >(null);
-  // username -> { member_id, role, account_id } for realm members, used to
-  // show roles and offer promote/demote on conference participants.
-  const [memberRoleMap, setMemberRoleMap] = useState<
-    Map<
-      string,
-      { member_id: string; role: string; account_id: string; entityID: string }
-    >
-  >(new Map());
-  // Everyone in the conference, joined to the call or not - the People
-  // panel lists them all, those not in the call yet drawn pale.
+  // Everyone in the conference, joined to the call or not, with their role.
+  // The People panel lists them all (those not in the call yet drawn pale),
+  // and it is the ONE copy of each member's role: badges, menus and "may I
+  // manage" all read it, so a promote, demote or removal reaches them all at
+  // once. Roles used to sit in a second map as well, and those changes only
+  // ever updated one of the two.
   const [conferenceMembers, setConferenceMembers] = useState<
-    {
-      entityID: string;
-      username: string;
-      name: string;
-      profile: string | undefined;
-      type: string;
-      role: string;
-    }[]
+    ConferenceMember[]
   >([]);
-  const [roleMenuFor, setRoleMenuFor] = useState<string | null>(null);
+  const [membersLoaded, setMembersLoaded] = useState<boolean>(false);
   const [updatingRoleFor, setUpdatingRoleFor] = useState<string | null>(null);
-  // Every participant fetches the member list (for role labels), so we can
-  // also derive "am I an admin" from it. This makes a freshly-promoted user
-  // gain the management UI the moment the refreshed list arrives, regardless
-  // of the room-info payload shape.
-  const selfRoleFromList = memberRoleMap.get(
-    authentication.user.username,
+  // Members by entity - how participants, your own row and every action find
+  // them - and by the username the call knows them by, as a fallback.
+  const memberByEntity = useMemo(
+    () => new Map(conferenceMembers.map((member) => [member.entityID, member])),
+    [conferenceMembers],
+  );
+  const memberRoleMap = useMemo(
+    () =>
+      new Map(
+        conferenceMembers
+          .filter((member) => member.username)
+          .map((member) => [member.username, member]),
+      ),
+    [conferenceMembers],
+  );
+  const selfRoleFromList = (
+    memberByEntity.get(me.entityID) ?? memberRoleMap.get(me.handle)
   )?.role;
+  // Owners and admins manage. Once the member list has your row it decides -
+  // refetched on every membership change, so a host demoted mid-call loses
+  // the controls and one promoted gains them. Until then, the room info read
+  // on joining (which was all this ever read, and it never changed). The
+  // owner counts too: only "admin" was checked here.
   const effectiveCanManage =
-    Boolean(canManageRequests) || selfRoleFromList === "admin";
+    membersLoaded && selfRoleFromList
+      ? selfRoleFromList === "owner" || selfRoleFromList === "admin"
+      : Boolean(canManageRequests);
+  // The server's rule for role changes and removals (entity/permissions.py,
+  // as RealmMembers applies it): only the owner may act on an admin or the
+  // owner - an admin's attempt is refused. So an admin gets the menu on
+  // members only, and nobody gets it on the owner.
+  const viewerIsOwner = selfRoleFromList === "owner";
+  const canActOnRole = (role: string | undefined) =>
+    role !== "owner" && (viewerIsOwner || role !== "admin");
   const hasLeftRef = useRef(false);
   const hasJoinedRef = useRef(false);
   const isConsumingRef = useRef(false);
@@ -252,11 +305,11 @@ function ConferenceVoiceWindow({
       ].filter(Boolean) as string[];
 
       return Array.from(new Set(candidateMembers)).filter(
-        (flt: string) => flt !== authentication.user.entity_id,
+        (flt: string) => flt !== me.entityID,
       );
     } else {
       return (data.groupdetails?.receivers || data.recepients || []).filter(
-        (flt: string) => flt !== authentication.user.entity_id,
+        (flt: string) => flt !== me.entityID,
       );
     }
   }, [data, authentication, isGroupCall]);
@@ -417,38 +470,18 @@ function ConferenceVoiceWindow({
                   ? d.profile
                   : undefined;
               return {
+                member_id: member.member_id,
+                account_id: d.id,
                 entityID: String(member.entity.id),
                 username: d.username || d.slug || "",
                 name: fullName || d.name || d.username || d.slug || "Someone",
                 profile: picture,
                 type: member.entity.type,
-                role: member.role,
+                role: String(member.role || "member").toLowerCase(),
               };
             }),
         );
-        setMemberRoleMap(() => {
-          const next = new Map<
-            string,
-            {
-              member_id: string;
-              role: string;
-              account_id: string;
-              entityID: string;
-            }
-          >();
-          results.forEach((member: any) => {
-            const username = member?.entity.details?.username;
-            if (username) {
-              next.set(username, {
-                member_id: member.member_id,
-                role: member.role,
-                account_id: member.entity.details.id,
-                entityID: member.entity.id,
-              });
-            }
-          });
-          return next;
-        });
+        setMembersLoaded(true);
       })
       .catch((err) => {
         console.log("Failed to load realm members:", err);
@@ -464,42 +497,38 @@ function ConferenceVoiceWindow({
     fetchMemberRoles();
   }, [realmId]);
 
+  // Keyed by entity, not username: a page member has a slug or nothing.
   const changeMemberRole = useCallback(
-    async (username: string, nextRole: "admin" | "member") => {
-      const member = memberRoleMap.get(username);
+    async (entityID: string, nextRole: "admin" | "member") => {
+      const member = memberByEntity.get(entityID);
       if (!member || updatingRoleFor) {
         return;
       }
-      setRoleMenuFor(null);
-      setUpdatingRoleFor(username);
+      setUpdatingRoleFor(entityID);
       // Optimistic update; SSE will reconcile across all clients.
-      setMemberRoleMap((prev) => {
-        const next = new Map(prev);
-        const current = next.get(username);
-        if (current) {
-          next.set(username, { ...current, role: nextRole });
-        }
-        return next;
-      });
+      setConferenceMembers((prev) =>
+        prev.map((entry) =>
+          entry.entityID === entityID ? { ...entry, role: nextRole } : entry,
+        ),
+      );
       try {
         await UpdateMemberRoleRequest(realmId, member.member_id, nextRole);
       } catch (err) {
         console.log("Failed to update member role:", err);
         notifyRequestError(err, "We couldn't change that member's role.");
         // Revert on failure.
-        setMemberRoleMap((prev) => {
-          const next = new Map(prev);
-          const current = next.get(username);
-          if (current) {
-            next.set(username, { ...current, role: member.role });
-          }
-          return next;
-        });
+        setConferenceMembers((prev) =>
+          prev.map((entry) =>
+            entry.entityID === entityID
+              ? { ...entry, role: member.role }
+              : entry,
+          ),
+        );
       } finally {
         setUpdatingRoleFor(null);
       }
     },
-    [memberRoleMap, updatingRoleFor, realmId],
+    [memberByEntity, updatingRoleFor, realmId],
   );
 
   // Removing someone from the call drops their realm membership too, so it
@@ -507,22 +536,19 @@ function ConferenceVoiceWindow({
   const [pendingRemoval, setPendingRemoval] = useState<string | null>(null);
 
   const removeParticipant = useCallback(
-    async (username: string) => {
-      const member = memberRoleMap.get(username);
-      if (!member?.entityID || updatingRoleFor) {
+    async (entityID: string) => {
+      const member = memberByEntity.get(entityID);
+      if (!member || updatingRoleFor) {
         return;
       }
-      setRoleMenuFor(null);
-      setUpdatingRoleFor(username);
+      setUpdatingRoleFor(entityID);
       try {
         // Removes realm membership and pushes a realtime removal notice to
         // the target, whose client then leaves the call (see eject listener).
         await RemoveRealmMemberRequest(realmId, [member.entityID]);
-        setMemberRoleMap((prev) => {
-          const next = new Map(prev);
-          next.delete(username);
-          return next;
-        });
+        setConferenceMembers((prev) =>
+          prev.filter((entry) => entry.entityID !== entityID),
+        );
       } catch (err) {
         console.log("Failed to remove participant:", err);
         notifyRequestError(err, "We couldn't remove that participant.");
@@ -530,7 +556,7 @@ function ConferenceVoiceWindow({
         setUpdatingRoleFor(null);
       }
     },
-    [memberRoleMap, updatingRoleFor, realmId],
+    [memberByEntity, updatingRoleFor, realmId],
   );
 
   // Realtime: this user was removed from the realm; leave the call.
@@ -655,7 +681,7 @@ function ConferenceVoiceWindow({
         connectRecvTransportState.instance ||
         data.instance,
       clientId: clientIdRef.current,
-      username: authentication.user.username,
+      username: me.handle,
       muted: !enableMic,
       cameraOff: !enableCamera,
     }).finally(() => {
@@ -668,13 +694,16 @@ function ConferenceVoiceWindow({
     connectTransportState.instance,
     connectRecvTransportState.instance,
     data.instance,
-    authentication.user.username,
+    me.handle,
     enableMic,
     enableCamera,
   ]);
 
   const leaveCallProcess = useCallback(
-    ({ keepalive = false }: { keepalive?: boolean } = {}) => {
+    ({
+      keepalive = false,
+      unmounting = false,
+    }: { keepalive?: boolean; unmounting?: boolean } = {}) => {
       if (hasLeftRef.current) {
         return;
       }
@@ -735,7 +764,11 @@ function ConferenceVoiceWindow({
       //       callID: data.conversationid || conversationID,
       //     },
       //   });
-      navigate("/conference");
+      // Not when unmounting: the route already moved on, and navigating
+      // now would override wherever the user went.
+      if (!unmounting) {
+        navigate("/conference");
+      }
     },
     [
       cleanupLocalCallResources,
@@ -772,7 +805,9 @@ function ConferenceVoiceWindow({
     async (instance: string | null) => {
       await VoiceRequest({
         userID: authentication.user.userID,
-        profile: authentication.user.profile,
+        // The acting entity's picture - the server announces the acting
+        // entity (a page as itself), so its face should match.
+        profile: me.profile ?? "none",
         clientID: clientIdRef.current,
         channelID: conversationID,
         recipients: members,
@@ -800,6 +835,7 @@ function ConferenceVoiceWindow({
     participants: {
       clientId: string;
       username: string;
+      entityID?: string | null;
       muted?: boolean;
       cameraOff?: boolean;
     }[] = [],
@@ -1402,7 +1438,11 @@ function ConferenceVoiceWindow({
               }
               return [
                 ...prev,
-                { clientId: data.clientId, username: data.username },
+                {
+                  clientId: data.clientId,
+                  username: data.username,
+                  entityID: data.entityID ?? null,
+                },
               ];
             });
             setParticipantStatuses((prev) => {
@@ -1437,7 +1477,7 @@ function ConferenceVoiceWindow({
                 ((leftClientId && leftClientId !== clientIdRef.current) ||
                   (!leftClientId &&
                     leftUsername &&
-                    leftUsername !== authentication.user.username))
+                    leftUsername !== me.handle))
               ) {
                 setTimeout(() => {
                   leaveCallProcess();
@@ -1548,7 +1588,11 @@ function ConferenceVoiceWindow({
                 }
                 return [
                   ...prev,
-                  { clientId: data.clientId, username: data.username },
+                  {
+                    clientId: data.clientId,
+                    username: data.username,
+                    entityID: data.entityID ?? null,
+                  },
                 ];
               });
             }
@@ -1622,7 +1666,7 @@ function ConferenceVoiceWindow({
         members,
         instance: data.instance,
         clientId: clientIdRef.current,
-        username: authentication.user.username,
+        username: me.handle,
         muted: !enableMic,
         cameraOff: !enableCamera,
       });
@@ -1645,7 +1689,7 @@ function ConferenceVoiceWindow({
 
   useEffect(() => {
     return () => {
-      leaveCallProcessRef.current?.();
+      leaveCallProcessRef.current?.({ unmounting: true });
     };
   }, []);
 
@@ -1660,22 +1704,24 @@ function ConferenceVoiceWindow({
       .map(({ ownerClientId }) => ownerClientId)
       .filter((ownerClientId) => Boolean(ownerClientId)),
   );
-  // The People panel's members, by the username the call knows them by, and
-  // the ones not in the call - everyone in the conference but you and
-  // whoever has joined.
-  const memberByUsername = new Map(
-    conferenceMembers
-      .filter((member) => member.username)
-      .map((member) => [member.username, member]),
-  );
-  const joinedUsernames = new Set(
-    joinedParticipants.map((participant) => participant.username),
+  // A participant's member row: by the entity the server stamped on them,
+  // else by the username their client sent. The members not in the call are
+  // everyone in the conference but you and whoever has joined.
+  const memberFor = (participant: {
+    username: string;
+    entityID?: string | null;
+  }) =>
+    (participant.entityID
+      ? memberByEntity.get(String(participant.entityID))
+      : undefined) ?? memberRoleMap.get(participant.username);
+  const joinedEntityIDs = new Set(
+    joinedParticipants
+      .map((participant) => memberFor(participant)?.entityID)
+      .filter(Boolean),
   );
   const notJoinedMembers = conferenceMembers.filter(
     (member) =>
-      member.entityID !== String(authentication.user.entity_id) &&
-      member.username !== authentication.user.username &&
-      !joinedUsernames.has(member.username),
+      member.entityID !== me.entityID && !joinedEntityIDs.has(member.entityID),
   );
   const waitingParticipants = joinedParticipants.filter(
     (participant) => !videoOwnerIds.has(participant.clientId),
@@ -1793,328 +1839,319 @@ function ConferenceVoiceWindow({
           </button>
         </div>
       </motion.div>
-      {isChatOpen && (
-        <motion.div
-          initial={{ x: 40, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: 40, opacity: 0 }}
-          transition={{ duration: 0.18 }}
-          className={
-            isMobileView
-              ? "tw-absolute tw-inset-0 tw-z-20 tw-bg-white tw-flex tw-flex-col"
-              : "tw-w-[360px] tw-h-full tw-bg-white tw-border-l tw-border-[#dedede] tw-flex tw-flex-col tw-flex-shrink-0"
-          }
-        >
-          <div className="tw-flex-1 tw-min-h-0 tw-flex tw-bg-white">
-            <ConversationV2
-              conversationID={conversationID}
-              fallbackSetup={conferenceFallbackSetup}
-              theme={CONFERENCE_CHAT_THEME}
-              setIsChatOpen={setIsChatOpen}
-            />
-          </div>
-        </motion.div>
-      )}
-      {isPeopleOpen && (
-        <motion.div
-          initial={{ x: 40, opacity: 0 }}
-          animate={{ x: 0, opacity: 1 }}
-          exit={{ x: 40, opacity: 0 }}
-          transition={{ duration: 0.18 }}
-          className={
-            isMobileView
-              ? "cl-redesign tw-absolute tw-inset-0 tw-z-20 tw-bg-[var(--surface)] tw-text-[var(--text)] tw-flex tw-flex-col"
-              : "cl-redesign tw-w-[360px] tw-h-full tw-bg-[var(--surface)] tw-text-[var(--text)] tw-border-l tw-border-[var(--border)] tw-flex tw-flex-col tw-flex-shrink-0"
-          }
-          data-theme={conferenceTheme}
-        >
-          <div className="tw-flex tw-flex-row tw-items-center tw-justify-between tw-px-[14px] tw-py-[12px] tw-border-b tw-border-[var(--border)] tw-flex-shrink-0">
-            <span className="tw-text-[15px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
-              People
-            </span>
-            <button
-              type="button"
-              aria-label="Close people panel"
-              onClick={() => setIsPeopleOpen(false)}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-p-[4px] tw-rounded-full hover:tw-bg-[var(--surface-hover)] tw-flex tw-items-center tw-justify-center tw-text-[var(--text-2)]"
+      {/* Chat and People share one side drawer, and it animates both ways -
+          the panels used to pop in and vanish at once on close. On a wide
+          screen it opens by growing its width, so the call stage beside it
+          reflows instead of jumping, and the panel slides in glued to its
+          edge; on a phone it covers the call and slides in from the right.
+          Swapping chat for People crossfades inside the open drawer. Width
+          and x are both always set so a rotate across the breakpoint while
+          it is open still lands right. */}
+      <AnimatePresence initial={false}>
+        {(isChatOpen || isPeopleOpen) && (
+          <motion.div
+            key="side-drawer"
+            initial={
+              isMobileView ? { x: "100%", width: "100%" } : { x: 0, width: 0 }
+            }
+            animate={
+              isMobileView
+                ? { x: 0, width: "100%" }
+                : { x: 0, width: SIDE_PANEL_W }
+            }
+            exit={
+              isMobileView ? { x: "100%", width: "100%" } : { x: 0, width: 0 }
+            }
+            transition={DRAWER_TRANSITION}
+            className={
+              isMobileView
+                ? "tw-absolute tw-inset-y-0 tw-left-0 tw-z-20 tw-overflow-hidden"
+                : "tw-relative tw-h-full tw-flex-shrink-0 tw-overflow-hidden"
+            }
+          >
+            {/* Full width at every step of the drawer's growth, so the panel
+                slides rather than squeezes. */}
+            <div
+              className="tw-absolute tw-inset-y-0 tw-left-0"
+              style={{ width: isMobileView ? "100%" : SIDE_PANEL_W }}
             >
-              <IoMdClose style={{ fontSize: "18px" }} />
-            </button>
-          </div>
-          <div className="tw-flex-1 tw-min-h-0 tw-overflow-y-auto t-scroll tw-px-[14px] tw-py-[12px] tw-flex tw-flex-col tw-gap-[18px]">
-            {/* Invite from inside the room - by email (no account needed:
-                the link opens this conference lobby) or by username. Hosts
-                only: the server checks realm.invite.create either way. */}
-            {effectiveCanManage && realmId && (
-              <div className="tw-rounded-[10px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-overflow-hidden tw-flex-shrink-0">
-                <InvitePeople
-                  realmId={realmId}
-                  realmType="conference"
-                  realmName={
-                    data.groupdetails?.groupName ||
-                    data.callDisplayName ||
-                    "this conference"
-                  }
-                />
-              </div>
-            )}
-            {effectiveCanManage && (
-              <div className="tw-flex tw-flex-col tw-gap-[8px]">
-                <div className="tw-flex tw-flex-row tw-items-center tw-justify-between">
-                  <span className="tw-text-[12px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--text-2)]">
-                    Pending requests ({pendingRequests.length})
-                  </span>
-                  {requestsLoading && (
-                    <AiOutlineLoading3Quarters className="tw-animate-spin tw-text-[13px] tw-text-[var(--text-2)]" />
-                  )}
-                </div>
-                {!requestsLoading && pendingRequests.length === 0 ? (
-                  <span className="tw-text-[12px] tw-text-[var(--text-2)] tw-font-Inter">
-                    No pending join requests.
-                  </span>
-                ) : (
-                  pendingRequests.map((req) => (
-                    <div
-                      key={req.invite_token || req.id}
-                      className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-px-[10px] tw-py-[8px]"
-                    >
-                      <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[var(--brand-soft)] tw-text-[var(--brand)] tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
-                        {(req.target_email || "?").charAt(0).toUpperCase()}
-                      </div>
-                      <span
-                        title={req.target_email}
-                        className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate"
-                      >
-                        {req.target_email || "Unknown user"}
-                      </span>
-                      <button
-                        type="button"
-                        aria-label="Approve request"
-                        disabled={updatingRequestToken === req.invite_token}
-                        onClick={() =>
-                          resolveRequest(req.invite_token, "accepted")
-                        }
-                        className="tw-w-[30px] tw-h-[30px] tw-rounded-full tw-border-none tw-bg-[var(--green)] tw-text-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed tw-flex-shrink-0"
-                      >
-                        {updatingRequestToken === req.invite_token ? (
-                          <AiOutlineLoading3Quarters className="tw-animate-spin tw-text-[13px]" />
-                        ) : (
-                          <FiCheck size={16} />
-                        )}
-                      </button>
-                      <button
-                        type="button"
-                        aria-label="Decline request"
-                        disabled={updatingRequestToken === req.invite_token}
-                        onClick={() =>
-                          resolveRequest(req.invite_token, "declined")
-                        }
-                        className="tw-w-[30px] tw-h-[30px] tw-rounded-full tw-border-none tw-bg-[var(--pink)] tw-text-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed tw-flex-shrink-0"
-                      >
-                        <FiX size={16} />
-                      </button>
-                    </div>
-                  ))
-                )}
-              </div>
-            )}
-            <div className="tw-flex tw-flex-col tw-gap-[8px]">
-              {/* Everyone in the conference: you and whoever is in the call,
-                  then the members who have not joined it yet, drawn pale. */}
-              <div className="tw-flex tw-flex-row tw-items-baseline tw-justify-between tw-gap-[8px]">
-                <span className="tw-text-[12px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--text-2)]">
-                  Participants ({joinedParticipants.length + 1 + notJoinedMembers.length})
-                </span>
-                <span className="tw-text-[11px] tw-font-Inter tw-text-[var(--text-3)]">
-                  {joinedParticipants.length + 1} in call
-                </span>
-              </div>
-              <div className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] tw-bg-[var(--brand-soft)]">
-                <Avatar
-                  id={authentication.user.entity_id || authentication.user.username}
-                  name={authentication.user.username || "You"}
-                  src={
-                    authentication.user.profile &&
-                    authentication.user.profile !== "none"
-                      ? authentication.user.profile
-                      : undefined
-                  }
-                  size={34}
-                />
-                <span className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
-                  {authentication.user.username} (You)
-                </span>
-                {memberRoleMap.get(authentication.user.username)?.role ===
-                  "admin" && (
-                  <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[var(--brand-soft)] tw-rounded-full tw-px-[6px] tw-py-[2px]">
-                    Admin
-                  </span>
-                )}
-                <div className="tw-flex tw-flex-row tw-items-center tw-gap-[8px] tw-text-[var(--text-2)]">
-                  {!enableMic && <BsFillMicMuteFill size={13} />}
-                  {!enableCamera && <BsCameraVideoOffFill size={13} />}
-                </div>
-              </div>
-              {joinedParticipants.map((participant) => {
-                const status = participantStatuses.get(participant.clientId);
-                const memberInfo = memberRoleMap.get(participant.username);
-                const isAdminMember = memberInfo?.role === "admin";
-                const canManageThisMember = Boolean(
-                  effectiveCanManage &&
-                  memberInfo?.member_id &&
-                  participant.username !== selfUsername,
-                );
-                const isMenuOpen = roleMenuFor === participant.username;
-                return (
-                  <div
-                    key={participant.clientId}
-                    className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] hover:tw-bg-[var(--surface-hover)]"
-                  >
-                    <Avatar
-                      id={
-                        memberByUsername.get(participant.username)?.entityID ||
-                        participant.username ||
-                        participant.clientId
-                      }
-                      entityId={memberByUsername.get(participant.username)?.entityID}
-                      name={
-                        memberByUsername.get(participant.username)?.name ||
-                        participant.username ||
-                        "?"
-                      }
-                      src={memberByUsername.get(participant.username)?.profile}
-                      kind={memberByUsername.get(participant.username)?.type}
-                      size={34}
-                    />
-                    <span className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
-                      @{participant.username}
-                    </span>
-                    {isAdminMember && (
-                      <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[var(--brand-soft)] tw-rounded-full tw-px-[6px] tw-py-[2px]">
-                        Admin
-                      </span>
-                    )}
-                    <div className="tw-flex tw-flex-row tw-items-center tw-gap-[8px] tw-text-[var(--text-2)]">
-                      {status?.muted && <BsFillMicMuteFill size={13} />}
-                      {status?.cameraOff && <BsCameraVideoOffFill size={13} />}
-                    </div>
-                    {canManageThisMember && (
-                      <div className="tw-relative tw-flex-shrink-0">
-                        <button
-                          type="button"
-                          aria-label="Member options"
-                          disabled={updatingRoleFor === participant.username}
-                          onClick={() =>
-                            setRoleMenuFor((prev) =>
-                              prev === participant.username
-                                ? null
-                                : participant.username,
-                            )
-                          }
-                          className="tw-w-[26px] tw-h-[26px] tw-rounded-full tw-border-none tw-bg-transparent tw-text-[var(--text-2)] tw-flex tw-items-center tw-justify-center tw-cursor-pointer hover:tw-bg-[var(--surface-hover)] disabled:tw-opacity-[0.5]"
-                        >
-                          {updatingRoleFor === participant.username ? (
-                            <AiOutlineLoading3Quarters className="tw-animate-spin tw-text-[13px]" />
-                          ) : (
-                            <BsThreeDots size={15} />
-                          )}
-                        </button>
-                        {isMenuOpen && (
-                          <div
-                            className="tw-fixed tw-inset-0 tw-z-[2]"
-                            onClick={() => setRoleMenuFor(null)}
-                          />
-                        )}
-                        {isMenuOpen && (
-                          <div className="tw-absolute tw-right-0 tw-top-[30px] tw-z-[3] tw-min-w-[170px] tw-bg-[var(--surface)] tw-rounded-md tw-border tw-border-[var(--border)] tw-shadow-md tw-p-[6px] tw-flex tw-flex-col tw-gap-[2px]">
-                            {isAdminMember ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  changeMemberRole(
-                                    participant.username,
-                                    "member",
-                                  )
-                                }
-                                className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--text)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)]"
-                              >
-                                <FaCircleArrowDown size={14} />
-                                <span>Demote to Member</span>
-                              </button>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  changeMemberRole(
-                                    participant.username,
-                                    "admin",
-                                  )
-                                }
-                                className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--text)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)]"
-                              >
-                                <FaCircleArrowUp size={14} />
-                                <span>Promote to Admin</span>
-                              </button>
-                            )}
-                            <button
-                              type="button"
-                              onClick={() => {
-                                setRoleMenuFor(null);
-                                setPendingRemoval(participant.username);
-                              }}
-                              className="tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-text-[var(--pink)] tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)]"
-                            >
-                              <IoPersonRemove size={14} />
-                              <span>Remove from call</span>
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-              {notJoinedMembers.map((member) => (
-                <div
-                  key={member.entityID}
-                  className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] tw-opacity-[0.45]"
-                  title="Not in the call yet"
+              <AnimatePresence initial={false}>
+              {isChatOpen && (
+                <motion.div
+                  key="chat"
+                  {...PANEL_SWAP}
+                  // The theme's surface, not white: the conversation takes a
+                  // moment to load, and a white panel flashed behind it in
+                  // the dark theme.
+                  className={`tw-absolute tw-inset-0 tw-bg-[var(--surface)] tw-flex tw-flex-col ${
+                    isMobileView ? "" : "tw-border-l tw-border-[var(--border)]"
+                  }`}
                 >
-                  <Avatar
-                    id={member.entityID}
-                    entityId={member.entityID}
-                    name={member.name}
-                    src={member.profile}
-                    kind={member.type}
-                    size={34}
-                  />
-                  <div className="tw-flex tw-flex-col tw-flex-1 tw-min-w-0">
-                    <span className="tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
-                      {member.username ? `@${member.username}` : member.name}
-                    </span>
-                    <span className="tw-text-[11px] tw-text-[var(--text-3)] tw-font-Inter tw-truncate">
-                      Not joined yet
-                    </span>
+                  <div className="tw-flex-1 tw-min-h-0 tw-flex tw-bg-[var(--surface)]">
+                    <ConversationV2
+                      conversationID={conversationID}
+                      fallbackSetup={conferenceFallbackSetup}
+                      theme={CONFERENCE_CHAT_THEME}
+                      setIsChatOpen={setIsChatOpen}
+                    />
                   </div>
-                  {member.role === "admin" && (
-                    <span className="tw-text-[10px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--brand)] tw-bg-[var(--brand-soft)] tw-rounded-full tw-px-[6px] tw-py-[2px]">
-                      Admin
+                </motion.div>
+              )}
+              {isPeopleOpen && (
+                <motion.div
+                  key="people"
+                  {...PANEL_SWAP}
+                  className={`cl-redesign tw-absolute tw-inset-0 tw-bg-[var(--surface)] tw-text-[var(--text)] tw-flex tw-flex-col ${
+                    isMobileView ? "" : "tw-border-l tw-border-[var(--border)]"
+                  }`}
+                  data-theme={conferenceTheme}
+                >
+                  <div className="tw-flex tw-flex-row tw-items-center tw-justify-between tw-px-[14px] tw-py-[12px] tw-border-b tw-border-[var(--border)] tw-flex-shrink-0">
+                    <span className="tw-text-[15px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
+                      People
                     </span>
-                  )}
-                </div>
-              ))}
+                    <button
+                      type="button"
+                      aria-label="Close people panel"
+                      onClick={() => setIsPeopleOpen(false)}
+                      className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-p-[4px] tw-rounded-full hover:tw-bg-[var(--surface-hover)] tw-flex tw-items-center tw-justify-center tw-text-[var(--text-2)]"
+                    >
+                      <IoMdClose style={{ fontSize: "18px" }} />
+                    </button>
+                  </div>
+                  <div className="tw-flex-1 tw-min-h-0 tw-overflow-y-auto t-scroll tw-px-[14px] tw-py-[12px] tw-flex tw-flex-col tw-gap-[18px]">
+                    {/* Invite from inside the room - by email (no account needed:
+                        the link opens this conference lobby) or by username. Hosts
+                        only: the server checks realm.invite.create either way. */}
+                    {effectiveCanManage && realmId && (
+                      <div className="tw-rounded-[10px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-overflow-hidden tw-flex-shrink-0">
+                        <InvitePeople
+                          realmId={realmId}
+                          realmType="conference"
+                          realmName={
+                            data.groupdetails?.groupName ||
+                            data.callDisplayName ||
+                            "this conference"
+                          }
+                        />
+                      </div>
+                    )}
+                    {effectiveCanManage && (
+                      <div className="tw-flex tw-flex-col tw-gap-[8px]">
+                        <div className="tw-flex tw-flex-row tw-items-center tw-justify-between">
+                          <span className="tw-text-[12px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--text-2)]">
+                            Pending requests ({pendingRequests.length})
+                          </span>
+                          {requestsLoading && (
+                            <AiOutlineLoading3Quarters className="tw-animate-spin tw-text-[13px] tw-text-[var(--text-2)]" />
+                          )}
+                        </div>
+                        {!requestsLoading && pendingRequests.length === 0 ? (
+                          <span className="tw-text-[12px] tw-text-[var(--text-2)] tw-font-Inter">
+                            No pending join requests.
+                          </span>
+                        ) : (
+                          pendingRequests.map((req) => (
+                            <div
+                              key={req.invite_token || req.id}
+                              className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-px-[10px] tw-py-[8px]"
+                            >
+                              <div className="tw-w-[34px] tw-h-[34px] tw-rounded-full tw-bg-[var(--brand-soft)] tw-text-[var(--brand)] tw-flex tw-items-center tw-justify-center tw-text-[13px] tw-font-semibold tw-flex-shrink-0">
+                                {(req.target_email || "?").charAt(0).toUpperCase()}
+                              </div>
+                              <span
+                                title={req.target_email}
+                                className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate"
+                              >
+                                {req.target_email || "Unknown user"}
+                              </span>
+                              <button
+                                type="button"
+                                aria-label="Approve request"
+                                disabled={updatingRequestToken === req.invite_token}
+                                onClick={() =>
+                                  resolveRequest(req.invite_token, "accepted")
+                                }
+                                className="tw-w-[30px] tw-h-[30px] tw-rounded-full tw-border-none tw-bg-[var(--green)] tw-text-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed tw-flex-shrink-0"
+                              >
+                                {updatingRequestToken === req.invite_token ? (
+                                  <AiOutlineLoading3Quarters className="tw-animate-spin tw-text-[13px]" />
+                                ) : (
+                                  <FiCheck size={16} />
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                aria-label="Decline request"
+                                disabled={updatingRequestToken === req.invite_token}
+                                onClick={() =>
+                                  resolveRequest(req.invite_token, "declined")
+                                }
+                                className="tw-w-[30px] tw-h-[30px] tw-rounded-full tw-border-none tw-bg-[var(--pink)] tw-text-white tw-flex tw-items-center tw-justify-center tw-cursor-pointer disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed tw-flex-shrink-0"
+                              >
+                                <FiX size={16} />
+                              </button>
+                            </div>
+                          ))
+                        )}
+                      </div>
+                    )}
+                    <div className="tw-flex tw-flex-col tw-gap-[8px]">
+                      {/* Everyone in the conference: you and whoever is in the call,
+                          then the members who have not joined it yet, drawn pale. */}
+                      <div className="tw-flex tw-flex-row tw-items-baseline tw-justify-between tw-gap-[8px]">
+                        <span className="tw-text-[12px] tw-font-semibold tw-uppercase tw-tracking-[0.04em] tw-text-[var(--text-2)]">
+                          Participants ({joinedParticipants.length + 1 + notJoinedMembers.length})
+                        </span>
+                        <span className="tw-text-[11px] tw-font-Inter tw-text-[var(--text-3)]">
+                          {joinedParticipants.length + 1} in call
+                        </span>
+                      </div>
+                      <div className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] tw-bg-[var(--brand-soft)]">
+                        <Avatar
+                          id={me.entityID || me.handle}
+                          entityId={me.entityID}
+                          name={me.name}
+                          src={me.profile}
+                          kind={me.isPage ? "realm" : undefined}
+                          size={34}
+                        />
+                        <span className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
+                          {me.isPage ? me.name : me.handle} (You)
+                        </span>
+                        <RoleBadge role={selfRoleFromList} />
+                        <div className="tw-flex tw-flex-row tw-items-center tw-gap-[8px] tw-text-[var(--text-2)]">
+                          {!enableMic && <BsFillMicMuteFill size={13} />}
+                          {!enableCamera && <BsCameraVideoOffFill size={13} />}
+                        </div>
+                      </div>
+                      {joinedParticipants.map((participant) => {
+                        const status = participantStatuses.get(participant.clientId);
+                        const memberInfo = memberFor(participant);
+                        const canManageThisMember = Boolean(
+                          effectiveCanManage &&
+                          memberInfo?.member_id &&
+                          memberInfo.entityID !== me.entityID &&
+                          participant.username !== selfUsername &&
+                          canActOnRole(memberInfo?.role),
+                        );
+                        return (
+                          <div
+                            key={participant.clientId}
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px] hover:tw-bg-[var(--surface-hover)]"
+                          >
+                            <Avatar
+                              id={
+                                memberInfo?.entityID ||
+                                participant.username ||
+                                participant.clientId
+                              }
+                              entityId={memberInfo?.entityID}
+                              name={memberInfo?.name || participant.username || "?"}
+                              src={memberInfo?.profile}
+                              kind={memberInfo?.type}
+                              size={34}
+                            />
+                            <span className="tw-flex-1 tw-min-w-0 tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
+                              {/* Their handle from the member list where known -
+                                  the server's, not whatever their client sent. */}
+                              @{memberInfo?.username || participant.username}
+                            </span>
+                            <RoleBadge role={memberInfo?.role} />
+                            <div className="tw-flex tw-flex-row tw-items-center tw-gap-[8px] tw-text-[var(--text-2)]">
+                              {status?.muted && <BsFillMicMuteFill size={13} />}
+                              {status?.cameraOff && <BsCameraVideoOffFill size={13} />}
+                            </div>
+                            {canManageThisMember && memberInfo && (
+                              <MemberActionsMenu
+                                role={memberInfo.role}
+                                viewerIsOwner={viewerIsOwner}
+                                busy={updatingRoleFor === memberInfo.entityID}
+                                locked={updatingRoleFor !== null}
+                                onPromote={() =>
+                                  changeMemberRole(memberInfo.entityID, "admin")
+                                }
+                                onDemote={() =>
+                                  changeMemberRole(memberInfo.entityID, "member")
+                                }
+                                onRemove={() =>
+                                  setPendingRemoval(memberInfo.entityID)
+                                }
+                              />
+                            )}
+                          </div>
+                        );
+                      })}
+                      {notJoinedMembers.map((member) => (
+                        <div
+                          key={member.entityID}
+                          className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-rounded-[10px] tw-px-[10px] tw-py-[8px]"
+                        >
+                          {/* Pale, but not the menu - it is as live as a
+                              joined member's. */}
+                          <div
+                            className="tw-flex tw-flex-row tw-items-center tw-gap-[10px] tw-flex-1 tw-min-w-0 tw-opacity-[0.45]"
+                            title="Not in the call yet"
+                          >
+                            <Avatar
+                              id={member.entityID}
+                              entityId={member.entityID}
+                              name={member.name}
+                              src={member.profile}
+                              kind={member.type}
+                              size={34}
+                            />
+                            <div className="tw-flex tw-flex-col tw-flex-1 tw-min-w-0">
+                              <span className="tw-text-[12px] tw-text-[var(--text)] tw-font-Inter tw-truncate">
+                                {member.username ? `@${member.username}` : member.name}
+                              </span>
+                              <span className="tw-text-[11px] tw-text-[var(--text-3)] tw-font-Inter tw-truncate">
+                                Not joined yet
+                              </span>
+                            </div>
+                            <RoleBadge role={member.role} />
+                          </div>
+                          {effectiveCanManage &&
+                            member.member_id &&
+                            canActOnRole(member.role) && (
+                              <MemberActionsMenu
+                                role={member.role}
+                                viewerIsOwner={viewerIsOwner}
+                                busy={updatingRoleFor === member.entityID}
+                                locked={updatingRoleFor !== null}
+                                onPromote={() =>
+                                  changeMemberRole(member.entityID, "admin")
+                                }
+                                onDemote={() =>
+                                  changeMemberRole(member.entityID, "member")
+                                }
+                                onRemove={() => setPendingRemoval(member.entityID)}
+                              />
+                            )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </motion.div>
+              )}
+              </AnimatePresence>
             </div>
-          </div>
-        </motion.div>
-      )}
+          </motion.div>
+        )}
+      </AnimatePresence>
       {pendingRemoval && (
         <ConfirmModal
-          {...removeMemberPrompt(`@${pendingRemoval}`, "channel")}
+          {...removeMemberPrompt(
+            memberByEntity.get(pendingRemoval)?.username
+              ? `@${memberByEntity.get(pendingRemoval)?.username}`
+              : memberByEntity.get(pendingRemoval)?.name || "this member",
+            "conference",
+          )}
           onClose={() => setPendingRemoval(null)}
           onConfirm={() => {
-            const username = pendingRemoval;
+            const entityID = pendingRemoval;
             setPendingRemoval(null);
-            removeParticipant(username);
+            removeParticipant(entityID);
           }}
         />
       )}

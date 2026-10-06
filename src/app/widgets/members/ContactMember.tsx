@@ -36,6 +36,7 @@ function ContactMember({
   excludeIDs,
   onAdd,
   actionLabel = "Add",
+  compact = false,
 }: {
   parentRealmID: string | null;
   isRealm: boolean;
@@ -53,6 +54,12 @@ function ContactMember({
   ) => void;
   /** The confirm button - "Invite" where the people picked are asked first. */
   actionLabel?: string;
+  /**
+   * The manage modal's layout: people as full-width rows that fill the panel,
+   * instead of the page's two-up tiles in a fixed 350px box - in a modal's
+   * narrow column those tiles squeezed names down to a letter.
+   */
+  compact?: boolean;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -323,15 +330,31 @@ function ContactMember({
   const rows: ContactRowData[] =
     searchFilter.trim() !== "" ? searchRows : contactRows;
 
+  // Rows that fill the panel (compact), or two-up tiles in a fixed box.
+  const listBoxClass = compact
+    ? "tw-w-full tw-flex tw-flex-col"
+    : "tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px] tw-gap-[8px]";
+  const cardClass = compact
+    ? "div_realm_members_cards_col"
+    : "div_realm_members_cards";
+
   return (
     <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-transparent tw-flex">
-      <div className="tw-w-full tw-p-[18px] sm:tw-p-[24px] tw-flex tw-flex-col tw-items-start tw-gap-[15px] tw-bg-transparent tw-min-h-0">
-        <span className="cl-text-body tw-font-semibold tw-text-[var(--text)]">
+      <div
+        className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-bg-transparent tw-min-h-0 ${
+          compact
+            ? "tw-p-[12px] tw-gap-[10px]"
+            : "tw-p-[18px] sm:tw-p-[24px] tw-gap-[15px]"
+        }`}
+      >
+        <span
+          className={`${compact ? "cl-text-body-sm" : "cl-text-body"} tw-font-semibold tw-text-[var(--text)]`}
+        >
           {searchFilter.trim() !== "" ? "Search results" : label}
         </span>
         <div id="div_modal_input_columns_add_people" className="tw-w-full">
           <div id="div_input_filter_container">
-            <span id="span_input_label">Add People</span>
+            {!compact && <span id="span_input_label">Add People</span>}
             <input
               id="input_searchfilter"
               value={searchFilter}
@@ -340,7 +363,7 @@ function ContactMember({
                 debouncedFetch(1, e.target.value);
               }}
               type="text"
-              placeholder="Type a name of a user"
+              placeholder={compact ? "Search people" : "Type a name of a user"}
               disabled={isSaving}
             />
           </div>
@@ -359,7 +382,9 @@ function ContactMember({
                   <button
                     className="btn_remove_selected"
                     onClick={() => {
-                      removeFromList(mrkm.id);
+                      // By entity id - what the picks are keyed on (the
+                      // account id here matched nothing, so × did nothing).
+                      removeFromList(mrkm.entityID);
                     }}
                     disabled={isSaving}
                   >
@@ -375,7 +400,11 @@ function ContactMember({
             })}
           </motion.div>
           {isLoading || isSearching ? (
-            <div className="tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center tw-max-h-[350px] tw-min-h-[350px]">
+            <div
+              className={`tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center ${
+                compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
+              }`}
+            >
               <motion.div
                 animate={{
                   rotate: -360,
@@ -398,8 +427,14 @@ function ContactMember({
               {isRealm &&
               (type === "channel" || type === "voice") &&
               parentRealmID ? (
-                <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px] tw-gap-[8px]">
-                  <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-fit tw-gap-[8px]">
+                <div className={listBoxClass}>
+                  <div
+                    className={
+                      compact
+                        ? "tw-w-full tw-flex tw-flex-col tw-gap-[8px]"
+                        : "tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-fit tw-gap-[8px]"
+                    }
+                  >
                     {memberslist.map((cnts: IRealmMember, i: number) => {
                       if (
                         cnts.entity.details.id !== authentication.user.entity_id
@@ -411,7 +446,7 @@ function ContactMember({
                                 backgroundColor: "var(--surface-hover)",
                               }}
                               key={i}
-                              className="div_realm_members_cards tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none"
+                              className={`${cardClass} tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none`}
                               title={`${cnts.entity.details.first_name}${
                                 cnts.entity.details.middle_name == "N/A"
                                   ? ""
@@ -486,8 +521,14 @@ function ContactMember({
                   </div>
                 </div>
               ) : (
-                <div className="tw-w-full tw-flex tw-flex-row tw-flex-wrap tw-h-auto tw-max-h-[350px] tw-min-h-[350px] tw-gap-[8px]">
-                  <div className="tw-w-full tw-flex tw-flex-col sm:tw-flex-row tw-flex-wrap tw-h-fit tw-gap-[8px]">
+                <div className={listBoxClass}>
+                  <div
+                  className={
+                    compact
+                      ? "tw-w-full tw-flex tw-flex-col tw-gap-[8px]"
+                      : "tw-w-full tw-flex tw-flex-col sm:tw-flex-row tw-flex-wrap tw-h-fit tw-gap-[8px]"
+                  }
+                >
                     {rows.map((cnts: ContactRowData, i: number) => {
                       if (
                         !excludeIDs.includes(cnts.entityID) ||
@@ -499,7 +540,7 @@ function ContactMember({
                               backgroundColor: "var(--surface-hover)",
                             }}
                             key={i}
-                            className="div_realm_members_cards tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none"
+                            className={`${cardClass} tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none`}
                             title={`${cnts.firstName}${
                               cnts.middleName == "N/A"
                                 ? ""

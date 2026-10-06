@@ -26,9 +26,13 @@ import { useTheme } from "@/reusables/design/ThemeProvider";
 import { SET_ALERTS, SET_REMOVE_IS_TYPING_LIST } from "@/redux/types";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import ConferenceRoom from "./ConferenceRoom";
+import { useConferenceIdentity } from "./identity";
 import { notify, resolveErrorMessage } from "@/reusables/hooks/errormessages";
 
 function ConferencePage() {
+  // Who meetings are made and joined as - yourself, or the page you are
+  // switched into (createconference makes the acting entity the owner).
+  const me = useConferenceIdentity();
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -472,17 +476,18 @@ function ConferencePage() {
                     <div className="tw-flex tw-items-center tw-justify-between tw-gap-[12px] tw-rounded-[var(--r-md)] tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-p-[14px]">
                       <div className="tw-flex tw-flex-col tw-items-start tw-min-w-0">
                         <span className="tw-text-[14px] tw-font-semibold tw-truncate tw-max-w-full">
-                          {authentication.user.fullName.firstName}{" "}
-                          {authentication.user.fullName.lastName}
+                          {me.name}
                         </span>
                         <span className="tw-text-[12px] tw-text-[var(--text-2)]">
-                          Ready to create or join a meeting.
+                          {me.isPage
+                            ? "Creating and joining meetings as this page."
+                            : "Ready to create or join a meeting."}
                         </span>
                       </div>
                       <button
                         type="button"
                         onClick={() =>
-                          navigate(`/${authentication.user.username}`)
+                          navigate(`/${me.handle}`)
                         }
                         className="tw-h-[40px] tw-px-[14px] tw-rounded-[var(--r-md)] tw-border tw-border-[var(--border)] tw-bg-[var(--surface)] tw-text-[var(--text)] tw-font-semibold tw-cursor-pointer tw-whitespace-nowrap tw-shrink-0"
                       >

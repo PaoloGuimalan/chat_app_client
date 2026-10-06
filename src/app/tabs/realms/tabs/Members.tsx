@@ -12,6 +12,7 @@ import {
   notifyResponseFailure,
 } from "@/reusables/hooks/errormessages";
 import InvitePeople from "@/app/widgets/invites/InvitePeople";
+import { SegTabs } from "@/reusables/design";
 import {
   InvitableRealmType,
   inviteEntities,
@@ -20,7 +21,17 @@ import {
 const ADD_MEMBERS_FAILED = "We couldn't add those members. Please try again.";
 const INVITE_FAILED = "We couldn't send those invites. Please try again.";
 
-function Members({ realm }: { realm: IRealmProfileInfo }) {
+function Members({
+  realm,
+  compact = false,
+}: {
+  realm: IRealmProfileInfo;
+  /**
+   * ManageRealmModal's layout - see the compact branch below. The page keeps
+   * its side-by-side cards.
+   */
+  compact?: boolean;
+}) {
   const realmTypeLabel =
     realm.type === "group" && realm.parent ? "channel" : realm.type;
 
@@ -46,6 +57,16 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
   // panel's pending list re-read so they show up there instead.
   const [invitedIDs, setinvitedIDs] = useState<string[]>([]);
   const [inviteReload, setinviteReload] = useState(0);
+
+  // The modal's two panes: the members, or the people to add / invite.
+  const [pane, setpane] = useState<"members" | "add">("members");
+
+  const pickerLabel =
+    realm.type === "page"
+      ? `Invite Page Admin/Moderators`
+      : invitable
+        ? `People you may want to invite from contacts`
+        : `People you may want to add from ${realmTypeLabel === "channel" || realmTypeLabel === "voice" ? "server" : "contacts"}`;
 
   const InviteMarkedProcess = (
     markedMembers: { entityID: string; fullName: string }[],
@@ -148,6 +169,84 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
     }
   };
 
+  // In the modal: one pane at a time, full width. The page's two cards side
+  // by side, each with its own heading and fixed-height list, were made for
+  // a full screen - in the modal they crowded each other and the picker's
+  // tiles cut names down to a letter.
+  if (compact) {
+    const card =
+      "tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)] tw-overflow-hidden";
+    const showMembers = pane === "members" || !addableMember;
+
+    return (
+      <div className="tw-flex tw-flex-1 tw-flex-col tw-min-h-0 tw-w-full tw-p-[14px] sm:tw-p-[18px] tw-gap-[12px]">
+        {addableMember && (
+          <SegTabs
+            tabs={[
+              {
+                key: "members",
+                label:
+                  memberIDs.length > 0
+                    ? `Members (${memberIDs.length})`
+                    : "Members",
+              },
+              { key: "add", label: invitable ? "Invite people" : "Add people" },
+            ]}
+            value={pane}
+            onChange={(key) => setpane(key as "members" | "add")}
+            style={{ alignSelf: "flex-start", whiteSpace: "nowrap" }}
+          />
+        )}
+        {/* Both panes stay mounted: switching keeps each one's search and
+            scroll, and the members list keeps feeding the picker the ids
+            to leave out. */}
+        <div
+          className={`${showMembers ? "tw-flex" : "tw-hidden"} tw-flex-1 tw-min-h-[240px] ${card}`}
+        >
+          <RealmMembers
+            compact
+            realm_id={realm.id}
+            realmNoun={realmTypeLabel}
+            myRole={realm.my_role}
+            hide={!addableMember ? ["remove-user-btn"] : []}
+            onList={(list: string[]) => {
+              setmemberIDs(list);
+            }}
+          />
+        </div>
+        {addableMember && (
+          <div
+            className={`${showMembers ? "tw-hidden" : "tw-flex"} tw-flex-col tw-flex-1 tw-min-h-0 tw-gap-[12px]`}
+          >
+            {invitable && (
+              <div className={`tw-flex-shrink-0 ${card}`}>
+                <InvitePeople
+                  realmId={realm.realm_id}
+                  realmType={invitable}
+                  realmName={realm.name}
+                  reloadKey={inviteReload}
+                  excludeIDs={memberIDs}
+                />
+              </div>
+            )}
+            <div className={`tw-flex tw-flex-1 tw-min-h-[260px] ${card}`}>
+              <ContactMember
+                compact
+                parentRealmID={realm.parent?.id ?? null}
+                isRealm={true}
+                type={realmTypeLabel}
+                label={pickerLabel}
+                excludeIDs={[...memberIDs, ...invitedIDs]}
+                onAdd={invitable ? InviteMarkedProcess : AddNewMemberProcess}
+                actionLabel={invitable ? "Invite" : "Add"}
+              />
+            </div>
+          </div>
+        )}
+      </div>
+    );
+  }
+
   return (
     <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-p-[18px] sm:tw-p-[24px] tw-gap-[18px] tw-bg-[var(--background)] tw-min-h-0">
       <div className="tw-flex tw-flex-col tw-items-start tw-gap-[4px]">
@@ -200,13 +299,7 @@ function Members({ realm }: { realm: IRealmProfileInfo }) {
                 type={
                   realm.type === "group" && realm.parent ? "channel" : realm.type
                 }
-                label={
-                  realm.type === "page"
-                    ? `Invite Page Admin/Moderators`
-                    : invitable
-                      ? `People you may want to invite from contacts`
-                      : `People you may want to add from ${realmTypeLabel === "channel" || realmTypeLabel === "voice" ? "server" : "contacts"}`
-                }
+                label={pickerLabel}
                 excludeIDs={[...memberIDs, ...invitedIDs]}
                 onAdd={invitable ? InviteMarkedProcess : AddNewMemberProcess}
                 actionLabel={invitable ? "Invite" : "Add"}
