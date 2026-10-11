@@ -175,9 +175,11 @@ function PostsContainer({
                 authentication.active_entity_context?.id ??
                 authentication.user.entity_id
               }
-              name={profileInfo.fullname.firstName}
+              name={authentication.active_entity_context.name || "x"}
               src={
-                profileInfo.profile !== "none" ? profileInfo.profile : undefined
+                authentication.active_entity_context.profile !== "none"
+                  ? authentication.active_entity_context.profile
+                  : undefined
               }
               size={42}
             />

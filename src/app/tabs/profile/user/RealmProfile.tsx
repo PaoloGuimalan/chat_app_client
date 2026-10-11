@@ -1,7 +1,8 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import CachedImage from "@/app/reusables/cachers/CachedImage";
-import { ProfileUserInfoInterface,
+import {
+  ProfileUserInfoInterface,
   AuthenticationInterface,
   IPost,
   IRealmProfileInfo,
@@ -23,7 +24,7 @@ import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import { useDispatch, useSelector } from "react-redux";
-import { Avatar, Btn, Card, Icon } from "@/reusables/design";
+import { Avatar, Btn, Card, Icon, PageFlag } from "@/reusables/design";
 import {
   AcceptContactRequest,
   BlockUserRequest,
@@ -47,7 +48,6 @@ import {
 import { PiShareFat } from "react-icons/pi";
 import { SET_MINIMIZED_CONVERSATION } from "@/redux/types";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
-
 
 type RealmFeedMode = "posts" | "saves" | "archives";
 const REALM_FEED_TABS: { key: RealmFeedMode; label: string }[] = [
@@ -431,6 +431,9 @@ function RealmProfile({
                 {realmInfo.is_verified && (
                   <RiVerifiedBadgeFill size={18} color="var(--brand)" />
                 )}
+                <span className="tw-pt-[2px] tw-pl-[2px] tw-absolute">
+                  <PageFlag is={realmInfo.type === "page"} size={18} />
+                </span>
               </span>
               <span className="cl-text-body tw-break-all tw-mb-[14px]">
                 {realmInfo.email}
@@ -486,7 +489,10 @@ function RealmProfile({
                             id="div_loader_request_nano_light"
                           >
                             <AiOutlineLoading3Quarters
-                              style={{ fontSize: "15px", color: "var(--brand)" }}
+                              style={{
+                                fontSize: "15px",
+                                color: "var(--brand)",
+                              }}
                             />
                           </motion.div>
                         ) : (
@@ -527,8 +533,8 @@ function RealmProfile({
                       has nothing to accept a request WITH, so the button would
                       exist purely to be refused - `!== false` keeps realms, which
                       never send the field, exactly as they were. */}
-                  {realmInfo.can_connect === false ? null : !realmInfo.connection
-                      ?.is_connection_present ? (
+                  {realmInfo.can_connect === false ? null : !realmInfo
+                      .connection?.is_connection_present ? (
                     <button
                       onClick={AddRealmContactProcess}
                       disabled={isConnectionButtonsLoading}
@@ -799,7 +805,9 @@ function RealmProfile({
             <div className="cl-profile-surface cl-profile-page__feed-nav tw-w-full tw-h-fit tw-flex tw-mb-[6px]">
               <div
                 className="tw-w-full tw-p-[10px] tw-flex tw-flex-row tw-flex-wrap tw-items-center tw-gap-[4px]"
-                style={{ justifyContent: isMobileView ? "center" : "flex-start" }}
+                style={{
+                  justifyContent: isMobileView ? "center" : "flex-start",
+                }}
               >
                 {REALM_FEED_TABS.map((t) => (
                   <button
@@ -807,219 +815,246 @@ function RealmProfile({
                     data-active={feedmode === t.key}
                     onClick={() => setfeedmode(t.key)}
                     style={{
-                      backgroundColor: feedmode === t.key ? "var(--brand-soft)" : "transparent",
-                      color: feedmode === t.key ? "var(--brand)" : "var(--text-2)",
+                      backgroundColor:
+                        feedmode === t.key
+                          ? "var(--brand-soft)"
+                          : "transparent",
+                      color:
+                        feedmode === t.key ? "var(--brand)" : "var(--text-2)",
                     }}
                     className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
                   >
-                    <span className="cl-text-caption tw-font-semibold">{t.label}</span>
+                    <span className="cl-text-caption tw-font-semibold">
+                      {t.label}
+                    </span>
                   </button>
                 ))}
               </div>
             </div>
           )}
-          {feedmode === "saves" && isSelf && <SavesContainer profileInfo={feedProfileInfo} />}
-          {feedmode === "archives" && isSelf && <ArchivesContainer profileInfo={feedProfileInfo} />}
+          {feedmode === "saves" && isSelf && (
+            <SavesContainer profileInfo={feedProfileInfo} />
+          )}
+          {feedmode === "archives" && isSelf && (
+            <ArchivesContainer profileInfo={feedProfileInfo} />
+          )}
           {(feedmode === "posts" || !isSelf) && (
             <Fragment>
-          {toggleNewPostModal.toggle && realmInfo.is_admin && (
-            <NewPostModal
-              toShare={false}
-              sharePreviewData={null}
-              withImage={toggleNewPostModal.withImage}
-              profileInfo={{
-                id: authentication.user.userID,
-                entityID: authentication.user.entity_id,
-                username: authentication.user.username,
-              }}
-              otherEntityID={authentication.user.entity_id}
-              setcreateposttext={setcreateposttext}
-              getpostprocess={GetPostProcess}
-              onclose={settoggleNewPostModal}
-            />
-          )}
-          {realmInfo.is_admin && (
-            <Fragment>
-              <Card
-                pad={14}
-                className="cl-bleed"
-                style={{ marginBottom: 0, width: "100%" }}
-              >
-                {toggleNewPostModal.toggle && (
-                  <NewPostModal
-                    toShare={false}
-                    sharePreviewData={null}
-                    withImage={toggleNewPostModal.withImage}
-                    profileInfo={{
-                      id: authentication.user.userID,
-                      entityID: authentication.user.entity_id,
-                      username: authentication.user.username,
-                    }}
-                    otherEntityID={authentication.user.entity_id}
-                    setcreateposttext={setcreateposttext}
-                    getpostprocess={GetPostProcess}
-                    onclose={settoggleNewPostModal}
-                  />
-                )}
-                <div style={{ display: "flex", gap: 10, alignItems: "center" }}>
-                  <Avatar
-                    id={realmInfo.slug ?? undefined}
-                    entityId={realmInfo.entity}
-                    name={realmInfo.name ?? ""}
-                    src={realmAvatarSrc}
-                    size={42}
-                  />
-                  <input
-                    type="text"
-                    autoComplete="off"
-                    value={createposttext}
-                    onFocus={() => {
-                      settoggleNewPostModal({ toggle: true, withImage: false });
-                    }}
-                    onChange={(e) => {
-                      setcreateposttext(e.target.value);
-                    }}
-                    onKeyDown={(e) => {
-                      if (createposttext.trim() !== "") {
-                        if (e.key == "Enter") {
-                          // CreatePostProcess()
-                        }
-                      }
-                    }}
-                    className="tw-font-Inter"
-                    placeholder="Publish a post"
-                    style={{
-                      flex: 1,
-                      height: 42,
-                      border: "none",
-                      outline: "none",
-                      background: "var(--input)",
-                      padding: "0 16px",
-                      borderRadius: 21,
-                      color: "var(--text)",
-                      fontSize: "var(--fs-body)",
-                    }}
-                  />
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 4,
-                    marginTop: 10,
-                    paddingTop: 10,
-                    borderTop: "1px solid var(--border)",
+              {toggleNewPostModal.toggle && realmInfo.is_admin && (
+                <NewPostModal
+                  toShare={false}
+                  sharePreviewData={null}
+                  withImage={toggleNewPostModal.withImage}
+                  profileInfo={{
+                    id: authentication.user.userID,
+                    entityID: authentication.user.entity_id,
+                    username: authentication.user.username,
                   }}
-                >
-                  <button
-                    onClick={() => {
-                      settoggleNewPostModal({ toggle: true, withImage: true });
-                    }}
-                    style={{
-                      display: "inline-flex",
-                      alignItems: "center",
-                      gap: 6,
-                      height: 34,
-                      padding: "0 12px",
-                      border: "none",
-                      background: "transparent",
-                      borderRadius: "var(--r-sm)",
-                      cursor: "pointer",
-                      color: "var(--text-2)",
-                      fontSize: "var(--fs-body-sm)",
-                      fontWeight: 600,
-                    }}
-                    onMouseEnter={(e) =>
-                      (e.currentTarget.style.background =
-                        "var(--surface-hover)")
-                    }
-                    onMouseLeave={(e) =>
-                      (e.currentTarget.style.background = "transparent")
-                    }
-                  >
-                    <Icon n="image" s={20} c="var(--green)" />
-                    Photo
-                  </button>
-                  <Btn
-                    size="sm"
-                    style={{
-                      marginLeft: "auto",
-                      opacity: createposttext.trim() ? 1 : 0.7,
-                    }}
-                    onClick={() => {
-                      settoggleNewPostModal({ toggle: true, withImage: false });
-                    }}
-                  >
-                    Post
-                  </Btn>
-                </div>
-              </Card>
-            </Fragment>
-          )}
-          {paginatedPosts.count > 0 ? (
-            <div
-              className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[0px] ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
-            >
-              {posts.map((mp: IPost) => {
-                return (
+                  otherEntityID={authentication.user.entity_id}
+                  setcreateposttext={setcreateposttext}
+                  getpostprocess={GetPostProcess}
+                  onclose={settoggleNewPostModal}
+                />
+              )}
+              {realmInfo.is_admin && (
+                <Fragment>
                   <Card
-                    pad={10}
-                    style={{ marginBottom: 8, width: "100%" }}
-                    key={mp.post_id}
-                    className="cl-bleed tw-flex tw-justify-center tw-w-full"
+                    pad={14}
+                    className="cl-bleed"
+                    style={{ marginBottom: 0, width: "100%" }}
                   >
-                    <PostItem key={mp.post_id} isSharePreview={false} mp={mp} />
+                    {toggleNewPostModal.toggle && (
+                      <NewPostModal
+                        toShare={false}
+                        sharePreviewData={null}
+                        withImage={toggleNewPostModal.withImage}
+                        profileInfo={{
+                          id: authentication.user.userID,
+                          entityID: authentication.user.entity_id,
+                          username: authentication.user.username,
+                        }}
+                        otherEntityID={authentication.user.entity_id}
+                        setcreateposttext={setcreateposttext}
+                        getpostprocess={GetPostProcess}
+                        onclose={settoggleNewPostModal}
+                      />
+                    )}
+                    <div
+                      style={{ display: "flex", gap: 10, alignItems: "center" }}
+                    >
+                      <Avatar
+                        id={realmInfo.slug ?? undefined}
+                        entityId={realmInfo.entity}
+                        name={realmInfo.name ?? ""}
+                        src={realmAvatarSrc}
+                        size={42}
+                      />
+                      <input
+                        type="text"
+                        autoComplete="off"
+                        value={createposttext}
+                        onFocus={() => {
+                          settoggleNewPostModal({
+                            toggle: true,
+                            withImage: false,
+                          });
+                        }}
+                        onChange={(e) => {
+                          setcreateposttext(e.target.value);
+                        }}
+                        onKeyDown={(e) => {
+                          if (createposttext.trim() !== "") {
+                            if (e.key == "Enter") {
+                              // CreatePostProcess()
+                            }
+                          }
+                        }}
+                        className="tw-font-Inter"
+                        placeholder="Publish a post"
+                        style={{
+                          flex: 1,
+                          height: 42,
+                          border: "none",
+                          outline: "none",
+                          background: "var(--input)",
+                          padding: "0 16px",
+                          borderRadius: 21,
+                          color: "var(--text)",
+                          fontSize: "var(--fs-body)",
+                        }}
+                      />
+                    </div>
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 4,
+                        marginTop: 10,
+                        paddingTop: 10,
+                        borderTop: "1px solid var(--border)",
+                      }}
+                    >
+                      <button
+                        onClick={() => {
+                          settoggleNewPostModal({
+                            toggle: true,
+                            withImage: true,
+                          });
+                        }}
+                        style={{
+                          display: "inline-flex",
+                          alignItems: "center",
+                          gap: 6,
+                          height: 34,
+                          padding: "0 12px",
+                          border: "none",
+                          background: "transparent",
+                          borderRadius: "var(--r-sm)",
+                          cursor: "pointer",
+                          color: "var(--text-2)",
+                          fontSize: "var(--fs-body-sm)",
+                          fontWeight: 600,
+                        }}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background =
+                            "var(--surface-hover)")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
+                      >
+                        <Icon n="image" s={20} c="var(--green)" />
+                        Photo
+                      </button>
+                      <Btn
+                        size="sm"
+                        style={{
+                          marginLeft: "auto",
+                          opacity: createposttext.trim() ? 1 : 0.7,
+                        }}
+                        onClick={() => {
+                          settoggleNewPostModal({
+                            toggle: true,
+                            withImage: false,
+                          });
+                        }}
+                      >
+                        Post
+                      </Btn>
+                    </div>
                   </Card>
-                );
-              })}
-              {paginatedPosts.next && (
+                </Fragment>
+              )}
+              {paginatedPosts.count > 0 ? (
                 <div
-                  ref={divlazyloaderRef}
-                  id="divlazyloader"
-                  className="tw-bg-transparent tw-w-full tw-flex tw-items-center tw-justify-center tw-mt-[5px] tw-mb-[5px]"
+                  className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[0px] ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
                 >
-                  <motion.div
-                    animate={{
-                      rotate: -360,
-                    }}
-                    transition={{
-                      duration: 1,
-                      repeat: Infinity,
-                    }}
-                    id="div_loader_request_conv"
-                  >
-                    <AiOutlineLoading3Quarters style={{ fontSize: "20px" }} />
-                  </motion.div>
+                  {posts.map((mp: IPost) => {
+                    return (
+                      <Card
+                        pad={10}
+                        style={{ marginBottom: 8, width: "100%" }}
+                        key={mp.post_id}
+                        className="cl-bleed tw-flex tw-justify-center tw-w-full"
+                      >
+                        <PostItem
+                          key={mp.post_id}
+                          isSharePreview={false}
+                          mp={mp}
+                        />
+                      </Card>
+                    );
+                  })}
+                  {paginatedPosts.next && (
+                    <div
+                      ref={divlazyloaderRef}
+                      id="divlazyloader"
+                      className="tw-bg-transparent tw-w-full tw-flex tw-items-center tw-justify-center tw-mt-[5px] tw-mb-[5px]"
+                    >
+                      <motion.div
+                        animate={{
+                          rotate: -360,
+                        }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                        }}
+                        id="div_loader_request_conv"
+                      >
+                        <AiOutlineLoading3Quarters
+                          style={{ fontSize: "20px" }}
+                        />
+                      </motion.div>
+                    </div>
+                  )}
+                </div>
+              ) : ispostsloaded ? (
+                <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
+                  <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
+                  <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
+                    <span className="tw-font-semibold cl-text-body">
+                      No Posts yet
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div
+                  className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[0px]  ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
+                >
+                  {Array.from({ length: 8 }, (_, i: number) => {
+                    return (
+                      <Card
+                        pad={10}
+                        style={{ marginBottom: 8, width: "100%" }}
+                        key={i}
+                        className="cl-bleed tw-flex tw-justify-center tw-w-full"
+                      >
+                        <PostItemLoader key={i} />
+                      </Card>
+                    );
+                  })}
                 </div>
               )}
-            </div>
-          ) : ispostsloaded ? (
-            <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
-              <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
-              <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
-                <span className="tw-font-semibold cl-text-body">
-                  No Posts yet
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div
-              className={`tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[0px]  ${realmInfo.is_admin ? "tw-mt-[10px]" : "tw-mt-[0px]"}`}
-            >
-              {Array.from({ length: 8 }, (_, i: number) => {
-                return (
-                  <Card
-                    pad={10}
-                    style={{ marginBottom: 8, width: "100%" }}
-                    key={i}
-                    className="cl-bleed tw-flex tw-justify-center tw-w-full"
-                  >
-                    <PostItemLoader key={i} />
-                  </Card>
-                );
-              })}
-            </div>
-          )}
             </Fragment>
           )}
         </div>
@@ -1029,3 +1064,4 @@ function RealmProfile({
 }
 
 export default RealmProfile;
+
