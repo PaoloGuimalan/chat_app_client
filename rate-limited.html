@@ -58,10 +58,18 @@
         padding: 12px 24px;
         border-radius: 6px;
         font-weight: 500;
-        transition: background-color 0.2s;
+        transition: all 0.2s ease-in-out;
       }
       .btn:hover {
         background-color: #1d4ed8;
+      }
+      /* 💡 FORCED SECURITY STYLES FOR COUNTDOWN PERMISSION LOCKOUT */
+      .btn.disabled {
+        background-color: #475569 !important;
+        color: #94a3b8 !important;
+        cursor: not-allowed !important;
+        opacity: 0.6;
+        pointer-events: none; /* Prevents clicks entirely at the browser window engine level */
       }
     </style>
   </head>
@@ -74,11 +82,40 @@
         connection. To protect the application workspace, access is temporarily
         paused.
       </p>
-      <p>
-        Please wait <span class="timer">30 seconds</span> before trying to
+      <p id="timer-message">
+        Please wait <span id="countdown" class="timer">30 seconds</span> before trying to
         reload or navigate back into your console.
       </p>
-      <a href="/" class="btn">Return to Chatterloop</a>
+      <!-- 💡 Initially applied the 'disabled' class structure to guard against initial bypasses -->
+      <a href="/" id="action-btn" class="btn disabled">Return to Chatterloop</a>
     </div>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        let timeLeft = 30;
+        const countdownEl = document.getElementById("countdown");
+        const actionBtnEl = document.getElementById("action-btn");
+        const messageEl = document.getElementById("timer-message");
+
+        const ticker = setInterval(() => {
+          timeLeft--;
+
+          if (timeLeft > 0) {
+            // Update display layout text
+            countdownEl.textContent = `${timeLeft} second${timeLeft !== 1 ? 's' : ''}`;
+          } else {
+            // Stop the interval loop context tracking
+            clearInterval(ticker);
+            
+            // 🚀 UNLOCK STAGE: Unbind the security gate restrictions cleanly
+            actionBtnEl.classList.remove("disabled");
+            
+            // Update the UI copy text dynamically to guide the user naturally
+            messageEl.innerHTML = "Security checkpoint cleared. You are now safe to proceed.";
+            messageEl.style.color = "#10b981"; // Transition text to emerald green
+          }
+        }, 1000);
+      });
+    </script>
   </body>
 </html>
