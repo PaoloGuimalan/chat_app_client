@@ -59,9 +59,15 @@ import {
   toRequestError,
 } from "./errormessages";
 
-const API = envs.CHATTERLOOP_API;
-const USER_SERVICE_API = envs.USER_SERVICE_API;
-const SECRET = envs.SECRET;
+Object.defineProperties(globalThis, {
+  CHATTERLOOP_API: { get: () => envs.CHATTERLOOP_API },
+  USER_SERVICE_API: { get: () => envs.USER_SERVICE_API },
+  SECRET: { get: () => envs.SECRET }
+});
+
+const API = (globalThis as any).CHATTERLOOP_API;
+const USER_SERVICE_API = (globalThis as any).USER_SERVICE_API;
+const SECRET = (globalThis as any).SECRET;
 
 const Axios = axios.create();
 

@@ -1,14 +1,24 @@
-// src/global.d.ts
-import { SecureEnvs } from "./src/reusables/hooks/secureVault";
+// src/types/global.d.ts
 
-export {};
+export interface EncryptedPackage {
+  iv: string;
+  authTag: string;
+  ciphertext: string;
+}
+
+export interface BootstrapConfig {
+  key: string;
+  public: {
+    [key: string]: string | undefined;
+  };
+  payload: EncryptedPackage;
+}
 
 declare global {
   interface Window {
-    _bootstrap?: {
-      nonce: string;
-      keyHalfA: string;
-      public: SecureEnvs;
-    };
+    _bootstrap?: BootstrapConfig;
   }
 }
+
+// Essential tag to ensure TypeScript reads this as an ambient module layout descriptor
+export {};

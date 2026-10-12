@@ -1,8 +1,9 @@
 FROM node:22-alpine AS build
 WORKDIR /app
 COPY package*.json yarn.lock ./
-RUN yarn --frozen-lockfile
+RUN yarn --frozen-lockfile --network-timeout 300000
 COPY . .
+ENV NODE_OPTIONS="--max-old-space-size=2048"
 RUN yarn build
 
 RUN mv /app/dist/index.html /app/index.html.tpl
