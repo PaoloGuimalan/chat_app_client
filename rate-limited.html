@@ -4,30 +4,85 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Security Checkpoint - Chatterloop</title>
+    
+    <script>
+      // 🚀 THE THEME BRIDGE: Immediately checks your custom cl_theme token 
+      // before rendering the layout structure to prevent white flashes!
+      (function() {
+        const localTheme = localStorage.getItem("cl_theme");
+        
+        // Fallback to system preference hardware indicators if the key is null
+        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
+        const currentTheme = localTheme === "dark" || (!localTheme && systemPrefersDark) ? "dark" : "light";
+        
+        document.documentElement.setAttribute("data-theme", currentTheme);
+      })();
+    </script>
+
     <style>
+      /* =========================================================================
+         THEME AGNOSTIC VARIABLE DESIGN TOKENS
+         ========================================================================= */
+      :root[data-theme="light"] {
+        --bg-main: #f8fafc;
+        --bg-card: #ffffff;
+        --text-primary: #0f172a;
+        --text-secondary: #475569;
+        --border-color: #e2e8f0;
+        --timer-color: #0284c7;
+        --btn-bg: #2563eb;
+        --btn-hover: #1d4ed8;
+        --btn-disabled-bg: #f1f5f9; /* 💡 FIXED: Soft slate gray background instead of white */
+        --btn-disabled-text: #94a3b8;
+        --btn-disabled-border: #cbd5e1; /* 💡 FIXED: Adds a subtle bounding line outline */
+        --btn-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.2);
+      }
+
+      :root[data-theme="dark"] {
+        --bg-main: #0f172a;
+        --bg-card: #1e293b;
+        --text-primary: #ffffff;
+        --text-secondary: #94a3b8;
+        --border-color: #334155;
+        --timer-color: #38bdf8;
+        --btn-bg: #2563eb;
+        --btn-hover: #1d4ed8;
+        --btn-disabled-bg: #334155;
+        --btn-disabled-text: #64748b;
+        --btn-disabled-border: transparent;
+        --btn-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.4);
+      }
+
+      /* =========================================================================
+         CORE STRUCTURAL STYLES
+         ========================================================================= */
       body {
         margin: 0;
         padding: 0;
-        background-color: #0f172a;
-        color: #f8fafc;
-        font-family:
-          -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica,
-          Arial, sans-serif;
+        background-color: var(--bg-main);
+        color: var(--text-primary);
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
         display: flex;
         align-items: center;
         justify-content: center;
         min-height: 100vh;
+        transition: background-color 0.3s ease, color 0.3s ease;
       }
       .card {
         max-width: 440px;
+        width: 100%;
+        margin: 20px;
         padding: 40px;
-        background-color: #1e293b;
+        background-color: var(--bg-card);
         border-radius: 12px;
-        box-shadow:
-          0 10px 25px -5px rgba(0, 0, 0, 0.3),
-          0 8px 10px -6px rgba(0, 0, 0, 0.3);
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
         text-align: center;
-        border: 1px solid #334155;
+        border: 1px solid var(--border-color);
+        box-sizing: border-box;
+        transition: background-color 0.3s ease, border-color 0.3s ease;
+      }
+      :root[data-theme="dark"] .card {
+        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
       }
       .icon {
         font-size: 48px;
@@ -36,40 +91,63 @@
       }
       h1 {
         font-size: 24px;
-        margin-bottom: 12px;
+        margin-top: 0;
+        margin-bottom: 16px;
         font-weight: 700;
-        color: #ffffff;
+        color: var(--text-primary);
       }
       p {
         font-size: 15px;
         line-height: 1.6;
-        color: #94a3b8;
-        margin-bottom: 24px;
+        color: var(--text-secondary);
+        margin-top: 0;
+        margin-bottom: 20px;
       }
       .timer {
         font-weight: 600;
-        color: #38bdf8;
+        color: var(--timer-color);
       }
+      
+      .btn-container {
+        margin-top: 32px;
+        display: flex;
+        justify-content: center;
+      }
+      
       .btn {
-        display: inline-block;
-        background-color: #2563eb;
+        display: block;
+        width: 100%;
+        max-width: 280px;
+        background-color: var(--btn-bg);
         color: #ffffff;
         text-decoration: none;
-        padding: 12px 24px;
-        border-radius: 6px;
-        font-weight: 500;
-        transition: all 0.2s ease-in-out;
+        padding: 14px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 15px;
+        box-shadow: var(--btn-shadow);
+        box-sizing: border-box;
+        border: 1px solid transparent;
+        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
       }
       .btn:hover {
-        background-color: #1d4ed8;
+        background-color: var(--btn-hover);
+        transform: translateY(-2px);
       }
-      /* 💡 FORCED SECURITY STYLES FOR COUNTDOWN PERMISSION LOCKOUT */
+      .btn:active {
+        transform: translateY(0);
+      }
+      
+      /* 🚀 RE-ENGINEERED DISABLING LAYOUT MECHANISMS */
       .btn.disabled {
-        background-color: #475569 !important;
-        color: #94a3b8 !important;
+        background-color: var(--btn-disabled-bg) !important;
+        color: var(--btn-disabled-text) !important;
+        border-color: var(--btn-disabled-border) !important; /* Visual definition boundary box */
         cursor: not-allowed !important;
-        opacity: 0.6;
-        pointer-events: none; /* Prevents clicks entirely at the browser window engine level */
+        box-shadow: none !important;
+        transform: none !important;
+        opacity: 0.9; /* Keeps crisp contrast separation rules */
+        pointer-events: none; /* Block clicks entirely at browser engine level */
       }
     </style>
   </head>
@@ -86,8 +164,10 @@
         Please wait <span id="countdown" class="timer">30 seconds</span> before trying to
         reload or navigate back into your console.
       </p>
-      <!-- 💡 Initially applied the 'disabled' class structure to guard against initial bypasses -->
-      <a href="/" id="action-btn" class="btn disabled">Return to Chatterloop</a>
+      
+      <div class="btn-container">
+        <a href="/" id="action-btn" class="btn disabled">Return to Chatterloop</a>
+      </div>
     </div>
 
     <script>
@@ -101,18 +181,16 @@
           timeLeft--;
 
           if (timeLeft > 0) {
-            // Update display layout text
             countdownEl.textContent = `${timeLeft} second${timeLeft !== 1 ? 's' : ''}`;
           } else {
-            // Stop the interval loop context tracking
             clearInterval(ticker);
             
-            // 🚀 UNLOCK STAGE: Unbind the security gate restrictions cleanly
+            // Unblock click interaction mechanisms
             actionBtnEl.classList.remove("disabled");
             
-            // Update the UI copy text dynamically to guide the user naturally
+            // Dynamic green checkpoint release confirmation text string
             messageEl.innerHTML = "Security checkpoint cleared. You are now safe to proceed.";
-            messageEl.style.color = "#10b981"; // Transition text to emerald green
+            messageEl.style.color = "#10b981"; 
           }
         }, 1000);
       });

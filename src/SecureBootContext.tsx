@@ -128,12 +128,33 @@ export function SecureBootProvider(): React.JSX.Element {
     executeSplitKeyHandshake();
   }, []);
 
+  
   if (bootError) {
     return (
-      <div style={{ backgroundColor: "#0f172a", color: "#ef4444", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif" }}>
-        <div style={{ textAlign: "center", padding: "20px", border: "1px solid #1e293b", borderRadius: "8px", backgroundColor: "#1e293b" }}>
-          <h2 style={{ margin: "0 0 10px 0" }}>Security Block</h2>
-          <p style={{ color: "#94a3b8", margin: 0 }}>{bootError}</p>
+      <div style={{ 
+        backgroundColor: "var(--bg)", 
+        color: "#ef4444", 
+        minHeight: "100vh", 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        fontFamily: "sans-serif",
+        transition: "background-color 0.3s ease"
+      }}>
+        <div style={{ 
+          textAlign: "center", 
+          padding: "30px 40px", 
+          border: "1px solid var(--border-color, #334155)", 
+          borderRadius: "12px", 
+          backgroundColor: "var(--bg-card, #1e293b)",
+          boxShadow: "0 10px 25px -5px rgba(0, 0, 0, 0.1)",
+          maxWidth: "400px",
+          width: "100%",
+          margin: "20px"
+        }}>
+          <div style={{ fontSize: "48px", marginBottom: "16px" }}>⚠️</div>
+          <h2 style={{ margin: "0 0 10px 0", color: "var(--text-primary, #ffffff)", fontWeight: 700, fontSize: "22px" }}>Security Block</h2>
+          <p style={{ color: "var(--text-secondary, #94a3b8)", margin: 0, fontSize: "15px", lineHeight: "1.6" }}>{bootError}</p>
         </div>
       </div>
     );
@@ -141,12 +162,36 @@ export function SecureBootProvider(): React.JSX.Element {
 
   if (!bootstrapped) {
     return (
-      <div style={{ backgroundColor: "#0f172a", color: "#38bdf8", minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: "sans-serif" }}>
+      <div style={{ 
+        backgroundColor: "var(--bg)", 
+        color: "var(--timer-color, #38bdf8)", 
+        minHeight: "100vh", 
+        display: "flex", 
+        alignItems: "center", 
+        justifyContent: "center", 
+        fontFamily: "sans-serif",
+        transition: "background-color 0.3s ease"
+      }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ width: "40px", height: "40px", border: "4px solid #1e293b", borderTopColor: "#38bdf8", borderRadius: "50%", animation: "spin 1s linear infinite", margin: "0 auto 20px auto" }}></div>
-          <p style={{ margin: 0, fontWeight: 500 }}>Assembling Secure Application Sandbox...</p>
+          {/* 💡 THE SPINNER: Leverages theme variables for its tracking border lines */}
+          <div style={{ 
+            width: "40px", 
+            height: "40px", 
+            border: "4px solid var(--border-color, #1e293b)", 
+            borderTopColor: "var(--timer-color, #38bdf8)", 
+            borderRadius: "50%", 
+            animation: "cl-boot-spin 1s linear infinite", 
+            margin: "0 auto 20px auto" 
+          }}></div>
+          <p style={{ margin: 0, fontWeight: 600, color: "var(--text-primary, #ffffff)", fontSize: "15px" }}>
+            Assembling Secure Application Sandbox...
+          </p>
         </div>
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        <style>{`
+          @keyframes cl-boot-spin { 
+            to { transform: rotate(360deg); } 
+          }
+        `}</style>
       </div>
     );
   }
