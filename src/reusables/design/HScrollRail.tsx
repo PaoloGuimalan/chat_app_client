@@ -135,7 +135,7 @@ function HScrollRail({
         style={{
           display: "flex",
           gap,
-          overflowX: "auto",
+          overflowX: "hidden",
           paddingBottom: 6,
           ...trackStyle,
         }}
@@ -159,3 +159,4 @@ function HScrollRail({
 
 export default HScrollRail;
 export { HScrollRail };
+
