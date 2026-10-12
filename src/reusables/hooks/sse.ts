@@ -29,8 +29,8 @@ import {
 import envs from "./env_configs";
 import { isInAnyCall } from "./callPresence";
 
-const API = envs.CHATTERLOOP_API;
-const SECRET = envs.SECRET;
+// const API = envs.CHATTERLOOP_API;
+// const SECRET = envs.SECRET;
 
 let sseNtfsSource: any = null;
 
@@ -45,7 +45,7 @@ const SSENotificationsTRequest = (
     type: "notifications",
   };
 
-  const encodedPayload = sign(payload, SECRET);
+  const encodedPayload = sign(payload, envs.SECRET);
 
   // Close any existing stream before opening a new one. This used to just
   // reassign, leaking the previous EventSource - and there are two callers
@@ -59,7 +59,7 @@ const SSENotificationsTRequest = (
   }
 
   sseNtfsSource = new EventSource(
-    `${API}/u/sseNotifications/${encodedPayload}`,
+    `${envs.CHATTERLOOP_API}/u/sseNotifications/${encodedPayload}`,
   );
 
   sseNtfsSource.addEventListener("notifications", (e: any) => {

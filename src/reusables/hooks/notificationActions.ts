@@ -19,8 +19,8 @@ import {
 
 const PLATFORM = "web" as const;
 
-const API = envs.CHATTERLOOP_API;
-const USER_SERVICE_API = envs.USER_SERVICE_API;
+// const API = envs.CHATTERLOOP_API;
+// const USER_SERVICE_API = envs.USER_SERVICE_API;
 
 /** Buttons for this client, in render order. */
 export const webActions = (n: INotificationV2): INotificationAction[] =>
@@ -94,7 +94,7 @@ export const isRunnable = (a: INotificationAction) => {
  * row being able to aim an authenticated request at an arbitrary host.
  */
 const baseFor = (service: INotificationAction["service"]) =>
-  service === "realtime" ? API : USER_SERVICE_API;
+  service === "realtime" ? envs.CHATTERLOOP_API : envs.USER_SERVICE_API;
 
 /**
  * A deliberately BARE axios instance for third-party calls.

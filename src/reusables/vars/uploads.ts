@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import envs from "@/reusables/hooks/env_configs";
 
 // Upload limits per feature, as the SERVER enforces them.

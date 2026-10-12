@@ -2,10 +2,7 @@
 // src/context/SecureBootContext.tsx
 import React, { createContext, useState, useEffect } from "react";
 import { secureVault } from "./reusables/hooks/secureVault";
-
-interface SecureBootProviderProps {
-  children: React.ReactNode;
-}
+import App from "./App.tsx";
 
 interface BootstrapApiResponse {
   keyHalfB: string;
@@ -57,7 +54,7 @@ async function decryptPayload(
 
 const SecureBootContext = createContext<boolean>(false);
 
-export function SecureBootProvider({ children }: SecureBootProviderProps): React.JSX.Element {
+export function SecureBootProvider(): React.JSX.Element {
   const [bootstrapped, setBootstrapped] = useState<boolean>(false);
   const [bootError, setBootError] = useState<string | null>(null);
 
@@ -156,7 +153,7 @@ export function SecureBootProvider({ children }: SecureBootProviderProps): React
 
   return (
     <SecureBootContext.Provider value={bootstrapped}>
-      {children}
+      <App />
     </SecureBootContext.Provider>
   );
 }

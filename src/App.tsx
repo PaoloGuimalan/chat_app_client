@@ -21,7 +21,6 @@ import PolicyPage from "./app/legal/PolicyPage";
 import DeleteAccount from "./app/legal/DeleteAccount";
 import Support from "./app/legal/Support";
 import envs from "./reusables/hooks/env_configs";
-import { SecureBootProvider } from "./SecureBootContext";
 
 function App() {
   const authentication: AuthenticationInterface = useSelector(
@@ -101,7 +100,6 @@ function App() {
   }, []);
 
   return (
-    <SecureBootProvider>
     <div className="App">
       <div id="div_alerts_container" ref={scrollDivAlerts}>
         {alerts.map((al: any, i: number) => {
@@ -249,7 +247,6 @@ function App() {
         {/* <Route path='/app/*' element={authentication.auth != null? authentication.auth? authentication.user.isVerified? <Home /> : <Navigate to='/verification' /> : <Navigate to='/login' /> : <Splash />} /> */}
       </Routes>
     </div>
-    </SecureBootProvider>
   );
 }
 

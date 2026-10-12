@@ -2,28 +2,26 @@
 import { secureVault } from "./secureVault";
 
 /**
- * Interface definition representing the environment configurations
- * accessible across your application codebase components.
+ * Type declaration representing the internal key schema structure mapping
+ * utilized across the application codebase components.
  */
 interface EnvSchema {
-  readonly GOOGLE_CLIENT_ID: string;
-  readonly CHATTERLOOP_API: string;
-  readonly USER_SERVICE_API: string;
-  readonly SECRET: string;
-  readonly OPEN_ROUTE_API: string;
-  readonly OPEN_ROUTE_API_KEY: string;
-  readonly TURN_SERVER_URL: string;
-  readonly TURN_SERVER_USERNAME: string;
-  readonly TURN_SERVER_CREDENTIAL: string;
-  readonly APP_VERSION: string;
+  GOOGLE_CLIENT_ID: string;
+  CHATTERLOOP_API: string;
+  USER_SERVICE_API: string;
+  SECRET: string;
+  OPEN_ROUTE_API: string;
+  OPEN_ROUTE_API_KEY: string;
+  TURN_SERVER_URL: string;
+  TURN_SERVER_USERNAME: string;
+  TURN_SERVER_CREDENTIAL: string;
+  APP_VERSION: string;
+  [key: string]: string; // Fallback mapping protection
 }
 
 /**
  * Pure memory sandbox extractor utility.
  * Fetches the variable on-demand straight out of the active closure space.
- * 
- * @param vaultKey - The target key string to look up from the locked memory state
- * @returns A guaranteed plain string value
  */
 const pick = (vaultKey: string): string => {
   const sandbox = secureVault.getAll();
@@ -31,24 +29,41 @@ const pick = (vaultKey: string): string => {
 };
 
 /**
- * Unified Dynamic Environment Variable Bridge
- * Utilizing Object.defineProperties configures these fields as active getters.
- * This guarantees that whenever an execution call reads 'envs.SECRET', it fetches
- * the live decrypted state rather than a dead string evaluated at application boot.
+ * 🚀 THE PERMANENT FIX: A JavaScript Proxy Wrapper Engine.
+ * Instead of exporting a static object that can be frozen or cached at boot time,
+ * this Proxy intercepts every property access at RUNTIME.
+ * 
+ * When an endpoint function calls `envs.CHATTERLOOP_API`, the Proxy instantly 
+ * executes the 'get' trap, routing the lookup directly to your populated secureVault.
  */
-const envs = {} as EnvSchema;
-
-Object.defineProperties(envs, {
-  GOOGLE_CLIENT_ID: { get: () => pick("VITE_PUBLIC_GOOGLE_CLIENT_ID"), enumerable: true },
-  CHATTERLOOP_API: { get: () => pick("VITE_PUBLIC_CHATTERLOOP_API"), enumerable: true },
-  USER_SERVICE_API: { get: () => pick("VITE_PUBLIC_CHATTERLOOP_USER_SERVICE_API"), enumerable: true },
-  SECRET: { get: () => pick("VITE_SECRET_JWT_SECRET"), enumerable: true },
-  OPEN_ROUTE_API: { get: () => pick("VITE_PUBLIC_OPEN_ROUTE_API"), enumerable: true },
-  OPEN_ROUTE_API_KEY: { get: () => pick("VITE_SECRET_OPEN_ROUTE_API_KEY"), enumerable: true },
-  TURN_SERVER_URL: { get: () => pick("VITE_PUBLIC_TURN_SERVER_URL"), enumerable: true },
-  TURN_SERVER_USERNAME: { get: () => pick("VITE_SECRET_TURN_SERVER_USERNAME"), enumerable: true },
-  TURN_SERVER_CREDENTIAL: { get: () => pick("VITE_SECRET_TURN_SERVER_CREDENTIAL"), enumerable: true },
-  APP_VERSION: { get: () => pick("VITE_PUBLIC_APP_VERSION") || "dev", enumerable: true }
+const envs = new Proxy({} as EnvSchema, {
+  get: (_target, prop: string) => {
+    // Maps your clean internal variable references onto your secure vault server prefixes
+    switch (prop) {
+      case "GOOGLE_CLIENT_ID":
+        return pick("VITE_PUBLIC_GOOGLE_CLIENT_ID");
+      case "CHATTERLOOP_API":
+        return pick("VITE_PUBLIC_CHATTERLOOP_API");
+      case "USER_SERVICE_API":
+        return pick("VITE_PUBLIC_CHATTERLOOP_USER_SERVICE_API");
+      case "SECRET":
+        return pick("VITE_SECRET_JWT_SECRET");
+      case "OPEN_ROUTE_API":
+        return pick("VITE_PUBLIC_OPEN_ROUTE_API");
+      case "OPEN_ROUTE_API_KEY":
+        return pick("VITE_SECRET_OPEN_ROUTE_API_KEY");
+      case "TURN_SERVER_URL":
+        return pick("VITE_PUBLIC_TURN_SERVER_URL");
+      case "TURN_SERVER_USERNAME":
+        return pick("VITE_SECRET_TURN_SERVER_USERNAME");
+      case "TURN_SERVER_CREDENTIAL":
+        return pick("VITE_SECRET_TURN_SERVER_CREDENTIAL");
+      case "APP_VERSION":
+        return pick("VITE_PUBLIC_APP_VERSION") || "dev";
+      default:
+        return pick(prop);
+    }
+  }
 });
 
 export default envs;

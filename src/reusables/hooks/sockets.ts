@@ -2,13 +2,13 @@
 import { connect } from "socket.io-client";
 import envs from "./env_configs";
 
-const API = envs.CHATTERLOOP_API;
+// const API = envs.CHATTERLOOP_API;
 
 let socket: any | null;
 
 const socketInit = async () => {
   if (!socket) {
-    socket = connect(`${API}/call`, {
+    socket = connect(`${envs.CHATTERLOOP_API}/call`, {
       auth: { token: localStorage.getItem("authtoken") || "" },
     });
     return true;

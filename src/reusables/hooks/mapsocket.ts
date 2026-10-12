@@ -2,7 +2,7 @@
 import { connect } from "socket.io-client";
 import envs from "./env_configs";
 
-const API = envs.CHATTERLOOP_API;
+// const API = envs.CHATTERLOOP_API;
 
 let socket: any | null;
 
@@ -11,7 +11,7 @@ const socketMapConnect = async () => {
     // socket.io reads the URL's path as the namespace, not as a route, so the
     // API's gateway prefix (api.chatterloop.app/<prefix>) has to go in `path`
     // instead - otherwise the handshake hits /socket.io at the host root.
-    const apiUrl = new URL(API);
+    const apiUrl = new URL(envs.CHATTERLOOP_API);
     socket = connect(`${apiUrl.origin}/map`, {
       path: `${apiUrl.pathname.replace(/\/$/, "")}/socket.io`,
     });

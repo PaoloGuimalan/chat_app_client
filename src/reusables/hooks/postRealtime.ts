@@ -3,8 +3,8 @@ import sign from "jwt-encode";
 import { useEffect, useRef } from "react";
 import envs from "./env_configs";
 
-const API = envs.CHATTERLOOP_API;
-const SECRET = envs.SECRET;
+// const API = envs.CHATTERLOOP_API;
+// const SECRET = envs.SECRET;
 
 /**
  * Live activity on ONE post - comments as they are written, and who is typing.
@@ -95,11 +95,11 @@ export const usePostActivityStream = (
         type: "post_activity",
         post_id: postID,
       },
-      SECRET,
+      envs.SECRET,
     );
 
     const source = new EventSource(
-      `${API}/posts/ssePostActivity/${encodedPayload}`,
+      `${envs.CHATTERLOOP_API}/posts/ssePostActivity/${encodedPayload}`,
     );
 
     const relay = (e: any) => {

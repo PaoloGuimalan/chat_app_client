@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useSyncExternalStore } from "react";
 import envs from "./env_configs";
 import { firstPartyClient } from "./requests";
@@ -61,7 +62,7 @@ export class UploadError extends Error {
   }
 }
 
-const API = envs.CHATTERLOOP_API;
+// const API = envs.CHATTERLOOP_API;
 const PART_ATTEMPTS = 3;
 
 const authHeaders = () => ({
@@ -166,7 +167,7 @@ const sendFile = async (
         // A refused link has usually expired: ask for a fresh one.
         if (err.status === 403) {
           const fresh = await firstPartyClient.post(
-            `${API}/media/uploads/${asked.uploadID}/parts`,
+            `${envs.CHATTERLOOP_API}/media/uploads/${asked.uploadID}/parts`,
             { parts: [part.n] },
             { headers: authHeaders() },
           );
@@ -227,7 +228,7 @@ export const uploadFiles = async ({
   let asked: AskedUpload[];
   try {
     const response = await firstPartyClient.post(
-      `${API}/media/uploads`,
+      `${envs.CHATTERLOOP_API}/media/uploads`,
       {
         purpose,
         context,
@@ -263,7 +264,7 @@ export const uploadFiles = async ({
     let results: any[];
     try {
       const response = await firstPartyClient.post(
-        `${API}/media/uploads/complete`,
+        `${envs.CHATTERLOOP_API}/media/uploads/complete`,
         { uploads: finished },
         { headers: authHeaders() },
       );
@@ -278,7 +279,7 @@ export const uploadFiles = async ({
     // Drop what never finished, so it doesn't wait for the cleanup job.
     asked.forEach((upload) =>
       firstPartyClient
-        .delete(`${API}/media/uploads/${upload.uploadID}`, {
+        .delete(`${envs.CHATTERLOOP_API}/media/uploads/${upload.uploadID}`, {
           headers: authHeaders(),
         })
         .catch(() => {}),
