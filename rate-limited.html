@@ -4,193 +4,65 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Security Checkpoint - Chatterloop</title>
-    
     <script>
-      // 🚀 THE THEME BRIDGE: Immediately checks your custom cl_theme token 
-      // before rendering the layout structure to prevent white flashes!
-      (function() {
-        const localTheme = localStorage.getItem("cl_theme");
-        
-        // Fallback to system preference hardware indicators if the key is null
-        const systemPrefersDark = window.matchMedia("(prefers-color-scheme: dark)").matches;
-        const currentTheme = localTheme === "dark" || (!localTheme && systemPrefersDark) ? "dark" : "light";
-        
-        document.documentElement.setAttribute("data-theme", currentTheme);
+      // Match ThemeProvider's saved preference and light-mode default.
+      (function () {
+        let theme = "light";
+        try {
+          if (localStorage.getItem("cl_theme") === "dark") theme = "dark";
+        } catch (_) {
+          // The checkpoint also works when browser storage is unavailable.
+        }
+        document.documentElement.setAttribute("data-theme", theme);
       })();
     </script>
-
-    <style>
-      /* =========================================================================
-         THEME AGNOSTIC VARIABLE DESIGN TOKENS
-         ========================================================================= */
-      :root[data-theme="light"] {
-        --bg-main: #f8fafc;
-        --bg-card: #ffffff;
-        --text-primary: #0f172a;
-        --text-secondary: #475569;
-        --border-color: #e2e8f0;
-        --timer-color: #0284c7;
-        --btn-bg: #2563eb;
-        --btn-hover: #1d4ed8;
-        --btn-disabled-bg: #f1f5f9; /* 💡 FIXED: Soft slate gray background instead of white */
-        --btn-disabled-text: #94a3b8;
-        --btn-disabled-border: #cbd5e1; /* 💡 FIXED: Adds a subtle bounding line outline */
-        --btn-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.2);
-      }
-
-      :root[data-theme="dark"] {
-        --bg-main: #0f172a;
-        --bg-card: #1e293b;
-        --text-primary: #ffffff;
-        --text-secondary: #94a3b8;
-        --border-color: #334155;
-        --timer-color: #38bdf8;
-        --btn-bg: #2563eb;
-        --btn-hover: #1d4ed8;
-        --btn-disabled-bg: #334155;
-        --btn-disabled-text: #64748b;
-        --btn-disabled-border: transparent;
-        --btn-shadow: 0 4px 14px 0 rgba(37, 99, 235, 0.4);
-      }
-
-      /* =========================================================================
-         CORE STRUCTURAL STYLES
-         ========================================================================= */
-      body {
-        margin: 0;
-        padding: 0;
-        background-color: var(--bg-main);
-        color: var(--text-primary);
-        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        min-height: 100vh;
-        transition: background-color 0.3s ease, color 0.3s ease;
-      }
-      .card {
-        max-width: 440px;
-        width: 100%;
-        margin: 20px;
-        padding: 40px;
-        background-color: var(--bg-card);
-        border-radius: 12px;
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05), 0 8px 10px -6px rgba(0, 0, 0, 0.05);
-        text-align: center;
-        border: 1px solid var(--border-color);
-        box-sizing: border-box;
-        transition: background-color 0.3s ease, border-color 0.3s ease;
-      }
-      :root[data-theme="dark"] .card {
-        box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4);
-      }
-      .icon {
-        font-size: 48px;
-        margin-bottom: 20px;
-        color: #f59e0b;
-      }
-      h1 {
-        font-size: 24px;
-        margin-top: 0;
-        margin-bottom: 16px;
-        font-weight: 700;
-        color: var(--text-primary);
-      }
-      p {
-        font-size: 15px;
-        line-height: 1.6;
-        color: var(--text-secondary);
-        margin-top: 0;
-        margin-bottom: 20px;
-      }
-      .timer {
-        font-weight: 600;
-        color: var(--timer-color);
-      }
-      
-      .btn-container {
-        margin-top: 32px;
-        display: flex;
-        justify-content: center;
-      }
-      
-      .btn {
-        display: block;
-        width: 100%;
-        max-width: 280px;
-        background-color: var(--btn-bg);
-        color: #ffffff;
-        text-decoration: none;
-        padding: 14px 24px;
-        border-radius: 8px;
-        font-weight: 600;
-        font-size: 15px;
-        box-shadow: var(--btn-shadow);
-        box-sizing: border-box;
-        border: 1px solid transparent;
-        transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-      }
-      .btn:hover {
-        background-color: var(--btn-hover);
-        transform: translateY(-2px);
-      }
-      .btn:active {
-        transform: translateY(0);
-      }
-      
-      /* 🚀 RE-ENGINEERED DISABLING LAYOUT MECHANISMS */
-      .btn.disabled {
-        background-color: var(--btn-disabled-bg) !important;
-        color: var(--btn-disabled-text) !important;
-        border-color: var(--btn-disabled-border) !important; /* Visual definition boundary box */
-        cursor: not-allowed !important;
-        box-shadow: none !important;
-        transform: none !important;
-        opacity: 0.9; /* Keeps crisp contrast separation rules */
-        pointer-events: none; /* Block clicks entirely at browser engine level */
-      }
-    </style>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="/design/theme.css" />
+    <link rel="stylesheet" href="/design/security-status.css" />
   </head>
-  <body>
-    <div class="card">
-      <div class="icon">⚠️</div>
-      <h1>Hold on a second...</h1>
-      <p>
+  <body class="cl-redesign cl-security-page">
+    <script>
+      // The scoped design classes need the theme on their own element too.
+      document.body.dataset.theme = document.documentElement.dataset.theme;
+    </script>
+    <main class="cl-security-card cl-fade" aria-labelledby="checkpoint-title">
+      <div class="cl-security-icon cl-security-icon--warning">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11" />
+          <path d="M12 8v4" /><path d="M12 16h.01" />
+        </svg>
+      </div>
+      <h1 id="checkpoint-title" class="cl-security-title cl-text-screen">Hold on a second...</h1>
+      <p class="cl-security-copy cl-text-body">
         We detected unusual activity or rapid page refreshing from your
         connection. To protect the application workspace, access is temporarily
         paused.
       </p>
-      <p id="timer-message">
-        Please wait <span id="countdown" class="timer">30 seconds</span> before trying to
+      <p id="timer-message" class="cl-security-copy cl-text-body" role="status">
+        Please wait <span id="countdown" class="cl-security-timer" aria-live="off">30 seconds</span> before trying to
         reload or navigate back into your console.
       </p>
-      
-      <div class="btn-container">
-        <a href="/" id="action-btn" class="btn disabled">Return to Chatterloop</a>
+      <div class="cl-security-actions">
+        <a id="action-btn" class="cl-security-button cl-text-body-sm" aria-disabled="true" tabindex="-1">Return to Chatterloop</a>
       </div>
-    </div>
-
+    </main>
     <script>
       document.addEventListener("DOMContentLoaded", () => {
         let timeLeft = 30;
         const countdownEl = document.getElementById("countdown");
         const actionBtnEl = document.getElementById("action-btn");
         const messageEl = document.getElementById("timer-message");
-
         const ticker = setInterval(() => {
           timeLeft--;
-
           if (timeLeft > 0) {
-            countdownEl.textContent = `${timeLeft} second${timeLeft !== 1 ? 's' : ''}`;
+            countdownEl.textContent = `${timeLeft} second${timeLeft !== 1 ? "s" : ""}`;
           } else {
             clearInterval(ticker);
-            
-            // Unblock click interaction mechanisms
-            actionBtnEl.classList.remove("disabled");
-            
-            // Dynamic green checkpoint release confirmation text string
-            messageEl.innerHTML = "Security checkpoint cleared. You are now safe to proceed.";
-            messageEl.style.color = "#10b981"; 
+            actionBtnEl.setAttribute("href", "/");
+            actionBtnEl.removeAttribute("aria-disabled");
+            actionBtnEl.removeAttribute("tabindex");
+            messageEl.textContent = "Security checkpoint cleared. You are now safe to proceed.";
+            messageEl.classList.add("cl-security-copy--success");
           }
         }, 1000);
       });
