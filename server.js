@@ -5,61 +5,9 @@ const fs = require("fs");
 const crypto = require("crypto");
 const Redis = require("ioredis");
 const cors = require("cors");
-const rateLimit = require("express-rate-limit");
 
 const app = express();
 const DIST_DIR = path.resolve(__dirname, "dist");
-
-// 1. Pre-load your clean templates into memory once at server start
-const TEMPLATE_PATH = path.join(__dirname, "index.html.tpl");
-const RATE_LIMIT_TEMPLATE_PATH = path.join(__dirname, "rate-limited.html");
-
-let template = fs.readFileSync(TEMPLATE_PATH, "utf8");
-let rateLimitedHtml = fs.readFileSync(RATE_LIMIT_TEMPLATE_PATH, "utf8"); // Cached for lightning fast 429 delivery
-
-const PLACEHOLDER = "/*__ENV__*/";
-
-// ------------------------------------------------------------------------
-// LAYER 1: CORS & ISOLATED DATA RATE LIMITERS
-// ------------------------------------------------------------------------
-
-app.use(
-  cors({
-    origin: process.env.ALLOWED_ORIGIN || "https://chatterloop.app",
-    methods: ["GET", "HEAD"],
-    optionsSuccessStatus: 200,
-  }),
-);
-
-const assetLimiter = rateLimit({
-  windowMs: 1 * 60 * 1000,
-  max: 150,
-  standardHeaders: false,
-  legacyHeaders: false,
-});
-
-// Tightened 5 requests per 30 seconds limiter feeding the external file template
-const htmlLimiter = rateLimit({
-  windowMs: 30 * 1000,
-  max: 5,
-  standardHeaders: true,
-  legacyHeaders: false,
-  handler: (req, res, next, options) => {
-    res.status(429);
-    res.setHeader("Content-Type", "text/html");
-    // Serve your clean, cached out-of-file structural layout
-    res.send(rateLimitedHtml);
-  },
-});
-
-// ------------------------------------------------------------------------
-// LAYER 2: ASSET ROUTING MATRIX
-// ------------------------------------------------------------------------
-
-app.use(
-  express.static(DIST_DIR, { index: false, immutable: true, maxAge: "1y" }),
-  assetLimiter,
-);
 
 const redis = new Redis({
   host: process.env.REDIS_HOST || "127.0.0.1",
@@ -68,31 +16,59 @@ const redis = new Redis({
   password: process.env.REDIS_PASSWORD || undefined,
 });
 
-const handleDynamicHtmlDelivery = async (req, res) => {
-  try {
-    const publicConfig = {};
-    const sensitiveConfig = {};
+const template = fs.readFileSync(
+  path.join(__dirname, "index.html.tpl"),
+  "utf8",
+);
 
-    for (const key of Object.keys(process.env)) {
-      if (key.startsWith("VITE_PUBLIC_")) {
-        publicConfig[key] = process.env[key];
-      } else if (key.startsWith("VITE_SECRET_")) {
-        sensitiveConfig[key] = process.env[key];
-      }
+app.use(
+  cors({ origin: process.env.ALLOWED_ORIGIN || "https://chatterloop.app" }),
+);
+app.use(express.json());
+
+app.post("/api/bootstrap", async (req, res) => {
+  const { nonce, keyHalfA } = req.body;
+  if (!nonce || !keyHalfA) {
+    return res
+      .status(400)
+      .json({ error: "Missing required cryptographic handshake parameters." });
+  }
+
+  const redisKey = `bootstrap_session:${nonce}`;
+
+  try {
+    const [getReply] = await redis.multi().get(redisKey).del(redisKey).exec();
+
+    if (!getReply) {
+      return res
+        .status(403)
+        .json({ error: "Handshake window has expired or been consumed." });
     }
 
-    const bootstrapKey = crypto.randomBytes(32).toString("hex");
-    const redisKey = `bootstrap_key:${bootstrapKey}`;
+    const sessionData = JSON.parse(getReply);
 
-    // Secure 10-second TTL
-    await redis.setex(redisKey, 10, "active");
+    if (sessionData.keyHalfA !== keyHalfA) {
+      return res
+        .status(401)
+        .json({ error: "Cryptographic signature mismatch." });
+    }
+
+    const sensitiveConfig = {
+      VITE_SECRET_JWT_SECRET: process.env.REAL_JWT_SECRET,
+      VITE_SECRET_OPEN_ROUTE_API_KEY: process.env.REAL_OPEN_ROUTE_API_KEY,
+      VITE_SECRET_TURN_SERVER_USERNAME: process.env.REAL_TURN_SERVER_USERNAME,
+      VITE_SECRET_TURN_SERVER_CREDENTIAL:
+        process.env.REAL_TURN_SERVER_CREDENTIAL,
+    };
 
     const payload = {
       exp: Date.now() + 10000,
       envs: sensitiveConfig,
     };
 
-    const secretBuffer = Buffer.from(bootstrapKey, "hex");
+    const fullMasterKey = keyHalfA + sessionData.keyHalfB;
+    const secretBuffer = Buffer.from(fullMasterKey, "hex");
+
     const iv = crypto.randomBytes(12);
     const cipher = crypto.createCipheriv("aes-256-gcm", secretBuffer, iv);
 
@@ -100,39 +76,61 @@ const handleDynamicHtmlDelivery = async (req, res) => {
     encrypted += cipher.final("hex");
     const authTag = cipher.getAuthTag().toString("hex");
 
+    return res.json({
+      keyHalfB: sessionData.keyHalfB,
+      payload: {
+        iv: iv.toString("hex"),
+        authTag: authTag.toString("hex"),
+        ciphertext: encrypted,
+      },
+    });
+  } catch (error) {
+    console.error("[handshake-failure] Extraction crash:", error);
+    return res
+      .status(500)
+      .json({ error: "Internal handshake verification mismatch." });
+  }
+});
+
+app.get("/", async (req, res) => {
+  try {
+    const publicConfig = {};
+    for (const key of Object.keys(process.env)) {
+      if (key.startsWith("VITE_PUBLIC_")) publicConfig[key] = process.env[key];
+    }
+
+    const fullKeyString = crypto.randomBytes(32).toString("hex");
+    const keyHalfA = fullKeyString.substring(0, 32);
+    const keyHalfB = fullKeyString.substring(32, 64);
+
+    const redisNonce = crypto.randomBytes(32).toString("hex");
+
+    const sessionData = { keyHalfA, keyHalfB };
+    await redis.setex(
+      `bootstrap_session:${redisNonce}`,
+      10,
+      JSON.stringify(sessionData),
+    );
+
     const inlineScript = `
       window._bootstrap = {
-        key: "${bootstrapKey}",
-        public: ${JSON.stringify(publicConfig)},
-        payload: ${JSON.stringify({ iv: iv.toString("hex"), authTag, ciphertext: encrypted })}
+        nonce: "${redisNonce}",
+        keyHalfA: "${keyHalfA}",
+        public: ${JSON.stringify(publicConfig)}
       };
     `;
 
-    const finalHtml = template.replace(PLACEHOLDER, () => inlineScript);
     res.setHeader("Content-Type", "text/html");
-    return res.send(finalHtml);
-  } catch (error) {
-    console.error("[security-boot] Pipeline failed:", error);
-    res.status(500).send("Internal Security Boot Error.");
+    return res.send(template.replace("/*__ENV__*/", () => inlineScript));
+  } catch (err) {
+    res.status(500).send("Security Boot Failure.");
   }
-};
-
-app.get("/", htmlLimiter, handleDynamicHtmlDelivery);
-
-app.get("*", (req, res, next) => {
-  const acceptsHtml =
-    req.headers.accept && req.headers.accept.includes("text/html");
-  if (acceptsHtml) {
-    return htmlLimiter(req, res, () => handleDynamicHtmlDelivery(req, res));
-  }
-  next();
 });
 
-app.use((req, res) => res.status(404).send("Asset Not Found"));
+app.use(express.static(DIST_DIR, { index: false }));
+app.get("*", (req, res) => res.redirect("/"));
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
-  console.log(
-    `[production-ssr] Shifting-window rate limiting engine active on port ${PORT}`,
-  ),
+  console.log(`[split-key-ssr] Server runtime spinning on port ${PORT}`),
 );
