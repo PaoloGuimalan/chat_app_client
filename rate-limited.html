@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Security Checkpoint - Chatterloop</title>
+    <script>
+      // Match ThemeProvider's saved preference and light-mode default.
+      (function () {
+        let theme = "light";
+        try {
+          if (localStorage.getItem("cl_theme") === "dark") theme = "dark";
+        } catch (_) {
+          // The checkpoint also works when browser storage is unavailable.
+        }
+        document.documentElement.setAttribute("data-theme", theme);
+      })();
+    </script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" />
+    <link rel="stylesheet" href="/design/theme.css" />
+    <link rel="stylesheet" href="/design/security-status.css" />
+  </head>
+  <body class="cl-redesign cl-security-page">
+    <script>
+      // The scoped design classes need the theme on their own element too.
+      document.body.dataset.theme = document.documentElement.dataset.theme;
+    </script>
+    <main class="cl-security-card cl-fade" aria-labelledby="checkpoint-title">
+      <div class="cl-security-icon cl-security-icon--warning">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11" />
+          <path d="M12 8v4" /><path d="M12 16h.01" />
+        </svg>
+      </div>
+      <h1 id="checkpoint-title" class="cl-security-title cl-text-screen">Hold on a second...</h1>
+      <p class="cl-security-copy cl-text-body">
+        We detected unusual activity or rapid page refreshing from your
+        connection. To protect the application workspace, access is temporarily
+        paused.
+      </p>
+      <p id="timer-message" class="cl-security-copy cl-text-body" role="status">
+        Please wait <span id="countdown" class="cl-security-timer" aria-live="off">30 seconds</span> before trying to
+        reload or navigate back into your console.
+      </p>
+      <div class="cl-security-actions">
+        <a id="action-btn" class="cl-security-button cl-text-body-sm" aria-disabled="true" tabindex="-1">Return to Chatterloop</a>
+      </div>
+    </main>
+    <script>
+      document.addEventListener("DOMContentLoaded", () => {
+        let timeLeft = 30;
+        const countdownEl = document.getElementById("countdown");
+        const actionBtnEl = document.getElementById("action-btn");
+        const messageEl = document.getElementById("timer-message");
+        const ticker = setInterval(() => {
+          timeLeft--;
+          if (timeLeft > 0) {
+            countdownEl.textContent = `${timeLeft} second${timeLeft !== 1 ? "s" : ""}`;
+          } else {
+            clearInterval(ticker);
+            actionBtnEl.setAttribute("href", "/");
+            actionBtnEl.removeAttribute("aria-disabled");
+            actionBtnEl.removeAttribute("tabindex");
+            messageEl.textContent = "Security checkpoint cleared. You are now safe to proceed.";
+            messageEl.classList.add("cl-security-copy--success");
+          }
+        }, 1000);
+      });
+    </script>
+  </body>
+</html>

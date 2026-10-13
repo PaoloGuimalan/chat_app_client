@@ -116,10 +116,14 @@ function EmptySection({
       }}
     >
       <Icon n={icon} s={32} c="var(--text-3)" />
-      <div style={{ fontWeight: 700, fontSize: "var(--fs-title)", marginTop: 6 }}>
+      <div
+        style={{ fontWeight: 700, fontSize: "var(--fs-title)", marginTop: 6 }}
+      >
         {title}
       </div>
-      <div style={{ fontSize: "var(--fs-caption)", color: "var(--text-3)" }}>{subtitle}</div>
+      <div style={{ fontSize: "var(--fs-caption)", color: "var(--text-3)" }}>
+        {subtitle}
+      </div>
     </div>
   );
 }
@@ -733,4 +737,3 @@ function Contacts() {
 }
 
 export default Contacts;
-
