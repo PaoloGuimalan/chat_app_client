@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { FcPuzzle, FcSettings } from "react-icons/fc";
-import { TbServer2 } from "react-icons/tb";
-import { RiPagesFill } from "react-icons/ri";
+import { appShortcutIcons } from "./appShortcutIcons";
 import { useNavigate } from "react-router-dom";
 import { useDispatch, useSelector } from "react-redux";
 import { HScrollRail } from "@/reusables/design";
@@ -24,21 +22,24 @@ export default function AppShortcuts({
   const active = useSelector(
     (state: any) => state.authentication.active_entity_context,
   );
+  const username = useSelector((state: any) => state.authentication.user.username);
   const items = [
     ...(!hideSettings
       ? [
           {
             name: active?.is_switched ? "Manage realm" : "Settings",
-            icon: <FcSettings />,
+            icon: appShortcutIcons.settings,
             route: active?.is_switched
               ? "/realms/" + active.realm_id
               : "/settings",
           },
         ]
       : []),
-    { name: "Servers", icon: <TbServer2 color="#e69500" />, route: "/servers" },
-    { name: "Pages", icon: <RiPagesFill color="#4997f2" />, route: "/pages" },
-    { name: "Chatterloop Extension", icon: <FcPuzzle />, route: null },
+    { name: "Servers", icon: appShortcutIcons.servers, route: "/servers" },
+    { name: "Pages", icon: appShortcutIcons.pages, route: "/pages" },
+    { name: "Diary", icon: appShortcutIcons.diary, route: `/${encodeURIComponent(username)}/diary` },
+    { name: "Notes", icon: appShortcutIcons.notes, route: null },
+    { name: "Chatterloop Extension", icon: appShortcutIcons.extension, route: null },
   ];
   const tiles = items.map((item) => (
     <button
@@ -70,8 +71,8 @@ export default function AppShortcuts({
   return layout === "rail" ? (
     <HScrollRail
       label="Apps"
-      gap={4}
-      trackStyle={{ overflowX: "auto", paddingTop: 2, paddingBottom: 2 }}
+      gap={2}
+      trackStyle={{ overflowX: "auto", justifyContent: "flex-start", paddingTop: 2, paddingBottom: 2 }}
     >
       {tiles}
     </HScrollRail>
