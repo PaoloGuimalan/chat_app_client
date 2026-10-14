@@ -37,7 +37,9 @@ export default function AppShortcuts({
       : []),
     { name: "Servers", icon: appShortcutIcons.servers, route: "/servers" },
     { name: "Pages", icon: appShortcutIcons.pages, route: "/pages" },
-    { name: "Diary", icon: appShortcutIcons.diary, route: `/${encodeURIComponent(username)}/diary` },
+    ...(!active?.is_switched
+      ? [{ name: "Diary", icon: appShortcutIcons.diary, route: `/${encodeURIComponent(username)}/diary` }]
+      : []),
     { name: "Notes", icon: appShortcutIcons.notes, route: null },
     { name: "Chatterloop Extension", icon: appShortcutIcons.extension, route: null },
   ];
