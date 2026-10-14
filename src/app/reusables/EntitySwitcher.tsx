@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { Avatar, useTheme } from '@/reusables/design';
 import AccountMenuContent from './AccountMenuContent';
@@ -10,6 +11,7 @@ export default function EntitySwitcher({ onProfileClick, profileSrc, profileName
   onProfileClick: () => void; profileSrc?: string; profileName?: string; size?: number;
 }) {
   const { theme } = useTheme();
+  const reducedMotion = useReducedMotion();
   const [open, setOpen] = useState(false);
   const [position, setPosition] = useState({ left: 0, bottom: 12 });
   const trigger = useRef<HTMLButtonElement>(null);
@@ -22,14 +24,19 @@ export default function EntitySwitcher({ onProfileClick, profileSrc, profileName
   }, []);
 
   useEffect(() => { setOpen(false); }, [location.pathname]);
-  useEffect(() => {
+  useLayoutEffect(() => {
+    if (menu.current) {
+      menu.current.inert = !open;
+      menu.current.setAttribute('aria-hidden', String(!open));
+    }
     if (!open) return;
     const place = () => {
       const rect = trigger.current?.getBoundingClientRect();
       if (!rect) return;
       const width = Math.min(320, window.innerWidth - 24);
-      setPosition({ left: Math.max(12, Math.min(rect.right + 12, window.innerWidth - width - 12)),
-        bottom: Math.max(12, window.innerHeight - rect.bottom) });
+      const next = { left: Math.max(12, Math.min(rect.right + 12, window.innerWidth - width - 12)),
+        bottom: Math.max(12, window.innerHeight - rect.bottom) };
+      setPosition((current) => current.left === next.left && current.bottom === next.bottom ? current : next);
     };
     const dismiss = (event: MouseEvent) => {
       const target = event.target as Node;
@@ -64,16 +71,22 @@ export default function EntitySwitcher({ onProfileClick, profileSrc, profileName
 
   return <>
     <button ref={trigger} type="button" className="cl-main-rail__profile cl-account-trigger" title="Account menu"
-      aria-label="Account menu" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen((value) => !value)}>
+      aria-label="Account menu" aria-haspopup="dialog" aria-expanded={open} onClick={() => { if (!switching.current) setOpen((value) => !value); }}>
       <Avatar id={profileName} name={profileName} src={profileSrc} size={size} online />
     </button>
-    {open && createPortal(<div ref={menu} role="dialog" aria-label="Account menu" data-theme={theme} className="cl-redesign cl-account-popover scroller"
-      style={{ left: position.left, bottom: position.bottom, maxHeight: window.innerHeight - position.bottom - 12 }}>
+    {createPortal(<AnimatePresence>
+      {open && <motion.div key="account-menu" ref={menu} role="dialog" aria-label="Account menu" data-theme={theme} className="cl-redesign cl-account-popover scroller"
+      initial={{ opacity: 0, x: reducedMotion ? 0 : -6, y: reducedMotion ? 0 : 6, scale: reducedMotion ? 1 : 0.98 }}
+      animate={{ opacity: 1, x: 0, y: 0, scale: 1, pointerEvents: "auto", transition: { duration: reducedMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] } }}
+      exit={{ opacity: 0, x: reducedMotion ? 0 : -3, y: reducedMotion ? 0 : 3, scale: reducedMotion ? 1 : 0.98,
+        pointerEvents: "none", transition: { duration: reducedMotion ? 0 : 0.12, ease: "easeOut" } }}
+      style={{ left: position.left, bottom: position.bottom, maxHeight: window.innerHeight - position.bottom - 12, transformOrigin: "left bottom" }}>
       <AccountMenuContent onProfileClick={onProfileClick} onClose={close} onSwitchingChange={(value) => { switching.current = value; }} compact />
       <section className="cl-account-section" aria-label="Apps">
         <h2 className="cl-account-section-title">Apps</h2>
         <AppShortcuts layout="rail" hideSettings onNavigate={close} />
       </section>
-    </div>, document.body)}
+      </motion.div>}
+    </AnimatePresence>, document.body)}
   </>;
 }
