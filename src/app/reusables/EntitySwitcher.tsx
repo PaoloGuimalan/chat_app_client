@@ -1,10 +1,32 @@
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { ReactNode, useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useLocation } from 'react-router-dom';
 import { Avatar, useTheme } from '@/reusables/design';
 import AccountMenuContent from './AccountMenuContent';
 import AppShortcuts from '../widgets/desktopwidgets/AppShortcuts';
+
+
+// Animate natural content changes without scaling the text or account rows.
+function AnimatedAccountContent({ children, reducedMotion }: { children: ReactNode; reducedMotion: boolean }) {
+  const content = useRef<HTMLDivElement>(null);
+  const [height, setHeight] = useState<number>();
+
+  useLayoutEffect(() => {
+    const el = content.current;
+    if (!el) return;
+    const measure = () => setHeight(Number.parseFloat(getComputedStyle(el).height));
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return <motion.div initial={false} animate={{ height: height ?? 'auto' }}
+    transition={{ duration: reducedMotion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }} style={{ overflow: 'hidden' }}>
+    <div ref={content} style={{ display: 'flow-root' }}>{children}</div>
+  </motion.div>;
+}
 
 // The desktop rail avatar is the single entry point for profile and accounts.
 export default function EntitySwitcher({ onProfileClick, profileSrc, profileName, size = 38 }: {
@@ -81,11 +103,13 @@ export default function EntitySwitcher({ onProfileClick, profileSrc, profileName
       exit={{ opacity: 0, x: reducedMotion ? 0 : -3, y: reducedMotion ? 0 : 3, scale: reducedMotion ? 1 : 0.98,
         pointerEvents: "none", transition: { duration: reducedMotion ? 0 : 0.12, ease: "easeOut" } }}
       style={{ left: position.left, bottom: position.bottom, maxHeight: window.innerHeight - position.bottom - 12, transformOrigin: "left bottom" }}>
+      <AnimatedAccountContent reducedMotion={Boolean(reducedMotion)}>
       <AccountMenuContent onProfileClick={onProfileClick} onClose={close} onSwitchingChange={(value) => { switching.current = value; }} compact />
       <section className="cl-account-section" aria-label="Apps">
         <h2 className="cl-account-section-title">Apps</h2>
         <AppShortcuts layout="rail" hideSettings onNavigate={close} />
       </section>
+      </AnimatedAccountContent>
       </motion.div>}
     </AnimatePresence>, document.body)}
   </>;
