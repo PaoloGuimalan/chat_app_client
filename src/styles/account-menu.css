@@ -42,6 +42,10 @@
 .cl-account-popover .cl-app-shortcut-icon{width:44px;height:44px;border-radius:13px;font-size:26px}
 .cl-account-popover .cl-app-shortcut-label{font-size:11px;display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden;line-height:1.3;max-height:2.6em}
 
+/* Hide the apps rail scrollbar while preserving native scrolling and arrows. */
+.cl-account-popover .cl-rail-track{scrollbar-width:none;scrollbar-gutter:auto}
+.cl-account-popover .cl-rail-track::-webkit-scrollbar{display:none;width:0;height:0}
+
 /* The tile owns the hover surface; its decorative icon stays transparent. */
 .cl-app-shortcut:not(:disabled):hover .cl-app-shortcut-icon{background:transparent}
 
