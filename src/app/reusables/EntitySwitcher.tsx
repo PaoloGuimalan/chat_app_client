@@ -7,24 +7,42 @@ import AccountMenuContent from './AccountMenuContent';
 import AppShortcuts from '../widgets/desktopwidgets/AppShortcuts';
 
 
-// Animate natural content changes without scaling the text or account rows.
-function AnimatedAccountContent({ children, reducedMotion }: { children: ReactNode; reducedMotion: boolean }) {
+// Measure natural content, but animate the actual bordered panel.
+function AnimatedAccountPopover({ children, reducedMotion, position, theme, menuRef }: {
+  children: ReactNode; reducedMotion: boolean; position: { left: number; bottom: number };
+  theme: string; menuRef: React.RefObject<HTMLDivElement>;
+}) {
   const content = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState<number>();
 
   useLayoutEffect(() => {
     const el = content.current;
-    if (!el) return;
-    const measure = () => setHeight(Number.parseFloat(getComputedStyle(el).height));
+    const panel = menuRef.current;
+    if (!el || !panel) return;
+    const measure = () => {
+      const css = getComputedStyle(panel);
+      const inset = Number.parseFloat(css.paddingTop) + Number.parseFloat(css.paddingBottom)
+        + Number.parseFloat(css.borderTopWidth) + Number.parseFloat(css.borderBottomWidth);
+      setHeight(Number.parseFloat(getComputedStyle(el).height) + inset);
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(el);
     return () => observer.disconnect();
-  }, []);
+  }, [menuRef]);
 
-  return <motion.div initial={false} animate={{ height: height ?? 'auto' }}
-    transition={{ duration: reducedMotion ? 0 : 0.22, ease: [0.16, 1, 0.3, 1] }} style={{ overflow: 'hidden' }}>
-    <div ref={content} style={{ display: 'flow-root' }}>{children}</div>
+  return <motion.div ref={menuRef} role="dialog" aria-label="Account menu" data-theme={theme}
+    className="cl-redesign cl-account-popover scroller"
+    initial={{ opacity: 0, x: reducedMotion ? 0 : -6, y: reducedMotion ? 0 : 6, scale: reducedMotion ? 1 : 0.98 }}
+    animate={{ opacity: 1, x: 0, y: 0, scale: 1, height, pointerEvents: 'auto',
+      transition: { duration: reducedMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1],
+        height: { duration: reducedMotion ? 0 : 0.32, ease: [0.4, 0, 0.2, 1] } } }}
+    exit={{ opacity: 0, x: reducedMotion ? 0 : -3, y: reducedMotion ? 0 : 3, scale: reducedMotion ? 1 : 0.98,
+      pointerEvents: 'none', transition: { duration: reducedMotion ? 0 : 0.12, ease: 'easeOut' } }}
+    style={{ left: position.left, bottom: position.bottom, maxHeight: `calc(100dvh - ${position.bottom + 12}px)`,
+      transformOrigin: 'left bottom', overflow: 'hidden' }}>
+    <div ref={content} className="cl-account-popover-content"
+      style={{ maxHeight: `calc(100dvh - ${position.bottom + 34}px)` }}>{children}</div>
   </motion.div>;
 }
 
@@ -97,20 +115,14 @@ export default function EntitySwitcher({ onProfileClick, profileSrc, profileName
       <Avatar id={profileName} name={profileName} src={profileSrc} size={size} online />
     </button>
     {createPortal(<AnimatePresence>
-      {open && <motion.div key="account-menu" ref={menu} role="dialog" aria-label="Account menu" data-theme={theme} className="cl-redesign cl-account-popover scroller"
-      initial={{ opacity: 0, x: reducedMotion ? 0 : -6, y: reducedMotion ? 0 : 6, scale: reducedMotion ? 1 : 0.98 }}
-      animate={{ opacity: 1, x: 0, y: 0, scale: 1, pointerEvents: "auto", transition: { duration: reducedMotion ? 0 : 0.2, ease: [0.16, 1, 0.3, 1] } }}
-      exit={{ opacity: 0, x: reducedMotion ? 0 : -3, y: reducedMotion ? 0 : 3, scale: reducedMotion ? 1 : 0.98,
-        pointerEvents: "none", transition: { duration: reducedMotion ? 0 : 0.12, ease: "easeOut" } }}
-      style={{ left: position.left, bottom: position.bottom, maxHeight: window.innerHeight - position.bottom - 12, transformOrigin: "left bottom" }}>
-      <AnimatedAccountContent reducedMotion={Boolean(reducedMotion)}>
+      {open && <AnimatedAccountPopover key="account-menu" menuRef={menu} theme={theme}
+        position={position} reducedMotion={Boolean(reducedMotion)}>
       <AccountMenuContent onProfileClick={onProfileClick} onClose={close} onSwitchingChange={(value) => { switching.current = value; }} compact />
       <section className="cl-account-section" aria-label="Apps">
         <h2 className="cl-account-section-title">Apps</h2>
         <AppShortcuts layout="rail" hideSettings onNavigate={close} />
       </section>
-      </AnimatedAccountContent>
-      </motion.div>}
+      </AnimatedAccountPopover>}
     </AnimatePresence>, document.body)}
   </>;
 }
