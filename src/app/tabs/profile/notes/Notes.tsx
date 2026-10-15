@@ -14,6 +14,7 @@ import { useNoteDrag } from "./useNoteDrag";
 import { useNoteMasonry } from "./useNoteMasonry";
 import { NoteMasonryCard } from "./NoteMasonryCard";
 import UploadedAttachment from "../diary/UploadedAttachment";
+import { NotesListSkeleton } from "../writing/WritingSkeletons";
 
 const sessions = new Map<string, NoteSession>();
 const storageKey = (entity: string) => `chatterloop:note-drafts:${entity}`;
@@ -207,7 +208,8 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
           <footer className="note-card-footer"><span>{new Date(note.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span><span className="note-order-actions"><button data-note-no-drag className="note-drag note-to-end" aria-label={`Move ${note.title || "Untitled note"} to end`} title="Move to end" disabled={Boolean(search) || reordering} onClick={() => void reorder(note.id, null)}><ArrowDown size={14}/></button><button data-note-handle className="note-drag" aria-label={`Move ${note.title || "Untitled note"}. Use arrow keys, Home or End.`} disabled={Boolean(search) || reordering} onClick={event => event.stopPropagation()} onKeyDown={event => { if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); keyboardMove(note.id, event.key); } }}><GripVertical size={16}/></button></span></footer>
         </NoteMasonryCard>)}
       </div>
-      {!notes.length && <div className="writing-empty">{loading ? "Loading notes…" : search ? "No matching notes" : "A little space for your ideas."}</div>}
+      {loading && <NotesListSkeleton/>}
+      {!loading && !notes.length && <div className="writing-empty">{search ? "No matching notes" : "A little space for your ideas."}</div>}
       {next && <button className="writing-load-more" disabled={loading} onClick={() => setPage(value => value + 1)}>{loading ? "Loading…" : "Load more notes"}</button>}
     </div>
     {noteDrag.ghost && draggedNote && createPortal(<div className="cl-redesign note-drag-overlay" data-theme={document.documentElement.dataset.theme} style={{ position: 'fixed', left: noteDrag.ghost.x, top: noteDrag.ghost.y, width: noteDrag.ghost.width, height: noteDrag.ghost.height }}><article className="note-card"><div className="note-card-open">{draggedNote.title && <h2>{draggedNote.title}</h2>}<div className="note-card-preview" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(draggedNote.content) }}/></div><footer className="note-card-footer"><span>Moving note</span><GripVertical size={16}/></footer></article></div>, document.body)}

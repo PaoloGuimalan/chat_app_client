@@ -68,9 +68,48 @@ Module._load = function(request, parent, isMain) {
 const Notes = require('../src/app/tabs/profile/notes/Notes.tsx').default;
 const NewEntry = require('../src/app/tabs/profile/diary/NewEntry.tsx').default;
 const Diary = require('../src/app/tabs/profile/diary/Diary.tsx').default;
+const EntryView = require('../src/app/tabs/profile/diary/EntryView.tsx').default;
 const { useWritingHistory } = require('../src/app/tabs/profile/writing/writingHooks.ts');
 afterEach(() => { cleanup(); });
 const mount = (component, route = '/notes') => render(React.createElement(MemoryRouter, { initialEntries: [route] }, component));
+
+test('Notes show card skeletons until the list response arrives', async () => {
+  const original = api.list;
+  let resolve;
+  api.list = () => new Promise(done => { resolve = done; });
+  try {
+    const view = mount(React.createElement(Notes));
+    const skeleton = await screen.findByRole('status', { name: 'Loading notes' });
+    assert.ok(skeleton.querySelectorAll('.note-card').length >= 6);
+    await act(async () => resolve({ count: 0, next: null, results: [] }));
+    assert.equal(screen.queryByRole('status', { name: 'Loading notes' }), null);
+    view.unmount();
+  } finally { api.list = original; }
+});
+
+test('Diary list and entry use their own content skeletons while requests are pending', async () => {
+  const original = requests.GetUserEntriesRequest;
+  let resolve;
+  requests.GetUserEntriesRequest = () => new Promise(done => { resolve = done; });
+  try {
+    const view = mount(React.createElement(Routes, null, React.createElement(Route, { path: '/:userID/diary', element: React.createElement(Diary) })), '/owner/diary');
+    const skeleton = await screen.findByRole('status', { name: 'Loading diary entries' });
+    assert.ok(skeleton.querySelector('.diary-row-title'));
+    assert.ok(skeleton.querySelector('.diary-row-meta'));
+    await act(async () => resolve({ results: [], next: null }));
+    assert.equal(screen.queryByRole('status', { name: 'Loading diary entries' }), null);
+    view.unmount();
+  } finally { requests.GetUserEntriesRequest = original; }
+  requests.GetEntryRequest = () => new Promise(done => { resolve = done; });
+  try {
+    mount(React.createElement(EntryView), '/owner/diary?entry_id=loading-entry');
+    const skeleton = await screen.findByRole('status', { name: 'Loading diary entry' });
+    assert.ok(skeleton.querySelector('.writing-document'));
+    await act(async () => resolve({ id: 'loading-entry', title: 'Loaded entry', content: '<p>Now ready</p>', entry_date: '2026-10-15', tag_objects: [], attachments: [] }));
+    assert.equal(screen.queryByRole('status', { name: 'Loading diary entry' }), null);
+    await screen.findByText('Loaded entry');
+  } finally { delete requests.GetEntryRequest; }
+});
 
 test('untouched actual Notes editor closes without a write or discard prompt', async () => {
   mount(React.createElement(Notes));

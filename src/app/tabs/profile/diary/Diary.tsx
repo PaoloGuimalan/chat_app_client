@@ -7,6 +7,7 @@ import { GetUserEntriesRequest } from "@/reusables/hooks/requests";
 import type { AuthenticationInterface, IEntry } from "@/reusables/vars/interfaces";
 import BrokenLink from "@/app/reusables/catchers/BrokenLink";
 import { WritingHeader } from "../writing/Writing";
+import { DiaryListSkeleton } from "../writing/WritingSkeletons";
 import { plainText } from "../notes/noteSession";
 import NewEntry from "./NewEntry";
 import EntryView from "./EntryView";
@@ -56,7 +57,7 @@ function DiaryWorkspace() {
           const showDate = lastDate !== entry.entry_date; lastDate = entry.entry_date;
           return <Fragment key={entry.id}>{showDate && <div className="diary-date-group">{new Date(`${entry.entry_date}T12:00:00`).toLocaleDateString(undefined, { weekday: "short", month: "long", day: "numeric" })}</div>}<button className="diary-row" aria-current={entry.id === id} onClick={() => open(entry.id)}><span className="diary-row-title"><span className="diary-row-name">{entry.title || "Untitled"}</span>{entry.mood && <span className="diary-row-mood"><span aria-hidden="true">{entry.mood.emoji}</span><span className="diary-mood-name">{entry.mood.name}</span></span>}</span>{entry.tag_objects.length > 0 && <span className="writing-tags">{entry.tag_objects.slice(0, 3).map(tag => <span className="writing-tag" key={tag.id}>{tag.name}</span>)}</span>}<span className="diary-row-preview">{plainText(entry.content)}</span><span className="diary-row-meta">{entry.is_private && <Lock size={11}/>}<span>{entry.is_private ? "Private" : "Public"}</span>{entry.attachments.length > 0 && <><Paperclip size={11}/><span>{entry.attachments.length}</span></>}<time dateTime={entry.created_at}>{new Date(entry.created_at).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })}</time></span></button></Fragment>;
         })}
-        {loading && <div className="writing-empty">{query ? "Searching entries…" : "Loading entries…"}</div>}
+        {loading && <DiaryListSkeleton/>}
         {!loading && !visible.length && <div className="writing-empty">{query ? "No matching entries" : "Your days, in your own words."}</div>}
         {next && !query && <button className="writing-load-more" disabled={loading} onClick={() => setPage(value => value + 1)}>Load more entries</button>}
       </div>
