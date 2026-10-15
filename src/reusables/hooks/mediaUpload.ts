@@ -65,8 +65,8 @@ export class UploadError extends Error {
 // const API = envs.CHATTERLOOP_API;
 const PART_ATTEMPTS = 3;
 
-const authHeaders = () => ({
-  "x-access-token": localStorage.getItem("authtoken"),
+const authHeaders = (token?: string) => ({
+  "x-access-token": token ?? localStorage.getItem("authtoken"),
 });
 
 const apiError = (err: any, fallback: string) =>
@@ -132,6 +132,7 @@ const sendFile = async (
   file: File,
   onBytes: (loaded: number) => void,
   signal?: AbortSignal,
+  token?: string,
 ) => {
   if (asked.mode === "single") {
     await put(asked as Target, file, onBytes, signal);
@@ -169,7 +170,7 @@ const sendFile = async (
           const fresh = await firstPartyClient.post(
             `${envs.CHATTERLOOP_API}/media/uploads/${asked.uploadID}/parts`,
             { parts: [part.n] },
-            { headers: authHeaders() },
+            { headers: authHeaders(token) },
           );
           target = fresh.data.parts?.[0] ?? target;
         }
@@ -205,6 +206,7 @@ export const uploadFiles = async ({
   progressKeys = [],
   onProgress,
   signal,
+  token,
 }: {
   purpose: UploadFeature;
   files: File[];
@@ -212,6 +214,8 @@ export const uploadFiles = async ({
   progressKeys?: (string | undefined)[];
   onProgress?: (fraction: number) => void;
   signal?: AbortSignal;
+  /** Pin all phases to the identity that began this upload. */
+  token?: string;
 }): Promise<UploadedFile[]> => {
   const limit = limitFor(purpose);
   // Before anything else: the size declared below is the stripped file's.
@@ -238,7 +242,7 @@ export const uploadFiles = async ({
           type: f.type || "application/octet-stream",
         })),
       },
-      { headers: authHeaders() },
+      { headers: authHeaders(token) },
     );
     asked = response.data.uploads;
   } catch (err) {
@@ -256,7 +260,7 @@ export const uploadFiles = async ({
   try {
     const finished = await Promise.all(
       asked.map(async (upload, i) => {
-        await sendFile(upload, files[i], (n) => tick(i, n), signal);
+        await sendFile(upload, files[i], (n) => tick(i, n), signal, token);
         return { uploadID: upload.uploadID };
       }),
     );
@@ -266,7 +270,7 @@ export const uploadFiles = async ({
       const response = await firstPartyClient.post(
         `${envs.CHATTERLOOP_API}/media/uploads/complete`,
         { uploads: finished },
-        { headers: authHeaders() },
+        { headers: authHeaders(token) },
       );
       results = response.data.results;
     } catch (err) {
@@ -280,7 +284,7 @@ export const uploadFiles = async ({
     asked.forEach((upload) =>
       firstPartyClient
         .delete(`${envs.CHATTERLOOP_API}/media/uploads/${upload.uploadID}`, {
-          headers: authHeaders(),
+          headers: authHeaders(token),
         })
         .catch(() => {}),
     );

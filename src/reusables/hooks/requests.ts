@@ -88,7 +88,7 @@ Axios.interceptors.request.use(async (config) => {
       return config;
     }
 
-    const user = localStorage.getItem("authtoken");
+    const user = String(config.headers["x-access-token"] || localStorage.getItem("authtoken") || "");
     const decoded: { username: string; userID: string } | null = user
       ? jwt_decode(user)
       : null;

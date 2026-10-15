@@ -21,6 +21,7 @@ export type UploadFeature =
   | "moment"
   | "moment_poster"
   | "diary"
+  | "notes"
   | "avatar"
   | "cover"
   | "comment";
@@ -43,6 +44,7 @@ const DEFAULT_LIMITS: Record<UploadFeature, UploadLimit> = {
   moment: { maxMB: 100, types: ["image/*", "video/mp4"] },
   moment_poster: { maxMB: 10, types: ["image/jpeg", "image/png"] },
   diary: { maxMB: 100, types: ["*"] },
+  notes: { maxMB: 100, types: ["*"] },
   avatar: { maxMB: 10, types: ["image/*"] },
   cover: { maxMB: 10, types: ["image/*"] },
   comment: { maxMB: 10, types: ["image/*"] },

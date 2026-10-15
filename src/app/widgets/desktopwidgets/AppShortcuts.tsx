@@ -23,6 +23,7 @@ export default function AppShortcuts({
     (state: any) => state.authentication.active_entity_context,
   );
   const username = useSelector((state: any) => state.authentication.user.username);
+  const allowed = useSelector((state: any) => state.authentication.allowed_modules as string[]);
   const items = [
     ...(!hideSettings
       ? [
@@ -37,10 +38,10 @@ export default function AppShortcuts({
       : []),
     { name: "Servers", icon: appShortcutIcons.servers, route: "/servers" },
     { name: "Pages", icon: appShortcutIcons.pages, route: "/pages" },
-    ...(!active?.is_switched
+    ...(!active?.is_switched && allowed.includes("module.diary.access")
       ? [{ name: "Diary", icon: appShortcutIcons.diary, route: `/${encodeURIComponent(username)}/diary` }]
       : []),
-    { name: "Notes", icon: appShortcutIcons.notes, route: null },
+    ...(allowed.includes("module.notes.access") ? [{ name: "Notes", icon: appShortcutIcons.notes, route: "/notes" }] : []),
     { name: "Chatterloop Extension", icon: appShortcutIcons.extension, route: null },
   ];
   const tiles = items.map((item) => (

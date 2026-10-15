@@ -20,7 +20,7 @@ import FullscreenImageViewer from "@/app/reusables/FullscreenImageViewer";
 function UploadedAttachment({
   attachment,
 }: {
-  attachment: IEntryViewAttachment;
+  attachment: Pick<IEntryViewAttachment, "url" | "file_name" | "file_type">;
 }) {
   const [isPlaying, setIsPlaying] = useState(false);
   const [duration, setDuration] = useState("0:00");

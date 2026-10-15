@@ -56,6 +56,7 @@ import {
 } from "@/reusables/vars/interfaces";
 import Servers from "../tabs/servers/Servers";
 import UserMenu from "../tabs/profile/user/UserMenu";
+import Notes from "../tabs/profile/notes/Notes";
 import Settings from "../tabs/settings/Settings";
 import Modal from "../reusables/Modal";
 import ProfileContainer from "../tabs/profile/ProfileContainer";
@@ -590,6 +591,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           >
             <Routes>
               <Route path="/" element={<DesktopHome />} />
+              <Route path="/notes" element={authentication.allowed_modules.includes("module.notes.access") ? <Notes /> : <Navigate to="/" />} />
               <Route path="/:userID/*" element={<ProfileContainer />} />
               <Route path="/realms/*" element={<RealmContainer />} />
               <Route path="/settings" element={<Settings isModal={false} />} />
