@@ -2,16 +2,16 @@
 import { Quill } from 'react-quill';
 
 const BlockEmbed = Quill.import('blots/block/embed');
-class NoteDivider extends BlockEmbed {
+class WritingDivider extends BlockEmbed {
   static blotName = 'note-divider';
   static tagName = 'div';
   static className = 'ql-divider';
   static value() { return true; }
 }
-Quill.register(NoteDivider);
+Quill.register(WritingDivider);
 Quill.import('ui/icons')['note-divider'] = '<svg viewBox="0 0 18 18"><path class="ql-stroke" d="M3 9h12"/></svg>';
 
-export const noteToolbar = {
+export const writingToolbar = {
   container: [
     [{ header: [1, 2, 3, 4, 5, 6, false] }],
     ['bold', 'italic', 'underline', 'strike'],

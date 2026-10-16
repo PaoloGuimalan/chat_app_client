@@ -50,3 +50,50 @@
 .note-card-preview ul.ql-list-checked,.note-card-preview ul.ql-list-unchecked{list-style:none;padding-left:18px}
 .note-card-preview ul.ql-list-checked>li::before{content:'☑';margin-left:-18px;margin-right:5px}
 .note-card-preview ul.ql-list-unchecked>li::before{content:'☐';margin-left:-18px;margin-right:5px}
+
+/* Shared with the native writing theme: the authored body uses the same
+   hierarchy in both its editor and Diary reader. */
+.writing-quill .ql-editor,.writing-body{font-family:Inter,system-ui,sans-serif;font-size:14px;line-height:1.8;color:var(--text)}
+.writing-quill .ql-editor p,.writing-body p{margin:0 0 12px}
+.writing-quill .ql-editor :is(h1,h2,h3,h4,h5,h6),.writing-body :is(h1,h2,h3,h4,h5,h6){font-weight:600;line-height:1.3;margin:16px 0 8px;letter-spacing:normal;color:var(--text)}
+.writing-quill .ql-editor h1,.writing-body h1{font-size:24px}
+.writing-quill .ql-editor h2,.writing-body h2{font-size:17px}
+.writing-quill .ql-editor h3,.writing-body h3{font-size:15px}
+.writing-quill .ql-editor h4,.writing-body h4{font-size:14px}
+.writing-quill .ql-editor h5,.writing-body h5{font-size:13.5px}
+.writing-quill .ql-editor h6,.writing-body h6{font-size:13px}
+.writing-quill .ql-editor :is(ul,ol),.writing-body :is(ul,ol){margin:0 0 12px;padding-left:24px}
+.writing-quill .ql-editor li,.writing-body li{margin:0;padding-left:0}
+.writing-quill .ql-editor blockquote,.writing-body blockquote{border-left:3px solid var(--brand);padding-left:12px;margin:12px 0;color:var(--text-2)}
+.writing-quill .ql-editor a,.writing-body a{color:var(--brand);text-decoration:underline}
+.writing-body .ql-divider,.writing-body hr{height:1px;margin:18px 0;border:0;border-top:1px solid var(--border)}
+.writing-body ul[data-checked]>li::before{cursor:default;pointer-events:none}
+.writing-body ul[data-checked=true]>li::before,.writing-quill .ql-editor ul[data-checked=true]>li::before{color:var(--brand)}
+.writing-quill .ql-editor :is(ul,ol) :is(ul,ol),.writing-body :is(ul,ol) :is(ul,ol){margin-bottom:0}
+
+/* Fleather's editor has fixed 32px list gutters, 16px quote insets and 16px
+   indentation levels. Match those while editing; both readers use 24px. */
+.writing-quill .ql-editor :is(ul,ol){padding-left:32px}
+.writing-quill .ql-editor blockquote{padding-left:16px}
+.writing-quill .ql-editor .ql-indent-1{--writing-editor-indent:16px;padding-left:16px}
+.writing-quill .ql-editor .ql-indent-2{--writing-editor-indent:32px;padding-left:32px}
+.writing-quill .ql-editor .ql-indent-3{--writing-editor-indent:48px;padding-left:48px}
+.writing-quill .ql-editor .ql-indent-4{--writing-editor-indent:64px;padding-left:64px}
+.writing-quill .ql-editor .ql-indent-5{--writing-editor-indent:80px;padding-left:80px}
+.writing-quill .ql-editor .ql-indent-6{--writing-editor-indent:96px;padding-left:96px}
+.writing-quill .ql-editor .ql-indent-7{--writing-editor-indent:112px;padding-left:112px}
+.writing-quill .ql-editor .ql-indent-8{--writing-editor-indent:128px;padding-left:128px}
+.writing-quill .ql-editor blockquote[class*="ql-indent-"]{padding-left:calc(16px + var(--writing-editor-indent,0px))}
+.writing-body .ql-indent-1{--writing-reader-indent:24px;padding-left:var(--writing-reader-indent)}
+.writing-body .ql-indent-2{--writing-reader-indent:48px;padding-left:var(--writing-reader-indent)}
+.writing-body .ql-indent-3{--writing-reader-indent:72px;padding-left:var(--writing-reader-indent)}
+.writing-body .ql-indent-4{--writing-reader-indent:96px;padding-left:var(--writing-reader-indent)}
+.writing-body .ql-indent-5{--writing-reader-indent:120px;padding-left:var(--writing-reader-indent)}
+.writing-body .ql-indent-6{--writing-reader-indent:144px;padding-left:var(--writing-reader-indent)}
+.writing-body .ql-indent-7{--writing-reader-indent:168px;padding-left:var(--writing-reader-indent)}
+.writing-body .ql-indent-8{--writing-reader-indent:192px;padding-left:var(--writing-reader-indent)}
+.writing-body blockquote[class*="ql-indent-"]{margin-left:var(--writing-reader-indent,0px);padding-left:12px}
+.writing-quill .ql-editor [class*="ql-indent-"]:not(.ql-direction-rtl){padding-left:var(--writing-editor-indent,0px)}
+.writing-quill .ql-editor blockquote[class*="ql-indent-"]:not(.ql-direction-rtl){padding-left:calc(16px + var(--writing-editor-indent,0px))}
+.writing-body.ql-editor [class*="ql-indent-"]:not(.ql-direction-rtl){padding-left:var(--writing-reader-indent,0px)}
+.writing-body.ql-editor blockquote[class*="ql-indent-"]:not(.ql-direction-rtl){margin-left:var(--writing-reader-indent,0px);padding-left:12px}

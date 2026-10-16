@@ -70,12 +70,64 @@ const NewEntry = require('../src/app/tabs/profile/diary/NewEntry.tsx').default;
 const Diary = require('../src/app/tabs/profile/diary/Diary.tsx').default;
 const EntryView = require('../src/app/tabs/profile/diary/EntryView.tsx').default;
 const { useWritingHistory } = require('../src/app/tabs/profile/writing/writingHooks.ts');
-const { noteHtmlForEditor, noteHtmlForStorage } = require('../src/app/tabs/profile/notes/noteHtml.ts');
+const { writingHtmlForEditor, writingHtmlForStorage } = require('../src/app/tabs/profile/writing/writingHtml.ts');
 const { WritingBody } = require('../src/app/tabs/profile/writing/Writing.tsx');
+
+test('Diary has the same heading, strike, checklist, indent and divider tools as Notes', () => {
+  mount(React.createElement(NewEntry, { reload() {} }), '/owner/diary?entry_id=new');
+  const toolbar = document.querySelector('.ql-toolbar');
+  assert.deepEqual([...toolbar.querySelectorAll('select.ql-header option')].map(option => option.value), ['1','2','3','4','5','6','']);
+  for (const selector of ['.ql-strike', '.ql-list[value="check"]', '.ql-indent', '.ql-note-divider']) assert.ok(toolbar.querySelector(selector), selector);
+});
+
+test('legacy Diary checklists preserve their state and text in the common editor', async () => {
+  let changed = '';
+  mount(React.createElement(WritingBody, { value:'<div class="checklist"><div class="checklist-item"><input type="checkbox" checked disabled><label>&nbsp;Legacy task</label></div><div class="checklist-item"><input type="checkbox" disabled><label>&nbsp;Next task</label></div></div><hr>', onChange:html => { changed = html; } }));
+  const editor = document.querySelector('.ql-editor');
+  assert.ok(editor.querySelector('ul[data-checked="true"]'));
+  assert.ok(editor.querySelector('ul[data-checked="false"]'));
+  assert.ok(editor.textContent.includes('Legacy task'));
+  assert.ok(editor.querySelector('.ql-divider'));
+  await act(async () => { fireEvent.mouseDown(editor.querySelector('ul[data-checked="true"] li')); await new Promise(resolve => setTimeout(resolve,20)); });
+  assert.ok(changed.includes('ql-list-unchecked'));
+  assert.ok(!changed.includes('<input'));
+});
+
+test('Diary reader displays canonical and legacy checklist states without interactive controls', async () => {
+  const previous = requests.GetEntryRequest;
+  requests.GetEntryRequest = async () => ({ id:'formats', title:'Formatted entry', entry_date:'2026-10-16', is_private:true, mood:null, attachments:[], tag_objects:[], content:'<h2>A heading</h2><ul class="ql-list-checked"><li>Done</li></ul><div class="checklist"><div class="checklist-item"><input type="checkbox" disabled><label>&nbsp;Legacy task</label></div></div><div class="ql-divider"></div>' });
+  try {
+    mount(React.createElement(EntryView), '/owner/diary?entry_id=formats');
+    await screen.findByText('Formatted entry');
+    const reader = document.querySelector('.writing-body');
+    assert.ok(reader.querySelector('h2'));
+    assert.ok(reader.querySelector('ul[data-checked="true"]'));
+    assert.ok(reader.querySelector('ul[data-checked="false"]'));
+    assert.ok(reader.querySelector('.ql-divider'));
+    assert.ok(reader.textContent.includes('Legacy task'));
+    assert.equal(reader.querySelector('input'), null);
+  } finally { requests.GetEntryRequest = previous; }
+});
+
+test('legacy quote and checklist spacing normalizes without losing text or indentation', () => {
+  const html = writingHtmlForStorage('<blockquote style="margin:0 0 0 0.8ex;border-left:1px solid gray;padding-left:1ex">Keep this thought</blockquote><div class="checklist"><div class="checklist-item" style="padding-left:64px"><input type="checkbox" checked disabled><label>&nbsp;An indented task</label></div></div><ul><li>Parent</li><ul><li>Child</li></ul><li>Peer</li></ul>');
+  const root = document.createElement('div'); root.innerHTML = html;
+  assert.equal(root.querySelector('blockquote').textContent, 'Keep this thought');
+  assert.equal(root.querySelector('blockquote').style.borderLeft, '');
+  assert.equal(root.querySelector('ul.ql-list-checked li').className, 'ql-indent-2');
+  assert.equal(root.querySelector('ul.ql-list-checked li').textContent, 'An indented task');
+  assert.deepEqual([...root.querySelectorAll('ul:not(.ql-list-checked) li')].map(item => item.textContent), ['Parent','Child','Peer']);
+  assert.equal([...root.querySelectorAll('li')].find(item => item.textContent === 'Child').className, 'ql-indent-1');
+  root.innerHTML = writingHtmlForStorage('<div class="checklist"><div class="checklist-item ql-indent-1"><input type="checkbox">Legacy text without label</div></div><ol><li>Parent</li><ol><li>Child</li></ol><li>Peer</li></ol>');
+  assert.equal(root.querySelector('ul li').textContent, 'Legacy text without label');
+  assert.equal(root.querySelector('ul li').className, 'ql-indent-1');
+  assert.equal(root.querySelector('input'), null);
+  assert.deepEqual([...root.querySelectorAll('ol li')].map(item => [item.textContent, item.className]), [['Parent',''],['Child','ql-indent-1'],['Peer','']]);
+});
 
 test('Notes loads native checklist, strike, headings, nested lists and divider in the real editor', async () => {
   let changed = '';
-  mount(React.createElement(WritingBody, { notes: true, value: '<h1>Heading</h1><p><s>Strike</s></p><ul class="ql-list-checked"><li>Done</li></ul><ul><li>Parent<ul><li class="ql-indent-1">Child</li></ul></li></ul><div class="ql-divider"></div>', onChange: html => { changed = html; } }));
+  mount(React.createElement(WritingBody, { value: '<h1>Heading</h1><p><s>Strike</s></p><ul class="ql-list-checked"><li>Done</li></ul><ul><li>Parent<ul><li class="ql-indent-1">Child</li></ul></li></ul><div class="ql-divider"></div>', onChange: html => { changed = html; } }));
   const editor = document.querySelector('.ql-editor');
   assert.ok(editor.querySelector('h1'));
   assert.ok(editor.querySelector('s'));
@@ -87,13 +139,13 @@ test('Notes loads native checklist, strike, headings, nested lists and divider i
 });
 
 test('Notes formatting survives the API-safe HTML representation', () => {
-  const stored = noteHtmlForStorage('<p><s>Strike</s></p><ul data-checked="true"><li class="ql-indent-2">Done</li></ul>');
+  const stored = writingHtmlForStorage('<p><s>Strike</s></p><ul data-checked="true"><li class="ql-indent-2">Done</li></ul>');
   assert.ok(stored.includes('ql-list-checked'));
   assert.ok(!stored.includes('data-checked'));
-  const editor = noteHtmlForEditor(stored);
+  const editor = writingHtmlForEditor(stored);
   assert.ok(editor.includes('data-checked="true"'));
   assert.ok(editor.includes('ql-indent-2'));
-  assert.ok(noteHtmlForEditor('<del>Strike</del>').includes('<s>Strike</s>'));
+  assert.ok(writingHtmlForEditor('<del>Strike</del>').includes('<s>Strike</s>'));
 });
 
 test('Notes Save sits between Redo and Delete and writes without waiting for idle', async () => {
