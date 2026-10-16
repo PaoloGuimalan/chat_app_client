@@ -16,13 +16,16 @@ import { BsThreeDots } from "react-icons/bs";
 import { GoBookmarkSlashFill } from "react-icons/go";
 import { FaArchive, FaUserTag } from "react-icons/fa";
 import { IoBookmark } from "react-icons/io5";
-import { MdDelete, MdReport } from "react-icons/md";
+import { MdDelete, MdReport, MdEdit, MdOutlinePublic } from "react-icons/md";
 import { TbTagOff } from "react-icons/tb";
 import { useSelector } from "react-redux";
 import { RiInboxUnarchiveFill } from "react-icons/ri";
 import ReportModal from "@/app/widgets/modals/ReportModal";
 import EditTagsModal from "@/app/widgets/modals/EditTagsModal";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
+import { useLocation, useNavigate } from "react-router-dom";
+import EditPost from "@/app/widgets/modals/EditPost/EditPost";
+import ChangePostAudience from "@/app/widgets/modals/EditPost/ChangePostAudience";
 
 function PostOptions({
   post,
@@ -47,6 +50,18 @@ function PostOptions({
   const [isSaving, setisSaving] = useState<boolean>(false);
   const [isReportOpen, setisReportOpen] = useState<boolean>(false);
   const [isEditTagsOpen, setisEditTagsOpen] = useState<boolean>(false);
+  const [editing, setEditing] = useState(false);
+  const [changingAudience, setChangingAudience] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const token = localStorage.getItem("authtoken") || "";
+  useEffect(() => {
+    setpostState(previous => ({
+      ...post,
+      is_saved: previous.post_id === post.post_id ? previous.is_saved : post.is_saved,
+    }));
+  }, [post]);
+  useEffect(() => { setEditing(false); setChangingAudience(false); }, [token]);
 
   // Reporting your own post is meaningless, and the server rejects it anyway
   // (the post resolves to your own entity) - so don't offer it. This is the
@@ -160,8 +175,19 @@ function PostOptions({
       {isOptionsToggled && (
         <div
           autoFocus
-          className="cl-post-options-menu tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[100px] tw-absolute tw-right-[25px] tw-top-[10px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md"
+          className="cl-post-options-menu tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[180px] tw-absolute tw-right-[25px] tw-top-[10px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md"
         >
+          {isOwnPost && (!post.on_feed || post.on_feed === "feed") && <>
+            <button type="button" className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[6px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+              onClick={() => {
+                setisOptionsToggled(false);
+                if (window.innerWidth < 800) navigate(`/post/${post.post_id}/edit`, { state: { postEditFrom: location.pathname + location.search } });
+                else setEditing(true);
+              }}><MdEdit size={16}/><span>Edit post</span></button>
+            <button type="button" className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[6px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+              onClick={() => { setisOptionsToggled(false); setChangingAudience(true); }}><MdOutlinePublic size={16}/><span>Change audience</span></button>
+            <div role="separator" style={{ borderTop: "1px solid var(--border)", margin: "5px 0" }} />
+          </>}
           {!postState.is_archived &&
             (!postState.is_saved ? (
               <button
@@ -264,6 +290,9 @@ function PostOptions({
         </div>
       )}
       <button
+        type="button"
+        aria-label="Post options"
+        aria-expanded={isOptionsToggled}
         onClick={() => {
           setisOptionsToggled(!isOptionsToggled);
         }}
@@ -278,6 +307,8 @@ function PostOptions({
           onClose={() => setisReportOpen(false)}
         />
       )}
+      {editing && isOwnPost && <EditPost key={`${post.post_id}:${token}`} post={post} onClose={() => setEditing(false)}/>}
+      {changingAudience && isOwnPost && <ChangePostAudience key={`${post.post_id}:${token}`} post={post} onClose={() => setChangingAudience(false)}/>}
       {isEditTagsOpen && (
         <EditTagsModal
           postId={post.post_id}

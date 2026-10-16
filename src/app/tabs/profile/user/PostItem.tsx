@@ -45,6 +45,7 @@ import OverlayLoader from "@/app/reusables/loaders/OverlayLoader";
 import OverlayMessage from "@/app/reusables/catchers/OverlayMessage";
 import { Avatar } from "@/reusables/design";
 import TaggingSummary from "@/app/reusables/TaggingSummary";
+import { usePostUpdate } from "@/reusables/hooks/postUpdates";
 
 function PostItem({
   isSharePreview,
@@ -75,6 +76,7 @@ function PostItem({
   const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(mp);
+  usePostUpdate(mp, patch => setpostState(previous => ({ ...previous, ...patch })));
 
   // Captions are rendered as markup so #hashtags can be highlighted.
   // highlightHashtags escapes the text itself before wrapping anything, and
@@ -344,6 +346,7 @@ function PostItem({
               <span className="cl-text-caption">
                 <PostPrivacyIcon status={postState.privacy_status} />
                 {dateposted}
+                {(postState.is_edited || postState.updated_at) && <span className="cl-post-edited" title={postState.updated_at ? `Edited ${new Date(postState.updated_at).toLocaleString()}` : "Edited"}>· Edited</span>}
               </span>
             </div>
             {authentication.auth && (
@@ -580,6 +583,7 @@ function PostItem({
                                 status={postState.privacy_status}
                               />
                               {dateposted}
+                              {(postState.is_edited || postState.updated_at) && <span className="cl-post-edited">· Edited</span>}
                             </span>
                           </div>
                         </div>

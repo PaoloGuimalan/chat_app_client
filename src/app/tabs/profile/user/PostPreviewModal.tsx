@@ -31,6 +31,7 @@ import SendPostModal from "@/app/widgets/modals/CreatePost/SendPostModal";
 import CreateMomentModal from "@/app/tabs/moments/CreateMomentModal";
 import { BsPinMap } from "react-icons/bs";
 import VideoPlayer from "@/app/reusables/VideoPlayer";
+import { usePostUpdate } from "@/reusables/hooks/postUpdates";
 
 interface PostPreviewModalProps {
   post: IPost;
@@ -88,6 +89,7 @@ function PostPreviewModal({
 
   const postOwnerUserID = post.entity.id;
   const dateposted = timeSince(new Date(post.date_posted));
+  usePostUpdate(post, patch => setPost(previous => previous ? { ...previous, ...patch } : previous));
 
   const onProcessEmojiSelection = (emoji_id: string) => {
     settoggleEmojis(false);
@@ -342,6 +344,7 @@ function PostPreviewModal({
               <span className="cl-text-caption">
                 <PostPrivacyIcon status={post.privacy_status} />
                 {dateposted}
+                {(post.is_edited || post.updated_at) && <span className="cl-post-edited" title={post.updated_at ? `Edited ${new Date(post.updated_at).toLocaleString()}` : "Edited"}>· Edited</span>}
               </span>
             </div>
           </div>

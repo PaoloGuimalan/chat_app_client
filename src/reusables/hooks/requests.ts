@@ -2950,7 +2950,7 @@ const GetPostPreviewRequest = async (params: any) => {
     `${envs.USER_SERVICE_API}/api/newsfeed/preview/${postID}/`,
     {
       headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
+        "x-access-token": params.token ?? localStorage.getItem("authtoken"),
       },
     },
   )
@@ -3896,7 +3896,7 @@ const DeletePostRequest = async (post_ids: string[]) => {
     });
 };
 
-const UpdatePostRequest = async (post_id: string, fields: any) => {
+const UpdatePostRequest = async (post_id: string, fields: any, token?: string) => {
   return await Axios.put(
     `${envs.USER_SERVICE_API}/api/newsfeed/default`,
     {
@@ -3905,7 +3905,7 @@ const UpdatePostRequest = async (post_id: string, fields: any) => {
     },
     {
       headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
+        "x-access-token": token ?? localStorage.getItem("authtoken"),
       },
     },
   )

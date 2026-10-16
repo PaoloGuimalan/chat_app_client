@@ -444,6 +444,8 @@ export interface IAuthorRealm {
 
 export interface IPost {
   post_id: string;
+  updated_at?: string | null;
+  is_edited?: boolean;
   tagging: ITagging[];
   references: IReference[];
   map_info: IMapInfo | null;

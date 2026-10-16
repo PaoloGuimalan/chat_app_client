@@ -1,0 +1,73 @@
+.cl-post-edit-stage { position: absolute; inset: 0; display: flex; justify-content: center; align-items: center; padding: 24px; background: var(--scrim); font-family: var(--font); font-size: var(--fs-body); color: var(--text); }
+.cl-post-edit, .cl-post-edit * { box-sizing: border-box; }
+.cl-post-edit { display: flex; flex-direction: column; width: 100%; max-width: 520px; max-height: min(90dvh, 820px); position: relative; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); box-shadow: var(--shadow-lg); overflow: hidden; outline: none; text-align: start; }
+.cl-post-edit button, .cl-post-edit textarea, .cl-post-edit input { font-family: inherit; }
+.cl-post-edit button { cursor: pointer; }
+.cl-post-edit button:disabled { cursor: default; opacity: .45; }
+.cl-post-edit__header { display: flex; gap: 10px; align-items: center; padding: 13px 18px; min-height: 60px; flex-shrink: 0; border-bottom: 1px solid var(--border); }
+.cl-post-edit__header h1 { flex: 1; margin: 0; color: var(--text); font-size: var(--fs-section-title); font-weight: 600; line-height: 1.4; }
+.cl-post-edit__icon { display: inline-flex; align-items: center; justify-content: center; padding: 5px; border: 0; border-radius: 8px; color: var(--text-2); background: transparent; width: 32px; height: 32px; flex-shrink: 0; }
+.cl-post-edit__icon:hover:not(:disabled) { background: var(--surface-hover); }
+.cl-post-edit__body { display: flex; flex-direction: column; gap: 20px; padding: 20px; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.cl-post-edit__body::-webkit-scrollbar { display: none; }
+.cl-post-edit__author { display: flex; align-items: center; gap: 10px; }
+.cl-post-edit__author > div:last-child { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.cl-post-edit__author strong { font-size: var(--fs-body); font-weight: 600; overflow-wrap: anywhere; }
+.cl-post-edit__author span { color: var(--text-3); font-size: var(--fs-caption); }
+.cl-post-edit__field { display: grid; gap: 8px; color: var(--text-2); font-size: var(--fs-caption); font-weight: 500; }
+.cl-post-edit__field textarea { display: block; width: 100%; resize: vertical; min-height: 112px; max-height: 350px; padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; font-size: var(--fs-body); line-height: 1.65; color: var(--text); background: var(--surface-2); font-weight: 400; outline: none; box-shadow: none; }
+.cl-post-edit__field textarea:focus { outline: none; border-color: var(--border); box-shadow: none; }
+.cl-post-edit__media-heading { display: flex; align-items: center; justify-content: space-between; gap: 8px; color: var(--text-2); font-size: var(--fs-caption); margin: 0 0 10px; }
+.cl-post-edit__add { display: inline-flex; align-items: center; justify-content: center; gap: 5px; border: none; background: transparent; color: var(--brand); font-size: var(--fs-label); padding: 5px 0 5px 6px; }
+.cl-post-edit__gallery { overflow: hidden; border: 1px solid var(--border); border-radius: 10px; }
+.cl-post-edit__slide { position: relative; height: 238px; background: var(--surface-2); display: flex; justify-content: center; align-items: center; }
+.cl-post-edit__remove { position: absolute; top: 10px; right: 10px; z-index: 3; display: grid; place-items: center; width: 30px; height: 30px; padding: 0; border: none; border-radius: 8px; background: rgba(16,21,31,.78); color: white; }
+.cl-post-edit__gallery-footer { display: flex; gap: 6px; align-items: center; padding: 7px 10px; background: var(--surface); border-top: 1px solid var(--border); color: var(--text-2); }
+.cl-post-edit__gallery-footer > span { font-size: var(--fs-caption); flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.cl-post-edit__gallery-footer small { font-size: var(--fs-meta); font-variant-numeric: tabular-nums; }
+.cl-post-edit__fixed { width: min(100%,248px); aspect-ratio: 1; margin: 0 auto; overflow: hidden; border-radius: 7px; }
+.cl-post-edit__fixed--cover { width: 100%; aspect-ratio: 16 / 7; }
+.cl-post-edit__empty { display: flex; flex-direction: column; gap: 8px; justify-content: center; align-items: center; width: 100%; min-height: 98px; border: 1px dashed var(--border-2); border-radius: 10px; color: var(--text-3); background: var(--surface-2); font-size: var(--fs-caption); }
+.cl-post-edit__footer { display: flex; gap: 8px; align-items: center; justify-content: flex-end; padding: 14px 20px 16px; border-top: 1px solid var(--border); flex-shrink: 0; }
+.cl-post-edit__button { display: inline-flex; align-items: center; justify-content: center; gap: 7px; font-size: var(--fs-label); font-weight: 500; line-height: 20px; padding: 9px 15px; border-radius: 8px; border: 1px solid var(--border); background: var(--surface); color: var(--text); }
+.cl-post-edit__button--primary { color: var(--on-brand); background: var(--brand); border-color: var(--brand); }
+.cl-post-edit__button--primary:hover:not(:disabled) { background: var(--brand-600); }
+.cl-post-edit__notice, .cl-post-edit__error { font-size: var(--fs-caption); line-height: 1.6; border-radius: 8px; margin: 0; padding: 10px 12px; background: var(--surface-2); color: var(--text-2); }
+.cl-post-edit__error { color: var(--pink); }
+.cl-post-edit__description { font-size: var(--fs-body-sm); color: var(--text-2); margin: 0; }
+.cl-post-edit__loading { display: grid; gap: 20px; }
+.cl-post-edit__loading > div { background: var(--surface-3); border-radius: 10px; height: 112px; }
+.cl-post-edit__loading > div:first-child { height: 38px; width: 60%; }
+.cl-post-edit__loading > div:last-child { height: 238px; }
+.cl-post-edit__choices { display: flex; flex-direction: column; }
+.cl-post-edit__choice { display: flex; align-items: center; gap: 12px; padding: 15px 0; border-bottom: 1px solid var(--border); cursor: pointer; }
+.cl-post-edit__choice:last-child { border-bottom: none; }
+.cl-post-edit__choice > span:nth-child(2) { flex: 1; min-width: 0; }
+.cl-post-edit__choice strong, .cl-post-edit__choice small { display: block; }
+.cl-post-edit__choice strong { font-size: var(--fs-body); font-weight: 500; }
+.cl-post-edit__choice small { color: var(--text-3); font-size: var(--fs-caption); line-height: 1.5; margin-top: 3px; }
+.cl-post-edit__choice-icon { display: grid; place-items: center; width: 36px; height: 36px; border-radius: 50%; background: var(--surface-2); color: var(--text-2); flex-shrink: 0; }
+.cl-post-edit__choice input { width: 17px; height: 17px; accent-color: var(--brand); flex-shrink: 0; }
+.cl-post-edit-stage--audience .cl-post-edit { max-width: 440px; }
+.cl-post-edit-stage--audience .cl-post-edit__body { gap: 10px; }
+.cl-post-edited { color: var(--text-3); font-size: var(--fs-meta); margin-left: 5px; white-space: nowrap; }
+.cl-post-edit-stage--page { padding: 0; background: var(--surface); }
+.cl-post-edit-stage--page .cl-post-edit { max-width: none; height: 100%; max-height: none; border: none; border-radius: 0; box-shadow: none; }
+.cl-post-edit-stage--page .cl-post-edit__body { flex: 1; width: 100%; max-width: 640px; align-self: center; }
+.cl-post-edit-stage--page .cl-post-edit__footer { padding-bottom: max(16px, env(safe-area-inset-bottom)); }
+.cl-post-edit-stage--page .cl-post-edit__footer > button { width: 100%; }
+.cl-post-edit-stage--page .cl-post-edit__field textarea { min-height: 154px; }
+.cl-post-edit-stage--page .cl-post-edit__header { gap: 2px; padding-left: 10px; padding-top: max(13px, env(safe-area-inset-top)); }
+@media (max-width: 799px) {
+  .cl-post-edit-stage--audience { padding: 0; align-items: flex-end; }
+  .cl-post-edit-stage--audience .cl-post-edit { max-width: none; border-radius: 18px 18px 0 0; }
+  .cl-post-edit-stage--audience .cl-post-edit__footer { padding-bottom: max(20px, env(safe-area-inset-bottom)); }
+  .cl-post-edit__body { padding: 20px 16px; }
+  .cl-post-edit__slide { height: 226px; }
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cl-post-edit:not(.cl-post-edit-stage--page .cl-post-edit) { animation: cl-post-edit-enter 180ms ease-out; }
+  .cl-post-edit__spinner { animation: cl-post-edit-spin 1s linear infinite; }
+  @keyframes cl-post-edit-enter { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+  @keyframes cl-post-edit-spin { to { transform: rotate(360deg); } }
+}
