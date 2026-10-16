@@ -46,3 +46,7 @@
 @media(prefers-reduced-motion:reduce){.writing-skeleton-line{animation:none;opacity:.7}}
 .writing-notes-skeleton{display:flex;align-items:flex-start;gap:16px}.writing-skeleton-column{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px}.writing-skeleton-line{background:var(--border-2,var(--border))}.writing-diary-skeleton .writing-tags{min-height:22px}.writing-diary-skeleton .diary-row-meta{min-height:16px}
 @media(max-width:799px){.writing-notes-skeleton,.writing-skeleton-column{gap:10px}}
+.writing-quill .ql-divider{height:1px;margin:18px 0;border-top:1px solid var(--border)}
+.note-card-preview ul.ql-list-checked,.note-card-preview ul.ql-list-unchecked{list-style:none;padding-left:18px}
+.note-card-preview ul.ql-list-checked>li::before{content:'☑';margin-left:-18px;margin-right:5px}
+.note-card-preview ul.ql-list-unchecked>li::before{content:'☐';margin-left:-18px;margin-right:5px}

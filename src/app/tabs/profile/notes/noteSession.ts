@@ -13,7 +13,7 @@ export const plainText = (html: string) => html.replace(/<(script|style|template
   .replace(/&#(x[\da-f]+|\d+);?/gi, (_, code: string) => String.fromCodePoint(Math.min(0x10ffff, code[0].toLowerCase() === "x" ? parseInt(code.slice(1), 16) : parseInt(code, 10))))
   .replace(/&nbsp;|&ZeroWidthSpace;/gi, " ").replace(/[\u200B-\u200D\uFEFF]/g, "").replace(/&(amp|lt|gt|quot|apos);/g, (_, name: string) => ({ amp: "&", lt: "<", gt: ">", quot: '"', apos: "'" }[name] || "")).trim();
 export const hasNoteValue = (value: NoteValue) => Boolean(value.title.replace(/[\u200B-\u200D\uFEFF]/g, "").trim() || plainText(value.content));
-const valueKey = (value: NoteValue) => JSON.stringify([value.title.trim(), plainText(value.content) ? value.content : "", value.attachments]);
+const valueKey = (value: NoteValue) => JSON.stringify([value.title, value.content === '<p><br></p>' ? '' : value.content, value.attachments]);
 export type SaveState = "Draft" | "Unsaved changes" | "Saving…" | "Saved" | "Couldn't save" | "Conflict";
 export type SaveNote = (value: NoteValue, previous: Note | null) => Promise<Note>;
 
@@ -53,11 +53,10 @@ export class NoteSession {
   }
   private emit() { this.persist(this); this.listeners.forEach(listener => listener()); }
   change(value: NoteValue, record = true) {
-    // Raw text must reach controlled inputs, even when only trailing whitespace
-    // changed and the persisted document still compares equal to its baseline.
     if (JSON.stringify(value) === JSON.stringify(this.value)) return;
-    const bodyChanged = (plainText(value.content) ? value.content : "") !== (plainText(this.value.content) ? this.value.content : "");
+    const bodyChanged = valueKey({ title: '', content: value.content, attachments: [] }) !== valueKey({ title: '', content: this.value.content, attachments: [] });
     this.value = value;
+    if (!this.conflict) this.error = '';
     if (record && bodyChanged) {
       this.history = this.history.slice(0, this.position + 1);
       this.history.push(value.content);
@@ -77,7 +76,7 @@ export class NoteSession {
   }
   async flush(retry = false, immediate = true): Promise<boolean> {
     clearTimeout(this.timer);
-    if (this.pending) { const ok = await this.pending; if (ok && this.dirty) { if (immediate) return this.flush(); this.schedule(); } return ok; }
+    if (this.pending) { const ok = await this.pending; if ((ok || retry) && this.dirty) { if (immediate) return this.flush(retry); this.schedule(); } return ok; }
     if (!this.dirty) return true;
     if (this.conflict || (this.error && !retry)) return false;
     if (!hasNoteValue(this.value)) { this.error = "Add a title or some text before saving."; this.state = "Couldn't save"; this.emit(); return false; }

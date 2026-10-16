@@ -70,6 +70,51 @@ const NewEntry = require('../src/app/tabs/profile/diary/NewEntry.tsx').default;
 const Diary = require('../src/app/tabs/profile/diary/Diary.tsx').default;
 const EntryView = require('../src/app/tabs/profile/diary/EntryView.tsx').default;
 const { useWritingHistory } = require('../src/app/tabs/profile/writing/writingHooks.ts');
+const { noteHtmlForEditor, noteHtmlForStorage } = require('../src/app/tabs/profile/notes/noteHtml.ts');
+const { WritingBody } = require('../src/app/tabs/profile/writing/Writing.tsx');
+
+test('Notes loads native checklist, strike, headings, nested lists and divider in the real editor', async () => {
+  let changed = '';
+  mount(React.createElement(WritingBody, { notes: true, value: '<h1>Heading</h1><p><s>Strike</s></p><ul class="ql-list-checked"><li>Done</li></ul><ul><li>Parent<ul><li class="ql-indent-1">Child</li></ul></li></ul><div class="ql-divider"></div>', onChange: html => { changed = html; } }));
+  const editor = document.querySelector('.ql-editor');
+  assert.ok(editor.querySelector('h1'));
+  assert.ok(editor.querySelector('s'));
+  assert.ok(editor.querySelector('ul[data-checked="true"]'));
+  assert.ok(editor.querySelector('.ql-indent-1'));
+  assert.ok(editor.querySelector('.ql-divider'));
+  await act(async () => { fireEvent.mouseDown(editor.querySelector('ul[data-checked] li')); await new Promise(resolve => setTimeout(resolve, 20)); });
+  assert.ok(changed.includes('ql-list-unchecked'), changed);
+});
+
+test('Notes formatting survives the API-safe HTML representation', () => {
+  const stored = noteHtmlForStorage('<p><s>Strike</s></p><ul data-checked="true"><li class="ql-indent-2">Done</li></ul>');
+  assert.ok(stored.includes('ql-list-checked'));
+  assert.ok(!stored.includes('data-checked'));
+  const editor = noteHtmlForEditor(stored);
+  assert.ok(editor.includes('data-checked="true"'));
+  assert.ok(editor.includes('ql-indent-2'));
+  assert.ok(noteHtmlForEditor('<del>Strike</del>').includes('<s>Strike</s>'));
+});
+
+test('Notes Save sits between Redo and Delete and writes without waiting for idle', async () => {
+  notes = [sample(81)];
+  mount(React.createElement(Notes));
+  fireEvent.click(await screen.findByRole('button', { name: 'Open Note 81' }));
+  await screen.findByRole('dialog', { name: 'Note editor' });
+  const userEvent = require('@testing-library/user-event').default;
+  const title = await screen.findByRole('textbox', { name: 'Note title' });
+  await userEvent.clear(title);
+  await userEvent.type(title, 'Immediate save');
+  await waitFor(() => assert.equal(screen.getByRole('button', { name: 'Save' }).disabled, false));
+  const save = screen.getByRole('button', { name: 'Save' });
+  const actions = [...save.parentElement.querySelectorAll('button')].map(button => button.getAttribute('aria-label'));
+  assert.deepEqual(actions, ['Undo', 'Redo', 'Save', 'Delete note']);
+  fireEvent.click(save);
+  await waitFor(() => assert.equal(saves.at(-1)?.title, 'Immediate save'));
+  await screen.findByText('Saved');
+  notes = [sample(1), sample(2)];
+  saves = [];
+});
 afterEach(() => { cleanup(); });
 const mount = (component, route = '/notes') => render(React.createElement(MemoryRouter, { initialEntries: [route] }, component));
 

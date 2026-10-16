@@ -58,14 +58,27 @@ test('explicit leave flush drains newer changes serially without duplicate creat
   assert.equal(calls.length, 2); assert.equal(calls[1].previous.id, 'note-1'); assert.equal(session.note.version, 2);
 });
 
-test('failed saves keep edits and visible error until explicit retry', async () => {
+test('a new edit retries a failed autosave after its own idle delay', async () => {
   const f = fixture(); let writes = 0;
   const session = new f.NoteSession(null, async (value, previous) => { if (++writes === 1) throw new Error('offline'); return saved(value, previous); });
   session.change({ title: 'Keep this', content: '', attachments: [] });
   await f.tick(2000); assert.equal(session.state, "Couldn't save");
   session.change({ ...session.value, content: '<p>Also keep this</p>' });
-  assert.equal(session.state, "Couldn't save"); await f.tick(9000); assert.equal(writes, 1);
+  assert.equal(session.state, 'Unsaved changes'); await f.tick(1999); assert.equal(writes, 1);
+  await f.tick(1); assert.equal(writes, 2);
   assert.equal(await session.flush(true), true); assert.equal(session.note.content, '<p>Also keep this</p>');
+});
+
+test('title whitespace and formatting-only changes autosave; manual save skips the debounce', async () => {
+  const f = fixture(); const calls = [];
+  const note = saved({ title: 'Title', content: '<p>Body</p>', attachments: [] }, null);
+  const session = new f.NoteSession(note, async (value, previous) => { calls.push(value); return saved(value, previous); });
+  session.change({ ...session.value, title: 'Title ' });
+  await f.tick(2000); assert.equal(calls.length, 1);
+  session.change({ ...session.value, content: '<p><strong>Body</strong></p>' });
+  assert.equal(await session.flush(true), true);
+  assert.equal(calls.length, 2); assert.equal(calls[1].content, '<p><strong>Body</strong></p>');
+  await f.tick(4000); assert.equal(calls.length, 2);
 });
 
 test('409 never silently overwrites; restored conflict stays paused', async () => {

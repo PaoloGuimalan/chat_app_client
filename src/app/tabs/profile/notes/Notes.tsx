@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useSelector } from "react-redux";
-import { ArrowDown, ArrowLeft, Check, GripVertical, Paperclip, Trash2, X } from "lucide-react";
+import { ArrowDown, ArrowLeft, Check, GripVertical, Paperclip, Save, Trash2, X } from "lucide-react";
 import DOMPurify from "dompurify";
 import { createPortal } from "react-dom";
 import type { AuthenticationInterface } from "@/reusables/vars/interfaces";
@@ -81,7 +81,7 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
     }).catch(() => { if (!cancelled) setError("Couldn't load notes. Please retry."); }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
   }, [api, page, search, refresh]);
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!session) return;
     return session.subscribe(() => { setRevision(value => value + 1); });
   }, [session]);
@@ -214,11 +214,11 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
     </div>
     {noteDrag.ghost && draggedNote && createPortal(<div className="cl-redesign note-drag-overlay" data-theme={document.documentElement.dataset.theme} style={{ position: 'fixed', left: noteDrag.ghost.x, top: noteDrag.ghost.y, width: noteDrag.ghost.width, height: noteDrag.ghost.height }}><article className="note-card"><div className="note-card-open">{draggedNote.title && <h2>{draggedNote.title}</h2>}<div className="note-card-preview" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(draggedNote.content) }}/></div><footer className="note-card-footer"><span>Moving note</span><GripVertical size={16}/></footer></article></div>, document.body)}
     {session && <div className="notes-shade"><section className="notes-editor" role="dialog" aria-modal="true" aria-label="Note editor" onKeyDownCapture={shortcuts} data-revision={revision}>
-      <header className="writing-reader-head"><button aria-label="Close note" onClick={() => void close()} disabled={uploading}><ArrowLeft size={19}/><span>Notes</span></button><span className="writing-status" data-state={session.state} role="status">{session.state === "Saved" && <Check size={14}/>} {session.state}</span><div className="writing-reader-actions"><HistoryButtons undo={() => session.undo()} redo={() => session.redo()} canUndo={session.canUndo} canRedo={session.canRedo}/>{session.note && <button aria-label="Delete note" onClick={() => setConfirm("delete")} disabled={session.state === "Saving…" || uploading}><Trash2 size={17}/></button>}</div></header>
+      <header className="writing-reader-head"><button aria-label="Close note" onClick={() => void close()} disabled={uploading}><ArrowLeft size={19}/><span>Notes</span></button><span className="writing-status" data-state={session.state} role="status">{session.state === "Saved" && <Check size={14}/>} {session.state}</span><div className="writing-reader-actions"><HistoryButtons undo={() => session.undo()} redo={() => session.redo()} canUndo={session.canUndo} canRedo={session.canRedo}/><button aria-label="Save" title="Save" disabled={uploading || session.conflict || !session.dirty || !hasNoteValue(session.value)} onClick={() => void session.flush(true)}><Save size={17}/></button>{session.note && <button aria-label="Delete note" onClick={() => setConfirm("delete")} disabled={session.state === "Saving…" || uploading}><Trash2 size={17}/></button>}</div></header>
       {session.error && <div className="writing-error" role="alert">{session.error}{!session.conflict && <button onClick={() => void session.flush(true)}>Retry</button>}{session.conflict && <><button onClick={() => { void navigator.clipboard?.writeText(`${session.value.title}\n\n${session.value.content}`); }}>Copy my edits</button><button onClick={() => setConfirm("reload")}>Reload latest</button></>}</div>}
       <div className="writing-document-scroll"><article className="writing-document"><input autoFocus className="writing-title" maxLength={255} aria-label="Note title" placeholder="Untitled note" value={session.value.title} onChange={event => session.change({ ...session.value, title: event.target.value })}/>
         <div className="writing-meta">{session.note ? `Updated ${new Date(session.note.updated_at).toLocaleString()}` : "New note"}</div>
-        <WritingBody value={session.value.content} onChange={content => session.change({ ...session.value, content })}/>
+        <WritingBody value={session.value.content} onChange={content => session.change({ ...session.value, content })} notes/>
         <section className="writing-files"><div className="writing-files-heading"><span>Attachments</span><button disabled={uploading} onClick={() => fileInput.current?.click()}><Paperclip size={15}/>{uploading ? "Uploading…" : "Attach file"}</button></div><input hidden ref={fileInput} type="file" multiple onChange={event => { void upload(Array.from(event.target.files || [])); event.target.value = ""; }}/>
           <div className="note-attachment-previews">{session.value.attachments.map((file, index) => <div className="note-attachment" key={file.id || file.url}><UploadedAttachment attachment={file}/><button className="note-attachment-remove" aria-label={`Remove ${file.file_name || "attachment"}`} onClick={() => session.change({ ...session.value, attachments: session.value.attachments.filter((_, position) => position !== index) })}><X size={15}/></button></div>)}</div>
         </section>

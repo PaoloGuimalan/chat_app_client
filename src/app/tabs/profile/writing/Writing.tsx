@@ -9,6 +9,8 @@ import type { AuthenticationInterface } from "@/reusables/vars/interfaces";
 
 import "react-quill/dist/quill.snow.css";
 import "./writing.css";
+import { noteHtmlForEditor, noteHtmlForStorage } from '../notes/noteHtml';
+import { noteToolbar } from '../notes/noteFormats';
 
 export function WritingHeader({ diary = false, query, onSearch, onNew }: { diary?: boolean; query?: string; onSearch?: (query: string) => void; onNew: () => void }) {
   const authentication: AuthenticationInterface = useSelector((state: any) => state.authentication);
@@ -29,14 +31,15 @@ export function HistoryButtons({ undo, redo, canUndo, canRedo }: { undo: () => v
   return <div className="writing-history"><button aria-label="Undo" title="Undo (Ctrl+Z)" disabled={!canUndo} onMouseDown={event => event.preventDefault()} onClick={undo}><Undo2 size={17}/></button><button aria-label="Redo" title="Redo (Ctrl+Shift+Z)" disabled={!canRedo} onMouseDown={event => event.preventDefault()} onClick={redo}><Redo2 size={17}/></button></div>;
 }
 
-export function WritingBody({ value, onChange, disabled = false }: { value: string; onChange: (html: string) => void; disabled?: boolean }) {
+export function WritingBody({ value, onChange, disabled = false, notes = false }: { value: string; onChange: (html: string) => void; disabled?: boolean; notes?: boolean }) {
   const editor = useRef<ReactQuill>(null);
-  const initial = useRef(value);
-  const modules = useMemo(() => ({ clipboard: { matchVisual: false }, toolbar: [[{ header: [2, 3, false] }], ["bold", "italic", "underline"], [{ list: "bullet" }, { list: "ordered" }], ["blockquote", "link"], ["clean"]] }), []);
+  const initial = useRef(notes ? noteHtmlForEditor(value) : value);
+  const modules = useMemo(() => ({ clipboard: { matchVisual: false }, toolbar: notes ? noteToolbar : [[{ header: [2, 3, false] }], ["bold", "italic", "underline"], [{ list: "bullet" }, { list: "ordered" }], ["blockquote", "link"], ["clean"]] }), [notes]);
   useLayoutEffect(() => {
     const quill = editor.current?.getEditor();
-    if (!quill || value === quill.root.innerHTML) return;
-    const target = quill.clipboard.convert(value);
+    const editorValue = notes ? noteHtmlForEditor(value) : value;
+    if (!quill || editorValue === quill.root.innerHTML) return;
+    const target = quill.clipboard.convert(editorValue);
     const last = target.ops?.at(-1)?.insert;
     if (typeof last !== "string" || !last.endsWith("\n")) target.insert("\n");
     const change = quill.getContents().diff(target);
@@ -51,8 +54,8 @@ export function WritingBody({ value, onChange, disabled = false }: { value: stri
     // preserves an unrelated old caret and can introduce visual blank lines.
     quill.updateContents(change, "api");
     quill.setSelection(Math.min(textCaret ?? formatCaret, Math.max(0, quill.getLength() - 1)), 0, "silent");
-  }, [value]);
-  return <ReactQuill ref={editor} theme="snow" defaultValue={initial.current} onChange={(html, _delta, source) => { if (source === "user") onChange(html); }} readOnly={disabled} modules={modules} placeholder="Start writing…" className="writing-quill"/>;
+  }, [value, notes]);
+  return <ReactQuill ref={editor} theme="snow" defaultValue={initial.current} onChange={(html, _delta, source) => { if (source === "user") onChange(notes ? noteHtmlForStorage(html) : html); }} readOnly={disabled} modules={modules} placeholder="Start writing…" className="writing-quill"/>;
 }
 
 
