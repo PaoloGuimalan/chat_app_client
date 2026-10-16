@@ -194,26 +194,26 @@ function PendingAttachmentItem({
     }
 
     const cardClass =
-      "tw-relative tw-rounded-[5px] tw-flex tw-flex-col tw-items-center tw-justify-center tw-p-4 tw-border tw-border-gray-200 tw-bg-gray-50 hover:tw-bg-gray-100 tw-transition-colors tw-w-[150px] tw-h-[150px]";
+      "tw-relative tw-rounded-[5px] tw-flex tw-flex-col tw-items-center tw-justify-center tw-p-4 tw-border tw-transition-colors tw-w-[150px] tw-h-[150px]";
 
     if (attachment.referenceMediaType.startsWith("audio")) {
       return (
-        <div className={`${cardClass} tw-gap-4`}>
+        <div className={`${cardClass} tw-border-[var(--border)] tw-bg-[var(--surface-2)] hover:tw-bg-[var(--surface-hover)] tw-gap-4`}>
           <div
-            className="tw-w-14 tw-h-14 tw-rounded-full tw-bg-gradient-to-br tw-from-green-400 tw-to-emerald-500 tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-shadow-lg hover:tw-scale-105 tw-transition-all"
+            className="tw-w-14 tw-h-14 tw-rounded-full tw-bg-[var(--brand)] hover:tw-bg-[var(--brand-600)] tw-flex tw-items-center tw-justify-center tw-cursor-pointer tw-shadow-lg hover:tw-scale-105 tw-transition-all"
             onClick={toggleAudio}
           >
             {isPlaying ? (
-              <FaPause className="tw-w-5 tw-h-5 tw-text-black" />
+              <FaPause className="tw-w-5 tw-h-5 tw-text-white" />
             ) : (
-              <FaPlay className="tw-w-5 tw-h-5 tw-text-black" />
+              <FaPlay className="tw-w-5 tw-h-5 tw-text-white" />
             )}
           </div>
           <div className="tw-flex tw-flex-col tw-items-center tw-gap-1">
-            <span className="tw-text-xs tw-text-gray-600 tw-truncate tw-max-w-[110px] tw-text-center">
+            <span className="tw-text-xs tw-text-[var(--text-2)] tw-truncate tw-max-w-[110px] tw-text-center">
               {attachment.name || "Audio file"}
             </span>
-            <span className="tw-text-xs tw-text-gray-500 tw-text-center">
+            <span className="tw-text-xs tw-text-[var(--text-3)] tw-text-center">
               {duration}
             </span>
           </div>
@@ -243,7 +243,7 @@ function PendingAttachmentItem({
     }
 
     return (
-      <div className={`${cardClass} tw-gap-3`}>
+      <div className={`${cardClass} tw-border-gray-200 tw-bg-gray-50 hover:tw-bg-gray-100 tw-gap-3`}>
         {getFileIcon(attachment.referenceMediaType)}
         <span className="tw-text-xs tw-text-gray-700 tw-text-center tw-px-2 tw-truncate tw-max-w-[130px]">
           {attachment.name || "Preview not available"}
