@@ -14,7 +14,7 @@ import { useNoteDrag } from "./useNoteDrag";
 import { useNoteMasonry } from "./useNoteMasonry";
 import { NoteMasonryCard } from "./NoteMasonryCard";
 import UploadedAttachment from "../diary/UploadedAttachment";
-import { NotesListSkeleton } from "../writing/WritingSkeletons";
+import { NoteCardSkeleton } from "../writing/WritingSkeletons";
 
 const sessions = new Map<string, NoteSession>();
 const storageKey = (entity: string) => `chatterloop:note-drafts:${entity}`;
@@ -189,7 +189,7 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
     } else void reorder(id, before);
   });
   const displayedNotes = noteDrag.order ? noteDrag.order.map(id => notes.find(note => note.id === id)!).filter(Boolean) : notes;
-  const masonry = useNoteMasonry(displayedNotes.map(note => note.id));
+  const masonry = useNoteMasonry(displayedNotes.map(note => note.id), loading);
   const draggedNote = notes.find(note => note.id === noteDrag.ghost?.id);
   return <section className="writing-page notes-page" aria-label="Notes">
     <WritingHeader query={query} onSearch={setQuery} onNew={create}/>
@@ -207,8 +207,9 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
           {note.attachments[0] && <div className="note-file-preview">📎 {note.attachments[0].file_name || "Attachment"}</div>}
           <footer className="note-card-footer"><span>{new Date(note.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span><span className="note-order-actions"><button data-note-no-drag className="note-drag note-to-end" aria-label={`Move ${note.title || "Untitled note"} to end`} title="Move to end" disabled={Boolean(search) || reordering} onClick={() => void reorder(note.id, null)}><ArrowDown size={14}/></button><button data-note-handle className="note-drag" aria-label={`Move ${note.title || "Untitled note"}. Use arrow keys, Home or End.`} disabled={Boolean(search) || reordering} onClick={event => event.stopPropagation()} onKeyDown={event => { if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); keyboardMove(note.id, event.key); } }}><GripVertical size={16}/></button></span></footer>
         </NoteMasonryCard>)}
+        {loading && <span className="writing-sr" role="status" aria-label="Loading notes">Loading notes…</span>}
+        {masonry.skeletons.map(skeleton => <NoteCardSkeleton key={skeleton.id} {...skeleton}/>)}
       </div>
-      {loading && <NotesListSkeleton/>}
       {!loading && !notes.length && <div className="writing-empty">{search ? "No matching notes" : "A little space for your ideas."}</div>}
       {next && <button className="writing-load-more" disabled={loading} onClick={() => setPage(value => value + 1)}>{loading ? "Loading…" : "Load more notes"}</button>}
     </div>

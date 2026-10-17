@@ -39,13 +39,13 @@
 /* Loading geometry follows the real collection cards and document widths. */
 .writing-skeleton-line{display:block;flex:none;max-width:100%;border-radius:5px;background:var(--border);animation:writing-skeleton-pulse 1.4s ease-in-out infinite}
 .writing-skeleton-body{display:flex;flex-direction:column;gap:8px;min-width:0}
-.writing-notes-skeleton .note-card-open{min-height:0;cursor:default!important}.writing-notes-skeleton .writing-skeleton-body{margin-top:14px}.writing-notes-skeleton .note-card-footer{min-height:40px}.writing-notes-skeleton .note-card{pointer-events:none}.writing-notes-skeleton{margin-bottom:16px}
+.writing-note-skeleton{pointer-events:none}.writing-note-skeleton .note-card-open{min-height:0;cursor:default!important}.writing-note-skeleton .writing-skeleton-body{margin-top:14px}.writing-note-skeleton .note-card-footer{min-height:40px}
 .writing-page .writing-diary-skeleton{pointer-events:none}.writing-diary-skeleton .diary-row-title{min-height:19px;width:100%}.writing-diary-skeleton .writing-tags{min-height:21px}.writing-diary-skeleton .writing-skeleton-body{padding:4px 0}.writing-diary-skeleton .diary-row-meta{min-height:14px;width:100%}
 .writing-entry-skeleton .writing-document-title{min-height:34px}.writing-entry-skeleton .writing-meta{min-height:16px}.writing-entry-skeleton .diary-mood{min-height:26px}.writing-entry-skeleton>.writing-skeleton-body{gap:13px;margin-bottom:24px}
 @keyframes writing-skeleton-pulse{0%,100%{opacity:.48}50%{opacity:1}}
 @media(prefers-reduced-motion:reduce){.writing-skeleton-line{animation:none;opacity:.7}}
-.writing-notes-skeleton{display:flex;align-items:flex-start;gap:16px}.writing-skeleton-column{flex:1;min-width:0;display:flex;flex-direction:column;gap:16px}.writing-skeleton-line{background:var(--border-2,var(--border))}.writing-diary-skeleton .writing-tags{min-height:22px}.writing-diary-skeleton .diary-row-meta{min-height:16px}
-@media(max-width:799px){.writing-notes-skeleton,.writing-skeleton-column{gap:10px}}
+.writing-skeleton-line{background:var(--border-2,var(--border))}.writing-diary-skeleton .writing-tags{min-height:22px}.writing-diary-skeleton .diary-row-meta{min-height:16px}
+
 .writing-quill .ql-divider{height:1px;margin:18px 0;border-top:1px solid var(--border)}
 .note-card-preview ul.ql-list-checked,.note-card-preview ul.ql-list-unchecked{list-style:none;padding-left:18px}
 .note-card-preview ul.ql-list-checked>li::before{content:'☑';margin-left:-18px;margin-right:5px}

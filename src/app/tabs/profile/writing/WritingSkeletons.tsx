@@ -1,33 +1,19 @@
-import { Fragment, useLayoutEffect, useRef, useState } from "react";
+import { Fragment } from "react";
 
 function Line({ width = "100%", height = 12 }: { width?: string; height?: number }) {
   return <span className="writing-skeleton-line" style={{ width, height }}/>;
 }
 
-export function NotesListSkeleton() {
-  const grid = useRef<HTMLDivElement>(null);
-  const [columns, setColumns] = useState(4);
-  useLayoutEffect(() => {
-    const element = grid.current;
-    if (!element) return;
-    const measure = () => {
-      const width = element.getBoundingClientRect().width;
-      if (width) setColumns(window.matchMedia("(max-width: 799px)").matches ? 2 : Math.max(1, Math.floor((width + 16) / 246)));
-    };
-    measure();
-    const observer = new ResizeObserver(measure);
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-  return <div ref={grid} className="notes-grid writing-notes-skeleton" role="status" aria-label="Loading notes">
-    {Array.from({ length: columns }, (_, column) => <div className="writing-skeleton-column" key={column}>{Array.from({ length: 3 }, (_, row) => {
-      const index = row * columns + column;
-      return <article className="note-card" aria-hidden="true" key={index}>
+export function NoteCardSkeleton({ id, index, tile }: {
+  id: string;
+  index: number;
+  tile?: { left: number; top: number; width: number };
+}) {
+  return <article className="note-card writing-note-skeleton" data-note-skeleton={id} aria-hidden="true"
+    style={{ left: tile?.left, top: tile?.top, width: tile?.width, visibility: tile ? "visible" : "hidden" }}>
       <div className="note-card-open"><Line width="76%" height={17}/><div className="writing-skeleton-body">{Array.from({ length: 3 + index % 3 }, (_, line) => <Line key={line} width={line === 2 + index % 3 ? "61%" : "96%"}/>)}</div></div>
       <footer className="note-card-footer"><Line width="42px" height={10}/><Line width="24px" height={16}/></footer>
     </article>;
-    })}</div>)}
-  </div>;
 }
 
 export function DiaryListSkeleton() {

@@ -177,11 +177,59 @@ test('Notes show card skeletons until the list response arrives', async () => {
   try {
     const view = mount(React.createElement(Notes));
     const skeleton = await screen.findByRole('status', { name: 'Loading notes' });
-    assert.ok(skeleton.querySelectorAll('.note-card').length >= 6);
+    assert.ok(skeleton.closest('.notes-masonry').querySelectorAll('[data-note-skeleton]').length >= 6);
     await act(async () => resolve({ count: 0, next: null, results: [] }));
     assert.equal(screen.queryByRole('status', { name: 'Loading notes' }), null);
     view.unmount();
   } finally { api.list = original; }
+});
+
+test('loading more Notes fills the masonry gaps and repacks skeletons at every screen width', async () => {
+  const originalList = api.list;
+  const originalWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'clientWidth');
+  const originalHeight = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'offsetHeight');
+  let width = 1600;
+  let resolve;
+  Object.defineProperty(HTMLElement.prototype, 'clientWidth', { configurable: true, get() { return this.classList.contains('notes-masonry') ? width : 0; } });
+  Object.defineProperty(HTMLElement.prototype, 'offsetHeight', { configurable: true, get() { return this.classList.contains('note-card') ? this.hasAttribute('data-note-id') ? 300 : 170 : 0; } });
+  api.list = page => page === 1 ? Promise.resolve({ count: 25, next: 'next', results: [sample(1)] }) : new Promise(done => { resolve = done; });
+  try {
+    mount(React.createElement(Notes));
+    await screen.findByRole('button', { name: 'Open Note 1' });
+    fireEvent.click(screen.getByRole('button', { name: 'Load more notes' }));
+    const status = await screen.findByRole('status', { name: 'Loading notes' });
+    const grid = document.querySelector('.notes-masonry');
+    assert.ok(grid.contains(status), 'Loading status should belong to the same layout as the loaded notes');
+    for (width of [1600, 390, 1040, 1960]) {
+      await act(async () => window.dispatchEvent(new window.Event('resize')));
+      const gap = width < 600 ? 10 : 16;
+      const columns = Math.max(2, Math.floor((width + gap) / (230 + gap)));
+      const cardWidth = (width - gap * (columns - 1)) / columns;
+      const skeletons = [...grid.querySelectorAll('[data-note-skeleton]')];
+      assert.ok(skeletons.length >= columns * 3, 'Loading cards should cover the responsive columns');
+      const heights = Array(columns).fill(0);
+      heights[0] = 300 + gap;
+      skeletons.forEach(card => {
+        const column = heights.indexOf(Math.min(...heights));
+        assert.equal(parseFloat(card.style.top), heights[column], 'Fill the shortest column rather than starting below the whole collection');
+        assert.ok(Math.abs(parseFloat(card.style.left) - column * (cardWidth + gap)) < 0.01);
+        assert.ok(Math.abs(parseFloat(card.style.width) - cardWidth) < 0.01);
+        heights[column] += 170 + gap;
+      });
+      assert.equal(parseFloat(grid.style.height), Math.max(...heights) - gap);
+    }
+    await act(async () => resolve({ count: 25, next: null, results: [sample(2)] }));
+    assert.equal(document.querySelector('[data-note-skeleton]'), null);
+    assert.equal(screen.queryByRole('status', { name: 'Loading notes' }), null);
+    await screen.findByRole('button', { name: 'Open Note 2' });
+  } finally {
+    cleanup();
+    api.list = originalList;
+    for (const [name, descriptor] of [['clientWidth', originalWidth], ['offsetHeight', originalHeight]]) {
+      if (descriptor) Object.defineProperty(HTMLElement.prototype, name, descriptor);
+      else delete HTMLElement.prototype[name];
+    }
+  }
 });
 
 test('Diary list and entry use their own content skeletons while requests are pending', async () => {
