@@ -184,6 +184,31 @@ test('Notes show card skeletons until the list response arrives', async () => {
   } finally { api.list = original; }
 });
 
+test('closing a saved note keeps the list visible without skeletons during refresh', async () => {
+  notes = [sample(61), sample(62)];
+  const originalList = api.list;
+  let resolve;
+  try {
+    api.list = async (...args) => ({ ...await originalList(...args), next: 'next' });
+    mount(React.createElement(Notes));
+    fireEvent.click(await screen.findByRole('button', { name: 'Open Note 61' }));
+    const userEvent = require('@testing-library/user-event').default;
+    const title = await screen.findByRole('textbox', { name: 'Note title' });
+    await userEvent.clear(title);
+    await userEvent.type(title, 'Updated note');
+    api.list = () => new Promise(done => { resolve = done; });
+    await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Close note' })); });
+    await waitFor(() => assert.equal(Boolean(screen.queryByRole('dialog', { name: 'Note editor' })), false));
+    assert.ok(screen.getByRole('button', { name: 'Open Note 62' }));
+    assert.equal(screen.getByRole('button', { name: 'Loading…' }).disabled, true);
+    assert.equal(screen.getByRole('button', { name: 'Move Note 62. Use arrow keys, Home or End.' }).disabled, true);
+    assert.equal(Boolean(screen.queryByRole('status', { name: 'Loading notes' })), false);
+    assert.equal(document.querySelector('[data-note-skeleton]'), null);
+    await act(async () => resolve(await originalList(1, '')));
+    await screen.findByRole('button', { name: 'Open Updated note' });
+  } finally { api.list = originalList; notes = [sample(1), sample(2)]; saves = []; }
+});
+
 test('loading more Notes fills the masonry gaps and repacks skeletons at every screen width', async () => {
   const originalList = api.list;
   const originalWidth = Object.getOwnPropertyDescriptor(HTMLElement.prototype, 'clientWidth');

@@ -29,6 +29,8 @@ import {
 } from "./MomentLoaders";
 import MomentRibbon from "./MomentRibbon";
 import MomentSidePanel from "./MomentSidePanel";
+import MobileMomentViewer from "./MobileMomentViewer";
+import { mobileMomentMediaFit } from "./mobileMomentMediaFit";
 import MomentViewersPanel from "./MomentViewersPanel";
 import {
   MOMENTS_CHANGED_EVENT,
@@ -240,6 +242,7 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
   const [moments, setMoments] = useState<IPost[] | null>(null);
   const [index, setIndex] = useState(0);
   const [progress, setProgress] = useState(0);
+  const [playbackRun, setPlaybackRun] = useState(0);
   const [paused, setPaused] = useState(false);
   const [muted, setMuted] = useState(true);
   const [holdForInput, setHoldForInput] = useState(false);
@@ -249,6 +252,7 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [reporting, setReporting] = useState(false);
   const videoRef = useRef<HTMLVideoElement | null>(null);
+  const [mediaShape, setMediaShape] = useState({ postId: "", aspect: 0 });
 
   const entityID = archive ? selfEntityId : params.entityID;
   const isOwn = entityID === selfEntityId;
@@ -391,6 +395,19 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
   const photoMs = stillPhoto ? current?.details?.duration_ms || STILL_PHOTO_MS : PHOTO_MS;
   const isVideo = !stillPhoto && !!mediaOf(current)?.reference_media_type?.startsWith("video");
   const stopped = paused || holdForInput || menuOpen || reporting;
+  const screenWidth: number = useSelector(
+    (state: any) => state.screensizelistener?.W ?? window.innerWidth,
+  );
+  const screenHeight: number = useSelector(
+    (state: any) => state.screensizelistener?.H ?? window.innerHeight,
+  );
+  const mobile = screenWidth < 800;
+  const previousOnMobile = () => {
+    if (index > 0 || authorPosition > 0) { prev(); return; }
+    setProgress(0);
+    setPlaybackRun(value => value + 1);
+    if (videoRef.current) videoRef.current.currentTime = 0;
+  };
 
   // Photos and shared posts: a timer. Videos drive progress themselves.
   useEffect(() => {
@@ -410,22 +427,23 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
       }
     }, 60);
     return () => clearInterval(timer);
-  }, [current?.post_id, isVideo, stopped, photoMs]);
+  }, [current?.post_id, isVideo, stopped, photoMs, playbackRun]);
 
   useEffect(() => {
     const video = videoRef.current;
     if (!video) return;
     if (stopped) video.pause();
     else video.play().catch(() => {});
-  }, [stopped, current?.post_id]);
+  }, [stopped, current?.post_id, mobile]);
 
   // ← / → / space, unless typing a reply.
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
       const target = event.target as HTMLElement;
       if (target?.tagName === "INPUT" || target?.tagName === "TEXTAREA") return;
+      if (mobile && (holdForInput || reporting || target?.closest('button,a,[role="dialog"]'))) return;
       if (event.key === "ArrowRight") next();
-      else if (event.key === "ArrowLeft") prev();
+      else if (event.key === "ArrowLeft") { if (mobile) previousOnMobile(); else prev(); }
       else if (event.key === " ") {
         event.preventDefault();
         setPaused((p) => !p);
@@ -515,9 +533,6 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
   // row made the page overflow sideways, and the scrollbar that came and went
   // with it resized the stage, re-measured, and looped until React gave up
   // (the white screen on resize).
-  const screenWidth: number = useSelector(
-    (state: any) => state.screensizelistener?.W ?? window.innerWidth,
-  );
   const sideBySide = screenWidth >= SIDE_BY_SIDE_MIN_WIDTH;
   const stageRef = useRef<HTMLDivElement | null>(null);
   const columnRef = useRef<HTMLDivElement | null>(null);
@@ -715,6 +730,121 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
       )}
     </div>
   ) : null;
+
+  // Both presentations share the same media node and playback callbacks.
+  const mediaFit = mobile
+    ? mobileMomentMediaFit(mediaShape.postId === current?.post_id ? mediaShape.aspect : 0, screenWidth, screenHeight)
+    : "contain";
+  const momentMedia = current ? (
+    isSharedMoment(current) ? (
+      <div
+        style={{
+          position: "absolute",
+          left: 24,
+          right: 24,
+          top: mobile ? 100 : 40,
+          bottom: mobile ? 190 : 24,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          pointerEvents: "none",
+        }}
+      >
+        <div
+          style={{
+            pointerEvents: "auto",
+            maxHeight: "100%",
+            overflow: "hidden",
+          }}
+          onClick={(e) => e.stopPropagation()}
+          onPointerDown={event => { if (mobile) event.stopPropagation(); }}
+        >
+          {sharedPost ? (
+            <SharedPostCard
+              post={sharedPost}
+              onOpen={() => navigate(`/post/${sharedPost.post_id}`)}
+            />
+          ) : sharedPost === null ? (
+            <div
+              style={{
+                background: "var(--surface)",
+                borderRadius: "var(--r-md)",
+                padding: 16,
+                color: "var(--text-2)",
+                fontSize: "var(--fs-body-sm)",
+              }}
+            >
+              This post is no longer available.
+            </div>
+          ) : null}
+        </div>
+      </div>
+    ) : isVideo ? (
+      <video
+        key={current.post_id}
+        ref={videoRef}
+        src={media?.reference}
+        // The poster while it buffers - not a black frame.
+        poster={posterOf(current) ?? undefined}
+        muted={muted}
+        autoPlay
+        playsInline
+        onLoadedMetadata={event => {
+          if (mobile) setMediaShape({ postId: current.post_id, aspect: event.currentTarget.videoWidth / event.currentTarget.videoHeight });
+        }}
+        onTimeUpdate={(e) => {
+          const v = e.currentTarget;
+          if (!archive && isExpired(current.expires_at)) next();
+          else if (v.duration)
+            setProgress(v.currentTime / v.duration);
+        }}
+        onEnded={next}
+        // Whole, as the app shows it: an edit made on a phone is
+        // framed by its author - cropping it would cut that off.
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: mediaFit,
+        }}
+      />
+    ) : (
+      <img
+        key={current.post_id}
+        src={stillPhoto ? posterOf(current) ?? media?.reference : media?.reference}
+        alt=""
+        onLoad={event => {
+          if (mobile) setMediaShape({ postId: current.post_id, aspect: event.currentTarget.naturalWidth / event.currentTarget.naturalHeight });
+        }}
+        style={{
+          position: "absolute",
+          inset: 0,
+          width: "100%",
+          height: "100%",
+          objectFit: mediaFit,
+        }}
+      />
+    )
+  ) : null;
+
+  if (mobile) {
+    return <div className="cl-redesign" data-theme={theme}>
+      <MobileMomentViewer key={current?.post_id ?? entityID}
+        moment={current} moments={moments} index={index} progress={progress}
+        own={isOwn} archived={archive} video={isVideo} paused={paused} muted={muted}
+        onClose={goBack} onNext={next}
+        onPrevious={previousOnMobile}
+        onAuthor={offset => { if (offset < 0 && authorPosition <= 0) return; goToAuthor(offset); }}
+        onPause={() => setPaused(value => !value)} onMute={() => setMuted(value => !value)}
+        onHold={setHoldForInput}
+        onReacted={emojiId => updateCurrent({ entity_reaction: emojiId })}
+        onReport={() => setReporting(true)} onDelete={deleteCurrent}
+        onArchive={archiveCurrent} onUnarchive={unarchiveCurrent} onChanged={updateCurrent}
+      >{momentMedia}</MobileMomentViewer>
+      {reporting && current && <ReportModal targetType="post" targetId={current.post_id} title="Report this Moment" onClose={() => setReporting(false)}/>}
+    </div>;
+  }
 
   return (
     <div
@@ -1086,89 +1216,7 @@ function MomentViewer({ archive = false }: { archive?: boolean }) {
                   ))}
                 </div>
 
-                {isSharedMoment(current) ? (
-                  <div
-                    style={{
-                      position: "absolute",
-                      left: 24,
-                      right: 24,
-                      top: 40,
-                      bottom: 24,
-                      display: "flex",
-                      flexDirection: "column",
-                      justifyContent: "center",
-                      pointerEvents: "none",
-                    }}
-                  >
-                    <div
-                      style={{
-                        pointerEvents: "auto",
-                        maxHeight: "100%",
-                        overflow: "hidden",
-                      }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
-                      {sharedPost ? (
-                        <SharedPostCard
-                          post={sharedPost}
-                          onOpen={() => navigate(`/post/${sharedPost.post_id}`)}
-                        />
-                      ) : sharedPost === null ? (
-                        <div
-                          style={{
-                            background: "var(--surface)",
-                            borderRadius: "var(--r-md)",
-                            padding: 16,
-                            color: "var(--text-2)",
-                            fontSize: "var(--fs-body-sm)",
-                          }}
-                        >
-                          This post is no longer available.
-                        </div>
-                      ) : null}
-                    </div>
-                  </div>
-                ) : isVideo ? (
-                  <video
-                    key={current.post_id}
-                    ref={videoRef}
-                    src={media?.reference}
-                    // The poster while it buffers - not a black frame.
-                    poster={posterOf(current) ?? undefined}
-                    muted={muted}
-                    autoPlay
-                    playsInline
-                    onTimeUpdate={(e) => {
-                      const v = e.currentTarget;
-                      if (!archive && isExpired(current.expires_at)) next();
-                      else if (v.duration)
-                        setProgress(v.currentTime / v.duration);
-                    }}
-                    onEnded={next}
-                    // Whole, as the app shows it: an edit made on a phone is
-                    // framed by its author - cropping it would cut that off.
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                    }}
-                  />
-                ) : (
-                  <img
-                    key={current.post_id}
-                    src={stillPhoto ? posterOf(current) ?? media?.reference : media?.reference}
-                    alt=""
-                    style={{
-                      position: "absolute",
-                      inset: 0,
-                      width: "100%",
-                      height: "100%",
-                      objectFit: "contain",
-                    }}
-                  />
-                )}
+                {momentMedia}
 
                 <div
                   style={{

@@ -1,0 +1,57 @@
+/* Phone viewer follows the native app; these styles never target desktop. */
+.cl-mobile-moment {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  height: 100dvh;
+  overflow: hidden;
+  background: #000;
+  color: #fff;
+  isolation: isolate;
+}
+.cl-mobile-moment button { cursor: pointer; font: inherit; }
+.cl-mobile-moment button:disabled { cursor: default; opacity: .4; }
+.cl-mobile-moment button:focus-visible, .cl-mobile-moment input:focus-visible { outline: 2px solid #fff; outline-offset: 3px; }
+.cl-mobile-moment__media { position: absolute; inset: 0; touch-action: none; user-select: none; }
+.cl-mobile-moment__media > img, .cl-mobile-moment__media > video { pointer-events: none; }
+.cl-mobile-moment__shade { position: absolute; inset: 0; pointer-events: none; background: linear-gradient(#0009, transparent 22%, transparent 58%, #000c); }
+.cl-mobile-moment__header { position: absolute; top: 0; left: 0; right: 0; padding: calc(env(safe-area-inset-top, 0px) + 8px) max(12px, env(safe-area-inset-right, 0px)) 0 max(12px, env(safe-area-inset-left, 0px)); }
+.cl-mobile-moment__progress { display: flex; gap: 4px; margin-bottom: 12px; }
+.cl-mobile-moment__progress > span { flex: 1; height: 3px; overflow: hidden; border-radius: 2px; background: #ffffff4d; }
+.cl-mobile-moment__progress i { display: block; height: 100%; background: #fff; }
+.cl-mobile-moment__author { display: flex; align-items: center; gap: 8px; }
+.cl-mobile-moment__avatar { display: flex; padding: 2px; border: 2px solid #ffffffeb; border-radius: 50%; flex: none; }
+.cl-mobile-moment__identity { flex: 1; min-width: 0; text-shadow: 0 1px 4px #0009; }
+.cl-mobile-moment__identity > div { display: flex; align-items: baseline; gap: 6px; }
+.cl-mobile-moment__identity strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 15px; }
+.cl-mobile-moment__identity small { color: #ffffffbf; font-size: 11px; }
+.cl-mobile-moment__identity > small { display: flex; align-items: center; gap: 3px; margin-top: 2px; }
+.cl-mobile-moment__identity > div > small { white-space: nowrap; flex: none; }
+.cl-mobile-moment__circle { display: flex; align-items: center; justify-content: center; width: 44px; height: 44px; flex: none; border: 1px solid #ffffff47; border-radius: 50%; background: #ffffff1a; color: #fff; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.cl-mobile-moment__empty { position: absolute; inset: 0; display: grid; place-items: center; padding: 24px; pointer-events: none; }
+.cl-mobile-moment__footer { position: absolute; bottom: 0; left: 0; right: 0; padding: 12px max(12px, env(safe-area-inset-right, 0px)) calc(env(safe-area-inset-bottom, 0px) + 16px) max(12px, env(safe-area-inset-left, 0px)); }
+.cl-mobile-moment__caption { margin: 0 4px 14px; font-size: 18px; font-weight: 600; line-height: 1.35; text-shadow: 0 1px 6px #000a; overflow-wrap: anywhere; max-height: 25dvh; overflow-y: auto; }
+.cl-mobile-moment__actions { display: flex; gap: 8px; align-items: center; }
+.cl-mobile-moment__actions > .cl-mobile-moment__circle { width: 46px; height: 46px; }
+.cl-mobile-moment__reply { display: flex; flex: 1; min-width: 0; align-items: center; gap: 8px; height: 46px; padding: 0 5px 0 16px; border: 1px solid #ffffff47; border-radius: 24px; background: #ffffff1a; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.cl-mobile-moment__reply input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; color: #fff; font-size: 16px; }
+.cl-mobile-moment__reply input::placeholder { color: #ffffffb8; }
+.cl-mobile-moment__reply button { display: grid; place-items: center; width: 36px; height: 36px; flex: none; border: 0; border-radius: 50%; background: #fff; color: #17202c; }
+.cl-mobile-moment__status { display: flex; justify-content: center; align-items: center; gap: 4px; margin-top: 12px; font-size: 11px; color: #ffffffbf; }
+.cl-mobile-moment__reactions { display: flex; justify-content: center; width: fit-content; max-width: 100%; box-sizing: border-box; gap: 2px; padding: 4px; margin: 0 auto 12px; background: #0006; border: 1px solid #ffffff24; border-radius: 28px; }
+.cl-mobile-moment__reactions button { display: grid; place-items: center; width: 44px; height: 44px; padding: 0; border: 0; border-radius: 50%; background: transparent; color: #fff; font-size: 24px; }
+.cl-mobile-moment__reactions .is-selected { background: #ffffff47; }
+.cl-mobile-moment__report { display: block; margin: 9px auto 0; padding: 2px 8px; border: 0; background: transparent; color: #ffffff9e; font-size: 10px !important; }
+.cl-mobile-moment__up { display: flex; justify-content: center; width: 100%; padding: 0 0 4px; border: 0; background: transparent; color: #ffffff99; }
+.cl-mobile-moment__viewers { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; min-height: 52px; padding: 8px 14px; border: 1px solid #ffffff33; border-radius: 28px; background: #ffffff1f; color: #fff; text-align: left; backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); }
+.cl-mobile-moment__viewers strong { display: block; font-size: 13px; }
+.cl-mobile-moment__viewers small { display: flex; align-items: center; gap: 6px; margin-top: 3px; color: #ffffffbf; font-size: 11px; }
+.cl-mobile-moment__sheet-shade { position: absolute; inset: 0; z-index: 3; display: flex; align-items: flex-end; background: #0008; }
+.cl-mobile-moment__sheet { position: relative; display: flex; width: 100%; height: min(70dvh, 580px); padding-bottom: env(safe-area-inset-bottom, 0px); border-radius: 20px 20px 0 0; background: var(--surface); color: var(--text); }
+.cl-mobile-moment__sheet > div { border-radius: 20px 20px 0 0 !important; border: 0 !important; }
+.cl-mobile-moment__sheet-close { position: absolute; top: -50px; right: 12px; display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%; border: 1px solid #ffffff47; background: #0008; color: #fff; }
+@media (max-height: 450px) and (orientation: landscape) {
+  .cl-mobile-moment__caption { margin-bottom: 8px; font-size: 15px; }
+  .cl-mobile-moment__status, .cl-mobile-moment__report { margin-top: 4px; }
+  .cl-mobile-moment__reactions { margin-bottom: 6px; }
+}

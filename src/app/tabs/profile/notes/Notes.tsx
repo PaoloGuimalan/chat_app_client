@@ -39,6 +39,8 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
   const [next, setNext] = useState(false);
   const [count, setCount] = useState(0);
   const [loading, setLoading] = useState(true);
+  const [backgroundLoading, setBackgroundLoading] = useState(false);
+  const backgroundReload = useRef(false);
   const [error, setError] = useState("");
   const [refresh, setRefresh] = useState(0);
   const [session, setSession] = useState<NoteSession | null>(null);
@@ -73,7 +75,8 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
   useEffect(() => { const timer = setTimeout(() => { setPage(1); setSearch(query); }, 300); return () => clearTimeout(timer); }, [query]);
   useEffect(() => {
     let cancelled = false;
-    setLoading(true); setError("");
+    // Returning from the editor refreshes the cards without adding skeletons.
+    setLoading(true); setBackgroundLoading(backgroundReload.current); backgroundReload.current = false; setError("");
     api.list(page, search).then(data => {
       if (cancelled) return;
       setNotes(previous => page === 1 ? data.results : [...previous, ...data.results.filter(note => !previous.some(item => item.id === note.id))]);
@@ -87,7 +90,7 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
   }, [session]);
   useUnsavedWarning(Boolean(session?.dirty) || uploading);
   const recovered = [...sessions.entries()].filter(([key, value]) => key.startsWith(`${entity}:`) && value.dirty && value !== session);
-  const reloadList = () => { setPage(1); setRefresh(value => value + 1); };
+  const reloadList = (background = false) => { backgroundReload.current = background; setPage(1); setRefresh(value => value + 1); };
   const create = () => {
     const key = `${entity}:draft-${crypto.randomUUID()}`;
     const draft = new NoteSession(null, api.save, () => persistEntity(entity));
@@ -109,7 +112,7 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
     const ok = await session.flush();
     if (!alive.current) return;
     if (!ok) { setConfirm("discard"); return; }
-    setSession(null); reloadList();
+    setSession(null); reloadList(true);
   };
   const discard = () => {
     if (session) {
@@ -117,7 +120,7 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
       for (const [key, value] of sessions) if (value === session) sessions.delete(key);
       persistEntity(entity);
     }
-    setConfirm(null); setSession(null); reloadList();
+    setConfirm(null); setSession(null); reloadList(true);
   };
   const reorder = useCallback(async (id: string, before: string | null) => {
     if (reordering || search || id === before) return;
@@ -189,11 +192,12 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
     } else void reorder(id, before);
   });
   const displayedNotes = noteDrag.order ? noteDrag.order.map(id => notes.find(note => note.id === id)!).filter(Boolean) : notes;
-  const masonry = useNoteMasonry(displayedNotes.map(note => note.id), loading);
+  const showSkeletons = loading && !backgroundLoading;
+  const masonry = useNoteMasonry(displayedNotes.map(note => note.id), showSkeletons);
   const draggedNote = notes.find(note => note.id === noteDrag.ghost?.id);
   return <section className="writing-page notes-page" aria-label="Notes">
     <WritingHeader query={query} onSearch={setQuery} onNew={create}/>
-    {error && <div className="writing-error" role="alert">{error}<button onClick={reloadList}>Retry</button></div>}
+    {error && <div className="writing-error" role="alert">{error}<button onClick={() => reloadList()}>Retry</button></div>}
     <div className="notes-scroll">
       {recovered.map(([key, draft]) => <button className="notes-resume" key={key} onClick={() => setSession(draft)}>Resume unsaved note: {draft.value.title || "Untitled note"}</button>)}
       <div className="writing-caption"><span>{count} {count === 1 ? "note" : "notes"}</span><span>{search ? "Clear search to reorder" : "Drag a note or its handle to reorder"}</span></div>
@@ -205,9 +209,9 @@ function NotesWorkspace({ entity, token }: { entity: string; token: string }) {
             <div className="note-card-preview" dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(note.content) }}/>
           </button>
           {note.attachments[0] && <div className="note-file-preview">📎 {note.attachments[0].file_name || "Attachment"}</div>}
-          <footer className="note-card-footer"><span>{new Date(note.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span><span className="note-order-actions"><button data-note-no-drag className="note-drag note-to-end" aria-label={`Move ${note.title || "Untitled note"} to end`} title="Move to end" disabled={Boolean(search) || reordering} onClick={() => void reorder(note.id, null)}><ArrowDown size={14}/></button><button data-note-handle className="note-drag" aria-label={`Move ${note.title || "Untitled note"}. Use arrow keys, Home or End.`} disabled={Boolean(search) || reordering} onClick={event => event.stopPropagation()} onKeyDown={event => { if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); keyboardMove(note.id, event.key); } }}><GripVertical size={16}/></button></span></footer>
+          <footer className="note-card-footer"><span>{new Date(note.updated_at).toLocaleDateString(undefined, { month: "short", day: "numeric" })}</span><span className="note-order-actions"><button data-note-no-drag className="note-drag note-to-end" aria-label={`Move ${note.title || "Untitled note"} to end`} title="Move to end" disabled={Boolean(search) || reordering || loading} onClick={() => void reorder(note.id, null)}><ArrowDown size={14}/></button><button data-note-handle className="note-drag" aria-label={`Move ${note.title || "Untitled note"}. Use arrow keys, Home or End.`} disabled={Boolean(search) || reordering || loading} onClick={event => event.stopPropagation()} onKeyDown={event => { if (["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) { event.preventDefault(); keyboardMove(note.id, event.key); } }}><GripVertical size={16}/></button></span></footer>
         </NoteMasonryCard>)}
-        {loading && <span className="writing-sr" role="status" aria-label="Loading notes">Loading notes…</span>}
+        {showSkeletons && <span className="writing-sr" role="status" aria-label="Loading notes">Loading notes…</span>}
         {masonry.skeletons.map(skeleton => <NoteCardSkeleton key={skeleton.id} {...skeleton}/>)}
       </div>
       {!loading && !notes.length && <div className="writing-empty">{search ? "No matching notes" : "A little space for your ideas."}</div>}
