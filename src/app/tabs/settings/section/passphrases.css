@@ -4,3 +4,12 @@
 .diary-encryption-choice input { accent-color: var(--brand); }
 
 .writing-document > .diary-protection-note { margin: 0 0 18px; border-radius: 8px; }
+
+.passphrase-dialog-heading { display: flex; align-items: center; gap: 10px; }
+.passphrase-dialog-heading > svg { flex-shrink: 0; }
+.passphrase-dialog-heading h2 { margin: 0; }
+.passphrase-dialog .passphrase-warning { display: flex; align-items: flex-start; gap: 8px; padding: 10px; border-radius: 8px; color: var(--pink-text, #b42334); background: var(--pink-soft, #fff0f2); }
+.passphrase-warning > svg { flex-shrink: 0; margin-top: 2px; }
+.passphrase-dialog input[aria-invalid=true] { border-color: var(--pink-text, #b42334); }
+:root[data-theme="dark"] .passphrase-dialog .passphrase-warning { color: #ff9da8; }
+:root[data-theme="dark"] .passphrase-dialog input[aria-invalid=true] { border-color: #ff9da8; }

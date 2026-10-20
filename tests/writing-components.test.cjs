@@ -213,12 +213,19 @@ test('switching active passphrases verifies both rows locally and sends proofs w
     }finally{changeEncryptionOverride=oldMutation;}
   });
 });
-test('Diary fetches no content before base unlock and exits to profile on a wrong phrase',async()=>{
+test('wrong base passphrase warns without leaving Diary and a retry can unlock',async()=>{
   await protectedDiaryFixture(async f=>{
-    deriveOverride=async()=>{throw new Error('Wrong phrase');};
+    const wrongKey=await crypto.subtle.importKey('raw',new Uint8Array(32).fill(7),'AES-GCM',false,['encrypt','decrypt']);
+    deriveOverride=async()=>wrongKey;
     f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});assert.equal(f.reads(),0);
     fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'wrong phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
-    await screen.findByText('Personal profile');assert.equal(f.reads(),0);assert.equal(document.querySelector('input[type=password]'),null);
+    assert.match((await screen.findByRole('alert')).textContent,/passphrase.*try again/i);
+    assert.ok(screen.getByRole('dialog',{name:'Unlock your Diary'}));
+    assert.equal(screen.queryByText('Personal profile'),null);assert.equal(f.reads(),0);
+    assert.equal(screen.getByLabelText('Everyday').value,'');
+    deriveOverride=async()=>f.key;
+    fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'correct phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    await screen.findByLabelText('Entry title');assert.equal(screen.queryByRole('dialog',{name:'Unlock your Diary'}),null);
   });
 });
 test('cancelling a pending base derivation prevents late unlock and content fetch',async()=>{
@@ -357,6 +364,14 @@ test('older encrypted entries show placeholder bars without raw ciphertext and u
     assert.equal(screen.queryByRole('dialog',{name:'Unlock older entries'}),null);
     fireEvent.click(screen.getByRole('button',{name:'Unlock entry',exact:true}));
     await screen.findByRole('dialog',{name:'Unlock older entries'});
+    const wrongKey=await crypto.subtle.importKey('raw',new Uint8Array(32).fill(7),'AES-GCM',false,['decrypt']);
+    deriveOverride=async()=>wrongKey;
+    fireEvent.change(screen.getByLabelText('Older journal'),{target:{value:'wrong older phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    assert.match((await screen.findByRole('alert')).textContent,/passphrase/i);
+    assert.ok(screen.getByRole('dialog',{name:'Unlock older entries'}));
+    assert.equal(screen.getByLabelText('Older journal').value,'');
+    assert.ok(document.querySelector('.writing-document .diary-locked-content'));
+    deriveOverride=async()=>f.key;
     fireEvent.change(screen.getByLabelText('Older journal'),{target:{value:'older correct phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
     await screen.findByRole('heading',{name:'Older secret title'});assert.equal(encryptionSettings.purposes[0].active_configuration_id,f.id);
     delete requests.GetEntryRequest;
