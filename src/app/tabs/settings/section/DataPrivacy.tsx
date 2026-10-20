@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
+import Passphrases from './Passphrases';
 import { useDispatch, useSelector } from "react-redux";
 import {
   ExportAccountDataRequest,
@@ -52,6 +53,7 @@ function DataPrivacy() {
         </span>
       </div>
       <div className="tw-w-full tw-flex tw-flex-col tw-gap-[30px]">
+        <Passphrases/>
         <div className="tw-w-full tw-flex tw-flex-col tw-items-start tw-gap-[15px]">
           <div className="tw-w-full tw-flex tw-flex-col tw-items-start">
             <span className="tw-text-[14px] tw-font-semibold">

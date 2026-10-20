@@ -45,6 +45,10 @@ const requests = {
   async GetTagsListRequest({ search }) { tagQueries.push(search); return { results: { is_new: Boolean(search), list: search ? [] : [{ id: 1, name: 'Life' }] }, next: null }; },
   firstPartyClient: { async post(url, payload) { diaryWrites.push({ url, payload }); return { data: { ...payload, id: 'entry-created', attachments: [], tag_objects: [] } }; } },
 };
+let encryptionSettings={owner:{entity_id:'fixture-entity',user_id:'fixture-user'},purposes:[{purpose:'diary',configurations:[{id:'inactive-placeholder',is_active:false}],active_configuration_id:null,scope_version:'fixture'}]};
+let deriveOverride = async()=>{throw new Error('Wrong passphrase');};
+let loadEncryptionOverride = async()=>encryptionSettings;
+let changeEncryptionOverride = async()=>{throw new Error('No mutation fixture installed');};
 Module._extensions['.ts'] = Module._extensions['.tsx'] = (module, filename) => {
   const result = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } });
   module._compile(result.outputText, filename);
@@ -52,6 +56,8 @@ Module._extensions['.ts'] = Module._extensions['.tsx'] = (module, filename) => {
 Module._extensions['.css'] = () => {};
 Module._extensions['.png'] = (module, filename) => { module.exports = filename; };
 Module._load = function(request, parent, isMain) {
+  if (request === '@/reusables/encryption/api') return {loadConfigurations:(...args)=>loadEncryptionOverride(...args),changeConfiguration:(...args)=>changeEncryptionOverride(...args),isStale:e=>e?.response?.data?.code==='stale_scope'};
+  if (request === '@/reusables/encryption/derive') return {deriveKey:(...args)=>deriveOverride(...args)};
   if (request === 'react-redux') return { useSelector: selector => selector({ authentication: auth, screensizelistener: { W: 1200, H: 844 } }) };
   if (request === './notesApi') return { notesApi: () => api };
   if (request === '@/reusables/hooks/requests') return requests;
@@ -170,6 +176,111 @@ test('Notes Save sits between Redo and Delete and writes without waiting for idl
 afterEach(() => { cleanup(); });
 const mount = (component, route = '/notes') => render(React.createElement(MemoryRouter, { initialEntries: [route] }, component));
 
+async function protectedDiaryFixture(run) {
+  const original=encryptionSettings, originalDerive=deriveOverride, originalEntries=requests.GetUserEntriesRequest;
+  const c=require('../src/reusables/encryption/crypto.ts');
+  const key=await crypto.subtle.importKey('raw',new Uint8Array(32),'AES-GCM',false,['encrypt','decrypt']);
+  const owner={entity_id:'fixture-entity',user_id:'fixture-user'}, id='11111111-1111-4111-8111-111111111111';
+  const config={...c.PROFILE,...owner,id,name:'Everyday',purpose:'diary',is_active:true,salt:btoa('s'.repeat(16)),created_at:'2026-10-20',...await c.createVerification(owner,id,key)};
+  encryptionSettings={owner,supported_profile:c.PROFILE,purposes:[{purpose:'diary',configurations:[config],active_configuration_id:id,scope_version:'fixture'}],consumer_capabilities:{diary:{format_version:1}}};
+  deriveOverride=async()=>key;
+  let reads=0; requests.GetUserEntriesRequest=async()=>{reads++;return{results:[],next:null};};
+  const open=()=>mount(React.createElement(Routes,null,React.createElement(Route,{path:'/:userID/diary',element:React.createElement(Diary)}),React.createElement(Route,{path:'/:userID',element:React.createElement('p',null,'Personal profile')})),'/owner/diary');
+  try{await run({c,key,owner,id,config,open,reads:()=>reads});}
+  finally{cleanup();encryptionSettings=original;deriveOverride=originalDerive;requests.GetUserEntriesRequest=originalEntries;}
+}
+test('switching active passphrases verifies both rows locally and sends proofs without phrases',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const oldMutation=changeEncryptionOverride;
+    const targetId='22222222-2222-4222-8222-222222222222';
+    const target={...f.config,id:targetId,name:'Travel journal',is_active:false,...await f.c.createVerification(f.owner,targetId,f.key)};
+    encryptionSettings.purposes[0].configurations.push(target);
+    const activeProof=await f.c.verifyConfiguration(f.config,f.owner,f.key),targetProof=await f.c.verifyConfiguration(target,f.owner,f.key);
+    const verified=[]; deriveOverride=async(phrase,configuration)=>{verified.push({phrase,id:configuration.id});return f.key;};
+    let mutation;
+    changeEncryptionOverride=async(action,id,payload)=>{mutation={action,id,payload:structuredClone(payload)};return{...encryptionSettings.purposes[0],active_configuration_id:targetId,configurations:[{...f.config,is_active:false},{...target,is_active:true}]};};
+    try {
+      mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));
+      await screen.findByText('Travel journal');fireEvent.click(screen.getByRole('button',{name:'Activate',exact:true}));
+      fireEvent.change(screen.getByLabelText('Current passphrase · Everyday'),{target:{value:'current phrase never sent'}});
+      fireEvent.change(screen.getByLabelText('Selected passphrase · Travel journal'),{target:{value:'target phrase never sent'}});
+      fireEvent.click(screen.getByRole('button',{name:'Activate passphrase',exact:true}));
+      await waitFor(()=>assert.ok(mutation));
+      assert.deepEqual(verified,[{phrase:'current phrase never sent',id:f.id},{phrase:'target phrase never sent',id:targetId}]);
+      assert.deepEqual(mutation,{action:'activate',id:targetId,payload:{expected_scope_version:'fixture',active_verification_proof:activeProof,target_verification_proof:targetProof}});
+      assert.equal(document.querySelector('input[type=password]'),null);
+    }finally{changeEncryptionOverride=oldMutation;}
+  });
+});
+test('Diary fetches no content before base unlock and exits to profile on a wrong phrase',async()=>{
+  await protectedDiaryFixture(async f=>{
+    deriveOverride=async()=>{throw new Error('Wrong phrase');};
+    f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});assert.equal(f.reads(),0);
+    fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'wrong phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    await screen.findByText('Personal profile');assert.equal(f.reads(),0);assert.equal(document.querySelector('input[type=password]'),null);
+  });
+});
+test('cancelling a pending base derivation prevents late unlock and content fetch',async()=>{
+  await protectedDiaryFixture(async f=>{
+    let finish;deriveOverride=()=>new Promise(resolve=>{finish=resolve;});
+    f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});
+    fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'a long passphrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    await waitFor(()=>assert.equal(typeof finish,'function'));fireEvent.click(screen.getByRole('button',{name:'Cancel'}));await screen.findByText('Personal profile');
+    await act(async()=>finish(f.key));assert.equal(f.reads(),0);assert.equal(screen.queryByLabelText('Entry title'),null);
+  });
+});
+test('Escape cancels the base unlock prompt without exposing Diary content',async()=>{
+  await protectedDiaryFixture(async f=>{
+    f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});
+    fireEvent.keyDown(document,{key:'Escape'});
+    await screen.findByText('Personal profile');
+    assert.equal(f.reads(),0);
+  });
+});
+test('pagehide locks the visit, clears draft history, and requires another base proof',async()=>{
+  await protectedDiaryFixture(async f=>{
+    f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'a long passphrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    const title=await screen.findByLabelText('Entry title');fireEvent.change(title,{target:{value:'secret unsaved title'}});
+    await act(async()=>window.dispatchEvent(new window.Event('pagehide')));await screen.findByRole('dialog',{name:'Unlock your Diary'});
+    assert.equal(screen.queryByDisplayValue('secret unsaved title'),null);
+    fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'a long passphrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    assert.equal((await screen.findByLabelText('Entry title')).value,'');
+  });
+});
+test('missing server capability blocks encrypted entry writes without falling back to plaintext',async()=>{
+  await protectedDiaryFixture(async f=>{
+    delete encryptionSettings.consumer_capabilities;diaryWrites=[];f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});
+    fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'a long passphrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    fireEvent.change(await screen.findByLabelText('Entry title'),{target:{value:'Private title'}});
+    const editor=document.querySelector('.ql-editor');await act(async()=>{editor.innerHTML='<p>Private writing</p>';fireEvent.input(editor);await new Promise(resolve=>setTimeout(resolve,20));});
+    fireEvent.click(screen.getByRole('button',{name:'Save',exact:true}));await screen.findByText(/needs a server update/);assert.equal(diaryWrites.length,0);
+  });
+});
+test('older encrypted entries show placeholder bars without raw ciphertext and unlock only their matching configuration',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const older='22222222-2222-4222-8222-222222222222';
+    const metadata={...f.config,id:older,name:'Older journal',is_active:false,...await f.c.createVerification(f.owner,older,f.key)};
+    encryptionSettings.purposes[0].configurations.push(metadata);
+    const encrypted=await f.c.encryptEntry({title:'Older secret title',content:'<p>Older secret body</p>'},f.owner,older,f.key);
+    const entry={...encrypted,id:'older-entry',entry_date:'2026-10-20',created_at:'2026-10-20T08:00:00Z',tag_objects:[],attachments:[],mood:null};
+    requests.GetUserEntriesRequest=async()=>({results:[entry],next:null});requests.GetEntryRequest=async()=>entry;
+    f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'a long passphrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    const row=await screen.findByRole('button',{name:/Locked entry/});assert.ok(row.querySelector('.diary-locked-bars'));assert.equal(document.body.textContent.includes(encrypted.title),false);assert.equal(document.body.textContent.includes('Older secret title'),false);
+    fireEvent.click(row);await screen.findByRole('dialog',{name:'Unlock older entries'});
+    assert.ok(document.querySelector('.writing-document .diary-locked-title'));
+    assert.ok(document.querySelector('.writing-document .diary-locked-content'));
+    assert.equal(document.body.textContent.includes('Older secret title'),false);
+    fireEvent.click(screen.getByRole('button',{name:'Cancel',exact:true}));
+    assert.ok(document.querySelector('.writing-document .diary-locked-content'));
+    assert.equal(screen.queryByRole('dialog',{name:'Unlock older entries'}),null);
+    fireEvent.click(screen.getByRole('button',{name:'Unlock entry',exact:true}));
+    await screen.findByRole('dialog',{name:'Unlock older entries'});
+    fireEvent.change(screen.getByLabelText('Older journal'),{target:{value:'older correct phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    await screen.findByRole('heading',{name:'Older secret title'});assert.equal(encryptionSettings.purposes[0].active_configuration_id,f.id);
+    delete requests.GetEntryRequest;
+  });
+});
+
 test('Notes show card skeletons until the list response arrives', async () => {
   const original = api.list;
   let resolve;
@@ -266,6 +377,7 @@ test('Diary list and entry use their own content skeletons while requests are pe
     const skeleton = await screen.findByRole('status', { name: 'Loading diary entries' });
     assert.ok(skeleton.querySelector('.diary-row-title'));
     assert.ok(skeleton.querySelector('.diary-row-meta'));
+    await waitFor(()=>assert.equal(typeof resolve,'function'));
     await act(async () => resolve({ results: [], next: null }));
     assert.equal(screen.queryByRole('status', { name: 'Loading diary entries' }), null);
     view.unmount();

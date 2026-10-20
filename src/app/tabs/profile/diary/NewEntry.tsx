@@ -18,16 +18,14 @@ import { plainText } from "../notes/noteSession";
 import PendingAttachmentItem from "./PendingAttachmentItem";
 import CustomTagItem from "./CustomTagItem";
 import MoodPicker from "./MoodPicker";
+import { useDiaryProtection } from './DiaryProtection';
 
 type EntryDraft = INewEntry & { files: IPendingEntryAttachment[] };
-// Preserve an explicit-save draft across browser Back/Forward and shell unmounts,
-// including its File objects. A full browser exit still shows beforeunload.
-const diaryDrafts = new Map<string, { initial: EntryDraft; value: EntryDraft }>();
 export default function NewEntry({ reload, showBack = true }: { reload: (entry: IEntry) => void; showBack?: boolean }) {
+  const protection = useDiaryProtection();
   const { userID } = useParams();
-  const cached = useRef(diaryDrafts.get(userID || "")).current;
-  const initial = useMemo<EntryDraft>(() => cached?.initial || ({ title: "", content: "", mood: null, tags: [], attachments: [], entry_date: formatToDjangoDate(new Date())?.slice(0, 10) || null, is_private: true, files: [] }), [cached]);
-  const history = useWritingHistory(initial, cached?.value);
+  const initial = useMemo<EntryDraft>(() => ({ title: "", content: "", mood: null, tags: [], attachments: [], entry_date: formatToDjangoDate(new Date())?.slice(0, 10) || null, is_private: true, files: [] }), []);
+  const history = useWritingHistory(initial);
   const draft = history.value;
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -36,27 +34,22 @@ export default function NewEntry({ reload, showBack = true }: { reload: (entry: 
   const fileInput = useRef<HTMLInputElement>(null);
   const alive = useRef(true);
   const token = useRef(localStorage.getItem("authtoken") || "").current;
-  const urls = useRef(new Set<string>(cached?.value.files.map(file => file.reference) || []));
+  const urls = useRef(new Set<string>());
   const uploaded = useRef(new Map<number, UploadedFile>());
   const savingRef = useRef(false);
   const completed = useRef(false);
-  const latest = useRef(draft);
-  const latestDirty = useRef(history.dirty);
-  latest.current = draft;
-  latestDirty.current = history.dirty;
   useEffect(() => {
     alive.current = true;
     const currentUrls = urls.current;
     return () => {
       alive.current = false;
-      if (!completed.current && latestDirty.current) diaryDrafts.set(userID || "", { initial, value: latest.current });
-      else { diaryDrafts.delete(userID || ""); currentUrls.forEach(url => URL.revokeObjectURL(url)); }
+      currentUrls.forEach(url => URL.revokeObjectURL(url)); uploaded.current.clear();
     };
   }, [initial, userID]);
   const dirty = history.dirty && !saved;
   useUnsavedWarning(dirty);
-  useConfirmNavigation(() => !completed.current && dirty, saving, () => { completed.current = true; diaryDrafts.delete(userID || ""); });
-  const linkPreview = useLinkPreview({ text: extractFirstUrlFromHtml(draft.content) || "", enabled: !saving });
+  useConfirmNavigation(() => !completed.current && dirty, saving, () => { completed.current = true; });
+  const linkPreview = useLinkPreview({ text: protection?.active ? '' : extractFirstUrlFromHtml(draft.content) || "", enabled: !saving && !protection?.active });
   const addFiles = (files: File[]) => {
     if (saving) return;
     const limit = limitFor("diary");
@@ -72,6 +65,9 @@ export default function NewEntry({ reload, showBack = true }: { reload: (entry: 
     savingRef.current = true; setSaving(true); setError("");
     const snapshot = draft;
     try {
+      // Validate encryption capability before any upload or API mutation.
+      const protectedFields = protection ? await protection.save(snapshot) : snapshot;
+      if (!alive.current) return;
       // Cache completed uploads so a failed entry request can be retried without reuploading.
       for (const pending of snapshot.files) {
         if (!uploaded.current.has(pending.id)) {
@@ -80,13 +76,14 @@ export default function NewEntry({ reload, showBack = true }: { reload: (entry: 
         }
       }
       const payload: INewEntry = {
-        title: snapshot.title, content: snapshot.content, mood: snapshot.mood, tags: snapshot.tags,
-        entry_date: snapshot.entry_date || formatToDjangoDate(new Date()), is_private: snapshot.is_private,
+        title: protectedFields.title, content: protectedFields.content, is_encrypted: protectedFields.is_encrypted, mood: snapshot.mood, tags: snapshot.tags,
+        entry_date: snapshot.entry_date || formatToDjangoDate(new Date()), is_private: protectedFields.is_private,
         attachments: [...snapshot.attachments, ...snapshot.files.map(pending => { const file = uploaded.current.get(pending.id)!; return { file_id: file.uploadID, file_name: file.name, file_type: file.mime, url: file.fileUrl }; })],
       };
+      if (!alive.current) return;
       const response = await firstPartyClient.post<IEntry>(`${envs.USER_SERVICE_API}/api/diary/entry/`, payload, { headers: { "x-access-token": token } });
       if (!alive.current) return;
-      completed.current = true; setSaved(true); reload(response.data);
+      completed.current = true; setSaved(true); reload(protection ? await protection.read(response.data) : response.data);
       navigate(`/${encodeURIComponent(userID || "")}/diary?entry_id=${response.data.id}`);
     } catch (err: any) { if (alive.current) setError(err?.response?.data?.detail || err?.message || "Couldn't save your entry. Your draft and attachments are kept. Please retry."); }
     finally { savingRef.current = false; if (alive.current) setSaving(false); }
@@ -107,10 +104,11 @@ export default function NewEntry({ reload, showBack = true }: { reload: (entry: 
   };
   return <><header className="writing-reader-head">{showBack ? <button disabled={saving} onClick={() => navigate(`/${encodeURIComponent(userID || "")}/diary`)}><ArrowLeft size={19}/><span>New entry</span></button> : <span>New entry</span>}<div className="writing-reader-actions"><HistoryButtons undo={history.undo} redo={history.redo} canUndo={history.canUndo && !saving} canRedo={history.canRedo && !saving}/><button className="writing-primary" disabled={saving || !draft.title.trim() || !plainText(draft.content)} onClick={() => void save()}>{saving ? "Saving…" : "Save"}</button></div></header>
     {error && <div className="writing-error" role="alert">{error}</div>}
+    <div className="diary-protection-note">{protection?.active ? 'Title and writing are encrypted. Attachments, tags, moods, dates and other metadata are not encrypted.' : 'No active passphrase. New entries are saved without passphrase encryption.'}</div>
     <div className="writing-document-scroll" onKeyDownCapture={event => {
       if (!saving && (event.target as HTMLElement).closest('.writing-quill') && (event.ctrlKey || event.metaKey) && ["z", "y"].includes(event.key.toLowerCase())) { event.preventDefault(); event.stopPropagation(); if (event.shiftKey || event.key.toLowerCase() === "y") history.redo(); else history.undo(); }
     }}><article className="writing-document"><input autoFocus disabled={saving} className="writing-title" aria-label="Entry title" placeholder="Give today a title" value={draft.title} onChange={event => history.change({ ...draft, title: event.target.value })}/>
-      <div className="diary-form"><label className="diary-field"><span>Date</span><input type="date" aria-label="Entry date" disabled={saving} value={draft.entry_date || ""} onChange={event => history.change({ ...draft, entry_date: event.target.value })}/></label><label className="diary-field"><span>Privacy</span><select aria-label="Entry privacy" disabled={saving} value={draft.is_private ? "private" : "public"} onChange={event => history.change({ ...draft, is_private: event.target.value === "private" })}><option value="private">Private</option><option value="public">Public</option></select></label>
+      <div className="diary-form"><label className="diary-field"><span>Date</span><input type="date" aria-label="Entry date" disabled={saving} value={draft.entry_date || ""} onChange={event => history.change({ ...draft, entry_date: event.target.value })}/></label><label className="diary-field"><span>Privacy</span><select aria-label="Entry privacy" disabled={saving || Boolean(protection?.active)} value={protection?.active || draft.is_private ? "private" : "public"} onChange={event => history.change({ ...draft, is_private: event.target.value === "private" })}><option value="private">Private</option><option value="public">Public</option></select></label>
       <div className="diary-field diary-field-wide"><span>Mood</span><MoodPicker value={draft.mood} disabled={saving} onChange={mood => history.change({ ...draft, mood })}/></div>
       <div className="diary-field diary-field-wide"><span id="entry-tags-label">Tags</span><AsyncPaginate className="diary-tags-select" classNamePrefix="diary-tags" aria-labelledby="entry-tags-label" isDisabled={saving} isMulti value={draft.tags} loadOptions={loadTags} debounceTimeout={300} additional={{ page: 1 }} isClearable placeholder="Search or create a tag" styles={selectStyles} components={{ Option: CustomTagItem }} onChange={(tags: any) => history.change({ ...draft, tags })}/></div></div>
       <WritingBody value={draft.content} disabled={saving} onChange={content => history.change({ ...draft, content })}/>

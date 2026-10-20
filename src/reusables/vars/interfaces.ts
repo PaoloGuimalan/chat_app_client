@@ -1041,6 +1041,7 @@ export interface IEntryAttachment {
 }
 
 export interface INewEntry {
+  is_encrypted?: boolean;
   title: string;
   content: string;
   mood: {
@@ -1076,6 +1077,7 @@ export interface IEntryViewAttachment {
 }
 
 export interface IEntry {
+  is_encrypted?: boolean;
   id: string;
   account: string;
   title: string;
