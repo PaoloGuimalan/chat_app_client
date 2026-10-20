@@ -26,7 +26,7 @@ localStorage.setItem('authtoken', 'fixture-token');
 
 const React = require('react');
 const { render, screen, fireEvent, waitFor, cleanup, act } = require('@testing-library/react');
-const { MemoryRouter, Routes, Route } = require('react-router-dom');
+const { BrowserRouter, Link, MemoryRouter, Routes, Route } = require('react-router-dom');
 const originalLoad = Module._load;
 const root = path.join(__dirname, '../src');
 const auth = { user: { entity_id: 'fixture-entity', username: 'owner', fullName: { firstName: 'Owner', lastName: 'Fixture' }, profile: 'none' }, active_entity_context: { id: 'fixture-entity', is_switched: false }, allowed_modules: ['module.notes.access', 'module.diary.access'] };
@@ -237,6 +237,32 @@ test('Escape cancels the base unlock prompt without exposing Diary content',asyn
     assert.equal(f.reads(),0);
   });
 });
+
+test('base prompt Cancel and Escape return to the actual previous page and preserve its URL',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const originalUrl=window.location.href,originalState=window.history.state;
+    try {
+      for(const [previous,cancel] of [['/feed?filter=following','button'],['/settings?section=data-and-privacy','escape']]){
+        window.history.replaceState(null,'',previous);
+        render(React.createElement(BrowserRouter,null,React.createElement(Routes,null,
+          React.createElement(Route,{path:'/feed',element:React.createElement(Link,{to:'/owner/diary'},'Open Diary')}),
+          React.createElement(Route,{path:'/settings',element:React.createElement(Link,{to:'/owner/diary'},'Open Diary')}),
+          React.createElement(Route,{path:'/:userID/diary',element:React.createElement(Diary)}),
+          React.createElement(Route,{path:'/:userID',element:React.createElement('p',null,'Personal profile')})
+        )));
+        fireEvent.click(screen.getByRole('link',{name:'Open Diary'}));
+        await screen.findByRole('dialog',{name:'Unlock your Diary'});
+        if(cancel==='button')fireEvent.click(screen.getByRole('button',{name:'Cancel'}));
+        else fireEvent.keyDown(document,{key:'Escape'});
+        await screen.findByRole('link',{name:'Open Diary'});
+        assert.equal(window.location.pathname+window.location.search,previous);
+        assert.equal(f.reads(),0);
+        assert.equal(document.querySelector('input[type=password]'),null);
+        cleanup();
+      }
+    }finally{cleanup();window.history.replaceState(originalState,'',originalUrl);}
+  });
+});
 test('pagehide locks the visit, clears draft history, and requires another base proof',async()=>{
   await protectedDiaryFixture(async f=>{
     f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'a long passphrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
@@ -278,6 +304,55 @@ test('older encrypted entries show placeholder bars without raw ciphertext and u
     fireEvent.change(screen.getByLabelText('Older journal'),{target:{value:'older correct phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
     await screen.findByRole('heading',{name:'Older secret title'});assert.equal(encryptionSettings.purposes[0].active_configuration_id,f.id);
     delete requests.GetEntryRequest;
+  });
+});
+
+test('unlocking one entry updates it locally without refetching or resetting the paginated list', async () => {
+  await protectedDiaryFixture(async f => {
+    const older = '22222222-2222-4222-8222-222222222222';
+    encryptionSettings.purposes[0].configurations.push({...f.config, id:older, name:'Older journal', is_active:false, ...await f.c.createVerification(f.owner,older,f.key)});
+    const fields = await f.c.encryptEntry({title:'Older secret title',content:'<p>Older secret body</p>'},f.owner,older,f.key);
+    const target = {...fields,id:'older-entry',entry_date:'2026-10-20',created_at:'2026-10-20T08:00:00Z',tag_objects:[],attachments:[],mood:null};
+    const other = {...target,id:'other-entry',entry_date:'2026-10-19'};
+    const first = {...target,id:'first-entry',title:'Keep this visible',content:'<p>First page</p>',is_encrypted:false};
+    const pages=[];
+    let detailReads=0;
+    const originalDetail=requests.GetEntryRequest;
+    requests.GetUserEntriesRequest=async({page})=>{pages.push(page);return page===1?{results:[first],next:'page2'}:{results:[target,other],next:'page3'};};
+    requests.GetEntryRequest=async()=>{detailReads++;return target;};
+    try {
+      f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});
+      fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'current passphrase'}});
+      fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+      await screen.findByRole('button',{name:/^Keep this visible/});
+      await waitFor(()=>assert.equal(screen.getByRole('button',{name:'Load more entries'}).disabled,false));
+      fireEvent.click(screen.getByRole('button',{name:'Load more entries'}));
+      await waitFor(()=>assert.equal(screen.getAllByRole('button',{name:/^Locked entry/}).length,2));
+      fireEvent.click(screen.getAllByRole('button',{name:/^Locked entry/})[0]);
+      await screen.findByRole('dialog',{name:'Unlock older entries'});
+      fireEvent.click(screen.getByRole('button',{name:'Cancel',exact:true}));
+      const search=screen.getByRole('searchbox',{name:'Search diary entries'});
+      fireEvent.change(search,{target:{value:'Keep'}});
+      const list=document.querySelector('.diary-list');list.scrollTop=235;
+      const readsBefore={pages:[...pages],detailReads};
+      fireEvent.click(screen.getByRole('button',{name:'Unlock entry',exact:true}));
+      await screen.findByRole('dialog',{name:'Unlock older entries'});
+      fireEvent.change(screen.getByLabelText('Older journal'),{target:{value:'original passphrase'}});
+      fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+      await screen.findByRole('heading',{name:'Older secret title'});
+      assert.deepEqual({pages,detailReads},readsBefore,'unlock must use the already fetched ciphertext');
+      assert.equal(document.querySelector('.diary-list'),list);
+      assert.equal(list.scrollTop,235);
+      assert.equal(search.value,'Keep');
+      assert.equal(list.getAttribute('aria-busy'),'false');
+      assert.ok(screen.getByRole('button',{name:/^Keep this visible/}));
+      fireEvent.change(search,{target:{value:''}});
+      assert.ok(screen.getByRole('button',{name:/^Older secret title/}));
+      assert.equal(screen.getAllByRole('button',{name:/^Locked entry/}).length,1,'other rows stay unchanged');
+      assert.ok(screen.getByRole('button',{name:'Load more entries'}));
+    } finally {
+      if(originalDetail)requests.GetEntryRequest=originalDetail;else delete requests.GetEntryRequest;
+    }
   });
 });
 

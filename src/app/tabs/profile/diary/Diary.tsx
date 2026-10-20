@@ -44,8 +44,12 @@ function DiaryWorkspace() {
       setNext(Boolean(data.next));
     }).catch(() => { if (!cancelled) setError("Couldn't load entries. Please retry."); }).finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
-  }, [page, retry, protection?.revision]);
-  useEffect(()=>{if(protection?.revision){setEntries([]);setPage(1);setRetry(v=>v+1);}},[protection?.revision]);
+  }, [page, retry]);
+  // A verified entry updates in place; loaded pages and list scroll stay intact.
+  useEffect(() => {
+    const opened = protection?.unlockedEntry;
+    if (opened) setEntries(previous => previous.map(entry => entry.id === opened.id ? opened : entry));
+  }, [protection?.unlockedEntry]);
   const visible = useMemo(() => entries.filter(entry => !query.trim() || (!entry._locked && `${entry.title} ${plainText(entry.content)} ${entry.tag_objects.map(tag => tag.name).join(" ")}`.toLowerCase().includes(query.trim().toLowerCase()))).sort((a, b) => b.entry_date.localeCompare(a.entry_date) || b.created_at.localeCompare(a.created_at)), [entries, query]);
   const open = (entry: string) => navigate(`/${encodeURIComponent(userID || "")}/diary?entry_id=${entry}`);
   let lastDate = "";
