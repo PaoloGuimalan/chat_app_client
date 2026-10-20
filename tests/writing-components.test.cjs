@@ -177,7 +177,8 @@ afterEach(() => { cleanup(); });
 const mount = (component, route = '/notes') => render(React.createElement(MemoryRouter, { initialEntries: [route] }, component));
 
 async function protectedDiaryFixture(run) {
-  const original=encryptionSettings, originalDerive=deriveOverride, originalEntries=requests.GetUserEntriesRequest;
+  const original=encryptionSettings, originalDerive=deriveOverride, originalEntries=requests.GetUserEntriesRequest, originalDetail=requests.GetEntryRequest, originalWrites=diaryWrites;
+  requests.GetEntryRequest=async()=>({...diaryWrites.at(-1)?.payload,id:'entry-created',entry_date:'2026-10-20',created_at:'2026-10-20T00:00:00Z',attachments:[],tag_objects:[]});
   const c=require('../src/reusables/encryption/crypto.ts');
   const key=await crypto.subtle.importKey('raw',new Uint8Array(32),'AES-GCM',false,['encrypt','decrypt']);
   const owner={entity_id:'fixture-entity',user_id:'fixture-user'}, id='11111111-1111-4111-8111-111111111111';
@@ -187,7 +188,7 @@ async function protectedDiaryFixture(run) {
   let reads=0; requests.GetUserEntriesRequest=async()=>{reads++;return{results:[],next:null};};
   const open=()=>mount(React.createElement(Routes,null,React.createElement(Route,{path:'/:userID/diary',element:React.createElement(Diary)}),React.createElement(Route,{path:'/:userID',element:React.createElement('p',null,'Personal profile')})),'/owner/diary');
   try{await run({c,key,owner,id,config,open,reads:()=>reads});}
-  finally{cleanup();encryptionSettings=original;deriveOverride=originalDerive;requests.GetUserEntriesRequest=originalEntries;}
+  finally{cleanup();encryptionSettings=original;deriveOverride=originalDerive;diaryWrites=originalWrites;requests.GetUserEntriesRequest=originalEntries;if(originalDetail)requests.GetEntryRequest=originalDetail;else delete requests.GetEntryRequest;}
 }
 test('switching active passphrases verifies both rows locally and sends proofs without phrases',async()=>{
   await protectedDiaryFixture(async f=>{
@@ -279,7 +280,62 @@ test('missing server capability blocks encrypted entry writes without falling ba
     fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'a long passphrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
     fireEvent.change(await screen.findByLabelText('Entry title'),{target:{value:'Private title'}});
     const editor=document.querySelector('.ql-editor');await act(async()=>{editor.innerHTML='<p>Private writing</p>';fireEvent.input(editor);await new Promise(resolve=>setTimeout(resolve,20));});
+    fireEvent.click(screen.getByRole('checkbox',{name:'Encrypt this entry'}));
     fireEvent.click(screen.getByRole('button',{name:'Save',exact:true}));await screen.findByText(/needs a server update/);assert.equal(diaryWrites.length,0);
+  });
+});
+
+async function fillProtectedDraft(f) {
+  f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});
+  fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'active phrase'}});
+  fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+  fireEvent.change(await screen.findByLabelText('Entry title'),{target:{value:'Chosen title'}});
+  const editor=document.querySelector('.ql-editor');
+  await act(async()=>{editor.innerHTML='<p>Chosen writing</p>';fireEvent.input(editor);await new Promise(resolve=>setTimeout(resolve,20));});
+}
+
+test('active passphrase does not automatically encrypt new entries',async()=>{
+  await protectedDiaryFixture(async f=>{
+    diaryWrites=[];await fillProtectedDraft(f);
+    assert.equal(screen.getByRole('checkbox',{name:'Encrypt this entry'}).checked,false);
+    const privacy=screen.getByLabelText('Entry privacy');assert.equal(privacy.disabled,false);
+    fireEvent.change(privacy,{target:{value:'public'}});
+    fireEvent.click(screen.getByRole('button',{name:'Save',exact:true}));
+    await waitFor(()=>assert.equal(diaryWrites.length,1));
+    assert.equal(diaryWrites[0].payload.is_encrypted,false);
+    assert.equal(diaryWrites[0].payload.is_private,false);
+    assert.equal(diaryWrites[0].payload.title,'Chosen title');
+    assert.ok(diaryWrites[0].payload.content.includes('Chosen writing'));
+  });
+});
+
+test('selected encryption confirms the active phrase before any write and cancellation keeps the draft',async()=>{
+  await protectedDiaryFixture(async f=>{
+    diaryWrites=[];await fillProtectedDraft(f);
+    fireEvent.click(screen.getByRole('checkbox',{name:'Encrypt this entry'}));
+    assert.equal(screen.getByLabelText('Entry privacy').disabled,true);
+    fireEvent.click(screen.getByRole('button',{name:'Save',exact:true}));
+    await screen.findByRole('dialog',{name:'Confirm entry encryption'});
+    assert.equal(diaryWrites.length,0);
+    fireEvent.click(screen.getByRole('button',{name:'Cancel',exact:true}));
+    await waitFor(()=>assert.equal(screen.getByRole('button',{name:'Save',exact:true}).disabled,false));
+    assert.equal(screen.getByLabelText('Entry title').value,'Chosen title');
+    assert.equal(diaryWrites.length,0);
+    fireEvent.click(screen.getByRole('button',{name:'Save',exact:true}));
+    await screen.findByRole('dialog',{name:'Confirm entry encryption'});
+    deriveOverride=async phrase=>{if(phrase!=='confirmed phrase')throw Error('Wrong phrase');return f.key;};
+    fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'wrong'}});
+    fireEvent.click(screen.getByRole('button',{name:'Encrypt and save',exact:true}));
+    await screen.findByText(/Could not confirm/);
+    assert.equal(diaryWrites.length,0);
+    fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'confirmed phrase'}});
+    fireEvent.click(screen.getByRole('button',{name:'Encrypt and save',exact:true}));
+    await waitFor(()=>assert.equal(diaryWrites.length,1));
+    const payload=diaryWrites[0].payload;
+    assert.equal(payload.is_encrypted,true);assert.equal(payload.is_private,true);
+    assert.equal(JSON.parse(payload.title).configuration_id,f.id);
+    const plain=await f.c.decryptEntry(payload,f.owner,f.key);
+    assert.equal(plain.title,'Chosen title');assert.ok(plain.content.includes('Chosen writing'));
   });
 });
 test('older encrypted entries show placeholder bars without raw ciphertext and unlock only their matching configuration',async()=>{

@@ -24,7 +24,7 @@ type EntryDraft = INewEntry & { files: IPendingEntryAttachment[] };
 export default function NewEntry({ reload, showBack = true }: { reload: (entry: IEntry) => void; showBack?: boolean }) {
   const protection = useDiaryProtection();
   const { userID } = useParams();
-  const initial = useMemo<EntryDraft>(() => ({ title: "", content: "", mood: null, tags: [], attachments: [], entry_date: formatToDjangoDate(new Date())?.slice(0, 10) || null, is_private: true, files: [] }), []);
+  const initial = useMemo<EntryDraft>(() => ({ title: "", content: "", mood: null, tags: [], attachments: [], entry_date: formatToDjangoDate(new Date())?.slice(0, 10) || null, is_private: true, is_encrypted: false, files: [] }), []);
   const history = useWritingHistory(initial);
   const draft = history.value;
   const [saving, setSaving] = useState(false);
@@ -49,6 +49,7 @@ export default function NewEntry({ reload, showBack = true }: { reload: (entry: 
   const dirty = history.dirty && !saved;
   useUnsavedWarning(dirty);
   useConfirmNavigation(() => !completed.current && dirty, saving, () => { completed.current = true; });
+  // The encryption choice can change before saving; do not disclose draft URLs.
   const linkPreview = useLinkPreview({ text: protection?.active ? '' : extractFirstUrlFromHtml(draft.content) || "", enabled: !saving && !protection?.active });
   const addFiles = (files: File[]) => {
     if (saving) return;
@@ -67,7 +68,7 @@ export default function NewEntry({ reload, showBack = true }: { reload: (entry: 
     try {
       // Validate encryption capability before any upload or API mutation.
       const protectedFields = protection ? await protection.save(snapshot) : snapshot;
-      if (!alive.current) return;
+      if (!protectedFields || !alive.current) return;
       // Cache completed uploads so a failed entry request can be retried without reuploading.
       for (const pending of snapshot.files) {
         if (!uploaded.current.has(pending.id)) {
@@ -104,16 +105,17 @@ export default function NewEntry({ reload, showBack = true }: { reload: (entry: 
   };
   return <><header className="writing-reader-head">{showBack ? <button disabled={saving} onClick={() => navigate(`/${encodeURIComponent(userID || "")}/diary`)}><ArrowLeft size={19}/><span>New entry</span></button> : <span>New entry</span>}<div className="writing-reader-actions"><HistoryButtons undo={history.undo} redo={history.redo} canUndo={history.canUndo && !saving} canRedo={history.canRedo && !saving}/><button className="writing-primary" disabled={saving || !draft.title.trim() || !plainText(draft.content)} onClick={() => void save()}>{saving ? "Saving…" : "Save"}</button></div></header>
     {error && <div className="writing-error" role="alert">{error}</div>}
-    <div className="diary-protection-note">{protection?.active ? 'Title and writing are encrypted. Attachments, tags, moods, dates and other metadata are not encrypted.' : 'No active passphrase. New entries are saved without passphrase encryption.'}</div>
+
     <div className="writing-document-scroll" onKeyDownCapture={event => {
       if (!saving && (event.target as HTMLElement).closest('.writing-quill') && (event.ctrlKey || event.metaKey) && ["z", "y"].includes(event.key.toLowerCase())) { event.preventDefault(); event.stopPropagation(); if (event.shiftKey || event.key.toLowerCase() === "y") history.redo(); else history.undo(); }
     }}><article className="writing-document"><input autoFocus disabled={saving} className="writing-title" aria-label="Entry title" placeholder="Give today a title" value={draft.title} onChange={event => history.change({ ...draft, title: event.target.value })}/>
-      <div className="diary-form"><label className="diary-field"><span>Date</span><input type="date" aria-label="Entry date" disabled={saving} value={draft.entry_date || ""} onChange={event => history.change({ ...draft, entry_date: event.target.value })}/></label><label className="diary-field"><span>Privacy</span><select aria-label="Entry privacy" disabled={saving || Boolean(protection?.active)} value={protection?.active || draft.is_private ? "private" : "public"} onChange={event => history.change({ ...draft, is_private: event.target.value === "private" })}><option value="private">Private</option><option value="public">Public</option></select></label>
+      <div className="diary-form"><label className="diary-field"><span>Date</span><input type="date" aria-label="Entry date" disabled={saving} value={draft.entry_date || ""} onChange={event => history.change({ ...draft, entry_date: event.target.value })}/></label><label className="diary-field"><span>Privacy</span><select aria-label="Entry privacy" disabled={saving || Boolean(draft.is_encrypted)} value={draft.is_encrypted || draft.is_private ? "private" : "public"} onChange={event => history.change({ ...draft, is_private: event.target.value === "private" })}><option value="private">Private</option><option value="public">Public</option></select></label>
       <div className="diary-field diary-field-wide"><span>Mood</span><MoodPicker value={draft.mood} disabled={saving} onChange={mood => history.change({ ...draft, mood })}/></div>
       <div className="diary-field diary-field-wide"><span id="entry-tags-label">Tags</span><AsyncPaginate className="diary-tags-select" classNamePrefix="diary-tags" aria-labelledby="entry-tags-label" isDisabled={saving} isMulti value={draft.tags} loadOptions={loadTags} debounceTimeout={300} additional={{ page: 1 }} isClearable placeholder="Search or create a tag" styles={selectStyles} components={{ Option: CustomTagItem }} onChange={(tags: any) => history.change({ ...draft, tags })}/></div></div>
+      <div className="diary-protection-note"><label className="diary-encryption-choice"><input type="checkbox" checked={Boolean(draft.is_encrypted)} disabled={saving || !protection?.active} onChange={event=>history.change({...draft,is_encrypted:event.target.checked})}/>Encrypt this entry</label><span>{protection?.active ? (draft.is_encrypted ? `Uses ${protection.active.name}. Confirm your passphrase when saving. Only the title and writing are encrypted; this entry will be private.` : 'Select encryption to protect this entry title and writing with your active passphrase.') : 'Activate a passphrase in Settings / Data & Privacy to encrypt entries.'}</span></div>
       <WritingBody value={draft.content} disabled={saving} onChange={content => history.change({ ...draft, content })}/>
       {linkPreview.status === "ok" && linkPreview.preview && <LinkPreviewCard preview={linkPreview.preview} variant="composer" onRemove={linkPreview.dismiss}/>}
       <section className="writing-files" {...dragHandlers}><div className="writing-files-heading"><span>{isDragging ? "Drop files to attach" : "Attachments"}</span><button disabled={saving} onClick={() => fileInput.current?.click()}><Paperclip size={15}/>Attach file</button></div><input hidden ref={fileInput} type="file" multiple onChange={event => { addFiles(Array.from(event.target.files || [])); event.target.value = ""; }}/>{draft.files.length ? <div className="diary-attachment-previews">{draft.files.map(file => <PendingAttachmentItem key={file.id} attachment={file} onRemove={id => { if (!saving) history.change({ ...draft, files: draft.files.filter(item => item.id !== id) }); }}/>)}</div> : <p style={{ fontSize: 12, color: "var(--text-2)", padding: "15px 0" }}>Drop files here or choose Attach file.</p>}</section>
-    </article></div><footer className="writing-footer"><span>New diary entry</span><span>{draft.is_private ? "Private" : "Public"}</span></footer>
+    </article></div><footer className="writing-footer"><span>New diary entry</span><span>{draft.is_encrypted || draft.is_private ? "Private" : "Public"}</span></footer>
   </>;
 }
