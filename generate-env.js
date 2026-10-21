@@ -29,9 +29,9 @@ const PUBLIC_KEYS = [
   // silently do nothing.
   //
   // Delete each line as its consumer moves server-side:
-  //   VITE_JWT_SECRET             - signs sessions; same value as the server's
-  //                                 JWT_SECRET, so anyone reading it can forge
-  //                                 a token for any user. Highest priority.
+  //   VITE_JWT_SECRET             - legacy client payload/nonce key matching
+  //                                 server JWT_SECRET. Authentication uses the
+  //                                 separate server-only AUTHENTICATION_SECRET.
   //   VITE_OPEN_ROUTE_API_KEY     - proxy the ORS call through the backend.
   //   VITE_TURN_SERVER_USERNAME   - switch coturn to use-auth-secret so the
   //   VITE_TURN_SERVER_CREDENTIAL   server issues short-lived HMAC credentials.
