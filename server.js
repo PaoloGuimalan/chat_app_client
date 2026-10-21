@@ -6,6 +6,7 @@ const crypto = require("crypto");
 const Redis = require("ioredis");
 const cors = require("cors");
 const rateLimit = require("express-rate-limit");
+const compression = require("compression");
 
 const app = express();
 const DIST_DIR = path.resolve(__dirname, "dist");
@@ -228,6 +229,8 @@ app.post("/api/bootstrap", async (req, res) => {
 // ------------------------------------------------------------------------
 
 // 1. Static Compilation Assets (.js, .css, images) go on top with loose asset limit protection
+// Negotiate Brotli/gzip for Vite assets without changing the security HTML or bootstrap response.
+app.use("/assets", compression());
 app.use(express.static(DIST_DIR, { index: false, immutable: true, maxAge: "1y" }), assetLimiter);
 
 // 2. Base explicitly targeted root application entry navigation path

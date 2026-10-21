@@ -19,7 +19,7 @@ COPY server.js /app/server.js
 COPY docker-entrypoint.sh /usr/local/bin/docker-entrypoint.sh
 RUN chmod +x /usr/local/bin/docker-entrypoint.sh
 
-RUN yarn add express ioredis cors express-rate-limit
+RUN yarn add express ioredis cors express-rate-limit compression@1.8.1
 
 EXPOSE 3000
 
