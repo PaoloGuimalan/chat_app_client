@@ -9,7 +9,10 @@ let socket: any | null;
 const socketInit = async () => {
   if (!socket) {
     socket = connect(`${envs.CHATTERLOOP_API}/call`, {
-      auth: { token: localStorage.getItem("authtoken") || "" },
+      auth: {
+        token: localStorage.getItem("authtoken") || "",
+        deviceToken: localStorage.getItem("device") || "",
+      },
     });
     return true;
   } else {

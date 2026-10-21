@@ -322,6 +322,7 @@ function VoiceWindow({ data }: any) {
           headers: {
             "Content-Type": "application/json",
             "x-access-token": localStorage.getItem("authtoken") || "",
+            "device-token": localStorage.getItem("device") || "",
           },
           body: JSON.stringify(payloadWithClient),
           keepalive: true,
