@@ -1,17 +1,18 @@
-import { createContext, useContext, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState, useId, type FormEvent, type ReactNode } from 'react';
+import { createPortal } from 'react-dom';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
 import { loadConfigurations, type EncryptionSettings } from '@/reusables/encryption/api';
 import { configurationSupportsPurpose, isPurposeActive, verifyConfiguration, type Configuration } from '@/reusables/encryption/crypto';
 import { deriveKey } from '@/reusables/encryption/derive';
 import PassphraseUnlockDialog from '@/reusables/encryption/PassphraseUnlockDialog';
+import { useModalFocus } from '@/reusables/encryption/useModalFocus';
 import type { AuthenticationInterface } from '@/reusables/vars/interfaces';
 
-const Access = createContext(false);
 interface ProtectionProps { children: ReactNode; active?: boolean; routeActive?: boolean; onCancel?: () => void }
 
 export function MessagesProtectionContent({children}: {children: ReactNode}) {
-  return useContext(Access) ? <>{children}</> : null;
+  return <>{children}</>;
 }
 
 export default function MessagesProtection({children}: {children: ReactNode}) {
@@ -37,6 +38,14 @@ function MessagesVisit({children, identity, active: visitActive = true, routeAct
   const generation = useRef(0);
   const controller = useRef(new AbortController());
   const running = useRef(false);
+  const background = useRef<HTMLDivElement>(null);
+  const blocked = visitActive && phase !== 'ready';
+  useLayoutEffect(() => {
+    const element = background.current;
+    if (!element) return;
+    element.toggleAttribute('inert', blocked);
+    return () => element.removeAttribute('inert');
+  }, [blocked]);
   // Only return through app history; a direct URL has no internal predecessor.
   const routeEntry = useRef<{canGoBack: boolean} | null>(null);
   if (!routeActive) routeEntry.current = null;
@@ -95,5 +104,22 @@ function MessagesVisit({children, identity, active: visitActive = true, routeAct
       if (ticket === generation.current && !current.signal.aborted) { running.current = false; setBusy(false); }
     }
   };
-  return <Access.Provider value={visitActive && phase === 'ready'}>{children}{visitActive && phase === 'loading' && <div className="passphrase-overlay"><div className="passphrase-dialog" role="status">Loading Messages protection…</div></div>}{visitActive && phase === 'error' && <div className="passphrase-overlay"><div className="passphrase-dialog" role="alert">{error}<div className="passphrase-actions"><button onClick={() => setRetry(value => value + 1)}>Retry</button><button onClick={exit}>Cancel</button></div></div></div>}{visitActive && phase === 'locked' && <PassphraseUnlockDialog title="Unlock your Messages" description="Enter your active passphrase to open this visit." name={active?.name || 'Passphrase'} phrase={phrase} busy={busy} error={error} onPhraseChange={value => {setPhrase(value); setError('');}} onSubmit={event => void unlock(event)} onCancel={exit}/>}</Access.Provider>;
+  return <>
+    <div ref={background} style={{display: 'contents'}} aria-hidden={blocked || undefined}>{children}</div>
+    {blocked && createPortal(phase === 'loading'
+      ? <div className="passphrase-overlay" style={{background: 'transparent', backdropFilter: 'none'}} aria-hidden="true"/>
+      : phase === 'error'
+        ? <MessagesProtectionError error={error} retry={() => setRetry(value => value + 1)} cancel={exit}/>
+        : <PassphraseUnlockDialog title="Unlock your Messages" description="Enter your active passphrase to open this visit." name={active?.name || 'Passphrase'} phrase={phrase} busy={busy} error={error} onPhraseChange={value => {setPhrase(value); setError('');}} onSubmit={event => void unlock(event)} onCancel={exit}/>, document.body)}
+  </>;
+}
+
+function MessagesProtectionError({error, retry, cancel}: {error: string; retry: () => void; cancel: () => void}) {
+  const id = useId();
+  const modal = useModalFocus<HTMLDivElement>(true, cancel);
+  return <div className="passphrase-overlay"><div ref={modal} className="passphrase-dialog" role="alertdialog" aria-modal="true" aria-labelledby={`${id}-title`} aria-describedby={`${id}-error`}>
+    <h2 id={`${id}-title`}>Messages protection unavailable</h2>
+    <p id={`${id}-error`}>{error}</p>
+    <div className="passphrase-actions"><button onClick={retry}>Retry</button><button onClick={cancel}>Cancel</button></div>
+  </div></div>;
 }
