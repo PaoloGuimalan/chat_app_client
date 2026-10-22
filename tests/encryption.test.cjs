@@ -88,6 +88,40 @@ test('successful configuration mutation reloads all groups with the server activ
   assert.equal(result.purposes[1].active_configuration_id,id);
 });
 
+test('unfiltered settings preserve and validate configurations with no selected uses', async () => {
+  const settings=await settingsFixture();
+  const config={...settings.purposes[0].configurations[0],purposes:[],is_active:false};
+  settings.configurations=[config];settings.scope_version='b'.repeat(64);
+  settings.purposes.forEach(group=>{group.configurations=[];group.active_configuration_id=null;});
+  const api=loadApi({get:async()=>({data:{status:true,result:settings}})});
+  assert.equal((await api.loadConfigurations()).configurations[0].id,id);
+  assert.equal(load().configurationSupportsPurpose(config,'diary'),false);
+  config.verification_aad='changed';
+  await assert.rejects(api.loadConfigurations(),/Invalid passphrase configuration/);
+});
+
+test('historical lookup accepts removed membership and rejects wrong owner, ID and AAD',async()=>{
+  const settings=await settingsFixture();
+  let config={...settings.purposes[0].configurations[0],purposes:[],is_active:false};
+  const calls=[];
+  const api=loadApi({get:async(url,options)=>{calls.push({url,options});return{data:{status:true,result:{configuration:config}}};}});
+  assert.equal((await api.loadConfiguration(id,'diary',owner)).id,id);
+  assert.ok(calls[0].url.endsWith(`${id}/`));assert.equal(calls[0].options.params.purpose,'diary');
+  for(const change of [{user_id:'foreign'},{id:'00000000-0000-4000-8000-000000000004'},{verification_aad:'wrong'},{format_version:2}]){
+    const previous=config;config={...config,...change};
+    await assert.rejects(api.loadConfiguration(id,'diary',owner));config=previous;
+  }
+});
+
+test('uses mutation sends the exact proof payload and reloads unfiltered settings',async()=>{
+  const settings=await settingsFixture();settings.scope_version='b'.repeat(64);settings.configurations=[];
+  const calls=[];
+  const api=loadApi({post:async(url,payload)=>{calls.push({url,payload});return{data:{status:true,result:settings}};},get:async(url,options)=>{assert.equal(options.params,undefined);return{data:{status:true,result:settings}};}});
+  const payload={purposes:[],expected_scope_version:'b'.repeat(64),target_verification_proof:'proof'};
+  await api.changeConfiguration('uses',id,payload);
+  assert.ok(calls[0].url.endsWith(`${id}/uses/`));assert.equal(calls[0].payload,payload);
+});
+
 test('purpose-scoped configuration loading sends an explicit filter and rejects unrelated groups',async()=>{
   const settings=await settingsFixture();
   let requestOptions;

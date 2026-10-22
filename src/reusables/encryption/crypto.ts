@@ -31,7 +31,7 @@ function ownerCheck(owner: Owner) { if (![owner.entity_id,owner.user_id].every(v
 export function configurationSupportsPurpose(config: Configuration, purpose: string) { return (config.purposes ?? [config.purpose]).includes(purpose); }
 export function validateConfiguration(config: Configuration, owner: Owner) {
   validateProfile(config);
-  if (config.purposes !== undefined && (!Array.isArray(config.purposes) || !config.purposes.length || config.purposes.some(purpose=>typeof purpose!=='string' || !purpose.length) || new Set(config.purposes).size !== config.purposes.length)) throw new Error('Invalid passphrase configuration.');
+  if (config.purposes !== undefined && (!Array.isArray(config.purposes) || config.purposes.some(purpose=>typeof purpose!=='string' || !purpose.length) || new Set(config.purposes).size !== config.purposes.length)) throw new Error('Invalid passphrase configuration.');
   if (config.entity_id !== owner.entity_id || config.user_id !== owner.user_id || config.verification_aad !== verificationAAD(owner,config.id,config.verification_purpose ?? config.purpose) || typeof config.is_active !== 'boolean') throw new Error('Invalid passphrase configuration.');
   binary(config.salt,16); binary(config.verification_nonce,12); binary(config.verification_ciphertext,17,1024);
 }

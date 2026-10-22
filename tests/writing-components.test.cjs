@@ -26,7 +26,7 @@ localStorage.setItem('authtoken', 'fixture-token');
 
 const React = require('react');
 const { render, screen, fireEvent, waitFor, cleanup, act, within } = require('@testing-library/react');
-const { BrowserRouter, Link, MemoryRouter, Routes, Route } = require('react-router-dom');
+const { BrowserRouter, Link, MemoryRouter, Routes, Route, useLocation, useNavigate } = require('react-router-dom');
 const originalLoad = Module._load;
 const root = path.join(__dirname, '../src');
 const auth = { user: { entity_id: 'fixture-entity', username: 'owner', fullName: { firstName: 'Owner', lastName: 'Fixture' }, profile: 'none' }, active_entity_context: { id: 'fixture-entity', is_switched: false }, allowed_modules: ['module.notes.access', 'module.diary.access'] };
@@ -48,6 +48,7 @@ const requests = {
 let encryptionSettings={owner:{entity_id:'fixture-entity',user_id:'fixture-user'},purposes:[{purpose:'diary',configurations:[{id:'inactive-placeholder',is_active:false}],active_configuration_id:null,scope_version:'fixture'}]};
 let deriveOverride = async()=>{throw new Error('Wrong passphrase');};
 let loadEncryptionOverride = async()=>encryptionSettings;
+let loadConfigurationOverride = async()=>{throw new Error('No historical fixture installed');};
 let changeEncryptionOverride = async()=>{throw new Error('No mutation fixture installed');};
 Module._extensions['.ts'] = Module._extensions['.tsx'] = (module, filename) => {
   const result = ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } });
@@ -56,7 +57,7 @@ Module._extensions['.ts'] = Module._extensions['.tsx'] = (module, filename) => {
 Module._extensions['.css'] = () => {};
 Module._extensions['.png'] = (module, filename) => { module.exports = filename; };
 Module._load = function(request, parent, isMain) {
-  if (request === '@/reusables/encryption/api') return {loadConfigurations:(...args)=>loadEncryptionOverride(...args),changeConfiguration:(...args)=>changeEncryptionOverride(...args),isStale:e=>e?.response?.data?.code==='stale_scope'};
+  if (request === '@/reusables/encryption/api') return {loadConfigurations:(...args)=>loadEncryptionOverride(...args),loadConfiguration:(...args)=>loadConfigurationOverride(...args),changeConfiguration:(...args)=>changeEncryptionOverride(...args),isStale:e=>e?.response?.data?.code==='stale_scope'};
   if (request === '@/reusables/encryption/derive') return {deriveKey:(...args)=>deriveOverride(...args)};
   if (request === 'react-redux') return { useSelector: selector => selector({ authentication: auth, screensizelistener: { W: 1200, H: 844 } }) };
   if (request === './notesApi') return { notesApi: () => api };
@@ -360,6 +361,225 @@ test('global Add excludes paused catalog purposes and requires at least one acti
     fireEvent.click(screen.getByLabelText('Use for Diary'));
     fireEvent.submit(screen.getByRole('dialog',{name:'Add passphrase'}));
     assert.match((await screen.findByRole('alert')).textContent,/select at least one/i);
+  });
+});
+
+test('Edit uses preselects memberships, verifies selected phrase and preserves a zero-use row',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const previous=changeEncryptionOverride;let mutation;
+    f.config.purposes=['diary'];encryptionSettings.configurations=[f.config];encryptionSettings.scope_version='global-scope';
+    encryptionSettings.purposes.push({purpose:'notes',label:'Notes',is_active:true,configurations:[],active_configuration_id:null,scope_version:'notes-scope'});
+    const proof=await f.c.verifyConfiguration(f.config,f.owner,f.key);
+    changeEncryptionOverride=async(action,id,payload)=>{
+      mutation={action,id,payload:structuredClone(payload)};
+      return{...encryptionSettings,configurations:[{...f.config,purposes:[],is_active:false}],purposes:encryptionSettings.purposes.map(group=>({...group,configurations:[],active_configuration_id:null}))};
+    };
+    try{
+      mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));await screen.findByText('Everyday');
+      fireEvent.click(screen.getByRole('button',{name:'Edit uses',exact:true}));
+      assert.equal(screen.getByLabelText('Use for Diary').checked,true);assert.equal(screen.getByLabelText('Use for Notes').checked,false);
+      fireEvent.click(screen.getByLabelText('Use for Diary'));
+      deriveOverride=async()=>{throw Error('Wrong phrase');};
+      fireEvent.change(screen.getByLabelText('Enter passphrase for Everyday'),{target:{value:'wrong phrase'}});
+      fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
+      await screen.findByRole('alert');assert.equal(mutation,undefined);assert.ok(screen.getByRole('dialog',{name:'Edit passphrase uses'}));
+      assert.equal(screen.getByLabelText('Enter passphrase for Everyday').value,'');
+      deriveOverride=async()=>f.key;
+      fireEvent.change(screen.getByLabelText('Enter passphrase for Everyday'),{target:{value:'correct phrase'}});
+      fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
+      await screen.findByText('No uses selected');
+      assert.deepEqual(mutation,{action:'uses',id:f.id,payload:{purposes:[],expected_scope_version:'global-scope',target_verification_proof:proof}});
+      assert.ok(screen.getByText('Everyday'));assert.equal(screen.getByRole('button',{name:'Activate',exact:true}).disabled,true);
+      fireEvent.click(screen.getByRole('button',{name:'Rename',exact:true}));
+      fireEvent.change(screen.getByLabelText('Name'),{target:{value:'Kept for history'}});
+      fireEvent.click(screen.getByRole('button',{name:'Rename passphrase',exact:true}));
+      await waitFor(()=>assert.equal(mutation.action,'rename'));
+      assert.deepEqual(mutation.payload,{expected_scope_version:'global-scope',name:'Kept for history'});
+    }finally{changeEncryptionOverride=previous;}
+  });
+});
+
+test('Edit uses keeps paused memberships removable and prevents new paused selections',async()=>{
+  await protectedDiaryFixture(async f=>{
+    f.config.purposes=['diary','notes'];encryptionSettings.configurations=[f.config];encryptionSettings.scope_version='global-scope';
+    encryptionSettings.purposes.push({purpose:'notes',label:'Notes',is_active:false,configurations:[f.config],active_configuration_id:f.id,scope_version:'notes-scope'});
+    encryptionSettings.purposes.push({purpose:'future',label:'Future writing',is_active:false,configurations:[],active_configuration_id:null,scope_version:'future-scope'});
+    const previous=changeEncryptionOverride;let mutation;
+    changeEncryptionOverride=async(action,id,payload)=>{mutation={action,id,payload:structuredClone(payload)};return encryptionSettings;};
+    try{
+      mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));await screen.findByText('Everyday');
+      fireEvent.click(screen.getByRole('button',{name:'Edit uses',exact:true}));
+      const paused=screen.getByLabelText('Use for Notes · paused');assert.equal(paused.checked,true);assert.equal(paused.disabled,false);
+      const unavailable=screen.getByLabelText('Use for Future writing · paused');assert.equal(unavailable.checked,false);assert.equal(unavailable.disabled,true);
+      fireEvent.click(paused);assert.equal(paused.checked,false);
+      fireEvent.change(screen.getByLabelText('Enter passphrase for Everyday'),{target:{value:'correct phrase'}});
+      fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
+      await waitFor(()=>assert.ok(mutation));assert.deepEqual(mutation.payload.purposes,['diary']);
+    }finally{changeEncryptionOverride=previous;}
+  });
+});
+
+test('Edit uses can add an available catalog purpose and Cancel prevents late proof submission',async()=>{
+  await protectedDiaryFixture(async f=>{
+    f.config.purposes=['diary'];encryptionSettings.configurations=[f.config];encryptionSettings.scope_version='global-scope';
+    encryptionSettings.purposes.push({purpose:'messages',label:'messages',is_active:true,configurations:[],active_configuration_id:null,scope_version:'messages-scope'});
+    const previous=changeEncryptionOverride;const mutations=[];
+    changeEncryptionOverride=async(action,id,payload)=>{mutations.push({action,id,payload:structuredClone(payload)});return encryptionSettings;};
+    try{
+      mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));await screen.findByText('Everyday');
+      fireEvent.click(screen.getByRole('button',{name:'Edit uses',exact:true}));fireEvent.click(screen.getByLabelText('Use for Messages'));
+      let finish;deriveOverride=()=>new Promise(resolve=>{finish=resolve;});
+      fireEvent.change(screen.getByLabelText('Enter passphrase for Everyday'),{target:{value:'cancelled phrase'}});fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
+      fireEvent.click(screen.getByRole('button',{name:'Cancel',exact:true}));await act(async()=>finish(f.key));assert.equal(mutations.length,0);
+      deriveOverride=async()=>f.key;
+      fireEvent.click(screen.getByRole('button',{name:'Edit uses',exact:true}));assert.equal(screen.getByLabelText('Use for Messages').checked,false);
+      fireEvent.click(screen.getByLabelText('Use for Messages'));
+      fireEvent.change(screen.getByLabelText('Enter passphrase for Everyday'),{target:{value:'confirmed phrase'}});fireEvent.click(screen.getByRole('button',{name:'Save changes'}));
+      await waitFor(()=>assert.equal(mutations.length,1));assert.deepEqual(mutations[0].payload.purposes,['diary','messages']);
+      assert.equal(f.config.verification_purpose,undefined);assert.equal(f.config.verification_aad,`["chatterloop.encryption.verification",1,"${f.id}","${f.owner.entity_id}","${f.owner.user_id}","diary"]`);
+    }finally{changeEncryptionOverride=previous;}
+  });
+});
+
+test('a zero-use active configuration can still be disabled with the global scope',async()=>{
+  await protectedDiaryFixture(async f=>{
+    f.config.purposes=[];encryptionSettings.configurations=[f.config];encryptionSettings.scope_version='global-scope';
+    encryptionSettings.purposes[0].configurations=[];encryptionSettings.purposes[0].active_configuration_id=null;
+    const previous=changeEncryptionOverride;let mutation;
+    changeEncryptionOverride=async(action,id,payload)=>{mutation={action,id,payload:structuredClone(payload)};return encryptionSettings;};
+    try{
+      mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));await screen.findByText('No uses selected');
+      fireEvent.click(screen.getByRole('button',{name:'Disable',exact:true}));fireEvent.change(screen.getByLabelText('Current passphrase · Everyday'),{target:{value:'confirmed phrase'}});
+      fireEvent.click(screen.getByRole('button',{name:'Disable passphrase',exact:true}));
+      await waitFor(()=>assert.ok(mutation));assert.equal(mutation.action,'deactivate');assert.equal(mutation.payload.expected_scope_version,'global-scope');assert.equal(mutation.payload.purpose,undefined);
+      assert.equal(atob(mutation.payload.active_verification_proof).length,32);
+    }finally{changeEncryptionOverride=previous;}
+  });
+});
+
+test('removed Diary membership loads historical configuration only on unlock and never reloads list',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const older='22222222-2222-4222-8222-222222222222';
+    const metadata={...f.config,id:older,name:'Removed journal',purposes:[],is_active:false,...await f.c.createVerification(f.owner,older,f.key)};
+    const encrypted=await f.c.encryptEntry({title:'Historical secret',content:'<p>Still readable</p>'},f.owner,older,f.key);
+    const entry={...encrypted,id:'removed-entry',entry_date:'2026-10-20',created_at:'2026-10-20T08:00:00Z',tag_objects:[],attachments:[],mood:null};
+    let reads=0;requests.GetUserEntriesRequest=async()=>{reads++;return{results:[entry],next:null};};requests.GetEntryRequest=async()=>entry;
+    const previous=loadConfigurationOverride;const lookups=[];
+    loadConfigurationOverride=async(...args)=>{lookups.push(args);return metadata;};
+    try{
+      f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});
+      fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'active phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+      const row=await screen.findByRole('button',{name:/Locked entry/});assert.equal(lookups.length,0);
+      fireEvent.click(row);await screen.findByRole('dialog',{name:'Unlock older entries'});
+      assert.deepEqual(lookups,[[older,'diary',f.owner]]);
+      fireEvent.change(screen.getByLabelText('Removed journal'),{target:{value:'original phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+      await screen.findByRole('heading',{name:'Historical secret'});assert.equal(reads,1);
+      // Reopen through the reader's read path with the known historical key.
+      fireEvent.click(screen.getByRole('button',{name:'New entry'}));await screen.findByLabelText('Entry title');
+      fireEvent.click(screen.getByRole('button',{name:/Historical secret/}));await screen.findByRole('heading',{name:'Historical secret'});
+      assert.equal(screen.queryByRole('dialog',{name:'Unlock older entries'}),null);assert.equal(lookups.length,1);assert.equal(reads,1);
+    }finally{loadConfigurationOverride=previous;}
+  });
+});
+
+test('requesting a historical configuration does not invalidate concurrent reads using unlocked keys',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const {default:Protection,useDiaryProtection}=require('../src/app/tabs/profile/diary/DiaryProtection.tsx');
+    let session;function Probe(){session=useDiaryProtection();return React.createElement('p',null,'Ready reader');}
+    const activeEntry={...await f.c.encryptEntry({title:'Concurrent active entry',content:'<p>Readable</p>'},f.owner,f.id,f.key),id:'active-entry'};
+    const older='22222222-2222-4222-8222-222222222222';
+    const metadata={...f.config,id:older,purposes:[],is_active:false,...await f.c.createVerification(f.owner,older,f.key)};
+    const oldEntry={...await f.c.encryptEntry({title:'Old entry',content:'<p>Old writing</p>'},f.owner,older,f.key),id:'old-entry'};
+    const previous=loadConfigurationOverride;loadConfigurationOverride=async()=>metadata;
+    try{
+      mount(React.createElement(Protection,null,React.createElement(Probe)),'/owner/diary?entry_id=old-entry');
+      await screen.findByRole('dialog',{name:'Unlock your Diary'});fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'active phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));await screen.findByText('Ready reader');
+      let result;await act(async()=>{const reading=session.read(activeEntry);session.unlock(older,oldEntry);result=await reading;});
+      assert.equal(result.title,'Concurrent active entry');assert.equal(result._locked,undefined);
+    }finally{loadConfigurationOverride=previous;}
+  });
+});
+
+test('an admin-disabled historical lookup revokes cached keys and hides Diary unlock controls',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const metadata={entry_date:'2026-10-20',created_at:'2026-10-20T08:00:00Z',tag_objects:[],attachments:[],mood:null};
+    const older='22222222-2222-4222-8222-222222222222';
+    const oldEntry={...metadata,...await f.c.encryptEntry({title:'Old secret',content:'<p>Old writing</p>'},f.owner,older,f.key),id:'old-entry'};
+    const currentEntry={...metadata,...await f.c.encryptEntry({title:'Previously unlocked title',content:'<p>Readable before revocation</p>'},f.owner,f.id,f.key),id:'current-entry'};
+    requests.GetUserEntriesRequest=async()=>({results:[oldEntry,currentEntry],next:null});requests.GetEntryRequest=async()=>oldEntry;
+    const previous=loadConfigurationOverride;loadConfigurationOverride=async()=>{throw{response:{data:{code:'purpose_inactive'}}};};
+    try{
+      f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'active phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+      await screen.findByRole('button',{name:/Previously unlocked title/},{timeout:5000});
+      fireEvent.click(screen.getByRole('button',{name:/Locked entry/}));
+      await screen.findByRole('alert');
+      await waitFor(()=>assert.equal(screen.queryByRole('button',{name:'Unlock entry',exact:true}),null));
+      assert.equal(screen.queryByRole('dialog',{name:'Unlock older entries'}),null);
+      assert.equal(screen.queryByRole('button',{name:/Previously unlocked title/}),null);
+      assert.equal((await screen.findAllByRole('button',{name:/Locked entry/},{timeout:5000})).length,2);
+    }finally{loadConfigurationOverride=previous;}
+  });
+});
+
+test('leaving an entry ignores its delayed historical lookup even after returning to the same route',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const older='22222222-2222-4222-8222-222222222222';
+    const metadata={...f.config,id:older,name:'Stale journal',purposes:[],is_active:false,...await f.c.createVerification(f.owner,older,f.key)};
+    const oldEntry={...await f.c.encryptEntry({title:'Older entry',content:'<p>Old writing</p>'},f.owner,older,f.key),id:'old-entry',entry_date:'2026-10-20',created_at:'2026-10-20T08:00:00Z',tag_objects:[],attachments:[],mood:null};
+    const previous=loadConfigurationOverride;let finishLookup,detailReads=0,finishDetail;
+    loadConfigurationOverride=()=>new Promise(resolve=>{finishLookup=resolve;});
+    requests.GetUserEntriesRequest=async()=>({results:[oldEntry],next:null});
+    requests.GetEntryRequest=async()=>++detailReads===1?oldEntry:new Promise(resolve=>{finishDetail=resolve;});
+    function Navigation(){const navigate=useNavigate();return React.createElement('button',{onClick:()=>navigate(-1)},'Previous reader');}
+    try{
+      mount(React.createElement(React.Fragment,null,React.createElement(Navigation),React.createElement(Routes,null,React.createElement(Route,{path:'/:userID/diary',element:React.createElement(Diary)}))),'/owner/diary');
+      await screen.findByRole('dialog',{name:'Unlock your Diary'});fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'active phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+      fireEvent.click(await screen.findByRole('button',{name:/Locked entry/}));await waitFor(()=>assert.equal(typeof finishLookup,'function'));
+      fireEvent.click(screen.getByRole('button',{name:'New entry',exact:true}));await screen.findByLabelText('Entry title');
+      fireEvent.click(screen.getByRole('button',{name:'Previous reader'}));await waitFor(()=>assert.equal(typeof finishDetail,'function'));
+      await act(async()=>finishLookup(metadata));
+      assert.equal(screen.queryByRole('dialog',{name:'Unlock older entries'}),null);
+      // A fresh source on the returned route can start its own lookup and prompt.
+      loadConfigurationOverride=async()=>metadata;await act(async()=>finishDetail(oldEntry));
+      await screen.findByRole('dialog',{name:'Unlock older entries'});
+    }finally{loadConfigurationOverride=previous;}
+  });
+});
+
+test('navigating during an entry proof cancels its prompt and prevents late plaintext or key reuse',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const older='22222222-2222-4222-8222-222222222222';
+    const metadata={...f.config,id:older,name:'Old journal',is_active:false,...await f.c.createVerification(f.owner,older,f.key)};
+    encryptionSettings.purposes[0].configurations.push(metadata);
+    const oldEntry={...await f.c.encryptEntry({title:'Cancelled old secret',content:'<p>Old writing</p>'},f.owner,older,f.key),id:'old-entry',entry_date:'2026-10-20',created_at:'2026-10-20T08:00:00Z',tag_objects:[],attachments:[],mood:null};
+    requests.GetUserEntriesRequest=async()=>({results:[oldEntry],next:null});requests.GetEntryRequest=async()=>oldEntry;
+    function Navigation(){const navigate=useNavigate();return React.createElement('button',{onClick:()=>navigate('/owner/diary?entry_id=new')},'Change reader');}
+    mount(React.createElement(React.Fragment,null,React.createElement(Navigation),React.createElement(Routes,null,React.createElement(Route,{path:'/:userID/diary',element:React.createElement(Diary)}))),'/owner/diary');
+    await screen.findByRole('dialog',{name:'Unlock your Diary'});fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'active phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    fireEvent.click(await screen.findByRole('button',{name:/Locked entry/}));await screen.findByRole('dialog',{name:'Unlock older entries'});
+    let finish;deriveOverride=()=>new Promise(resolve=>{finish=resolve;});
+    fireEvent.change(screen.getByLabelText('Old journal'),{target:{value:'old phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    fireEvent.click(screen.getByRole('button',{name:'Change reader'}));await screen.findByLabelText('Entry title');
+    assert.equal(screen.queryByRole('dialog',{name:'Unlock older entries'}),null);
+    await act(async()=>finish(f.key));assert.equal(document.body.textContent.includes('Cancelled old secret'),false);
+    fireEvent.click(screen.getByRole('button',{name:/Locked entry/}));await screen.findByRole('dialog',{name:'Unlock older entries'});
+  });
+});
+
+test('navigating away from encryption confirmation cancels a pending proof without a write',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const {default:Protection,useDiaryProtection}=require('../src/app/tabs/profile/diary/DiaryProtection.tsx');
+    let saved;
+    function Probe(){const session=useDiaryProtection(),navigate=useNavigate(),location=useLocation();return React.createElement(React.Fragment,null,React.createElement('span',null,location.search),React.createElement('button',{onClick:()=>{saved=session.save({title:'Pending draft',content:'<p>Pending writing</p>',is_encrypted:true});}},'Request encryption'),React.createElement('button',{onClick:()=>navigate('/owner/diary?entry_id=other-entry')},'Change reader'));}
+    mount(React.createElement(Protection,null,React.createElement(Probe)),'/owner/diary?entry_id=new');
+    await screen.findByRole('dialog',{name:'Unlock your Diary'});fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'active phrase'}});fireEvent.click(screen.getByRole('button',{name:'Unlock',exact:true}));
+    fireEvent.click(await screen.findByRole('button',{name:'Request encryption'}));
+    await screen.findByRole('dialog',{name:'Confirm entry encryption'});
+    let finish;deriveOverride=()=>new Promise(resolve=>{finish=resolve;});
+    fireEvent.change(screen.getByLabelText('Everyday'),{target:{value:'confirmed phrase'}});fireEvent.click(screen.getByRole('button',{name:'Encrypt and save'}));
+    fireEvent.click(screen.getByRole('button',{name:'Change reader'}));await screen.findByText('?entry_id=other-entry');
+    assert.equal(screen.queryByRole('dialog',{name:'Confirm entry encryption'}),null);
+    await act(async()=>finish(f.key));assert.equal(await saved,null);
   });
 });
 

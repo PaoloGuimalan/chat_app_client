@@ -19,6 +19,7 @@ import PostEditPage from "../widgets/modals/EditPost/PostEditPage";
 import InvitePage from "../widgets/invites/InvitePage";
 import MomentViewer from "../tabs/moments/MomentViewer";
 import Messages from "../tabs/feed/Messages";
+import { MessagesProtectionProvider, MessagesProtectionContent } from "../tabs/messenger/MessagesProtection";
 import {
   CloseSSENotifications,
   SSENotificationsTRequest,
@@ -507,6 +508,8 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
 
   const showRail = !isMobileView && !isMapFeedMobileView;
   const showMobileNav = isMobileView && !isMapFeedMobileView;
+  const messagesRouteActive = currentPathname === '/messages' || currentPathname.startsWith('/messages/');
+  const floatingMessagesActive = screensizelistener.W > 900 && minimizedconversation.length > 0;
 
   return (
     <div
@@ -521,6 +524,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           "radial-gradient(1200px 600px at 70% -10%, var(--bg-grad-a), var(--bg-grad-b))",
       }}
     >
+      <MessagesProtectionProvider active={messagesRouteActive || floatingMessagesActive} routeActive={messagesRouteActive} onCancel={() => dispatch({type: SET_MINIMIZED_CONVERSATION_OVERRIDE, payload: {conversations: []}})}>
       <CallContainer />
 
       {showRail && (
@@ -606,7 +610,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
                   )
                 }
               />
-              <Route path="/messages/*" element={<Messages />} />
+              <Route path="/messages/*" element={<MessagesProtectionContent><Messages /></MessagesProtectionContent>} />
               <Route path="/notifications" element={<Notifications />} />
               <Route path="/contacts" element={<Contacts />} />
               <Route path="/explore" element={<SearchPage />} />
@@ -641,6 +645,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
 
         {/* The dock rides the middle of the right edge, so it is anchored
             separately from the open windows, which stay along the bottom. */}
+        <MessagesProtectionContent>
         {!(screensizelistener.W <= 900) && collapsedConversations.length > 0 && (
           <div
             style={{
@@ -708,6 +713,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
             ))}
           </div>
         )}
+        </MessagesProtectionContent>
 
         {showMobileNav && <MobileNav items={orderedMobileNavItems} />}
       </div>
@@ -721,6 +727,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           }
         />
       )}
+      </MessagesProtectionProvider>
     </div>
   );
 }
