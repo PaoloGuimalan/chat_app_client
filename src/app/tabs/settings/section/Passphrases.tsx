@@ -7,7 +7,10 @@ import { changeConfiguration, isStale, loadConfigurations, type EncryptionSettin
 import './passphrases.css';
 import { useModalFocus } from '@/reusables/encryption/useModalFocus';
 type Action = {kind:'add'|'rename'|'activate'|'deactivate'|'uses'; group?:Purpose; target?:Configuration};
-const purposeLabel = (purpose: string, catalog: Purpose[]) => purpose === 'diary' ? 'Diary' : purpose === 'messages' ? 'Messages' : catalog.find(group=>group.purpose===purpose)?.label || purpose;
+const purposeLabel = (purpose: string, catalog: Purpose[]) => {
+  const label = (purpose === 'diary' ? 'Diary' : purpose === 'messages' ? 'Messages' : catalog.find(group=>group.purpose===purpose)?.label?.trim()) || purpose;
+  return label.charAt(0).toUpperCase() + label.slice(1);
+};
 export default function Passphrases() {
   const identity = useSelector((state: {authentication: {user: {entity_id: string}; active_entity_context?: {id:string}}}) => `${state.authentication.user.entity_id}:${state.authentication.active_entity_context?.id || ''}`);
   return <PassphraseWorkspace key={identity}/>;
