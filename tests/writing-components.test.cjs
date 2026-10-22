@@ -25,7 +25,7 @@ window.confirm = () => true;
 localStorage.setItem('authtoken', 'fixture-token');
 
 const React = require('react');
-const { render, screen, fireEvent, waitFor, cleanup, act } = require('@testing-library/react');
+const { render, screen, fireEvent, waitFor, cleanup, act, within } = require('@testing-library/react');
 const { BrowserRouter, Link, MemoryRouter, Routes, Route } = require('react-router-dom');
 const originalLoad = Module._load;
 const root = path.join(__dirname, '../src');
@@ -199,7 +199,7 @@ test('switching active passphrases verifies both rows locally and sends proofs w
     const activeProof=await f.c.verifyConfiguration(f.config,f.owner,f.key),targetProof=await f.c.verifyConfiguration(target,f.owner,f.key);
     const verified=[]; deriveOverride=async(phrase,configuration)=>{verified.push({phrase,id:configuration.id});return f.key;};
     let mutation;
-    changeEncryptionOverride=async(action,id,payload)=>{mutation={action,id,payload:structuredClone(payload)};return{...encryptionSettings.purposes[0],active_configuration_id:targetId,configurations:[{...f.config,is_active:false},{...target,is_active:true}]};};
+    changeEncryptionOverride=async(action,id,payload)=>{mutation={action,id,payload:structuredClone(payload)};return{...encryptionSettings,purposes:[{...encryptionSettings.purposes[0],active_configuration_id:targetId,configurations:[{...f.config,is_active:false},{...target,is_active:true}]}]};};
     try {
       mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));
       await screen.findByText('Travel journal');fireEvent.click(screen.getByRole('button',{name:'Activate',exact:true}));
@@ -208,9 +208,179 @@ test('switching active passphrases verifies both rows locally and sends proofs w
       fireEvent.click(screen.getByRole('button',{name:'Activate passphrase',exact:true}));
       await waitFor(()=>assert.ok(mutation));
       assert.deepEqual(verified,[{phrase:'current phrase never sent',id:f.id},{phrase:'target phrase never sent',id:targetId}]);
-      assert.deepEqual(mutation,{action:'activate',id:targetId,payload:{expected_scope_version:'fixture',active_verification_proof:activeProof,target_verification_proof:targetProof}});
+      assert.deepEqual(mutation,{action:'activate',id:targetId,payload:{expected_scope_version:'fixture',purpose:'diary',active_verification_proof:activeProof,target_verification_proof:targetProof}});
       assert.equal(document.querySelector('input[type=password]'),null);
     }finally{changeEncryptionOverride=oldMutation;}
+  });
+});
+
+test('activation verifies the global active configuration in another group and refreshes every group',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const oldMutation=changeEncryptionOverride;
+    const targetId='22222222-2222-4222-8222-222222222222';
+    const target={...f.config,id:targetId,name:'Notes passphrase',purpose:'notes',verification_purpose:'notes',purposes:['notes'],is_active:false,...await f.c.createVerification(f.owner,targetId,f.key,'notes')};
+    encryptionSettings.purposes.push({purpose:'notes',label:'Notes',configurations:[target],active_configuration_id:null,scope_version:'fixture'});
+    let mutation;
+    changeEncryptionOverride=async(action,id,payload)=>{mutation={action,id,payload:structuredClone(payload)};return{...encryptionSettings,purposes:[{...encryptionSettings.purposes[0],active_configuration_id:null,configurations:[{...f.config,is_active:false}]},{...encryptionSettings.purposes[1],active_configuration_id:targetId,configurations:[{...target,is_active:true}]}]};};
+    try{
+      mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));
+      await screen.findByText('Notes passphrase');fireEvent.click(screen.getByRole('button',{name:'Activate',exact:true}));
+      fireEvent.change(screen.getByLabelText('Current passphrase · Everyday'),{target:{value:'current phrase'}});
+      fireEvent.change(screen.getByLabelText('Selected passphrase · Notes passphrase'),{target:{value:'selected phrase'}});
+      fireEvent.click(screen.getByRole('button',{name:'Activate passphrase',exact:true}));
+      await waitFor(()=>assert.ok(mutation));
+      await waitFor(()=>assert.equal(document.querySelectorAll('.passphrase-status[data-active=true]').length,1));
+      assert.equal(mutation.payload.purpose,'notes');
+      assert.equal(mutation.payload.active_verification_proof,await f.c.verifyConfiguration(f.config,f.owner,f.key));
+      assert.equal(document.querySelector('.passphrase-status[data-active=true]').parentElement.textContent.includes('Notes passphrase'),true);
+    }finally{changeEncryptionOverride=oldMutation;}
+  });
+});
+
+test('Diary loads only its purpose while settings request all purposes',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const previous=loadEncryptionOverride;
+    const requested=[];
+    loadEncryptionOverride=async purpose=>{requested.push(purpose);return encryptionSettings;};
+    try{
+      f.open();await screen.findByRole('dialog',{name:'Unlock your Diary'});
+      assert.deepEqual(requested,['diary']);
+      cleanup();requested.length=0;
+      mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));
+      await screen.findByText('Everyday');
+      assert.deepEqual(requested,[undefined]);
+    }finally{loadEncryptionOverride=previous;}
+  });
+});
+
+test('disabled Diary purpose bypasses the base prompt while historical ciphertext cannot unlock',async()=>{
+  await protectedDiaryFixture(async f=>{
+    encryptionSettings.purposes[0].is_active=false;
+    const encrypted=await f.c.encryptEntry({title:'Historical secret title',content:'<p>Historical secret body</p>'},f.owner,f.id,f.key);
+    const entry={...encrypted,id:'historical-entry',entry_date:'2026-10-20',created_at:'2026-10-20T08:00:00Z',tag_objects:[],attachments:[],mood:null};
+    const plaintext={...entry,id:'plaintext-entry',is_encrypted:false,title:'A readable entry',content:'<p>Ordinary writing</p>'};
+    requests.GetUserEntriesRequest=async()=>({results:[entry,plaintext],next:null});requests.GetEntryRequest=async()=>entry;
+    let derivations=0;deriveOverride=async()=>{derivations++;return f.key;};
+    f.open();
+    const row=await screen.findByRole('button',{name:/Locked entry/});
+    assert.equal(screen.queryByRole('dialog',{name:'Unlock your Diary'}),null);
+    assert.equal(derivations,0);
+    assert.ok(screen.getByText('A readable entry'));
+    assert.equal(document.body.textContent.includes('Historical secret title'),false);
+    fireEvent.click(row);
+    await waitFor(()=>assert.ok(document.querySelector('.writing-document .diary-locked-content')));
+    assert.equal(screen.queryByRole('dialog',{name:'Unlock older entries'}),null);
+    assert.equal(screen.queryByRole('button',{name:'Unlock entry',exact:true}),null);
+    assert.equal(document.body.textContent.includes('Historical secret title'),false);
+    assert.equal(derivations,0);
+  });
+});
+
+test('disabled Diary purpose skips setup and offers plaintext writing without an encryption checkbox',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const group=encryptionSettings.purposes[0];group.is_active=false;group.configurations=[];group.active_configuration_id=null;
+    localStorage.removeItem(`chatterloop.diary.intro.v1:${f.owner.entity_id}:${f.owner.user_id}`);
+    diaryWrites=[];f.open();
+    fireEvent.change(await screen.findByLabelText('Entry title'),{target:{value:'A normal entry'}});
+    assert.equal(screen.queryByRole('dialog',{name:'Protect your Diary'}),null);
+    assert.equal(screen.queryByRole('checkbox',{name:'Encrypt this entry'}),null);
+    const editor=document.querySelector('.ql-editor');
+    await act(async()=>{editor.innerHTML='<p>Normal writing</p>';fireEvent.input(editor);await new Promise(resolve=>setTimeout(resolve,20));});
+    fireEvent.click(screen.getByRole('button',{name:'Save',exact:true}));
+    await waitFor(()=>assert.equal(diaryWrites.length,1));
+    assert.equal(diaryWrites[0].payload.is_encrypted,false);
+    assert.equal(diaryWrites[0].payload.title,'A normal entry');
+  });
+});
+
+test('settings show paused purpose labels and prevent Add and Activate while allowing Rename and Disable',async()=>{
+  await protectedDiaryFixture(async f=>{
+    encryptionSettings.purposes[0].is_active=false;
+    encryptionSettings.purposes[0].configurations.push({...f.config,id:'22222222-2222-4222-8222-222222222222',name:'Historical inactive',is_active:false});
+    mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));
+    await screen.findAllByText('Diary · paused');
+    assert.equal(screen.getByRole('button',{name:'Add passphrase'}).disabled,true);
+    assert.equal(screen.getByRole('button',{name:'Activate',exact:true}).disabled,true);
+    assert.equal(screen.getByRole('button',{name:'Disable',exact:true}).disabled,false);
+    assert.equal(screen.getAllByRole('button',{name:'Rename',exact:true}).every(button=>!button.disabled),true);
+  });
+});
+
+test('global Add can select Notes alone and binds verification to the selected origin',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const oldMutation=changeEncryptionOverride;
+    encryptionSettings.purposes.push({purpose:'notes',label:'Notes',configurations:[],active_configuration_id:null,scope_version:'fixture'});
+    let mutation;
+    changeEncryptionOverride=async(action,id,payload)=>{mutation={action,id,payload:structuredClone(payload)};return encryptionSettings;};
+    try{
+      mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));
+      await screen.findByText('Everyday');
+      fireEvent.click(screen.getByRole('button',{name:'Add passphrase'}));
+      fireEvent.change(screen.getByLabelText('Name'),{target:{value:'Shared passphrase'}});
+      fireEvent.click(screen.getByLabelText('Use for Diary'));
+      fireEvent.click(screen.getByLabelText('Use for Notes'));
+      fireEvent.change(screen.getByLabelText('New passphrase'),{target:{value:'a very long passphrase'}});
+      fireEvent.change(screen.getByLabelText('Confirm passphrase'),{target:{value:'a very long passphrase'}});
+      fireEvent.click(screen.getByLabelText('I understand that a forgotten passphrase cannot be recovered.'));
+      fireEvent.submit(screen.getByRole('dialog',{name:'Add passphrase'}));
+      await waitFor(()=>assert.ok(mutation));
+      assert.equal(mutation.payload.purpose,'notes');
+      assert.deepEqual(mutation.payload.purposes,['notes']);
+      const config={...f.config,...mutation.payload,verification_aad:JSON.stringify(['chatterloop.encryption.verification',1,mutation.id,f.owner.entity_id,f.owner.user_id,'notes'])};
+      assert.equal(atob(await f.c.verifyConfiguration(config,f.owner,f.key)).length,32);
+    }finally{changeEncryptionOverride=oldMutation;}
+  });
+});
+
+test('settings list each shared configuration once with all purpose labels and one global Add',async()=>{
+  await protectedDiaryFixture(async f=>{
+    f.config.purposes=['diary','notes'];
+    const older={...f.config,id:'22222222-2222-4222-8222-222222222222',name:'Older Diary',purposes:['diary'],is_active:false};
+    encryptionSettings.purposes[0].configurations.push(older);
+    encryptionSettings.purposes.push({purpose:'notes',label:'Notes',is_active:true,configurations:[f.config],active_configuration_id:f.id,scope_version:'fixture'});
+    mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));
+    await screen.findByText('Everyday');
+    assert.equal(screen.getAllByText('Everyday').length,1);
+    assert.equal(document.querySelectorAll('.passphrase-row').length,2);
+    assert.equal(screen.getAllByRole('button',{name:'Add passphrase'}).length,1);
+    const row=screen.getByText('Everyday').closest('.passphrase-row');
+    assert.ok(within(row).getByText('Diary'));
+    assert.ok(within(row).getByText('Notes'));
+    assert.equal(within(row).getAllByRole('button',{name:'Rename',exact:true}).length,1);
+  });
+});
+
+test('global Add excludes paused catalog purposes and requires at least one active use',async()=>{
+  await protectedDiaryFixture(async f=>{
+    encryptionSettings.purposes.push({purpose:'notes',label:'Notes',is_active:false,configurations:[],active_configuration_id:null,scope_version:'fixture'});
+    mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));
+    await screen.findByText('Everyday');
+    fireEvent.click(screen.getByRole('button',{name:'Add passphrase'}));
+    assert.equal(screen.queryByLabelText('Use for Notes'),null);
+    fireEvent.click(screen.getByLabelText('Use for Diary'));
+    fireEvent.submit(screen.getByRole('dialog',{name:'Add passphrase'}));
+    assert.match((await screen.findByRole('alert')).textContent,/select at least one/i);
+  });
+});
+
+test('shared configuration activation uses an enabled linked purpose when its origin is paused',async()=>{
+  await protectedDiaryFixture(async f=>{
+    const previous=changeEncryptionOverride;
+    f.config.is_active=false;f.config.purposes=['diary','notes'];
+    encryptionSettings.purposes[0].is_active=false;encryptionSettings.purposes[0].active_configuration_id=null;
+    encryptionSettings.purposes.push({purpose:'notes',label:'Notes',is_active:true,configurations:[f.config],active_configuration_id:null,scope_version:'notes-scope'});
+    let mutation;
+    changeEncryptionOverride=async(action,id,payload)=>{mutation={action,id,payload};return encryptionSettings;};
+    try{
+      mount(React.createElement(require('../src/app/tabs/settings/section/Passphrases.tsx').default));
+      await screen.findByText('Everyday');
+      const button=screen.getByRole('button',{name:'Activate',exact:true});
+      assert.equal(button.disabled,false);fireEvent.click(button);
+      fireEvent.change(screen.getByLabelText('Selected passphrase · Everyday'),{target:{value:'original phrase'}});
+      fireEvent.submit(screen.getByRole('dialog',{name:'Activate passphrase'}));
+      await waitFor(()=>assert.ok(mutation));
+      assert.equal(mutation.payload.purpose,'notes');assert.equal(mutation.payload.expected_scope_version,'notes-scope');
+    }finally{changeEncryptionOverride=previous;}
   });
 });
 test('wrong base passphrase warns without leaving Diary and a retry can unlock',async()=>{

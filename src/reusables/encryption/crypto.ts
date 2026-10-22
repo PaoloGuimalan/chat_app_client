@@ -3,8 +3,10 @@ export const PROFILE = {
   kdf_parameters: { version: 19, memory_kib: 65536, iterations: 3, parallelism: 1, output_length: 32 },
 } as const;
 export interface Owner { entity_id: string; user_id: string }
+export function isPurposeActive(purpose?: {is_active?: boolean}) { return purpose?.is_active !== false; }
 export interface Configuration extends Owner {
   id: string; name: string; purpose: string; is_active: boolean; created_at: string;
+  verification_purpose?: string; purposes?: string[];
   format_version: number; kdf_algorithm: string; cipher_algorithm: string;
   kdf_parameters: Record<string, number>; salt: string;
   verification_nonce: string; verification_ciphertext: string; verification_aad: string;
@@ -26,12 +28,14 @@ export function binary(value: string, min: number, max = min): Uint8Array<ArrayB
   return bytes;
 }
 function ownerCheck(owner: Owner) { if (![owner.entity_id,owner.user_id].every(value=>typeof value==='string' && value.length>0 && value.length<=40)) throw new Error('Invalid encryption owner.'); }
+export function configurationSupportsPurpose(config: Configuration, purpose: string) { return (config.purposes ?? [config.purpose]).includes(purpose); }
 export function validateConfiguration(config: Configuration, owner: Owner) {
   validateProfile(config);
-  if (config.entity_id !== owner.entity_id || config.user_id !== owner.user_id || config.purpose !== 'diary' || config.verification_aad !== verificationAAD(owner,config.id) || typeof config.is_active !== 'boolean') throw new Error('Invalid passphrase configuration.');
+  if (config.purposes !== undefined && (!Array.isArray(config.purposes) || !config.purposes.length || config.purposes.some(purpose=>typeof purpose!=='string' || !purpose.length) || new Set(config.purposes).size !== config.purposes.length)) throw new Error('Invalid passphrase configuration.');
+  if (config.entity_id !== owner.entity_id || config.user_id !== owner.user_id || config.verification_aad !== verificationAAD(owner,config.id,config.verification_purpose ?? config.purpose) || typeof config.is_active !== 'boolean') throw new Error('Invalid passphrase configuration.');
   binary(config.salt,16); binary(config.verification_nonce,12); binary(config.verification_ciphertext,17,1024);
 }
-export function verificationAAD(owner: Owner, id: string) { ownerCheck(owner); if (!uuid.test(id)) throw new Error('Invalid configuration.'); return JSON.stringify(['chatterloop.encryption.verification',1,id,owner.entity_id,owner.user_id,'diary']); }
+export function verificationAAD(owner: Owner, id: string, purpose = 'diary') { ownerCheck(owner); if (!uuid.test(id) || typeof purpose !== 'string' || !purpose.length) throw new Error('Invalid configuration.'); return JSON.stringify(['chatterloop.encryption.verification',1,id,owner.entity_id,owner.user_id,purpose]); }
 async function seal(value: string, aad: string, key: CryptoKey) {
   const nonce = crypto.getRandomValues(new Uint8Array(12));
   const encrypted = await crypto.subtle.encrypt({name:'AES-GCM',iv:nonce,additionalData:utf8.encode(aad),tagLength:128},key,utf8.encode(value));
@@ -40,10 +44,10 @@ async function seal(value: string, aad: string, key: CryptoKey) {
 async function open(nonce: string, ciphertext: string, aad: string, key: CryptoKey) {
   return decode.decode(await crypto.subtle.decrypt({name:'AES-GCM',iv:binary(nonce,12),additionalData:utf8.encode(aad),tagLength:128},key,binary(ciphertext,16,4*1024*1024)));
 }
-export async function createVerification(owner: Owner, id: string, key: CryptoKey) {
+export async function createVerification(owner: Owner, id: string, key: CryptoKey, purpose = 'diary') {
   const token = crypto.getRandomValues(new Uint8Array(32));
   try {
-    const aad = verificationAAD(owner,id);
+    const aad = verificationAAD(owner,id,purpose);
     const value = JSON.stringify({marker:'chatterloop.encryption.verification.v1',token:base64(token)});
     const encrypted = await seal(value,aad,key);
     if (await open(encrypted.nonce,encrypted.ciphertext,aad,key) !== value) throw new Error('Could not verify encryption.');
@@ -53,8 +57,8 @@ export async function createVerification(owner: Owner, id: string, key: CryptoKe
 }
 export async function verifyConfiguration(config: Configuration, owner: Owner, key: CryptoKey) {
   validateProfile(config);
-  const aad = verificationAAD(owner,config.id);
-  if (config.entity_id !== owner.entity_id || config.user_id !== owner.user_id || config.purpose !== 'diary' || config.verification_aad !== aad) throw new Error('Configuration owner does not match.');
+  const aad = verificationAAD(owner,config.id,config.verification_purpose ?? config.purpose);
+  if (config.entity_id !== owner.entity_id || config.user_id !== owner.user_id || config.verification_aad !== aad) throw new Error('Configuration owner does not match.');
   binary(config.verification_ciphertext,17,1024);
   const value = JSON.parse(await open(config.verification_nonce,config.verification_ciphertext,aad,key));
   if (value.marker !== 'chatterloop.encryption.verification.v1') throw new Error('Could not verify passphrase.');

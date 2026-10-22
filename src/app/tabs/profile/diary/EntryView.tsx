@@ -33,7 +33,7 @@ export default function EntryView() {
     if (opened?.id === id && source.current?.id === id) setEntry(opened);
   }, [id, protection?.unlockedEntry]);
   useEffect(() => {
-    if (!entry?._locked || entry._locked === 'invalid' || entry.id !== id || !protection || !source.current) return;
+    if (!entry?._locked || entry._locked === 'invalid' || entry.id !== id || !protection || !protection.encryptionEnabled || !source.current) return;
     const key = `${id}:${entry._locked}`;
     if (prompted.current === key) return;
     prompted.current = key;
@@ -44,7 +44,7 @@ export default function EntryView() {
       {entry._locked ? <div className="diary-locked-title" aria-label="Encrypted title"><span aria-hidden="true"><i/><i/></span></div> : <h1 className="writing-document-title">{entry.title}</h1>}
       <div className="writing-meta"><CalendarDays size={13}/>{new Date(`${entry.entry_date}T12:00:00`).toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric" })}{entry.is_encrypted && <><Lock size={13}/><span>Encrypted</span></>}</div>
       {entry.mood && <div className="diary-mood"><span>{entry.mood.emoji}</span>You were feeling <strong>{entry.mood.name}</strong></div>}
-      {entry._locked ? <><div className="diary-locked-notice"><Lock size={15}/><span>{entry._lockError || 'Entry needs a different or older key to unlock'}</span>{entry._locked !== 'invalid' && <button onClick={() => { if (source.current) protection?.unlock(entry._locked!, source.current); }}>Unlock entry</button>}</div><div className="diary-locked-content" aria-label="Encrypted writing"><div aria-hidden="true">{[0,1,2].map(paragraph => <p key={paragraph}><i/><i/><i/><i/></p>)}</div></div></> : <div className="writing-body ql-editor" style={{ padding: 0 }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(writingHtmlForEditor(entry.content)) }}/>}
+      {entry._locked ? <><div className="diary-locked-notice"><Lock size={15}/><span>{entry._lockError || 'Entry needs a different or older key to unlock'}</span>{entry._locked !== 'invalid' && protection?.encryptionEnabled !== false && <button onClick={() => { if (source.current) protection?.unlock(entry._locked!, source.current); }}>Unlock entry</button>}</div><div className="diary-locked-content" aria-label="Encrypted writing"><div aria-hidden="true">{[0,1,2].map(paragraph => <p key={paragraph}><i/><i/><i/><i/></p>)}</div></div></> : <div className="writing-body ql-editor" style={{ padding: 0 }} dangerouslySetInnerHTML={{ __html: DOMPurify.sanitize(writingHtmlForEditor(entry.content)) }}/>}
       {entry.link_preview && <LinkPreviewCard preview={entry.link_preview} variant="display"/>}{entry.tag_objects.length > 0 && <div className="writing-tags" style={{ marginTop: 24 }}>{entry.tag_objects.map(tag => <span key={tag.id} className="writing-tag">{tag.name}</span>)}</div>}{entry.attachments.length > 0 && <section className="writing-files"><div className="writing-files-heading">Attachments</div><div className="diary-attachment-previews">{entry.attachments.map(file => <UploadedAttachment key={file.id} attachment={file}/>)}</div></section>}</article></div><footer className="writing-footer"><span>Your diary</span><span>{entry.mood?.name || ""}</span></footer></>}
   </>;
 }

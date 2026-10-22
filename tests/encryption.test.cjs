@@ -38,6 +38,78 @@ test('verification roundtrip binds owner and ID and rejects wrong key', async ()
   const wrong = await webcrypto.subtle.importKey('raw',new Uint8Array(32).fill(1),'AES-GCM',false,['decrypt']);
   await assert.rejects(c.verifyConfiguration(config,owner,wrong));
 });
+
+test('verification uses immutable origin while Diary authorization follows memberships', async () => {
+  const c = load();
+  const key = await webcrypto.subtle.importKey('raw',new Uint8Array(32),'AES-GCM',false,['encrypt','decrypt']);
+  const created = await c.createVerification(owner,id,key,'notes');
+  const config = {...c.PROFILE,...owner,id,purpose:'notes',verification_purpose:'notes',purposes:['diary','notes'],is_active:false,salt:btoa('s'.repeat(16)),...created};
+  assert.equal(config.verification_aad,`["chatterloop.encryption.verification",1,"${id}","${owner.entity_id}","${owner.user_id}","notes"]`);
+  assert.doesNotThrow(()=>c.validateConfiguration(config,owner));
+  assert.equal(c.configurationSupportsPurpose(config,'diary'),true);
+  assert.equal(c.configurationSupportsPurpose({...config,purposes:['notes']},'diary'),false);
+  assert.equal(c.configurationSupportsPurpose({...config,purposes:undefined,purpose:'diary'},'diary'),true);
+  const proof = await c.verifyConfiguration(config,owner,key);
+  assert.equal(await c.verifyConfiguration({...config,purposes:['notes']},owner,key),proof);
+  await assert.rejects(c.verifyConfiguration({...config,verification_purpose:'diary'},owner,key));
+  assert.throws(()=>c.validateConfiguration({...config,purposes:'diary'},owner));
+});
+
+function loadApi(client) {
+  const exports = {};
+  const file = require('node:path').join(__dirname,'../src/reusables/encryption/api.ts');
+  const source = ts.transpileModule(fs.readFileSync(file,'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS,target:ts.ScriptTarget.ES2020}}).outputText;
+  vm.runInNewContext(source,{exports,localStorage:{getItem:()=>null},require:(name)=>name==='./crypto'?load():name==='../hooks/requests'?{firstPartyClient:client}:{default:{USER_SERVICE_API:'https://test.invalid'}}});
+  return exports;
+}
+
+async function settingsFixture() {
+  const c = load();
+  const key = await webcrypto.subtle.importKey('raw',new Uint8Array(32),'AES-GCM',false,['encrypt','decrypt']);
+  const created = await c.createVerification(owner,id,key);
+  const config = {...c.PROFILE,...owner,id,name:'Shared',purpose:'diary',verification_purpose:'diary',purposes:['diary','notes'],is_active:true,created_at:'2026-10-22T00:00:00Z',salt:btoa('s'.repeat(16)),...created};
+  return {owner,supported_profile:c.PROFILE,purposes:['diary','notes'].map(purpose=>({purpose,label:purpose,configurations:[config],active_configuration_id:id,scope_version:'a'.repeat(64)}))};
+}
+
+test('settings accept generic verification origins and reject misplaced memberships', async () => {
+  const settings = await settingsFixture();
+  settings.purposes=settings.purposes.slice(1);
+  const api = loadApi({get:async()=>({data:{status:true,result:settings}})});
+  assert.equal((await api.loadConfigurations()).purposes[0].purpose,'notes');
+  settings.purposes[0].configurations[0].purposes=['diary'];
+  await assert.rejects(api.loadConfigurations(),/Invalid passphrase settings/);
+});
+
+test('successful configuration mutation reloads all groups with the server active state', async () => {
+  const settings = await settingsFixture();
+  const client = {post:async()=>({data:{status:true,result:settings.purposes[0]}}),get:async()=>({data:{status:true,result:settings}})};
+  const result = await loadApi(client).changeConfiguration('activate',id,{purpose:'notes',expected_scope_version:'a'.repeat(64)});
+  assert.equal(result.purposes.length,2);
+  assert.equal(result.purposes[1].active_configuration_id,id);
+});
+
+test('purpose-scoped configuration loading sends an explicit filter and rejects unrelated groups',async()=>{
+  const settings=await settingsFixture();
+  let requestOptions;
+  const api=loadApi({get:async(url,options)=>{requestOptions=options;return{data:{status:true,result:settings}};}});
+  settings.purposes=settings.purposes.slice(0,1);
+  assert.equal((await api.loadConfigurations('diary')).purposes.length,1);
+  assert.equal(requestOptions.params.purpose,'diary');
+  settings.purposes[0].purpose='notes';
+  await assert.rejects(api.loadConfigurations('diary'),/Invalid passphrase settings/);
+});
+
+test('purpose activation defaults on for legacy responses and disabled purposes retain historical configurations',async()=>{
+  const settings=await settingsFixture();
+  const api=loadApi({get:async()=>({data:{status:true,result:settings}})});
+  assert.equal((await api.loadConfigurations()).purposes[0].is_active,true);
+  settings.purposes[0].is_active=false;
+  const result=await api.loadConfigurations();
+  assert.equal(result.purposes[0].is_active,false);
+  assert.equal(result.purposes[0].configurations[0].id,id);
+  settings.purposes[0].is_active='false';
+  await assert.rejects(api.loadConfigurations(),/Invalid passphrase settings/);
+});
 test('diary title and HTML body use distinct nonces, owner and field AAD, and matching entry binding', async () => {
   const c = load();
   const key = await webcrypto.subtle.importKey('raw',new Uint8Array(32),'AES-GCM',false,['encrypt','decrypt']);
