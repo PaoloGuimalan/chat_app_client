@@ -30,6 +30,19 @@ test('selects the authenticated current entity and its profile URL',()=>{
   auth.active_entity_context.profile='N/A';assert.equal(activeEntityProfile(auth).url,null);
   auth.auth=false;assert.equal(activeEntityProfile(auth),null);
 });
+
+test('active entity ID and profile stay paired without relying on personal fields or switch flags',()=>{
+  const {activeEntityProfile}=api();
+  const auth={auth:true,user:{entity_id:'personal-entity',profile:'none'},active_entity_context:{id:'switched-entity',profile:'/switched.jpg'}};
+  assert.deepEqual(JSON.parse(JSON.stringify(activeEntityProfile(auth))),{entityId:'switched-entity',url:'/switched.jpg'});
+  auth.active_entity_context.is_switched=false;
+  assert.equal(activeEntityProfile(auth).url,'/switched.jpg');
+  auth.active_entity_context.profile=null;
+  auth.user.profile='/personal.jpg';
+  assert.equal(activeEntityProfile(auth).url,null,'a missing active avatar must not use the personal photo');
+  delete auth.active_entity_context;
+  assert.equal(activeEntityProfile(auth),null,'wait for validated active context instead of guessing from user.entity_id');
+});
 test('persists both URL and Blob under the entity ID',async()=>{
   const f=fixture();await f.cache.sync(person,'session-a');
   const record=f.data.get(person.entityId);
@@ -74,9 +87,28 @@ test('initial AuthCheck calls the cache only after authenticated entity data is 
   const code=ts.transpileModule(extract('buildActiveEntityFields')+'\n'+extract('AuthCheck')+'\nexports.check=AuthCheck;',{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
   for(const authenticated of [true,false]) {
     const calls=[],exports={},result={usertoken:'user',active_entity:{id:'page',type:'realm',profile:'/page.jpg'},allowed_modules:[],personal_entity_id:'person'};
-    vm.runInNewContext(code,{exports,console,localStorage:{getItem:()=> 'token'},envs:{CHATTERLOOP_API:'/api'},Axios:{get:async()=>({data:{status:authenticated,result}})},authenticationstate:{},jwt_decode:()=>({fullname:{},profile:'/person.jpg',entity_id:'person'}),setTimeout:cb=>cb(),SET_AUTHENTICATION:'auth',activeEntityProfile:auth=>({entityId:auth.active_entity_context.id,url:auth.active_entity_context.profile}),entityProfileCache:{sync:(...args)=>{calls.push(args);return Promise.resolve();}}});
+    vm.runInNewContext(code,{exports,console,localStorage:{getItem:()=> 'token'},envs:{CHATTERLOOP_API:'/api'},Axios:{get:async()=>({data:{status:authenticated,result}})},authenticationstate:{},jwt_decode:()=>({fullname:{},profile:'/person.jpg',entity_id:'person'}),setTimeout:cb=>cb(),SET_AUTHENTICATION:'auth',activeEntityProfile:api().activeEntityProfile,entityProfileCache:{sync:(...args)=>{calls.push(args);return Promise.resolve();}}});
     exports.check(()=>{});await new Promise(setImmediate);
     assert.equal(calls.length,authenticated?1:0);
     if(authenticated) assert.deepEqual(JSON.parse(JSON.stringify(calls[0])),[{entityId:'page',url:'/page.jpg'},'token']);
   }
+});
+
+test('real AuthCheck and selector cache personal, switched, then switch-back profiles under their current entity IDs',async()=>{
+  const source=fs.readFileSync('src/reusables/hooks/requests.ts','utf8');
+  const ast=ts.createSourceFile('requests.ts',source,ts.ScriptTarget.Latest,true);
+  const extract=name=>ast.statements.find(node=>ts.isVariableStatement(node)&&node.declarationList.declarations.some(d=>d.name.getText(ast)===name)).getText(ast);
+  const code=ts.transpileModule(extract('buildActiveEntityFields')+'\n'+extract('AuthCheck')+'\nexports.check=AuthCheck;',{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
+  const fetched=[],f=fixture(async target=>{fetched.push(target.url);return image();});
+  const selector=api().activeEntityProfile;
+  for(const active of [{id:'personal-entity',type:'user',profile:'/personal.jpg'},{id:'page-entity',type:'realm',profile:'/page.jpg'},{id:'personal-entity',type:'user',profile:'/personal.jpg'}]) {
+    const token=`token-${active.id}`,pending=[],exports={};f.setToken(token);
+    const result={usertoken:'user',active_entity:active,allowed_modules:[],personal_entity_id:'personal-entity'};
+    const cache=f.reload();
+    vm.runInNewContext(code,{exports,console,localStorage:{getItem:()=>token},envs:{CHATTERLOOP_API:'/api'},Axios:{get:async()=>({data:{status:true,result}})},authenticationstate:{},jwt_decode:()=>({fullname:{},entity_id:'personal-entity',profile:'none'}),setTimeout:cb=>cb(),SET_AUTHENTICATION:'auth',activeEntityProfile:selector,entityProfileCache:{sync:(...args)=>{const job=cache.sync(...args);pending.push(job);return job;}}});
+    exports.check(()=>{});await new Promise(setImmediate);await Promise.all(pending);
+    const cached=f.data.get(active.id);assert.ok(cached?.blob instanceof Blob);assert.equal(cached.url,active.profile);
+  }
+  assert.deepEqual(fetched,['/personal.jpg','/page.jpg']);
+  assert.deepEqual([...f.data.keys()],['personal-entity','page-entity']);
 });

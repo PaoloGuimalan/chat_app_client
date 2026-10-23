@@ -3,16 +3,17 @@ import { entityProfileStore, type EntityProfileStore } from "./entityProfileStor
 export interface EntityProfileTarget { entityId: string; url: string | null }
 interface ProfileAuthentication {
   auth: boolean | null;
-  user: { entity_id: string; profile?: string | null };
-  active_entity_context?: { id?: string; is_switched?: boolean; profile?: string | null };
+  active_entity_context?: { id?: string; profile?: string | null };
 }
 
 export function activeEntityProfile(authentication: ProfileAuthentication): EntityProfileTarget | null {
   if (authentication.auth !== true) return null;
   const active = authentication.active_entity_context;
-  const entityId = active?.id || authentication.user.entity_id;
-  if (!entityId) return null;
-  const raw = active?.is_switched ? active.profile : authentication.user.profile;
+  if (!active?.id) return null;
+  // The personal user payload can carry a different ID/photo after a switch.
+  // Use the validated current context for BOTH halves of the cache record.
+  const entityId = active.id;
+  const raw = active.profile;
   const url = typeof raw === "string" && raw.trim() && !["none", "n/a"].includes(raw.trim().toLowerCase()) ? raw : null;
   return { entityId, url };
 }
