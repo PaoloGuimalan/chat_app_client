@@ -25,6 +25,31 @@ function currentSessionToken(): string | null {
 const MAX_BYTES = 10 * 1024 * 1024;
 const isImage = (blob: unknown): blob is Blob => blob instanceof Blob && blob.type.startsWith("image/") && blob.size > 0 && blob.size <= MAX_BYTES;
 
+async function normalizeAvatarBlob(blob: Blob): Promise<Blob> {
+  if (!(blob instanceof Blob) || blob.size === 0) throw new Error("Avatar response is empty or is not a Blob");
+  if (blob.size > MAX_BYTES) throw new Error(`Avatar response exceeds 10 MiB (${blob.size} bytes)`);
+  if (blob.type.startsWith("image/")) return blob;
+
+  // Older stored avatars may be served as downloadable binary rather than
+  // image/*. Identify actual image bytes, never guess from the URL extension.
+  const bytes = new Uint8Array(await blob.slice(0, 64).arrayBuffer());
+  const matches = (signature: number[], offset = 0) =>
+    bytes.length >= offset + signature.length && signature.every((value, index) => bytes[offset + index] === value);
+  const text = (offset: number, length: number) => String.fromCharCode(...bytes.slice(offset, offset + length));
+  let mime: string | undefined;
+  if (matches([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) mime = "image/png";
+  else if (matches([0xff, 0xd8, 0xff])) mime = "image/jpeg";
+  else if (["GIF87a", "GIF89a"].includes(text(0, 6))) mime = "image/gif";
+  else if (text(0, 4) === "RIFF" && text(8, 4) === "WEBP") mime = "image/webp";
+  else if (text(4, 4) === "ftyp") {
+    const brands = [text(8, 4)];
+    for (let offset = 16; offset + 4 <= bytes.length; offset += 4) brands.push(text(offset, 4));
+    if (brands.some(brand => ["avif", "avis"].includes(brand))) mime = "image/avif";
+  }
+  if (!mime) throw new Error(`Avatar bytes are not a supported image (MIME: ${blob.type || "missing"}, ${blob.size} bytes)`);
+  return blob.slice(0, blob.size, mime);
+}
+
 async function fetchAvatar(target: EntityProfileTarget, signal: AbortSignal): Promise<Blob> {
   const response = await fetch(target.url!, { mode: "cors", credentials: "omit", referrerPolicy: "no-referrer", signal });
   if (!response.ok || response.type === "opaque") throw new Error("Avatar image unavailable");
@@ -61,9 +86,10 @@ export function createEntityProfileCache({ store, fetchBlob = fetchAvatar, getTo
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), 8000);
       try {
-        const blob = await fetchBlob(target, controller.signal);
+        const downloaded = await fetchBlob(target, controller.signal);
         if (controller.signal.aborted || token !== getToken()) return;
-        if (!isImage(blob)) throw new Error("Avatar response is not a supported image Blob");
+        const blob = await normalizeAvatarBlob(downloaded);
+        if (controller.signal.aborted || token !== getToken()) return;
         await store.put({ entityId: target.entityId, url: target.url, blob, updatedAt: now() });
       } finally {
         clearTimeout(timer);

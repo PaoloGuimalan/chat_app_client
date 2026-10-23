@@ -4,10 +4,10 @@ const fs=require('node:fs');
 const vm=require('node:vm');
 const ts=require('typescript');
 
-function api() {
+function api(overrides={}) {
   const exported={};
   vm.runInNewContext(ts.transpileModule(fs.readFileSync('src/reusables/cache/entityProfileCache.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,
-    {exports:exported,Blob,AbortController,setTimeout,clearTimeout,Date,require:()=>({entityProfileStore:{}})});
+    {exports:exported,Blob,AbortController,setTimeout,clearTimeout,Date,require:()=>({entityProfileStore:{}}),...overrides});
   return exported;
 }
 const image=()=>new Blob(['image-bytes'],{type:'image/png'});
@@ -48,6 +48,44 @@ test('persists both URL and Blob under the entity ID',async()=>{
   const record=f.data.get(person.entityId);
   assert.ok(record.blob instanceof Blob);assert.equal(record.url,person.url);assert.equal(record.updatedAt,100000);
   assert.equal(f.fetches(),1);
+});
+
+test('realm images served as generic downloads are identified by bytes and cached with image MIME',async()=>{
+  const samples=[
+    {bytes:[0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a,0,0,0,0],mime:'image/png'},
+    {bytes:[0xff,0xd8,0xff,0xe0,0,0],mime:'image/jpeg'},
+    {bytes:Array.from(Buffer.from('GIF89a123456')),mime:'image/gif'},
+    {bytes:Array.from(Buffer.from('RIFF1234WEBP1234')),mime:'image/webp'},
+    {bytes:Array.from(Buffer.from('\0\0\0\x18ftypavif\0\0\0\0')),mime:'image/avif'},
+  ];
+  for(const sample of samples) for(const claimed of ['application/octet-stream','']) {
+    const blob=new Blob([new Uint8Array(sample.bytes)],{type:claimed});
+    const f=fixture(async()=>blob);await f.cache.sync(page,'session-a');
+    const record=f.data.get(page.entityId);
+    assert.ok(record?.blob instanceof Blob,`missing ${sample.mime} with MIME ${claimed}`);
+    assert.equal(record.blob.type,sample.mime);assert.equal(record.url,page.url);
+    assert.deepEqual(Buffer.from(await record.blob.arrayBuffer()),Buffer.from(sample.bytes));
+    await f.reload().sync(page,'session-a');assert.equal(f.fetches(),1,'reuse the repaired image without downloading again');
+  }
+});
+
+test('generic HTML/error responses and empty or oversized bytes are not cached as images',async()=>{
+  for(const blob of [new Blob(['<html>not an image</html>'],{type:'application/octet-stream'}),new Blob([],{type:'application/octet-stream'}),new Blob([new Uint8Array(10*1024*1024+1)],{type:'image/png'})]) {
+    const f=fixture(async()=>blob);await f.cache.sync(page,'session-a');assert.equal(f.data.size,0);
+  }
+});
+
+test('actual fetch path accepts a binary image response with attachment disposition',async()=>{
+  const bytes=new Uint8Array([0x89,0x50,0x4e,0x47,0x0d,0x0a,0x1a,0x0a,0,0,0,0]);
+  let requested;const f=fixture();
+  const {createEntityProfileCache}=api({fetch:async(url,options)=>{
+    requested={url,options};
+    return new Response(bytes,{headers:{'Content-Type':'application/octet-stream','Content-Disposition':'attachment; filename="avatar.png"'}});
+  }});
+  await createEntityProfileCache({store:f.store,getToken:()=> 'session-a'}).sync(page,'session-a');
+  assert.equal(requested.url,page.url);assert.equal(requested.options.mode,'cors');
+  assert.equal(f.data.get(page.entityId).blob.type,'image/png');
+  assert.deepEqual(Buffer.from(await f.data.get(page.entityId).blob.arrayBuffer()),Buffer.from(bytes));
 });
 test('a new page load reuses matching URL and valid Blob regardless of cache age',async()=>{
   const f=fixture();f.data.set(person.entityId,{...person,blob:image(),updatedAt:0});
