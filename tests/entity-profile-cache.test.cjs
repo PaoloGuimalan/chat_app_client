@@ -112,3 +112,18 @@ test('real AuthCheck and selector cache personal, switched, then switch-back pro
   assert.deepEqual(fetched,['/personal.jpg','/page.jpg']);
   assert.deepEqual([...f.data.keys()],['personal-entity','page-entity']);
 });
+
+test('jwtchecker starts realm caching immediately before delayed authentication state hydration',async()=>{
+  const source=fs.readFileSync('src/reusables/hooks/requests.ts','utf8');
+  const ast=ts.createSourceFile('requests.ts',source,ts.ScriptTarget.Latest,true);
+  const extract=name=>ast.statements.find(node=>ts.isVariableStatement(node)&&node.declarationList.declarations.some(d=>d.name.getText(ast)===name)).getText(ast);
+  const code=ts.transpileModule(extract('buildActiveEntityFields')+'\n'+extract('AuthCheck')+'\nexports.check=AuthCheck;',{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText;
+  const timers=[],calls=[],exports={};let dispatches=0;
+  const result={usertoken:'personal-user-payload',active_entity:{id:'current-realm-entity',type:'realm',profile:'/realm.jpg'},allowed_modules:[],personal_entity_id:'personal-entity'};
+  vm.runInNewContext(code,{exports,console,localStorage:{getItem:()=> 'realm-session'},envs:{CHATTERLOOP_API:'/api'},Axios:{get:async()=>({data:{status:true,result}})},authenticationstate:{},jwt_decode:()=>({fullname:{},entity_id:'personal-entity',profile:'/personal.jpg'}),setTimeout:cb=>{timers.push(cb);},SET_AUTHENTICATION:'auth',activeEntityProfile:api().activeEntityProfile,entityProfileCache:{sync:(...args)=>{calls.push(args);return Promise.resolve();}}});
+  exports.check(()=>dispatches++);await new Promise(setImmediate);
+  assert.equal(dispatches,0,'authentication UI is still waiting for its existing timer');
+  assert.equal(calls.length,1,'cache must start directly from the successful jwtchecker response');
+  assert.deepEqual(JSON.parse(JSON.stringify(calls[0])),[{entityId:'current-realm-entity',url:'/realm.jpg'},'realm-session']);
+  timers[0]();assert.equal(dispatches,1);assert.equal(calls.length,1,'do not start a second cache job on Redux hydration');
+});

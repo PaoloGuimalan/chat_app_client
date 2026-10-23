@@ -62,12 +62,20 @@ export function createEntityProfileCache({ store, fetchBlob = fetchAvatar, getTo
       const timer = setTimeout(() => controller.abort(), 8000);
       try {
         const blob = await fetchBlob(target, controller.signal);
-        if (controller.signal.aborted || token !== getToken() || !isImage(blob)) return;
+        if (controller.signal.aborted || token !== getToken()) return;
+        if (!isImage(blob)) throw new Error("Avatar response is not a supported image Blob");
         await store.put({ entityId: target.entityId, url: target.url, blob, updatedAt: now() });
       } finally {
         clearTimeout(timer);
       }
-    })().catch(() => { /* Optional presentation cache must not fail authentication. */ })
+    })().catch(error => {
+      // Do not fail authentication, but keep actual fetch/storage failures
+      // observable without printing session credentials or image URLs.
+      console.warn("[Studio avatar cache] Active entity avatar was not cached", {
+        entityId: target.entityId,
+        reason: error instanceof Error ? error.message : "Image or storage unavailable",
+      });
+    })
       .finally(() => { pending.delete(key); });
     pending.set(key, job);
     return job;

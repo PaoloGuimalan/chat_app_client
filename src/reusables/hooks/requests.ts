@@ -174,6 +174,12 @@ const AuthCheck = (dispatch: any) => {
     .then((response) => {
       if (response.data.status) {
         const userData: any = jwt_decode(response.data.result.usertoken);
+        // jwtchecker resolves the CURRENT entity's ID and photo, including
+        // realms/pages. Start caching immediately, before delayed Redux setup.
+        void entityProfileCache.sync(activeEntityProfile({
+          auth: true,
+          active_entity_context: response.data.result.active_entity,
+        }), authtoken);
         // console.log(userData)
         setTimeout(() => {
           const restoredAuthentication = {
@@ -201,9 +207,6 @@ const AuthCheck = (dispatch: any) => {
             },
             ...buildActiveEntityFields(response.data.result),
           };
-          // Only the initial authenticated page load writes Studio's avatar
-          // cache. Same entity + same URL + valid Blob is reused on reload.
-          void entityProfileCache.sync(activeEntityProfile(restoredAuthentication), authtoken);
           dispatch({
             type: SET_AUTHENTICATION,
             payload: { authentication: restoredAuthentication },
