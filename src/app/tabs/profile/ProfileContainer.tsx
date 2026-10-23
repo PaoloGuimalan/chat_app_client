@@ -24,8 +24,11 @@ import RealmProfile from "./user/RealmProfile";
 import BotProfile from "./user/BotProfile";
 import { useSelector } from "react-redux";
 import { useTheme } from "@/reusables/design";
+import { isReservedProfilePath } from "@/reusables/routing/profilePaths";
+import { useProfilePathsVersion } from "@/reusables/routing/useProfilePaths";
 
 function ProfileContainer() {
+  const policyVersion = useProfilePathsVersion();
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -52,6 +55,11 @@ function ProfileContainer() {
   }, [authentication, isSharePath]);
 
   const GetProfileInfoProcess = (callback: () => void = () => {}) => {
+    if (isReservedProfilePath(params.userID)) {
+      setisError(true);
+      setisloaded(true);
+      return;
+    }
     GetProfileInfo({
       userID: params.userID,
     })
@@ -89,7 +97,11 @@ function ProfileContainer() {
 
   useEffect(() => {
     GetProfileInfoProcess();
-  }, [params.userID]);
+  }, [params.userID, policyVersion]);
+
+  // Do not resolve a reserved root to someone's legacy profile. Studio's
+  // load-balancer route can be deployed later without a reload loop here.
+  if (isReservedProfilePath(params.userID)) return <BrokenLink label="This path is reserved by Chatterloop." secondaryLabel="This feature is not available here yet." />;
 
   const content = (
     <Routes>

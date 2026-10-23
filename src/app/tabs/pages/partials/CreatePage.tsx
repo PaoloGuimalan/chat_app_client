@@ -28,6 +28,8 @@ import {
 import { IoClose } from "react-icons/io5";
 import { IoIosArrowForward } from "react-icons/io";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
+import { profilePathError } from "@/reusables/routing/profilePaths";
+import { useProfilePathsVersion } from "@/reusables/routing/useProfilePaths";
 
 type PageModeratorCandidate = {
   id: string;
@@ -128,7 +130,9 @@ function CreatePage() {
     ],
   );
 
-  const payloadValid = useMemo(() => !hasNullValues(finalData), [finalData]);
+  const slugError = profilePathError(slug);
+  const policyVersion = useProfilePathsVersion();
+  const payloadValid = useMemo(() => !hasNullValues(finalData) && !profilePathError(finalData.slug), [finalData, policyVersion]);
 
   const rows: ContactRowData[] = Array.from(
     contactslist
@@ -383,6 +387,7 @@ function CreatePage() {
                         <input
                           type="text"
                           placeholder="page_username"
+                          aria-invalid={!!slugError}
                           value={slug}
                           className="tw-w-full tw-bg-transparent tw-text-[14px] tw-font-Inter tw-text-[var(--text)] tw-outline-none placeholder:tw-text-[var(--text-2)]"
                           onChange={(e) => {
@@ -391,6 +396,7 @@ function CreatePage() {
                           disabled={isSaving}
                         />
                       </div>
+                      {slugError && <span role="alert" className="tw-text-[var(--red)] tw-text-[13px] sm:tw-col-span-2">{slugError.message}</span>}
                     </div>
                   </div>
                 </div>

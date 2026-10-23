@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import envs from "@/reusables/hooks/env_configs";
+import { applyReservedProfilePaths } from "../routing/profilePaths";
 
 // Upload limits per feature, as the SERVER enforces them.
 //
@@ -67,6 +68,7 @@ const isPositive = (n: unknown): n is number =>
   typeof n === "number" && Number.isFinite(n) && n > 0;
 
 const apply = (raw: any) => {
+  applyReservedProfilePaths(raw?.reserved_profile_paths);
   if (raw?.limits && typeof raw.limits === "object") {
     const next: Record<string, UploadLimit> = { ...DEFAULT_LIMITS };
     for (const [feature, value] of Object.entries<any>(raw.limits)) {
@@ -117,7 +119,7 @@ export const loadMediaConfig = async (): Promise<void> => {
     try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ limits: body.limits, transfer: body.transfer }),
+        JSON.stringify({ limits: body.limits, transfer: body.transfer, reserved_profile_paths: body.reserved_profile_paths }),
       );
     } catch {
       // Storage full or blocked - this session still has the fresh values.

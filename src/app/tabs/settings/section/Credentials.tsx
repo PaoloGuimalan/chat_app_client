@@ -6,8 +6,11 @@ import { UpdateProfileInfoRequest } from "@/reusables/hooks/requests";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { profilePathError } from "@/reusables/routing/profilePaths";
+import { useProfilePathsVersion } from "@/reusables/routing/useProfilePaths";
 
 function Credentials() {
+  useProfilePathsVersion();
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -27,6 +30,7 @@ function Credentials() {
     setemail(authentication.user.email);
     setusername(authentication.user.username);
   };
+  const usernameError = username !== authentication.user.username ? profilePathError(username) : null;
 
   const triggerAlert = (type: string, content: string) => {
     dispatch({
@@ -43,6 +47,7 @@ function Credentials() {
   };
 
   const updateProfileProcess = () => {
+    if (usernameError) { triggerAlert("warning", usernameError.message); return; }
     setisLoading(true);
 
     const fieldsToUpdate: Record<string, any> = {};
@@ -95,6 +100,7 @@ function Credentials() {
                 value={username}
                 onChange={(e) => setusername(e.target.value)}
               />
+              {usernameError && <span role="alert" className="tw-text-[var(--red)] tw-text-[13px]">{usernameError.message}</span>}
             </div>
           </div>
         </div>
@@ -129,7 +135,7 @@ function Credentials() {
           <div className="tw-w-full tw-flex tw-flex-row tw-items-start tw-justify-end tw-gap-[6px]">
             <button
               onClick={updateProfileProcess}
-              disabled={isLoading}
+              disabled={isLoading || !!usernameError}
               className="tw-min-w-[92px] tw-cursor-pointer tw-font-semibold tw-font-Inter tw-border-none tw-px-[14px] tw-py-[10px] tw-bg-[var(--brand)] tw-text-white tw-rounded-[var(--r-md)] tw-text-[13px] disabled:tw-opacity-[0.65] tw-transition-colors"
             >
               Save

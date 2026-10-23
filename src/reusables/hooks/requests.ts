@@ -1,6 +1,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
+import { profilePathError } from "../routing/profilePaths";
+import { activeEntityProfile, entityProfileCache } from "../cache/entityProfileCache";
 import {
   SET_ACTIVE_USERS_LIST,
   SET_AUTHENTICATION,
@@ -199,6 +201,9 @@ const AuthCheck = (dispatch: any) => {
             },
             ...buildActiveEntityFields(response.data.result),
           };
+          // Only the initial authenticated page load writes Studio's avatar
+          // cache. Same entity + same URL + valid Blob is reused on reload.
+          void entityProfileCache.sync(activeEntityProfile(restoredAuthentication), authtoken);
           dispatch({
             type: SET_AUTHENTICATION,
             payload: { authentication: restoredAuthentication },
@@ -3513,6 +3518,8 @@ const CreatePageRequest = async (payload: {
   profile: File;
   cover_photo: File;
 }) => {
+  const pathError = profilePathError(payload.slug);
+  if (pathError) throw friendlyError(pathError.message, undefined, pathError.code);
   // Both images go straight to storage first; the page is then created from
   // their upload ids.
   let profile: UploadedFile, cover: UploadedFile;
@@ -4048,6 +4055,8 @@ const UpdateRealmMediaRequest = async (payload: {
 export const SLUG_TAKEN = "SLUG_TAKEN";
 
 const UpdateRealmRequest = async (realm_id: string, fields: any) => {
+  const pathError = profilePathError(fields.slug);
+  if (pathError) throw friendlyError(pathError.message, undefined, pathError.code);
   return await Axios.put(
     `${envs.USER_SERVICE_API}/api/realm/my-list`,
     {

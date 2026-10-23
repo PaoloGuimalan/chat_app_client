@@ -7,8 +7,11 @@ import { useMemo, useState } from "react";
 import { useDispatch } from "react-redux";
 import { motion } from "framer-motion";
 import { Btn } from "@/reusables/design";
+import { profilePathError } from "@/reusables/routing/profilePaths";
+import { useProfilePathsVersion } from "@/reusables/routing/useProfilePaths";
 
 function Details({ realm }: { realm: IRealmProfileInfo }) {
+  useProfilePathsVersion();
   const [realmState, setrealmState] = useState<IRealmProfileInfo>(realm);
   const [isSaving, setisSaving] = useState<boolean>(false);
   const [errorFields, seterrorFields] = useState<string[]>([]);
@@ -38,6 +41,7 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
   );
 
   const dispatch = useDispatch();
+  const slugError = realmState.slug !== realm.slug ? profilePathError(realmState.slug) : null;
 
   const SaveDetailsProcess = () => {
     seterrorFields([]);
@@ -54,7 +58,7 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
         // A slug collision also marks the field; every OTHER failure used to
         // fall through this branch silently, leaving the form looking as
         // though the save had simply been ignored.
-        if (err?.code === SLUG_TAKEN) {
+        if ([SLUG_TAKEN, "RESERVED_PATH", "INVALID_PROFILE_PATH"].includes(err?.code)) {
           seterrorFields((prev) => [...new Set([...prev, "slug"])]);
         }
 
@@ -144,8 +148,10 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
                     value={realmState.slug ?? ""}
                     type="text"
                     placeholder="Slug"
+                    aria-invalid={!!slugError || errorFields.includes("slug")}
                     className="tw-w-full tw-h-[42px] tw-rounded-[var(--r-md)] tw-border tw-bg-[var(--input)] tw-px-[12px] tw-font-Inter tw-text-[var(--text)] tw-outline-none focus:tw-border-[var(--brand)]"
                   />
+                  {slugError && <span role="alert" className="tw-text-[var(--red)] tw-text-[13px]">{slugError.message}</span>}
                 </div>
               )}
               {currentPreset.includes("description") && (
