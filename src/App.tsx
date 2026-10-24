@@ -12,7 +12,8 @@ import { useEffect, useRef, useState } from "react";
 import { AuthCheck } from "./reusables/hooks/requests";
 import { loadMediaConfig } from "./reusables/vars/uploads";
 import Alert from "./app/widgets/Alert";
-import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER } from "./redux/types";
+import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER, SET_MUTATE_ALERTS } from "./redux/types";
+import { consumeStudioMomentNotice } from "./reusables/hooks/studio";
 import ProfileContainer from "./app/tabs/profile/ProfileContainer";
 import { AuthenticationInterface } from "./reusables/vars/interfaces";
 import Setup from "./app/auth/Setup";
@@ -35,6 +36,14 @@ function App() {
   const location = useLocation().pathname;
 
   const scrollDivAlerts = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!authentication.auth || location !== "/") return;
+    const entityId = authentication.active_entity_context?.id || authentication.user.entity_id;
+    if (!entityId) return;
+    const content = consumeStudioMomentNotice(entityId);
+    if (content) dispatch({ type: SET_MUTATE_ALERTS, payload: { alerts: { type: "success", content } } });
+  }, [authentication.auth, authentication.active_entity_context?.id, authentication.user.entity_id, location]);
 
   const screensizelistenerTrigger = () => {
     dispatch({
