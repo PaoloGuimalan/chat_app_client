@@ -16,7 +16,7 @@ import { Btn, Card, Icon, useTheme } from "@/reusables/design";
 import { Avatar } from "@/reusables/design/primitives2";
 import { getActiveAvatar } from "@/reusables/hooks/reusable";
 import MomentsBoard from "../moments/MomentsBoard";
-import CreateMomentModal from "../moments/CreateMomentModal";
+import { openStudioMoment } from "@/reusables/hooks/studio";
 
 /**
  * `sidebar` renders to the RIGHT of the 680px column, inside this component's
@@ -37,7 +37,6 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
     useState<PaginationProp<IPost>>(postsliststate);
   const posts: IPost[] = paginatedPosts.results;
 
-  const [creatingMoment, setCreatingMoment] = useState(false);
   const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
     toggle: false,
     withImage: false,
@@ -162,9 +161,6 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
             />
           )}
 
-          {creatingMoment && (
-            <CreateMomentModal onClose={() => setCreatingMoment(false)} />
-          )}
 
           <MomentsBoard />
 
@@ -240,7 +236,7 @@ function Feed({ sidebar }: { sidebar?: React.ReactNode }) {
                 Photo
               </button>
               <button
-                onClick={() => setCreatingMoment(true)}
+                onClick={openStudioMoment}
                 style={{
                   display: "inline-flex",
                   alignItems: "center",

@@ -38,6 +38,7 @@ export default function AppShortcuts({
       : []),
     { name: "Servers", icon: appShortcutIcons.servers, route: "/servers" },
     { name: "Pages", icon: appShortcutIcons.pages, route: "/pages" },
+    { name: "Studio", icon: appShortcutIcons.studio, route: "/studio/" },
     ...(!active?.is_switched && allowed.includes("module.diary.access")
       ? [{ name: "Diary", icon: appShortcutIcons.diary, route: `/${encodeURIComponent(username)}/diary` }]
       : []),
@@ -53,6 +54,11 @@ export default function AppShortcuts({
       title={item.route || layout === "rail" ? item.name : "Coming soon"}
       onClick={() => {
         if (!item.route) return;
+        if (item.route === "/studio/") {
+          window.location.assign(item.route);
+          onNavigate?.();
+          return;
+        }
         if (item.route === "/settings" && width > 1100) {
           dispatch({
             type: SET_PAGE_MODAL,

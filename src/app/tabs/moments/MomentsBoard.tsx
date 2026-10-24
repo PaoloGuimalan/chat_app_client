@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Avatar, Badge, Card, Icon } from "@/reusables/design";
 import { GetMomentTrayRequest } from "@/reusables/hooks/requests";
 import type { IMomentTray, IMomentTrayEntry } from "@/reusables/vars/interfaces";
-import CreateMomentModal from "./CreateMomentModal";
+import { openStudioMoment } from "@/reusables/hooks/studio";
 import { MomentsBoardLoader } from "./MomentLoaders";
 import {
   MOMENTS_CHANGED_EVENT,
@@ -79,7 +79,6 @@ function RemainingBar({ expiresAt }: { expiresAt: string }) {
 function MomentsBoard() {
   const navigate = useNavigate();
   const [tray, setTray] = useState<IMomentTray | null>(null);
-  const [creating, setCreating] = useState(false);
 
   const load = () =>
     GetMomentTrayRequest()
@@ -118,7 +117,6 @@ function MomentsBoard() {
 
   return (
     <Card pad="12px 14px 14px" className="cl-bleed" style={{ marginBottom: 8 }}>
-      {creating && <CreateMomentModal onClose={() => setCreating(false)} />}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           <span style={{ fontSize: "var(--fs-section-title)", fontWeight: 750, letterSpacing: "-0.01em", color: "var(--text)" }}>
@@ -175,7 +173,7 @@ function MomentsBoard() {
         )}
 
         <button
-          onClick={() => setCreating(true)}
+          onClick={openStudioMoment}
           style={{ width: 100, flex: "none", borderRadius: "var(--r-md)", border: "1.5px dashed var(--border-2)", background: "var(--surface-2)", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 6, cursor: "pointer" }}
         >
           <span style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--brand)", color: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
