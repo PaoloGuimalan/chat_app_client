@@ -7284,7 +7284,16 @@ input:checked + .slider:before {
 }
 
 .cl-create-post-loading {
-  background: var(--scrim);
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: inherit;
+  background: var(--surface);
+  background: color-mix(in srgb, var(--surface) 92%, transparent);
+  color: var(--brand);
 }
 
 /* ---- Post tagging (multi-select people) ---- */

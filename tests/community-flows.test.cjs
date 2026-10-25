@@ -118,6 +118,29 @@ test('community profile reuses the profile composer and opens Photo with a prote
   cleanup();
 });
 
+test('uploaded covers render as images in the directory and profile', async () => {
+  reset();
+  const cover = 'https://media.example.test/community/cover photo (1).jpg';
+  directory = [{ ...community, cover_photo: cover }];
+  detail = { ...community, cover_photo: cover };
+  try {
+    const directoryScreen = render(React.createElement(Communities));
+    await waitFor(() => assert.ok(directoryScreen.queryByText('Garden Club')));
+    const cardCover = directoryScreen.container.querySelector('.cl-community-card-cover img');
+    assert.ok(cardCover, 'Directory cover uses an image element');
+    assert.equal(cardCover.getAttribute('src'), cover);
+    cleanup();
+
+    const profileScreen = render(React.createElement(Profile));
+    await waitFor(() => assert.ok(profileScreen.queryByText('Leave community')));
+    const profileCover = profileScreen.container.querySelector('.cl-community-cover img');
+    assert.ok(profileCover, 'Profile cover uses an image element');
+    assert.equal(profileCover.getAttribute('src'), cover);
+  } finally {
+    cleanup();
+  }
+});
+
 test('anonymous composer submits exact destination and upload context before publication', async () => {
   reset(); files = [new dom.window.File(['photo'], 'photo.jpg', { type: 'image/jpeg' })];
   const screen = render(React.createElement(NewPostModal, { ...composerProps, withImage: true }));
@@ -135,6 +158,28 @@ test('anonymous composer submits exact destination and upload context before pub
   assert.deepEqual(uploads[0][3], { community_entity_id: 'destination', is_anonymous: true });
   assert.equal(uploads[0][4], 'fixture-token'); assert.equal(saves[0].otherEntityID, null);
   assert.equal(auth.active_entity_context.id, 'human'); cleanup();
+});
+
+test('publishing shows a modal loading status until the request completes', async () => {
+  reset();
+  const originalCreate = requests.CreatePostRequest;
+  let complete;
+  requests.CreatePostRequest = () => new Promise(resolve => { complete = resolve; });
+  try {
+    const screen = render(React.createElement(NewPostModal, composerProps));
+    fireEvent.change(screen.getByPlaceholderText('Type your caption'), {
+      target: { value: 'A community post' },
+    });
+    fireEvent.click(screen.getByRole('button', { name: 'Create', exact: true }));
+    assert.ok(screen.getByRole('status', { name: 'Publishing post' }));
+    assert.equal(screen.getByRole('button', { name: 'Create', exact: true }).disabled, true);
+    await waitFor(() => assert.equal(typeof complete, 'function'));
+    await act(async () => complete({ data: { status: true } }));
+    assert.equal(screen.queryByRole('status', { name: 'Publishing post' }), null);
+  } finally {
+    requests.CreatePostRequest = originalCreate;
+    cleanup();
+  }
 });
 
 test('anonymous comments and replies submit independent identity and anonymous typing', async () => {

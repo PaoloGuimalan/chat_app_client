@@ -263,7 +263,9 @@ function Members({
           members and their roles
         </span>
       </div>
-      {realm.type === "community" && canReviewCommunityRequests(realm.my_role) && <CommunityRequests realmId={realm.realm_id} className={addableMember ? "xl:tw-max-w-[450px]" : ""} />}
+      {realm.type === "community" && canReviewCommunityRequests(realm.my_role) && (
+        <CommunityRequests realmId={realm.realm_id} />
+      )}
       <div className="tw-flex tw-flex-wrap tw-w-full tw-gap-[12px] tw-h-full">
         <div
           className={`tw-w-full ${addableMember && "xl:tw-max-w-[450px]"} tw-h-full tw-flex tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-overflow-hidden`}

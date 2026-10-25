@@ -19,10 +19,11 @@ export default function CommunityDirectoryItem({
     : "cl-display-card__button--primary";
   return (
     <button type="button" className="cl-display-card cl-community-card" onClick={onOpen}>
-      <div
-        className="cl-display-card__cover cl-community-card-cover"
-        style={cover && cover !== "none" ? { backgroundImage: `url(${cover})` } : undefined}
-      />
+      <div className="cl-display-card__cover cl-community-card-cover">
+        {cover && cover !== "none" && (
+          <img src={cover} alt="" className="cl-community-cover-image" />
+        )}
+      </div>
       <div className="cl-display-card__body cl-community-card-body">
         <div className="cl-display-card__avatar-shell tw-relative tw--mt-[30px] tw-flex tw-items-center tw-justify-center">
           <Avatar

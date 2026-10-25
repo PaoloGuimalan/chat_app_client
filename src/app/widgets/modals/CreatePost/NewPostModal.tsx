@@ -451,6 +451,7 @@ export function NewPostModal({
     <Modal
       component={
         <div
+          aria-busy={isuploadingpost}
           className={`div_modal_container cl-create-post-shell ${showDestination ? "cl-create-post-shell--destination" : ""} ${toShare
             ? "cl-create-post-shell--share"
             : iswithImage
@@ -465,12 +466,9 @@ export function NewPostModal({
         >
           {isuploadingpost && !toShare && (
             <div
-              className={`cl-create-post-loading tw-absolute tw-inset-0 tw-h-full tw-w-full ${toShare
-                ? "tw-max-h-[600px]"
-                : iswithImage || showTagging || showPrivacy
-                  ? "tw-max-h-[520px]"
-                  : "tw-max-h-[260px]"
-                } tw-flex tw-items-center tw-justify-center`}
+              className="cl-create-post-loading"
+              role="status"
+              aria-label="Publishing post"
             >
               <div id="div_conversation_content_loader">
                 <motion.div

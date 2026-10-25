@@ -20,7 +20,7 @@ export default function CommunityProfile({ communityId }: {
   const id = communityId || params.communityId || params.userID || "";
   const actor = useSelector((state: any) => state.authentication.active_entity_context?.id ?? state.authentication.user.entity_id);
   const width = useSelector((state: any) => state.screensizelistener.W);
-  const avatarSize = width < 650 ? 120 : width < 900 ? 160 : 78;
+  const avatarSize = width < 650 ? 120 : 160;
   const navigate = useNavigate();
   const [community, setCommunity] = useState<CommunityCard | null>(null);
   const currentCommunity = useRef<CommunityCard | null>(null);
@@ -179,7 +179,15 @@ export default function CommunityProfile({ communityId }: {
   return <main className="cl-communities cl-community-profile cl-bleed-host thinscroller">
     <button className="cl-community-back" onClick={() => navigate("/communities")}><Icon n="chevron_left" s={22} /> Communities</button>
     <section className="cl-community-profile-header">
-      <div className="cl-community-cover" style={community.cover_photo && community.cover_photo !== "none" ? { backgroundImage: `url(${community.cover_photo})` } : undefined} />
+      <div className="cl-community-cover">
+        {community.cover_photo && community.cover_photo !== "none" && (
+          <img
+            src={community.cover_photo}
+            alt=""
+            className="cl-community-cover-image"
+          />
+        )}
+      </div>
       <div className="cl-community-profile-title">
         <div className="cl-community-profile-avatar">
           <Avatar
