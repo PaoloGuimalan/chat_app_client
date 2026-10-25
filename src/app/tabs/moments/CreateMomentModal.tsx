@@ -1,3 +1,5 @@
+import { ContributionAvatar } from "@/app/reusables/ContributionAuthor";
+import { contributionAuthor } from "@/reusables/hooks/contributionIdentity";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -71,6 +73,7 @@ export function SharedPostCard({
 }) {
   // A reshare: the feed marks it `is_shared`, and its reference is the
   // ORIGINAL post's id (not always typed "shared_post"), so both are checked.
+  const author = contributionAuthor(post);
   const isReshare = post.is_shared || post.file_type === "shared_post";
   const reshared: string | null = isReshare
     ? ((post.references?.find((r: any) => r.reference_media_type?.includes("shared_post")) ??
@@ -79,8 +82,8 @@ export function SharedPostCard({
   const media = isReshare
     ? null
     : (post.references?.find(
-        (r: any) => r.reference_media_type && !r.reference_media_type.includes("shared_post"),
-      ) as any);
+      (r: any) => r.reference_media_type && !r.reference_media_type.includes("shared_post"),
+    ) as any);
   const isVideo = media?.reference_media_type?.startsWith("video");
   return (
     <div
@@ -96,15 +99,9 @@ export function SharedPostCard({
       }}
     >
       <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
-        <Avatar
-          id={post.entity?.id}
-          entityId={post.entity?.id}
-          name={entityName(post.entity)}
-          src={post.entity?.details?.profile !== "none" ? post.entity?.details?.profile : undefined}
-          size={compact ? 26 : 30}
-        />
+        <ContributionAvatar entity={author} size={compact ? 26 : 30}/>
         <span style={{ fontSize: "var(--fs-body-sm)", fontWeight: 600, color: "var(--text)" }}>
-          {entityName(post.entity)}
+          {author ? entityName(author) : "Anonymous member"}
         </span>
       </div>
       {post.caption && (

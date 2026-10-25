@@ -210,7 +210,12 @@ export const uploadFiles = async ({
 }: {
   purpose: UploadFeature;
   files: File[];
-  context?: { conversationID?: string; realmID?: string };
+  context?: {
+    conversationID?: string;
+    realmID?: string;
+    community_entity_id?: string;
+    is_anonymous?: boolean;
+  };
   progressKeys?: (string | undefined)[];
   onProgress?: (fraction: number) => void;
   signal?: AbortSignal;

@@ -1,3 +1,4 @@
+import { AnonymousAvatar } from "@/app/reusables/ContributionAuthor";
 import { Avatar, Card, Icon } from "@/reusables/design";
 import { timeSince } from "@/reusables/hooks/reusable";
 import { SearchPostResult } from "@/reusables/vars/interfaces";
@@ -11,6 +12,7 @@ interface ContentCardProps {
 // like/comment counters. The whole card opens the real post (preview modal
 // backed by /api/newsfeed/preview/) - this card is deliberately lightweight.
 function ContentCard({ post, onOpen }: ContentCardProps) {
+  const author = post.is_anonymous ? null : post.author;
   return (
     <Card
       pad={14}
@@ -26,13 +28,17 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
           marginBottom: 6,
         }}
       >
-        <Avatar
-          id={post.author.entity_id}
-          entityId={post.author.entity_id}
-          name={post.author.display_name}
-          src={post.author.profile ?? undefined}
-          size={30}
-        />
+        {author ? (
+          <Avatar
+            id={author.entity_id}
+            entityId={author.entity_id}
+            name={author.display_name}
+            src={author.profile ?? undefined}
+            size={30}
+          />
+        ) : (
+          <AnonymousAvatar size={30}/>
+        )}
         <span
           style={{
             fontWeight: 700,
@@ -44,9 +50,9 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
             minWidth: 0,
           }}
         >
-          {post.author.display_name}
+          {author?.display_name || "Anonymous member"}
         </span>
-        {post.author.is_verified && (
+        {author?.is_verified && (
           <Icon n="verified" s={14} c="var(--brand)" style={{ flex: "none" }} />
         )}
         <span

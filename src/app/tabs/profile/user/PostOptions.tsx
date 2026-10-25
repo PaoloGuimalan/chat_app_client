@@ -1,3 +1,4 @@
+import { ownsContribution } from "@/reusables/hooks/contributionIdentity";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   DeletePostRequest,
@@ -67,7 +68,7 @@ function PostOptions({
   // (the post resolves to your own entity) - so don't offer it. This is the
   // same ownership check the archive/delete items already use, which covers
   // posts published *as* a page you administer too.
-  const isOwnPost = post.entity.id === authentication.user.entity_id;
+  const isOwnPost = ownsContribution(post, authentication.user.entity_id);
 
   // Tags are entity-keyed, so acting as a page means the PAGE's tag.
   const tagging = post.tagging ?? [];
@@ -184,8 +185,8 @@ function PostOptions({
                 if (window.innerWidth < 800) navigate(`/post/${post.post_id}/edit`, { state: { postEditFrom: location.pathname + location.search } });
                 else setEditing(true);
               }}><MdEdit size={16}/><span>Edit post</span></button>
-            <button type="button" className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[6px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
-              onClick={() => { setisOptionsToggled(false); setChangingAudience(true); }}><MdOutlinePublic size={16}/><span>Change audience</span></button>
+            {!post.community && <button type="button" className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[6px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
+              onClick={() => { setisOptionsToggled(false); setChangingAudience(true); }}><MdOutlinePublic size={16}/><span>Change audience</span></button>}
             <div role="separator" style={{ borderTop: "1px solid var(--border)", margin: "5px 0" }} />
           </>}
           {!postState.is_archived &&

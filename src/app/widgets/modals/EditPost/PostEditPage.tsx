@@ -1,3 +1,4 @@
+import { ownsContribution } from "@/reusables/hooks/contributionIdentity";
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { useSelector } from "react-redux";
@@ -24,7 +25,7 @@ export default function PostEditPage() {
     let cancelled = false;
     GetPostPreviewRequest({ postID, token }).then((post: IPost) => {
       if (cancelled) return;
-      const owned = post?.entity.id === entity && (!post.on_feed || post.on_feed === "feed");
+      const owned = post && ownsContribution(post, entity) && (!post.on_feed || post.on_feed === "feed");
       setLoaded({ key, post: owned ? post : null, error: owned ? "" : "This post isn't available to edit." });
     }).catch(cause => {
       if (!cancelled) setLoaded({ key, post: null, error: resolveErrorMessage(cause, "We couldn't load this post. Please reopen it and try again.") });

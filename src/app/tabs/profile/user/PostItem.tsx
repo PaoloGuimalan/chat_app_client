@@ -1,3 +1,6 @@
+import { ContributionAvatar, ContributionName } from "@/app/reusables/ContributionAuthor";
+import { contributionAuthor, ownsContribution } from "@/reusables/hooks/contributionIdentity";
+import PostDestination from "@/app/reusables/PostDestination";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React from 'react'
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -39,12 +42,12 @@ import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import { timeSince } from "@/reusables/hooks/reusable";
 import PostPrivacyIcon from "@/app/reusables/PostPrivacyIcon";
 import { persistViewPosts } from "@/reusables/hooks/localforagehelper";
-import { RiVerifiedBadgeFill } from "react-icons/ri";
+
 import PostOptions from "./PostOptions";
 import OverlayLoader from "@/app/reusables/loaders/OverlayLoader";
 import OverlayMessage from "@/app/reusables/catchers/OverlayMessage";
-import { Avatar } from "@/reusables/design";
-import TaggingSummary from "@/app/reusables/TaggingSummary";
+
+
 import { usePostUpdate } from "@/reusables/hooks/postUpdates";
 
 function PostItem({
@@ -105,39 +108,9 @@ function PostItem({
 
   const location = useLocation();
 
-  const postAuthorAvatar = (size = 35) => {
-    if (postState.entity.type !== "user") {
-      return (
-        <Avatar
-          id={postState.entity.details.slug}
-          entityId={postState.entity.id}
-          name={postState.entity.details.name}
-          src={
-            postState.entity.details.profile !== "none"
-              ? postState.entity.details.profile
-              : undefined
-          }
-          size={size}
-        />
-      );
-    }
-
-    return (
-      <Avatar
-        id={postState.entity.details.username}
-        entityId={postState.entity.id}
-        name={`${postState.entity.details.first_name} ${postState.entity.details.last_name}`}
-        src={
-          postState.entity.details.profile !== "none"
-            ? postState.entity.details.profile
-            : undefined
-        }
-        size={size}
-      />
-    );
-  };
-
-  const postOwnerUserID = postState.entity.details.username;
+  const author = contributionAuthor(postState);
+  const isOwnPost = ownsContribution(postState, authentication.user.entity_id);
+  const postAuthorAvatar = (size = 35) => <ContributionAvatar entity={author} size={size}/>;
 
   const toggleActivityCounts = useMemo(() => {
     const reactionsCount = postState.preview.reduce(
@@ -223,13 +196,13 @@ function PostItem({
 
   useEffect(() => {
     const isInNewsfeed = location.pathname === "/";
-    if (authentication.user.entity_id !== postState.entity.id || isInNewsfeed) {
+    if (!isOwnPost || isInNewsfeed) {
       if (isInView) {
         const viewedDate = new Date().toISOString();
         sessionStartTimeRef.current = Date.now();
         persistViewPosts(postState.post_id, {
           user_id: authentication.user.entity_id,
-          post_owner_id: postState.entity.id,
+          post_owner_id: author?.id ?? "",
           duration: 0.5,
           created_at: viewedDate,
         });
@@ -240,13 +213,13 @@ function PostItem({
         sessionStartTimeRef.current = null;
         persistViewPosts(postState.post_id, {
           user_id: authentication.user.entity_id,
-          post_owner_id: postState.entity.id,
+          post_owner_id: author?.id ?? "",
           duration: duration,
           created_at: viewedDate,
         });
       }
     }
-  }, [authentication.user.entity_id, isInView, postState, location]);
+  }, [authentication.user.entity_id, author, isInView, isOwnPost, postState, location]);
 
   if (postState.deleted_at || (!show_archived && postState.is_archived)) {
     return (
@@ -300,36 +273,18 @@ function PostItem({
             <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px]">
               <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
                 <span
-                  className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
+                  style={{ cursor: author ? "pointer" : "default" }}
+                  className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                   onClick={() => {
-                    if (postState.entity.type === "realm") {
-                      navigate(`/${postState.entity.details.slug}`);
+                    if (!author) return;
+                    if (author.type === "realm") {
+                      navigate(`/${author.details.slug}`);
                       return;
                     }
-                    navigate(`/${postState.entity.details.username}`);
+                    navigate(`/${author.details.username}`);
                   }}
                 >
-                  {postState.entity.type !== "user" ? (
-                    <div className="tw-flex tw-items-center tw-gap-[4px]">
-                      <span>{postState.entity.details.name}</span>
-                      {postState.entity.details.is_verified && (
-                        <RiVerifiedBadgeFill size={16} color="var(--brand)" />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="tw-flex tw-items-center tw-gap-[4px]">
-                      <span>
-                        {postState.entity.details.first_name}
-                        {postState.entity.details.middle_name == "N/A"
-                          ? ""
-                          : ` ${postState.entity.details.middle_name}`}{" "}
-                        {postState.entity.details.last_name}
-                      </span>
-                      {postState.entity.details.is_badged && (
-                        <RiVerifiedBadgeFill size={16} color="var(--brand)" />
-                      )}
-                    </div>
-                  )}
+                  <ContributionName entity={author}/>
                 </span>
                 &nbsp;
                 {postState.content_type === "profile" && (
@@ -339,12 +294,10 @@ function PostItem({
                   <span className="cl-text-body">changed cover photo</span>
                 )}
                 &nbsp;
-                {postState.tagging.length > 0 && (
-                  <TaggingSummary tagging={postState.tagging} />
-                )}
+                <PostDestination post={postState}/>
               </div>
               <span className="cl-text-caption">
-                <PostPrivacyIcon status={postState.privacy_status} />
+                <PostPrivacyIcon community={postState.community} status={postState.privacy_status} />
                 {dateposted}
                 {(postState.is_edited || postState.updated_at) && <span className="cl-post-edited" title={postState.updated_at ? `Edited ${new Date(postState.updated_at).toLocaleString()}` : "Edited"}>· Edited</span>}
               </span>
@@ -528,58 +481,32 @@ function PostItem({
                           <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
                             <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
                               <span
-                                className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
+                                style={{ cursor: author ? "pointer" : "default" }}
+                                className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                                 onClick={() => {
-                                  if (postState.entity.type === "realm") {
+                                  if (!author) return;
+                                  if (author.type === "realm") {
                                     navigate(
-                                      `/${postState.entity.details.slug}`,
+                                      `/${author.details.slug}`,
                                     );
                                     return;
                                   }
                                   navigate(
-                                    `/${postState.entity.details.username}`,
+                                    `/${author.details.username}`,
                                   );
                                 }}
                               >
-                                {postState.entity.type !== "user" ? (
-                                  <div className="tw-flex tw-items-center tw-gap-[4px]">
-                                    <span>{postState.entity.details.name}</span>
-                                    {postState.entity.details.is_verified && (
-                                      <RiVerifiedBadgeFill
-                                        size={16}
-                                        color="var(--brand)"
-                                      />
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div className="tw-flex tw-items-center tw-gap-[4px]">
-                                    <span>
-                                      {postState.entity.details.first_name}
-                                      {postState.entity.details.middle_name ==
-                                      "N/A"
-                                        ? ""
-                                        : ` ${postState.entity.details.middle_name}`}{" "}
-                                      {postState.entity.details.last_name}
-                                    </span>
-                                    {postState.entity.details.is_badged && (
-                                      <RiVerifiedBadgeFill
-                                        size={16}
-                                        color="var(--brand)"
-                                      />
-                                    )}
-                                  </div>
-                                )}
+                                <ContributionName entity={author}/>
                               </span>
                               &nbsp;
-                              {postState.tagging.length > 0 && (
-                                <TaggingSummary tagging={postState.tagging} />
-                              )}
+                              <PostDestination post={postState}/>
                             </div>
                             <span className="cl-text-caption">
                               {/* PostItem's own expanded view - the same post
                                   as the collapsed header above, so the same
                                   audience. */}
                               <PostPrivacyIcon
+                                community={postState.community}
                                 status={postState.privacy_status}
                               />
                               {dateposted}
@@ -676,15 +603,15 @@ function PostItem({
                         )}
                         {!minimizedCaption &&
                           postState.caption.length >= 600 && (
-                            <button
-                              onClick={() => {
-                                setminimizedCaption(true);
-                              }}
-                              className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
-                            >
+                          <button
+                            onClick={() => {
+                              setminimizedCaption(true);
+                            }}
+                            className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
+                          >
                               See less
-                            </button>
-                          )}
+                          </button>
+                        )}
                         {postState.is_shared &&
                           postState.references.map((mpu: any, i: number) => {
                             return (
@@ -834,7 +761,7 @@ function PostItem({
                                 }
                               />
                             )}
-                            {postOwnerUserID === authentication.user.userID && (
+                            {isOwnPost && (
                               <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
                                 <BsPinMap
                                   style={{
@@ -982,16 +909,16 @@ function PostItem({
                     </div>
                     {postState.references[4].reference_media_type ===
                     "image" ? (
-                      <CachedImage
-                        src={postState.references[4].reference}
-                        className="tw-w-full tw-h-full tw--ml-[100%] tw-object-cover"
-                      />
-                    ) : (
-                      <video
-                        src={postState.references[4].reference}
-                        className="tw-w-full tw-h-full tw--ml-[100%]"
-                      />
-                    )}
+                        <CachedImage
+                          src={postState.references[4].reference}
+                          className="tw-w-full tw-h-full tw--ml-[100%] tw-object-cover"
+                        />
+                      ) : (
+                        <video
+                          src={postState.references[4].reference}
+                          className="tw-w-full tw-h-full tw--ml-[100%]"
+                        />
+                      )}
                   </div>
                 )}
               </div>
@@ -1151,7 +1078,7 @@ function PostItem({
                     onAddToMoment={() => settoggleAddToMoment(true)}
                   />
                 )}
-                {postOwnerUserID === authentication.user.userID && (
+                {isOwnPost && (
                   <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
                     <BsPinMap
                       style={{ fontSize: "22px", color: "var(--text-2)" }}

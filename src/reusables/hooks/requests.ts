@@ -1412,18 +1412,18 @@ const NotificationsSectionV2Request = async (
 const asSingleGroups = (section: any) =>
   section
     ? {
-        groups: (section.items ?? []).map((n: any) => ({
-          key: String(n.notificationID),
-          count: 1,
-          unread: n.isRead ? 0 : 1,
-          actorCount: 1,
-          action: null,
-          items: [n],
-        })),
-        total: section.total ?? 0,
-        unread: section.unread ?? 0,
-        next: !!section.next,
-      }
+      groups: (section.items ?? []).map((n: any) => ({
+        key: String(n.notificationID),
+        count: 1,
+        unread: n.isRead ? 0 : 1,
+        actorCount: 1,
+        action: null,
+        items: [n],
+      })),
+      total: section.total ?? 0,
+      unread: section.unread ?? 0,
+      next: !!section.next,
+    }
     : null;
 
 const NotificationsGroupedOverviewRequest = async (
@@ -2483,9 +2483,9 @@ const ACTION_FEATURE: Record<UploadAction, UploadFeature> = {
 const uploadRequestError = (err: any) =>
   err instanceof UploadError
     ? toRequestError(
-        { response: { status: err.status, data: { message: err.message } } },
-        err.message,
-      )
+      { response: { status: err.status, data: { message: err.message } } },
+      err.message,
+    )
     : toRequestError(err);
 
 /**
@@ -2970,7 +2970,16 @@ const GetPostPreviewRequest = async (params: any) => {
     });
 };
 
-const ReactionSaveRequest = async (params: any) => {
+interface ReactionRequestOptions {
+  emoji_id: string;
+  method: "POST" | "PUT" | "DELETE";
+  /** Omitted while changing only an emoji, preserving the stored identity. */
+  is_anonymous?: boolean;
+}
+
+const ReactionSaveRequest = async (
+  params: ReactionRequestOptions & { post_id: string },
+) => {
   const post_id = params.post_id;
   const emoji_id = params.emoji_id;
   const method = params.method;
@@ -2981,6 +2990,9 @@ const ReactionSaveRequest = async (params: any) => {
     data: {
       post_id,
       emoji_id,
+      ...(typeof params.is_anonymous === "boolean"
+        ? { is_anonymous: params.is_anonymous }
+        : {}),
     },
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
@@ -2997,7 +3009,9 @@ const ReactionSaveRequest = async (params: any) => {
 // Comment reactions - ReactionSaveRequest one level down. Same `method`
 // switch (POST adds, PUT changes the emoji, DELETE removes) against the
 // comment_reaction route, so PostEmojis drives either kind unchanged.
-const CommentReactionSaveRequest = async (params: any) => {
+const CommentReactionSaveRequest = async (
+  params: ReactionRequestOptions & { comment_id: string },
+) => {
   const comment_id = params.comment_id;
   const emoji_id = params.emoji_id;
   const method = params.method;
@@ -3008,6 +3022,9 @@ const CommentReactionSaveRequest = async (params: any) => {
     data: {
       comment_id,
       emoji_id,
+      ...(typeof params.is_anonymous === "boolean"
+        ? { is_anonymous: params.is_anonymous }
+        : {}),
     },
     headers: {
       "x-access-token": localStorage.getItem("authtoken"),
@@ -4726,9 +4743,9 @@ const SubmitReportRequest = async (
         response.data.status
           ? "Report submitted. Thank you for letting us know."
           : resolveResponseMessage(
-              response,
-              "We couldn't submit that report. Please try again.",
-            ),
+            response,
+            "We couldn't submit that report. Please try again.",
+          ),
         currentAlertState,
       );
       setisWaitingRequest(false);
@@ -4865,8 +4882,8 @@ const UpdateProfilePrivacyRequest = async (
           isPrivate
             ? restricted > 0
               ? `Your profile is now private. ${restricted} existing ${
-                  restricted === 1 ? "post is" : "posts are"
-                } now visible to your contacts only.`
+                restricted === 1 ? "post is" : "posts are"
+              } now visible to your contacts only.`
               : "Your profile is now private."
             : "Your profile is now public.",
           currentAlertState,

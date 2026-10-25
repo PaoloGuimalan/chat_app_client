@@ -110,7 +110,7 @@ function MomentSidePanel({
 
   const send = async () => {
     const content = draft.trim();
-    if (!content || sending || !allowsReplies) return;
+    if (!moment.entity || !content || sending || !allowsReplies) return;
     setSending(true);
     try {
       await SendEphemeralReplyRequest({

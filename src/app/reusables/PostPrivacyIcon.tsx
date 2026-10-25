@@ -1,4 +1,5 @@
 import { Icon } from "@/reusables/design";
+import type { ICommunityMetadata } from "@/reusables/vars/interfaces";
 
 /**
  * The post's audience, as an icon on the timestamp line.
@@ -27,11 +28,18 @@ const PRIVACY: Record<string, { icon: string; label: string }> = {
 function PostPrivacyIcon({
   status,
   size = 14,
+  community,
 }: {
   status?: string | null;
   size?: number;
+  community?: ICommunityMetadata | null;
 }) {
-  const meta = status ? PRIVACY[status] : undefined;
+  const meta = community
+    ? {
+      icon: community.is_private ? "lock" : "public",
+      label: community.is_private ? "Private community" : "Public community",
+    }
+    : status ? PRIVACY[status] : undefined;
   if (!meta) return null;
 
   return (

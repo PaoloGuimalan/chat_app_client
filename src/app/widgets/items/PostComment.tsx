@@ -1,3 +1,5 @@
+import { ContributionAvatar } from "@/app/reusables/ContributionAuthor";
+import { contributionAuthor, ownsContribution, replyMentionFor } from "@/reusables/hooks/contributionIdentity";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { commentsliststate } from "@/redux/actions/states";
@@ -71,12 +73,6 @@ interface CommentTyper {
   parent_id: string | null;
 }
 
-// The @handle to type when mentioning an entity. EmbeddedRealmSerializer maps
-// a realm's slug onto `username` precisely so entity-embedding surfaces don't
-// need a branch here, but `slug` is kept as a fallback for older payloads.
-const getEntityHandle = (entity: any): string =>
-  entity?.details?.username || entity?.details?.slug || "";
-
 // Connections, following and search results overlap freely, and entity_id is
 // the one field every one of those shapes agrees on.
 const dedupeSuggestions = (rows: any[]): any[] => {
@@ -125,6 +121,7 @@ function PostComment({
 
   const [writeComment, setwriteComment] = useState<string>("");
   const [isCommentSaving, setisCommentSaving] = useState<boolean>(false);
+  const commentSavePending = useRef(false);
   const [deletingCommentID, setDeletingCommentID] = useState<string | null>(
     null,
   );
@@ -573,7 +570,7 @@ function PostComment({
   // The backend soft-deletes and enforces ownership itself (assert_owns), so
   // this gate is only about not showing a button that would 403.
   const isMyComment = (mp: IPostComment) =>
-    mp.entity?.id === authentication.user.entity_id;
+    ownsContribution(mp, authentication.user.entity_id);
 
   const DeleteCommentProcess = (mp: IPostComment) => {
     if (deletingCommentID) return;
@@ -628,6 +625,15 @@ function PostComment({
   };
 
   const SaveCommentProcess = () => {
+    if (
+      commentSavePending.current ||
+      isCommentSaving ||
+      !authentication.auth ||
+      writeComment.trim() === ""
+    ) {
+      return;
+    }
+    commentSavePending.current = true;
     setisCommentSaving(true);
     closeMentionSuggestions();
     SaveCommentRequest(post_id, parent_id, writeComment, null)
@@ -647,6 +653,9 @@ function PostComment({
         setisCommentSaving(false);
         console.log(err);
         notifyRequestError(err, "We couldn't post that comment.");
+      })
+      .finally(() => {
+        commentSavePending.current = false;
       });
   };
 
@@ -785,9 +794,7 @@ function PostComment({
    * replyMentionHandleFor so the two can't drift.
    */
   const replyMentionHandle = (mp: IPostComment): string | null => {
-    if (isMyComment(mp)) return null;
-    const handle = getEntityHandle(mp.entity);
-    return handle ? handle : null;
+    return replyMentionFor(mp, authentication.user.entity_id);
   };
 
   /**
@@ -897,6 +904,7 @@ function PostComment({
             <textarea
               ref={composerRef}
               placeholder={isThread ? "Write a reply..." : "Write a comment..."}
+              title="Enter to send · Shift+Enter for a new line"
               id={isThread ? "textarea_feed_reply_box" : "textarea_feed_box"}
               className="cl-comment-section__field tw-font-Inter"
               value={writeComment}
@@ -909,6 +917,10 @@ function PostComment({
                 );
               }}
               onKeyDown={(e) => {
+                // Enter can finish an IME composition rather than submit text.
+                if (e.nativeEvent.isComposing || e.nativeEvent.keyCode === 229) {
+                  return;
+                }
                 if (mentionState.open && mentionSuggestions.length > 0) {
                   if (e.key === "ArrowDown") {
                     e.preventDefault();
@@ -940,6 +952,10 @@ function PostComment({
                     closeMentionSuggestions();
                     return;
                   }
+                }
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  if (!e.repeat) SaveCommentProcess();
                 }
               }}
               onBlur={() => closeMentionSuggestions()}
@@ -1015,6 +1031,7 @@ function PostComment({
         ) : (
           <div className="cl-comment-section__rows tw-flex tw-flex-col tw-gap-[14px] tw-items-start tw-w-full">
             {comments.results.map((mp: IPostComment) => {
+              const author = contributionAuthor(mp);
               const replyCount = replyCountOf(mp);
               const isOpen = openThreads.includes(mp.comment_id);
 
@@ -1023,26 +1040,7 @@ function PostComment({
                   key={mp.comment_id}
                   className="cl-comment-section__row tw-flex tw-gap-[12px] tw-w-full tw-items-start"
                 >
-                  <Avatar
-                    id={mp.entity.details.id}
-                    // `entity.id` is the entity; `entity.details.id` above it is
-                    // the account/realm row's own pk (EntitySerializer,
-                    // user_service/entity/serializers.py). Presence is keyed by
-                    // the former.
-                    entityId={mp.entity.id}
-                    name={
-                      mp.entity.type === "user"
-                        ? `${mp.entity.details.first_name} ${mp.entity.details.last_name}`
-                        : mp.entity.details.name
-                    }
-                    src={
-                      mp.entity.details.profile == "none"
-                        ? undefined
-                        : mp.entity.details.profile
-                    }
-                    kind={mp.entity.type}
-                    size={isThread ? 38 : 46}
-                  />
+                  <ContributionAvatar entity={author} size={isThread ? 38 : 46}/>
                   <div className="tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-text-left tw-flex-1 tw-min-w-0">
                     <div className="cl-comment-section__bubble tw-w-full tw-rounded-[14px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-p-[12px] tw-text-left tw-shadow-sm">
                       <div className="tw-w-full tw-flex tw-items-start tw-justify-between tw-gap-[10px]">
@@ -1055,25 +1053,26 @@ function PostComment({
                             // "user") and read `.slug`, which a bot payload
                             // does not have - so the row navigated to
                             // "/undefined" instead of the bot's profile.
-                            if (mp.entity.type === "user") {
-                              navigate(`/${mp.entity.details.username}`);
-                            } else if (mp.entity.type === "bot") {
-                              navigate(`/${mp.entity.details.handle}`);
+                            if (!author) return;
+                            if (author.type === "user") {
+                              navigate(`/${author.details.username}`);
+                            } else if (author.type === "bot") {
+                              navigate(`/${author.details.handle}`);
                             } else {
-                              navigate(`/${mp.entity.details.slug}`);
+                              navigate(`/${author.details.slug}`);
                             }
                           }}
                         >
-                          {mp.entity.type === "user" ? (
+                          {!author ? "Anonymous member" : author.type === "user" ? (
                             <div className="tw-flex tw-items-center tw-gap-[4px] tw-flex-wrap tw-text-left">
                               <span>
-                                {mp.entity.details.first_name}
-                                {mp.entity.details.middle_name == "N/A"
+                                {author.details.first_name}
+                                {author.details.middle_name == "N/A"
                                   ? ""
-                                  : ` ${mp.entity.details.middle_name}`}{" "}
-                                {mp.entity.details.last_name}
+                                  : ` ${author.details.middle_name}`}{" "}
+                                {author.details.last_name}
                               </span>
-                              {mp.entity.details.is_badged && (
+                              {author.details.is_badged && (
                                 <RiVerifiedBadgeFill
                                   size={16}
                                   color="#1c7def"
@@ -1082,20 +1081,20 @@ function PostComment({
                             </div>
                           ) : (
                             <div className="tw-flex tw-items-center tw-gap-[4px] tw-flex-wrap tw-text-left">
-                              <span>{mp.entity.details.name}</span>
-                              {mp.entity.details.is_verified && (
+                              <span>{author.details.name}</span>
+                              {author.details.is_verified && (
                                 <RiVerifiedBadgeFill
                                   size={16}
                                   color="#1c7def"
                                 />
                               )}
-                              {mp.entity.type === "realm" && (
+                              {author.type === "realm" && (
                                 <PageFlag
-                                  realmType={mp.entity.details.type}
+                                  realmType={author.details.type}
                                   size={14}
                                 />
                               )}
-                              {mp.entity.type === "bot" && (
+                              {author.type === "bot" && (
                                 <BotFlag is size={14} />
                               )}
                             </div>
@@ -1118,7 +1117,7 @@ function PostComment({
                       </div>
                       <div className="tw-w-full tw-flex tw-flex-col tw-gap-[4px] tw-mt-[4px]">
                         {/* The SAME renderer the messenger uses.
-                            
+
                             Was an HTML string through
                             dangerouslySetInnerHTML - escape, linkify, wrap
                             mentions, sanitize. Bots answer comments now, and a
@@ -1196,17 +1195,17 @@ function PostComment({
                               emojilist.find(
                                 (flt) => flt.emoji_id === mp.entity_reaction,
                               )?.emoji_content ? (
-                                <span className="cl-comments-reaction">
-                                  {
-                                    emojilist.find(
-                                      (flt) =>
-                                        flt.emoji_id === mp.entity_reaction,
-                                    )?.emoji_content
-                                  }
-                                </span>
-                              ) : (
-                                <span className="cl-text-meta">React</span>
-                              )
+                                  <span className="cl-comments-reaction">
+                                    {
+                                      emojilist.find(
+                                        (flt) =>
+                                          flt.emoji_id === mp.entity_reaction,
+                                      )?.emoji_content
+                                    }
+                                  </span>
+                                ) : (
+                                  <span className="cl-text-meta">React</span>
+                                )
                             ) : (
                               <span className="cl-text-meta">React</span>
                             )}
@@ -1226,8 +1225,8 @@ function PostComment({
                             {isOpen
                               ? "Hide replies"
                               : `View ${replyCount} ${
-                                  replyCount === 1 ? "reply" : "replies"
-                                }`}
+                                replyCount === 1 ? "reply" : "replies"
+                              }`}
                           </button>
                         )}
                         {reactionTotalOf(mp) > 0 && (

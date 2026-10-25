@@ -442,6 +442,17 @@ export interface IAuthorRealm {
   slug: string;
 }
 
+export interface ICommunityMetadata {
+  realm_id: string;
+  entity_id: string;
+  name: string;
+  slug: string | null;
+  profile: string;
+  is_private: boolean;
+  is_member: boolean;
+  is_verified?: boolean;
+}
+
 export interface IPost {
   post_id: string;
   updated_at?: string | null;
@@ -451,7 +462,11 @@ export interface IPost {
   map_info: IMapInfo | null;
   preview: IPreviewCount[];
   entity_reaction: string | null;
-  entity: IFlexibleEntity; // Use the single unified type
+  entity: IFlexibleEntity | null;
+  is_anonymous?: boolean;
+  is_owner?: boolean;
+  community?: ICommunityMetadata | null;
+  entity_reaction_is_anonymous?: boolean | null;
   score: IPostScore;
   is_saved: boolean;
   is_shared: boolean;
@@ -730,6 +745,9 @@ export interface SearchPostResult {
   date_posted: string | null;
   likes_count: number;
   comments_count: number;
+  is_anonymous?: boolean;
+  is_owner?: boolean;
+  community?: ICommunityMetadata | null;
   author: {
     entity_id: string;
     type: "user" | "realm";
@@ -737,7 +755,7 @@ export interface SearchPostResult {
     handle: string;
     profile: string | null;
     is_verified: boolean;
-  };
+  } | null;
 }
 
 export interface SearchOverviewSection<T> {
@@ -982,7 +1000,11 @@ export interface IPostComment {
   deleted_at: string | null;
   parent_comment: string | null;
   post: string;
-  entity: IFlexibleEntity; // Unifies both user and realm data profiles safely
+  entity: IFlexibleEntity | null;
+  is_anonymous?: boolean;
+  is_owner?: boolean;
+  community?: ICommunityMetadata | null;
+  entity_reaction_is_anonymous?: boolean | null;
   deleted_by: string | null;
   /**
    * Non-deleted replies under this comment. Annotated by the backend only on
@@ -1301,6 +1323,7 @@ export interface ReplyTargetCard {
   type: ReplyTargetType;
   id: string;
   status: "active" | "expired" | "unavailable";
+  is_anonymous?: boolean;
   author: {
     entity_id: string;
     type: string;

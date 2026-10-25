@@ -1,8 +1,10 @@
+import { ContributionAvatar } from "@/app/reusables/ContributionAuthor";
+import { contributionAuthor } from "@/reusables/hooks/contributionIdentity";
 import { useEffect, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight, ImagePlus, Loader2, Trash2 } from "lucide-react";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
-import { Avatar } from "@/reusables/design";
+
 import type { IPost } from "@/reusables/vars/interfaces";
 import { UpdatePostRequest } from "@/reusables/hooks/requests";
 import { uploadFiles } from "@/reusables/hooks/mediaUpload";
@@ -35,8 +37,9 @@ export default function EditPost({ post, onClose, asPage = false }: { post: IPos
   current.current = { dirty, saving };
   const canEditMedia = editablePostMedia(post);
   const canSave = dirty && (Boolean(caption.trim()) || media.length > 0);
-  const author = post.entity.details;
-  const name = post.entity.type === "user"
+  const entity = contributionAuthor(post);
+  const author = entity?.details;
+  const name = !author ? "Anonymous member" : entity?.type === "user"
     ? [author.first_name, author.middle_name !== "N/A" && author.middle_name, author.last_name].filter(Boolean).join(" ")
     : author.name || "";
 
@@ -102,8 +105,16 @@ export default function EditPost({ post, onClose, asPage = false }: { post: IPos
       const fresh = media.filter(item => item.file && !uploads.current.has(item.key));
       if (fresh.length) {
         setProgress(0);
-        const added = await uploadFiles({ purpose: "post_media", files: fresh.map(item => item.file!), token,
-          signal: abort.current.signal, onProgress: value => { if (alive.current) setProgress(value); } });
+        const added = await uploadFiles({
+          purpose: "post_media",
+          files: fresh.map(item => item.file!),
+          token,
+          context: post.community && post.is_anonymous
+            ? { community_entity_id: post.community.entity_id, is_anonymous: true }
+            : undefined,
+          signal: abort.current.signal,
+          onProgress: value => { if (alive.current) setProgress(value); },
+        });
         added.forEach((uploaded, index) => uploads.current.set(fresh[index].key, uploaded.fileUrl));
       }
       if (!alive.current || token !== localStorage.getItem("authtoken")) return;
@@ -135,9 +146,8 @@ export default function EditPost({ post, onClose, asPage = false }: { post: IPos
     </button>
   </>}>
     <div className="cl-post-edit__author">
-      <Avatar id={author.username || author.slug || post.entity.id} entityId={post.entity.id} name={name}
-        src={author.profile && author.profile !== "none" ? author.profile : undefined} size={38}/>
-      <div><strong>{name}</strong><span><PostPrivacyIcon status={post.privacy_status}/>{new Date(post.date_posted).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span></div>
+      <ContributionAvatar entity={entity} size={38}/>
+      <div><strong>{name}</strong><span><PostPrivacyIcon community={post.community} status={post.privacy_status}/>{new Date(post.date_posted).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" })}</span></div>
     </div>
     <label className="cl-post-edit__field"><span>Caption</span>
       <textarea value={caption} onChange={event => setCaption(event.target.value)} disabled={saving} placeholder="Write a caption…" rows={4}/>

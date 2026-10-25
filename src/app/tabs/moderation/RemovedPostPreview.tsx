@@ -4,6 +4,7 @@ import { Avatar, Icon } from "@/reusables/design";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import VideoPlayer from "@/app/reusables/VideoPlayer";
 import { highlightHashtags } from "@/reusables/hooks/hashtags";
+import { AnonymousAvatar } from "@/app/reusables/ContributionAuthor";
 
 /**
  * A post, rendered read-only, for the moderation review page.
@@ -36,6 +37,7 @@ export interface RemovedPostContent {
   created_at?: string;
   deleted_at?: string | null;
   is_removed: boolean;
+  is_anonymous?: boolean;
   entity?: {
     details?: {
       username?: string;
@@ -45,7 +47,7 @@ export interface RemovedPostContent {
       slug?: string;
       name?: string;
     };
-  };
+  } | null;
   references?: {
     reference_id?: string;
     reference?: string;
@@ -56,6 +58,7 @@ export interface RemovedPostContent {
 }
 
 const displayName = (content: RemovedPostContent) => {
+  if (content.is_anonymous) return "Anonymous member";
   const details = content.entity?.details;
   if (!details) return "Unknown";
   const full = [details.first_name, details.last_name].filter(Boolean).join(" ");
@@ -63,12 +66,14 @@ const displayName = (content: RemovedPostContent) => {
 };
 
 const handleOf = (content: RemovedPostContent) => {
+  if (content.is_anonymous) return null;
   const details = content.entity?.details;
   return details?.username || details?.slug || null;
 };
 
 /** A CDN url, or nothing. Both sentinels the platform uses mean "no picture". */
 const pictureOf = (content: RemovedPostContent) => {
+  if (content.is_anonymous) return undefined;
   const profile = content.entity?.details?.profile;
   return profile && profile !== "none" && profile !== "N/A" ? profile : undefined;
 };
@@ -129,11 +134,15 @@ function RemovedPostPreview({ content }: { content: RemovedPostContent }) {
     <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
       {/* Author. Plain text, not a link - see the file header. */}
       <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-        <Avatar
-          name={displayName(content)}
-          src={pictureOf(content)}
-          size={38}
-        />
+        {content.is_anonymous ? (
+          <AnonymousAvatar size={38}/>
+        ) : (
+          <Avatar
+            name={displayName(content)}
+            src={pictureOf(content)}
+            size={38}
+          />
+        )}
         <div style={{ minWidth: 0, flex: 1 }}>
           <div
             style={{
@@ -205,20 +214,20 @@ function RemovedPostPreview({ content }: { content: RemovedPostContent }) {
             if (isVideo(mime)) {
               return (
                 <Flagged key={key} on={isFlagged}>
-                <VideoPlayer
-                  src={reference.reference || ""}
-                  // No autoplay: a removed video should be playable for
-                  // review, not play itself at somebody. The box carries
-                  // the frame (it clips the player's line to the corner),
-                  // the video the 320px cap less that frame's border.
-                  className="cl-moderation-media"
-                  style={{ background: "#000" }}
-                  videoStyle={{
-                    width: "100%",
-                    maxHeight: "calc(320px - 2px)",
-                    objectFit: "cover",
-                  }}
-                />
+                  <VideoPlayer
+                    src={reference.reference || ""}
+                    // No autoplay: a removed video should be playable for
+                    // review, not play itself at somebody. The box carries
+                    // the frame (it clips the player's line to the corner),
+                    // the video the 320px cap less that frame's border.
+                    className="cl-moderation-media"
+                    style={{ background: "#000" }}
+                    videoStyle={{
+                      width: "100%",
+                      maxHeight: "calc(320px - 2px)",
+                      objectFit: "cover",
+                    }}
+                  />
                 </Flagged>
               );
             }
@@ -227,21 +236,21 @@ function RemovedPostPreview({ content }: { content: RemovedPostContent }) {
             // rendered. Nothing here needs to open it.
             return (
               <Flagged key={key} on={isFlagged}>
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 8,
-                  padding: "10px 12px",
-                  border: "1px solid var(--border)",
-                  borderRadius: "var(--r-sm)",
-                  color: "var(--text-2)",
-                  fontSize: "var(--fs-meta)",
-                }}
-              >
-                <Icon n="attach_file" s={16} c="var(--text-3)" />
-                {mime || "attachment"}
-              </div>
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 8,
+                    padding: "10px 12px",
+                    border: "1px solid var(--border)",
+                    borderRadius: "var(--r-sm)",
+                    color: "var(--text-2)",
+                    fontSize: "var(--fs-meta)",
+                  }}
+                >
+                  <Icon n="attach_file" s={16} c="var(--text-3)" />
+                  {mime || "attachment"}
+                </div>
               </Flagged>
             );
           })}

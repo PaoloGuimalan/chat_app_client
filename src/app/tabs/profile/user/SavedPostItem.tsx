@@ -1,10 +1,12 @@
+import { ContributionAvatar, ContributionName } from "@/app/reusables/ContributionAuthor";
+import { contributionAuthor } from "@/reusables/hooks/contributionIdentity";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   AuthenticationInterface,
   IPost,
   ISavedPost,
 } from "@/reusables/vars/interfaces";
-import { Avatar } from "@/reusables/design";
+
 import { useSelector } from "react-redux";
 import { useMemo, useState } from "react";
 import { GoBookmarkSlashFill } from "react-icons/go";
@@ -41,6 +43,8 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
     toggle: false,
     withImage: false,
   });
+
+  const author = contributionAuthor(savedPost.post);
 
   const UnsavePostProcess = () => {
     setisSaving(true);
@@ -129,35 +133,12 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
         }}
         className="cl-display-card tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[14px] tw-flex tw-flex-row tw-gap-[10px]"
       >
-        <Avatar
-          id={
-            savedPost.post.entity.details?.slug ??
-            savedPost.post.entity.details.username
-          }
-          entityId={savedPost.post.entity.id}
-          name={
-            savedPost.post.entity.details?.name ??
-            `${savedPost.post.entity.details.first_name} ${savedPost.post.entity.details.last_name}`
-          }
-          src={
-            savedPost.post.entity.details.profile
-              ? savedPost.post.entity.details.profile &&
-                savedPost.post.entity.details.profile !== "N/A"
-                ? savedPost.post.entity.details.profile
-                : undefined
-              : savedPost.post.entity.details.profile &&
-                  savedPost.post.entity.details.profile !== "none"
-                ? savedPost.post.entity.details.profile
-                : undefined
-          }
-          size={isMobileView ? 85 : 120}
-        />
+        <ContributionAvatar entity={author} size={isMobileView ? 85 : 120}/>
         <div className="tw-flex tw-flex-col tw-flex-1 tw-items-start">
           <div className="tw-flex tw-flex-col tw-gap-[6px] tw-p-[5px] tw-items-start tw-flex-1">
             {savedPost.post.caption.trim() === "" ? (
               <span className="cl-text-body tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
-                {savedPost.post.entity.details?.name ??
-                  savedPost.post.entity.details.first_name}
+                {author ? author.details.name ?? author.details.first_name : "Anonymous member"}
                 {"'s"} Post
               </span>
             ) : (
@@ -174,19 +155,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
                   .join(" ")}
               </span>
               &bull;
-              {savedPost.post.entity.type !== "user" ? (
-                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text-2)]">
-                  {savedPost.post.entity.details.name}
-                </span>
-              ) : (
-                <span className="tw-font-Inter cl-text-caption tw-text-[var(--text-2)]">
-                  {savedPost.post.entity.details.first_name}
-                  {savedPost.post.entity.details.middle_name == "N/A"
-                    ? ""
-                    : ` ${savedPost.post.entity.details.middle_name}`}{" "}
-                  {savedPost.post.entity.details.last_name}
-                </span>
-              )}
+              <span className="tw-font-Inter cl-text-caption tw-text-[var(--text-2)]"><ContributionName entity={author}/></span>
             </div>
           </div>
           <div className="tw-pl-[5px] tw-flex tw-gap-[6px]">

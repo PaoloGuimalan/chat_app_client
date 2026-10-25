@@ -123,9 +123,11 @@ function ReplyTargetPreview({
           <div className="tw-flex tw-flex-col tw-min-w-0 tw-gap-[2px]">
             <span className="cl-text-meta tw-text-[var(--text-3)]">
               {kindLabel}
-              {card.author?.display_name
-                ? ` · ${card.author.display_name}`
-                : ""}
+              {card.is_anonymous
+                ? " · Anonymous member"
+                : card.author?.display_name
+                  ? ` · ${card.author.display_name}`
+                  : ""}
             </span>
             {live ? (
               text ? (

@@ -1,0 +1,448 @@
+{
+  "posts": [
+    {
+      "post_id": "ordinary-user",
+      "updated_at": null,
+      "is_edited": false,
+      "tagging": [],
+      "references": [],
+      "map_info": null,
+      "preview": [],
+      "entity_reaction": null,
+      "entity": {
+        "id": "author-entity",
+        "type": "user",
+        "details": {
+          "id": "author-account",
+          "profile": "none",
+          "is_active": true,
+          "username": "mika",
+          "first_name": "Mika",
+          "middle_name": "N/A",
+          "last_name": "Santos",
+          "is_badged": false
+        }
+      },
+      "score": {
+        "id": 1,
+        "affinity_score": 0,
+        "content_type_weight": 1,
+        "recent_update_boost": 0,
+        "likes_count": 0,
+        "comments_count": 2,
+        "shares_count": 0,
+        "ranking_score": 0,
+        "post": "ordinary-user"
+      },
+      "is_saved": false,
+      "is_shared": false,
+      "file_type": "text",
+      "caption": "A quiet morning in the garden.",
+      "content_type": "text",
+      "is_tagged": false,
+      "privacy_status": "public",
+      "is_sponsored": false,
+      "is_live": true,
+      "is_archived": false,
+      "on_feed": "feed",
+      "date_posted": "2026-10-25T00:00:00Z",
+      "from_system": false,
+      "deleted_at": null,
+      "deleted_by": null,
+      "feed_reason": null
+    },
+    {
+      "post_id": "ordinary-page",
+      "updated_at": null,
+      "is_edited": false,
+      "tagging": [],
+      "references": [],
+      "map_info": null,
+      "preview": [],
+      "entity_reaction": null,
+      "entity": {
+        "id": "page-entity",
+        "type": "realm",
+        "details": {
+          "id": "page-realm",
+          "realm_id": "page-realm",
+          "profile": "none",
+          "is_active": true,
+          "type": "page",
+          "name": "The Garden Studio",
+          "slug": "garden-studio",
+          "is_verified": true
+        }
+      },
+      "score": {
+        "id": 1,
+        "affinity_score": 0,
+        "content_type_weight": 1,
+        "recent_update_boost": 0,
+        "likes_count": 0,
+        "comments_count": 2,
+        "shares_count": 0,
+        "ranking_score": 0,
+        "post": "ordinary-user"
+      },
+      "is_saved": false,
+      "is_shared": false,
+      "file_type": "text",
+      "caption": "New seedlings from The Garden Studio.",
+      "content_type": "text",
+      "is_tagged": false,
+      "privacy_status": "public",
+      "is_sponsored": false,
+      "is_live": true,
+      "is_archived": false,
+      "on_feed": "feed",
+      "date_posted": "2026-10-25T00:00:00Z",
+      "from_system": false,
+      "deleted_at": null,
+      "deleted_by": null,
+      "feed_reason": null
+    },
+    {
+      "post_id": "named-community",
+      "updated_at": null,
+      "is_edited": false,
+      "tagging": [
+        {
+          "id": 1,
+          "entity": {
+            "id": "community-entity",
+            "type": "realm",
+            "details": {
+              "id": "community-realm",
+              "realm_id": "community-realm",
+              "entity_id": "community-entity",
+              "name": "Garden Club",
+              "slug": "garden-club",
+              "profile": "none",
+              "is_private": false,
+              "is_member": true,
+              "type": "community"
+            }
+          }
+        }
+      ],
+      "references": [],
+      "map_info": null,
+      "preview": [],
+      "entity_reaction": null,
+      "entity": {
+        "id": "author-entity",
+        "type": "user",
+        "details": {
+          "id": "author-account",
+          "profile": "none",
+          "is_active": true,
+          "username": "mika",
+          "first_name": "Mika",
+          "middle_name": "N/A",
+          "last_name": "Santos",
+          "is_badged": false
+        }
+      },
+      "score": {
+        "id": 1,
+        "affinity_score": 0,
+        "content_type_weight": 1,
+        "recent_update_boost": 0,
+        "likes_count": 0,
+        "comments_count": 2,
+        "shares_count": 0,
+        "ranking_score": 0,
+        "post": "ordinary-user"
+      },
+      "is_saved": false,
+      "is_shared": false,
+      "file_type": "text",
+      "caption": "What is growing in your garden this week?",
+      "content_type": "text",
+      "is_tagged": false,
+      "privacy_status": "public",
+      "is_sponsored": false,
+      "is_live": true,
+      "is_archived": false,
+      "on_feed": "feed",
+      "date_posted": "2026-10-25T00:00:00Z",
+      "from_system": false,
+      "deleted_at": null,
+      "deleted_by": null,
+      "feed_reason": null,
+      "community": {
+        "realm_id": "community-realm",
+        "entity_id": "community-entity",
+        "name": "Garden Club",
+        "slug": "garden-club",
+        "profile": "none",
+        "is_private": false,
+        "is_member": true,
+        "is_verified": true
+      },
+      "is_anonymous": false,
+      "is_owner": false
+    },
+    {
+      "post_id": "anonymous-owner",
+      "updated_at": null,
+      "is_edited": false,
+      "tagging": [
+        {
+          "id": 1,
+          "entity": {
+            "id": "community-entity",
+            "type": "realm",
+            "details": {
+              "id": "community-realm",
+              "realm_id": "community-realm",
+              "entity_id": "community-entity",
+              "name": "Garden Club",
+              "slug": "garden-club",
+              "profile": "none",
+              "is_private": false,
+              "is_member": true,
+              "type": "community"
+            }
+          }
+        },
+        {
+          "id": 2,
+          "entity": {
+            "id": "page-entity",
+            "type": "realm",
+            "details": {
+              "id": "page-realm",
+              "realm_id": "page-realm",
+              "profile": "none",
+              "is_active": true,
+              "type": "page",
+              "name": "The Garden Studio",
+              "slug": "garden-studio",
+              "is_verified": true
+            }
+          }
+        }
+      ],
+      "references": [],
+      "map_info": null,
+      "preview": [],
+      "entity_reaction": "like",
+      "entity": null,
+      "score": {
+        "id": 1,
+        "affinity_score": 0,
+        "content_type_weight": 1,
+        "recent_update_boost": 0,
+        "likes_count": 0,
+        "comments_count": 2,
+        "shares_count": 0,
+        "ranking_score": 0,
+        "post": "ordinary-user"
+      },
+      "is_saved": false,
+      "is_shared": false,
+      "file_type": "text",
+      "caption": "I finally grew my first tomato. Sharing the small win with our community.",
+      "content_type": "text",
+      "is_tagged": false,
+      "privacy_status": "public",
+      "is_sponsored": false,
+      "is_live": true,
+      "is_archived": false,
+      "on_feed": "feed",
+      "date_posted": "2026-10-25T00:00:00Z",
+      "from_system": false,
+      "deleted_at": null,
+      "deleted_by": null,
+      "feed_reason": null,
+      "community": {
+        "realm_id": "community-realm",
+        "entity_id": "community-entity",
+        "name": "Garden Club",
+        "slug": "garden-club",
+        "profile": "none",
+        "is_private": false,
+        "is_member": true,
+        "is_verified": true
+      },
+      "is_anonymous": true,
+      "is_owner": true,
+      "entity_reaction_is_anonymous": true
+    },
+    {
+      "post_id": "anonymous-visitor",
+      "updated_at": null,
+      "is_edited": false,
+      "tagging": [
+        {
+          "id": 1,
+          "entity": {
+            "id": "community-entity",
+            "type": "realm",
+            "details": {
+              "id": "community-realm",
+              "realm_id": "community-realm",
+              "entity_id": "community-entity",
+              "name": "Garden Club",
+              "slug": "garden-club",
+              "profile": "none",
+              "is_private": false,
+              "is_member": true,
+              "type": "community"
+            }
+          }
+        }
+      ],
+      "references": [],
+      "map_info": null,
+      "preview": [],
+      "entity_reaction": null,
+      "entity": null,
+      "score": {
+        "id": 1,
+        "affinity_score": 0,
+        "content_type_weight": 1,
+        "recent_update_boost": 0,
+        "likes_count": 0,
+        "comments_count": 2,
+        "shares_count": 0,
+        "ranking_score": 0,
+        "post": "ordinary-user"
+      },
+      "is_saved": false,
+      "is_shared": false,
+      "file_type": "text",
+      "caption": "A question for fellow members: how do you protect seedlings from heavy rain?",
+      "content_type": "text",
+      "is_tagged": false,
+      "privacy_status": "public",
+      "is_sponsored": false,
+      "is_live": true,
+      "is_archived": false,
+      "on_feed": "feed",
+      "date_posted": "2026-10-25T00:00:00Z",
+      "from_system": false,
+      "deleted_at": null,
+      "deleted_by": null,
+      "feed_reason": null,
+      "community": {
+        "realm_id": "community-realm",
+        "entity_id": "community-entity",
+        "name": "Garden Club",
+        "slug": "garden-club",
+        "profile": "none",
+        "is_private": true,
+        "is_member": true,
+        "is_verified": false
+      },
+      "is_anonymous": true,
+      "is_owner": false,
+      "entity_reaction_is_anonymous": null
+    }
+  ],
+  "comments": [
+    {
+      "comment_id": "named-comment",
+      "text": "A lovely start to the morning!",
+      "attachment": null,
+      "created_at": "2026-10-25T00:10:00Z",
+      "updated_at": null,
+      "deleted_at": null,
+      "parent_comment": null,
+      "post": "anonymous-owner",
+      "entity": {
+        "id": "author-entity",
+        "type": "user",
+        "details": {
+          "id": "author-account",
+          "profile": "none",
+          "is_active": true,
+          "username": "mika",
+          "first_name": "Mika",
+          "middle_name": "N/A",
+          "last_name": "Santos",
+          "is_badged": false
+        }
+      },
+      "deleted_by": null,
+      "reply_count": 0,
+      "preview": [],
+      "entity_reaction": null,
+      "is_anonymous": false,
+      "is_owner": false,
+      "community": {
+        "realm_id": "community-realm",
+        "entity_id": "community-entity",
+        "name": "Garden Club",
+        "slug": "garden-club",
+        "profile": "none",
+        "is_private": false,
+        "is_member": true
+      },
+      "entity_reaction_is_anonymous": null
+    },
+    {
+      "comment_id": "anonymous-comment",
+      "text": "This community helped me get started too.",
+      "attachment": null,
+      "created_at": "2026-10-25T00:11:00Z",
+      "updated_at": null,
+      "deleted_at": null,
+      "parent_comment": null,
+      "post": "anonymous-owner",
+      "entity": null,
+      "deleted_by": null,
+      "reply_count": 0,
+      "preview": [],
+      "entity_reaction": null,
+      "is_anonymous": true,
+      "is_owner": true,
+      "community": {
+        "realm_id": "community-realm",
+        "entity_id": "community-entity",
+        "name": "Garden Club",
+        "slug": "garden-club",
+        "profile": "none",
+        "is_private": false,
+        "is_member": true
+      },
+      "entity_reaction_is_anonymous": null
+    }
+  ],
+  "communities": [
+    {
+      "realm_id": "community-realm",
+      "entity_id": "community-entity",
+      "name": "Garden Club",
+      "slug": "garden-club",
+      "profile": "none",
+      "is_private": false,
+      "is_member": true
+    },
+    {
+      "realm_id": "community-realm",
+      "entity_id": "community-entity",
+      "name": "Garden Club",
+      "slug": "garden-club",
+      "profile": "none",
+      "is_private": true,
+      "is_member": false
+    }
+  ],
+  "errors": [
+    {
+      "status": 403,
+      "data": {
+        "detail": "Join this community before contributing"
+      }
+    },
+    {
+      "status": 404,
+      "data": {
+        "detail": "Post not available"
+      }
+    }
+  ]
+}

@@ -1,3 +1,6 @@
+import { ContributionAvatar, ContributionName } from "@/app/reusables/ContributionAuthor";
+import { contributionAuthor, ownsContribution } from "@/reusables/hooks/contributionIdentity";
+import PostDestination from "@/app/reusables/PostDestination";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import {
@@ -6,8 +9,8 @@ import {
   IPost,
   IReference,
 } from "@/reusables/vars/interfaces";
-import { Avatar } from "@/reusables/design";
-import TaggingSummary from "@/app/reusables/TaggingSummary";
+
+
 import { useSelector } from "react-redux";
 import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
 import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
@@ -15,7 +18,7 @@ import PostComment from "@/app/widgets/items/PostComment";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import Modal from "@/app/reusables/Modal";
 import { Carousel } from "react-responsive-carousel";
-import { RiVerifiedBadgeFill } from "react-icons/ri";
+
 import PostOptions from "./PostOptions";
 import { IoMdClose } from "react-icons/io";
 import { timeSince } from "@/reusables/hooks/reusable";
@@ -87,7 +90,8 @@ function PostPreviewModal({
   const textRef = useRef<HTMLSpanElement | null>(null);
   const textContainerRef = useRef<HTMLDivElement | null>(null);
 
-  const postOwnerUserID = post.entity.id;
+  const author = contributionAuthor(post);
+  const isOwnPost = ownsContribution(post, authentication.user.entity_id);
   const dateposted = timeSince(new Date(post.date_posted));
   usePostUpdate(post, patch => setPost(previous => previous ? { ...previous, ...patch } : previous));
 
@@ -283,66 +287,28 @@ function PostPreviewModal({
       >
         <div className="tw-w-[calc(100%-0px)] tw-p-[25px] tw-flex tw-justify-between">
           <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
-            <Avatar
-              id={post.entity.details?.slug ?? post.entity.details.username}
-              entityId={post.entity.id}
-              name={
-                post.entity.details?.name ??
-                `${post.entity.details.first_name} ${post.entity.details.last_name}`
-              }
-              src={
-                post.entity.details.profile
-                  ? post.entity.details.profile !== "none"
-                    ? post.entity.details.profile
-                    : undefined
-                  : post.entity.details.profile !== "none"
-                    ? post.entity.details.profile
-                    : undefined
-              }
-              size={35}
-            />
+            <ContributionAvatar entity={author} size={35}/>
             <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
               <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
                 <span
                   className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                   onClick={() => {
-                    if (post.entity.type !== "user") {
-                      navigate(`/${post.entity.details.slug}`);
+                    if (!author) return;
+                    if (author.type !== "user") {
+                      navigate(`/${author.details.slug}`);
                       return;
                     }
 
-                    navigate(`/${post.entity.details.username}`);
+                    navigate(`/${author.details.username}`);
                   }}
                 >
-                  {post.entity.type !== "user" ? (
-                    <div className="tw-flex tw-items-center tw-gap-[4px]">
-                      <span>{post.entity.details.name}</span>
-                      {post.entity.details.is_verified && (
-                        <RiVerifiedBadgeFill size={16} color="var(--brand)" />
-                      )}
-                    </div>
-                  ) : (
-                    <div className="tw-flex tw-items-center tw-gap-[4px]">
-                      <span>
-                        {post.entity.details.first_name}
-                        {post.entity.details.middle_name == "N/A"
-                          ? ""
-                          : ` ${post.entity.details.middle_name}`}{" "}
-                        {post.entity.details.last_name}
-                      </span>
-                      {post.entity.details.is_badged && (
-                        <RiVerifiedBadgeFill size={16} color="var(--brand)" />
-                      )}
-                    </div>
-                  )}
+                  <ContributionName entity={author}/>
                 </span>
                 &nbsp;
-                {post.tagging.length > 0 && (
-                  <TaggingSummary tagging={post.tagging} />
-                )}
+                <PostDestination post={post}/>
               </div>
               <span className="cl-text-caption">
-                <PostPrivacyIcon status={post.privacy_status} />
+                <PostPrivacyIcon community={post.community} status={post.privacy_status} />
                 {dateposted}
                 {(post.is_edited || post.updated_at) && <span className="cl-post-edited" title={post.updated_at ? `Edited ${new Date(post.updated_at).toLocaleString()}` : "Edited"}>· Edited</span>}
               </span>
@@ -581,7 +547,7 @@ function PostPreviewModal({
                   onClose={() => setAddingToMoment(false)}
                 />
               )}
-              {postOwnerUserID === authentication.user.entity_id && (
+              {isOwnPost && (
                 <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
                   <BsPinMap
                     style={{
@@ -617,15 +583,15 @@ function PostPreviewModal({
               setPost((prev: IPost | null) =>
                 prev
                   ? {
-                      ...prev,
-                      score: {
-                        ...prev.score,
-                        comments_count: Math.max(
-                          0,
-                          prev.score.comments_count + delta,
-                        ),
-                      },
-                    }
+                    ...prev,
+                    score: {
+                      ...prev.score,
+                      comments_count: Math.max(
+                        0,
+                        prev.score.comments_count + delta,
+                      ),
+                    },
+                  }
                   : prev,
               )
             }

@@ -111,7 +111,7 @@ export default function MobileMomentViewer(props: Props) {
     } finally { setReacting(false); }
   };
   const send = async () => {
-    if (!moment || !draft.trim() || sending || !allowsReplies) return;
+    if (!moment?.entity || !draft.trim() || sending || !allowsReplies) return;
     setSending(true);
     try {
       await SendEphemeralReplyRequest({ authorEntityId: moment.entity.id, kind: "moment", postId: moment.post_id, content: draft.trim() });
@@ -154,7 +154,7 @@ export default function MobileMomentViewer(props: Props) {
       </div>
       <div className="cl-mobile-moment__author">
         {moment && <>
-          <span className="cl-mobile-moment__avatar"><Avatar id={moment.entity.id} name={entityName(moment.entity)} src={entityAvatar(moment.entity)} size={30} online={false}/></span>
+          <span className="cl-mobile-moment__avatar"><Avatar id={moment.entity?.id} name={entityName(moment.entity)} src={entityAvatar(moment.entity)} size={30} online={false}/></span>
           <div className="cl-mobile-moment__identity">
             <div><strong>{own ? "Your moment" : entityName(moment.entity)}</strong><small>{timeAgoLabel(moment.date_posted)}</small></div>
             <small>{own && <><Icon n={audienceOf(moment.privacy_status).icon} s={12}/> {audienceOf(moment.privacy_status).label} · </>}{archived ? "Archived" : timeLeftLabel(moment.expires_at)}</small>
