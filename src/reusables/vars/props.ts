@@ -60,6 +60,7 @@ export interface AppItemProp {
 }
 
 export interface PostCommentProp {
+  community?: import("./interfaces").ICommunityMetadata | null;
   post_id: string;
   parent_id: string | null;
   /**

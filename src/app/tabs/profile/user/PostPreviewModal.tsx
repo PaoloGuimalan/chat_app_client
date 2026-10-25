@@ -10,10 +10,9 @@ import {
   IReference,
 } from "@/reusables/vars/interfaces";
 
-
 import { useSelector } from "react-redux";
 import { Dispatch, SetStateAction, useMemo, useRef, useState } from "react";
-import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
+import { GetPostPreviewRequest, GetReactionTotalRequest } from "@/reusables/hooks/requests";
 import PostComment from "@/app/widgets/items/PostComment";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
 import Modal from "@/app/reusables/Modal";
@@ -34,6 +33,7 @@ import SendPostModal from "@/app/widgets/modals/CreatePost/SendPostModal";
 import CreateMomentModal from "@/app/tabs/moments/CreateMomentModal";
 import { BsPinMap } from "react-icons/bs";
 import VideoPlayer from "@/app/reusables/VideoPlayer";
+import { useCommunityPostAccess } from "@/reusables/hooks/useCommunityPostAccess";
 import { usePostUpdate } from "@/reusables/hooks/postUpdates";
 
 interface PostPreviewModalProps {
@@ -93,6 +93,7 @@ function PostPreviewModal({
   const author = contributionAuthor(post);
   const isOwnPost = ownsContribution(post, authentication.user.entity_id);
   const dateposted = timeSince(new Date(post.date_posted));
+  const communityAccessible = useCommunityPostAccess(post, setPost);
   usePostUpdate(post, patch => setPost(previous => previous ? { ...previous, ...patch } : previous));
 
   const onProcessEmojiSelection = (emoji_id: string) => {
@@ -102,7 +103,7 @@ function PostPreviewModal({
       if (prev) {
         return {
           ...prev,
-          user_reaction: emoji_id,
+          entity_reaction: emoji_id,
         };
       }
 
@@ -120,6 +121,7 @@ function PostPreviewModal({
     }
 
     RefreshReactionTotalsProcess();
+    if (post.community) GetPostPreviewRequest({ postID: post.post_id }).then(result => setPost(result)).catch(() => { });
   };
 
   /**
@@ -205,15 +207,13 @@ function PostPreviewModal({
   const shell = (
     <div
       style={{ maxWidth: shellMaxWidth }}
-      className={`cl-feed-card cl-feed-card__modal-shell ${
-        asPage
-          ? "cl-feed-card__modal-shell--page tw-w-full tw-h-full tw-rounded-[0px] tw-max-h-full tw-mx-auto"
-          : "custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full"
-      } tw-flex tw-flex-row tw-flex-wrap ${
-        post.is_shared || post.references.length === 0
+      className={`cl-feed-card cl-feed-card__modal-shell ${asPage
+        ? "cl-feed-card__modal-shell--page tw-w-full tw-h-full tw-rounded-[0px] tw-max-h-full tw-mx-auto"
+        : "custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full"
+        } tw-flex tw-flex-row tw-flex-wrap ${post.is_shared || post.references.length === 0
           ? ""
           : "custom:tw-overflow-hidden"
-      } tw-overflow-auto ${window.innerWidth >= 842 ? "x-scroll" : "t-scroll"}`}
+        } tw-overflow-auto ${window.innerWidth >= 842 ? "x-scroll" : "t-scroll"}`}
     >
       {!post.is_shared && (
         <Carousel
@@ -269,25 +269,22 @@ function PostPreviewModal({
         // to stylesheet order. The `custom:` variant (842px) is the same
         // breakpoint the old shell cap used, so narrow screens stay
         // unbounded exactly as before.
-        className={`tw-flex tw-flex-1 tw-max-w-full ${
-          capsReadingColumn
-            ? "custom:tw-max-w-[600px] tw-mx-auto"
-            : post.references.length > 0
-              ? post.is_shared
-                ? "custom:tw-max-w-full"
-                : "custom:tw-max-w-[460px]"
-              : "custom:tw-max-w-full"
-        } tw-min-w-[350px] cl-feed-card__modal-side ${
-          asPage ? "cl-feed-card__modal-side--page" : ""
-        } tw-flex-col tw-pb-[10px] ${
-          post.is_shared || post.references.length === 0
+        className={`tw-flex tw-flex-1 tw-max-w-full ${capsReadingColumn
+          ? "custom:tw-max-w-[600px] tw-mx-auto"
+          : post.references.length > 0
+            ? post.is_shared
+              ? "custom:tw-max-w-full"
+              : "custom:tw-max-w-[460px]"
+            : "custom:tw-max-w-full"
+          } tw-min-w-[350px] cl-feed-card__modal-side ${asPage ? "cl-feed-card__modal-side--page" : ""
+          } tw-flex-col tw-pb-[10px] ${post.is_shared || post.references.length === 0
             ? ""
             : "custom:tw-h-full"
-        }`}
+          }`}
       >
         <div className="tw-w-[calc(100%-0px)] tw-p-[25px] tw-flex tw-justify-between">
           <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
-            <ContributionAvatar entity={author} size={35}/>
+            <ContributionAvatar entity={author} size={35} />
             <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
               <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
                 <span
@@ -302,10 +299,10 @@ function PostPreviewModal({
                     navigate(`/${author.details.username}`);
                   }}
                 >
-                  <ContributionName entity={author}/>
+                  <ContributionName entity={author} />
                 </span>
                 &nbsp;
-                <PostDestination post={post}/>
+                <PostDestination post={post} />
               </div>
               <span className="cl-text-caption">
                 <PostPrivacyIcon community={post.community} status={post.privacy_status} />
@@ -320,7 +317,7 @@ function PostPreviewModal({
               onTaggingChange={(tagging) =>
                 setPost((prev) => (prev ? { ...prev, tagging } : prev))
               }
-              onProcess={() => {}}
+              onProcess={() => { }}
               onFinish={(type: string) => {
                 switch (type) {
                   case "deleted":
@@ -365,7 +362,7 @@ function PostPreviewModal({
                 }
                 onOptionFinish?.(type);
               }}
-              onError={() => {}}
+              onError={() => { }}
             />
           )}
           {/* Dismissing is a MODAL action: as a page there is nothing
@@ -386,9 +383,8 @@ function PostPreviewModal({
         >
           <div
             ref={textContainerRef}
-            className={`tw-w-full tw-flex tw-justify-center ${
-              minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
-            } tw-overflow-y-hidden`}
+            className={`tw-w-full tw-flex tw-justify-center ${minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
+              } tw-overflow-y-hidden`}
           >
             <span ref={textRef} className={`cl-text-body tw-text-left c1`}>
               {post.caption}
@@ -498,6 +494,8 @@ function PostPreviewModal({
                   }}
                 >
                   <PostEmojis
+                    community={post.community}
+                    viewerReactionIsAnonymous={post.entity_reaction_is_anonymous}
                     post_id={post.post_id}
                     reaction={post.entity_reaction}
                     onProcessEmojiSelection={onProcessEmojiSelection}
@@ -568,6 +566,7 @@ function PostPreviewModal({
           }
         >
           <PostComment
+            community={post.community}
             post_id={post.post_id}
             parent_id={null}
             // This component IS the post-in-full surface - as an overlay
@@ -601,7 +600,8 @@ function PostPreviewModal({
     </div>
   );
 
-  return asPage ? shell : <Modal component={shell} />;
+  const content = communityAccessible ? shell : <div className="cl-community-panel">This post is unavailable. <button onClick={onClose}>Close</button></div>;
+  return asPage ? content : <Modal component={content} />;
 }
 
 export default PostPreviewModal;

@@ -67,3 +67,9 @@
 /* Keep the animated panel clipped; scroll its content on short viewports. */
 .cl-account-popover-content{display:flow-root;overflow-y:auto;scrollbar-width:none}
 .cl-account-popover-content::-webkit-scrollbar{display:none;width:0;height:0}
+.cl-app-shortcut--community .cl-app-shortcut-label,
+.cl-account-popover .cl-app-shortcut--community .cl-app-shortcut-label {
+  display: block;
+  white-space: nowrap;
+  max-height: none;
+}

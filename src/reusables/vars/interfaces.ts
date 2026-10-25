@@ -853,6 +853,7 @@ export interface GroupShortcut {
 export interface INotificationSender {
   entity_id: string;
   type: "user" | "realm" | "bot";
+  realm_type?: string | null;
   display_name: string;
   handle: string;
   profile: string | null;
@@ -1160,7 +1161,10 @@ export interface ISavedPost {
     date_posted: string;
     from_system: boolean;
     deleted_at: string | null;
-    entity: IFlexibleEntity;
+    entity: IFlexibleEntity | null;
+    is_anonymous?: boolean;
+    is_owner?: boolean;
+    community?: ICommunityMetadata | null;
     deleted_by: string | null;
   };
   saved_at: string;

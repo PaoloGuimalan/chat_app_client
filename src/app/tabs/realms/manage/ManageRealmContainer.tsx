@@ -20,7 +20,7 @@ function ManageRealmContainer() {
                 secondaryLabel="Please check and try again."
               />
             ) : realmInfo ? (
-              realmInfo.is_admin ? (
+              (realmInfo.is_admin || (realmInfo.type === "community" && realmInfo.my_role === "moderator")) ? (
                 <ManageRealm realm={realmInfo} />
               ) : (
                 <BrokenLink

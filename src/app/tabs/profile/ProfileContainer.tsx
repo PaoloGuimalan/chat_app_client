@@ -21,6 +21,7 @@ import {
 import PageLoader from "@/app/reusables/loaders/PageLoader";
 import BrokenLink from "@/app/reusables/catchers/BrokenLink";
 import RealmProfile from "./user/RealmProfile";
+import CommunityProfile from "../communities/CommunityProfile";
 import BotProfile from "./user/BotProfile";
 import { useSelector } from "react-redux";
 import { useTheme } from "@/reusables/design";
@@ -54,7 +55,7 @@ function ProfileContainer() {
     }
   }, [authentication, isSharePath]);
 
-  const GetProfileInfoProcess = (callback: () => void = () => {}) => {
+  const GetProfileInfoProcess = (callback: () => void = () => { }) => {
     if (isReservedProfilePath(params.userID)) {
       setisError(true);
       setisloaded(true);
@@ -139,6 +140,8 @@ function ProfileContainer() {
                   GetProfileInfoProcess={GetProfileInfoProcess}
                   isSharePage={isSharePath}
                 />
+              ) : realmInfo && type === "community" ? (
+                <CommunityProfile communityId={realmInfo.realm_id} />
               ) : realmInfo && type === "page" ? (
                 <RealmProfile
                   realmInfo={realmInfo}
@@ -165,8 +168,8 @@ function ProfileContainer() {
           !authentication.auth ? (
             <Navigate to="/login" />
           ) : authentication.allowed_modules.includes(
-              "module.diary.access",
-            ) ? (
+            "module.diary.access",
+          ) ? (
             <Diary />
           ) : (
             // Diary isn't available while acting as a page - not a

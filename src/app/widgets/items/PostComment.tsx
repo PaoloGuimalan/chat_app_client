@@ -1,4 +1,6 @@
 import { ContributionAvatar } from "@/app/reusables/ContributionAuthor";
+import "@/styles/community-destination.css";
+import { useCommunityInteractionIdentity } from "@/reusables/hooks/communityInteractionIdentity";
 import { contributionAuthor, ownsContribution, replyMentionFor } from "@/reusables/hooks/contributionIdentity";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
@@ -86,6 +88,7 @@ const dedupeSuggestions = (rows: any[]): any[] => {
 };
 
 function PostComment({
+  community,
   post_id,
   parent_id,
   autoFocusComposer,
@@ -145,6 +148,22 @@ function PostComment({
   // request can put it back.
   const previousReactionRef = useRef<Record<string, string | null>>({});
 
+  const actor = authentication.active_entity_context?.id ?? authentication.user.entity_id;
+  const [anonymous, setAnonymous] = useCommunityInteractionIdentity(actor, post_id);
+  const currentActor = useRef(actor); currentActor.current = actor;
+  const accessEpoch = useRef(0);
+  const [accessLost, setAccessLost] = useState(false);
+  const canContribute = !accessLost && (!community || community.is_member);
+  useEffect(() => { setwriteComment(""); setComments(commentsliststate); setAccessLost(false); accessEpoch.current++; }, [actor, community?.entity_id]);
+  useEffect(() => {
+    const changed = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (community && (!detail?.realm_id || detail.realm_id === community.realm_id)) { accessEpoch.current++; setAccessLost(true); setComments(commentsliststate); setwriteComment(""); }
+    };
+    document.addEventListener("community-changed", changed);
+    return () => document.removeEventListener("community-changed", changed);
+  }, [community?.realm_id]);
+
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const [mentionState, setMentionState] = useState<{
     open: boolean;
@@ -182,7 +201,7 @@ function PostComment({
 
   useEffect(() => {
     GetPostCommentProcess(page, 20);
-  }, [post_id, parent_id, page]);
+  }, [post_id, parent_id, page, actor]);
 
   // Every timer is cleared on unmount - closing the post modal while somebody
   // is mid-sentence would otherwise leave a timer running against a component
@@ -300,7 +319,7 @@ function PostComment({
    * leaving them showing in both.
    */
   const RegisterTyperProcess = (event: PostActivityEvent) => {
-    const typer = event.entity;
+    const typer = event.is_anonymous ? { entity_id: "anonymous-typing", handle: null, name: "Anonymous member", type: null } : event.entity;
     // Your own keystrokes come back to you: the event goes to the post's
     // channel, and you are on it. Nobody needs telling that they are typing.
     if (!typer || typer.entity_id === authentication.user.entity_id) return;
@@ -372,7 +391,7 @@ function PostComment({
     if (now - lastTypingSentRef.current < TYPING_BROADCAST_THROTTLE_MS) return;
 
     lastTypingSentRef.current = now;
-    CommentTypingBroadcastRequest(post_id, parent_id);
+    CommentTypingBroadcastRequest(post_id, parent_id, community ? anonymous : undefined);
   };
 
   useEffect(() => {
@@ -544,12 +563,14 @@ function PostComment({
   const GetPostCommentProcess = (to_page: number, to_range: number) => {
     setIsLoaded(false);
     setIsError(false);
+    const epoch = accessEpoch.current;
     GetCommentsRequest(post_id, parent_id, to_page, to_range)
       .then((response: PaginationProp<IPostComment>) => {
+        if (epoch !== accessEpoch.current) return;
         setComments((prev: PaginationProp<IPostComment>) => ({
           ...response,
           results: getUniqueItemsOfObjects(
-            [...prev.results, ...response.results],
+            [...response.results, ...prev.results],
             "comment_id",
             "created_at",
           ).reverse(),
@@ -558,6 +579,8 @@ function PostComment({
         setIsError(false);
       })
       .catch((err) => {
+        if (epoch !== accessEpoch.current) return;
+        if ([403, 404].includes(err?.response?.status ?? err?.status)) { setComments(commentsliststate); setAccessLost(true); }
         setIsLoaded(true);
         setIsError(true);
         console.log(err);
@@ -570,7 +593,7 @@ function PostComment({
   // The backend soft-deletes and enforces ownership itself (assert_owns), so
   // this gate is only about not showing a button that would 403.
   const isMyComment = (mp: IPostComment) =>
-    ownsContribution(mp, authentication.user.entity_id);
+    ownsContribution(mp, actor);
 
   const DeleteCommentProcess = (mp: IPostComment) => {
     if (deletingCommentID) return;
@@ -608,12 +631,14 @@ function PostComment({
   };
 
   const GetPostCommentOnLoadProcess = () => {
+    const epoch = accessEpoch.current;
     GetCommentsRequest(post_id, parent_id, 1, 20)
       .then((response: PaginationProp<IPostComment>) => {
+        if (epoch !== accessEpoch.current) return;
         setComments((prev: PaginationProp<IPostComment>) => ({
           ...prev,
           results: getUniqueItemsOfObjects(
-            [...prev.results, ...response.results],
+            [...response.results, ...prev.results],
             "comment_id",
             "created_at",
           ).reverse(),
@@ -624,11 +649,12 @@ function PostComment({
       });
   };
 
-  const SaveCommentProcess = () => {
+  const SaveCommentProcess = async () => {
     if (
       commentSavePending.current ||
       isCommentSaving ||
       !authentication.auth ||
+      !canContribute ||
       writeComment.trim() === ""
     ) {
       return;
@@ -636,8 +662,10 @@ function PostComment({
     commentSavePending.current = true;
     setisCommentSaving(true);
     closeMentionSuggestions();
-    SaveCommentRequest(post_id, parent_id, writeComment, null)
+    const epoch = accessEpoch.current;
+    (community ? SaveCommentRequest(post_id, parent_id, writeComment, null, anonymous) : SaveCommentRequest(post_id, parent_id, writeComment, null))
       .then(() => {
+        if (epoch !== accessEpoch.current || actor !== currentActor.current) return;
         setwriteComment("");
         linkPreview.dismiss();
         setisCommentSaving(false);
@@ -700,6 +728,7 @@ function PostComment({
       return;
     }
 
+    GetPostCommentOnLoadProcess();
     GetCommentReactionTotalRequest(comment_id)
       .then((response) => {
         patchComment(comment_id, { preview: response });
@@ -756,9 +785,8 @@ function PostComment({
 
     return (
       <div
-        className={`cl-comment-typing ${
-          nested ? "cl-comment-typing--thread" : ""
-        }`}
+        className={`cl-comment-typing ${nested ? "cl-comment-typing--thread" : ""
+          }`}
         aria-live="polite"
       >
         <span className="cl-comment-typing__dots" aria-hidden="true">
@@ -794,7 +822,7 @@ function PostComment({
    * replyMentionHandleFor so the two can't drift.
    */
   const replyMentionHandle = (mp: IPostComment): string | null => {
-    return replyMentionFor(mp, authentication.user.entity_id);
+    return replyMentionFor(mp, actor);
   };
 
   /**
@@ -846,10 +874,29 @@ function PostComment({
   // Plain JSX, deliberately NOT memoized: it closes over the composer's
   // handlers, which in turn close over writeComment / mentionState, so a
   // dependency list here buys nothing and risks sending a stale draft.
-  const composer = (
+  const composer = canContribute ? (
     <div className="tw-w-full tw-flex tw-flex-col tw-gap-[8px] tw-pb-[10px]">
+      {community && (
+        <label className="cl-community-anonymous-toggle">
+          <span>
+            <span className="cl-community-anonymous-toggle__label">React or comment anonymously</span>
+            <span className="cl-community-anonymous-toggle__identity">{anonymous ? "Anonymous member" : "My profile"}</span>
+          </span>
+          <input
+            type="checkbox"
+            role="switch"
+            aria-label="React or comment anonymously"
+            disabled={isCommentSaving}
+            checked={anonymous}
+            onChange={event => {
+              setAnonymous(event.target.checked);
+              lastTypingSentRef.current = 0;
+            }}
+          />
+        </label>
+      )}
       <div className="cl-comment-section__composer tw-min-h-[60px] tw-flex tw-items-center tw-gap-[12px] tw-w-full">
-        <Avatar
+        {anonymous ? <ContributionAvatar entity={null} size={isThread ? 38 : 48} /> : <Avatar
           id={authentication.user.userID}
           entityId={
             authentication.active_entity_context?.id ??
@@ -858,16 +905,15 @@ function PostComment({
           name={activeAvatar.name}
           src={activeAvatar.src}
           size={isThread ? 38 : 48}
-        />
+        />}
         <div
           id="div_input_feed_flex"
           className="cl-comment-section__field-shell tw-relative"
         >
           {mentionState.open && mentionSuggestions.length > 0 && (
             <div
-              className={`cl-mention-suggestion-panel cl-comment-section__mentions ${
-                isThread ? "" : "cl-comment-section__mentions--below"
-              }`}
+              className={`cl-mention-suggestion-panel cl-comment-section__mentions ${isThread ? "" : "cl-comment-section__mentions--below"
+                }`}
             >
               {mentionSuggestions.map((suggestion: any, index: number) => (
                 <button
@@ -879,11 +925,10 @@ function PostComment({
                     e.preventDefault();
                     insertMentionAtCursor(suggestion);
                   }}
-                  className={`cl-mention-suggestion-item ${
-                    index === mentionActiveIndex
-                      ? "cl-mention-suggestion-item--active"
-                      : ""
-                  }`}
+                  className={`cl-mention-suggestion-item ${index === mentionActiveIndex
+                    ? "cl-mention-suggestion-item--active"
+                    : ""
+                    }`}
                 >
                   <Avatar
                     id={suggestion.entity_id}
@@ -942,7 +987,7 @@ function PostComment({
                     e.preventDefault();
                     insertMentionAtCursor(
                       mentionSuggestions[mentionActiveIndex] ??
-                        mentionSuggestions[0],
+                      mentionSuggestions[0],
                     );
                     return;
                   }
@@ -1002,15 +1047,14 @@ function PostComment({
         />
       )}
     </div>
-  );
+  ) : <p className="tw-text-[var(--text-2)]">Join this community to comment.</p>;
 
   return (
     <div
-      className={`cl-comment-section ${
-        isThread
-          ? "cl-comment-section--thread tw-gap-[10px]"
-          : "tw-p-[25px] tw-pt-[5px] tw-min-h-[250px] tw-gap-[16px]"
-      } tw-w-full tw-flex tw-flex-1 tw-flex-col`}
+      className={`cl-comment-section ${isThread
+        ? "cl-comment-section--thread tw-gap-[10px]"
+        : "tw-p-[25px] tw-pt-[5px] tw-min-h-[250px] tw-gap-[16px]"
+        } tw-w-full tw-flex tw-flex-1 tw-flex-col`}
     >
       {authentication.auth && !isThread && composer}
       <div className="cl-comment-section__list tw-flex tw-flex-col tw-gap-[14px] tw-w-full">
@@ -1040,7 +1084,7 @@ function PostComment({
                   key={mp.comment_id}
                   className="cl-comment-section__row tw-flex tw-gap-[12px] tw-w-full tw-items-start"
                 >
-                  <ContributionAvatar entity={author} size={isThread ? 38 : 46}/>
+                  <ContributionAvatar entity={author} size={isThread ? 38 : 46} />
                   <div className="tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-text-left tw-flex-1 tw-min-w-0">
                     <div className="cl-comment-section__bubble tw-w-full tw-rounded-[14px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-p-[12px] tw-text-left tw-shadow-sm">
                       <div className="tw-w-full tw-flex tw-items-start tw-justify-between tw-gap-[10px]">
@@ -1180,6 +1224,9 @@ function PostComment({
                             }}
                           >
                             <PostEmojis
+                              post_id={post_id}
+                              community={community}
+                              viewerReactionIsAnonymous={mp.entity_reaction_is_anonymous}
                               comment_id={mp.comment_id}
                               reaction={mp.entity_reaction}
                               onProcessEmojiSelection={(
@@ -1195,17 +1242,17 @@ function PostComment({
                               emojilist.find(
                                 (flt) => flt.emoji_id === mp.entity_reaction,
                               )?.emoji_content ? (
-                                  <span className="cl-comments-reaction">
-                                    {
-                                      emojilist.find(
-                                        (flt) =>
-                                          flt.emoji_id === mp.entity_reaction,
-                                      )?.emoji_content
-                                    }
-                                  </span>
-                                ) : (
-                                  <span className="cl-text-meta">React</span>
-                                )
+                                <span className="cl-comments-reaction">
+                                  {
+                                    emojilist.find(
+                                      (flt) =>
+                                        flt.emoji_id === mp.entity_reaction,
+                                    )?.emoji_content
+                                  }
+                                </span>
+                              ) : (
+                                <span className="cl-text-meta">React</span>
+                              )
                             ) : (
                               <span className="cl-text-meta">React</span>
                             )}
@@ -1224,8 +1271,7 @@ function PostComment({
                           >
                             {isOpen
                               ? "Hide replies"
-                              : `View ${replyCount} ${
-                                replyCount === 1 ? "reply" : "replies"
+                              : `View ${replyCount} ${replyCount === 1 ? "reply" : "replies"
                               }`}
                           </button>
                         )}
@@ -1258,6 +1304,7 @@ function PostComment({
                     {!isThread && isOpen && (
                       <div className="cl-comment-section__thread tw-w-full">
                         <PostComment
+                          community={community}
                           post_id={post_id}
                           parent_id={mp.comment_id}
                           autoFocusComposer={focusedThread === mp.comment_id}

@@ -1,3 +1,5 @@
+import CommunityRequests from "@/app/widgets/invites/CommunityRequests";
+import { canManageCommunitySettings, canReviewCommunityRequests } from "@/reusables/hooks/communityState";
 import ContactMember from "@/app/widgets/members/ContactMember";
 import RealmMembers from "@/app/widgets/members/RealmMembers";
 import {
@@ -35,7 +37,7 @@ function Members({
   const realmTypeLabel =
     realm.type === "group" && realm.parent ? "channel" : realm.type;
 
-  const addableMember = !(
+  const addableMember = (realm.type !== "community" || canManageCommunitySettings(realm.my_role)) && !(
     (realmTypeLabel === "channel" || realmTypeLabel === "voice") &&
     !realm.is_private
   );
@@ -47,9 +49,10 @@ function Members({
   // it takes people already in its server, who have said yes once.
   const invitable: InvitableRealmType | null =
     realmTypeLabel === "group" ||
-    realmTypeLabel === "server" ||
-    realmTypeLabel === "conference" ||
-    realmTypeLabel === "page"
+      realmTypeLabel === "server" ||
+      realmTypeLabel === "conference" ||
+      realmTypeLabel === "page" ||
+      realmTypeLabel === "community"
       ? realmTypeLabel
       : null;
 
@@ -180,6 +183,7 @@ function Members({
 
     return (
       <div className="tw-flex tw-flex-1 tw-flex-col tw-min-h-0 tw-w-full tw-p-[14px] sm:tw-p-[18px] tw-gap-[12px]">
+        {realm.type === "community" && canReviewCommunityRequests(realm.my_role) && <CommunityRequests realmId={realm.realm_id} compact />}
         {addableMember && (
           <SegTabs
             tabs={[
@@ -259,6 +263,7 @@ function Members({
           members and their roles
         </span>
       </div>
+      {realm.type === "community" && canReviewCommunityRequests(realm.my_role) && <CommunityRequests realmId={realm.realm_id} className={addableMember ? "xl:tw-max-w-[450px]" : ""} />}
       <div className="tw-flex tw-flex-wrap tw-w-full tw-gap-[12px] tw-h-full">
         <div
           className={`tw-w-full ${addableMember && "xl:tw-max-w-[450px]"} tw-h-full tw-flex tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-overflow-hidden`}

@@ -17,7 +17,8 @@ import store from "../../redux/store";
 import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import { Dispatch } from "react";
-import { convertLoginResponse, generateUUID, generateXNonce,
+import {
+  convertLoginResponse, generateUUID, generateXNonce,
   compareMessagesDesc,
 } from "./reusable";
 import { ConvertedResponse } from "../vars/types";
@@ -2498,9 +2499,13 @@ const UploadMediaRequest = async (
   files: { file: File; caption?: string; referenceMediaType?: string }[],
   action: UploadAction,
   onProgress?: (fraction: number) => void,
+  context?: { community_entity_id: string; is_anonymous: boolean },
+  token?: string,
 ) => {
   try {
     const uploaded = await uploadFiles({
+      context,
+      token,
       purpose: ACTION_FEATURE[action],
       files: files.map((f) => f.file),
       onProgress,
@@ -2737,12 +2742,14 @@ const IsTypingBroadcastRequest = (payload: any) => {
 const CommentTypingBroadcastRequest = (
   post_id: string,
   parent_id: string | null,
+  is_anonymous?: boolean,
 ) => {
   Axios.post(
     `${envs.CHATTERLOOP_API}/posts/commenttypingbroadcast`,
     {
       post_id,
       parent_id,
+      ...(typeof is_anonymous === "boolean" ? { is_anonymous } : {}),
     },
     {
       headers: {
@@ -3099,12 +3106,14 @@ const SaveCommentRequest = async (
   parent_id: string | null,
   new_comment: string,
   new_attachment: string | null,
+  is_anonymous?: boolean,
 ) => {
   const payload = {
     post_id,
     parent_id,
     new_comment,
     new_attachment,
+    ...(typeof is_anonymous === "boolean" ? { is_anonymous } : {}),
   };
   return await Axios.post(
     `${envs.USER_SERVICE_API}/api/newsfeed/comments`,
@@ -4392,12 +4401,12 @@ const GetCurrentPoliciesRequest = async () => {
   return Axios.get(`${envs.USER_SERVICE_API}/api/user/policies`).then((response) =>
     response.data.status
       ? (response.data.data as {
-          document_type: string;
-          version: string;
-          content: string;
-          document_url: string;
-          effective_date: string;
-        }[])
+        document_type: string;
+        version: string;
+        content: string;
+        document_url: string;
+        effective_date: string;
+      }[])
       : [],
   );
 };
@@ -4881,8 +4890,7 @@ const UpdateProfilePrivacyRequest = async (
           "success",
           isPrivate
             ? restricted > 0
-              ? `Your profile is now private. ${restricted} existing ${
-                restricted === 1 ? "post is" : "posts are"
+              ? `Your profile is now private. ${restricted} existing ${restricted === 1 ? "post is" : "posts are"
               } now visible to your contacts only.`
               : "Your profile is now private."
             : "Your profile is now public.",

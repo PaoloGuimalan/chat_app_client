@@ -1,3 +1,4 @@
+import { useCommunityPostAccess } from "@/reusables/hooks/useCommunityPostAccess";
 import { ContributionAvatar, ContributionName } from "@/app/reusables/ContributionAuthor";
 import { contributionAuthor } from "@/reusables/hooks/contributionIdentity";
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -44,11 +45,13 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
     withImage: false,
   });
 
-  const author = contributionAuthor(savedPost.post);
+  const [savedCurrent, setSavedCurrent] = useState<ISavedPost["post"] | IPost>(savedPost.post);
+  const communityAccessible = useCommunityPostAccess(savedCurrent, setSavedCurrent);
+  const author = contributionAuthor(savedCurrent);
 
   const UnsavePostProcess = () => {
     setisSaving(true);
-    UnsavePostRequest(savedPost.post.post_id)
+    UnsavePostRequest(savedCurrent.post_id)
       .then(() => {
         setisSaving(false);
         setisRestored(true);
@@ -63,7 +66,7 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
   const GetPostPreviewProcess = () => {
     setisFetchingPreview(true);
     GetPostPreviewRequest({
-      postID: savedPost.post.post_id,
+      postID: savedCurrent.post_id,
     })
       .then((response) => {
         if (response) {
@@ -80,6 +83,8 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
         console.log(err);
       });
   };
+
+  if (!communityAccessible) return <div className="cl-community-panel">This post is unavailable.</div>;
 
   return (
     <div className="tw-w-full tw-relative">
@@ -100,8 +105,8 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
             username: authentication.user.username,
           }}
           otherEntityID={null}
-          setcreateposttext={() => {}}
-          getpostprocess={() => {}}
+          setcreateposttext={() => { }}
+          getpostprocess={() => { }}
           onclose={settoggleNewPostModal}
         />
       )}
@@ -133,29 +138,29 @@ function SavedPostItem({ savedPost }: { savedPost: ISavedPost }) {
         }}
         className="cl-display-card tw-w-[calc(100%-40px)] tw-p-[20px] tw-pb-[14px] tw-flex tw-flex-row tw-gap-[10px]"
       >
-        <ContributionAvatar entity={author} size={isMobileView ? 85 : 120}/>
+        <ContributionAvatar entity={author} size={isMobileView ? 85 : 120} />
         <div className="tw-flex tw-flex-col tw-flex-1 tw-items-start">
           <div className="tw-flex tw-flex-col tw-gap-[6px] tw-p-[5px] tw-items-start tw-flex-1">
-            {savedPost.post.caption.trim() === "" ? (
+            {savedCurrent.caption.trim() === "" ? (
               <span className="cl-text-body tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
                 {author ? author.details.name ?? author.details.first_name : "Anonymous member"}
                 {"'s"} Post
               </span>
             ) : (
               <span className="cl-text-body tw-font-semibold tw-font-Inter tw-line-clamp-2 tw-text-left tw-text-[var(--text)]">
-                {savedPost.post.caption}
+                {savedCurrent.caption}
               </span>
             )}
             <div className="tw-flex tw-gap-[5px] tw-items-center">
               <span className="tw-font-Inter cl-text-caption tw-text-[var(--text-2)]">
-                {savedPost.post.content_type
+                {savedCurrent.content_type
                   .replace("_", " ")
                   .split(" ")
                   .map((word) => word[0].toUpperCase() + word.slice(1))
                   .join(" ")}
               </span>
               &bull;
-              <span className="tw-font-Inter cl-text-caption tw-text-[var(--text-2)]"><ContributionName entity={author}/></span>
+              <span className="tw-font-Inter cl-text-caption tw-text-[var(--text-2)]"><ContributionName entity={author} /></span>
             </div>
           </div>
           <div className="tw-pl-[5px] tw-flex tw-gap-[6px]">

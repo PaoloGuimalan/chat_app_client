@@ -1,0 +1,27 @@
+.cl-profile-composer-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid var(--border);
+}
+
+.cl-profile-composer-actions > button:first-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: none;
+  background: transparent;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  color: var(--text-2);
+  font-size: var(--fs-body-sm);
+  font-weight: 600;
+}
+
+.cl-profile-composer-actions > button:first-child:hover {
+  background: var(--surface-hover);
+}

@@ -34,7 +34,7 @@ import FittedPostMedia from "./FittedPostMedia";
 import VideoPlayer from "@/app/reusables/VideoPlayer";
 import { motion, useInView } from "framer-motion";
 import PostEmojis from "@/app/reusables/PostEmojis";
-import { GetReactionTotalRequest } from "@/reusables/hooks/requests";
+import { GetPostPreviewRequest, GetReactionTotalRequest } from "@/reusables/hooks/requests";
 import PostComment from "@/app/widgets/items/PostComment";
 import FeedReasonBanner from "@/app/reusables/FeedReasonBanner";
 import CachedImage from "@/app/reusables/cachers/CachedImage";
@@ -47,7 +47,7 @@ import PostOptions from "./PostOptions";
 import OverlayLoader from "@/app/reusables/loaders/OverlayLoader";
 import OverlayMessage from "@/app/reusables/catchers/OverlayMessage";
 
-
+import { useCommunityPostAccess } from "@/reusables/hooks/useCommunityPostAccess";
 import { usePostUpdate } from "@/reusables/hooks/postUpdates";
 
 function PostItem({
@@ -79,6 +79,7 @@ function PostItem({
   const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(mp);
+  const communityAccessible = useCommunityPostAccess(postState, setpostState);
   usePostUpdate(mp, patch => setpostState(previous => ({ ...previous, ...patch })));
 
   // Captions are rendered as markup so #hashtags can be highlighted.
@@ -110,7 +111,7 @@ function PostItem({
 
   const author = contributionAuthor(postState);
   const isOwnPost = ownsContribution(postState, authentication.user.entity_id);
-  const postAuthorAvatar = (size = 35) => <ContributionAvatar entity={author} size={size}/>;
+  const postAuthorAvatar = (size = 35) => <ContributionAvatar entity={author} size={size} />;
 
   const toggleActivityCounts = useMemo(() => {
     const reactionsCount = postState.preview.reduce(
@@ -163,6 +164,7 @@ function PostItem({
     }
 
     RefreshReactionTotalsProcess();
+    if (postState.community) GetPostPreviewRequest({ postID: postState.post_id }).then(result => setpostState(result)).catch(() => { });
   };
 
   /**
@@ -221,7 +223,7 @@ function PostItem({
     }
   }, [authentication.user.entity_id, author, isInView, isOwnPost, postState, location]);
 
-  if (postState.deleted_at || (!show_archived && postState.is_archived)) {
+  if (!communityAccessible || postState.deleted_at || (!show_archived && postState.is_archived)) {
     return (
       <div className="cl-post-item-unavailable tw-flex tw-flex-col tw-gap-[15px] tw-w-full tw-h-auto tw-min-h-[200px] tw-items-center tw-justify-center">
         <BsFileEarmarkExcel
@@ -284,7 +286,7 @@ function PostItem({
                     navigate(`/${author.details.username}`);
                   }}
                 >
-                  <ContributionName entity={author}/>
+                  <ContributionName entity={author} />
                 </span>
                 &nbsp;
                 {postState.content_type === "profile" && (
@@ -294,7 +296,7 @@ function PostItem({
                   <span className="cl-text-body">changed cover photo</span>
                 )}
                 &nbsp;
-                <PostDestination post={postState}/>
+                <PostDestination post={postState} />
               </div>
               <span className="cl-text-caption">
                 <PostPrivacyIcon community={postState.community} status={postState.privacy_status} />
@@ -344,9 +346,8 @@ function PostItem({
           >
             <div
               ref={textContainerRef}
-              className={`tw-w-full tw-flex tw-justify-center ${
-                minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
-              } tw-overflow-y-hidden`}
+              className={`tw-w-full tw-flex tw-justify-center ${minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
+                } tw-overflow-y-hidden`}
             >
               <span
                 ref={textRef}
@@ -397,13 +398,11 @@ function PostItem({
                             ? "600px"
                             : "none",
                     }}
-                    className={`cl-post-item-modal-shell custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full tw-flex tw-flex-row tw-flex-wrap ${
-                      postState.is_shared || postState.references.length === 0
-                        ? ""
-                        : "custom:tw-overflow-hidden"
-                    } tw-overflow-auto ${
-                      window.innerWidth >= 842 ? "x-scroll" : "t-scroll"
-                    }`}
+                    className={`cl-post-item-modal-shell custom:tw-rounded-[7px] tw-rounded-[0px] custom:tw-w-[95%] custom:tw-h-[95%] tw-w-[100%] tw-h-[100%] custom:tw-max-h-[800px] tw-max-h-full tw-flex tw-flex-row tw-flex-wrap ${postState.is_shared || postState.references.length === 0
+                      ? ""
+                      : "custom:tw-overflow-hidden"
+                      } tw-overflow-auto ${window.innerWidth >= 842 ? "x-scroll" : "t-scroll"
+                      }`}
                   >
                     {/* <div className="tw-w-[calc(100%-22px)] tw-p-[10px] tw-pl-[12px] tw-pr-[10px] tw-pt-[10px] tw-flex tw-items-center tw-justify-start tw-bg-transparent">
                         <span className="cl-text-body tw-font-semibold tw-flex tw-flex-1 tw-font-Inter">
@@ -463,17 +462,15 @@ function PostItem({
                       </Carousel>
                     )}
                     <div
-                      className={`tw-flex tw-flex-1 tw-max-w-full ${
-                        postState.references.length > 0
-                          ? postState.is_shared
-                            ? "custom:tw-max-w-full"
-                            : "custom:tw-max-w-[440px]"
-                          : "custom:tw-max-w-full"
-                      } tw-min-w-[350px] cl-post-item-modal-side tw-flex-col tw-pb-[10px] ${
-                        postState.is_shared || postState.references.length === 0
+                      className={`tw-flex tw-flex-1 tw-max-w-full ${postState.references.length > 0
+                        ? postState.is_shared
+                          ? "custom:tw-max-w-full"
+                          : "custom:tw-max-w-[440px]"
+                        : "custom:tw-max-w-full"
+                        } tw-min-w-[350px] cl-post-item-modal-side tw-flex-col tw-pb-[10px] ${postState.is_shared || postState.references.length === 0
                           ? ""
                           : "custom:tw-h-full"
-                      }`}
+                        }`}
                     >
                       <div className="tw-w-full tw-p-[25px] tw-flex tw-justify-between tw-gap-[12px]">
                         <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
@@ -496,10 +493,10 @@ function PostItem({
                                   );
                                 }}
                               >
-                                <ContributionName entity={author}/>
+                                <ContributionName entity={author} />
                               </span>
                               &nbsp;
-                              <PostDestination post={postState}/>
+                              <PostDestination post={postState} />
                             </div>
                             <span className="cl-text-caption">
                               {/* PostItem's own expanded view - the same post
@@ -572,11 +569,10 @@ function PostItem({
                       >
                         <div
                           ref={textContainerRef}
-                          className={`tw-w-full tw-flex tw-justify-center ${
-                            minimizedCaption
-                              ? "tw-max-h-[120px]"
-                              : "tw-max-h-none"
-                          } tw-overflow-y-hidden`}
+                          className={`tw-w-full tw-flex tw-justify-center ${minimizedCaption
+                            ? "tw-max-h-[120px]"
+                            : "tw-max-h-none"
+                            } tw-overflow-y-hidden`}
                         >
                           <span
                             ref={textRef}
@@ -603,15 +599,15 @@ function PostItem({
                         )}
                         {!minimizedCaption &&
                           postState.caption.length >= 600 && (
-                          <button
-                            onClick={() => {
-                              setminimizedCaption(true);
-                            }}
-                            className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
-                          >
+                            <button
+                              onClick={() => {
+                                setminimizedCaption(true);
+                              }}
+                              className={`cl-feed-card__toggle cl-text-caption tw-text-left tw-bg-transparent tw-p-[5px] tw-border-none tw-cursor-pointer tw-rounded-[4px]`}
+                            >
                               See less
-                          </button>
-                        )}
+                            </button>
+                          )}
                         {postState.is_shared &&
                           postState.references.map((mpu: any, i: number) => {
                             return (
@@ -707,6 +703,8 @@ function PostItem({
                                   }}
                                 >
                                   <PostEmojis
+                                    community={postState.community}
+                                    viewerReactionIsAnonymous={postState.entity_reaction_is_anonymous}
                                     post_id={postState.post_id}
                                     reaction={postState.entity_reaction}
                                     onProcessEmojiSelection={
@@ -782,6 +780,7 @@ function PostItem({
                         }
                       >
                         <PostComment
+                          community={postState.community}
                           post_id={postState.post_id}
                           parent_id={null}
                           // Inside the card's OPENED modal, not on the card
@@ -820,10 +819,10 @@ function PostItem({
                   // A lone photo or video is as tall as its own shape; the
                   // grid's floor would pad a landscape one out with empty space.
                   postState.references.length === 1 &&
-                  /image|video/.test(postState.references[0].reference_media_type)
+                    /image|video/.test(postState.references[0].reference_media_type)
                     ? ""
                     : "tw-min-h-[400px]"
-                }`}
+                  }`}
               >
                 {" "}
                 {/**tw-bg-[var(--surface-2)]*/}
@@ -908,17 +907,17 @@ function PostItem({
                       </div>
                     </div>
                     {postState.references[4].reference_media_type ===
-                    "image" ? (
-                        <CachedImage
-                          src={postState.references[4].reference}
-                          className="tw-w-full tw-h-full tw--ml-[100%] tw-object-cover"
-                        />
-                      ) : (
-                        <video
-                          src={postState.references[4].reference}
-                          className="tw-w-full tw-h-full tw--ml-[100%]"
-                        />
-                      )}
+                      "image" ? (
+                      <CachedImage
+                        src={postState.references[4].reference}
+                        className="tw-w-full tw-h-full tw--ml-[100%] tw-object-cover"
+                      />
+                    ) : (
+                      <video
+                        src={postState.references[4].reference}
+                        className="tw-w-full tw-h-full tw--ml-[100%]"
+                      />
+                    )}
                   </div>
                 )}
               </div>
@@ -950,8 +949,8 @@ function PostItem({
                   username: authentication.user.username,
                 }}
                 otherEntityID={null}
-                setcreateposttext={() => {}}
-                getpostprocess={() => {}}
+                setcreateposttext={() => { }}
+                getpostprocess={() => { }}
                 onclose={settoggleNewPostModal}
               />
             )}
@@ -1037,6 +1036,8 @@ function PostItem({
                       }}
                     >
                       <PostEmojis
+                        community={postState.community}
+                        viewerReactionIsAnonymous={postState.entity_reaction_is_anonymous}
                         post_id={postState.post_id}
                         reaction={postState.entity_reaction}
                         onProcessEmojiSelection={onProcessEmojiSelection}

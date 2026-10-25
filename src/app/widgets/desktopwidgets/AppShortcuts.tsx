@@ -27,17 +27,18 @@ export default function AppShortcuts({
   const items = [
     ...(!hideSettings
       ? [
-          {
-            name: active?.is_switched ? "Manage realm" : "Settings",
-            icon: appShortcutIcons.settings,
-            route: active?.is_switched
-              ? "/realms/" + active.realm_id
-              : "/settings",
-          },
-        ]
+        {
+          name: active?.is_switched ? "Manage realm" : "Settings",
+          icon: appShortcutIcons.settings,
+          route: active?.is_switched
+            ? "/realms/" + active.realm_id
+            : "/settings",
+        },
+      ]
       : []),
     { name: "Servers", icon: appShortcutIcons.servers, route: "/servers" },
     { name: "Pages", icon: appShortcutIcons.pages, route: "/pages" },
+    { name: "Community", icon: appShortcutIcons.community, route: "/communities" },
     { name: "Studio", icon: appShortcutIcons.studio, route: "/studio/" },
     ...(!active?.is_switched && allowed.includes("module.diary.access")
       ? [{ name: "Diary", icon: appShortcutIcons.diary, route: `/${encodeURIComponent(username)}/diary` }]
@@ -49,7 +50,7 @@ export default function AppShortcuts({
     <button
       key={item.name}
       type="button"
-      className="cl-app-shortcut"
+      className={`cl-app-shortcut${item.route === "/communities" ? " cl-app-shortcut--community" : ""}`}
       disabled={!item.route}
       title={item.route || layout === "rail" ? item.name : "Coming soon"}
       onClick={() => {

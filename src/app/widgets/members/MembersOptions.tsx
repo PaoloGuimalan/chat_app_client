@@ -1,3 +1,4 @@
+import { leaveCommunity } from "@/reusables/hooks/communityRequests";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   RemoveRealmMemberRequest,
@@ -150,7 +151,7 @@ function MembersOptions({
   // owner, and that is caught before we get here.
   const LeaveRealmProcess = () => {
     setisOptionsToggled(false);
-    RemoveRealmMemberRequest(member.realm, [member.entity.id])
+    (realmNoun === "community" ? leaveCommunity(member.realm) : RemoveRealmMemberRequest(member.realm, [member.entity.id]))
       .then((response) => {
         if (!response?.status) {
           notify(
@@ -164,7 +165,8 @@ function MembersOptions({
         }
         // No refetch: this page is admin-only and we are no longer a member
         // of anything here, so staying would just render a restricted page.
-        navigate(realmNoun === "server" ? "/servers" : "/");
+        if (realmNoun === "community") document.dispatchEvent(new CustomEvent("community-changed", { detail: { realm_id: member.realm } }));
+        navigate(realmNoun === "community" ? "/communities" : realmNoun === "server" ? "/servers" : "/");
       })
       .catch((err) => {
         console.log(err);
@@ -294,16 +296,16 @@ function MembersOptions({
                 setconfirmAction(
                   viewerIsOwner
                     ? {
-                        // Informational: no run, so the dialog offers a
-                        // single dismiss rather than a Leave that would 400.
-                        prompt: ownerMustTransferPrompt(realmNoun),
-                      }
+                      // Informational: no run, so the dialog offers a
+                      // single dismiss rather than a Leave that would 400.
+                      prompt: ownerMustTransferPrompt(realmNoun),
+                    }
                     : {
-                        prompt: leaveRealmPrompt(
-                          leaveKindFromRealmNoun(realmNoun),
-                        ),
-                        run: LeaveRealmProcess,
-                      },
+                      prompt: leaveRealmPrompt(
+                        leaveKindFromRealmNoun(realmNoun),
+                      ),
+                      run: LeaveRealmProcess,
+                    },
                 );
               }}
               className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent tw-text-[var(--pink)] hover:tw-bg-[var(--surface-hover)]"

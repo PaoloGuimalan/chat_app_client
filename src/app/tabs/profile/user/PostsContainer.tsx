@@ -21,7 +21,8 @@ import { useParams } from "react-router-dom";
 import { postsliststate } from "@/redux/actions/states";
 import { PaginationProp } from "@/reusables/vars/props";
 import { SET_EMOJIS_LIST } from "@/redux/types";
-import { Avatar, Btn, Card, Icon } from "@/reusables/design";
+import { Card } from "@/reusables/design";
+import ProfileComposerContent from "@/app/reusables/ProfileComposerContent";
 
 function PostsContainer({
   profileInfo,
@@ -168,108 +169,12 @@ function PostsContainer({
               onclose={settoggleNewPostModal}
             />
           )}
-          <div style={{ display: "flex", gap: 8, alignItems: "center" }}>
-            <Avatar
-              id={profileInfo.userID}
-              entityId={
-                authentication.active_entity_context?.id ??
-                authentication.user.entity_id
-              }
-              name={authentication.active_entity_context.name || "x"}
-              src={
-                authentication.active_entity_context.profile !== "none"
-                  ? authentication.active_entity_context.profile
-                  : undefined
-              }
-              size={42}
-            />
-            <input
-              type="text"
-              autoComplete="off"
-              value={createposttext}
-              onFocus={() => {
-                settoggleNewPostModal({ toggle: true, withImage: false });
-              }}
-              onChange={(e) => {
-                setcreateposttext(e.target.value);
-              }}
-              onKeyDown={(e) => {
-                if (createposttext.trim() !== "") {
-                  if (e.key == "Enter") {
-                    // CreatePostProcess()
-                  }
-                }
-              }}
-              className="tw-font-Inter"
-              placeholder={
-                profileInfo.userID === authentication.user.username
-                  ? "Share your thoughts..."
-                  : `Write on ${profileInfo.fullname.firstName}'s wall...`
-              }
-              style={{
-                flex: 1,
-                height: 40,
-                border: "none",
-                outline: "none",
-                background: "var(--input)",
-                padding: "0 14px",
-                borderRadius: 21,
-                color: "var(--text)",
-                fontSize: "var(--fs-body)",
-              }}
-            />
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 4,
-              marginTop: 8,
-              paddingTop: 8,
-              borderTop: "1px solid var(--border)",
-            }}
-          >
-            <button
-              onClick={() => {
-                settoggleNewPostModal({ toggle: true, withImage: true });
-              }}
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 6,
-                height: 32,
-                padding: "0 10px",
-                border: "none",
-                background: "transparent",
-                borderRadius: "var(--r-sm)",
-                cursor: "pointer",
-                color: "var(--text-2)",
-                fontSize: "var(--fs-body-sm)",
-                fontWeight: 600,
-              }}
-              onMouseEnter={(e) =>
-                (e.currentTarget.style.background = "var(--surface-hover)")
-              }
-              onMouseLeave={(e) =>
-                (e.currentTarget.style.background = "transparent")
-              }
-            >
-              <Icon n="image" s={20} c="var(--green)" />
-              Photo
-            </button>
-            <Btn
-              size="sm"
-              style={{
-                marginLeft: "auto",
-                opacity: createposttext.trim() ? 1 : 0.7,
-              }}
-              onClick={() => {
-                settoggleNewPostModal({ toggle: true, withImage: false });
-              }}
-            >
-              Post
-            </Btn>
-          </div>
+          <ProfileComposerContent
+            placeholder={profileInfo.userID === authentication.user.username ? "Share your thoughts..." : `Write on ${profileInfo.fullname.firstName}'s wall...`}
+            value={createposttext}
+            onChange={setcreateposttext}
+            onOpen={withImage => settoggleNewPostModal({ toggle: true, withImage })}
+          />
         </Card>
       )}
       {paginatedPosts.count > 0 ? (

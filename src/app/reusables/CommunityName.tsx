@@ -9,7 +9,7 @@ export default function CommunityName({
   community: Pick<ICommunityMetadata, "name" | "is_verified">;
 }) {
   return (
-    <span className="tw-inline-flex tw-items-center tw-gap-1 tw-align-middle">
+    <span className="cl-community-name tw-inline-flex tw-items-center tw-gap-1 tw-align-middle">
       <span>{community.name}</span>
       {community.is_verified && (
         <span role="img" aria-label="Verified community" title="Verified community">
@@ -17,7 +17,7 @@ export default function CommunityName({
         </span>
       )}
       <span role="img" aria-label="Community" title="Community">
-        <Icon n="groups" s={18} c="var(--text-3)"/>
+        <Icon n="groups" s={20} c="var(--text-3)" />
       </span>
     </span>
   );

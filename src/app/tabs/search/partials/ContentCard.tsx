@@ -1,3 +1,4 @@
+import { useCommunityPostAccess } from "@/reusables/hooks/useCommunityPostAccess";
 import { AnonymousAvatar } from "@/app/reusables/ContributionAuthor";
 import { Avatar, Card, Icon } from "@/reusables/design";
 import { timeSince } from "@/reusables/hooks/reusable";
@@ -12,7 +13,9 @@ interface ContentCardProps {
 // like/comment counters. The whole card opens the real post (preview modal
 // backed by /api/newsfeed/preview/) - this card is deliberately lightweight.
 function ContentCard({ post, onOpen }: ContentCardProps) {
+  const communityAccessible = useCommunityPostAccess(post, () => { });
   const author = post.is_anonymous ? null : post.author;
+  if (!communityAccessible) return <Card pad={14}>This post is unavailable.</Card>;
   return (
     <Card
       pad={14}
@@ -37,7 +40,7 @@ function ContentCard({ post, onOpen }: ContentCardProps) {
             size={30}
           />
         ) : (
-          <AnonymousAvatar size={30}/>
+          <AnonymousAvatar size={30} />
         )}
         <span
           style={{

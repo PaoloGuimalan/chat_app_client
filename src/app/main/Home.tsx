@@ -77,6 +77,8 @@ import {
 } from "@/reusables/hooks/mapsocket";
 import CallContainer from "../absolutes/calls_v2/CallContainer";
 import Pages from "../tabs/pages/Pages";
+import Communities from "../tabs/communities/Communities";
+import CommunityProfile from "../tabs/communities/CommunityProfile";
 import EntitySwitcher from "../reusables/EntitySwitcher";
 import RealmContainer from "../tabs/realms/RealmContainer";
 import SearchPage from "../tabs/search/Search";
@@ -206,7 +208,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
         payload: { messageslist: response.items },
       });
     });
-    NotificationInitRequest(1, 10, dispatch, () => {});
+    NotificationInitRequest(1, 10, dispatch, () => { });
     ActiveContactsRequest(dispatch);
     GetFeedEmojisRequest()
       .then((response) => {
@@ -225,7 +227,7 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
         Notification.permission === "denied" ||
         Notification.permission === "default"
       ) {
-        Notification.requestPermission().then(() => {});
+        Notification.requestPermission().then(() => { });
       }
     } catch (ex) {
       console.log(ex);
@@ -483,18 +485,18 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
       onClick: () => navigate("/servers"),
     },
     {
-      key: "pages",
-      icon: "menu_book",
-      label: "Pages",
-      isActive: location.pathname.startsWith("/pages"),
-      onClick: () => navigate("/pages"),
+      key: "communities",
+      icon: "groups",
+      label: "Communities",
+      isActive: location.pathname.startsWith("/communities"),
+      onClick: () => navigate("/communities"),
     },
   ];
 
   const mobileNavItems = railItems.filter((it) =>
-    ["home", "contacts", "map", "servers", "pages"].includes(it.key),
+    ["home", "contacts", "map", "servers", "communities"].includes(it.key),
   );
-  const mobileNavOrder = ["home", "contacts", "map", "servers", "pages"];
+  const mobileNavOrder = ["home", "contacts", "map", "servers", "communities"];
   const orderedMobileNavItems = mobileNavOrder
     .map((key) => mobileNavItems.find((item) => item.key === key))
     .filter((item): item is RailItem => Boolean(item));
@@ -524,209 +526,211 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
           "radial-gradient(1200px 600px at 70% -10%, var(--bg-grad-a), var(--bg-grad-b))",
       }}
     >
-      <MessagesProtectionProvider active={messagesRouteActive || floatingMessagesActive} routeActive={messagesRouteActive} onCancel={() => dispatch({type: SET_MINIMIZED_CONVERSATION_OVERRIDE, payload: {conversations: []}})}>
-      <CallContainer />
+      <MessagesProtectionProvider active={messagesRouteActive || floatingMessagesActive} routeActive={messagesRouteActive} onCancel={() => dispatch({ type: SET_MINIMIZED_CONVERSATION_OVERRIDE, payload: { conversations: [] } })}>
+        <CallContainer />
 
-      {showRail && (
-        <Rail
-          items={railItems}
-          theme={theme}
-          toggleTheme={toggleTheme}
-          isSettings={isSettingsActive}
-          settingsLabel={isActingAsPage ? "Manage Realm" : "Settings"}
-          onSettings={onSettingsClick}
-          onLogout={logoutProcess}
-          onProfile={onProfileClick}
-          profileSrc={activeAvatar.src}
-          profileName={activeAvatar.name}
-        />
-      )}
-
-      <div
-        style={{
-          flex: 1,
-          minWidth: 0,
-          display: "flex",
-          flexDirection: "column",
-          height: "100%",
-          position: "relative",
-        }}
-      >
-        {showMobileNav && (
-          <MobileTopBar
-            onProfile={onProfileClick}
-            onExplore={() => navigate("/explore")}
-            onMessages={() => navigate("/messages")}
-            onNotifications={() => navigate("/notifications")}
-            profileSrc={activeAvatar.src}
-            profileName={activeAvatar.name}
-            profileEntityId={
-              authentication.active_entity_context?.id ??
-              authentication.user.entity_id
-            }
+        {showRail && (
+          <Rail
+            items={railItems}
             theme={theme}
             toggleTheme={toggleTheme}
-            messagesBadge={
-              totalUnreadMessages > 0 ? totalUnreadMessages : undefined
-            }
-            notificationsBadge={
-              totalUnreadNotifs > 0 ? totalUnreadNotifs : undefined
-            }
+            isSettings={isSettingsActive}
+            settingsLabel={isActingAsPage ? "Manage Realm" : "Settings"}
+            onSettings={onSettingsClick}
+            onLogout={logoutProcess}
+            onProfile={onProfileClick}
+            profileSrc={activeAvatar.src}
+            profileName={activeAvatar.name}
           />
         )}
 
-        <main
+        <div
           style={{
             flex: 1,
-            minHeight: 0,
-            overflow: "hidden",
-            position: "relative",
+            minWidth: 0,
             display: "flex",
             flexDirection: "column",
+            height: "100%",
+            position: "relative",
           }}
         >
-          <div
+          {showMobileNav && (
+            <MobileTopBar
+              onProfile={onProfileClick}
+              onExplore={() => navigate("/explore")}
+              onMessages={() => navigate("/messages")}
+              onNotifications={() => navigate("/notifications")}
+              profileSrc={activeAvatar.src}
+              profileName={activeAvatar.name}
+              profileEntityId={
+                authentication.active_entity_context?.id ??
+                authentication.user.entity_id
+              }
+              theme={theme}
+              toggleTheme={toggleTheme}
+              messagesBadge={
+                totalUnreadMessages > 0 ? totalUnreadMessages : undefined
+              }
+              notificationsBadge={
+                totalUnreadNotifs > 0 ? totalUnreadNotifs : undefined
+              }
+            />
+          )}
+
+          <main
             style={{
               flex: 1,
               minHeight: 0,
+              overflow: "hidden",
+              position: "relative",
               display: "flex",
               flexDirection: "column",
-              overflow: "hidden",
             }}
           >
-            <Routes>
-              <Route path="/" element={<DesktopHome />} />
-              <Route path="/notes" element={authentication.allowed_modules.includes("module.notes.access") ? <Notes /> : <Navigate to="/" />} />
-              <Route path="/:userID/*" element={<ProfileContainer />} />
-              <Route path="/realms/*" element={<RealmContainer />} />
-              <Route path="/settings" element={<Settings isModal={false} />} />
-              <Route
-                path="/user"
-                element={
-                  screensizelistener.W <= 1100 ? (
-                    <UserMenu />
-                  ) : (
-                    <Navigate to={"/"} />
-                  )
-                }
-              />
-              <Route path="/messages/*" element={<MessagesProtectionContent><Messages /></MessagesProtectionContent>} />
-              <Route path="/notifications" element={<Notifications />} />
-              <Route path="/contacts" element={<Contacts />} />
-              <Route path="/explore" element={<SearchPage />} />
-              <Route path="/mapfeed" element={<MapFeed />} />
-              <Route path="/servers/*" element={<Servers />} />
-              <Route path="/pages/*" element={<Pages />} />
-              {/* A post's own URL. Ranked above `/:userID/*` by react-router
+            <div
+              style={{
+                flex: 1,
+                minHeight: 0,
+                display: "flex",
+                flexDirection: "column",
+                overflow: "hidden",
+              }}
+            >
+              <Routes>
+                <Route path="/" element={<DesktopHome />} />
+                <Route path="/notes" element={authentication.allowed_modules.includes("module.notes.access") ? <Notes /> : <Navigate to="/" />} />
+                <Route path="/:userID/*" element={<ProfileContainer />} />
+                <Route path="/realms/*" element={<RealmContainer />} />
+                <Route path="/settings" element={<Settings isModal={false} />} />
+                <Route
+                  path="/user"
+                  element={
+                    screensizelistener.W <= 1100 ? (
+                      <UserMenu />
+                    ) : (
+                      <Navigate to={"/"} />
+                    )
+                  }
+                />
+                <Route path="/messages/*" element={<MessagesProtectionContent><Messages /></MessagesProtectionContent>} />
+                <Route path="/notifications" element={<Notifications />} />
+                <Route path="/contacts" element={<Contacts />} />
+                <Route path="/explore" element={<SearchPage />} />
+                <Route path="/mapfeed" element={<MapFeed />} />
+                <Route path="/servers/*" element={<Servers />} />
+                <Route path="/pages/*" element={<Pages />} />
+                <Route path="/communities" element={<Communities />} />
+                <Route path="/communities/:communityId" element={<CommunityProfile />} />
+                {/* A post's own URL. Ranked above `/:userID/*` by react-router
                   because a static first segment outscores a dynamic one - the
                   same reason /settings and /contacts coexist with it. */}
-              <Route path="/post/:postID" element={<PostPage />} />
-              <Route path="/post/:postID/edit" element={<PostEditPage />} />
-              {/* Where an invite's notification, push and email lead. Static
+                <Route path="/post/:postID" element={<PostPage />} />
+                <Route path="/post/:postID/edit" element={<PostEditPage />} />
+                {/* Where an invite's notification, push and email lead. Static
                   first segment, so never mistaken for a username. */}
-              <Route path="/invite/:token" element={<InvitePage />} />
-              {/* Static "archive" outranks the :entityID segment. */}
-              <Route path="/moments/archive" element={<MomentViewer archive />} />
-              <Route path="/moments/:entityID" element={<MomentViewer />} />
-              {/* Ranked above "/:userID/*" by react-router's specificity
+                <Route path="/invite/:token" element={<InvitePage />} />
+                {/* Static "archive" outranks the :entityID segment. */}
+                <Route path="/moments/archive" element={<MomentViewer archive />} />
+                <Route path="/moments/:entityID" element={<MomentViewer />} />
+                {/* Ranked above "/:userID/*" by react-router's specificity
                   scoring - a static first segment beats a dynamic one - so a
                   topic slug is never mistaken for a username. */}
-              <Route path="/topics/:slug" element={<TopicFeed />} />
-              {/* Opened from a moderation notification. Static first segment,
+                <Route path="/topics/:slug" element={<TopicFeed />} />
+                {/* Opened from a moderation notification. Static first segment,
                   so react-router ranks it above "/:userID/*" and a moderation
                   id is never mistaken for a username. */}
-              <Route
-                path="/moderation/:moderationId"
-                element={<ModerationDetail />}
-              />
-            </Routes>
-          </div>
-        </main>
+                <Route
+                  path="/moderation/:moderationId"
+                  element={<ModerationDetail />}
+                />
+              </Routes>
+            </div>
+          </main>
 
-        {/* The dock rides the middle of the right edge, so it is anchored
+          {/* The dock rides the middle of the right edge, so it is anchored
             separately from the open windows, which stay along the bottom. */}
-        <MessagesProtectionContent>
-        {!(screensizelistener.W <= 900) && collapsedConversations.length > 0 && (
-          <div
-            style={{
-              position: "absolute",
-              top: 0,
-              bottom: 0,
-              right: 10,
-              display: "flex",
-              flexDirection: "column",
-              justifyContent: "center",
-              // Above the open windows (100). The dock is the narrower, more
-              // transient layer - its hover card reaches left across whatever
-              // window sits beside it, and a bubble's close button overhangs
-              // the panel - so it has to win. `zIndex` here also opens a
-              // stacking context, which traps the card's own `z-index: 200`
-              // inside this wrapper; it can only outrank the windows by
-              // ranking the wrapper itself.
-              zIndex: 120,
-              // A `transform` here would make this the containing block for
-              // the hover card, which is positioned `fixed` off measured
-              // viewport coordinates - hence centring by flex, not translate.
-              // The strip spans the full height, so it only takes clicks on
-              // the dock itself.
-              pointerEvents: "none",
-            }}
-          >
-            <ConversationBubbleDock bubbles={collapsedConversations} />
-          </div>
-        )}
-
-        {!(screensizelistener.W <= 900) && openConversations.length > 0 && (
-          <div
-            style={{
-              position: "absolute",
-              bottom: 0,
-              // Clears the dock, which no longer shares this row: its 64px
-              // panel (46px bubble + 16px padding + 2px border), the 10px it
-              // is inset by, and a 10px gutter between the two.
-              right: collapsedConversations.length > 0 ? 84 : 10,
-              display: "flex",
-              flexDirection: "row-reverse",
-              alignItems: "flex-end",
-              gap: 10,
-              zIndex: 100,
-              justifyContent: "flex-end",
-            }}
-          >
-            {openConversations.map((mp: any) => (
+          <MessagesProtectionContent>
+            {!(screensizelistener.W <= 900) && collapsedConversations.length > 0 && (
               <div
                 style={{
-                  width: 330,
-                  height: 500,
-                  maxHeight: 600,
-                  maxWidth: 330,
+                  position: "absolute",
+                  top: 0,
+                  bottom: 0,
+                  right: 10,
                   display: "flex",
+                  flexDirection: "column",
+                  justifyContent: "center",
+                  // Above the open windows (100). The dock is the narrower, more
+                  // transient layer - its hover card reaches left across whatever
+                  // window sits beside it, and a bubble's close button overhangs
+                  // the panel - so it has to win. `zIndex` here also opens a
+                  // stacking context, which traps the card's own `z-index: 200`
+                  // inside this wrapper; it can only outrank the windows by
+                  // ranking the wrapper itself.
+                  zIndex: 120,
+                  // A `transform` here would make this the containing block for
+                  // the hover card, which is positioned `fixed` off measured
+                  // viewport coordinates - hence centring by flex, not translate.
+                  // The strip spans the full height, so it only takes clicks on
+                  // the dock itself.
+                  pointerEvents: "none",
                 }}
-                key={mp.conversationID}
               >
-                <ConversationV2
-                  conversationID={mp.conversationID}
-                  theme={{ primary: "#1c7def", lighten: "#82b7f6" }}
-                  isMinimized={true}
-                />
+                <ConversationBubbleDock bubbles={collapsedConversations} />
               </div>
-            ))}
-          </div>
+            )}
+
+            {!(screensizelistener.W <= 900) && openConversations.length > 0 && (
+              <div
+                style={{
+                  position: "absolute",
+                  bottom: 0,
+                  // Clears the dock, which no longer shares this row: its 64px
+                  // panel (46px bubble + 16px padding + 2px border), the 10px it
+                  // is inset by, and a 10px gutter between the two.
+                  right: collapsedConversations.length > 0 ? 84 : 10,
+                  display: "flex",
+                  flexDirection: "row-reverse",
+                  alignItems: "flex-end",
+                  gap: 10,
+                  zIndex: 100,
+                  justifyContent: "flex-end",
+                }}
+              >
+                {openConversations.map((mp: any) => (
+                  <div
+                    style={{
+                      width: 330,
+                      height: 500,
+                      maxHeight: 600,
+                      maxWidth: 330,
+                      display: "flex",
+                    }}
+                    key={mp.conversationID}
+                  >
+                    <ConversationV2
+                      conversationID={mp.conversationID}
+                      theme={{ primary: "#1c7def", lighten: "#82b7f6" }}
+                      isMinimized={true}
+                    />
+                  </div>
+                ))}
+              </div>
+            )}
+          </MessagesProtectionContent>
+
+          {showMobileNav && <MobileNav items={orderedMobileNavItems} />}
+        </div>
+
+        {screensizelistener.W >= 1100 && pagemodal && (
+          <Modal
+            component={
+              <div className="div_page_modal_container">
+                {pagemodal.component}
+              </div>
+            }
+          />
         )}
-        </MessagesProtectionContent>
-
-        {showMobileNav && <MobileNav items={orderedMobileNavItems} />}
-      </div>
-
-      {screensizelistener.W >= 1100 && pagemodal && (
-        <Modal
-          component={
-            <div className="div_page_modal_container">
-              {pagemodal.component}
-            </div>
-          }
-        />
-      )}
       </MessagesProtectionProvider>
     </div>
   );
@@ -843,7 +847,7 @@ function Rail({
                 if (!on) e.currentTarget.style.background = "transparent";
               }}
             >
-              <Icon n={item.icon} s={24} />
+              <Icon n={item.icon} s={item.key === "communities" ? 28 : 24} />
               {item.badge ? (
                 <span
                   style={{
@@ -1118,7 +1122,7 @@ function MobileNav({ items }: { items: RailItem[] }) {
               position: "relative",
             }}
           >
-            <Icon n={it.icon} s={24} />
+            <Icon n={it.icon} s={it.key === "communities" ? 28 : 24} />
             {it.badge ? (
               <span
                 style={{

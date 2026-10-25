@@ -1,3 +1,4 @@
+import CommunityName from "@/app/reusables/CommunityName";
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -39,10 +40,9 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
   const showMedia = hasMediaTab(realm);
 
   const navButtonClass = (target: string) =>
-    `tw-w-full tw-flex tw-items-center tw-justify-between tw-gap-[12px] tw-px-[14px] tw-py-[11px] tw-border-none tw-rounded-[var(--r-md)] tw-cursor-pointer tw-transition-colors ${
-      activePath === target
-        ? "tw-bg-[var(--brand-soft)] tw-text-[var(--brand)]"
-        : "tw-bg-transparent tw-text-[var(--text)] hover:tw-bg-[var(--surface-hover)]"
+    `tw-w-full tw-flex tw-items-center tw-justify-between tw-gap-[12px] tw-px-[14px] tw-py-[11px] tw-border-none tw-rounded-[var(--r-md)] tw-cursor-pointer tw-transition-colors ${activePath === target
+      ? "tw-bg-[var(--brand-soft)] tw-text-[var(--brand)]"
+      : "tw-bg-transparent tw-text-[var(--text)] hover:tw-bg-[var(--surface-hover)]"
     }`;
 
   useEffect(() => {
@@ -66,6 +66,8 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
       document.removeEventListener(eventName, handler as EventListener);
     };
   }, [realm]);
+
+  if (realm.type === "community" && realm.my_role === "moderator") return <div className="cl-communities thinscroller"><button onClick={() => navigate(`/communities/${realm.realm_id}`)}>← Community</button><h1><CommunityName community={{ name: realm.name, is_verified: realm.is_verified }} /></h1><Members realm={realm} /></div>;
 
   return (
     <div className="tw-bg-[var(--background)] tw-text-[var(--text)] tw-w-full tw-h-full tw-absolute tw-inset-0 tw-flex tw-flex-col tw-items-center tw-z-[2]">
@@ -100,7 +102,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                   />
                   <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-truncate tw-min-w-0">
                     <span className="tw-truncate tw-text-[16px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
-                      {realm.name}
+                      {realm.type === "community" ? <CommunityName community={{ name: realm.name, is_verified: realm.is_verified }} /> : realm.name}
                     </span>
                     {realm.parent && (
                       <span className="tw-truncate tw-text-[12px] tw-font-semibold tw-font-Inter tw-text-[var(--text-2)]">
@@ -202,7 +204,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                 />
                 <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-truncate tw-min-w-0">
                   <span className="tw-truncate tw-text-[16px] tw-font-semibold tw-font-Inter tw-text-[var(--text)]">
-                    {realm.name}
+                    {realm.type === "community" ? <CommunityName community={{ name: realm.name, is_verified: realm.is_verified }} /> : realm.name}
                   </span>
                   {realm.parent && (
                     <span className="tw-truncate tw-text-[12px] tw-font-semibold tw-font-Inter tw-text-[var(--text-2)]">

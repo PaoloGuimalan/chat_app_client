@@ -19,6 +19,7 @@ function Details({ realm }: { realm: IRealmProfileInfo }) {
   const currentPreset = useMemo(() => {
     const formPreset: Record<string, string[]> = {
       group: ["name", "privacy"],
+      community: ["name", "description", "slug", "privacy"],
       channel: ["name"], // "privacy" for future, need add every user in server when set to public
       voice: ["name"], // "privacy" for future, need add every user in server when set to public
       page: ["name", "description", "email", "slug"],

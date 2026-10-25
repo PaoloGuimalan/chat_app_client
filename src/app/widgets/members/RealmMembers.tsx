@@ -59,7 +59,7 @@ function RealmMembers({
   // Every item in the menu is governed by that one rule, so an outranked
   // target gets no menu at all rather than an empty one.
   const canActOn = (role: string) =>
-    viewerIsOwner || !["admin", "owner"].includes(role);
+    (realmNoun !== "community" || ["owner", "admin"].includes(myRole || "")) && (viewerIsOwner || !["admin", "owner"].includes(role));
 
   // Your own row shows one thing: Leave. The acting entity rather than the
   // personal one, since that is whose role my_role describes and whose
@@ -193,11 +193,10 @@ function RealmMembers({
   return (
     <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-transparent tw-flex">
       <div
-        className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-bg-transparent tw-min-h-0 ${
-          compact
-            ? "tw-p-[12px] tw-gap-[10px]"
-            : "tw-p-[18px] sm:tw-p-[24px] tw-gap-[15px]"
-        }`}
+        className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-bg-transparent tw-min-h-0 ${compact
+          ? "tw-p-[12px] tw-gap-[10px]"
+          : "tw-p-[18px] sm:tw-p-[24px] tw-gap-[15px]"
+          }`}
       >
         {!compact && (
           <span className="cl-text-body tw-font-semibold tw-text-[var(--text)]">
@@ -224,9 +223,8 @@ function RealmMembers({
           </div>
           {isLoading ? (
             <div
-              className={`tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center ${
-                compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
-              }`}
+              className={`tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center ${compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
+                }`}
             >
               <motion.div
                 animate={{
@@ -248,9 +246,8 @@ function RealmMembers({
               ref={divcontentRef}
             >
               <div
-                className={`tw-w-full tw-flex tw-flex-col tw-gap-[8px] ${
-                  compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
-                }`}
+                className={`tw-w-full tw-flex tw-flex-col tw-gap-[8px] ${compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
+                  }`}
               >
                 {memberslist.map((cnts: IRealmMember) => {
                   return (
@@ -260,11 +257,10 @@ function RealmMembers({
                       }}
                       key={cnts.member_id}
                       className="div_realm_members_cards_col tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none"
-                      title={`${cnts.entity.details.first_name}${
-                        cnts.entity.details.middle_name == "N/A"
-                          ? ""
-                          : ` ${cnts.entity.details.middle_name}`
-                      } ${cnts.entity.details.last_name}`}
+                      title={`${cnts.entity.details.first_name}${cnts.entity.details.middle_name == "N/A"
+                        ? ""
+                        : ` ${cnts.entity.details.middle_name}`
+                        } ${cnts.entity.details.last_name}`}
                     >
                       <div id="div_img_cncts_container">
                         <div id="div_img_search_profiles_container_cncts">
@@ -317,14 +313,14 @@ function RealmMembers({
                         {(cnts.entity.id === actingEntityID
                           ? canLeave
                           : canActOn(cnts.role)) && (
-                          <MembersOptions
-                            member={cnts}
-                            hide={hide}
-                            realmNoun={realmNoun}
-                            viewerIsOwner={viewerIsOwner}
-                            isSelf={cnts.entity.id === actingEntityID}
-                          />
-                        )}
+                            <MembersOptions
+                              member={cnts}
+                              hide={hide}
+                              realmNoun={realmNoun}
+                              viewerIsOwner={viewerIsOwner}
+                              isSelf={cnts.entity.id === actingEntityID}
+                            />
+                          )}
                       </div>
                     </motion.div>
                   );

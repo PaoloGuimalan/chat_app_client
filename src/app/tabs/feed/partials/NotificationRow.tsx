@@ -209,7 +209,13 @@ function NotificationRow({
               margin: "0 1px 0 3px",
             }}
           >
-            <PageFlag is size={13} />
+            {n.fromUser.realm_type === "community" ? (
+              <span role="img" aria-label="Community" title="Community">
+                <Icon n="groups" s={18} c="var(--text-3)" />
+              </span>
+            ) : (
+              <PageFlag is size={13} />
+            )}
           </span>
         )}
         {n.fromUser?.type === "bot" && (

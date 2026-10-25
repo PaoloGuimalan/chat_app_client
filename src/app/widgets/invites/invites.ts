@@ -7,7 +7,7 @@ import { CreateRealmInviteRequest } from "@/reusables/hooks/requests";
  * user_service/community/invite_rules.py.
  */
 
-export type InvitableRealmType = "group" | "server" | "conference" | "page";
+export type InvitableRealmType = "group" | "server" | "conference" | "page" | "community";
 export type InvitePurpose = "join" | "manage" | "follow";
 
 export interface IInviteEntity {
@@ -58,9 +58,8 @@ export const inviteSentence = (invite: IRealmInvite) => {
   const inviter = entityDisplay(invite.inviter).name;
   const realm = invite.realm_name;
   if (invite.purpose === "manage") {
-    return `${inviter} invited you to help run ${realm} as ${
-      invite.role === "admin" ? "an admin" : "a moderator"
-    }.`;
+    return `${inviter} invited you to help run ${realm} as ${invite.role === "admin" ? "an admin" : "a moderator"
+      }.`;
   }
   if (invite.purpose === "follow") {
     return `${inviter} invited you to follow ${realm}.`;
@@ -78,6 +77,7 @@ export const inviteSentence = (invite: IRealmInvite) => {
 
 /** Where an ACCEPTED invite takes you. */
 export const inviteDestination = (invite: IRealmInvite): string | null => {
+  if (invite.realm_type === "community") return `/communities/${encodeURIComponent(invite.realm_slug || invite.realm_id)}`;
   switch (invite.realm_type) {
     case "group":
       return `/messages/${invite.realm_id}`;
@@ -105,8 +105,8 @@ export const inviteDestination = (invite: IRealmInvite): string | null => {
 export const conferenceLink = (invite: IRealmInvite): string | null =>
   invite.realm_type === "conference" && invite.realm_slug
     ? `/conference/${invite.realm_slug}?invite_token=${encodeURIComponent(
-        invite.invite_token,
-      )}`
+      invite.invite_token,
+    )}`
     : null;
 
 /** "to follow" / "as an admin" - what a pending invite is for, in a list. */

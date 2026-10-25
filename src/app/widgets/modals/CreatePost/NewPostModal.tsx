@@ -1,5 +1,9 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { getCommunity, listCommunities, type CommunityCard } from "@/reusables/hooks/communityRequests";
+import { selectedCommunity } from "@/reusables/hooks/communityState";
+import "../../../../styles/communities.css";
+import "../../../../styles/community-destination.css";
 import Modal from "@/app/reusables/Modal";
 import { SET_MUTATE_ALERTS } from "@/redux/types";
 import { pickFiles } from "@/reusables/hooks/pickFiles";
@@ -39,7 +43,7 @@ import {
   AuthenticationInterface,
   EntitySearchResult,
 } from "@/reusables/vars/interfaces";
-import { Avatar, BotFlag, PageFlag } from "@/reusables/design";
+import { Avatar, BotFlag, Icon, PageFlag } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
 import { limitFor } from "@/reusables/vars/uploads";
 import {
@@ -51,6 +55,7 @@ const POST_FAILED = "We couldn't publish that post. Please try again.";
 
 export function NewPostModal({
   toShare,
+  community: initialCommunity,
   sharePreviewData,
   withImage,
   profileInfo,
@@ -111,19 +116,19 @@ export function NewPostModal({
   const [taggedEntities, settaggedEntities] = useState<EntitySearchResult[]>(
     isViewingOtherProfile
       ? [
-          {
-            entity_id: profileInfo.entityID,
-            type: "user",
-            display_name: profileDisplayName || profileInfo.username || "",
-            handle: profileInfo.username || "",
-            profile:
-              !profileInfo.profile || profileInfo.profile === "none"
-                ? null
-                : profileInfo.profile,
-            is_verified: !!profileInfo.isBadged,
-            realm_type: null,
-          },
-        ]
+        {
+          entity_id: profileInfo.entityID,
+          type: "user",
+          display_name: profileDisplayName || profileInfo.username || "",
+          handle: profileInfo.username || "",
+          profile:
+            !profileInfo.profile || profileInfo.profile === "none"
+              ? null
+              : profileInfo.profile,
+          is_verified: !!profileInfo.isBadged,
+          realm_type: null,
+        },
+      ]
       : [],
   );
   const [showTagging, setshowTagging] = useState<boolean>(false);
@@ -131,6 +136,57 @@ export function NewPostModal({
   const [tagresults, settagresults] = useState<EntitySearchResult[]>([]);
   const [istagsearching, setistagsearching] = useState<boolean>(false);
   const dispatch = useDispatch();
+
+  const actor = authentication.active_entity_context?.id ?? authentication.user.entity_id;
+  const currentActor = useRef(actor);
+  currentActor.current = actor;
+  const initialActor = useRef(actor);
+  const mounted = useRef(true);
+  const submitPending = useRef(false);
+  const contextEpoch = useRef(0);
+  const [communities, setCommunities] = useState<CommunityCard[]>(initialCommunity ? [initialCommunity] : []);
+  const [destination, setDestination] = useState<string>(initialCommunity?.entity_id || "");
+  const [anonymous, setAnonymous] = useState(false);
+  const [destinationError, setDestinationError] = useState("");
+  const [accessBlocked, setAccessBlocked] = useState(false);
+  const [showDestination, setShowDestination] = useState(false);
+  const community = selectedCommunity(communities, destination);
+  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
+  useEffect(() => {
+    if (actor !== initialActor.current) { contextEpoch.current++; setmedialist([]); setmainpostcaption(""); setAnonymous(false); setDestination(""); onclose(false); }
+  }, [actor, onclose]);
+  useEffect(() => {
+    if (toShare) return;
+    let active = true;
+    const load = async () => {
+      let page = 1; const joined: CommunityCard[] = [];
+      do {
+        const response = await listCommunities({ joined: true, page, page_size: 100 });
+        if (!active) return;
+        joined.push(...response.results.filter(card => card.is_member));
+        if (!response.next) break;
+        page++;
+      } while (active);
+      if (active) setCommunities(joined);
+    };
+    load().catch(() => { if (active) setDestinationError("Community destinations could not be refreshed. Try reopening the composer."); });
+    const changed = (event: Event) => {
+      const realmId = (event as CustomEvent).detail?.realm_id;
+      if (!active) return;
+      if (!destination || (realmId && realmId !== community?.realm_id)) {
+        load().catch(() => {
+          if (active) setDestinationError("Community destinations could not be refreshed.");
+        });
+        return;
+      }
+      contextEpoch.current++;
+      setAccessBlocked(true);
+      setmedialist([]);
+      setDestinationError("Community access changed. Reopen this composer to continue.");
+    };
+    document.addEventListener("community-changed", changed);
+    return () => { active = false; document.removeEventListener("community-changed", changed); };
+  }, [actor, toShare, destination, community?.realm_id]);
 
   const isTagged = (entity: EntitySearchResult) =>
     taggedEntities.some((tagged) => tagged.entity_id === entity.entity_id);
@@ -243,7 +299,9 @@ export function NewPostModal({
   });
 
   const CreatePostProcess = async () => {
+    if (submitPending.current || accessBlocked || actor !== initialActor.current || (destination && !community)) return;
     if (toShare || mainpostcaption.trim() !== "" || medialist.length > 0) {
+      submitPending.current = true;
       setisuploadingpost(true);
 
       // taggedEntities already includes the auto-tagged profile owner (when
@@ -255,7 +313,14 @@ export function NewPostModal({
         ),
       );
 
+      const submissionEpoch = contextEpoch.current;
+      const submissionToken = localStorage.getItem("authtoken") || undefined;
       try {
+        if (community) {
+          const confirmed = await getCommunity(community.realm_id);
+          if (!confirmed.result.is_member) throw new Error("Join this community before posting.");
+        }
+        if (!mounted.current || currentActor.current !== actor || submissionEpoch !== contextEpoch.current) return;
         let uploadedReferences: any[] = [];
 
         if (!toShare && medialist.length > 0) {
@@ -266,6 +331,9 @@ export function NewPostModal({
               referenceMediaType: mp.referenceMediaType,
             })),
             "post",
+            undefined,
+            community ? { community_entity_id: community.entity_id, is_anonymous: anonymous } : undefined,
+            submissionToken,
           );
 
           uploadedReferences = uploadResponse.data.result.map(
@@ -279,19 +347,21 @@ export function NewPostModal({
           );
         }
 
+        if (!mounted.current || currentActor.current !== actor || submissionEpoch !== contextEpoch.current) return;
         const response: any = await CreatePostRequest({
+          ...(community ? { community_entity_id: community.entity_id, is_anonymous: anonymous } : {}),
           content: {
             isShared: toShare,
             references: toShare
               ? [
-                  {
-                    id: 1,
-                    name: null,
-                    reference: sharePreviewData.post_id,
-                    caption: "",
-                    referenceMediaType: "shared_post",
-                  },
-                ]
+                {
+                  id: 1,
+                  name: null,
+                  reference: sharePreviewData.post_id,
+                  caption: "",
+                  referenceMediaType: "shared_post",
+                },
+              ]
               : uploadedReferences,
             data: mainpostcaption,
           },
@@ -312,13 +382,14 @@ export function NewPostModal({
             users: validatedTaggedList,
           },
           privacy: {
-            status: postPrivacy,
+            status: community ? (community.is_private ? "private" : "public") : postPrivacy,
             users: [], //userID for filteration depending on status
           }, //public, connections, private, custom
           onfeed: "feed",
-          otherEntityID: otherEntityID,
+          otherEntityID: community ? null : otherEntityID,
         });
 
+        if (!mounted.current || currentActor.current !== actor || submissionEpoch !== contextEpoch.current) return;
         if (response.data.status) {
           medialist.forEach((mp) => URL.revokeObjectURL(mp.reference));
           linkPreview.dismiss();
@@ -350,6 +421,7 @@ export function NewPostModal({
           });
         }
       } catch (err: any) {
+        if (!mounted.current || currentActor.current !== actor || submissionEpoch !== contextEpoch.current) return;
         console.log(err);
         setisuploadingpost(false);
         dispatch({
@@ -361,7 +433,7 @@ export function NewPostModal({
             },
           },
         });
-      }
+      } finally { submitPending.current = false; }
     } else {
       dispatch({
         type: SET_MUTATE_ALERTS,
@@ -379,29 +451,26 @@ export function NewPostModal({
     <Modal
       component={
         <div
-          className={`div_modal_container cl-create-post-shell ${
-            toShare
-              ? "cl-create-post-shell--share"
-              : iswithImage
-                ? "cl-create-post-shell--media"
-                : ""
-          } ${
-            toShare
+          className={`div_modal_container cl-create-post-shell ${showDestination ? "cl-create-post-shell--destination" : ""} ${toShare
+            ? "cl-create-post-shell--share"
+            : iswithImage
+              ? "cl-create-post-shell--media"
+              : ""
+            } ${toShare
               ? "tw-max-h-[600px]"
-              : iswithImage || showTagging || showPrivacy
+              : iswithImage || showTagging || showPrivacy || showDestination
                 ? "tw-max-h-[600px]"
                 : "tw-max-h-[290px]"
-          }`}
+            }`}
         >
           {isuploadingpost && !toShare && (
             <div
-              className={`cl-create-post-loading tw-absolute tw-inset-0 tw-h-full tw-w-full ${
-                toShare
-                  ? "tw-max-h-[600px]"
-                  : iswithImage || showTagging || showPrivacy
-                    ? "tw-max-h-[520px]"
-                    : "tw-max-h-[260px]"
-              } tw-flex tw-items-center tw-justify-center`}
+              className={`cl-create-post-loading tw-absolute tw-inset-0 tw-h-full tw-w-full ${toShare
+                ? "tw-max-h-[600px]"
+                : iswithImage || showTagging || showPrivacy
+                  ? "tw-max-h-[520px]"
+                  : "tw-max-h-[260px]"
+                } tw-flex tw-items-center tw-justify-center`}
             >
               <div id="div_conversation_content_loader">
                 <motion.div
@@ -421,21 +490,78 @@ export function NewPostModal({
           )}
           <div id="div_modal_header">
             <div className="div_modal_header_label">
-              {toShare ? (
+              {showDestination ? (
+                <button
+                  type="button"
+                  aria-label="Back to post"
+                  className="cl-community-destination-back"
+                  onClick={() => setShowDestination(false)}
+                >
+                  <Icon n="arrow_back" s={20} />
+                </button>
+              ) : toShare ? (
                 <PiShareFat style={{ fontSize: "22px" }} />
               ) : (
                 <BsFileEarmarkPost style={{ fontSize: "20px" }} />
               )}
               <span className="span_modal_header_label tw-font-inter tw-text-[var(--text)]">
-                {toShare ? "Share Post" : "Create a Post"}
+                {showDestination ? "Post in" : toShare ? "Share Post" : "Create a Post"}
               </span>
             </div>
+            {!toShare && !showDestination && (
+              <span
+                className="cl-community-destination-summary"
+                title={`Post in ${community?.name || "Your timeline"} · ${anonymous ? "Anonymous" : "My profile"}`}
+              >
+                Post in {community?.name || "Your timeline"} · {anonymous ? "Anonymous" : "My profile"}
+              </span>
+            )}
           </div>
           {/* thinscroller, not `scroller`: the latter renders a 10px bar with
               a #f1f1f1 track, which on the dark theme showed up as a pale
               strip drawn over the caption box's right edge. Every other
               scroll area in this modal already uses thinscroller. */}
-          <div className="cl-create-post-body thinscroller tw-w-full tw-items-stretch tw-justify-start">
+          {showDestination ? (
+            <>
+              <section className="cl-community-destination-page thinscroller" aria-label="Post destination">
+                <p>Choose where to share this post.</p>
+                <label htmlFor="post-community-destination">Post in</label>
+                <select
+                  id="post-community-destination"
+                  disabled={isuploadingpost || Boolean(initialCommunity)}
+                  value={destination}
+                  onChange={event => {
+                    setDestination(event.target.value);
+                    setAnonymous(false);
+                    setAccessBlocked(false);
+                    setDestinationError("");
+                    setshowPrivacy(false);
+                  }}
+                >
+                  <option value="">Your timeline</option>
+                  {communities.map(card => <option key={card.entity_id} value={card.entity_id}>{card.name}</option>)}
+                </select>
+                {community && (
+                  <>
+                    <label htmlFor="post-community-identity">Post as</label>
+                    <select
+                      id="post-community-identity"
+                      disabled={isuploadingpost}
+                      value={anonymous ? "anonymous" : "named"}
+                      onChange={event => setAnonymous(event.target.value === "anonymous")}
+                    >
+                      <option value="named">{authentication.active_entity_context?.name || "My profile"}</option>
+                      <option value="anonymous">Anonymous member</option>
+                    </select>
+                    <p>{community.is_private ? "Private community · Only members can see this post" : "Public community · Anyone can see this post"}</p>
+                  </>
+                )}
+              </section>
+              <div className="cl-create-post-actions">
+                <button type="button" className="btns_create_cancel" onClick={() => setShowDestination(false)}>Done</button>
+              </div>
+            </>
+          ) : <div className="cl-create-post-body thinscroller tw-w-full tw-items-stretch tw-justify-start">
             {/* pr-[6px] reserves a gutter for the scrollbar. Without it the
                 track is drawn ON TOP of the caption box's rounded right edge
                 whenever this area scrolls, which it does as soon as a panel
@@ -504,7 +630,7 @@ export function NewPostModal({
                   ))}
                 </div>
               )}
-              {showPrivacy && (
+              {showPrivacy && !community && (
                 <div className="cl-create-post-tagging">
                   <span className="cl-text-caption tw-text-left tw-text-[var(--text-2)]">
                     Who can see this post?
@@ -520,11 +646,10 @@ export function NewPostModal({
                           setpostPrivacy(option.value);
                           setshowPrivacy(false);
                         }}
-                        className={`cl-post-privacy-option ${
-                          postPrivacy === option.value
-                            ? "cl-post-privacy-option--active"
-                            : ""
-                        }`}
+                        className={`cl-post-privacy-option ${postPrivacy === option.value
+                          ? "cl-post-privacy-option--active"
+                          : ""
+                          }`}
                       >
                         <span className="cl-post-privacy-option__icon">
                           {option.icon}
@@ -588,9 +713,8 @@ export function NewPostModal({
                             key={entity.entity_id}
                             disabled={isuploadingpost}
                             onClick={() => toggleTag(entity)}
-                            className={`cl-tag-result ${
-                              selected ? "cl-tag-result--active" : ""
-                            }`}
+                            className={`cl-tag-result ${selected ? "cl-tag-result--active" : ""
+                              }`}
                           >
                             <Avatar
                               id={entity.entity_id}
@@ -623,11 +747,10 @@ export function NewPostModal({
                               </span>
                               <span className="cl-tag-result__handle">
                                 {entity.type === "realm"
-                                  ? `${entity.handle}${
-                                      entity.realm_type
-                                        ? ` · ${entity.realm_type}`
-                                        : " · page"
-                                    }`
+                                  ? `${entity.handle}${entity.realm_type
+                                    ? ` · ${entity.realm_type}`
+                                    : " · page"
+                                  }`
                                   : `@${entity.handle}`}
                               </span>
                             </div>
@@ -656,7 +779,7 @@ export function NewPostModal({
                   {medialist.length > 0 ? (
                     <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px]">
                       {medialist
-                        .sort(function (a, b) {
+                        .sort(function(a, b) {
                           return a.id - b.id || a.name.localeCompare(b.name);
                         })
                         .map((mp: any) => {
@@ -673,9 +796,8 @@ export function NewPostModal({
                           sendNonImageFilesProcess();
                         }}
                         {...mediaDragHandlers}
-                        className={`cl-create-post-dropzone tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-border-dashed tw-items-center tw-justify-center ${
-                          isDraggingMedia ? "tw-border-[var(--brand)]" : ""
-                        }`}
+                        className={`cl-create-post-dropzone tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-border-dashed tw-items-center tw-justify-center ${isDraggingMedia ? "tw-border-[var(--brand)]" : ""
+                          }`}
                       >
                         <MdAddToPhotos
                           style={{ fontSize: "20px", color: "var(--text-2)" }}
@@ -693,9 +815,8 @@ export function NewPostModal({
                         sendNonImageFilesProcess();
                       }}
                       {...mediaDragHandlers}
-                      className={`cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-min-h-[220px] tw-border-dashed tw-items-center tw-justify-center ${
-                        isDraggingMedia ? "tw-border-[var(--brand)]" : ""
-                      }`}
+                      className={`cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-min-h-[220px] tw-border-dashed tw-items-center tw-justify-center ${isDraggingMedia ? "tw-border-[var(--brand)]" : ""
+                        }`}
                     >
                       <MdAddToPhotos
                         style={{ fontSize: "60px", color: "var(--text-2)" }}
@@ -721,25 +842,38 @@ export function NewPostModal({
               )}
             </div>
           </div>
-          <div className="cl-create-post-toolbar">
+          }
+          {destinationError && <p role="alert" className="cl-community-destination-error">{destinationError}</p>}
+          {!showDestination && <div className="cl-create-post-toolbar">
             <button
               onClick={() => {
                 setcurrenttab("privacy");
                 // Only one panel at a time - they share the composer's scroll
                 // area, and stacking them pushes the caption box out of view.
                 setshowTagging(false);
-                setshowPrivacy((prev) => !prev);
+                if (!community) setshowPrivacy((prev) => !prev);
               }}
-              title={`Audience: ${activePrivacy.label}`}
-              className={`cl-tag-toolbar-btn tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand-700)] ${
-                showPrivacy ? "cl-toolbar-btn--active" : ""
-              }`}
+              title={community ? "Audience is determined by the community" : `Audience: ${activePrivacy.label}`}
+              className={`cl-tag-toolbar-btn tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand-700)] ${showPrivacy ? "cl-toolbar-btn--active" : ""
+                }`}
             >
               {/* The icon tracks the current audience (globe / group / lock)
                   so the selection is readable without a text label - the
                   toolbar is icon-only and has no room for one. */}
               {activePrivacy.icon}
             </button>
+            {!toShare && (
+              <button
+                type="button"
+                aria-label="Post in"
+                title={`Post in: ${community?.name || "Your timeline"}${anonymous ? " · Anonymous" : ""}`}
+                disabled={isuploadingpost}
+                className="cl-tag-toolbar-btn tw-text-[var(--brand)]"
+                onClick={() => setShowDestination(true)}
+              >
+                <Icon n="groups" s={24} />
+              </button>
+            )}
             {!toShare && (
               <button
                 onClick={() => {
@@ -765,9 +899,8 @@ export function NewPostModal({
                 setshowTagging((prev) => !prev);
               }}
               title="Tag people or pages"
-              className={`cl-tag-toolbar-btn tw-relative tw-cursor-pointer tw-text-[var(--green)] ${
-                showTagging ? "cl-toolbar-btn--active" : ""
-              }`}
+              className={`cl-tag-toolbar-btn tw-relative tw-cursor-pointer tw-text-[var(--green)] ${showTagging ? "cl-toolbar-btn--active" : ""
+                }`}
             >
               <FaUserTag style={{ fontSize: "20px" }} />
               {taggedEntities.length > 0 && (
@@ -783,9 +916,10 @@ export function NewPostModal({
               <BsPinMapFill style={{ fontSize: "18px" }} />
             </button>
           </div>
-          <div id="div_create_cancel_btns" className="cl-create-post-actions">
+          }
+          {!showDestination && <div id="div_create_cancel_btns" className="cl-create-post-actions">
             <button
-              disabled={isuploadingpost}
+              disabled={isuploadingpost || accessBlocked || (!toShare && !mainpostcaption.trim() && medialist.length === 0) || Boolean(destination && !community)}
               className="btns_create_cancel"
               onClick={() => {
                 CreatePostProcess();
@@ -823,7 +957,7 @@ export function NewPostModal({
             >
               Cancel
             </button>
-          </div>
+          </div>}
         </div>
       }
     />

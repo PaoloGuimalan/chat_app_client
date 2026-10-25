@@ -60,7 +60,8 @@ export interface PostActivityEvent {
    * rows and a concurrent reaction may have landed in between.
    */
   action?: string;
-  entity?: PostActivityActor;
+  entity?: PostActivityActor | null;
+  is_anonymous?: boolean;
 }
 
 /**

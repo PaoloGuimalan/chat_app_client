@@ -26,27 +26,27 @@ export const unfollowPrompt = (
 ): ConfirmPrompt =>
   isPending
     ? {
-        // Pending is the requester's own outgoing request, and it unfollows
-        // through the same DELETE - but "Unfollow" would misdescribe it.
-        title: `Withdraw follow request to ${name}?`,
-        message:
-          "They won't see the request any more. You can send a new one later.",
-        confirmLabel: "Withdraw",
-      }
+      // Pending is the requester's own outgoing request, and it unfollows
+      // through the same DELETE - but "Unfollow" would misdescribe it.
+      title: `Withdraw follow request to ${name}?`,
+      message:
+        "They won't see the request any more. You can send a new one later.",
+      confirmLabel: "Withdraw",
+    }
     : {
-        title: `Unfollow ${name}?`,
-        // A bot gets its own line because the usual one is false for it:
-        // bots cannot post, so "you'll stop seeing its posts" describes a
-        // consequence that does not exist. What you actually lose is the bot
-        // appearing in your following list.
-        message:
-          realmNoun === "bot"
-            ? "It will be removed from your following list. You can follow again anytime, and this doesn't affect any chats you share."
-            : isRealm
-              ? `You'll stop seeing this ${realmNoun}'s posts in your feed. You can follow again anytime.`
-              : "You'll stop seeing their posts in your feed. You can follow again anytime.",
-        confirmLabel: "Unfollow",
-      };
+      title: `Unfollow ${name}?`,
+      // A bot gets its own line because the usual one is false for it:
+      // bots cannot post, so "you'll stop seeing its posts" describes a
+      // consequence that does not exist. What you actually lose is the bot
+      // appearing in your following list.
+      message:
+        realmNoun === "bot"
+          ? "It will be removed from your following list. You can follow again anytime, and this doesn't affect any chats you share."
+          : isRealm
+            ? `You'll stop seeing this ${realmNoun}'s posts in your feed. You can follow again anytime.`
+            : "You'll stop seeing their posts in your feed. You can follow again anytime.",
+      confirmLabel: "Unfollow",
+    };
 
 export const removeConnectionPrompt = (
   name: string,
@@ -70,9 +70,11 @@ export type LeaveRealmKind =
   | "channel"
   | "voice"
   | "group"
-  | "page";
+  | "page"
+  | "community";
 
 const LEAVE_MESSAGES: Record<LeaveRealmKind, string> = {
+  community: "You’ll no longer be able to post, comment or react here. Private community content will be hidden until you join again.",
   server:
     "You'll lose access to its channels, and you'll need to be added back or join again to return.",
   voice:
@@ -92,7 +94,7 @@ const LEAVE_MESSAGES: Record<LeaveRealmKind, string> = {
  * as a group, which is the mildest and most generic of the messages.
  */
 export const leaveKindFromRealmNoun = (noun: string): LeaveRealmKind =>
-  (["server", "channel", "voice", "group", "page"] as const).includes(
+  (["server", "channel", "voice", "group", "page", "community"] as const).includes(
     noun as LeaveRealmKind,
   )
     ? (noun as LeaveRealmKind)

@@ -187,11 +187,11 @@ test('existing anonymous owner editor gives fresh attachments anonymous upload c
   assert.equal(editUploads.length, 1);
   assert.equal(editUploads[0].context, undefined);
 });
-test('community destination without a slug is readable and has no invalid navigation', () => {
+test('community destination without a slug is readable and opens its canonical route', () => {
   const html = render(PostDestination, { post: { ...anonymous, community: { ...community, slug: null } } });
   assert.match(html, /posted in/);
   assert.match(html, /Garden Club/);
-  assert.doesNotMatch(html, /tw-cursor-pointer/);
+  assert.match(html, /tw-cursor-pointer/);
 });
 test('anonymous feed views are recorded without inventing an author', () => {
   const { render: mount, cleanup } = require('@testing-library/react');

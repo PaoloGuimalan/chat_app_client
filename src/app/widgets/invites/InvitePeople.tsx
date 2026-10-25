@@ -127,7 +127,7 @@ function InvitePeople({
     const timer = window.setTimeout(() => {
       EntitySuggestRequest(query, { types: suggestTypes, signal: controller.signal })
         .then((results) => {
-          setSuggestions(results.filter((r) => r.type !== "bot"));
+          setSuggestions(results.filter((r) => r.type !== "bot" && (r.type !== "realm" || r.realm_type === "page")));
           setActiveIndex(-1);
         })
         .catch(() => {
@@ -192,9 +192,9 @@ function InvitePeople({
   const purposeFields = () =>
     isPage
       ? {
-          purpose: pagePurpose,
-          ...(pagePurpose === "manage" ? { role } : {}),
-        }
+        purpose: pagePurpose,
+        ...(pagePurpose === "manage" ? { role } : {}),
+      }
       : {};
 
   const sendTo = (fields: Record<string, string>) =>
@@ -275,9 +275,8 @@ function InvitePeople({
     if (waiting.length > 0) {
       lines.push({
         tone: "muted",
-        text: `${listNames(waiting)} ${
-          waiting.length === 1 ? "already has an invite" : "already have invites"
-        } waiting.`,
+        text: `${listNames(waiting)} ${waiting.length === 1 ? "already has an invite" : "already have invites"
+          } waiting.`,
       });
     }
 
@@ -455,9 +454,8 @@ function InvitePeople({
                   disabled={member}
                   onClick={() => pick(entity)}
                   onMouseEnter={() => setActiveIndex(i)}
-                  className={`cl-tag-result ${
-                    selected || i === activeIndex ? "cl-tag-result--active" : ""
-                  } ${member ? "cl-invite-people__suggest--member" : ""}`}
+                  className={`cl-tag-result ${selected || i === activeIndex ? "cl-tag-result--active" : ""
+                    } ${member ? "cl-invite-people__suggest--member" : ""}`}
                 >
                   <Avatar
                     id={entity.entity_id}

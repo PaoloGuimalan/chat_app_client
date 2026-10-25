@@ -62,6 +62,36 @@ const SSENotificationsTRequest = (
     `${envs.CHATTERLOOP_API}/u/sseNotifications/${encodedPayload}`,
   );
 
+  let hasOpened = false;
+  sseNtfsSource.addEventListener("open", () => {
+    if (hasOpened) {
+      document.dispatchEvent(
+        new CustomEvent("community-changed", { detail: { event: "reconnected" } }),
+      );
+    }
+    hasOpened = true;
+  });
+
+  for (const event of [
+    "community_access_changed",
+    "community_members_changed",
+    "community_requests_changed",
+  ]) {
+    sseNtfsSource.addEventListener(event, (frame: MessageEvent<string>) => {
+      try {
+        const data = JSON.parse(frame.data);
+        if (!data?.auth || !data.status || !data.realm_id) return;
+        document.dispatchEvent(
+          new CustomEvent("community-changed", {
+            detail: { ...data, realm_id: String(data.realm_id), event },
+          }),
+        );
+      } catch {
+        // A malformed signal cannot establish or revoke community access.
+      }
+    });
+  }
+
   sseNtfsSource.addEventListener("notifications", (e: any) => {
     const parsedresponse = JSON.parse(e.data);
     // console.log(parsedresponse)
