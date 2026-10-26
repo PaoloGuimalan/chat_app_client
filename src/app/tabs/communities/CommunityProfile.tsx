@@ -2,297 +2,287 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
-import { Avatar, Card, Icon } from "@/reusables/design";
+import { motion } from "framer-motion";
+import Skeleton from "react-loading-skeleton";
+import { Avatar, Btn, Icon } from "@/reusables/design";
 import CommunityName from "@/app/reusables/CommunityName";
-import ProfileComposerContent from "@/app/reusables/ProfileComposerContent";
-import PostItem from "../profile/user/PostItem";
-import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
-import { getCommunity, joinCommunity, leaveCommunity, type CommunityCard } from "@/reusables/hooks/communityRequests";
-import { GetPostRequest, GetRealmMembersRequest } from "@/reusables/hooks/requests";
-import { canReadCommunity } from "@/reusables/hooks/communityState";
+import PageLoader from "@/app/reusables/loaders/PageLoader";
+import BrokenLink from "@/app/reusables/catchers/BrokenLink";
+import ProfileCoverContainer from "../profile/user/ProfileCoverContainer";
+import ProfilePicContainer from "../profile/user/ProfilePicContainer";
+import PostsContainer from "../profile/user/PostsContainer";
+import {
+  getCommunity,
+  joinCommunity,
+  leaveCommunity,
+  type CommunityCard,
+} from "@/reusables/hooks/communityRequests";
+import { GetRealmMembersRequest } from "@/reusables/hooks/requests";
+import { canManageCommunitySettings, canReadCommunity } from "@/reusables/hooks/communityState";
 import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
-import type { IPost, IRealmMember } from "@/reusables/vars/interfaces";
-import "../../../styles/communities.css";
 import { communityProfilePath } from "@/reusables/routing/communityPaths";
-export default function CommunityProfile({ communityId }: {
-  communityId?: string;
-}) {
+import type { AuthenticationInterface, IRealmMember } from "@/reusables/vars/interfaces";
+
+/** The user profile's shell, hero, media controls and feed, bound to a realm. */
+export default function CommunityProfile({ communityId }: { communityId?: string }) {
   const params = useParams();
-  const id = communityId || params.communityId || params.userID || "";
-  const actor = useSelector((state: any) => state.authentication.active_entity_context?.id ?? state.authentication.user.entity_id);
-  const width = useSelector((state: any) => state.screensizelistener.W);
-  const avatarSize = width < 650 ? 120 : width < 900 ? 160 : 96;
   const navigate = useNavigate();
+  const id = communityId || params.communityId || params.userID || "";
+  const authentication = useSelector(
+    (state: { authentication: AuthenticationInterface }) => state.authentication,
+  );
+  const width = useSelector((state: any) => state.screensizelistener.W);
+  const actor = authentication.active_entity_context?.id ?? authentication.user.entity_id;
   const [community, setCommunity] = useState<CommunityCard | null>(null);
-  const currentCommunity = useRef<CommunityCard | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  const [feedError, setFeedError] = useState("");
+  const [pending, setPending] = useState(false);
+  const [revision, setRevision] = useState(0);
+  const [tab, setTab] = useState("posts");
+  const [members, setMembers] = useState<IRealmMember[]>([]);
+  const [membersPage, setMembersPage] = useState(1);
+  const [membersNext, setMembersNext] = useState(false);
+  const [membersLoading, setMembersLoading] = useState(false);
+  const [membersError, setMembersError] = useState("");
+  const currentCommunity = useRef(community);
+  const epoch = useRef(0);
+  const mutationPending = useRef(false);
   currentCommunity.current = community;
+
+  const refresh = useCallback(() => {
+    epoch.current++;
+    setCommunity(null);
+    setMembers([]);
+    setMembersPage(1);
+    setRevision(value => value + 1);
+  }, []);
+
+  useEffect(() => {
+    setTab("posts");
+  }, [id, actor]);
+
+  useEffect(() => {
+    const changed = (event: Event) => {
+      const realmId = (event as CustomEvent).detail?.realm_id;
+      if (!realmId || realmId === id || realmId === currentCommunity.current?.realm_id) {
+        refresh();
+      }
+    };
+    document.addEventListener("community-changed", changed);
+    return () => document.removeEventListener("community-changed", changed);
+  }, [id, refresh]);
+
+  useEffect(() => {
+    const version = ++epoch.current;
+    let active = true;
+    setCommunity(null);
+    setMembers([]);
+    setMembersPage(1);
+    setLoading(true);
+    setError("");
+    setFeedError("");
+    getCommunity(id).then(response => {
+      if (active && epoch.current === version) setCommunity(response.result);
+    }).catch(error => {
+      if (active && epoch.current === version) {
+        setError(resolveErrorMessage(error, "This community is unavailable."));
+      }
+    }).finally(() => {
+      if (active && epoch.current === version) setLoading(false);
+    });
+    return () => {
+      active = false;
+      // Invalidate pending membership mutations; this ref is not a DOM node.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+      epoch.current++;
+    };
+  }, [id, actor, revision]);
+
   useEffect(() => {
     if (community && params.communityId) {
       navigate(communityProfilePath(community), { replace: true });
     }
   }, [community, params.communityId, navigate]);
-  const [posts, setPosts] = useState<IPost[]>([]);
-  const [members, setMembers] = useState<IRealmMember[]>([]);
-  const [tab, setTab] = useState("posts");
-  const [page, setPage] = useState(1);
-  const [next, setNext] = useState(false);
-  const [busy, setBusy] = useState(true);
-  const [pending, setPending] = useState(false);
-  const [error, setError] = useState("");
-  const [rosterError, setRosterError] = useState("");
-  const [compose, setCompose] = useState(false);
-  const [withImage, setWithImage] = useState(false);
-  const [draft, setDraft] = useState("");
-  const [revision, setRevision] = useState(0);
-  const epoch = useRef(0);
-  const mutationPending = useRef(false);
-  const refresh = useCallback(() => {
-    epoch.current++;
-    setPosts([]);
-    setMembers([]);
-    setCompose(false);
-    setCommunity(null);
-    setPage(1);
-    setRevision(value => value + 1);
-  }, []);
+
   useEffect(() => {
-    refresh();
-    setTab("posts");
-  }, [id, actor, refresh]);
-  useEffect(() => {
-    const changed = (event: Event) => {
-      const detail = (event as CustomEvent).detail;
-      if (!detail?.realm_id || detail.realm_id === currentCommunity.current?.realm_id || detail.realm_id === id)
-        refresh();
-    };
-    document.addEventListener("community-changed", changed);
-    return () => document.removeEventListener("community-changed", changed);
-  }, [id, refresh]);
-  useEffect(() => {
-    let active = true;
-    const version = ++epoch.current;
-    setBusy(true);
-    setError("");
-    setPosts([]);
-    setMembers([]);
-    setCompose(false);
-    getCommunity(id).then(response => {
-      if (active && epoch.current === version)
-        setCommunity(response.result);
-    }).catch(error => {
-      if (active) {
-        setCommunity(null);
-        setError(resolveErrorMessage(error, "This community is unavailable."));
-      }
-    }).finally(() => {
-      if (active)
-        setBusy(false);
-    });
-    return () => {
-      active = false;
-      // This counter invalidates async work; it is not a DOM ref.
-      // eslint-disable-next-line react-hooks/exhaustive-deps
-      epoch.current++;
-    };
-  }, [id, actor, revision]);
-  useEffect(() => {
-    if (!community || !canReadCommunity(community)) {
-      setPosts([]);
-      setMembers([]);
-      return;
-    }
+    if (!community || tab !== "members" || !canReadCommunity(community)) return;
     let active = true;
     const version = epoch.current;
-    setBusy(true);
-    if (tab === "posts")
-      GetPostRequest({ current_user_id: actor, userID: community.realm_id, page, range: 20 }).then(response => {
-        if (!active || epoch.current !== version)
-          return;
-        setPosts(previous => page === 1 ? response.results : [...previous, ...response.results].filter((post, index, rows) => rows.findIndex(row => row.post_id === post.post_id) === index));
-        setNext(Boolean(response.next));
-      }).catch(error => {
-        if (active) {
-          setPosts([]);
-          setCompose(false);
-          setError(resolveErrorMessage(error, "Posts could not be loaded."));
-          if ((error?.response?.status ?? error?.status) === 404)
-            setCommunity(null);
-          else if ((error?.response?.status ?? error?.status) === 403)
-            setCommunity(previous => previous?.is_member ? { ...previous, is_member: false } : previous);
-        }
-      }).finally(() => {
-        if (active)
-          setBusy(false);
-      });
-    else if (tab === "members") {
-      setRosterError("");
-      GetRealmMembersRequest(community.realm_id, page, 20).then(response => {
-        if (active && epoch.current === version) {
-          setMembers(previous => page === 1 ? response.results : [...previous, ...response.results]);
-          setNext(Boolean(response.next));
-        }
-      }).catch(error => {
-        if (active) {
-          setMembers([]);
-          setRosterError(resolveErrorMessage(error, "The member list is only available to authorized members."));
-        }
-      }).finally(() => {
-        if (active)
-          setBusy(false);
-      });
-    }
-    else
-      setBusy(false);
-    return () => {
-      active = false;
-    };
-  }, [community, tab, page, actor, refresh]);
-  const membership = async () => {
-    if (!community || mutationPending.current)
-      return;
+    setMembersLoading(true);
+    setMembersError("");
+    GetRealmMembersRequest(community.realm_id, membersPage, 20).then(response => {
+      if (!active || epoch.current !== version) return;
+      setMembers(previous => membersPage === 1 ? response.results : [...previous, ...response.results]);
+      setMembersNext(Boolean(response.next));
+    }).catch(error => {
+      if (active && epoch.current === version) {
+        setMembers([]);
+        setMembersError(resolveErrorMessage(error, "The member list is unavailable."));
+      }
+    }).finally(() => {
+      if (active && epoch.current === version) setMembersLoading(false);
+    });
+    return () => { active = false; };
+  }, [community, tab, membersPage]);
+
+  const feedAccessDenied = useCallback((error: unknown) => {
+    setFeedError(resolveErrorMessage(error, "Posts could not be loaded."));
+  }, []);
+
+  const updateMembership = async () => {
+    if (!community || mutationPending.current) return;
     mutationPending.current = true;
     setPending(true);
     setError("");
     const version = epoch.current;
     try {
-      if (community.is_member || community.request_pending)
+      if (community.is_member || community.request_pending) {
         await leaveCommunity(community.realm_id);
-      else
+      } else {
         await joinCommunity(community.realm_id);
-      if (epoch.current === version) {
-        document.dispatchEvent(new CustomEvent("community-changed", { detail: { realm_id: community.realm_id } }));
-        window.dispatchEvent(new CustomEvent("broadcast_reload_feed"));
-        refresh();
       }
-    }
-    catch (error) {
-      if (epoch.current === version)
+      if (version === epoch.current) {
+        document.dispatchEvent(new CustomEvent("community-changed", {
+          detail: { realm_id: community.realm_id },
+        }));
+        window.dispatchEvent(new CustomEvent("broadcast_reload_feed"));
+      }
+    } catch (error) {
+      if (version === epoch.current) {
         setError(resolveErrorMessage(error, "Membership could not be updated."));
-    }
-    finally {
+      }
+    } finally {
       mutationPending.current = false;
       setPending(false);
     }
   };
-  if (!community)
-    return <main className="cl-communities cl-community-profile cl-bleed-host">
-      <button className="cl-community-back" onClick={() => navigate("/communities")}><Icon n="chevron_left" s={22} /> Communities</button>
-      {busy ? <p role="status">Loading community…</p> : <div className="cl-community-panel" role="alert">
-        {error || "This community is unavailable."}
-        <button onClick={refresh}>Try again</button>
-      </div>}
-    </main>;
-  return <main className="cl-communities cl-community-profile cl-bleed-host thinscroller">
-    <button className="cl-community-back" onClick={() => navigate("/communities")}><Icon n="chevron_left" s={22} /> Communities</button>
-    <section className="cl-community-profile-header">
-      <div className="cl-community-cover">
-        {community.cover_photo && community.cover_photo !== "none" && (
-          <img
-            src={community.cover_photo}
-            alt=""
-            className="cl-community-cover-image"
-          />
-        )}
-      </div>
-      <div className="cl-community-profile-title">
-        <div className="cl-community-profile-avatar">
-          <Avatar
-            id={community.entity_id}
+
+  if (!community) {
+    return loading ? <PageLoader /> : (
+      <BrokenLink label={error || "This community is unavailable."} secondaryLabel="Please check and try again." />
+    );
+  }
+
+  const canManage = canManageCommunitySettings(community.my_role);
+  const canRead = canReadCommunity(community);
+  const actionClass = "cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption";
+
+  return (
+    <div className="cl-profile-page__shell tw-w-full tw-h-full tw-absolute tw-flex tw-flex-col tw-items-center tw-z-[2] tw-gap-[6px] tw-overflow-y-scroll x-scroll">
+      <div className="cl-profile-page__hero tw-mb-[6px] tw-w-full tw-h-auto tw-min-h-[auto] sm:tw-min-h-[500px] tw-flex tw-flex-col tw-justify-start sm:tw-justify-center tw-items-center tw-py-[0px] sm:tw-py-[0px]">
+        <ProfileCoverContainer
+          userID={community.realm_id}
+          realm_id={community.realm_id}
+          realm_type="community"
+          coverphoto={community.cover_photo}
+          type="realm"
+          isAllowed={canManage}
+          getpostprocess={refresh}
+        />
+        <div className="cl-profile-picrow tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[12px] tw-pr-[12px] sm:tw-pl-[40px] sm:tw-pr-[40px]">
+          <ProfilePicContainer
+            userID={community.realm_id}
+            entityId={community.entity_id}
+            realm_id={community.realm_id}
+            realm_type="community"
+            profile={community.profile}
             name={community.name}
-            src={community.profile !== "none" ? community.profile : undefined}
-            size={avatarSize}
+            type="realm"
+            isAllowed={canManage}
+            getpostprocess={refresh}
           />
-        </div>
-        <div className="cl-community-profile-identity">
-          <h1>
-            <CommunityName community={community} />
-          </h1>
-          <p>
-            {community.is_private ? "Private" : "Public"} community · {community.member_count ?? "—"} members</p>
-        </div>
-        <div className="cl-community-actions">
-          {["owner", "admin", "moderator"].includes(community.my_role || "") && <button className="cl-community-secondary" onClick={() => navigate(`/realms/${community.realm_id}`)}>Manage realm</button>}
-          <button className={community.is_member || community.request_pending ? "cl-community-secondary" : "cl-community-primary"} disabled={pending} onClick={membership}>
-            {pending ? "Updating…" : community.is_member ? "Leave community" : community.request_pending ? "Cancel request" : community.is_private ? "Request to join" : "Join community"}
-          </button>
+          <div className="cl-profile-identity tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">
+            <div className="cl-profile-identity__meta tw-flex tw-flex-1 tw-flex-col tw-items-center sm:tw-items-start tw-justify-center tw-h-full tw-p-[16px] tw-sm:p-[0px]">
+              <span className="cl-identity-name cl-text-hero tw-font-bold tw-flex tw-items-center tw-gap-[5px]">
+                <CommunityName community={community} />
+                {community.is_private && <Icon n="lock" s={18} c="var(--text-2)" />}
+              </span>
+              <span className="cl-text-body tw-break-all tw-mb-[14px]">
+                {community.is_private ? "Private" : "Public"} community · {community.member_count ?? "—"} members
+              </span>
+              {community.slug && <span className="cl-text-body tw-break-all">@{community.slug}</span>}
+            </div>
+            <div className="cl-profile-actions">
+              {["owner", "admin", "moderator"].includes(community.my_role || "") && (
+                <button className={actionClass} onClick={() => navigate(`/realms/${community.realm_id}`)}>
+                  Manage realm
+                </button>
+              )}
+              <button className={actionClass} disabled={pending} onClick={updateMembership}>
+                {pending ? "Updating…" : community.is_member ? "Leave community" : community.request_pending ? "Cancel request" : community.is_private ? "Request to join" : "Join community"}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
-      <nav className="cl-community-tabs">
-        {["posts", "about", "members"].map(value => <button key={value} aria-current={tab === value ? "page" : undefined} onClick={() => {
-          setTab(value);
-          setPage(1);
-          setNext(false);
-        }}>
-          {value[0].toUpperCase() + value.slice(1)}
-        </button>)}
-      </nav>
-    </section>
-    {error && <div role="alert" className="cl-community-panel">
-      {error}
-    </div>}
-    {tab === "about" ? <section className="cl-community-panel">
-      <h2>About</h2>
-      <p>
-        {community.description || "Welcome to our community."}
-      </p>
-      <p>
-        <Icon n={community.is_private ? "lock" : "public"} s={18} /> {community.is_private ? "Only members can see posts and participate." : "Anyone can read. Join to post, comment and react."}
-      </p>
-    </section> : !canReadCommunity(community) ? <section className="cl-community-panel cl-community-private">
-      <Icon n="lock" s={40} />
-      <h2>This community is private</h2>
-      <p>
-        {community.request_pending ? "Your request is pending. You can participate after approval." : "Join this community to see its posts and members."}
-      </p>
-    </section> : tab === "members" ? <section className="cl-community-panel">
-      <h2>Members</h2>
-      {rosterError && <p role="alert">
-        {rosterError}
-      </p>}
-      {members.map(member => <div className="cl-community-member" key={member.member_id}>
-        <Avatar id={member.entity.id} name={member.entity.details.name || member.entity.details.first_name || "Member"} src={member.entity.details.profile} size={36} />
-        <span>
-          {member.entity.details.name || [member.entity.details.first_name, member.entity.details.last_name].filter(Boolean).join(" ") || member.entity.details.username}
-        </span>
-        <small>
-          {member.role}
-        </small>
-      </div>)}
-    </section> : <div className="cl-community-columns">
-      <section className="cl-community-feed">
-        {community.is_member && (
-          <Card pad={12} className="cl-bleed" style={{ width: "100%", marginBottom: 8 }}>
-            <ProfileComposerContent
-              placeholder={`Share something with ${community.name}…`}
-              value={draft}
-              onChange={setDraft}
-              onOpen={media => { setWithImage(media); setCompose(true); }}
-            />
-          </Card>
-        )}
-        {posts.map(post => (
-          <Card
-            key={`${actor}:${post.post_id}`}
-            pad={10}
-            className="cl-bleed tw-flex tw-justify-center"
-          >
-            <PostItem isSharePreview={false} mp={post} />
-          </Card>
-        ))}
-        {!busy && posts.length === 0 && !error && <div className="cl-community-panel">No posts yet.</div>}
-      </section>
-      <aside className="cl-community-panel">
-        <h2>About this community</h2>
-        <p>
-          {community.description}
-        </p>
-        <p>
-          {community.is_private ? "Private · Members only" : "Public · Anyone can read"}
-        </p>
-      </aside>
-    </div>}
-    {busy && <p role="status">Loading…</p>}
-    {next && !busy && tab !== "about" && canReadCommunity(community) && <button className="cl-community-secondary" onClick={() => setPage(value => value + 1)}>Load more</button>}
-    {compose && community.is_member && <NewPostModal key={`${actor}:${community.entity_id}`} community={community} toShare={false} withImage={withImage} setcreateposttext={setDraft} getpostprocess={refresh} onclose={() => setCompose(false)} />}
-  </main>;
+      <div className="cl-profile-page__content cl-bleed-host tw-bg-transparent tw-max-w-[1200px] tw-w-[calc(100%-24px)] sm:tw-w-[98%] tw-flex tw-flex-col md:tw-flex-row tw-gap-[10px] tw-items-stretch md:tw-items-start">
+        <div className="cl-profile-page__sidebar tw-bg-transparent tw-w-full tw-flex tw-flex-col tw-gap-[8px] tw-items-center md:tw-sticky tw-top-[10px] tw-max-w-[100%] md:tw-max-w-[400px]">
+          <section className="cl-profile-surface tw-w-full tw-h-fit tw-flex">
+            <div className="tw-w-full tw-p-[18px] tw-flex tw-flex-col tw-items-start tw-gap-[12px] tw-text-left">
+              <h2 className="cl-text-body tw-font-semibold tw-m-0">About this community</h2>
+              <p className="cl-text-body tw-text-[var(--text-2)] tw-m-0">{community.description || "Welcome to our community."}</p>
+              <span className="cl-text-caption tw-text-[var(--text-2)]">
+                {community.is_private ? "Private · Members only" : "Public · Anyone can read"}
+              </span>
+            </div>
+          </section>
+        </div>
+        <div className="cl-profile-page__feed tw-w-full tw-pb-[12px] tw-flex tw-flex-col tw-items-center tw-gap-[4px]">
+          <div className="cl-profile-surface cl-profile-page__feed-nav tw-w-full tw-h-fit tw-flex tw-mb-[6px]">
+            <nav aria-label="Community profile" style={{ justifyContent: width < 800 ? "center" : "start" }} className="tw-w-full tw-p-[10px] tw-flex tw-flex-row tw-flex-wrap tw-items-center tw-gap-[4px]">
+              {["posts", "about", "members"].map(value => (
+                <motion.button
+                  key={value}
+                  aria-current={tab === value ? "page" : undefined}
+                  onClick={() => { setTab(value); setMembersPage(1); }}
+                  animate={{ backgroundColor: tab === value ? "var(--brand-soft)" : "transparent", color: tab === value ? "var(--brand)" : "var(--text-2)" }}
+                  className="cl-profile-tab-button tw-flex tw-flex-row tw-gap-[5px] tw-items-center tw-font-Inter tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-rounded-md tw-border-none"
+                >
+                  <span className="cl-text-caption tw-font-semibold">{value[0].toUpperCase() + value.slice(1)}</span>
+                </motion.button>
+              ))}
+            </nav>
+          </div>
+          {error && <div role="alert" className="cl-profile-surface tw-w-full tw-p-[18px] tw-text-left">{error}</div>}
+          {tab === "about" ? (
+            <section className="cl-profile-surface tw-w-full tw-p-[18px] tw-text-left">
+              <h2 className="cl-text-body tw-font-semibold tw-m-0">About</h2>
+              <p className="cl-text-body tw-my-[12px]">{community.description || "Welcome to our community."}</p>
+              <span className="cl-text-caption tw-text-[var(--text-2)]">
+                {community.is_private ? "Only members can see posts and participate." : "Anyone can read. Join to post, comment and react."}
+              </span>
+            </section>
+          ) : !canRead ? (
+            <section className="cl-profile-surface tw-w-full tw-p-[24px] tw-text-center">
+              <Icon n="lock" s={40} />
+              <h2 className="cl-text-body tw-font-semibold tw-m-0">This community is private</h2>
+              <p className="cl-text-body tw-mt-[12px]">{community.request_pending ? "Your request is pending. You can participate after approval." : "Join this community to see its posts and members."}</p>
+            </section>
+          ) : tab === "members" ? (
+            <section className="cl-profile-surface tw-w-full tw-p-[18px] tw-text-left">
+              <h2 className="cl-text-body tw-font-semibold tw-m-0">Members</h2>
+              {membersError && <p role="alert" className="cl-text-body tw-my-[12px]">{membersError}</p>}
+              {membersLoading && <Skeleton count={6} height={40} baseColor="var(--surface-3)" highlightColor="var(--surface-hover)" />}
+              {members.map(member => (
+                <div className="tw-flex tw-items-center tw-gap-[10px] tw-py-[10px]" key={member.member_id}>
+                  <Avatar id={member.entity.id} name={member.entity.details.name || member.entity.details.first_name || "Member"} src={member.entity.details.profile} size={36} />
+                  <span className="cl-text-body">{member.entity.details.name || [member.entity.details.first_name, member.entity.details.last_name].filter(Boolean).join(" ") || member.entity.details.username}</span>
+                  <span className="cl-text-caption tw-ml-auto tw-text-[var(--text-3)]">{member.role}</span>
+                </div>
+              ))}
+              {membersNext && !membersLoading && <Btn variant="soft" onClick={() => setMembersPage(value => value + 1)}>Load more</Btn>}
+            </section>
+          ) : feedError ? (
+            <div role="alert" className="cl-profile-surface tw-w-full tw-p-[18px] tw-text-left">
+              <p className="cl-text-body">{feedError}</p>
+              <Btn variant="soft" onClick={refresh}>Try again</Btn>
+            </div>
+          ) : (
+            <PostsContainer key={`${actor}:${community.realm_id}`} community={community} onCommunityAccessDenied={feedAccessDenied} />
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }

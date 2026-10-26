@@ -69,7 +69,9 @@ function ProfilePicContainer({
 
   // The entity's live Moment (ring) and Thought (bubble above the avatar).
   useEffect(() => {
-    if (!entityId) return;
+    setRing(null);
+    setThought(null);
+    if (!entityId || realm_type === "community") return;
     let cancelled = false;
     const load = () => {
       GetMomentRingsRequest([entityId])
@@ -87,7 +89,7 @@ function ProfilePicContainer({
       window.removeEventListener(MOMENTS_CHANGED_EVENT, load);
       window.removeEventListener(THOUGHTS_CHANGED_EVENT, load);
     };
-  }, [entityId]);
+  }, [entityId, realm_type]);
 
   const avatarSize = useMemo(
     () => (screensizelistener.W < 650 ? 120 : 160),

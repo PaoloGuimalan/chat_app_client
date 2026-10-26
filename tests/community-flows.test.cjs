@@ -33,6 +33,7 @@ function reset() {
 }
 reset();
 const requests = {
+  GetFeedEmojisRequest: async () => [],
   GetPostRequest: (...args) => loadFeed(...args),
   GetRealmMembersRequest: async () => empty,
   CreatePostRequest: async payload => { saves.push(payload); return { data: { status: true } }; },
@@ -62,7 +63,7 @@ Module._extensions['.css'] = () => {};
 Module._load = function(request, parent, isMain) {
   if (request === 'react-redux') return { useSelector: fn => fn({ authentication: auth, alerts: [], emojilist: [{ emoji_id: 'smile', emoji_content: ':)', priority: 1 }], screensizelistener: { W: 1200 } }), useDispatch: () => () => {} };
   if (request === 'react-router-dom') return { useNavigate: () => value => navigations.push(value), useParams: () => ({ communityId: 'garden' }), useLocation: () => ({ pathname: '/realms/realm' }), Routes: plain, Route: () => null, Navigate: () => null };
-  if (request === 'framer-motion') return { motion: new Proxy({}, { get: (_, tag) => ({ children, className }) => React.createElement(tag, { className }, children) }) };
+  if (request === 'framer-motion') return { useInView: () => false, motion: new Proxy({}, { get: (_, tag) => React.forwardRef(({ children, className, onClick, id }, ref) => React.createElement(tag, { className, onClick, id, ref }, children)) }) };
   if (request === '@/reusables/design') return { Icon: () => null, Avatar: ({ name }) => { assert.equal(typeof name, 'string'); return React.createElement('span', null, name.split(' ')[0]); }, Card: plain, Btn: ({ children, onClick, disabled }) => React.createElement('button', { onClick, disabled }, children), PageFlag: () => null, BotFlag: () => null };
   if (request === '@/reusables/hooks/requests') return requests;
   if (request === '@/reusables/hooks/communityRequests') return api;
@@ -74,7 +75,9 @@ Module._load = function(request, parent, isMain) {
   if (request === '@/reusables/hooks/hashtags') return { useHashtagNavigation: () => ({}) };
   if (request === '@/reusables/hooks/postRealtime') return { usePostActivityStream() {} };
   if (request === '@/reusables/hooks/localforagehelper') return { getLottieData: async () => null, persistLottieData() {} };
-  if (request === '@/redux/actions/states') return { commentsliststate: empty };
+  if (request === '@/redux/actions/states') return { commentsliststate: empty, postsliststate: empty };
+  if (request.endsWith('/ProfileCoverContainer')) return { __esModule: true, default: props => React.createElement('div', { className: 'cl-profile-cover', 'data-realm-type': props.realm_type }, props.coverphoto && props.coverphoto !== 'none' ? React.createElement('img', { src: props.coverphoto, alt: '' }) : null) };
+  if (request.endsWith('/ProfilePicContainer')) return { __esModule: true, default: props => React.createElement('span', { 'data-profile-photo': props.realm_id, 'data-realm-type': props.realm_type }, props.name) };
   if (request === '@/app/reusables/Modal') return { __esModule: true, default: props => props.component };
   if (request === '@/app/reusables/HashtagField') return { __esModule: true, default: plain };
   if (request === '@/app/tabs/messenger/partials/MessageContent') return { __esModule: true, default: ({ content }) => React.createElement('span', null, content) };
@@ -203,6 +206,37 @@ test('community profile reuses the profile composer and opens Photo with a prote
   cleanup();
 });
 
+test('community profile uses the user profile shell and existing loading states without a back header', async () => {
+  reset();
+  const originalGet = api.getCommunity;
+  let finishProfile;
+  let finishPosts;
+  api.getCommunity = () => new Promise(resolve => { finishProfile = resolve; });
+  loadFeed = () => new Promise(resolve => { finishPosts = resolve; });
+  try {
+    const screen = render(React.createElement(Profile));
+    assert.ok(screen.container.querySelector('#div_loader_request'));
+    assert.equal(screen.queryByRole('button', { name: /Communities/ }), null);
+    await act(async () => finishProfile({ status: true, result: detail }));
+    await waitFor(() => assert.ok(screen.queryByText('Leave community')));
+    for (const selector of ['.cl-profile-page__shell', '.cl-profile-page__hero',
+      '.cl-profile-picrow', '.cl-profile-identity', '.cl-profile-page__content',
+      '.cl-profile-page__sidebar', '.cl-profile-page__feed']) {
+      assert.ok(screen.container.querySelector(selector), selector);
+    }
+    assert.equal(screen.queryByRole('button', { name: /Communities/ }), null);
+    assert.equal(screen.container.querySelector('.cl-profile-cover').dataset.realmType, 'community');
+    assert.equal(screen.container.querySelector('[data-profile-photo]').dataset.realmType, 'community');
+    assert.ok(screen.container.querySelector('.react-loading-skeleton'));
+    await waitFor(() => assert.equal(typeof finishPosts, 'function'));
+    await act(async () => finishPosts(empty));
+    await waitFor(() => assert.ok(screen.queryByText('No Posts yet')));
+  } finally {
+    api.getCommunity = originalGet;
+    cleanup();
+  }
+});
+
 test('uploaded covers render as images in the directory and profile', async () => {
   reset();
   const cover = 'https://media.example.test/community/cover photo (1).jpg';
@@ -218,7 +252,7 @@ test('uploaded covers render as images in the directory and profile', async () =
 
     const profileScreen = render(React.createElement(Profile));
     await waitFor(() => assert.ok(profileScreen.queryByText('Leave community')));
-    const profileCover = profileScreen.container.querySelector('.cl-community-cover img');
+    const profileCover = profileScreen.container.querySelector('.cl-profile-cover img');
     assert.ok(profileCover, 'Profile cover uses an image element');
     assert.equal(profileCover.getAttribute('src'), cover);
   } finally {
