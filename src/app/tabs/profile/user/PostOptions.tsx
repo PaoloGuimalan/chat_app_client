@@ -27,6 +27,8 @@ import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import { useLocation, useNavigate } from "react-router-dom";
 import EditPost from "@/app/widgets/modals/EditPost/EditPost";
 import ChangePostAudience from "@/app/widgets/modals/EditPost/ChangePostAudience";
+import { createPortal } from "react-dom";
+import { useScopedPortalRoot } from "@/reusables/hooks/useScopedPortalRoot";
 
 function PostOptions({
   post,
@@ -71,26 +73,46 @@ function PostOptions({
   const isOwnPost = ownsContribution(post, authentication.user.entity_id);
 
   // Tags are entity-keyed, so acting as a page means the PAGE's tag.
-  const tagging = post.tagging ?? [];
+  const tagging = (post.tagging ?? []).filter(tag =>
+    tag.entity.details.type !== "community" && tag.entity.id !== post.community?.entity_id);
   const isTaggedInPost = tagging.some(
     (tag) => tag.entity.id === authentication.user.entity_id,
   );
 
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const portalRoot = useScopedPortalRoot(wrapperRef);
+  const [menuPosition, setMenuPosition] = useState({ top: 12, right: 12 });
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (
         wrapperRef.current &&
-        !wrapperRef.current.contains(event.target as Node)
+        !wrapperRef.current.contains(event.target as Node) &&
+        !menuRef.current?.contains(event.target as Node)
       ) {
         setisOptionsToggled(false);
       }
     }
 
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setisOptionsToggled(false);
+    };
+    const closeOnViewportChange = (event: Event) => {
+      const target = event.target;
+      if (!(target instanceof Node) || !menuRef.current?.contains(target)) {
+        setisOptionsToggled(false);
+      }
+    };
     document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", closeOnEscape);
+    document.addEventListener("scroll", closeOnViewportChange, true);
+    window.addEventListener("resize", closeOnViewportChange);
     return () => {
       document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", closeOnEscape);
+      document.removeEventListener("scroll", closeOnViewportChange, true);
+      window.removeEventListener("resize", closeOnViewportChange);
     };
   }, []);
 
@@ -173,10 +195,18 @@ function PostOptions({
 
   return (
     <div ref={wrapperRef} className="tw-relative">
-      {isOptionsToggled && (
+      {isOptionsToggled && portalRoot && createPortal(
         <div
           autoFocus
-          className="cl-post-options-menu tw-z-[2] tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[180px] tw-absolute tw-right-[25px] tw-top-[10px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md"
+          ref={menuRef}
+          style={{
+            position: "fixed",
+            ...menuPosition,
+            zIndex: 10000,
+            maxHeight: `calc(100vh - ${menuPosition.top + 12}px)`,
+            overflowY: "auto",
+          }}
+          className="cl-post-options-menu tw-flex tw-flex-col tw-gap-[2px] tw-min-w-[180px] tw-p-[10px] tw-rounded-md tw-border-solid tw-border-[1px] tw-shadow-md"
         >
           {isOwnPost && (!post.on_feed || post.on_feed === "feed") && <>
             <button type="button" className="cl-post-options-button tw-items-center cl-text-caption tw-flex tw-gap-[6px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent"
@@ -288,13 +318,20 @@ function PostOptions({
               <span>Report</span>
             </button>
           )}
-        </div>
+        </div>, portalRoot
       )}
       <button
         type="button"
         aria-label="Post options"
         aria-expanded={isOptionsToggled}
         onClick={() => {
+          const rect = wrapperRef.current?.getBoundingClientRect();
+          if (rect) {
+            setMenuPosition({
+              top: Math.min(rect.bottom + 6, Math.max(12, window.innerHeight - 360)),
+              right: Math.max(12, window.innerWidth - rect.right),
+            });
+          }
           setisOptionsToggled(!isOptionsToggled);
         }}
         className="tw-w-[25px] tw-h-[20px] tw-border-none tw-bg-transparent tw-cursor-pointer"
@@ -313,6 +350,7 @@ function PostOptions({
       {isEditTagsOpen && (
         <EditTagsModal
           postId={post.post_id}
+          destinationEntityId={post.community?.entity_id}
           tagging={tagging}
           onChange={(remaining) => onTaggingChange?.(remaining)}
           onClose={() => setisEditTagsOpen(false)}

@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import Modal from "@/app/reusables/Modal";
 import { createCommunity, type CommunityCard } from "@/reusables/hooks/communityRequests";
-import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import { profilePathError } from "@/reusables/routing/profilePaths";
 export default function CreateCommunityModal({ onClose, onCreated }: {
   onClose: () => void;
@@ -18,7 +18,6 @@ export default function CreateCommunityModal({ onClose, onCreated }: {
   const [slug, setSlug] = useState("");
   const [isPrivate, setPrivate] = useState(false);
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
   const slugError = profilePathError(slug.trim());
   useEffect(() => {
     mounted.current = true;
@@ -36,7 +35,6 @@ export default function CreateCommunityModal({ onClose, onCreated }: {
       return;
     pending.current = true;
     setBusy(true);
-    setError("");
     try {
       const response = await createCommunity({
         name: name.trim(),
@@ -49,7 +47,7 @@ export default function CreateCommunityModal({ onClose, onCreated }: {
     }
     catch (error) {
       if (mounted.current)
-        setError(resolveErrorMessage(error, "We couldn’t create your community."));
+        notifyRequestError(error, "We couldn’t create your community.");
     }
     finally {
       pending.current = false;
@@ -75,9 +73,6 @@ export default function CreateCommunityModal({ onClose, onCreated }: {
       <option value="private">Private — membership requires approval</option>
     </select>
     </label>
-    {error && <p role="alert">
-      {error}
-    </p>}
     <footer>
       <button type="button" disabled={busy} className="cl-community-secondary" onClick={onClose}>Cancel</button>
       <button className="cl-community-primary" disabled={busy || !name.trim() || !slug.trim() || Boolean(slugError)}>

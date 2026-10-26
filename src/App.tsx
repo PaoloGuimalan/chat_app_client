@@ -22,8 +22,11 @@ import PolicyPage from "./app/legal/PolicyPage";
 import DeleteAccount from "./app/legal/DeleteAccount";
 import Support from "./app/legal/Support";
 import envs from "./reusables/hooks/env_configs";
+import { publicProfilePath } from "./reusables/routing/profilePaths";
+import { useProfilePathsVersion } from "./reusables/routing/useProfilePaths";
 
 function App() {
+  useProfilePathsVersion();
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
   );
@@ -154,7 +157,7 @@ function App() {
                 )
               ) : (
                 <Navigate
-                  to={`/login${nextPathState ? `?next=${nextPathState}` : ""}`}
+                  to={publicProfilePath(location) ?? `/login${nextPathState ? `?next=${nextPathState}` : ""}`}
                 />
               )
             ) : (

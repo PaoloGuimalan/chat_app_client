@@ -81,6 +81,8 @@ function PostItem({
   const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(mp);
+  const canInteract = authentication.auth &&
+    (!postState.community?.is_private || postState.community.is_member);
   const communityAccessible = useCommunityPostAccess(postState, setpostState);
   usePostUpdate(mp, patch => setpostState(previous => ({ ...previous, ...patch })));
 
@@ -680,8 +682,9 @@ function PostItem({
                           </motion.div>
                           <hr className="cl-feed-card__divider tw-w-full tw-mb-[5px] tw-z-[0]" />
                           <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
-                            {authentication.auth && (
+                            {canInteract && (
                               <button
+                                aria-label="React"
                                 onMouseEnter={() => {
                                   settoggleEmojis(true);
                                   if (timeoutRef.current) {
@@ -1014,8 +1017,9 @@ function PostItem({
               </motion.div>
               <hr className="cl-feed-card__divider tw-w-full tw-mb-[5px] tw-z-[0]" />
               <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
-                {authentication.auth && (
+                {canInteract && (
                   <button
+                    aria-label="React"
                     onMouseEnter={() => {
                       settoggleEmojis(true);
                       if (timeoutRef.current) {

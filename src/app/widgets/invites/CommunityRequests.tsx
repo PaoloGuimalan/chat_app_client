@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { GetRealmInviteRequest, UpdateRealmInviteRequest } from "@/reusables/hooks/requests";
-import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import { Avatar, Btn, Card, Icon } from "@/reusables/design";
 import "@/styles/community-requests.css";
 import { entityDisplay, type IRealmInvite } from "./invites";
@@ -29,8 +29,10 @@ export default function CommunityRequests({ realmId, compact = false, className 
       if (active && version === epoch.current)
         setRequests(response?.result ?? []);
     }).catch(error => {
-      if (active)
-        setError(resolveErrorMessage(error, "Join requests could not be loaded."));
+      if (active) {
+        setError("failed");
+        notifyRequestError(error, "Join requests could not be loaded.");
+      }
     }).finally(() => {
       if (active)
         setBusy(false);
@@ -71,7 +73,7 @@ export default function CommunityRequests({ realmId, compact = false, className 
     }
     catch (error) {
       if (version === epoch.current)
-        setError(resolveErrorMessage(error, "The request could not be updated."));
+        notifyRequestError(error, "The request could not be updated.");
     }
     finally {
       mutation.current = false;
@@ -86,8 +88,8 @@ export default function CommunityRequests({ realmId, compact = false, className 
     </div>
     <div className="cl-community-requests__body">
       {busy && <p role="status">Loading requests…</p>}
-      {error && <p role="alert">
-        {error} <Btn size="sm" variant="ghost" onClick={() => setRevision(value => value + 1)}>Try again</Btn>
+      {error && <p>
+        <Btn size="sm" variant="ghost" onClick={() => setRevision(value => value + 1)}>Try again</Btn>
       </p>}
       {!busy && !error && requests.length === 0 && <p>No pending requests.</p>}
       {requests.map(invite => {

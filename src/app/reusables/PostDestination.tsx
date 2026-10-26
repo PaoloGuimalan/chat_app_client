@@ -3,18 +3,22 @@ import { useNavigate } from "react-router-dom";
 import TaggingSummary from "./TaggingSummary";
 import CommunityName from "./CommunityName";
 import { communityProfilePath } from "@/reusables/routing/communityPaths";
+import { useContext } from "react";
+import { CommunityPostScope } from "./CommunityPostScope";
 
 /** Destination tags are displayed separately from ordinary people/page tags. */
-export default function PostDestination({ post }: { post: Pick<IPost, "tagging" | "community"> }) {
+export default function PostDestination({ post }: { post: Pick<IPost, "tagging" | "community"> & Partial<Pick<IPost, "entity">> }) {
   const navigate = useNavigate();
   const community = post.community;
-  const tagging = community
-    ? post.tagging.filter(tag => tag.entity.id !== community.entity_id && tag.entity.details.type !== "community")
-    : post.tagging;
+  const scope = useContext(CommunityPostScope);
+  const showDestination = community && scope !== community.entity_id &&
+    post.entity?.id !== community.entity_id;
+  const tagging = post.tagging.filter(tag =>
+    tag.entity.id !== community?.entity_id && tag.entity.details.type !== "community");
   return (
     <>
       <TaggingSummary tagging={tagging} />
-      {community && (
+      {showDestination && (
         <span className="cl-text-body">
           {tagging.length ? " · " : ""}posted in{" "}
           <a

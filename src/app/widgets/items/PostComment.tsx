@@ -153,7 +153,8 @@ function PostComment({
   const currentActor = useRef(actor); currentActor.current = actor;
   const accessEpoch = useRef(0);
   const [accessLost, setAccessLost] = useState(false);
-  const canContribute = !accessLost && (!community || community.is_member);
+  const canContribute = authentication.auth && !accessLost &&
+    (!community || !community.is_private || community.is_member);
   useEffect(() => { setwriteComment(""); setComments(commentsliststate); setAccessLost(false); accessEpoch.current++; }, [actor, community?.entity_id]);
   useEffect(() => {
     const changed = (event: Event) => {
@@ -878,7 +879,7 @@ function PostComment({
   // dependency list here buys nothing and risks sending a stale draft.
   const composer = canContribute ? (
     <div className="tw-w-full tw-flex tw-flex-col tw-gap-[8px] tw-pb-[10px]">
-      {community && (
+      {community && !isThread && (
         <label className="cl-community-anonymous-toggle">
           <span>
             <span className="cl-community-anonymous-toggle__label">React or comment anonymously</span>
@@ -1201,7 +1202,7 @@ function PostComment({
                       {/* <span className="cl-text-body">{mp.text}</span> */}
                     </div>
 
-                    {authentication.auth && (
+                    {canContribute && (
                       <div className="cl-comment-section__actions tw-flex tw-items-center tw-gap-[14px] tw-pl-[4px]">
                         <div
                           className="cl-comment-section__react tw-relative"

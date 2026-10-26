@@ -18,7 +18,8 @@ export default function CommunityInteractionMenu({
   const authentication = useSelector(
     (state: { authentication: AuthenticationInterface }) => state.authentication,
   );
-  if (!authentication.auth || !post.community?.is_member) return null;
+  if (!authentication.auth || !post.community ||
+      (post.community.is_private && !post.community.is_member)) return null;
   return <MemberInteractionMenu post={post} authentication={authentication} />;
 }
 

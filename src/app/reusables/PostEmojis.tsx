@@ -167,7 +167,7 @@ function PostEmojis({
   }, [actor, community?.entity_id, viewerReactionIsAnonymous]);
   const emojilist: Emoji[] = useSelector((state: any) => state.emojilist);
 
-  if (community && !community.is_member) return <span>Join to react</span>;
+  if (community?.is_private && !community.is_member) return null;
   return (
     <div
       role="group"

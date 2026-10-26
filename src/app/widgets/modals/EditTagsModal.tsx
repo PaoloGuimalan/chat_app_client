@@ -18,11 +18,13 @@ import { ITagging } from "@/reusables/vars/interfaces";
 function EditTagsModal({
   postId,
   tagging,
+  destinationEntityId,
   onChange,
   onClose,
 }: {
   postId: string;
   tagging: ITagging[];
+  destinationEntityId?: string;
   onChange: (tagging: ITagging[]) => void;
   onClose: () => void;
 }) {
@@ -33,7 +35,8 @@ function EditTagsModal({
     RemovePostTagRequest(postId, entityId)
       .then((remaining) => {
         onChange(remaining);
-        if (remaining.length === 0) onClose();
+        if (remaining.every(tag => tag.entity.id === destinationEntityId ||
+            tag.entity.details.type === "community")) onClose();
       })
       .catch((err) => {
         console.log(err);
@@ -60,7 +63,8 @@ function EditTagsModal({
             </button>
           </div>
           <div className="tw-w-full tw-flex tw-flex-col tw-gap-[4px] tw-max-h-[320px] tw-overflow-y-auto">
-            {tagging.map((tag) => {
+            {tagging.filter(tag => tag.entity.id !== destinationEntityId &&
+              tag.entity.details.type !== "community").map((tag) => {
               const details = tag.entity.details;
               const name = taggedEntityName(tag.entity);
               return (

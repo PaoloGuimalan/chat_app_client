@@ -24,7 +24,7 @@ import { SET_EMOJIS_LIST } from "@/redux/types";
 import { Card } from "@/reusables/design";
 import ProfileComposerContent from "@/app/reusables/ProfileComposerContent";
 import type { CommunityCard } from "@/reusables/hooks/communityRequests";
-import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
 export interface PostsContainerProps {
   profileInfo?: ProfileUserInfoInterface;
@@ -224,13 +224,15 @@ function PostsContainer({
       })
       .catch((error) => {
         if (!isCurrent()) return;
-        setCommunityError({ scope, message: resolveErrorMessage(error, "Posts could not be loaded.") });
+        setCommunityError({ scope, message: "failed" });
         const status = error?.response?.status ?? error?.status;
         if (status === 403 || status === 404) {
           setpaginatedPosts(postsliststate);
           setDeniedCommunityScope(scope);
           settoggleNewPostModal({ toggle: false, withImage: false });
           accessDeniedRef.current?.(error);
+        } else {
+          notifyRequestError(error, "Posts could not be loaded.");
         }
         setispostsloaded(true);
       })
@@ -330,8 +332,7 @@ function PostsContainer({
       )}
       {community && loadError && (
         <Card pad={12} className="cl-bleed" style={{ width: "100%", marginBottom: 8 }}>
-          <div role="alert" className="tw-flex tw-flex-col tw-items-start tw-gap-[8px] tw-text-left">
-            <span className="cl-text-body">{loadError}</span>
+          <div className="tw-flex tw-flex-col tw-items-start tw-gap-[8px] tw-text-left">
             <button
               className="cl-profile-action-button--secondary cl-text-caption tw-p-[8px] tw-rounded-[12px] tw-cursor-pointer"
               onClick={() => setCommunityPaging({ scope: communityScope, page: communityPage, revision: communityRevision + 1 })}

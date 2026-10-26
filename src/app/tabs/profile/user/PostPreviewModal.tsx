@@ -80,6 +80,8 @@ function PostPreviewModal({
   );
   const emojilist: Emoji[] = useSelector((state: any) => state.emojilist);
   const navigate = useNavigate();
+  const canInteract = authentication.auth &&
+    (!post.community?.is_private || post.community.is_member);
 
   const [minimizedCaption, setminimizedCaption] = useState<boolean | null>(
     null,
@@ -478,7 +480,8 @@ function PostPreviewModal({
             </motion.div>
             <hr className="cl-feed-card__divider tw-w-full tw-mb-[5px] tw-z-[0]" />
             <div className="tw-flex tw-flex-row tw-flex-wrap tw-w-full tw-justify-evenly tw-items-center">
-              <button
+              {canInteract && <button
+                aria-label="React"
                 onMouseEnter={() => {
                   settoggleEmojis(true);
                 }}
@@ -522,7 +525,7 @@ function PostPreviewModal({
                     }}
                   />
                 )}
-              </button>
+              </button>}
               <button className="cl-feed-card__action tw-bg-transparent tw-flex tw-flex-1 tw-justify-center tw-items-center tw-border-0 tw-w-[40px] tw-h-[30px] tw-cursor-pointer tw-rounded-[5px]">
                 <LiaComment
                   style={{ fontSize: "25px", color: "var(--text-2)" }}

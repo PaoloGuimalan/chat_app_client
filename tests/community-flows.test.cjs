@@ -24,11 +24,16 @@ const root = path.join(__dirname, '../src');
 const auth = { auth: true, user: { entity_id: 'human', userID: 'human-user', username: 'human' }, active_entity_context: { id: 'human', name: 'Human', profile: 'none' } };
 const community = { realm_id: 'realm', entity_id: 'destination', name: 'Garden Club', slug: 'garden', profile: 'none', description: 'Grow together', is_member: true, is_private: true, my_role: 'owner', member_count: 2 };
 let directory, detail, feed, requestRows, commentRows, files, uploads, saves, typing, reactions, invitations, navigations, closes, loadFeed, postActivityHandler;
+let memberQuery, alerts = [], width = 1200;
 const empty = { results: [], next: null, previous: null, count: 0 };
 function reset() {
   directory = [{ ...community }]; detail = { ...community }; feed = []; requestRows = []; commentRows = []; files = [];
   uploads = []; saves = []; typing = []; reactions = []; invitations = []; navigations = []; closes = [];
   auth.active_entity_context.id = 'human';
+  auth.auth = true;
+  alerts = [];
+  width = 1200;
+  memberQuery = undefined;
   postActivityHandler = undefined;
   loadFeed = async () => ({ ...empty, results: feed });
 }
@@ -36,7 +41,7 @@ reset();
 const requests = {
   GetFeedEmojisRequest: async () => [],
   GetPostRequest: (...args) => loadFeed(...args),
-  GetRealmMembersRequest: async () => empty,
+  GetRealmMembersRequest: (...args) => memberQuery ? memberQuery(...args) : Promise.resolve(empty),
   CreatePostRequest: async payload => { saves.push(payload); return { data: { status: true } }; },
   UploadMediaRequest: async (...args) => { uploads.push(args); return { data: { result: [{ fileName: 'photo', fileType: 'image/jpeg', fileDetails: { data: '/uploaded.jpg' } }] } }; },
   GetRealmInviteRequest: async () => ({ result: requestRows }),
@@ -62,13 +67,13 @@ const original = Module._load;
 Module._extensions['.ts'] = Module._extensions['.tsx'] = (module, filename) => module._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText, filename);
 Module._extensions['.css'] = () => {};
 Module._load = function(request, parent, isMain) {
-  if (request === 'react-redux') return { useSelector: fn => fn({ authentication: auth, alerts: [], emojilist: [{ emoji_id: 'smile', emoji_content: ':)', priority: 1 }], screensizelistener: { W: 1200 } }), useDispatch: () => () => {} };
+  if (request === 'react-redux') return { useSelector: fn => fn({ authentication: auth, alerts: [], emojilist: [{ emoji_id: 'smile', emoji_content: ':)', priority: 1 }], screensizelistener: { W: width } }), useDispatch: () => () => {} };
   if (request === 'react-router-dom') return { useNavigate: () => value => navigations.push(value), useParams: () => ({ communityId: 'garden' }), useLocation: () => ({ pathname: '/realms/realm' }), Routes: plain, Route: () => null, Navigate: () => null };
   if (request === 'framer-motion') return { useInView: () => false, motion: new Proxy({}, { get: (_, tag) => React.forwardRef(({ children, className, onClick, id }, ref) => React.createElement(tag, { className, onClick, id, ref }, children)) }) };
   if (request === '@/reusables/design') return { Icon: () => null, Avatar: ({ name }) => { assert.equal(typeof name, 'string'); return React.createElement('span', null, name.split(' ')[0]); }, Card: plain, Btn: ({ children, onClick, disabled }) => React.createElement('button', { onClick, disabled }, children), PageFlag: () => null, BotFlag: () => null };
   if (request === '@/reusables/hooks/requests') return requests;
   if (request === '@/reusables/hooks/communityRequests') return api;
-  if (request === '@/reusables/hooks/errormessages') return { resolveErrorMessage: (error, fallback) => error.message || fallback, notifyRequestError() {} };
+  if (request === '@/reusables/hooks/errormessages') return { resolveErrorMessage: (error, fallback) => error.message || fallback, notifyRequestError(error, fallback) { alerts.push(error.message || fallback); } };
   if (request === '@/reusables/hooks/pickFiles') return { pickFiles: async () => files };
   if (request === '@/reusables/hooks/useDragAndDrop') return { useDragAndDrop: () => ({ dragHandlers: {}, isDragging: false }) };
   if (request === '@/reusables/hooks/useLinkPreview') return { useLinkPreview: () => ({ dismiss() {} }) };
@@ -82,7 +87,7 @@ Module._load = function(request, parent, isMain) {
   if (request === '@/app/reusables/Modal') return { __esModule: true, default: props => props.component };
   if (request === '@/app/reusables/HashtagField') return { __esModule: true, default: plain };
   if (request === '@/app/tabs/messenger/partials/MessageContent') return { __esModule: true, default: ({ content }) => React.createElement('span', null, content) };
-  if (/(?:PostItem|PostMediaPreview|LinkPreviewCard|ContactMember|RealmMembers|InvitePeople|MessageContent|CommentOptions|PostCommentLoader|Dashboard|Details|Media|Members|Followers)$/.test(request)) return { __esModule: true, default: () => null };
+  if (/(?:PostItem|PostMediaPreview|LinkPreviewCard|ContactMember|RealmMembers|InvitePeople|MessageContent|CommentOptions|PostCommentLoader|Dashboard|Details|Media|Members|Followers|EditPost|ChangePostAudience|EditTagsModal|ReportModal)$/.test(request)) return { __esModule: true, default: () => null };
   if (request.startsWith('@/')) request = path.join(root, request.slice(2));
   return original.call(this, request, parent, isMain);
 };
@@ -98,6 +103,7 @@ const PostDestination = require('../src/app/reusables/PostDestination.tsx').defa
 const SearchRealmCard = require('../src/app/tabs/search/partials/RealmCard.tsx').default;
 const CommunityRequests = require('../src/app/widgets/invites/CommunityRequests.tsx').default;
 const ManageRealm = require('../src/app/tabs/realms/manage/ManageRealm.tsx').default;
+const PostOptions = require('../src/app/tabs/profile/user/PostOptions.tsx').default;
 const composerProps = { community, toShare: false, withImage: false, setcreateposttext() {}, getpostprocess() {}, onclose: value => closes.push(value) };
 
 test('directory searches and opens actual communities without switching identity', async () => {
@@ -107,6 +113,121 @@ test('directory searches and opens actual communities without switching identity
   fireEvent.change(screen.getByLabelText('Search communities'), { target: { value: 'missing' } });
   await waitFor(() => assert.ok(screen.queryByText('No communities found.')));
   assert.equal(auth.active_entity_context.id, 'human'); cleanup();
+});
+
+test('Discover is first and selected by default and private cards request approval', async () => {
+  reset();
+  const screen = render(React.createElement(Communities));
+  await waitFor(() => assert.ok(screen.queryByText('Garden Club')));
+  const tabs = within(screen.getByRole('navigation', { name: 'Community directory' })).getAllByRole('button');
+  assert.equal(tabs[0].textContent, 'Discover');
+  assert.equal(tabs[0].getAttribute('aria-current'), 'page');
+  assert.equal(tabs[1].textContent, 'Your communities');
+  cleanup();
+});
+
+test('shared-post options escape clipping and community tags stay out of Edit tags', async () => {
+  reset();
+  const screen = render(React.createElement('div', { className: 'cl-redesign' },
+    React.createElement('div', { 'data-testid': 'clipped', style: { height: 60, overflow: 'hidden' } },
+      React.createElement(PostOptions, {
+        post: { post_id: 'shared', is_owner: true, community,
+          tagging: [{ post_tag_id: 'destination', entity: { id: community.entity_id, type: 'realm', details: { type: 'community', name: community.name } } }] },
+        onProcess() {}, onFinish() {}, onError() {},
+      }),
+    ),
+  ));
+  fireEvent.click(screen.getByRole('button', { name: 'Post options' }));
+  await waitFor(() => assert.ok(screen.queryByText('Edit post')));
+  const menu = screen.container.querySelector('.cl-post-options-menu');
+  assert.equal(screen.getByTestId('clipped').contains(menu), false);
+  assert.equal(menu.style.position, 'fixed');
+  assert.equal(screen.queryByText('Edit tags'), null);
+  fireEvent.mouseDown(menu);
+  assert.ok(screen.queryByText('Edit post'));
+  fireEvent.scroll(menu);
+  assert.ok(screen.queryByText('Edit post'));
+  fireEvent.resize(window);
+  assert.equal(screen.queryByText('Edit post'), null);
+  fireEvent.click(screen.getByRole('button', { name: 'Post options' }));
+  fireEvent.keyDown(document, { key: 'Escape' });
+  assert.equal(screen.queryByText('Edit post'), null);
+  fireEvent.click(screen.getByRole('button', { name: 'Post options' }));
+  fireEvent.mouseDown(document.body);
+  assert.equal(screen.queryByText('Edit post'), null);
+  cleanup();
+});
+
+test('guest community profiles keep public posts and show authentication actions', async () => {
+  reset();
+  auth.auth = false;
+  detail = { ...community, is_private: false, is_member: false, my_role: null };
+  try {
+    const screen = render(React.createElement(Profile));
+    await waitFor(() => assert.ok(screen.queryByRole('button', { name: 'Login', exact: true })));
+    assert.ok(screen.getByRole('button', { name: 'Sign up' }));
+    assert.equal(screen.queryByRole('button', { name: 'Join community' }), null);
+    assert.equal(screen.queryByRole('button', { name: 'Manage realm' }), null);
+    assert.equal(screen.queryByRole('button', { name: 'About', exact: true }), null);
+    assert.equal(screen.queryByPlaceholderText('Share something with Garden Club…'), null);
+  } finally { cleanup(); auth.auth = true; }
+});
+
+test('leaving confirms first and membership failures use the global alert', async () => {
+  reset();
+  const original = api.leaveCommunity;
+  let attempts = 0;
+  api.leaveCommunity = async () => { attempts++; throw new Error('Transfer ownership before leaving this community.'); };
+  try {
+    const screen = render(React.createElement(Profile));
+    await waitFor(() => assert.ok(screen.queryByText('Leave community')));
+    fireEvent.click(screen.getByText('Leave community'));
+    assert.ok(screen.getByText('Leave community?'));
+    fireEvent.click(screen.getByRole('button', { name: 'Cancel', exact: true }));
+    assert.equal(attempts, 0);
+    fireEvent.click(screen.getByText('Leave community'));
+    fireEvent.click(screen.getAllByRole('button', { name: 'Leave community', exact: true }).at(-1));
+    await waitFor(() => assert.equal(alerts.length, 1));
+    assert.equal(attempts, 1);
+    assert.equal(screen.queryByText('Transfer ownership before leaving this community.'), null);
+    assert.equal(screen.queryByRole('alert'), null);
+  } finally { api.leaveCommunity = original; cleanup(); }
+});
+
+test('public nonmembers can comment while private nonmembers have no interaction controls', async () => {
+  for (const is_private of [false, true]) {
+    reset();
+    const destination = { ...community, is_member: false, is_private };
+    const screen = render(React.createElement(React.Fragment, null,
+      React.createElement(Comments, { community: destination, post_id: 'visitor-post', parent_id: null }),
+      React.createElement(Emojis, { community: destination, post_id: 'visitor-post', onProcessEmojiSelection() {}, onSuccessEmojiSelection() {} }),
+    ));
+    assert.equal(Boolean(screen.queryByPlaceholderText('Write a comment...')), !is_private);
+    assert.equal(Boolean(screen.queryByRole('group', { name: 'Choose a reaction' })), !is_private);
+    cleanup();
+  }
+});
+
+test('mobile profile omits About and a full member reload clears stale rows', async () => {
+  reset();
+  width = 390;
+  const first = { member_id: 'member', role: 'member', entity: { id: 'mika', details: { name: 'Mika Santos', profile: 'none' } } };
+  let finish;
+  memberQuery = () => new Promise(resolve => { finish = resolve; });
+  try {
+    const screen = render(React.createElement(Profile));
+    await waitFor(() => assert.ok(screen.queryByText('Leave community')));
+    assert.equal(screen.queryByRole('button', { name: 'About', exact: true }), null);
+    fireEvent.click(screen.getByRole('button', { name: 'Members', exact: true }));
+    assert.ok(screen.getByRole('status', { name: 'Loading members' }));
+    await act(async () => finish({ ...empty, results: [first] }));
+    assert.ok(screen.getByText('Mika Santos'));
+    fireEvent.click(screen.getByRole('button', { name: 'Posts', exact: true }));
+    fireEvent.click(screen.getByRole('button', { name: 'Members', exact: true }));
+    assert.ok(screen.getByRole('status', { name: 'Loading members' }));
+    assert.equal(screen.queryByText('Mika Santos'), null);
+    await act(async () => finish(empty));
+  } finally { memberQuery = undefined; cleanup(); }
 });
 
 test('creating a community requires a nonblank, unreserved profile link', async () => {
@@ -325,11 +446,15 @@ test('typing excludes self before anonymous masking and retains anonymous peers'
   }
 });
 
-test('anonymous comments and replies submit independent identity and anonymous typing', async () => {
+test('anonymous replies reuse the top-level identity without another toggle', async () => {
   for (const parent_id of [null, 'parent']) {
     reset(); const screen = render(React.createElement(Comments, { community, post_id: 'post', parent_id }));
-    const identity = screen.getByRole('switch', { name: 'React or comment anonymously' });
-    if (!identity.checked) fireEvent.click(identity);
+    if (!parent_id) {
+      const identity = screen.getByRole('switch', { name: 'React or comment anonymously' });
+      if (!identity.checked) fireEvent.click(identity);
+    } else {
+      assert.equal(screen.queryByRole('switch', { name: 'React or comment anonymously' }), null);
+    }
     assert.ok(screen.queryByText('Attach photo or video') === null);
     const field = screen.getByPlaceholderText(parent_id ? 'Write a reply...' : 'Write a comment...');
     fireEvent.change(field, { target: { value: 'Anonymous response' } });

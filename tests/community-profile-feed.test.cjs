@@ -23,7 +23,7 @@ const motion = new Proxy({}, {
 });
 Module._extensions['.ts'] = Module._extensions['.tsx'] = (module, filename) => module._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText, filename);
 Module._load = function (request, parent, isMain) {
-  if (request === '@/reusables/hooks/errormessages') return { resolveErrorMessage: error => error.message || 'Posts could not be loaded.' };
+  if (request === '@/reusables/hooks/errormessages') return { notifyRequestError() {} };
   if (request === 'react-redux') return { useSelector: fn => fn({ authentication: auth, screensizelistener: { W: 1200 } }), useDispatch: () => () => {} };
   if (request === 'react-router-dom') return { useParams: () => ({ userID: 'ordinary-user' }), useNavigate: () => () => {} };
   if (request === 'framer-motion') return { useInView: () => inView, motion };
@@ -62,7 +62,7 @@ test('failed community pages stop automatic paging and can retry the same page',
   assert.equal(requests.at(-1).query.page, 2);
   await act(async () => requests.at(-1).reject(new Error('Feed failed')));
   assert.equal(requests.length, 2);
-  assert.ok(screen.getByText('Feed failed'));
+  assert.equal(screen.queryByText('Feed failed'), null);
   fireEvent.click(screen.getByText('Try again'));
   assert.equal(requests.at(-1).query.page, 2);
   await act(async () => requests.at(-1).resolve(postPage('Second page')));

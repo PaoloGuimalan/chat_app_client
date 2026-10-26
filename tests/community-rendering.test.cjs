@@ -28,6 +28,10 @@ const originalLoad = Module._load;
 Module._extensions['.ts'] = Module._extensions['.tsx'] = (module, filename) => module._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText, filename);
 Module._extensions['.css'] = () => { };
 Module._load = function (request, parent, isMain) {
+  if (request === 'react-dom' && parent?.filename.endsWith('PostOptions.tsx'))
+    return { createPortal: child => child };
+  if (request === '@/reusables/hooks/useScopedPortalRoot')
+    return { useScopedPortalRoot: () => document.body };
   if (request === 'react' && parent?.filename.endsWith('EditPost.tsx')) {
     return { ...React, useState: value => React.useState(typeof value === 'function'
       ? [{ key: 'new', src: 'blob:fixture', mime: 'image/jpeg', name: 'photo.jpg', file: new dom.window.File(['photo'], 'photo.jpg', { type: 'image/jpeg' }) }]
@@ -101,6 +105,7 @@ Module._load = function (request, parent, isMain) {
   return originalLoad.call(this, request, parent, isMain);
 };
 const PostItem = require('../src/app/tabs/profile/user/PostItem.tsx').default;
+const { CommunityPostScope } = require('../src/app/reusables/CommunityPostScope.ts');
 const SavedPostItem = require('../src/app/tabs/profile/user/SavedPostItem.tsx').default;
 const PostPreviewModal = require('../src/app/tabs/profile/user/PostPreviewModal.tsx').default;
 const PostOptions = require('../src/app/tabs/profile/user/PostOptions.tsx').default;
@@ -116,6 +121,30 @@ const post = overrides => ({ post_id: 'post', caption: 'A contribution', entity:
 const anonymous = post({ entity: null, is_anonymous: true, is_owner: true, community, entity_reaction: 'emoji', entity_reaction_is_anonymous: true });
 const render = (component, props) => { resetHooks.forEach(reset => reset()); return renderToStaticMarkup(React.createElement(component, props)); };
 function assertAnonymous(html) { assert.match(html, /Anonymous member/); assert.doesNotMatch(html, /Alice|\/author|data-avatar-id="(?:author|undefined|null)"/); }
+
+test('destination hides inside its community and on community-authored media', () => {
+  const scoped = renderToStaticMarkup(React.createElement(CommunityPostScope.Provider,
+    { value: community.entity_id }, React.createElement(PostDestination, { post: anonymous })));
+  assert.doesNotMatch(scoped, /posted in/);
+  assert.match(render(PostDestination, { post: anonymous }), /posted in/);
+  const media = post({ community, content_type: 'cover_photo', entity: {
+    id: community.entity_id, type: 'realm', details: { type: 'community', name: community.name },
+  } });
+  assert.doesNotMatch(render(PostDestination, { post: media }), /posted in/);
+});
+
+test('reaction buttons disappear for private nonmembers and remain for public visitors', () => {
+  for (const component of [PostItem, PostPreviewModal]) {
+    for (const is_private of [true, false]) {
+      const value = post({ community: { ...community, is_private, is_member: false } });
+      const props = component === PostItem
+        ? { mp: value, isSharePreview: false }
+        : { post: value, asPage: true, setPost() {}, onClose() {}, onShare() {} };
+      const html = render(component, props);
+      assert.equal(html.includes('aria-label="React"'), !is_private);
+    }
+  }
+});
 
 test('community destination identifies its kind and only shows earned verification', () => {
   for (const is_verified of [true, false, undefined]) {

@@ -151,6 +151,13 @@ export function NewPostModal({
   const [accessBlocked, setAccessBlocked] = useState(false);
   const [showDestination, setShowDestination] = useState(false);
   const community = selectedCommunity(communities, destination);
+  useEffect(() => {
+    if (!destinationError) return;
+    dispatch({
+      type: SET_MUTATE_ALERTS,
+      payload: { alerts: { type: "warning", content: destinationError } },
+    });
+  }, [destinationError, dispatch]);
   useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useEffect(() => {
     if (actor !== initialActor.current) { contextEpoch.current++; setmedialist([]); setmainpostcaption(""); setAnonymous(false); setDestination(""); onclose(false); }
@@ -841,7 +848,6 @@ export function NewPostModal({
             </div>
           </div>
           }
-          {destinationError && <p role="alert" className="cl-community-destination-error">{destinationError}</p>}
           {!showDestination && <div className="cl-create-post-toolbar">
             <button
               onClick={() => {

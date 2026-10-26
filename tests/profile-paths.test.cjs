@@ -8,6 +8,14 @@ const api={};
 vm.runInNewContext(ts.transpileModule(fs.readFileSync(path.join(__dirname,'../src/reusables/routing/profilePaths.ts'),'utf8'),{compilerOptions:{module:ts.ModuleKind.CommonJS}}).outputText,{exports:api});
 const policy={paths:Array.from(api.DEFAULT_PROFILE_PATHS)};
 
+test('guest profile roots use the existing public profile route without opening app routes', () => {
+  assert.equal(api.publicProfilePath('/garden-club'), '/share/garden-club');
+  assert.equal(api.publicProfilePath('/garden-club/'), '/share/garden-club');
+  for (const route of ['/', '/communities', '/servers', '/settings', '/post/id', '/%2Fsettings', '/%ZZ']) {
+    assert.equal(api.publicProfilePath(route), null, route);
+  }
+});
+
 test('policy covers every static web route root',()=>{
   for(const file of ['src/App.tsx','src/app/main/Home.tsx']) {
     const source=fs.readFileSync(file,'utf8').replace(/\{\/\*[\s\S]*?\*\/\}/g,'');

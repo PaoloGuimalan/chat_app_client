@@ -5,14 +5,14 @@ import { useNavigate } from "react-router-dom";
 import { Icon } from "@/reusables/design";
 import CommunityDirectoryItem from "@/app/widgets/items/CommunityDirectoryItem";
 import { listCommunities, type CommunityCard } from "@/reusables/hooks/communityRequests";
-import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import CreateCommunityModal from "@/app/widgets/modals/CreateCommunityModal";
 import { communityProfilePath } from "@/reusables/routing/communityPaths";
 import "../../../styles/communities.css";
 export default function Communities() {
   const actor = useSelector((state: any) => state.authentication.active_entity_context?.id ?? state.authentication.user.entity_id);
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"joined" | "discover">("joined");
+  const [tab, setTab] = useState<"joined" | "discover">("discover");
   const [search, setSearch] = useState("");
   const [page, setPage] = useState(1);
   const [cards, setCards] = useState<CommunityCard[]>([]);
@@ -37,8 +37,10 @@ export default function Communities() {
         setCards(previous => page === 1 ? response.results : [...previous, ...response.results].filter((card, i, rows) => rows.findIndex(row => row.realm_id === card.realm_id) === i));
         setNext(Boolean(response.next));
       }).catch(error => {
-        if (active)
-          setError(resolveErrorMessage(error, "Communities could not be loaded."));
+        if (active) {
+          setError("failed");
+          notifyRequestError(error, "Communities could not be loaded.");
+        }
       }).finally(() => {
         if (active)
           setBusy(false);
@@ -64,11 +66,11 @@ export default function Communities() {
       <button className="cl-community-primary" onClick={() => setCreate(true)}>+ Create community</button>
     </div>
     <nav className="cl-community-tabs" aria-label="Community directory">
-      <button aria-current={tab === "joined" ? "page" : undefined} onClick={() => setTab("joined")}>Your communities</button>
       <button aria-current={tab === "discover" ? "page" : undefined} onClick={() => setTab("discover")}>Discover</button>
+      <button aria-current={tab === "joined" ? "page" : undefined} onClick={() => setTab("joined")}>Your communities</button>
     </nav>
-    {error && <div role="alert" className="cl-community-panel">
-      {error} <button onClick={() => setRetry(value => value + 1)}>Try again</button>
+    {error && <div className="cl-community-panel">
+      <button onClick={() => setRetry(value => value + 1)}>Try again</button>
     </div>}
     <div className="cl-community-grid">
       {cards.map(card => (

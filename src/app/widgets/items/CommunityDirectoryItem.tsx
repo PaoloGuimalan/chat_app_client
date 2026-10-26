@@ -13,7 +13,8 @@ export default function CommunityDirectoryItem({
   const cover = community.cover_photo;
   const status = community.is_member
     ? "Joined"
-    : community.request_pending ? "Request pending" : "View community";
+    : community.request_pending ? "Request pending"
+      : community.is_private ? "Request to join" : "View community";
   const statusStyle = community.is_member || community.request_pending
     ? "cl-display-card__button--muted"
     : "cl-display-card__button--primary";
