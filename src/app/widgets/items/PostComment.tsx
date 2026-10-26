@@ -319,10 +319,12 @@ function PostComment({
    * leaving them showing in both.
    */
   const RegisterTyperProcess = (event: PostActivityEvent) => {
+    const activeActor = authentication.active_entity_context?.id ?? authentication.user.entity_id;
+    if (event.is_self || event.entity?.entity_id === activeActor) return;
     const typer = event.is_anonymous ? { entity_id: "anonymous-typing", handle: null, name: "Anonymous member", type: null } : event.entity;
     // Your own keystrokes come back to you: the event goes to the post's
     // channel, and you are on it. Nobody needs telling that they are typing.
-    if (!typer || typer.entity_id === authentication.user.entity_id) return;
+    if (!typer) return;
 
     setTypers((prev) => ({
       ...prev,

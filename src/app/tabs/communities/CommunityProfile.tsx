@@ -40,6 +40,7 @@ export default function CommunityProfile({ communityId }: { communityId?: string
   const [pending, setPending] = useState(false);
   const [revision, setRevision] = useState(0);
   const [tab, setTab] = useState("posts");
+  const tabs = width < 900 ? ["posts", "about", "members"] : ["posts", "members"];
   const [members, setMembers] = useState<IRealmMember[]>([]);
   const [membersPage, setMembersPage] = useState(1);
   const [membersNext, setMembersNext] = useState(false);
@@ -61,6 +62,10 @@ export default function CommunityProfile({ communityId }: { communityId?: string
   useEffect(() => {
     setTab("posts");
   }, [id, actor]);
+
+  useEffect(() => {
+    if (width >= 900 && tab === "about") setTab("posts");
+  }, [width, tab]);
 
   useEffect(() => {
     const changed = (event: Event) => {
@@ -231,7 +236,7 @@ export default function CommunityProfile({ communityId }: { communityId?: string
         <div className="cl-profile-page__feed tw-w-full tw-pb-[12px] tw-flex tw-flex-col tw-items-center tw-gap-[4px]">
           <div className="cl-profile-surface cl-profile-page__feed-nav tw-w-full tw-h-fit tw-flex tw-mb-[6px]">
             <nav aria-label="Community profile" style={{ justifyContent: width < 800 ? "center" : "start" }} className="tw-w-full tw-p-[10px] tw-flex tw-flex-row tw-flex-wrap tw-items-center tw-gap-[4px]">
-              {["posts", "about", "members"].map(value => (
+              {tabs.map(value => (
                 <motion.button
                   key={value}
                   aria-current={tab === value ? "page" : undefined}

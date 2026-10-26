@@ -27,7 +27,7 @@ export default function PostDestination({ post }: { post: Pick<IPost, "tagging" 
               navigate(communityProfilePath(community));
             }}
           >
-            <CommunityName community={community} />
+            <CommunityName community={community} compact />
           </a>
         </span>
       )}

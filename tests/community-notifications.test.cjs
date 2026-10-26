@@ -18,7 +18,7 @@ vm.runInNewContext(compiled, {
   require(name) {
     if (name === 'react/jsx-runtime') return require(name);
     if (name === '@/reusables/design') return {
-      Avatar: () => null,
+      Avatar: ({ name, src }) => React.createElement('span', { 'data-avatar-name': name, 'data-avatar-src': src }),
       BotFlag: () => null,
       Btn: () => null,
       PageFlag: () => React.createElement('span', { 'data-marker': 'page' }),
@@ -55,7 +55,26 @@ test('notification community markers preserve verification and page fallback', (
   const community = render('community');
   assert.match(community, /aria-label="Community"/);
   assert.match(community, /data-icon="verified"/);
+  assert.match(community, /class="cl-notification-sender"/);
   assert.doesNotMatch(community, /data-marker="page"/);
   assert.match(render('page'), /data-marker="page"/);
   assert.match(render(undefined), /data-marker="page"/);
+});
+
+test('community activity uses the normalized actor avatar or anonymous community avatar', () => {
+  for (const anonymous of [false, true]) {
+    const html = renderToStaticMarkup(React.createElement(moduleFixture.exports.default, {
+      notification: {
+        type: 'post_comment', community_entity_id: 'community', is_anonymous: anonymous,
+        fromUser: anonymous
+          ? { type: 'realm', realm_type: 'community', display_name: 'Garden Club', profile: '/community.jpg' }
+          : { type: 'user', display_name: 'Mika Santos', profile: '/mika.jpg' },
+        content: { headline: 'Activity', details: 'commented in your community.' },
+        date: { date: '2026-10-26' },
+      },
+      actionBusy: false, onAccept() {}, onDecline() {},
+    }));
+    assert.match(html, anonymous ? /data-avatar-src="\/community.jpg"/ : /data-avatar-src="\/mika.jpg"/);
+    assert.doesNotMatch(html, anonymous ? /mika.jpg/ : /community.jpg/);
+  }
 });

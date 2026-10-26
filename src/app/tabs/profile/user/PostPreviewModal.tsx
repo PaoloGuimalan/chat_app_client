@@ -1,6 +1,7 @@
 import { ContributionAvatar, ContributionName } from "@/app/reusables/ContributionAuthor";
 import { contributionAuthor, ownsContribution } from "@/reusables/hooks/contributionIdentity";
 import PostDestination from "@/app/reusables/PostDestination";
+import { communityProfilePath } from "@/reusables/routing/communityPaths";
 import CommunityInteractionMenu from "@/app/reusables/CommunityInteractionMenu";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
@@ -293,7 +294,9 @@ function PostPreviewModal({
                   onClick={() => {
                     if (!author) return;
                     if (author.type !== "user") {
-                      navigate(`/${author.details.slug}`);
+                      navigate(author.details.type === "community"
+                        ? communityProfilePath({ slug: author.details.slug, realm_id: author.details.realm_id || author.details.id })
+                        : `/${author.details.slug}`);
                       return;
                     }
 

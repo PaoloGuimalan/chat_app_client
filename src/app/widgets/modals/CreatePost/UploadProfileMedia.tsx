@@ -50,6 +50,7 @@ function UploadProfileMedia({
   const [mainpostcaption, setmainpostcaption] = useState<string>("");
 
   const [medialist, setmedialist] = useState<any>(null);
+  const [realmUploadID, setRealmUploadID] = useState<string>();
   const dispatch = useDispatch();
 
   const authentication: AuthenticationInterface = useSelector(
@@ -62,9 +63,7 @@ function UploadProfileMedia({
   // profile privacy said. Defaults to the same rule the main composer and the
   // server use.
   //
-  // Only meaningful on the PERSONAL path: the realm branch updates the page's
-  // media through UpdateRealmMediaRequest and returns before any post is
-  // created, so there is no audience to choose.
+  // Realm media uses the server's realm-specific publishing/audience rules.
   const isRealmUpload = realm_id !== null;
   const isPrivateProfile = privacyIsPrivateProfile(authentication);
   const [postPrivacy, setpostPrivacy] = useState<string>(() =>
@@ -101,6 +100,7 @@ function UploadProfileMedia({
     }
 
     if (medialist?.reference) URL.revokeObjectURL(medialist.reference);
+    setRealmUploadID(undefined);
 
     setmedialist({
       id: 1,
@@ -130,13 +130,16 @@ function UploadProfileMedia({
 
       try {
         if (realm_id) {
-          // Page/Group/Server media: already on the multipart pattern,
-          // untouched by this migration.
+          // Keep the uploaded file on failure so a community delivery retry
+          // resumes the same update instead of publishing a second post.
           const response: any = await UpdateRealmMediaRequest({
             realm_id,
             realm_type: realm_type || "",
             media_type: type,
             image: medialist.file,
+            uploadID: realmUploadID,
+            onUploaded: setRealmUploadID,
+            ...(realm_type === "community" ? { caption: mainpostcaption } : {}),
           });
 
           if (response && response.status) {

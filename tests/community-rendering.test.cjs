@@ -125,6 +125,23 @@ test('community destination identifies its kind and only shows earned verificati
     assert.match(html, /Garden Club/);
   }
 });
+
+test('community media updates retain their realm avatar and atomic community author name', () => {
+  mediaModal = false;
+  const mediaPost = post({
+    community,
+    content_type: 'cover_photo',
+    entity: { id: 'community', type: 'realm', details: {
+      id: 'realm-community', realm_id: 'realm-community', type: 'community',
+      name: 'Garden Club', slug: 'garden-club', profile: '/community.jpg', is_verified: true,
+    } },
+  });
+  const html = render(PostItem, { mp: mediaPost, isSharePreview: false });
+  assert.match(html, /data-avatar-id="community"/);
+  assert.match(html, /changed cover photo/);
+  assert.match(html, /cl-community-name--compact/);
+  assert.match(html, /aria-label="Community"/);
+});
 test('actual post card renders a null anonymous author without a profile identity', () => { assertAnonymous(render(PostItem, { mp: anonymous, isSharePreview: false })); });
 test('media modal header renders the same anonymous identity', () => { mediaModal = true; try {
   assertAnonymous(render(PostItem, { mp: { ...anonymous, references: [{ reference_id: 'image', reference: '/photo.jpg', reference_media_type: 'image/jpeg' }] }, isSharePreview: false }));

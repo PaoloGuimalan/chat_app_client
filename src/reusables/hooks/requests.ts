@@ -4040,18 +4040,25 @@ const UpdateRealmMediaRequest = async (payload: {
   realm_type: string;
   media_type: "profile" | "cover_photo";
   image: File;
+  caption?: string;
+  uploadID?: string;
+  onUploaded?: (uploadID: string) => void;
 }) => {
   // The image goes straight to storage, uploaded for this realm; the realm
   // is then pointed at it by upload id.
-  let uploaded: UploadedFile;
-  try {
-    [uploaded] = await uploadFiles({
-      purpose: payload.media_type === "profile" ? "avatar" : "cover",
-      files: [payload.image],
-      context: { realmID: payload.realm_id },
-    });
-  } catch (err) {
-    throw uploadRequestError(err);
+  let uploadID = payload.uploadID;
+  if (!uploadID) {
+    try {
+      const [uploaded] = await uploadFiles({
+        purpose: payload.media_type === "profile" ? "avatar" : "cover",
+        files: [payload.image],
+        context: { realmID: payload.realm_id },
+      });
+      uploadID = uploaded.uploadID;
+      payload.onUploaded?.(uploadID);
+    } catch (err) {
+      throw uploadRequestError(err);
+    }
   }
 
   return await Axios.post(
@@ -4059,7 +4066,8 @@ const UpdateRealmMediaRequest = async (payload: {
     {
       realm_id: payload.realm_id,
       media_type: payload.media_type,
-      uploadID: uploaded.uploadID,
+      uploadID,
+      ...(payload.caption !== undefined ? { caption: payload.caption } : {}),
     },
     {
       headers: {

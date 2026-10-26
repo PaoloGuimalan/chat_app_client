@@ -894,6 +894,8 @@ export interface INotificationAction {
 }
 
 export interface INotificationV2 {
+  community_entity_id?: string | null;
+  is_anonymous?: boolean;
   notificationID: string;
   referenceID: string;
   referenceStatus: boolean | null;
@@ -925,6 +927,8 @@ export interface NotificationSectionData {
  * server/reusables/models/notificationgroups.js.
  */
 export interface INotificationGroup {
+  family?: string;
+  community_entity_id?: string | null;
   /** Stable across refetches, so an expanded group stays expanded. */
   key: string;
   count: number;

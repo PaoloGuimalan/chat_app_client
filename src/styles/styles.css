@@ -3313,6 +3313,28 @@ input:checked + .slider:before {
   background: var(--surface-hover) !important;
 }
 
+.cl-notification-sender {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  max-width: 100%;
+  white-space: nowrap;
+  vertical-align: baseline;
+}
+
+.cl-notification-sender > span {
+  display: inline-flex;
+  align-items: center;
+  line-height: inherit;
+}
+
+.cl-notification-sender > span:first-child {
+  display: block;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .cl-notification-row {
   width: 100%;
   min-width: 0;

@@ -33,6 +33,8 @@ export interface PostActivityActor {
 }
 
 export interface PostActivityEvent {
+  /** Defensive support for a server that explicitly marks the viewer's echo. */
+  is_self?: boolean;
   post_id: string;
   event_type: PostActivityType | string;
   /** Present on "comment", and on a "reaction" whose target is a comment. */

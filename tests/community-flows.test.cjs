@@ -23,12 +23,13 @@ localStorage.setItem('authtoken', 'fixture-token');
 const root = path.join(__dirname, '../src');
 const auth = { auth: true, user: { entity_id: 'human', userID: 'human-user', username: 'human' }, active_entity_context: { id: 'human', name: 'Human', profile: 'none' } };
 const community = { realm_id: 'realm', entity_id: 'destination', name: 'Garden Club', slug: 'garden', profile: 'none', description: 'Grow together', is_member: true, is_private: true, my_role: 'owner', member_count: 2 };
-let directory, detail, feed, requestRows, commentRows, files, uploads, saves, typing, reactions, invitations, navigations, closes, loadFeed;
+let directory, detail, feed, requestRows, commentRows, files, uploads, saves, typing, reactions, invitations, navigations, closes, loadFeed, postActivityHandler;
 const empty = { results: [], next: null, previous: null, count: 0 };
 function reset() {
   directory = [{ ...community }]; detail = { ...community }; feed = []; requestRows = []; commentRows = []; files = [];
   uploads = []; saves = []; typing = []; reactions = []; invitations = []; navigations = []; closes = [];
   auth.active_entity_context.id = 'human';
+  postActivityHandler = undefined;
   loadFeed = async () => ({ ...empty, results: feed });
 }
 reset();
@@ -73,7 +74,7 @@ Module._load = function(request, parent, isMain) {
   if (request === '@/reusables/hooks/useLinkPreview') return { useLinkPreview: () => ({ dismiss() {} }) };
   if (request === '@/reusables/hooks/reusable') return { getActiveAvatar: () => ({ name: 'Human', src: undefined }), timeSince: () => 'Now' };
   if (request === '@/reusables/hooks/hashtags') return { useHashtagNavigation: () => ({}) };
-  if (request === '@/reusables/hooks/postRealtime') return { usePostActivityStream() {} };
+  if (request === '@/reusables/hooks/postRealtime') return { usePostActivityStream(postId, enabled, handler) { if (enabled) postActivityHandler = handler; } };
   if (request === '@/reusables/hooks/localforagehelper') return { getLottieData: async () => null, persistLottieData() {} };
   if (request === '@/redux/actions/states') return { commentsliststate: empty, postsliststate: empty };
   if (request.endsWith('/ProfileCoverContainer')) return { __esModule: true, default: props => React.createElement('div', { className: 'cl-profile-cover', 'data-realm-type': props.realm_type }, props.coverphoto && props.coverphoto !== 'none' ? React.createElement('img', { src: props.coverphoto, alt: '' }) : null) };
@@ -219,6 +220,8 @@ test('community profile uses the user profile shell and existing loading states 
     assert.equal(screen.queryByRole('button', { name: /Communities/ }), null);
     await act(async () => finishProfile({ status: true, result: detail }));
     await waitFor(() => assert.ok(screen.queryByText('Leave community')));
+    assert.equal(screen.queryByRole('button', { name: 'About', exact: true }), null);
+    assert.ok(screen.getByText('About this community'));
     for (const selector of ['.cl-profile-page__shell', '.cl-profile-page__hero',
       '.cl-profile-picrow', '.cl-profile-identity', '.cl-profile-page__content',
       '.cl-profile-page__sidebar', '.cl-profile-page__feed']) {
@@ -297,6 +300,27 @@ test('publishing shows a modal loading status until the request completes', asyn
     assert.equal(screen.queryByRole('status', { name: 'Publishing post' }), null);
   } finally {
     requests.CreatePostRequest = originalCreate;
+    cleanup();
+  }
+});
+
+test('typing excludes self before anonymous masking and retains anonymous peers', () => {
+  reset();
+  auth.active_entity_context.id = 'acting-page';
+  const screen = render(React.createElement(Comments, {
+    community, post_id: 'typing-post', parent_id: null, realtime: true,
+  }));
+  try {
+    act(() => postActivityHandler({ event_type: 'typing', is_anonymous: true,
+      is_self: true, entity: null, parent_id: null }));
+    assert.equal(screen.queryByText(/is typing/), null);
+    act(() => postActivityHandler({ event_type: 'typing', is_anonymous: true,
+      entity: { entity_id: 'acting-page' }, parent_id: null }));
+    assert.equal(screen.queryByText(/is typing/), null);
+    act(() => postActivityHandler({ event_type: 'typing', is_anonymous: true,
+      entity: null, parent_id: null }));
+    assert.ok(screen.getByText('Anonymous member is typing...'));
+  } finally {
     cleanup();
   }
 });

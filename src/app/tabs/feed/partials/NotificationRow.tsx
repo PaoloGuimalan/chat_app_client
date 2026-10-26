@@ -184,51 +184,19 @@ function NotificationRow({
           textAlign: "left",
         }}
       >
-        {/* The badge belongs to the NAME, so it sits immediately after it -
-            trailing the whole sentence read as if it applied to the action.
-            Nudged down a hair to sit on the text baseline. */}
-        <span style={{ fontWeight: 700, color: "var(--text)" }}>
-          {senderName}
-        </span>
-        {n.fromUser?.is_verified && (
-          <span
-            style={{
-              display: "inline-flex",
-              verticalAlign: "text-bottom",
-              margin: "0 1px 0 3px",
-            }}
-          >
-            <Icon n="verified" s={13} c="var(--brand)" />
-          </span>
-        )}
-        {n.fromUser?.type === "realm" && (
-          <span
-            style={{
-              display: "inline-flex",
-              verticalAlign: "text-bottom",
-              margin: "0 1px 0 3px",
-            }}
-          >
-            {n.fromUser.realm_type === "community" ? (
+        {/* Keep the name, verification and realm marker on one shared baseline. */}
+        <span className="cl-notification-sender">
+          <span style={{ fontWeight: 700, color: "var(--text)" }}>{senderName}</span>
+          {n.fromUser?.is_verified && <Icon n="verified" s={13} c="var(--brand)" />}
+          {n.fromUser?.type === "realm" && (
+            n.fromUser.realm_type === "community" ? (
               <span role="img" aria-label="Community" title="Community">
                 <Icon n="groups" s={18} c="var(--text-3)" />
               </span>
-            ) : (
-              <PageFlag is size={13} />
-            )}
-          </span>
-        )}
-        {n.fromUser?.type === "bot" && (
-          <span
-            style={{
-              display: "inline-flex",
-              verticalAlign: "text-bottom",
-              margin: "0 1px 0 3px",
-            }}
-          >
-            <BotFlag is size={13} />
-          </span>
-        )}{" "}
+            ) : <PageFlag is size={13} />
+          )}
+          {n.fromUser?.type === "bot" && <BotFlag is size={13} />}
+        </span>{" "}
         <span style={{ color: "var(--text-2)" }}>{details}</span>
         <div
           style={{

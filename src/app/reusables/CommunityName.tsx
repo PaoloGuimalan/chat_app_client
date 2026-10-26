@@ -6,11 +6,13 @@ import "@/styles/community-name.css";
 /** Shared name and markers for community destinations, lists and profiles. */
 export default function CommunityName({
   community,
+  compact = false,
 }: {
   community: Pick<ICommunityMetadata, "name" | "is_verified">;
+  compact?: boolean;
 }) {
   return (
-    <span className="cl-community-name">
+    <span className={`cl-community-name${compact ? " cl-community-name--compact" : ""}`}>
       <span>{community.name}</span>
       {community.is_verified && (
         <span role="img" aria-label="Verified community" title="Verified community">

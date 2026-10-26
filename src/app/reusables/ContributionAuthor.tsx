@@ -1,6 +1,7 @@
 import type { IFlexibleEntity } from "@/reusables/vars/interfaces";
 import { Avatar } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
+import CommunityName from "./CommunityName";
 
 export function AnonymousAvatar({ size = 35 }: { size?: number }) {
   return (
@@ -59,6 +60,14 @@ export function ContributionAvatar({
 export function ContributionName({ entity }: { entity: IFlexibleEntity | null }) {
   if (!entity) return <>Anonymous member</>;
   const details = entity.details;
+  if (entity.type === "realm" && details.type === "community") {
+    return (
+      <CommunityName
+        community={{ name: details.name || "Community", is_verified: details.is_verified }}
+        compact
+      />
+    );
+  }
   return (
     <div className="tw-flex tw-items-center tw-gap-[4px]">
       <span>

@@ -15,11 +15,24 @@
 }
 
 .cl-community-destination-link {
+  display: inline-flex;
+  max-width: 100%;
   color: inherit;
   font: inherit;
   font-weight: 600;
   text-decoration: none;
   vertical-align: baseline;
+}
+
+.cl-community-name--compact {
+  min-width: 0;
+  white-space: nowrap;
+}
+
+.cl-community-name--compact > span:first-child {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .cl-community-destination-link:hover {
