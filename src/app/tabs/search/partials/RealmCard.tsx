@@ -125,6 +125,9 @@ function RealmCard({
               style={{ flex: "none" }}
             />
           )}
+          {realm.realm_type === "community" && (
+            <Icon n="groups" s={18} c="var(--text-3)" />
+          )}
         </button>
         <div
           style={{
@@ -149,7 +152,7 @@ function RealmCard({
           >
             {realm.is_follower ? "Following" : "Follow"}
           </Btn>
-        ) : realm.realm_type === "server" ? (
+        ) : realm.realm_type === "server" || realm.realm_type === "community" ? (
           <Btn block size="sm" variant="soft" onClick={() => onOpen(realm)}>
             Open
           </Btn>

@@ -22,7 +22,7 @@ export interface CommunityDirectoryQuery {
 export interface CreateCommunityInput {
   name: string;
   description?: string;
-  slug?: string;
+  slug: string;
   is_private?: boolean;
 }
 

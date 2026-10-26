@@ -1,6 +1,7 @@
 import { ContributionAvatar, ContributionName } from "@/app/reusables/ContributionAuthor";
 import { contributionAuthor, ownsContribution } from "@/reusables/hooks/contributionIdentity";
 import PostDestination from "@/app/reusables/PostDestination";
+import CommunityInteractionMenu from "@/app/reusables/CommunityInteractionMenu";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import React from 'react'
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -769,6 +770,7 @@ function PostItem({
                                 />
                               </button>
                             )}
+                            <CommunityInteractionMenu post={postState} />
                           </div>
                         </div>
                       </div>
@@ -1086,6 +1088,7 @@ function PostItem({
                     />
                   </button>
                 )}
+                <CommunityInteractionMenu post={postState} />
               </div>
             </div>
           )}

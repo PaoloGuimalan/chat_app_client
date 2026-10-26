@@ -27,12 +27,14 @@ export const REALM_TYPE_LABEL: Record<string, string> = {
   page: "Page",
   server: "Server",
   group: "Group chat",
+  community: "Community",
 };
 
 export const REALM_TYPE_ICON: Record<string, string> = {
   page: "campaign",
   server: "bolt",
   group: "groups",
+  community: "groups",
 };
 
 export function realmReachLabel(realm: {

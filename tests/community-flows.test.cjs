@@ -10,6 +10,13 @@ const { JSDOM } = require('jsdom');
 const dom = new JSDOM('<html><body></body></html>', { url: 'https://fixture.test' });
 Object.assign(global, { window: dom.window, document: dom.window.document, localStorage: dom.window.localStorage, CustomEvent: dom.window.CustomEvent });
 Object.defineProperty(global, 'navigator', { value: dom.window.navigator, configurable: true });
+for (const key of ['HTMLElement', 'Element', 'Node', 'MutationObserver', 'getComputedStyle']) {
+  global[key] = dom.window[key];
+}
+global.ResizeObserver = class { observe() {} unobserve() {} disconnect() {} };
+global.requestAnimationFrame = callback => setTimeout(callback, 0);
+global.cancelAnimationFrame = clearTimeout;
+HTMLElement.prototype.scrollIntoView = () => {};
 global.URL.createObjectURL = () => 'blob:fixture';
 global.URL.revokeObjectURL = () => {};
 localStorage.setItem('authtoken', 'fixture-token');
@@ -81,6 +88,10 @@ const Profile = require('../src/app/tabs/communities/CommunityProfile.tsx').defa
 const { NewPostModal } = require('../src/app/widgets/modals/CreatePost/NewPostModal.tsx');
 const Comments = require('../src/app/widgets/items/PostComment.tsx').default;
 const Emojis = require('../src/app/reusables/PostEmojis.tsx').default;
+const InteractionMenu = require('../src/app/reusables/CommunityInteractionMenu.tsx').default;
+const CreateCommunity = require('../src/app/widgets/modals/CreateCommunityModal.tsx').default;
+const PostDestination = require('../src/app/reusables/PostDestination.tsx').default;
+const SearchRealmCard = require('../src/app/tabs/search/partials/RealmCard.tsx').default;
 const CommunityRequests = require('../src/app/widgets/invites/CommunityRequests.tsx').default;
 const ManageRealm = require('../src/app/tabs/realms/manage/ManageRealm.tsx').default;
 const composerProps = { community, toShare: false, withImage: false, setcreateposttext() {}, getpostprocess() {}, onclose: value => closes.push(value) };
@@ -88,10 +99,84 @@ const composerProps = { community, toShare: false, withImage: false, setcreatepo
 test('directory searches and opens actual communities without switching identity', async () => {
   reset(); const screen = render(React.createElement(Communities));
   await waitFor(() => assert.ok(screen.queryByText('Garden Club')));
-  fireEvent.click(screen.getByText('Garden Club')); assert.deepEqual(navigations, ['/communities/garden']);
+  fireEvent.click(screen.getByText('Garden Club')); assert.deepEqual(navigations, ['/garden']);
   fireEvent.change(screen.getByLabelText('Search communities'), { target: { value: 'missing' } });
   await waitFor(() => assert.ok(screen.queryByText('No communities found.')));
   assert.equal(auth.active_entity_context.id, 'human'); cleanup();
+});
+
+test('creating a community requires a nonblank, unreserved profile link', async () => {
+  reset();
+  let created;
+  const screen = render(React.createElement(CreateCommunity, {
+    onClose() {}, onCreated: community => { created = community; },
+  }));
+  try {
+    fireEvent.change(screen.getByLabelText('Name'), { target: { value: 'Garden Club' } });
+    const submit = screen.getByRole('button', { name: 'Create community', exact: true });
+    assert.equal(submit.disabled, true);
+    const slug = screen.getByLabelText('Profile link');
+    fireEvent.change(slug, { target: { value: '   ' } });
+    assert.equal(submit.disabled, true);
+    fireEvent.change(slug, { target: { value: 'communities' } });
+    assert.equal(submit.disabled, true);
+    fireEvent.change(slug, { target: { value: 'garden-club' } });
+    assert.equal(submit.disabled, false);
+    fireEvent.click(submit);
+    await waitFor(() => assert.equal(created?.slug, 'garden-club'));
+  } finally {
+    cleanup();
+  }
+});
+
+test('post destinations use canonical profile links', () => {
+  reset();
+  const screen = render(React.createElement(PostDestination, { post: { community, tagging: [] } }));
+  const link = screen.getByRole('link', { name: /Garden Club/ });
+  assert.equal(link.getAttribute('href'), '/garden');
+  fireEvent.click(link);
+  assert.deepEqual(navigations, ['/garden']);
+  cleanup();
+});
+
+test('community search cards open profiles without chat, join or follow actions', () => {
+  reset();
+  let opened = false;
+  const screen = render(React.createElement(SearchRealmCard, {
+    realm: { ...community, realm_type: 'community', display_name: community.name,
+      entity_id: community.entity_id, members_count: 2, followers_count: 0 },
+    onOpen: () => { opened = true; },
+    onJoinGroup: () => assert.fail('Community cannot join as a chat'),
+    onToggleFollow: () => assert.fail('Community cannot be followed'),
+  }));
+  fireEvent.click(screen.getByRole('button', { name: 'Open', exact: true }));
+  assert.equal(opened, true);
+  assert.equal(screen.queryByText('Open chat'), null);
+  assert.equal(screen.queryByText('Follow'), null);
+  cleanup();
+});
+
+test('post identity menu synchronizes comments and reaction requests', async () => {
+  reset();
+  const postId = 'identity-menu-post';
+  const screen = render(React.createElement(React.Fragment, null,
+    React.createElement(Comments, { community, post_id: postId, parent_id: null }),
+    React.createElement(InteractionMenu, { post: { community, post_id: postId } }),
+    React.createElement(Emojis, { community, post_id: postId,
+      onProcessEmojiSelection() {}, onSuccessEmojiSelection() {} }),
+  ));
+  try {
+    fireEvent.keyDown(screen.getByRole('button', { name: 'Interact as Human' }), { key: 'Enter' });
+    const anonymousOption = await screen.findByRole('menuitemradio', { name: 'Anonymous', exact: true });
+    fireEvent.click(anonymousOption);
+    assert.equal(screen.getByRole('switch', { name: 'React or comment anonymously' }).checked, true);
+    await act(async () => fireEvent.click(screen.getByRole('button', { name: ':)', exact: true })));
+    assert.equal(reactions[0].is_anonymous, true);
+    fireEvent.click(screen.getByRole('switch', { name: 'React or comment anonymously' }));
+    assert.ok(screen.getByRole('button', { name: 'Interact as Human' }));
+  } finally {
+    cleanup();
+  }
 });
 
 test('private profile immediately clears after membership loss and does not refetch its feed', async () => {

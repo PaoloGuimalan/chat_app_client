@@ -1,6 +1,7 @@
 import { ContributionAvatar, ContributionName } from "@/app/reusables/ContributionAuthor";
 import { contributionAuthor, ownsContribution } from "@/reusables/hooks/contributionIdentity";
 import PostDestination from "@/app/reusables/PostDestination";
+import CommunityInteractionMenu from "@/app/reusables/CommunityInteractionMenu";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import CachedImage from "@/app/reusables/cachers/CachedImage";
 import {
@@ -555,6 +556,7 @@ function PostPreviewModal({
                   />
                 </button>
               )}
+              <CommunityInteractionMenu post={post} />
             </div>
           </div>
         </div>

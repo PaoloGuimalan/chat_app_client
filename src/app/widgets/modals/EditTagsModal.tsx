@@ -49,7 +49,7 @@ function EditTagsModal({
           <div className="tw-w-full tw-flex tw-items-center tw-gap-[8px]">
             <FaUserTag style={{ fontSize: "17px", color: "var(--text)" }} />
             <span className="tw-flex-1 cl-text-body tw-font-semibold">
-              Tagged people
+              Tagged entities
             </span>
             <button
               onClick={onClose}

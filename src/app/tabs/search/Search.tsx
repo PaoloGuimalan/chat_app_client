@@ -1,5 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { communityProfilePath } from "@/reusables/routing/communityPaths";
 import {
   Dispatch,
   SetStateAction,
@@ -543,7 +544,9 @@ function SearchPage() {
   // conversationID is the realm id) - members go straight to the thread,
   // non-members have no destination (Join is the only affordance).
   const onOpenRealm = (realm: SearchRealmResult) => {
-    if (realm.realm_type === "server") {
+    if (realm.realm_type === "community") {
+      navigate(communityProfilePath({ slug: realm.handle, realm_id: realm.id }));
+    } else if (realm.realm_type === "server") {
       navigate(`/servers/${realm.id}`);
     } else if (realm.realm_type === "group") {
       if (realm.is_member) navigate(`/messages/${realm.id}`);

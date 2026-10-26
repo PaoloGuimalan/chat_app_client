@@ -191,7 +191,7 @@ test('community destination without a slug is readable and opens its canonical r
   const html = render(PostDestination, { post: { ...anonymous, community: { ...community, slug: null } } });
   assert.match(html, /posted in/);
   assert.match(html, /Garden Club/);
-  assert.match(html, /tw-cursor-pointer/);
+  assert.match(html, /href="\/realm-community"/);
 });
 test('anonymous feed views are recorded without inventing an author', () => {
   const { render: mount, cleanup } = require('@testing-library/react');

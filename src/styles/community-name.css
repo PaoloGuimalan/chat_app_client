@@ -1,0 +1,27 @@
+.cl-community-name {
+  display: inline-flex;
+  align-items: center;
+  max-width: 100%;
+  column-gap: 4px;
+  line-height: inherit;
+  vertical-align: baseline;
+}
+
+.cl-community-name > [role="img"] {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.cl-community-destination-link {
+  color: inherit;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: none;
+  vertical-align: baseline;
+}
+
+.cl-community-destination-link:hover {
+  text-decoration: underline;
+}

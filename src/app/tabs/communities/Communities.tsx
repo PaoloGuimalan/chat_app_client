@@ -7,6 +7,7 @@ import CommunityDirectoryItem from "@/app/widgets/items/CommunityDirectoryItem";
 import { listCommunities, type CommunityCard } from "@/reusables/hooks/communityRequests";
 import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
 import CreateCommunityModal from "@/app/widgets/modals/CreateCommunityModal";
+import { communityProfilePath } from "@/reusables/routing/communityPaths";
 import "../../../styles/communities.css";
 export default function Communities() {
   const actor = useSelector((state: any) => state.authentication.active_entity_context?.id ?? state.authentication.user.entity_id);
@@ -74,7 +75,7 @@ export default function Communities() {
         <CommunityDirectoryItem
           key={card.realm_id}
           community={card}
-          onOpen={() => navigate(`/communities/${encodeURIComponent(card.slug || card.realm_id)}`)}
+          onOpen={() => navigate(communityProfilePath(card))}
         />
       ))}
     </div>
@@ -85,7 +86,7 @@ export default function Communities() {
     {!busy && next && <button className="cl-community-secondary" onClick={() => setPage(value => value + 1)}>Load more</button>}
     {create && <CreateCommunityModal key={actor} onClose={() => setCreate(false)} onCreated={card => {
       setCreate(false);
-      navigate(`/communities/${encodeURIComponent(card.slug || card.realm_id)}`);
+      navigate(communityProfilePath(card));
     }} />}
   </main>;
 }

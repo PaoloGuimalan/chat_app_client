@@ -1,0 +1,53 @@
+.cl-community-interaction-trigger {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  flex: none;
+  margin-left: 8px;
+  padding: 4px 6px;
+  border: 0;
+  border-radius: var(--r-sm);
+  background: transparent;
+  cursor: pointer;
+}
+
+.cl-community-interaction-trigger:hover,
+.cl-community-interaction-menu__option[data-highlighted] {
+  background: var(--surface-hover);
+}
+
+.cl-community-interaction-menu {
+  z-index: 10000;
+  width: min(240px, calc(100vw - 24px));
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-md);
+  color: var(--text);
+  text-align: left;
+  font-size: var(--fs-body-sm, 13px);
+}
+
+.cl-community-interaction-menu__label {
+  padding: 6px 8px;
+  color: var(--text-2);
+  font-size: var(--fs-caption, 12px);
+}
+
+.cl-community-interaction-menu__option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border-radius: var(--r-sm);
+  cursor: pointer;
+  outline: none;
+}
+
+.cl-community-interaction-menu__option > span:nth-child(2) {
+  flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}

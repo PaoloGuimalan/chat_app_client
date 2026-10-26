@@ -13,6 +13,7 @@ import { canReadCommunity } from "@/reusables/hooks/communityState";
 import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
 import type { IPost, IRealmMember } from "@/reusables/vars/interfaces";
 import "../../../styles/communities.css";
+import { communityProfilePath } from "@/reusables/routing/communityPaths";
 export default function CommunityProfile({ communityId }: {
   communityId?: string;
 }) {
@@ -20,11 +21,16 @@ export default function CommunityProfile({ communityId }: {
   const id = communityId || params.communityId || params.userID || "";
   const actor = useSelector((state: any) => state.authentication.active_entity_context?.id ?? state.authentication.user.entity_id);
   const width = useSelector((state: any) => state.screensizelistener.W);
-  const avatarSize = width < 650 ? 120 : 160;
+  const avatarSize = width < 650 ? 120 : width < 900 ? 160 : 96;
   const navigate = useNavigate();
   const [community, setCommunity] = useState<CommunityCard | null>(null);
   const currentCommunity = useRef<CommunityCard | null>(null);
   currentCommunity.current = community;
+  useEffect(() => {
+    if (community && params.communityId) {
+      navigate(communityProfilePath(community), { replace: true });
+    }
+  }, [community, params.communityId, navigate]);
   const [posts, setPosts] = useState<IPost[]>([]);
   const [members, setMembers] = useState<IRealmMember[]>([]);
   const [tab, setTab] = useState("posts");

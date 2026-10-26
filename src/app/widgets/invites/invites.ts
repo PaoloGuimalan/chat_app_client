@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { CreateRealmInviteRequest } from "@/reusables/hooks/requests";
+import { communityProfilePath } from "@/reusables/routing/communityPaths";
 /**
  * Realm invites on the web - the shapes the Django invite API returns
  * (community/serializers.py InviteSerializer) and the few rules the screens
@@ -77,7 +78,7 @@ export const inviteSentence = (invite: IRealmInvite) => {
 
 /** Where an ACCEPTED invite takes you. */
 export const inviteDestination = (invite: IRealmInvite): string | null => {
-  if (invite.realm_type === "community") return `/communities/${encodeURIComponent(invite.realm_slug || invite.realm_id)}`;
+  if (invite.realm_type === "community") return communityProfilePath({ slug: invite.realm_slug, realm_id: invite.realm_id });
   switch (invite.realm_type) {
     case "group":
       return `/messages/${invite.realm_id}`;

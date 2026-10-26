@@ -1,6 +1,7 @@
 import type { ICommunityMetadata } from "@/reusables/vars/interfaces";
 import { Icon } from "@/reusables/design";
 import { RiVerifiedBadgeFill } from "react-icons/ri";
+import "@/styles/community-name.css";
 
 /** Shared name and markers for community destinations, lists and profiles. */
 export default function CommunityName({
@@ -9,7 +10,7 @@ export default function CommunityName({
   community: Pick<ICommunityMetadata, "name" | "is_verified">;
 }) {
   return (
-    <span className="cl-community-name tw-inline-flex tw-items-center tw-gap-1 tw-align-middle">
+    <span className="cl-community-name">
       <span>{community.name}</span>
       {community.is_verified && (
         <span role="img" aria-label="Verified community" title="Verified community">

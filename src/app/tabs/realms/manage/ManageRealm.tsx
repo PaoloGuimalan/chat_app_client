@@ -1,4 +1,5 @@
 import CommunityName from "@/app/reusables/CommunityName";
+import { communityProfilePath } from "@/reusables/routing/communityPaths";
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -67,7 +68,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
     };
   }, [realm]);
 
-  if (realm.type === "community" && realm.my_role === "moderator") return <div className="cl-communities thinscroller"><button onClick={() => navigate(`/communities/${realm.realm_id}`)}>← Community</button><h1><CommunityName community={{ name: realm.name, is_verified: realm.is_verified }} /></h1><Members realm={realm} /></div>;
+  if (realm.type === "community" && realm.my_role === "moderator") return <div className="cl-communities thinscroller"><button onClick={() => navigate(communityProfilePath(realm))}>← Community</button><h1><CommunityName community={{ name: realm.name, is_verified: realm.is_verified }} /></h1><Members realm={realm} /></div>;
 
   return (
     <div className="tw-bg-[var(--background)] tw-text-[var(--text)] tw-w-full tw-h-full tw-absolute tw-inset-0 tw-flex tw-flex-col tw-items-center tw-z-[2]">
