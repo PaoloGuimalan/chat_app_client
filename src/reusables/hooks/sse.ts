@@ -66,7 +66,9 @@ const SSENotificationsTRequest = (
   sseNtfsSource.addEventListener("open", () => {
     if (hasOpened) {
       document.dispatchEvent(
-        new CustomEvent("community-changed", { detail: { event: "reconnected" } }),
+        new CustomEvent("community-changed", {
+          detail: { event: "reconnected" },
+        }),
       );
     }
     hasOpened = true;
@@ -76,6 +78,9 @@ const SSENotificationsTRequest = (
     "community_access_changed",
     "community_members_changed",
     "community_requests_changed",
+    "realm_requests_changed",
+    "realm_members_changed",
+    "realm_access_changed",
   ]) {
     sseNtfsSource.addEventListener(event, (frame: MessageEvent<string>) => {
       try {
@@ -133,7 +138,6 @@ const SSENotificationsTRequest = (
             },
           },
         });
-
       }
     }
   });
@@ -716,7 +720,9 @@ const SSENotificationsTRequest = (
           action: "removed",
           // The event is published per removed member to their own channel, so
           // its arrival already means it happened to whoever is reading it.
-          entityIDs: data.result?.entityID ? [String(data.result.entityID)] : [],
+          entityIDs: data.result?.entityID
+            ? [String(data.result.entityID)]
+            : [],
         },
       }),
     );

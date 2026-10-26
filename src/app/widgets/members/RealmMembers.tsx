@@ -1,10 +1,6 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import {
-  Avatar,
-  BotFlag,
-  PageFlag,
-} from "@/reusables/design/primitives2";
+import { Avatar, BotFlag, PageFlag } from "@/reusables/design/primitives2";
 import { motion } from "framer-motion";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -59,7 +55,8 @@ function RealmMembers({
   // Every item in the menu is governed by that one rule, so an outranked
   // target gets no menu at all rather than an empty one.
   const canActOn = (role: string) =>
-    (realmNoun !== "community" || ["owner", "admin"].includes(myRole || "")) && (viewerIsOwner || !["admin", "owner"].includes(role));
+    (realmNoun !== "community" || ["owner", "admin"].includes(myRole || "")) &&
+    (viewerIsOwner || !["admin", "owner"].includes(role));
 
   // Your own row shows one thing: Leave. The acting entity rather than the
   // personal one, since that is whose role my_role describes and whose
@@ -132,16 +129,20 @@ function RealmMembers({
   }, [page, range, realm_id]);
 
   useEffect(() => {
-    const reloadListener = async () => {
+    const reloadListener = async (event: Event) => {
+      const changedRealm = (event as CustomEvent).detail?.realm_id;
+      if (changedRealm && ![realm_id].includes(String(changedRealm))) return;
       GetRealmMembersProcess(1, "", true);
     };
 
     document.addEventListener("reload-realm-members", reloadListener);
+    document.addEventListener("community-changed", reloadListener);
 
     return () => {
       document.removeEventListener("reload-realm-members", reloadListener);
+      document.removeEventListener("community-changed", reloadListener);
     };
-  }, []);
+  }, [realm_id]);
 
   const divlazyloaderRef = useRef<HTMLDivElement | null>(null);
   const divcontentRef = useRef<HTMLDivElement | null>(null);
@@ -193,10 +194,11 @@ function RealmMembers({
   return (
     <div className="tw-w-full tw-h-full tw-flex-1 tw-bg-transparent tw-flex">
       <div
-        className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-bg-transparent tw-min-h-0 ${compact
-          ? "tw-p-[12px] tw-gap-[10px]"
-          : "tw-p-[18px] sm:tw-p-[24px] tw-gap-[15px]"
-          }`}
+        className={`tw-w-full tw-flex tw-flex-col tw-items-start tw-bg-transparent tw-min-h-0 ${
+          compact
+            ? "tw-p-[12px] tw-gap-[10px]"
+            : "tw-p-[18px] sm:tw-p-[24px] tw-gap-[15px]"
+        }`}
       >
         {!compact && (
           <span className="cl-text-body tw-font-semibold tw-text-[var(--text)]">
@@ -223,8 +225,9 @@ function RealmMembers({
           </div>
           {isLoading ? (
             <div
-              className={`tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center ${compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
-                }`}
+              className={`tw-w-full tw-flex tw-flex-1 tw-items-center tw-justify-center ${
+                compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
+              }`}
             >
               <motion.div
                 animate={{
@@ -246,8 +249,9 @@ function RealmMembers({
               ref={divcontentRef}
             >
               <div
-                className={`tw-w-full tw-flex tw-flex-col tw-gap-[8px] ${compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
-                  }`}
+                className={`tw-w-full tw-flex tw-flex-col tw-gap-[8px] ${
+                  compact ? "" : "tw-max-h-[350px] tw-min-h-[350px]"
+                }`}
               >
                 {memberslist.map((cnts: IRealmMember) => {
                   return (
@@ -257,10 +261,11 @@ function RealmMembers({
                       }}
                       key={cnts.member_id}
                       className="div_realm_members_cards_col tw-bg-[var(--surface-2)] tw-border tw-border-[var(--border)] tw-shadow-none"
-                      title={`${cnts.entity.details.first_name}${cnts.entity.details.middle_name == "N/A"
-                        ? ""
-                        : ` ${cnts.entity.details.middle_name}`
-                        } ${cnts.entity.details.last_name}`}
+                      title={`${cnts.entity.details.first_name}${
+                        cnts.entity.details.middle_name == "N/A"
+                          ? ""
+                          : ` ${cnts.entity.details.middle_name}`
+                      } ${cnts.entity.details.last_name}`}
                     >
                       <div id="div_img_cncts_container">
                         <div id="div_img_search_profiles_container_cncts">
@@ -286,7 +291,10 @@ function RealmMembers({
                                 {cnts.entity.details.name}
                               </span>
                               {cnts.entity.details.is_badged && (
-                                <RiVerifiedBadgeFill size={14} color="var(--brand)" />
+                                <RiVerifiedBadgeFill
+                                  size={14}
+                                  color="var(--brand)"
+                                />
                               )}
                               <PageFlag realmType={cnts.entity.details.type} />
                             </span>
@@ -298,7 +306,10 @@ function RealmMembers({
                                 : ` ${cnts.entity.details.middle_name}`}{" "}
                               {cnts.entity.details.last_name}
                               {cnts.entity.details.is_badged && (
-                                <RiVerifiedBadgeFill size={14} color="var(--brand)" />
+                                <RiVerifiedBadgeFill
+                                  size={14}
+                                  color="var(--brand)"
+                                />
                               )}
                               {/* A bot lands in this arm, not the realm one -
                                   its name is served through first_name, so the
@@ -313,14 +324,14 @@ function RealmMembers({
                         {(cnts.entity.id === actingEntityID
                           ? canLeave
                           : canActOn(cnts.role)) && (
-                            <MembersOptions
-                              member={cnts}
-                              hide={hide}
-                              realmNoun={realmNoun}
-                              viewerIsOwner={viewerIsOwner}
-                              isSelf={cnts.entity.id === actingEntityID}
-                            />
-                          )}
+                          <MembersOptions
+                            member={cnts}
+                            hide={hide}
+                            realmNoun={realmNoun}
+                            viewerIsOwner={viewerIsOwner}
+                            isSelf={cnts.entity.id === actingEntityID}
+                          />
+                        )}
                       </div>
                     </motion.div>
                   );
@@ -351,4 +362,3 @@ function RealmMembers({
 }
 
 export default RealmMembers;
-

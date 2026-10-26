@@ -1,5 +1,8 @@
 import CommunityRequests from "@/app/widgets/invites/CommunityRequests";
-import { canManageCommunitySettings, canReviewCommunityRequests } from "@/reusables/hooks/communityState";
+import {
+  canManageCommunitySettings,
+  canReviewCommunityRequests,
+} from "@/reusables/hooks/communityState";
 import ContactMember from "@/app/widgets/members/ContactMember";
 import RealmMembers from "@/app/widgets/members/RealmMembers";
 import {
@@ -37,10 +40,12 @@ function Members({
   const realmTypeLabel =
     realm.type === "group" && realm.parent ? "channel" : realm.type;
 
-  const addableMember = (realm.type !== "community" || canManageCommunitySettings(realm.my_role)) && !(
-    (realmTypeLabel === "channel" || realmTypeLabel === "voice") &&
-    !realm.is_private
-  );
+  const addableMember =
+    (realm.type !== "community" || canManageCommunitySettings(realm.my_role)) &&
+    !(
+      (realmTypeLabel === "channel" || realmTypeLabel === "voice") &&
+      !realm.is_private
+    );
 
   const [memberIDs, setmemberIDs] = useState<string[]>([]);
 
@@ -49,10 +54,10 @@ function Members({
   // it takes people already in its server, who have said yes once.
   const invitable: InvitableRealmType | null =
     realmTypeLabel === "group" ||
-      realmTypeLabel === "server" ||
-      realmTypeLabel === "conference" ||
-      realmTypeLabel === "page" ||
-      realmTypeLabel === "community"
+    realmTypeLabel === "server" ||
+    realmTypeLabel === "conference" ||
+    realmTypeLabel === "page" ||
+    realmTypeLabel === "community"
       ? realmTypeLabel
       : null;
 
@@ -183,7 +188,10 @@ function Members({
 
     return (
       <div className="tw-flex tw-flex-1 tw-flex-col tw-min-h-0 tw-w-full tw-p-[14px] sm:tw-p-[18px] tw-gap-[12px]">
-        {realm.type === "community" && canReviewCommunityRequests(realm.my_role) && <CommunityRequests realmId={realm.realm_id} compact />}
+        {["community", "server"].includes(realm.type) &&
+          canReviewCommunityRequests(realm.my_role) && (
+            <CommunityRequests realmId={realm.realm_id} compact />
+          )}
         {addableMember && (
           <SegTabs
             tabs={[
@@ -263,28 +271,31 @@ function Members({
           members and their roles
         </span>
       </div>
-      {realm.type === "community" && canReviewCommunityRequests(realm.my_role) && (
-        <CommunityRequests realmId={realm.realm_id} />
-      )}
       <div className="tw-flex tw-flex-wrap tw-w-full tw-gap-[12px] tw-h-full">
         <div
-          className={`tw-w-full ${addableMember && "xl:tw-max-w-[450px]"} tw-h-full tw-flex tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-overflow-hidden`}
+          className={`tw-w-full ${addableMember && "xl:tw-max-w-[450px]"} tw-flex tw-flex-col tw-gap-[12px]`}
         >
-          <RealmMembers
-            realm_id={realm.id}
-            // Same refinement ContactMember gets below: a group WITH a parent
-            // is a channel, and calling it a group in the prompt would name
-            // the wrong thing.
-            realmNoun={
-              realm.type === "group" && realm.parent ? "channel" : realm.type
-            }
-            // Who may act on whom - see RealmMembers.
-            myRole={realm.my_role}
-            hide={!addableMember ? ["remove-user-btn"] : []}
-            onList={(list: string[]) => {
-              setmemberIDs(list);
-            }}
-          />
+          {["community", "server"].includes(realm.type) &&
+            canReviewCommunityRequests(realm.my_role) && (
+              <CommunityRequests realmId={realm.realm_id} />
+            )}
+          <div className="tw-flex tw-flex-1 tw-min-h-[300px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)] tw-overflow-hidden">
+            <RealmMembers
+              realm_id={realm.id}
+              // Same refinement ContactMember gets below: a group WITH a parent
+              // is a channel, and calling it a group in the prompt would name
+              // the wrong thing.
+              realmNoun={
+                realm.type === "group" && realm.parent ? "channel" : realm.type
+              }
+              // Who may act on whom - see RealmMembers.
+              myRole={realm.my_role}
+              hide={!addableMember ? ["remove-user-btn"] : []}
+              onList={(list: string[]) => {
+                setmemberIDs(list);
+              }}
+            />
+          </div>
         </div>
         {addableMember && (
           <div className="tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-min-w-0">
@@ -304,7 +315,9 @@ function Members({
                 parentRealmID={realm.parent?.id ?? null}
                 isRealm={true}
                 type={
-                  realm.type === "group" && realm.parent ? "channel" : realm.type
+                  realm.type === "group" && realm.parent
+                    ? "channel"
+                    : realm.type
                 }
                 label={pickerLabel}
                 excludeIDs={[...memberIDs, ...invitedIDs]}

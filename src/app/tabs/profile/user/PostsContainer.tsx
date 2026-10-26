@@ -5,7 +5,7 @@ import {
   IPost,
   ProfileUserInfoInterface,
 } from "@/reusables/vars/interfaces";
-import { Fragment, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { NewPostModal } from "@/app/widgets/modals/CreatePost/NewPostModal";
 import PostItem from "./PostItem";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -23,6 +23,7 @@ import { PaginationProp } from "@/reusables/vars/props";
 import { SET_EMOJIS_LIST } from "@/redux/types";
 import { Card } from "@/reusables/design";
 import ProfileComposerContent from "@/app/reusables/ProfileComposerContent";
+import { CommunityDestinationAllowed } from "@/app/reusables/CommunityPostScope";
 import type { CommunityCard } from "@/reusables/hooks/communityRequests";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
@@ -68,12 +69,17 @@ function PostsContainer({
     communityPaging.scope === communityScope ? communityPaging.page : 1;
   const communityRevision =
     communityPaging.scope === communityScope ? communityPaging.revision : 0;
-  const [loadedCommunityScope, setLoadedCommunityScope] = useState(communityScope);
-  const [deniedCommunityScope, setDeniedCommunityScope] = useState<string | null>(
-    null,
-  );
-  const [communityError, setCommunityError] = useState({ scope: "", message: "" });
-  const loadError = communityError.scope === communityScope ? communityError.message : "";
+  const [loadedCommunityScope, setLoadedCommunityScope] =
+    useState(communityScope);
+  const [deniedCommunityScope, setDeniedCommunityScope] = useState<
+    string | null
+  >(null);
+  const [communityError, setCommunityError] = useState({
+    scope: "",
+    message: "",
+  });
+  const loadError =
+    communityError.scope === communityScope ? communityError.message : "";
   const canReadCommunity = !community?.is_private || community.is_member;
   const communityAccessDenied = deniedCommunityScope === communityScope;
 
@@ -265,8 +271,7 @@ function PostsContainer({
           page: communityPage + 1,
           revision: communityRevision,
         });
-      else
-        setpage((prev) => prev + 1);
+      else setpage((prev) => prev + 1);
     }
   }, [isInView, visiblePosts.next, isLoadingMore, loadError]);
 
@@ -281,7 +286,14 @@ function PostsContainer({
     : ispostsloaded;
 
   return (
-    <Fragment>
+    <CommunityDestinationAllowed.Provider
+      value={
+        !profileInfo ||
+        profileInfo.entityID ===
+          (authentication.active_entity_context?.id ||
+            authentication.user.entity_id)
+      }
+    >
       {showComposer && (
         <Card
           pad={12}
@@ -331,11 +343,21 @@ function PostsContainer({
         </Card>
       )}
       {community && loadError && (
-        <Card pad={12} className="cl-bleed" style={{ width: "100%", marginBottom: 8 }}>
+        <Card
+          pad={12}
+          className="cl-bleed"
+          style={{ width: "100%", marginBottom: 8 }}
+        >
           <div className="tw-flex tw-flex-col tw-items-start tw-gap-[8px] tw-text-left">
             <button
               className="cl-profile-action-button--secondary cl-text-caption tw-p-[8px] tw-rounded-[12px] tw-cursor-pointer"
-              onClick={() => setCommunityPaging({ scope: communityScope, page: communityPage, revision: communityRevision + 1 })}
+              onClick={() =>
+                setCommunityPaging({
+                  scope: communityScope,
+                  page: communityPage,
+                  revision: communityRevision + 1,
+                })
+              }
             >
               Try again
             </button>
@@ -434,9 +456,8 @@ function PostsContainer({
           <AiOutlineLoading3Quarters style={{ fontSize: "20px" }} />
         </motion.div>
       </motion.div>
-    </Fragment>
+    </CommunityDestinationAllowed.Provider>
   );
 }
 
 export default PostsContainer;
-

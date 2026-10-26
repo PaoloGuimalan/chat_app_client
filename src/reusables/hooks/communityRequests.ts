@@ -17,6 +17,7 @@ export interface CommunityDirectoryQuery {
   joined?: boolean;
   page?: number;
   page_size?: number;
+  tagged_entities?: string;
 }
 
 export interface CreateCommunityInput {
@@ -48,16 +49,23 @@ export async function listCommunities(query: CommunityDirectoryQuery = {}) {
 }
 
 export async function getCommunity(id: string) {
-  const response = await firstPartyClient.get<CommunityResult>(communityUrl(id), {
-    headers: headers(),
-  });
+  const response = await firstPartyClient.get<CommunityResult>(
+    communityUrl(id),
+    {
+      headers: headers(),
+    },
+  );
   return response.data;
 }
 
 export async function createCommunity(input: CreateCommunityInput) {
-  const response = await firstPartyClient.post<CommunityResult>(baseUrl(), input, {
-    headers: headers(),
-  });
+  const response = await firstPartyClient.post<CommunityResult>(
+    baseUrl(),
+    input,
+    {
+      headers: headers(),
+    },
+  );
   return response.data;
 }
 
@@ -71,10 +79,9 @@ export async function joinCommunity(realmId: string) {
 }
 
 export async function leaveCommunity(realmId: string) {
-  const response = await firstPartyClient.post<{ status: boolean; is_member: false }>(
-    `${communityUrl(realmId)}/leave`,
-    {},
-    { headers: headers() },
-  );
+  const response = await firstPartyClient.post<{
+    status: boolean;
+    is_member: false;
+  }>(`${communityUrl(realmId)}/leave`, {}, { headers: headers() });
   return response.data;
 }

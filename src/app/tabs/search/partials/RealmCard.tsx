@@ -152,7 +152,19 @@ function RealmCard({
           >
             {realm.is_follower ? "Following" : "Follow"}
           </Btn>
-        ) : realm.realm_type === "server" || realm.realm_type === "community" ? (
+        ) : realm.realm_type === "server" &&
+          realm.is_private &&
+          !realm.is_member ? (
+          <Btn
+            block
+            size="sm"
+            disabled={joinBusy || realm.request_pending}
+            onClick={() => onJoinGroup(realm)}
+          >
+            {realm.request_pending ? "Request pending" : "Request to join"}
+          </Btn>
+        ) : realm.realm_type === "server" ||
+          realm.realm_type === "community" ? (
           <Btn block size="sm" variant="soft" onClick={() => onOpen(realm)}>
             Open
           </Btn>
@@ -183,4 +195,3 @@ function RealmCard({
 }
 
 export default RealmCard;
-

@@ -1,6 +1,10 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { getCommunity, listCommunities, type CommunityCard } from "@/reusables/hooks/communityRequests";
+import {
+  getCommunity,
+  listCommunities,
+  type CommunityCard,
+} from "@/reusables/hooks/communityRequests";
 import { selectedCommunity } from "@/reusables/hooks/communityState";
 import "../../../../styles/communities.css";
 import "../../../../styles/community-destination.css";
@@ -10,7 +14,8 @@ import { pickFiles } from "@/reusables/hooks/pickFiles";
 import { useDragAndDrop } from "@/reusables/hooks/useDragAndDrop";
 import { useLinkPreview } from "@/reusables/hooks/useLinkPreview";
 import LinkPreviewCard from "@/app/reusables/LinkPreviewCard";
-import { useEffect, useRef, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
+import { CommunityDestinationAllowed } from "@/app/reusables/CommunityPostScope";
 import HashtagField from "@/app/reusables/HashtagField";
 import {
   PRIVACY_OPTIONS,
@@ -116,19 +121,19 @@ export function NewPostModal({
   const [taggedEntities, settaggedEntities] = useState<EntitySearchResult[]>(
     isViewingOtherProfile
       ? [
-        {
-          entity_id: profileInfo.entityID,
-          type: "user",
-          display_name: profileDisplayName || profileInfo.username || "",
-          handle: profileInfo.username || "",
-          profile:
-            !profileInfo.profile || profileInfo.profile === "none"
-              ? null
-              : profileInfo.profile,
-          is_verified: !!profileInfo.isBadged,
-          realm_type: null,
-        },
-      ]
+          {
+            entity_id: profileInfo.entityID,
+            type: "user",
+            display_name: profileDisplayName || profileInfo.username || "",
+            handle: profileInfo.username || "",
+            profile:
+              !profileInfo.profile || profileInfo.profile === "none"
+                ? null
+                : profileInfo.profile,
+            is_verified: !!profileInfo.isBadged,
+            realm_type: null,
+          },
+        ]
       : [],
   );
   const [showTagging, setshowTagging] = useState<boolean>(false);
@@ -137,19 +142,39 @@ export function NewPostModal({
   const [istagsearching, setistagsearching] = useState<boolean>(false);
   const dispatch = useDispatch();
 
-  const actor = authentication.active_entity_context?.id ?? authentication.user.entity_id;
+  const actor =
+    authentication.active_entity_context?.id ?? authentication.user.entity_id;
+  const destinationContext = useContext(CommunityDestinationAllowed);
+  const allowCommunityDestination =
+    destinationContext && !isViewingOtherProfile;
+  const privateShareSource =
+    toShare && sharePreviewData?.community?.is_private
+      ? sharePreviewData.community
+      : null;
+  const privateShareSourceId = privateShareSource?.entity_id;
+  const taggedEntityKey = taggedEntities
+    .map((entity) => entity.entity_id)
+    .sort()
+    .join(",");
   const currentActor = useRef(actor);
   currentActor.current = actor;
   const initialActor = useRef(actor);
   const mounted = useRef(true);
   const submitPending = useRef(false);
   const contextEpoch = useRef(0);
-  const [communities, setCommunities] = useState<CommunityCard[]>(initialCommunity ? [initialCommunity] : []);
-  const [destination, setDestination] = useState<string>(initialCommunity?.entity_id || "");
+  const [communities, setCommunities] = useState<CommunityCard[]>(
+    initialCommunity ? [initialCommunity] : [],
+  );
+  const [destination, setDestination] = useState<string>(
+    initialCommunity?.entity_id ||
+      (allowCommunityDestination ? privateShareSource?.entity_id : "") ||
+      "",
+  );
   const [anonymous, setAnonymous] = useState(false);
   const [destinationError, setDestinationError] = useState("");
   const [accessBlocked, setAccessBlocked] = useState(false);
   const [showDestination, setShowDestination] = useState(false);
+  const [destinationsLoading, setDestinationsLoading] = useState(false);
   const community = selectedCommunity(communities, destination);
   useEffect(() => {
     if (!destinationError) return;
@@ -158,42 +183,91 @@ export function NewPostModal({
       payload: { alerts: { type: "warning", content: destinationError } },
     });
   }, [destinationError, dispatch]);
-  useEffect(() => { mounted.current = true; return () => { mounted.current = false; }; }, []);
   useEffect(() => {
-    if (actor !== initialActor.current) { contextEpoch.current++; setmedialist([]); setmainpostcaption(""); setAnonymous(false); setDestination(""); onclose(false); }
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+  useEffect(() => {
+    if (actor !== initialActor.current) {
+      contextEpoch.current++;
+      setmedialist([]);
+      setmainpostcaption("");
+      setAnonymous(false);
+      setDestination("");
+      onclose(false);
+    }
   }, [actor, onclose]);
   useEffect(() => {
-    if (toShare) return;
+    if (!allowCommunityDestination) return;
     let active = true;
     const load = async () => {
-      let page = 1; const joined: CommunityCard[] = [];
+      setDestinationsLoading(true);
+      let page = 1;
+      const joined: CommunityCard[] = [];
       do {
-        const response = await listCommunities({ joined: true, page, page_size: 100 });
+        const response = await listCommunities({
+          joined: true,
+          page,
+          page_size: 100,
+          tagged_entities: taggedEntityKey,
+        });
         if (!active) return;
-        joined.push(...response.results.filter(card => card.is_member));
+        joined.push(
+          ...response.results.filter(
+            (card) =>
+              card.is_member &&
+              (!privateShareSourceId ||
+                card.entity_id === privateShareSourceId),
+          ),
+        );
         if (!response.next) break;
         page++;
       } while (active);
-      if (active) setCommunities(joined);
+      if (active) {
+        setCommunities(joined);
+        setDestinationsLoading(false);
+      }
     };
-    load().catch(() => { if (active) setDestinationError("Community destinations could not be refreshed. Try reopening the composer."); });
+    load().catch(() => {
+      if (active)
+        setDestinationError(
+          "Community destinations could not be refreshed. Try reopening the composer.",
+        );
+    });
     const changed = (event: Event) => {
       const realmId = (event as CustomEvent).detail?.realm_id;
       if (!active) return;
       if (!destination || (realmId && realmId !== community?.realm_id)) {
         load().catch(() => {
-          if (active) setDestinationError("Community destinations could not be refreshed.");
+          if (active)
+            setDestinationError(
+              "Community destinations could not be refreshed.",
+            );
         });
         return;
       }
       contextEpoch.current++;
       setAccessBlocked(true);
       setmedialist([]);
-      setDestinationError("Community access changed. Reopen this composer to continue.");
+      setDestinationError(
+        "Community access changed. Reopen this composer to continue.",
+      );
     };
     document.addEventListener("community-changed", changed);
-    return () => { active = false; document.removeEventListener("community-changed", changed); };
-  }, [actor, toShare, destination, community?.realm_id]);
+    return () => {
+      active = false;
+      document.removeEventListener("community-changed", changed);
+    };
+  }, [
+    actor,
+    allowCommunityDestination,
+    taggedEntityKey,
+    destination,
+    community?.realm_id,
+    privateShareSourceId,
+  ]);
 
   const isTagged = (entity: EntitySearchResult) =>
     taggedEntities.some((tagged) => tagged.entity_id === entity.entity_id);
@@ -216,15 +290,26 @@ export function NewPostModal({
   // only fires once the query is non-empty (and not a bare trailing "@").
   useEffect(() => {
     if (!showTagging) return;
+    let active = true;
+    settagresults([]);
 
     const timeoutRequest = setTimeout(() => {
       if (tagsearch.trim() !== "" && tagsearch.split("@")[1] !== "") {
         EntitySearchRequest(
-          { searchdata: tagsearch, types: "user,realm,bot", realmTypes: "page" },
+          {
+            searchdata: tagsearch,
+            types: "user,realm,bot",
+            realmTypes: "page",
+            communityEntityId: destination || undefined,
+          },
           dispatch,
-          setistagsearching,
+          (value: boolean) => {
+            if (active) setistagsearching(value);
+          },
           alerts,
-          settagresults,
+          (value: EntitySearchResult[]) => {
+            if (active) settagresults(value);
+          },
         );
       } else {
         setistagsearching(false);
@@ -234,9 +319,12 @@ export function NewPostModal({
 
     setistagsearching(tagsearch.trim() !== "");
 
-    return () => clearTimeout(timeoutRequest);
+    return () => {
+      active = false;
+      clearTimeout(timeoutRequest);
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [tagsearch, showTagging]);
+  }, [tagsearch, showTagging, destination]);
 
   const addMediaFiles = (files: File[]) => {
     const rejected = files.filter(
@@ -254,7 +342,9 @@ export function NewPostModal({
       });
     }
 
-    const oversized = files.some((file) => file.size > limitFor("post_media").maxBytes);
+    const oversized = files.some(
+      (file) => file.size > limitFor("post_media").maxBytes,
+    );
     if (oversized) {
       dispatch({
         type: SET_MUTATE_ALERTS,
@@ -306,7 +396,15 @@ export function NewPostModal({
   });
 
   const CreatePostProcess = async () => {
-    if (submitPending.current || accessBlocked || actor !== initialActor.current || (destination && !community)) return;
+    if (
+      submitPending.current ||
+      accessBlocked ||
+      Boolean(privateShareSource && !allowCommunityDestination) ||
+      (Boolean(destination) && destinationsLoading) ||
+      actor !== initialActor.current ||
+      (destination && !community)
+    )
+      return;
     if (toShare || mainpostcaption.trim() !== "" || medialist.length > 0) {
       submitPending.current = true;
       setisuploadingpost(true);
@@ -325,9 +423,15 @@ export function NewPostModal({
       try {
         if (community) {
           const confirmed = await getCommunity(community.realm_id);
-          if (!confirmed.result.is_member) throw new Error("Join this community before posting.");
+          if (!confirmed.result.is_member)
+            throw new Error("Join this community before posting.");
         }
-        if (!mounted.current || currentActor.current !== actor || submissionEpoch !== contextEpoch.current) return;
+        if (
+          !mounted.current ||
+          currentActor.current !== actor ||
+          submissionEpoch !== contextEpoch.current
+        )
+          return;
         let uploadedReferences: any[] = [];
 
         if (!toShare && medialist.length > 0) {
@@ -339,7 +443,12 @@ export function NewPostModal({
             })),
             "post",
             undefined,
-            community ? { community_entity_id: community.entity_id, is_anonymous: anonymous } : undefined,
+            community
+              ? {
+                  community_entity_id: community.entity_id,
+                  is_anonymous: anonymous,
+                }
+              : undefined,
             submissionToken,
           );
 
@@ -354,21 +463,31 @@ export function NewPostModal({
           );
         }
 
-        if (!mounted.current || currentActor.current !== actor || submissionEpoch !== contextEpoch.current) return;
+        if (
+          !mounted.current ||
+          currentActor.current !== actor ||
+          submissionEpoch !== contextEpoch.current
+        )
+          return;
         const response: any = await CreatePostRequest({
-          ...(community ? { community_entity_id: community.entity_id, is_anonymous: anonymous } : {}),
+          ...(community
+            ? {
+                community_entity_id: community.entity_id,
+                is_anonymous: anonymous,
+              }
+            : {}),
           content: {
             isShared: toShare,
             references: toShare
               ? [
-                {
-                  id: 1,
-                  name: null,
-                  reference: sharePreviewData.post_id,
-                  caption: "",
-                  referenceMediaType: "shared_post",
-                },
-              ]
+                  {
+                    id: 1,
+                    name: null,
+                    reference: sharePreviewData.post_id,
+                    caption: "",
+                    referenceMediaType: "shared_post",
+                  },
+                ]
               : uploadedReferences,
             data: mainpostcaption,
           },
@@ -389,14 +508,23 @@ export function NewPostModal({
             users: validatedTaggedList,
           },
           privacy: {
-            status: community ? (community.is_private ? "private" : "public") : postPrivacy,
+            status: community
+              ? community.is_private
+                ? "private"
+                : "public"
+              : postPrivacy,
             users: [], //userID for filteration depending on status
           }, //public, connections, private, custom
           onfeed: "feed",
           otherEntityID: community ? null : otherEntityID,
         });
 
-        if (!mounted.current || currentActor.current !== actor || submissionEpoch !== contextEpoch.current) return;
+        if (
+          !mounted.current ||
+          currentActor.current !== actor ||
+          submissionEpoch !== contextEpoch.current
+        )
+          return;
         if (response.data.status) {
           medialist.forEach((mp) => URL.revokeObjectURL(mp.reference));
           linkPreview.dismiss();
@@ -428,7 +556,12 @@ export function NewPostModal({
           });
         }
       } catch (err: any) {
-        if (!mounted.current || currentActor.current !== actor || submissionEpoch !== contextEpoch.current) return;
+        if (
+          !mounted.current ||
+          currentActor.current !== actor ||
+          submissionEpoch !== contextEpoch.current
+        )
+          return;
         console.log(err);
         setisuploadingpost(false);
         dispatch({
@@ -440,7 +573,9 @@ export function NewPostModal({
             },
           },
         });
-      } finally { submitPending.current = false; }
+      } finally {
+        submitPending.current = false;
+      }
     } else {
       dispatch({
         type: SET_MUTATE_ALERTS,
@@ -459,17 +594,19 @@ export function NewPostModal({
       component={
         <div
           aria-busy={isuploadingpost}
-          className={`div_modal_container cl-create-post-shell ${showDestination ? "cl-create-post-shell--destination" : ""} ${toShare
-            ? "cl-create-post-shell--share"
-            : iswithImage
-              ? "cl-create-post-shell--media"
-              : ""
-            } ${toShare
+          className={`div_modal_container cl-create-post-shell ${showDestination ? "cl-create-post-shell--destination" : ""} ${
+            toShare
+              ? "cl-create-post-shell--share"
+              : iswithImage
+                ? "cl-create-post-shell--media"
+                : ""
+          } ${
+            toShare
               ? "tw-max-h-[600px]"
               : iswithImage || showTagging || showPrivacy || showDestination
                 ? "tw-max-h-[600px]"
                 : "tw-max-h-[290px]"
-            }`}
+          }`}
         >
           {isuploadingpost && !toShare && (
             <div
@@ -510,15 +647,20 @@ export function NewPostModal({
                 <BsFileEarmarkPost style={{ fontSize: "20px" }} />
               )}
               <span className="span_modal_header_label tw-font-inter tw-text-[var(--text)]">
-                {showDestination ? "Post in" : toShare ? "Share Post" : "Create a Post"}
+                {showDestination
+                  ? "Post in"
+                  : toShare
+                    ? "Share Post"
+                    : "Create a Post"}
               </span>
             </div>
-            {!toShare && !showDestination && (
+            {allowCommunityDestination && !showDestination && (
               <span
                 className="cl-community-destination-summary"
                 title={`Post in ${community?.name || "Your timeline"} · ${anonymous ? "Anonymous" : "My profile"}`}
               >
-                Post in {community?.name || "Your timeline"} · {anonymous ? "Anonymous" : "My profile"}
+                Post in {community?.name || "Your timeline"} ·{" "}
+                {anonymous ? "Anonymous" : "My profile"}
               </span>
             )}
           </div>
@@ -528,14 +670,21 @@ export function NewPostModal({
               scroll area in this modal already uses thinscroller. */}
           {showDestination ? (
             <>
-              <section className="cl-community-destination-page thinscroller" aria-label="Post destination">
+              <section
+                className="cl-community-destination-page thinscroller"
+                aria-label="Post destination"
+              >
                 <p>Choose where to share this post.</p>
                 <label htmlFor="post-community-destination">Post in</label>
                 <select
                   id="post-community-destination"
-                  disabled={isuploadingpost || Boolean(initialCommunity)}
+                  disabled={
+                    isuploadingpost ||
+                    destinationsLoading ||
+                    Boolean(initialCommunity)
+                  }
                   value={destination}
-                  onChange={event => {
+                  onChange={(event) => {
                     setDestination(event.target.value);
                     setAnonymous(false);
                     setAccessBlocked(false);
@@ -543,8 +692,14 @@ export function NewPostModal({
                     setshowPrivacy(false);
                   }}
                 >
-                  <option value="">Your timeline</option>
-                  {communities.map(card => <option key={card.entity_id} value={card.entity_id}>{card.name}</option>)}
+                  {!privateShareSource && (
+                    <option value="">Your timeline</option>
+                  )}
+                  {communities.map((card) => (
+                    <option key={card.entity_id} value={card.entity_id}>
+                      {card.name}
+                    </option>
+                  ))}
                 </select>
                 {community && (
                   <>
@@ -553,415 +708,461 @@ export function NewPostModal({
                       id="post-community-identity"
                       disabled={isuploadingpost}
                       value={anonymous ? "anonymous" : "named"}
-                      onChange={event => setAnonymous(event.target.value === "anonymous")}
+                      onChange={(event) =>
+                        setAnonymous(event.target.value === "anonymous")
+                      }
                     >
-                      <option value="named">{authentication.active_entity_context?.name || "My profile"}</option>
+                      <option value="named">
+                        {authentication.active_entity_context?.name ||
+                          "My profile"}
+                      </option>
                       <option value="anonymous">Anonymous member</option>
                     </select>
-                    <p>{community.is_private ? "Private community · Only members can see this post" : "Public community · Anyone can see this post"}</p>
+                    <p>
+                      {community.is_private
+                        ? "Private community · Only members can see this post"
+                        : "Public community · Anyone can see this post"}
+                    </p>
                   </>
                 )}
               </section>
               <div className="cl-create-post-actions">
-                <button type="button" className="btns_create_cancel" onClick={() => setShowDestination(false)}>Done</button>
+                <button
+                  type="button"
+                  className="btns_create_cancel"
+                  onClick={() => setShowDestination(false)}
+                >
+                  Done
+                </button>
               </div>
             </>
-          ) : <div className="cl-create-post-body thinscroller tw-w-full tw-items-stretch tw-justify-start">
-            {/* pr-[6px] reserves a gutter for the scrollbar. Without it the
+          ) : (
+            <div className="cl-create-post-body thinscroller tw-w-full tw-items-stretch tw-justify-start">
+              {privateShareSource && !allowCommunityDestination && (
+                <p className="tw-text-sm tw-text-left" role="status">
+                  Open the community to share this private post.
+                </p>
+              )}
+              {/* pr-[6px] reserves a gutter for the scrollbar. Without it the
                 track is drawn ON TOP of the caption box's rounded right edge
                 whenever this area scrolls, which it does as soon as a panel
                 or a link preview appears. */}
-            <div className="tw-w-full tw-flex-1 tw-min-h-0 tw-overflow-y-auto thinscroller tw-bg-transparent tw-flex tw-flex-col tw-gap-[12px] tw-items-stretch tw-pr-[6px]">
-              {/* Wrapped so #hashtags colour as they are typed. The textarea
+              <div className="tw-w-full tw-flex-1 tw-min-h-0 tw-overflow-y-auto thinscroller tw-bg-transparent tw-flex tw-flex-col tw-gap-[12px] tw-items-stretch tw-pr-[6px]">
+                {/* Wrapped so #hashtags colour as they are typed. The textarea
                   itself is untouched - same value, same handlers, same class -
                   because the highlighting is painted behind it rather than
                   replacing it. */}
-              <HashtagField value={mainpostcaption} inputRef={captionRef}>
-                <textarea
-                  ref={captionRef}
-                  disabled={isuploadingpost}
-                  value={mainpostcaption}
-                  onChange={(e) => {
-                    setcreateposttext(e.target.value);
-                    setmainpostcaption(e.target.value);
-                  }}
-                  className="cl-create-post-textarea tw-font-inter thinscroller tw-font-Inter"
-                  placeholder="Type your caption"
-                />
-              </HashtagField>
-              {!toShare &&
-                linkPreview.status === "ok" &&
-                linkPreview.preview && (
-                  <LinkPreviewCard
-                    preview={linkPreview.preview}
-                    variant="composer"
-                    onRemove={linkPreview.dismiss}
+                <HashtagField value={mainpostcaption} inputRef={captionRef}>
+                  <textarea
+                    ref={captionRef}
+                    disabled={isuploadingpost}
+                    value={mainpostcaption}
+                    onChange={(e) => {
+                      setcreateposttext(e.target.value);
+                      setmainpostcaption(e.target.value);
+                    }}
+                    className="cl-create-post-textarea tw-font-inter thinscroller tw-font-Inter"
+                    placeholder="Type your caption"
                   />
-                )}
-              {taggedEntities.length > 0 && (
-                <div className="cl-tag-chips">
-                  {taggedEntities.map((entity) => (
-                    <span className="cl-tag-chip" key={entity.entity_id}>
-                      <Avatar
-                        id={entity.entity_id}
-                        entityId={entity.entity_id}
-                        name={entity.display_name}
-                        src={entity.profile ?? undefined}
-                        size={20}
-                        kind={entity.type}
-                        shape={entity.type === "user" ? "circle" : "rounded"}
-                      />
-                      <span className="cl-tag-chip__name">
-                        {entity.display_name}
-                      </span>
-                      {entity.is_verified && (
-                        <RiVerifiedBadgeFill
-                          size={13}
-                          color="var(--brand)"
-                          style={{ flexShrink: 0 }}
+                </HashtagField>
+                {!toShare &&
+                  linkPreview.status === "ok" &&
+                  linkPreview.preview && (
+                    <LinkPreviewCard
+                      preview={linkPreview.preview}
+                      variant="composer"
+                      onRemove={linkPreview.dismiss}
+                    />
+                  )}
+                {taggedEntities.length > 0 && (
+                  <div className="cl-tag-chips">
+                    {taggedEntities.map((entity) => (
+                      <span className="cl-tag-chip" key={entity.entity_id}>
+                        <Avatar
+                          id={entity.entity_id}
+                          entityId={entity.entity_id}
+                          name={entity.display_name}
+                          src={entity.profile ?? undefined}
+                          size={20}
+                          kind={entity.type}
+                          shape={entity.type === "user" ? "circle" : "rounded"}
                         />
-                      )}
-                      <PageFlag realmType={entity.realm_type} size={12} />
-                      <BotFlag type={entity.type} size={12} />
-                      <button
-                        type="button"
-                        disabled={isuploadingpost}
-                        onClick={() => removeTag(entity)}
-                        title="Remove tag"
-                      >
-                        <FaXmark style={{ fontSize: "12px" }} />
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              {showPrivacy && !community && (
-                <div className="cl-create-post-tagging">
-                  <span className="cl-text-caption tw-text-left tw-text-[var(--text-2)]">
-                    Who can see this post?
-                  </span>
-                  <div className="cl-post-privacy-options">
-                    {PRIVACY_OPTIONS.map((option) => (
-                      <button
-                        key={option.value}
-                        type="button"
-                        disabled={isuploadingpost}
-                        aria-pressed={postPrivacy === option.value}
-                        onClick={() => {
-                          setpostPrivacy(option.value);
-                          setshowPrivacy(false);
-                        }}
-                        className={`cl-post-privacy-option ${postPrivacy === option.value
-                          ? "cl-post-privacy-option--active"
-                          : ""
-                          }`}
-                      >
-                        <span className="cl-post-privacy-option__icon">
-                          {option.icon}
+                        <span className="cl-tag-chip__name">
+                          {entity.display_name}
                         </span>
-                        <span className="cl-post-privacy-option__text">
-                          <span className="cl-post-privacy-option__label">
-                            {option.label}
-                          </span>
-                          <span className="cl-post-privacy-option__hint">
-                            {option.hint}
-                          </span>
-                        </span>
-                        {postPrivacy === option.value && (
-                          <FaCheck
-                            style={{ fontSize: "13px", flexShrink: 0 }}
+                        {entity.is_verified && (
+                          <RiVerifiedBadgeFill
+                            size={13}
                             color="var(--brand)"
+                            style={{ flexShrink: 0 }}
                           />
                         )}
-                      </button>
+                        <PageFlag realmType={entity.realm_type} size={12} />
+                        <BotFlag type={entity.type} size={12} />
+                        <button
+                          type="button"
+                          disabled={isuploadingpost}
+                          onClick={() => removeTag(entity)}
+                          title="Remove tag"
+                        >
+                          <FaXmark style={{ fontSize: "12px" }} />
+                        </button>
+                      </span>
                     ))}
                   </div>
-                  {isPrivateProfile && postPrivacy === "public" && (
+                )}
+                {showPrivacy && !community && (
+                  <div className="cl-create-post-tagging">
                     <span className="cl-text-caption tw-text-left tw-text-[var(--text-2)]">
-                      Your profile is private, but this post will be visible to
-                      everyone.
+                      Who can see this post?
                     </span>
-                  )}
-                </div>
-              )}
-              {showTagging && (
-                <div className="cl-create-post-tagging">
-                  <div className="cl-tag-search">
-                    <FaMagnifyingGlass style={{ fontSize: "14px" }} />
-                    <input
-                      autoFocus
-                      disabled={isuploadingpost}
-                      value={tagsearch}
-                      onChange={(e) => settagsearch(e.target.value)}
-                      placeholder="Search people, pages or bots to tag"
-                    />
-                  </div>
-                  <div className="cl-tag-results thinscroller">
-                    {istagsearching ? (
-                      <div className="cl-tag-loading">
-                        <motion.div
-                          animate={{ rotate: -360 }}
-                          transition={{ duration: 1, repeat: Infinity }}
-                          id="div_loader_tag_search"
+                    <div className="cl-post-privacy-options">
+                      {PRIVACY_OPTIONS.map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          disabled={isuploadingpost}
+                          aria-pressed={postPrivacy === option.value}
+                          onClick={() => {
+                            setpostPrivacy(option.value);
+                            setshowPrivacy(false);
+                          }}
+                          className={`cl-post-privacy-option ${
+                            postPrivacy === option.value
+                              ? "cl-post-privacy-option--active"
+                              : ""
+                          }`}
                         >
-                          <AiOutlineLoading3Quarters
-                            style={{ fontSize: "20px" }}
-                          />
-                        </motion.div>
-                      </div>
-                    ) : tagresults.length > 0 ? (
-                      tagresults.map((entity) => {
-                        const selected = isTagged(entity);
-                        return (
-                          <button
-                            type="button"
-                            key={entity.entity_id}
-                            disabled={isuploadingpost}
-                            onClick={() => toggleTag(entity)}
-                            className={`cl-tag-result ${selected ? "cl-tag-result--active" : ""
-                              }`}
-                          >
-                            <Avatar
-                              id={entity.entity_id}
-                              entityId={entity.entity_id}
-                              name={entity.display_name}
-                              src={entity.profile ?? undefined}
-                              size={34}
-                              kind={entity.type}
-                              shape={
-                                entity.type === "user" ? "circle" : "rounded"
-                              }
-                            />
-                            <div className="cl-tag-result__meta">
-                              <span className="cl-tag-result__title">
-                                <span className="cl-tag-result__name">
-                                  {entity.display_name}
-                                </span>
-                                {entity.is_verified && (
-                                  <RiVerifiedBadgeFill
-                                    size={14}
-                                    color="var(--brand)"
-                                    style={{ flexShrink: 0 }}
-                                  />
-                                )}
-                                <PageFlag
-                                  realmType={entity.realm_type}
-                                  size={14}
-                                />
-                                <BotFlag type={entity.type} size={14} />
-                              </span>
-                              <span className="cl-tag-result__handle">
-                                {entity.type === "realm"
-                                  ? `${entity.handle}${entity.realm_type
-                                    ? ` · ${entity.realm_type}`
-                                    : " · page"
-                                  }`
-                                  : `@${entity.handle}`}
-                              </span>
-                            </div>
-                            <span className="cl-tag-result__action">
-                              {selected ? (
-                                <FaCheck style={{ fontSize: "13px" }} />
-                              ) : (
-                                <FaPlus style={{ fontSize: "13px" }} />
-                              )}
+                          <span className="cl-post-privacy-option__icon">
+                            {option.icon}
+                          </span>
+                          <span className="cl-post-privacy-option__text">
+                            <span className="cl-post-privacy-option__label">
+                              {option.label}
                             </span>
-                          </button>
-                        );
-                      })
-                    ) : (
-                      <div className="cl-tag-empty">
-                        {tagsearch.trim() === ""
-                          ? "Search for people, pages or bots to tag in this post"
-                          : "No results found"}
-                      </div>
+                            <span className="cl-post-privacy-option__hint">
+                              {option.hint}
+                            </span>
+                          </span>
+                          {postPrivacy === option.value && (
+                            <FaCheck
+                              style={{ fontSize: "13px", flexShrink: 0 }}
+                              color="var(--brand)"
+                            />
+                          )}
+                        </button>
+                      ))}
+                    </div>
+                    {isPrivateProfile && postPrivacy === "public" && (
+                      <span className="cl-text-caption tw-text-left tw-text-[var(--text-2)]">
+                        Your profile is private, but this post will be visible
+                        to everyone.
+                      </span>
                     )}
                   </div>
-                </div>
-              )}
-              {iswithImage && (
-                <div className="cl-create-post-attachments">
-                  {medialist.length > 0 ? (
-                    <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px]">
-                      {medialist
-                        .sort(function(a, b) {
-                          return a.id - b.id || a.name.localeCompare(b.name);
-                        })
-                        .map((mp: any) => {
-                          return (
-                            <PostMediaPreview
-                              key={mp.id}
-                              mp={mp}
-                              setmedialist={setmedialist}
+                )}
+                {showTagging && (
+                  <div className="cl-create-post-tagging">
+                    <div className="cl-tag-search">
+                      <FaMagnifyingGlass style={{ fontSize: "14px" }} />
+                      <input
+                        autoFocus
+                        disabled={isuploadingpost}
+                        value={tagsearch}
+                        onChange={(e) => settagsearch(e.target.value)}
+                        placeholder="Search people, pages or bots to tag"
+                      />
+                    </div>
+                    <div className="cl-tag-results thinscroller">
+                      {istagsearching ? (
+                        <div className="cl-tag-loading">
+                          <motion.div
+                            animate={{ rotate: -360 }}
+                            transition={{ duration: 1, repeat: Infinity }}
+                            id="div_loader_tag_search"
+                          >
+                            <AiOutlineLoading3Quarters
+                              style={{ fontSize: "20px" }}
                             />
+                          </motion.div>
+                        </div>
+                      ) : tagresults.length > 0 ? (
+                        tagresults.map((entity) => {
+                          const selected = isTagged(entity);
+                          return (
+                            <button
+                              type="button"
+                              key={entity.entity_id}
+                              disabled={isuploadingpost}
+                              onClick={() => toggleTag(entity)}
+                              className={`cl-tag-result ${
+                                selected ? "cl-tag-result--active" : ""
+                              }`}
+                            >
+                              <Avatar
+                                id={entity.entity_id}
+                                entityId={entity.entity_id}
+                                name={entity.display_name}
+                                src={entity.profile ?? undefined}
+                                size={34}
+                                kind={entity.type}
+                                shape={
+                                  entity.type === "user" ? "circle" : "rounded"
+                                }
+                              />
+                              <div className="cl-tag-result__meta">
+                                <span className="cl-tag-result__title">
+                                  <span className="cl-tag-result__name">
+                                    {entity.display_name}
+                                  </span>
+                                  {entity.is_verified && (
+                                    <RiVerifiedBadgeFill
+                                      size={14}
+                                      color="var(--brand)"
+                                      style={{ flexShrink: 0 }}
+                                    />
+                                  )}
+                                  <PageFlag
+                                    realmType={entity.realm_type}
+                                    size={14}
+                                  />
+                                  <BotFlag type={entity.type} size={14} />
+                                </span>
+                                <span className="cl-tag-result__handle">
+                                  {entity.type === "realm"
+                                    ? `${entity.handle}${
+                                        entity.realm_type
+                                          ? ` · ${entity.realm_type}`
+                                          : " · page"
+                                      }`
+                                    : `@${entity.handle}`}
+                                </span>
+                              </div>
+                              <span className="cl-tag-result__action">
+                                {selected ? (
+                                  <FaCheck style={{ fontSize: "13px" }} />
+                                ) : (
+                                  <FaPlus style={{ fontSize: "13px" }} />
+                                )}
+                              </span>
+                            </button>
                           );
-                        })}
+                        })
+                      ) : (
+                        <div className="cl-tag-empty">
+                          {tagsearch.trim() === ""
+                            ? "Search for people, pages or bots to tag in this post"
+                            : "No results found"}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                {iswithImage && (
+                  <div className="cl-create-post-attachments">
+                    {medialist.length > 0 ? (
+                      <div className="tw-w-full tw-flex tw-flex-col tw-gap-[10px]">
+                        {medialist
+                          .sort(function (a, b) {
+                            return a.id - b.id || a.name.localeCompare(b.name);
+                          })
+                          .map((mp: any) => {
+                            return (
+                              <PostMediaPreview
+                                key={mp.id}
+                                mp={mp}
+                                setmedialist={setmedialist}
+                              />
+                            );
+                          })}
+                        <div
+                          onClick={() => {
+                            sendNonImageFilesProcess();
+                          }}
+                          {...mediaDragHandlers}
+                          className={`cl-create-post-dropzone tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-border-dashed tw-items-center tw-justify-center ${
+                            isDraggingMedia ? "tw-border-[var(--brand)]" : ""
+                          }`}
+                        >
+                          <MdAddToPhotos
+                            style={{ fontSize: "20px", color: "var(--text-2)" }}
+                          />
+                          <span className="cl-text-body tw-font-semibold tw-text-[var(--text-2)]">
+                            {isDraggingMedia
+                              ? "Drop to attach"
+                              : "Drag & drop a Photo or Video, or click to browse"}
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
                       <div
                         onClick={() => {
                           sendNonImageFilesProcess();
                         }}
                         {...mediaDragHandlers}
-                        className={`cl-create-post-dropzone tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-row tw-gap-[12px] tw-min-h-[70px] tw-border-dashed tw-items-center tw-justify-center ${isDraggingMedia ? "tw-border-[var(--brand)]" : ""
-                          }`}
+                        className={`cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-min-h-[220px] tw-border-dashed tw-items-center tw-justify-center ${
+                          isDraggingMedia ? "tw-border-[var(--brand)]" : ""
+                        }`}
                       >
                         <MdAddToPhotos
-                          style={{ fontSize: "20px", color: "var(--text-2)" }}
+                          style={{ fontSize: "60px", color: "var(--text-2)" }}
                         />
                         <span className="cl-text-body tw-font-semibold tw-text-[var(--text-2)]">
                           {isDraggingMedia
                             ? "Drop to attach"
-                            : "Drag & drop a Photo or Video, or click to browse"}
+                            : "Drag & drop photos or videos here"}
                         </span>
+                        {!isDraggingMedia && (
+                          <span className="cl-text-caption tw-font-normal tw-text-[var(--text-2)]">
+                            or click to browse
+                          </span>
+                        )}
                       </div>
-                    </div>
-                  ) : (
-                    <div
-                      onClick={() => {
-                        sendNonImageFilesProcess();
-                      }}
-                      {...mediaDragHandlers}
-                      className={`cl-create-post-dropzone cl-create-post-dropzone--stacked tw-w-full tw-select-none tw-cursor-pointer tw-flex tw-flex-1 tw-flex-col tw-gap-[12px] tw-min-h-[220px] tw-border-dashed tw-items-center tw-justify-center ${isDraggingMedia ? "tw-border-[var(--brand)]" : ""
-                        }`}
-                    >
-                      <MdAddToPhotos
-                        style={{ fontSize: "60px", color: "var(--text-2)" }}
-                      />
-                      <span className="cl-text-body tw-font-semibold tw-text-[var(--text-2)]">
-                        {isDraggingMedia
-                          ? "Drop to attach"
-                          : "Drag & drop photos or videos here"}
-                      </span>
-                      {!isDraggingMedia && (
-                        <span className="cl-text-caption tw-font-normal tw-text-[var(--text-2)]">
-                          or click to browse
-                        </span>
-                      )}
-                    </div>
-                  )}
-                </div>
-              )}
-              {toShare && (
-                <div className="cl-create-post-preview tw-w-full tw-max-h-[360px] tw-overflow-auto">
-                  <PostItem isSharePreview={true} mp={sharePreviewData} />
-                </div>
-              )}
+                    )}
+                  </div>
+                )}
+                {toShare && (
+                  <div className="cl-create-post-preview tw-w-full tw-max-h-[360px] tw-overflow-auto">
+                    <PostItem isSharePreview={true} mp={sharePreviewData} />
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          }
-          {!showDestination && <div className="cl-create-post-toolbar">
-            <button
-              onClick={() => {
-                setcurrenttab("privacy");
-                // Only one panel at a time - they share the composer's scroll
-                // area, and stacking them pushes the caption box out of view.
-                setshowTagging(false);
-                if (!community) setshowPrivacy((prev) => !prev);
-              }}
-              title={community ? "Audience is determined by the community" : `Audience: ${activePrivacy.label}`}
-              className={`cl-tag-toolbar-btn tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand-700)] ${showPrivacy ? "cl-toolbar-btn--active" : ""
-                }`}
-            >
-              {/* The icon tracks the current audience (globe / group / lock)
-                  so the selection is readable without a text label - the
-                  toolbar is icon-only and has no room for one. */}
-              {activePrivacy.icon}
-            </button>
-            {!toShare && (
-              <button
-                type="button"
-                aria-label="Post in"
-                title={`Post in: ${community?.name || "Your timeline"}${anonymous ? " · Anonymous" : ""}`}
-                disabled={isuploadingpost}
-                className="cl-tag-toolbar-btn tw-text-[var(--brand)]"
-                onClick={() => setShowDestination(true)}
-              >
-                <Icon n="groups" s={24} />
-              </button>
-            )}
-            {!toShare && (
+          )}
+          {!showDestination && (
+            <div className="cl-create-post-toolbar">
               <button
                 onClick={() => {
-                  setiswithImage(true);
+                  setcurrenttab("privacy");
+                  // Only one panel at a time - they share the composer's scroll
+                  // area, and stacking them pushes the caption box out of view.
+                  setshowTagging(false);
+                  if (!community) setshowPrivacy((prev) => !prev);
+                }}
+                title={
+                  community
+                    ? "Audience is determined by the community"
+                    : `Audience: ${activePrivacy.label}`
+                }
+                className={`cl-tag-toolbar-btn tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand-700)] ${
+                  showPrivacy ? "cl-toolbar-btn--active" : ""
+                }`}
+              >
+                {/* The icon tracks the current audience (globe / group / lock)
+                  so the selection is readable without a text label - the
+                  toolbar is icon-only and has no room for one. */}
+                {activePrivacy.icon}
+              </button>
+              {allowCommunityDestination && (
+                <button
+                  type="button"
+                  aria-label="Post in"
+                  title={`Post in: ${community?.name || "Your timeline"}${anonymous ? " · Anonymous" : ""}`}
+                  disabled={isuploadingpost}
+                  className="cl-tag-toolbar-btn tw-text-[var(--brand)]"
+                  onClick={() => setShowDestination(true)}
+                >
+                  <Icon n="groups" s={24} />
+                </button>
+              )}
+              {!toShare && (
+                <button
+                  onClick={() => {
+                    setiswithImage(true);
+                  }}
+                  className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand)]"
+                >
+                  <BiSolidImageAdd style={{ fontSize: "24px" }} />
+                </button>
+              )}
+              <button
+                onClick={() => {
+                  setcurrenttab("content");
                 }}
                 className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand)]"
               >
-                <BiSolidImageAdd style={{ fontSize: "24px" }} />
+                <BsFileEarmarkPost style={{ fontSize: "20px" }} />
               </button>
-            )}
-            <button
-              onClick={() => {
-                setcurrenttab("content");
-              }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--brand)]"
-            >
-              <BsFileEarmarkPost style={{ fontSize: "20px" }} />
-            </button>
-            <button
-              onClick={() => {
-                setcurrenttab("tagging");
-                setshowPrivacy(false);
-                setshowTagging((prev) => !prev);
-              }}
-              title="Tag people or pages"
-              className={`cl-tag-toolbar-btn tw-relative tw-cursor-pointer tw-text-[var(--green)] ${showTagging ? "cl-toolbar-btn--active" : ""
+              <button
+                onClick={() => {
+                  setcurrenttab("tagging");
+                  setshowPrivacy(false);
+                  setshowTagging((prev) => !prev);
+                }}
+                title="Tag people or pages"
+                className={`cl-tag-toolbar-btn tw-relative tw-cursor-pointer tw-text-[var(--green)] ${
+                  showTagging ? "cl-toolbar-btn--active" : ""
                 }`}
-            >
-              <FaUserTag style={{ fontSize: "20px" }} />
-              {taggedEntities.length > 0 && (
-                <span className="cl-tag-count">{taggedEntities.length}</span>
-              )}
-            </button>
-            <button
-              onClick={() => {
-                setcurrenttab("mapfeedstatus");
-              }}
-              className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--pink)]"
-            >
-              <BsPinMapFill style={{ fontSize: "18px" }} />
-            </button>
-          </div>
-          }
-          {!showDestination && <div id="div_create_cancel_btns" className="cl-create-post-actions">
-            <button
-              disabled={isuploadingpost || accessBlocked || (!toShare && !mainpostcaption.trim() && medialist.length === 0) || Boolean(destination && !community)}
-              className="btns_create_cancel"
-              onClick={() => {
-                CreatePostProcess();
-              }}
-            >
-              {toShare ? (
-                isuploadingpost ? (
-                  <div id="div_conversation_content_loader">
-                    <motion.div
-                      animate={{
-                        rotate: -360,
-                      }}
-                      transition={{
-                        duration: 1,
-                        repeat: Infinity,
-                      }}
-                      id="div_loader_share_conv"
-                    >
-                      <AiOutlineLoading3Quarters style={{ fontSize: "18px" }} />
-                    </motion.div>
-                  </div>
+              >
+                <FaUserTag style={{ fontSize: "20px" }} />
+                {taggedEntities.length > 0 && (
+                  <span className="cl-tag-count">{taggedEntities.length}</span>
+                )}
+              </button>
+              <button
+                onClick={() => {
+                  setcurrenttab("mapfeedstatus");
+                }}
+                className="tw-border-none tw-bg-transparent tw-cursor-pointer tw-text-[var(--pink)]"
+              >
+                <BsPinMapFill style={{ fontSize: "18px" }} />
+              </button>
+            </div>
+          )}
+          {!showDestination && (
+            <div id="div_create_cancel_btns" className="cl-create-post-actions">
+              <button
+                disabled={
+                  isuploadingpost ||
+                  accessBlocked ||
+                  (Boolean(destination) && destinationsLoading) ||
+                  Boolean(privateShareSource && !allowCommunityDestination) ||
+                  (!toShare &&
+                    !mainpostcaption.trim() &&
+                    medialist.length === 0) ||
+                  Boolean(destination && !community)
+                }
+                className="btns_create_cancel"
+                onClick={() => {
+                  CreatePostProcess();
+                }}
+              >
+                {toShare ? (
+                  isuploadingpost ? (
+                    <div id="div_conversation_content_loader">
+                      <motion.div
+                        animate={{
+                          rotate: -360,
+                        }}
+                        transition={{
+                          duration: 1,
+                          repeat: Infinity,
+                        }}
+                        id="div_loader_share_conv"
+                      >
+                        <AiOutlineLoading3Quarters
+                          style={{ fontSize: "18px" }}
+                        />
+                      </motion.div>
+                    </div>
+                  ) : (
+                    "Share"
+                  )
                 ) : (
-                  "Share"
-                )
-              ) : (
-                "Create"
-              )}
-            </button>
-            <button
-              disabled={isuploadingpost}
-              className="btns_create_cancel"
-              onClick={() => {
-                onclose(false);
-              }}
-            >
-              Cancel
-            </button>
-          </div>}
+                  "Create"
+                )}
+              </button>
+              <button
+                disabled={isuploadingpost}
+                className="btns_create_cancel"
+                onClick={() => {
+                  onclose(false);
+                }}
+              >
+                Cancel
+              </button>
+            </div>
+          )}
         </div>
       }
     />

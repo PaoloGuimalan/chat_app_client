@@ -1,9 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { motion } from "framer-motion";
 import {
   AddNewMemberToServer,
+  CreateRealmInviteRequest,
   RemoveRealmMemberRequest,
 } from "@/reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
@@ -47,6 +48,15 @@ function PublicServerItem({
 
   const [isJoining, setisJoining] = useState<boolean>(false);
   const [isJoined, setisJoined] = useState<boolean>(mp.is_member ?? false);
+  const [requestPending, setRequestPending] = useState(
+    Boolean((mp as any).request_pending),
+  );
+  useEffect(() => {
+    setisJoined(mp.is_member ?? false);
+  }, [mp.is_member]);
+  useEffect(() => {
+    setRequestPending(Boolean(mp.request_pending));
+  }, [mp.request_pending]);
 
   const navigate = useNavigate();
   // The acting entity can't join itself - not reachable today (switching is
@@ -57,7 +67,24 @@ function PublicServerItem({
   const [isLeaving, setisLeaving] = useState<boolean>(false);
 
   const joinServerProcess = () => {
+    if (requestPending) return;
     setisJoining(true);
+    if (mp.is_private) {
+      CreateRealmInviteRequest({
+        realm_id: mp.realm_id || mp.id,
+        kind: "request",
+      })
+        .then((response) => {
+          if (response.status === false)
+            throw new Error(response.message || JOIN_FAILED);
+          setRequestPending(true);
+        })
+        .catch((error) =>
+          notifyFailure(resolveErrorMessage(error, JOIN_FAILED)),
+        )
+        .finally(() => setisJoining(false));
+      return;
+    }
     // Join as whichever entity is currently active - the personal account,
     // or a page it's switched into acting as. A switched page has no
     // fullName, so fall back to its display name/slug for the notification
@@ -249,7 +276,11 @@ function PublicServerItem({
                   onClick={joinServerProcess}
                   className="cl-display-card__button cl-display-card__button--primary cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-none tw-cursor-pointer"
                 >
-                  Join
+                  {requestPending
+                    ? "Request pending"
+                    : mp.is_private
+                      ? "Request to join"
+                      : "Join"}
                 </button>
               ) : null}
             </div>
@@ -281,4 +312,3 @@ function PublicServerItem({
 }
 
 export default PublicServerItem;
-

@@ -2,7 +2,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
 import { profilePathError } from "../routing/profilePaths";
-import { activeEntityProfile, entityProfileCache } from "../cache/entityProfileCache";
+import {
+  activeEntityProfile,
+  entityProfileCache,
+} from "../cache/entityProfileCache";
 import {
   SET_ACTIVE_USERS_LIST,
   SET_AUTHENTICATION,
@@ -18,7 +21,9 @@ import sign from "jwt-encode";
 import jwt_decode from "jwt-decode";
 import { Dispatch } from "react";
 import {
-  convertLoginResponse, generateUUID, generateXNonce,
+  convertLoginResponse,
+  generateUUID,
+  generateXNonce,
   compareMessagesDesc,
 } from "./reusable";
 import { ConvertedResponse } from "../vars/types";
@@ -91,7 +96,11 @@ Axios.interceptors.request.use(async (config) => {
       return config;
     }
 
-    const user = String(config.headers["x-access-token"] || localStorage.getItem("authtoken") || "");
+    const user = String(
+      config.headers["x-access-token"] ||
+        localStorage.getItem("authtoken") ||
+        "",
+    );
     const decoded: { username: string; userID: string } | null = user
       ? jwt_decode(user)
       : null;
@@ -177,10 +186,13 @@ const AuthCheck = (dispatch: any) => {
         const userData: any = jwt_decode(response.data.result.usertoken);
         // jwtchecker resolves the CURRENT entity's ID and photo, including
         // realms/pages. Start caching immediately, before delayed Redux setup.
-        void entityProfileCache.sync(activeEntityProfile({
-          auth: true,
-          active_entity_context: response.data.result.active_entity,
-        }), authtoken);
+        void entityProfileCache.sync(
+          activeEntityProfile({
+            auth: true,
+            active_entity_context: response.data.result.active_entity,
+          }),
+          authtoken,
+        );
         // console.log(userData)
         setTimeout(() => {
           const restoredAuthentication = {
@@ -473,10 +485,13 @@ const GetSwitchablePagesRequest = async (): Promise<SwitchablePage[]> => {
   } catch (err: any) {
     if (err?.response?.status !== 404) throw err;
   }
-  const response = await Axios.get(`${envs.USER_SERVICE_API}/api/realm/my-list`, {
-    headers,
-    params: { page: 1, page_size: 50, type: "page" },
-  });
+  const response = await Axios.get(
+    `${envs.USER_SERVICE_API}/api/realm/my-list`,
+    {
+      headers,
+      params: { page: 1, page_size: 50, type: "page" },
+    },
+  );
   return (response.data?.results ?? [])
     .filter((realm: any) => realm.is_admin)
     .map((realm: any) => ({
@@ -859,7 +874,7 @@ const EntitySearchRequest = (
   Axios.get(
     `${envs.USER_SERVICE_API}/api/entity/search/${encodeURIComponent(
       searchdata,
-    )}/?page=1&page_size=15&types=${types}&realm_types=${realmTypes}`,
+    )}/?page=1&page_size=15&types=${types}&realm_types=${realmTypes}${params.communityEntityId ? `&community_entity_id=${encodeURIComponent(params.communityEntityId)}` : ""}`,
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
@@ -1010,11 +1025,14 @@ const GetModerationDetailRequest = async (moderationId: string) => {
 // FollowRealmRequest / UnfollowRealmRequest below (already entity-generic).
 
 const NetworkOverviewRequest = async () => {
-  return await Axios.get(`${envs.USER_SERVICE_API}/api/entity/network/overview`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.get(
+    `${envs.USER_SERVICE_API}/api/entity/network/overview`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  }).then((response) => {
+  ).then((response) => {
     // { connections: {has_more,total,results}, followers, following, groups }
     return response.data;
   });
@@ -1025,12 +1043,15 @@ const NetworkSectionRequest = async (
   page: number,
   pageSize: number,
 ) => {
-  return await Axios.get(`${envs.USER_SERVICE_API}/api/entity/network/${section}`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.get(
+    `${envs.USER_SERVICE_API}/api/entity/network/${section}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+      params: { page, page_size: pageSize },
     },
-    params: { page, page_size: pageSize },
-  }).then((response) => {
+  ).then((response) => {
     // DRF pagination: { count, next, previous, results }
     return response.data;
   });
@@ -1195,11 +1216,15 @@ const SearchPostsRequest = async (
 // straight into /messages/<id> since a group's conversationID is its
 // realm_id.
 const JoinRealmGroupRequest = async (payload: { realm_id: string }) => {
-  return await Axios.post(`${envs.USER_SERVICE_API}/api/realm/join/v2`, payload, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.post(
+    `${envs.USER_SERVICE_API}/api/realm/join/v2`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  }).then((response) => {
+  ).then((response) => {
     return response.data.status ? response.data.result : null;
   });
 };
@@ -1372,12 +1397,15 @@ const NotificationOverrideRequest = (
 // like v1, hence the jwt_decode.
 
 const NotificationsOverviewV2Request = async (previewRange: number = 8) => {
-  return await Axios.get(`${envs.CHATTERLOOP_API}/u/v2/notifications/overview`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
-      range: previewRange,
+  return await Axios.get(
+    `${envs.CHATTERLOOP_API}/u/v2/notifications/overview`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+        range: previewRange,
+      },
     },
-  }).then((response) => {
+  ).then((response) => {
     if (!response.data.status) return null;
     const decoded: any = jwt_decode(response.data.result);
     return decoded;
@@ -1389,13 +1417,16 @@ const NotificationsSectionV2Request = async (
   page: number,
   range: number,
 ) => {
-  return await Axios.get(`${envs.CHATTERLOOP_API}/u/v2/notifications/${section}`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
-      page,
-      range,
+  return await Axios.get(
+    `${envs.CHATTERLOOP_API}/u/v2/notifications/${section}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+        page,
+        range,
+      },
     },
-  }).then((response) => {
+  ).then((response) => {
     if (!response.data.status) return null;
     const decoded: any = jwt_decode(response.data.result);
     return decoded;
@@ -1413,18 +1444,18 @@ const NotificationsSectionV2Request = async (
 const asSingleGroups = (section: any) =>
   section
     ? {
-      groups: (section.items ?? []).map((n: any) => ({
-        key: String(n.notificationID),
-        count: 1,
-        unread: n.isRead ? 0 : 1,
-        actorCount: 1,
-        action: null,
-        items: [n],
-      })),
-      total: section.total ?? 0,
-      unread: section.unread ?? 0,
-      next: !!section.next,
-    }
+        groups: (section.items ?? []).map((n: any) => ({
+          key: String(n.notificationID),
+          count: 1,
+          unread: n.isRead ? 0 : 1,
+          actorCount: 1,
+          action: null,
+          items: [n],
+        })),
+        total: section.total ?? 0,
+        unread: section.unread ?? 0,
+        next: !!section.next,
+      }
     : null;
 
 const NotificationsGroupedOverviewRequest = async (
@@ -1756,7 +1787,11 @@ export interface SendPostTargets {
     handle: string;
     profile: string | null;
   }[];
-  groups: { conversation_id: string; display_name: string; profile: string | null }[];
+  groups: {
+    conversation_id: string;
+    display_name: string;
+    profile: string | null;
+  }[];
   channels: {
     conversation_id: string;
     display_name: string;
@@ -2047,11 +2082,14 @@ const ConversationCommandsRequest = async (
   conversationID: string,
 ): Promise<ChatCommand[]> => {
   if (!conversationID) return [];
-  return Axios.get(`${envs.CHATTERLOOP_API}/m/conversation/${conversationID}/commands`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return Axios.get(
+    `${envs.CHATTERLOOP_API}/m/conversation/${conversationID}/commands`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => {
       if (response.data?.status && Array.isArray(response.data.commands)) {
         return response.data.commands as ChatCommand[];
@@ -2269,11 +2307,15 @@ const CreateConferenceRequest = async (params: any) => {
 };
 
 const CreateRealmInviteRequest = async (params: any) => {
-  return await Axios.post(`${envs.USER_SERVICE_API}/api/realm/invites`, params, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.post(
+    `${envs.USER_SERVICE_API}/api/realm/invites`,
+    params,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => response.data)
     .catch((err) => {
       console.log(err);
@@ -2296,11 +2338,15 @@ const GetRealmInviteRequest = async (params: any) => {
 };
 
 const UpdateRealmInviteRequest = async (params: any) => {
-  return await Axios.patch(`${envs.USER_SERVICE_API}/api/realm/invites`, params, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.patch(
+    `${envs.USER_SERVICE_API}/api/realm/invites`,
+    params,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => response.data)
     .catch((err) => {
       console.log(err);
@@ -2340,11 +2386,15 @@ const CallRequest = async (params: any) => {
 const VoiceRequest = async (params: any) => {
   const payload = params;
 
-  return await Axios.post(`${envs.CHATTERLOOP_API}/u/notify-voice-join`, payload, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/u/notify-voice-join`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => {
       if (response.data.status) {
         //action if needed
@@ -2484,9 +2534,9 @@ const ACTION_FEATURE: Record<UploadAction, UploadFeature> = {
 const uploadRequestError = (err: any) =>
   err instanceof UploadError
     ? toRequestError(
-      { response: { status: err.status, data: { message: err.message } } },
-      err.message,
-    )
+        { response: { status: err.status, data: { message: err.message } } },
+        err.message,
+      )
     : toRequestError(err);
 
 /**
@@ -2835,11 +2885,14 @@ const InitServerConversationRequest = async (params: any) => {
 const InitServerChannelsRequest = async (params: any) => {
   const serverID = params.serverID;
 
-  return await Axios.get(`${envs.CHATTERLOOP_API}/s/initserverchannels/${serverID}`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.get(
+    `${envs.CHATTERLOOP_API}/s/initserverchannels/${serverID}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => {
       if (response.data.status) {
         const decodedResult: any = jwt_decode(response.data.result);
@@ -3198,11 +3251,14 @@ const LottieJSONRequest = async (url: string) => {
 
 const GetDiaryTotalRequest = async (params: any) => {
   const userID = params.userID;
-  return await Axios.get(`${envs.USER_SERVICE_API}/api/diary/total/${userID}/`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.get(
+    `${envs.USER_SERVICE_API}/api/diary/total/${userID}/`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => {
       return response.data;
     })
@@ -3273,11 +3329,15 @@ const GetUserEntriesRequest = async (params: any) => {
 };
 
 const PostNewEntryRequest = async (payload: INewEntry) => {
-  return await Axios.post(`${envs.USER_SERVICE_API}/api/diary/entry/`, payload, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.post(
+    `${envs.USER_SERVICE_API}/api/diary/entry/`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => {
       return response.data;
     })
@@ -3287,11 +3347,14 @@ const PostNewEntryRequest = async (payload: INewEntry) => {
 };
 
 const GetEntryRequest = async (entry_id: string) => {
-  return await Axios.get(`${envs.USER_SERVICE_API}/api/diary/entry/${entry_id}`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.get(
+    `${envs.USER_SERVICE_API}/api/diary/entry/${entry_id}`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => {
       return response.data;
     })
@@ -3301,11 +3364,15 @@ const GetEntryRequest = async (entry_id: string) => {
 };
 
 const BroadcastCoordinatesRequest = async (payload: any) => {
-  return await Axios.post(`${envs.CHATTERLOOP_API}/u/coordinatesbroadcast`, payload, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.post(
+    `${envs.CHATTERLOOP_API}/u/coordinatesbroadcast`,
+    payload,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
     },
-  })
+  )
     .then((response) => {
       if (response.data.status) {
         //action if needed
@@ -3548,7 +3615,8 @@ const CreatePageRequest = async (payload: {
   cover_photo: File;
 }) => {
   const pathError = profilePathError(payload.slug);
-  if (pathError) throw friendlyError(pathError.message, undefined, pathError.code);
+  if (pathError)
+    throw friendlyError(pathError.message, undefined, pathError.code);
   // Both images go straight to storage first; the page is then created from
   // their upload ids.
   let profile: UploadedFile, cover: UploadedFile;
@@ -3734,7 +3802,7 @@ const authHeaders = () => ({
   "x-access-token": localStorage.getItem("authtoken"),
 });
 
-const userServiceGet = async <T,>(path: string): Promise<T> =>
+const userServiceGet = async <T>(path: string): Promise<T> =>
   Axios.get(`${envs.USER_SERVICE_API}${path}`, { headers: authHeaders() })
     .then((response) => response.data as T)
     .catch((err) => {
@@ -3798,9 +3866,13 @@ const UpdateMomentRequest = async (
     archive?: boolean;
   },
 ) =>
-  Axios.put(`${envs.USER_SERVICE_API}/api/newsfeed/moments/${postId}/`, fields, {
-    headers: authHeaders(),
-  })
+  Axios.put(
+    `${envs.USER_SERVICE_API}/api/newsfeed/moments/${postId}/`,
+    fields,
+    {
+      headers: authHeaders(),
+    },
+  )
     .then((response) => response.data)
     .catch((err) => {
       throw toRequestError(err);
@@ -3906,9 +3978,13 @@ const UpdateThoughtRequest = async (
     privacy_status?: EphemeralAudience;
   },
 ): Promise<IThought> =>
-  Axios.put(`${envs.USER_SERVICE_API}/api/newsfeed/thoughts/${postId}/`, fields, {
-    headers: authHeaders(),
-  })
+  Axios.put(
+    `${envs.USER_SERVICE_API}/api/newsfeed/thoughts/${postId}/`,
+    fields,
+    {
+      headers: authHeaders(),
+    },
+  )
     .then((response) => response.data)
     .catch((err) => {
       throw toRequestError(err);
@@ -3932,7 +4008,11 @@ const DeletePostRequest = async (post_ids: string[]) => {
     });
 };
 
-const UpdatePostRequest = async (post_id: string, fields: any, token?: string) => {
+const UpdatePostRequest = async (
+  post_id: string,
+  fields: any,
+  token?: string,
+) => {
   return await Axios.put(
     `${envs.USER_SERVICE_API}/api/newsfeed/default`,
     {
@@ -4093,7 +4173,8 @@ export const SLUG_TAKEN = "SLUG_TAKEN";
 
 const UpdateRealmRequest = async (realm_id: string, fields: any) => {
   const pathError = profilePathError(fields.slug);
-  if (pathError) throw friendlyError(pathError.message, undefined, pathError.code);
+  if (pathError)
+    throw friendlyError(pathError.message, undefined, pathError.code);
   return await Axios.put(
     `${envs.USER_SERVICE_API}/api/realm/my-list`,
     {
@@ -4197,15 +4278,18 @@ const RemoveRealmFollowersRequest = async (
   realm_id: string,
   follow_id: string,
 ) => {
-  return await Axios.delete(`${envs.USER_SERVICE_API}/api/realm/realm-followers`, {
-    headers: {
-      "x-access-token": localStorage.getItem("authtoken"),
+  return await Axios.delete(
+    `${envs.USER_SERVICE_API}/api/realm/realm-followers`,
+    {
+      headers: {
+        "x-access-token": localStorage.getItem("authtoken"),
+      },
+      data: {
+        realm_id,
+        follow_id,
+      },
     },
-    data: {
-      realm_id,
-      follow_id,
-    },
-  })
+  )
     .then((response) => {
       if (response.data) {
         return response.data;
@@ -4406,16 +4490,17 @@ const CompleteProfileRequest = async (
 };
 
 const GetCurrentPoliciesRequest = async () => {
-  return Axios.get(`${envs.USER_SERVICE_API}/api/user/policies`).then((response) =>
-    response.data.status
-      ? (response.data.data as {
-        document_type: string;
-        version: string;
-        content: string;
-        document_url: string;
-        effective_date: string;
-      }[])
-      : [],
+  return Axios.get(`${envs.USER_SERVICE_API}/api/user/policies`).then(
+    (response) =>
+      response.data.status
+        ? (response.data.data as {
+            document_type: string;
+            version: string;
+            content: string;
+            document_url: string;
+            effective_date: string;
+          }[])
+        : [],
   );
 };
 
@@ -4760,9 +4845,9 @@ const SubmitReportRequest = async (
         response.data.status
           ? "Report submitted. Thank you for letting us know."
           : resolveResponseMessage(
-            response,
-            "We couldn't submit that report. Please try again.",
-          ),
+              response,
+              "We couldn't submit that report. Please try again.",
+            ),
         currentAlertState,
       );
       setisWaitingRequest(false);
@@ -4898,8 +4983,9 @@ const UpdateProfilePrivacyRequest = async (
           "success",
           isPrivate
             ? restricted > 0
-              ? `Your profile is now private. ${restricted} existing ${restricted === 1 ? "post is" : "posts are"
-              } now visible to your contacts only.`
+              ? `Your profile is now private. ${restricted} existing ${
+                  restricted === 1 ? "post is" : "posts are"
+                } now visible to your contacts only.`
               : "Your profile is now private."
             : "Your profile is now public.",
           currentAlertState,

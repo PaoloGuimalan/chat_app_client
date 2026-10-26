@@ -16,6 +16,7 @@ import {
   FollowRealmRequest,
   GetPostPreviewRequest,
   JoinRealmGroupRequest,
+  CreateRealmInviteRequest,
   SearchOverviewRequest,
   SearchPeopleRequest,
   SearchPostsRequest,
@@ -139,10 +140,14 @@ function EmptySection({
       }}
     >
       <Icon n={icon} s={32} c="var(--text-3)" />
-      <div style={{ fontWeight: 700, fontSize: "var(--fs-title)", marginTop: 6 }}>
+      <div
+        style={{ fontWeight: 700, fontSize: "var(--fs-title)", marginTop: 6 }}
+      >
         {title}
       </div>
-      <div style={{ fontSize: "var(--fs-caption)", color: "var(--text-3)" }}>{subtitle}</div>
+      <div style={{ fontSize: "var(--fs-caption)", color: "var(--text-3)" }}>
+        {subtitle}
+      </div>
     </div>
   );
 }
@@ -401,10 +406,12 @@ function SearchPage() {
     // corrects it to "requested" if the target turned out to be private.
     applyFollowState(
       entityID,
-      isActive ? { followed: false, pending: false } : {
-        followed: true,
-        pending: false,
-      },
+      isActive
+        ? { followed: false, pending: false }
+        : {
+            followed: true,
+            pending: false,
+          },
     );
 
     // The follow endpoint takes any entity target (person or page);
@@ -437,7 +444,11 @@ function SearchPage() {
 
   // Joining flips is_member in every list the realm appears in, so the
   // button becomes "Open chat" without a refetch.
-  const applyMemberState = (entityID: string, next: boolean) => {
+  const applyMemberState = (
+    entityID: string,
+    next: boolean,
+    requestPending = false,
+  ) => {
     setOverview((prev) =>
       prev
         ? {
@@ -445,7 +456,9 @@ function SearchPage() {
             realms: {
               ...prev.realms,
               results: prev.realms.results.map((r) =>
-                r.entity_id === entityID ? { ...r, is_member: next } : r,
+                r.entity_id === entityID
+                  ? { ...r, is_member: next, request_pending: requestPending }
+                  : r,
               ),
             },
           }
@@ -453,7 +466,9 @@ function SearchPage() {
     );
     setDetailRealms((prev) =>
       prev.map((r) =>
-        r.entity_id === entityID ? { ...r, is_member: next } : r,
+        r.entity_id === entityID
+          ? { ...r, is_member: next, request_pending: requestPending }
+          : r,
       ),
     );
   };
@@ -464,6 +479,24 @@ function SearchPage() {
   const onJoinGroup = (realm: SearchRealmResult) => {
     if (joinBusy[realm.entity_id]) return;
     setJoinBusy((prev) => ({ ...prev, [realm.entity_id]: true }));
+    if (realm.realm_type === "server" && realm.is_private) {
+      CreateRealmInviteRequest({ realm_id: realm.id, kind: "request" })
+        .then((result) => {
+          if (result.status === false)
+            throw new Error(result.message || "The request could not be sent.");
+          applyMemberState(realm.entity_id, false, true);
+        })
+        .catch((error) =>
+          notifyRequestError(error, "We couldn't request to join this server."),
+        )
+        .finally(() =>
+          setJoinBusy((previous) => ({
+            ...previous,
+            [realm.entity_id]: false,
+          })),
+        );
+      return;
+    }
     JoinRealmGroupRequest({ realm_id: realm.id })
       .then((result) => {
         if (result) applyMemberState(realm.entity_id, true);
@@ -545,7 +578,9 @@ function SearchPage() {
   // non-members have no destination (Join is the only affordance).
   const onOpenRealm = (realm: SearchRealmResult) => {
     if (realm.realm_type === "community") {
-      navigate(communityProfilePath({ slug: realm.handle, realm_id: realm.id }));
+      navigate(
+        communityProfilePath({ slug: realm.handle, realm_id: realm.id }),
+      );
     } else if (realm.realm_type === "server") {
       navigate(`/servers/${realm.id}`);
     } else if (realm.realm_type === "group") {
@@ -789,11 +824,17 @@ function SearchPage() {
               <Icon n="manage_search" s={34} c="var(--brand)" />
             </div>
             <span
-              style={{ fontSize: "var(--fs-heading)", fontWeight: 800, color: "var(--text)" }}
+              style={{
+                fontSize: "var(--fs-heading)",
+                fontWeight: 800,
+                color: "var(--text)",
+              }}
             >
               Search people, realms and posts
             </span>
-            <span style={{ fontSize: "var(--fs-body)", color: "var(--text-2)" }}>
+            <span
+              style={{ fontSize: "var(--fs-body)", color: "var(--text-2)" }}
+            >
               Start typing a name, handle or keyword.
             </span>
           </div>
@@ -1069,8 +1110,8 @@ function SearchPage() {
                   key={bot.entity_id}
                   bot={bot}
                   followBusy={!!followBusy[bot.entity_id]}
-                                    onToggleFollow={onToggleBotFollow}
-                                    onOpen={onOpenBot}
+                  onToggleFollow={onToggleBotFollow}
+                  onOpen={onOpenBot}
                 />
               ))}
               {isDetailLoadingMore &&
@@ -1220,4 +1261,3 @@ function SearchPage() {
 }
 
 export default SearchPage;
-

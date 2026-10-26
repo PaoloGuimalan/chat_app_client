@@ -105,6 +105,52 @@ const CommunityRequests = require('../src/app/widgets/invites/CommunityRequests.
 const ManageRealm = require('../src/app/tabs/realms/manage/ManageRealm.tsx').default;
 const PostOptions = require('../src/app/tabs/profile/user/PostOptions.tsx').default;
 const composerProps = { community, toShare: false, withImage: false, setcreateposttext() {}, getpostprocess() {}, onclose: value => closes.push(value) };
+test.afterEach(cleanup);
+
+test('sharing supports community destination and anonymous identity', async () => {
+  reset();
+  const screen = render(React.createElement(NewPostModal, {
+    ...composerProps, community: undefined, toShare: true,
+    sharePreviewData: { post_id: 'original' },
+  }));
+  fireEvent.click(screen.getByRole('button', { name: 'Post in' }));
+  await waitFor(() => assert.ok(screen.queryByRole('option', { name: 'Garden Club' })));
+  fireEvent.change(screen.getByLabelText('Post in'), { target: { value: 'destination' } });
+  fireEvent.change(screen.getByLabelText('Post as'), { target: { value: 'anonymous' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Done' }));
+  await waitFor(() => assert.equal(screen.getByRole('button', { name: 'Share', exact: true }).disabled, false));
+  fireEvent.click(screen.getByRole('button', { name: 'Share', exact: true }));
+  await waitFor(() => assert.equal(saves.length, 1));
+  assert.equal(saves[0].community_entity_id, 'destination');
+  assert.equal(saves[0].is_anonymous, true);
+  assert.equal(saves[0].content.isShared, true);
+  cleanup();
+});
+
+test('other profile composers keep community destinations unavailable', async () => {
+  reset();
+  const { CommunityDestinationAllowed } = require('../src/app/reusables/CommunityPostScope.ts');
+  const screen = render(React.createElement(CommunityDestinationAllowed.Provider, { value: false },
+    React.createElement(NewPostModal, { ...composerProps, community: undefined, toShare: true,
+      sharePreviewData: { post_id: 'private', community } })));
+  assert.equal(screen.queryByRole('button', { name: 'Post in' }), null);
+  assert.ok(screen.getByText('Open the community to share this private post.'));
+  assert.equal(screen.getByRole('button', { name: 'Share', exact: true }).disabled, true);
+  cleanup();
+});
+
+test('private server discovery offers requests instead of immediate membership', () => {
+  reset();
+  let requested = false;
+  const screen = render(React.createElement(SearchRealmCard, {
+    realm: { ...community, realm_type: 'server', is_member: false, display_name: community.name,
+      members_count: 2, followers_count: 0 },
+    onOpen() {}, onToggleFollow() {}, onJoinGroup: () => { requested = true; },
+  }));
+  fireEvent.click(screen.getByRole('button', { name: 'Request to join' }));
+  assert.equal(requested, true);
+  cleanup();
+});
 
 test('directory searches and opens actual communities without switching identity', async () => {
   reset(); const screen = render(React.createElement(Communities));
@@ -413,6 +459,7 @@ test('publishing shows a modal loading status until the request completes', asyn
     fireEvent.change(screen.getByPlaceholderText('Type your caption'), {
       target: { value: 'A community post' },
     });
+    await waitFor(() => assert.equal(screen.getByRole('button', { name: 'Create', exact: true }).disabled, false));
     fireEvent.click(screen.getByRole('button', { name: 'Create', exact: true }));
     assert.ok(screen.getByRole('status', { name: 'Publishing post' }));
     assert.equal(screen.getByRole('button', { name: 'Create', exact: true }).disabled, true);

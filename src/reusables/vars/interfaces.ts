@@ -138,6 +138,7 @@ export interface IRealmBasicInfo {
 export type IBotProfileInfo = IRealmProfileInfo;
 
 export interface IRealmProfileInfo {
+  request_pending?: boolean;
   cover_photo: string | null;
   created_by: string;
   description: string | null;
@@ -273,7 +274,9 @@ export interface ConversationFileItem {
   /** The stored value - the file's URL. Show the file through `attachment`. */
   content: string;
   /** Name, type, size - see app/tabs/messenger/partials/fileMessage.ts. */
-  attachment?: import("@/app/tabs/messenger/partials/fileMessage").MessageAttachment | null;
+  attachment?:
+    | import("@/app/tabs/messenger/partials/fileMessage").MessageAttachment
+    | null;
   /** ISO date the message was sent. */
   sentAt: string;
 }
@@ -487,7 +490,9 @@ export interface IPost {
    * made from, whether it has sound, its poster (the still every tile shows)
    * and its length. See IMomentMediaDetails.
    */
-  details?: ({ mood?: ThoughtMood; allow_replies?: boolean } & IMomentMediaDetails) | null;
+  details?:
+    | ({ mood?: ThoughtMood; allow_replies?: boolean } & IMomentMediaDetails)
+    | null;
   /** Moment endpoints only: whether the viewer has watched it. */
   seen?: boolean;
   /** Moments only: see ISharedPreview. */
@@ -699,6 +704,8 @@ export interface SearchPersonResult {
 }
 
 export interface SearchRealmResult {
+  is_private?: boolean;
+  request_pending?: boolean;
   entity_id: string;
   type: "realm";
   display_name: string;
