@@ -118,14 +118,14 @@ test('read transport sends valid summary snapshots and retains ordinary bulk rea
   };
   vm.runInNewContext(compiled, context);
   await context.read([
-    { notificationID: 'summary', type: 'community_admin_activity', activity_revision: 3 },
-    { notificationID: 'bad', type: 'community_admin_activity', activity_revision: -1 },
+    { notificationID: 'summary', type: 'community_admin_activity' },
+    { notificationID: '', type: 'community_admin_activity' },
     { notificationID: 'follow', type: 'follow', activity_revision: 4 },
   ]);
   await context.read();
   assert.equal(requests[0][0], 'https://api.fixture/u/readnotifications');
   assert.equal(JSON.stringify(requests[0][1]), JSON.stringify({ community_summaries: [
-    { notificationID: 'summary', activity_revision: 3 },
+    { notificationID: 'summary' },
   ] }));
   assert.equal(JSON.stringify(requests[1][1]), '{"community_summaries":[]}');
   assert.equal(requests[0][2].headers['x-access-token'], 'token');

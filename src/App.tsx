@@ -12,7 +12,11 @@ import { useEffect, useRef, useState } from "react";
 import { AuthCheck } from "./reusables/hooks/requests";
 import { loadMediaConfig } from "./reusables/vars/uploads";
 import Alert from "./app/widgets/Alert";
-import { SET_PATHNAME_LISTENER, SET_SCREEN_SIZE_LISTENER, SET_MUTATE_ALERTS } from "./redux/types";
+import {
+  SET_PATHNAME_LISTENER,
+  SET_SCREEN_SIZE_LISTENER,
+  SET_MUTATE_ALERTS,
+} from "./redux/types";
 import { consumeStudioMomentNotice } from "./reusables/hooks/studio";
 import ProfileContainer from "./app/tabs/profile/ProfileContainer";
 import { AuthenticationInterface } from "./reusables/vars/interfaces";
@@ -22,7 +26,7 @@ import PolicyPage from "./app/legal/PolicyPage";
 import DeleteAccount from "./app/legal/DeleteAccount";
 import Support from "./app/legal/Support";
 import envs from "./reusables/hooks/env_configs";
-import { publicProfilePath } from "./reusables/routing/profilePaths";
+// import { publicProfilePath } from "./reusables/routing/profilePaths";
 import { useProfilePathsVersion } from "./reusables/routing/useProfilePaths";
 
 function App() {
@@ -42,11 +46,21 @@ function App() {
 
   useEffect(() => {
     if (!authentication.auth || location !== "/") return;
-    const entityId = authentication.active_entity_context?.id || authentication.user.entity_id;
+    const entityId =
+      authentication.active_entity_context?.id || authentication.user.entity_id;
     if (!entityId) return;
     const content = consumeStudioMomentNotice(entityId);
-    if (content) dispatch({ type: SET_MUTATE_ALERTS, payload: { alerts: { type: "success", content } } });
-  }, [authentication.auth, authentication.active_entity_context?.id, authentication.user.entity_id, location]);
+    if (content)
+      dispatch({
+        type: SET_MUTATE_ALERTS,
+        payload: { alerts: { type: "success", content } },
+      });
+  }, [
+    authentication.auth,
+    authentication.active_entity_context?.id,
+    authentication.user.entity_id,
+    location,
+  ]);
 
   const screensizelistenerTrigger = () => {
     dispatch({
@@ -98,7 +112,8 @@ function App() {
 
   const [nextPathState, setnextPathState] = useState<string | null>(null);
   const wasAuthenticated = useRef(authentication.auth === true);
-  const justLoggedOut = wasAuthenticated.current && authentication.auth === false;
+  const justLoggedOut =
+    wasAuthenticated.current && authentication.auth === false;
 
   useEffect(() => {
     wasAuthenticated.current = authentication.auth === true;
@@ -168,7 +183,7 @@ function App() {
                 )
               ) : (
                 <Navigate
-                  to={publicProfilePath(location) ?? `/login${nextPathState ? `?next=${nextPathState}` : ""}`}
+                  to={`/login${nextPathState ? `?next=${nextPathState}` : ""}`}
                 />
               )
             ) : (

@@ -1517,13 +1517,8 @@ const NotificationsGroupedSectionRequest = async (
 const ReadNotificationsRequest = (items: INotificationV2[] = []) => {
   const community_summaries = items
     .filter(item => item.type === "community_admin_activity"
-      && typeof item.activity_revision === "number"
-      && Number.isSafeInteger(item.activity_revision)
-      && item.activity_revision >= 0)
-    .map(item => ({
-      notificationID: item.notificationID,
-      activity_revision: item.activity_revision,
-    }));
+      && typeof item.notificationID === "string" && item.notificationID.length > 0)
+    .map(item => ({ notificationID: item.notificationID }));
   return Axios.post(
     `${envs.CHATTERLOOP_API}/u/readnotifications`,
     { community_summaries },
