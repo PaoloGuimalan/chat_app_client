@@ -187,6 +187,7 @@ function Notifications() {
   // re-syncs by itself: /readnotifications triggers the notifications_reload
   // SSE, which refreshes redux notificationslist.
   const hasAutoReadRef = useRef(false);
+  const overviewRequest = useRef(0);
   const scrollRef = useRef<HTMLDivElement | null>(null);
   // Each desktop column scrolls on its own, so the fill check below needs
   // each element, not just the page container.
@@ -197,8 +198,10 @@ function Notifications() {
   const isMobile = screensizelistener.W < 760;
 
   const fetchOverview = () => {
+    const request = ++overviewRequest.current;
     NotificationsGroupedOverviewRequest(RANGE)
       .then((result) => {
+        if (request !== overviewRequest.current) return;
         if (result) {
           const toState = (s: any): SectionState => ({
             groups: s?.groups ?? [],
@@ -215,18 +218,24 @@ function Notifications() {
           });
           if (!hasAutoReadRef.current) {
             hasAutoReadRef.current = true;
-            ReadNotificationsRequest();
+            ReadNotificationsRequest(
+              [result.activity, result.connections, result.system]
+                .flatMap(section => section.groups.flatMap(
+                  (group: INotificationGroup) => group.items,
+                )),
+            );
           }
         }
         setIsLoading(false);
       })
       .catch((err) => {
+        if (request !== overviewRequest.current) return;
         console.log(err);
         setIsLoading(false);
       });
   };
 
-  // Initial load + live updates with zero SSE plumbing: a NEW notification
+  // Initial load + ordinary live updates: a NEW notification
   // bumps redux notificationslist.total (SSE already refreshes it via
   // NotificationOverrideRequest), which re-settles the sections. Deliberately
   // NOT keyed on totalunread - the auto-read above zeroes it a moment after
@@ -234,6 +243,19 @@ function Notifications() {
   useEffect(() => {
     fetchOverview();
   }, [notificationslist.total]);
+
+  useEffect(() => {
+    const refresh = (event: Event) => {
+      if ((event as CustomEvent).detail?.event === "community_notifications_changed") {
+        fetchOverview();
+      }
+    };
+    document.addEventListener("community-changed", refresh);
+    return () => {
+      document.removeEventListener("community-changed", refresh);
+      overviewRequest.current += 1;
+    };
+  }, []);
 
   const loadMore = (key: NotificationSectionKey) => {
     const current = sections[key];
@@ -279,7 +301,11 @@ function Notifications() {
   };
 
   const markAllRead = () => {
-    ReadNotificationsRequest();
+    void ReadNotificationsRequest(
+      Object.values(sections).flatMap(section => section.groups.flatMap(
+        group => group.items,
+      )),
+    ).then(fetchOverview);
     setSections((prev) => {
       const zero = (s: SectionState): SectionState => ({
         ...s,

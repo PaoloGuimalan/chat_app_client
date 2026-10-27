@@ -901,6 +901,7 @@ export interface INotificationAction {
 }
 
 export interface INotificationV2 {
+  activity_revision?: number;
   community_entity_id?: string | null;
   is_anonymous?: boolean;
   notificationID: string;

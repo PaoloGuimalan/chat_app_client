@@ -6,10 +6,11 @@ import Details from "../tabs/Details";
 import Media from "../tabs/Media";
 import Members from "../tabs/Members";
 import Followers from "../tabs/Followers";
+import Notifications from "../tabs/Notifications";
 import { useManagedRealm } from "./useManagedRealm";
 import { hasMediaTab } from "./manageTabs";
 
-type ManageTab = "details" | "media" | "members" | "followers";
+type ManageTab = "details" | "media" | "members" | "followers" | "notifications";
 
 /**
  * Manage a realm without leaving the screen: the /realms/:realm_id page's
@@ -29,6 +30,8 @@ function ManageRealmModal({
 }) {
   const { isloaded, isError, realmInfo } = useManagedRealm(realmId);
   const [tab, setTab] = useState<ManageTab>("details");
+  const isModerator = realmInfo?.type === "community" && realmInfo.my_role === "moderator";
+  const canManage = realmInfo?.is_admin || isModerator;
 
   // Removed from the realm while managing it: close, as ManageRealm leaves
   // the page.
@@ -50,11 +53,14 @@ function ManageRealmModal({
   }, [realmInfo?.id, onClose]);
 
   const tabs = [
-    { key: "details", label: "Details" },
-    ...(realmInfo && hasMediaTab(realmInfo)
+    ...(!isModerator ? [{ key: "details", label: "Details" }] : []),
+    ...(realmInfo && !isModerator && hasMediaTab(realmInfo)
       ? [{ key: "media", label: "Media" }]
       : []),
     { key: "members", label: "Members" },
+    ...(realmInfo?.type === "community"
+      ? [{ key: "notifications", label: "Notifications" }]
+      : []),
     ...(realmInfo?.type === "page"
       ? [{ key: "followers", label: "Followers" }]
       : []),
@@ -77,8 +83,12 @@ function ManageRealmModal({
     );
   } else if (isError || !realmInfo) {
     body = notice("We couldn't load these settings. Please try again.");
-  } else if (!realmInfo.is_admin) {
+  } else if (!canManage) {
     body = notice("Only admins can manage this.");
+  } else if (tab === "notifications" && realmInfo.type === "community") {
+    body = <Notifications realm={realmInfo} onReviewRequests={() => setTab("members")} onOpenPost={onClose} />;
+  } else if (isModerator) {
+    body = <Members compact realm={realmInfo} />;
   } else if (tab === "details") {
     body = <Details realm={realmInfo} />;
   } else if (tab === "media" && hasMediaTab(realmInfo)) {
@@ -140,11 +150,11 @@ function ManageRealmModal({
               <Icon n="close" s={18} />
             </button>
           </div>
-          {realmInfo?.is_admin && (
+          {canManage && (
             <div className="tw-px-[16px] tw-py-[10px] tw-bg-[var(--surface)] tw-border-b tw-border-[var(--border)] tw-flex-shrink-0">
               <SegTabs
                 tabs={tabs}
-                value={tab}
+                value={isModerator && tab !== "notifications" ? "members" : tab}
                 onChange={(key) => setTab(key as ManageTab)}
                 style={{ width: "100%", maxWidth: 420 }}
               />

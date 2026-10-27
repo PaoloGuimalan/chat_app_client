@@ -51,18 +51,18 @@ function connect() {
 
 test('community membership signals relay current realm data without messaging actions', () => {
   const { source, relayed } = connect();
-  for (const event of ['community_access_changed', 'community_members_changed', 'community_requests_changed']) {
+  for (const event of ['community_access_changed', 'community_members_changed', 'community_requests_changed', 'community_notifications_changed']) {
     source.emit(event, { auth: true, status: true, realm_id: 'garden' });
     assert.equal(relayed.at(-1)?.type, 'community-changed');
     assert.equal(relayed.at(-1)?.detail.realm_id, 'garden');
     assert.equal(relayed.at(-1)?.detail.event, event);
   }
-  assert.equal(relayed.length, 3);
+  assert.equal(relayed.length, 4);
   source.emit('community_access_changed', { auth: false, status: true, realm_id: 'garden' });
   source.emit('community_access_changed', { auth: true, status: false, realm_id: 'garden' });
   source.emit('community_access_changed', { auth: true, status: true });
   assert.doesNotThrow(() => source.listeners.get('community_access_changed')({ data: 'invalid' }));
-  assert.equal(relayed.length, 3);
+  assert.equal(relayed.length, 4);
 });
 
 test('community access revalidates on a reconnected notification stream', () => {
@@ -73,4 +73,27 @@ test('community access revalidates on a reconnected notification stream', () => 
   assert.equal(relayed.length, 1);
   assert.equal(relayed[0].type, 'community-changed');
   assert.equal(relayed[0].detail.event, 'reconnected');
+});
+
+test('management notifications relay the Redis bridge result envelope', () => {
+  const { source, relayed } = connect();
+  const payload = {
+    auth: true,
+    status: true,
+    message: 'Community notifications changed',
+    result: {
+      realm_id: 'garden',
+      community_entity_id: 'garden-entity',
+      type: 'community_admin_activity',
+    },
+  };
+  source.emit('community_notifications_changed', payload);
+  assert.equal(relayed.length, 1);
+  assert.equal(relayed[0].detail.realm_id, 'garden');
+  assert.equal(relayed[0].detail.community_entity_id, 'garden-entity');
+  assert.equal(relayed[0].detail.event, 'community_notifications_changed');
+
+  source.emit('community_notifications_changed', { ...payload, auth: false });
+  source.emit('community_notifications_changed', { ...payload, status: false });
+  assert.equal(relayed.length, 1);
 });

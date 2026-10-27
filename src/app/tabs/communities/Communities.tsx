@@ -3,7 +3,7 @@ import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { Icon } from "@/reusables/design";
-import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
+import ServerItemLoader from "@/app/reusables/loaders/ServerItemLoader";
 import CommunityDirectoryItem from "@/app/widgets/items/CommunityDirectoryItem";
 import {
   listCommunities,
@@ -199,34 +199,11 @@ export default function Communities() {
             Array.from({ length: 6 }, (_, index) => (
               <div
                 key={`loading-${index}`}
-                className="cl-display-card cl-community-card"
+                className="cl-community-card-loading"
                 role="status"
                 aria-label="Loading community"
               >
-                <SkeletonTheme
-                  baseColor="var(--skeleton)"
-                  highlightColor="var(--skeleton-shine)"
-                >
-                  <Skeleton height={110} borderRadius={0} />
-                  <div className="cl-display-card__body cl-community-card-body">
-                    <Skeleton width={40} height={40} />
-                    <Skeleton
-                      containerClassName="tw-w-full"
-                      width="65%"
-                      height={14}
-                    />
-                    <Skeleton
-                      containerClassName="tw-w-full"
-                      count={2}
-                      height={12}
-                    />
-                    <Skeleton
-                      containerClassName="tw-w-full"
-                      width="45%"
-                      height={20}
-                    />
-                  </div>
-                </SkeletonTheme>
+                <ServerItemLoader flexed />
               </div>
             ))}
         </div>

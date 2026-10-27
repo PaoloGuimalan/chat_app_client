@@ -68,6 +68,9 @@ const original = Module._load;
 Module._extensions['.ts'] = Module._extensions['.tsx'] = (module, filename) => module._compile(ts.transpileModule(fs.readFileSync(filename, 'utf8'), { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true } }).outputText, filename);
 Module._extensions['.css'] = () => {};
 Module._load = function(request, parent, isMain) {
+  // The animation renderer ships as ESM. These CommonJS fixtures exercise
+  // reaction behavior, so keep the browser canvas renderer out of the harness.
+  if (request === '@lottiefiles/dotlottie-react') return { DotLottieReact: () => null };
   if (request === 'react-redux') return { useSelector: fn => fn({ authentication: auth, alerts: [], emojilist: [{ emoji_id: 'smile', emoji_content: ':)', priority: 1 }], screensizelistener: { W: width } }), useDispatch: () => () => {} };
   if (request === 'react-router-dom') return { useNavigate: () => value => navigations.push(value), useParams: () => ({ communityId: 'garden' }), useLocation: () => ({ pathname: '/realms/realm' }), Routes: plain, Route: () => null, Navigate: () => null };
   if (request === 'framer-motion') return { useInView: () => false, motion: new Proxy({}, { get: (_, tag) => React.forwardRef(({ children, className, onClick, id }, ref) => React.createElement(tag, { className, onClick, id, ref }, children)) }) };

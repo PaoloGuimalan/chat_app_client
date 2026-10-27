@@ -78,6 +78,7 @@ const SSENotificationsTRequest = (
     "community_access_changed",
     "community_members_changed",
     "community_requests_changed",
+    "community_notifications_changed",
     "realm_requests_changed",
     "realm_members_changed",
     "realm_access_changed",
@@ -85,10 +86,12 @@ const SSENotificationsTRequest = (
     sseNtfsSource.addEventListener(event, (frame: MessageEvent<string>) => {
       try {
         const data = JSON.parse(frame.data);
-        if (!data?.auth || !data.status || !data.realm_id) return;
+        if (!data?.auth || !data.status) return;
+        const signal = data.realm_id ? data : data.result;
+        if (!signal?.realm_id) return;
         document.dispatchEvent(
           new CustomEvent("community-changed", {
-            detail: { ...data, realm_id: String(data.realm_id), event },
+            detail: { ...signal, realm_id: String(signal.realm_id), event },
           }),
         );
       } catch {

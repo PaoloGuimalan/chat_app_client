@@ -189,6 +189,11 @@
   cursor: pointer;
 }
 
+.cl-community-card-loading {
+  width: 100%;
+  max-width: 300px;
+}
+
 .cl-community-card .cl-community-card-cover {
   background: linear-gradient(125deg, #1c7def, #73aaff) !important;
   background-size: cover;
@@ -258,6 +263,7 @@
   width: 100%;
   min-width: 0;
   overflow: hidden;
+  cursor: pointer;
 }
 
 .cl-community-panel {

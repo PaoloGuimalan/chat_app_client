@@ -1,7 +1,5 @@
 import CommunityName from "@/app/reusables/CommunityName";
-import { communityProfilePath } from "@/reusables/routing/communityPaths";
 /* eslint-disable react-hooks/exhaustive-deps */
-/* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { useEffect, useMemo, useState } from "react";
@@ -21,10 +19,11 @@ import Details from "../tabs/Details";
 import Media from "../tabs/Media";
 import Members from "../tabs/Members";
 import Followers from "../tabs/Followers";
+import Notifications from "../tabs/Notifications";
 import { Avatar } from "@/reusables/design";
 import { hasMediaTab } from "./manageTabs";
 
-function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
+function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
   const screensizelistener = useSelector(
     (state: any) => state.screensizelistener,
   );
@@ -38,7 +37,8 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
 
   const [isMenuToggled, setisMenuToggled] = useState<boolean>(true);
   const activePath = location.pathname;
-  const showMedia = hasMediaTab(realm);
+  const isModerator = realm.type === "community" && realm.my_role === "moderator";
+  const showMedia = hasMediaTab(realm) && !isModerator;
 
   const navButtonClass = (target: string) =>
     `tw-w-full tw-flex tw-items-center tw-justify-between tw-gap-[12px] tw-px-[14px] tw-py-[11px] tw-border-none tw-rounded-[var(--r-md)] tw-cursor-pointer tw-transition-colors ${activePath === target
@@ -67,8 +67,6 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
       document.removeEventListener(eventName, handler as EventListener);
     };
   }, [realm]);
-
-  if (realm.type === "community" && realm.my_role === "moderator") return <div className="cl-communities thinscroller"><button onClick={() => navigate(communityProfilePath(realm))}>← Community</button><h1><CommunityName community={{ name: realm.name, is_verified: realm.is_verified }} /></h1><Members realm={realm} /></div>;
 
   return (
     <div className="tw-bg-[var(--background)] tw-text-[var(--text)] tw-w-full tw-h-full tw-absolute tw-inset-0 tw-flex tw-flex-col tw-items-center tw-z-[2]">
@@ -114,26 +112,28 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                 </div>
               </div>
               <div className="tw-flex tw-flex-col tw-flex-1 tw-min-h-0 tw-pt-[14px] tw-gap-[8px] tw-overflow-y-auto">
-                <button
-                  onClick={() => {
-                    navigate(`/realms/${realm.id}/`);
-                  }}
-                  className={navButtonClass(`/realms/${realm.id}/`)}
-                >
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                    Dashboard
-                  </span>
-                </button>
-                <button
-                  onClick={() => {
-                    navigate(`/realms/${realm.id}/details`);
-                  }}
-                  className={navButtonClass(`/realms/${realm.id}/details`)}
-                >
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                    Profile Details
-                  </span>
-                </button>
+                {!isModerator && <>
+                  <button
+                    onClick={() => {
+                      navigate(`/realms/${realm.id}/`);
+                    }}
+                    className={navButtonClass(`/realms/${realm.id}/`)}
+                  >
+                    <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+                      Dashboard
+                    </span>
+                  </button>
+                  <button
+                    onClick={() => {
+                      navigate(`/realms/${realm.id}/details`);
+                    }}
+                    className={navButtonClass(`/realms/${realm.id}/details`)}
+                  >
+                    <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+                      Profile Details
+                    </span>
+                  </button>
+                </>}
                 {showMedia && (
                   <button
                     onClick={() => {
@@ -156,6 +156,14 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                     Members
                   </span>
                 </button>
+                {realm.type === "community" && (
+                  <button
+                    onClick={() => navigate(`/realms/${realm.id}/notifications`)}
+                    className={navButtonClass(`/realms/${realm.id}/notifications`)}
+                  >
+                    <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">Notifications</span>
+                  </button>
+                )}
                 {realm.type === "page" && (
                   <button
                     onClick={() => {
@@ -216,26 +224,28 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               </div>
             </div>
             <div className="tw-flex tw-flex-col tw-items-start tw-pt-[14px] tw-gap-[8px] tw-overflow-y-auto">
-              <button
-                onClick={() => {
-                  navigate(`/realms/${realm.id}/`);
-                }}
-                className={navButtonClass(`/realms/${realm.id}/`)}
-              >
-                <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                  Dashboard
-                </span>
-              </button>
-              <button
-                onClick={() => {
-                  navigate(`/realms/${realm.id}/details`);
-                }}
-                className={navButtonClass(`/realms/${realm.id}/details`)}
-              >
-                <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                  Profile Details
-                </span>
-              </button>
+              {!isModerator && <>
+                <button
+                  onClick={() => {
+                    navigate(`/realms/${realm.id}/`);
+                  }}
+                  className={navButtonClass(`/realms/${realm.id}/`)}
+                >
+                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+                    Dashboard
+                  </span>
+                </button>
+                <button
+                  onClick={() => {
+                    navigate(`/realms/${realm.id}/details`);
+                  }}
+                  className={navButtonClass(`/realms/${realm.id}/details`)}
+                >
+                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
+                    Profile Details
+                  </span>
+                </button>
+              </>}
               {showMedia && (
                 <button
                   onClick={() => {
@@ -258,6 +268,14 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
                   Members
                 </span>
               </button>
+              {realm.type === "community" && (
+                <button
+                  onClick={() => navigate(`/realms/${realm.id}/notifications`)}
+                  className={navButtonClass(`/realms/${realm.id}/notifications`)}
+                >
+                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">Notifications</span>
+                </button>
+              )}
               {realm.type === "page" && (
                 <button
                   onClick={() => {
@@ -275,8 +293,8 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
         )}
         <div className="tw-flex tw-flex-1 tw-overflow-y-scroll x-scroll tw-min-w-0 tw-bg-[var(--background)]">
           <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/details" element={<Details realm={realm} />} />
+            <Route path="/" element={isModerator ? <Navigate to={`/realms/${realm.id}/members`} replace /> : <Dashboard />} />
+            <Route path="/details" element={isModerator ? <Navigate to={`/realms/${realm.id}/members`} replace /> : <Details realm={realm} />} />
             <Route
               path="/media"
               element={
@@ -288,6 +306,10 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo }) {
               }
             />
             <Route path="/members" element={<Members realm={realm} />} />
+            <Route
+              path="/notifications"
+              element={realm.type === "community" ? <Notifications realm={realm} /> : <Navigate to={`/realms/${realm.id}/`} replace />}
+            />
             <Route
               path="/followers"
               element={

@@ -1,6 +1,6 @@
 import { firstPartyClient } from "./requests";
 import envs from "./env_configs";
-import type { CommunityInvite, ICommunityMetadata } from "../vars/interfaces";
+import type { CommunityInvite, ICommunityMetadata, IEntityRef } from "../vars/interfaces";
 import type { PaginationProp } from "../vars/props";
 
 export interface CommunityCard extends ICommunityMetadata {
@@ -33,12 +33,45 @@ export interface CommunityResult {
 }
 
 export type CommunityJoinResult =
-  | { status: boolean; is_member: true }
-  | { status: boolean; message: string; result: CommunityInvite };
+  | { status: boolean; is_member: true; }
+  | { status: boolean; message: string; result: CommunityInvite; };
+
+export interface CommunityNotification {
+  id: string;
+  type: "community_join_request" | "post_comment" | "post_reaction" | "comment_reaction";
+  description: string;
+  actor: IEntityRef | null;
+  is_anonymous: boolean;
+  created_at: string;
+  request_id: string | null;
+  request_status: "pending" | "accepted" | "declined" | "revoked" | null;
+  post_id: string | null;
+  anchor: string | null;
+}
 
 const baseUrl = () => `${envs.USER_SERVICE_API}/api/realm/communities`;
 const headers = () => ({ "x-access-token": localStorage.getItem("authtoken") });
 const communityUrl = (id: string) => `${baseUrl()}/${encodeURIComponent(id)}`;
+
+export async function listCommunityNotifications(
+  realmId: string,
+  query: { page?: number; } = {},
+) {
+  const response = await firstPartyClient.get<PaginationProp<CommunityNotification> & { activity_revision: number; }>(
+    `${communityUrl(realmId)}/notifications`,
+    { headers: headers(), params: query },
+  );
+  return response.data;
+}
+
+export async function acknowledgeCommunityNotifications(realmId: string, activityRevision: number) {
+  const response = await firstPartyClient.post(
+    `${communityUrl(realmId)}/notifications/read`,
+    { activity_revision: activityRevision },
+    { headers: headers() },
+  );
+  return response.data;
+}
 
 export async function listCommunities(query: CommunityDirectoryQuery = {}) {
   const response = await firstPartyClient.get<PaginationProp<CommunityCard>>(
