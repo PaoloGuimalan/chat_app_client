@@ -64,10 +64,10 @@ export async function listCommunityNotifications(
   return response.data;
 }
 
-export async function acknowledgeCommunityNotifications(realmId: string, activityRevision: number) {
+export async function acknowledgeCommunityNotifications(realmId: string, activityRevision: number, notificationIds: string[]) {
   const response = await firstPartyClient.post(
     `${communityUrl(realmId)}/notifications/read`,
-    { activity_revision: activityRevision },
+    { activity_revision: activityRevision, notification_ids: notificationIds },
     { headers: headers() },
   );
   return response.data;

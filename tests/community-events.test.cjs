@@ -97,3 +97,15 @@ test('management notifications relay the Redis bridge result envelope', () => {
   source.emit('community_notifications_changed', { ...payload, status: false });
   assert.equal(relayed.length, 1);
 });
+
+test('personal preview changes use their own signal and never refresh the management inbox', () => {
+  const { source, relayed } = connect();
+  const payload = { auth: true, status: true, result: { realm_id: 'garden', community_entity_id: 'garden-entity', type: 'community_admin_activity' } };
+  source.emit('community_admin_preview_changed', payload);
+  assert.equal(relayed.length, 1);
+  assert.equal(relayed[0].type, 'personal-notifications-changed');
+  assert.equal(relayed[0].detail.event, 'community_admin_preview_changed');
+  source.emit('community_admin_preview_changed', { ...payload, auth: false });
+  source.emit('community_admin_preview_changed', { ...payload, status: false });
+  assert.equal(relayed.length, 1);
+});

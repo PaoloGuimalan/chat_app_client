@@ -66,8 +66,8 @@ test('personal Activity refreshes an updated summary even when document total is
   const view = render(React.createElement(Notifications));
   await act(async () => loads[0](overview(2, '2 new activities')));
   assert.ok(view.getByText('2 new activities'));
-  act(() => document.dispatchEvent(new dom.window.CustomEvent('community-changed', {
-    detail: { event: 'community_notifications_changed', realm_id: 'garden' },
+  act(() => document.dispatchEvent(new dom.window.CustomEvent('personal-notifications-changed', {
+    detail: { event: 'community_admin_preview_changed', realm_id: 'garden' },
   })));
   assert.equal(loads.length, 2);
   await act(async () => loads[1](overview(3, '3 new activities')));
@@ -93,8 +93,8 @@ test('automatic and explicit reads use only the summary revisions actually displ
 test('a delayed overview cannot replace a newer summary response', async () => {
   const Notifications = loadNotifications();
   const view = render(React.createElement(Notifications));
-  act(() => document.dispatchEvent(new dom.window.CustomEvent('community-changed', {
-    detail: { event: 'community_notifications_changed', realm_id: 'garden' },
+  act(() => document.dispatchEvent(new dom.window.CustomEvent('personal-notifications-changed', {
+    detail: { event: 'community_admin_preview_changed', realm_id: 'garden' },
   })));
   await act(async () => loads[1](overview(3, '3 new activities')));
   await act(async () => loads[0](overview(2, '2 new activities')));
@@ -129,4 +129,15 @@ test('read transport sends valid summary snapshots and retains ordinary bulk rea
   ] }));
   assert.equal(JSON.stringify(requests[1][1]), '{"community_summaries":[]}');
   assert.equal(requests[0][2].headers['x-access-token'], 'token');
+});
+
+test('immediate inbox activity does not refresh the personal preview before its batch', async () => {
+  const Notifications = loadNotifications();
+  const view = render(React.createElement(Notifications));
+  await act(async () => loads[0](overview(2, '2 saved activities')));
+  act(() => document.dispatchEvent(new dom.window.CustomEvent('community-changed', {
+    detail: { event: 'community_notifications_changed', realm_id: 'garden' },
+  })));
+  assert.equal(loads.length, 1);
+  assert.ok(view.getByText('2 saved activities'));
 });

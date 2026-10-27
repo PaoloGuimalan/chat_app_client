@@ -38,7 +38,9 @@ function load(relative, overrides = {}) {
         Avatar: ({ id, name, src }) => React.createElement('span', { 'data-avatar-id': id, 'data-avatar-name': name, 'data-avatar-src': src }),
         Card: ({ children, className }) => React.createElement('div', { className }, children),
         Btn: ({ children, onClick, disabled }) => React.createElement('button', { onClick, disabled }, children),
-        Icon: () => null,
+        Icon: ({ n }) => React.createElement('span', { 'data-icon': n }),
+        PageFlag: ({ realmType }) => realmType === 'page' ? React.createElement('span', { title: 'Page' }) : null,
+        BotFlag: ({ type }) => type === 'bot' ? React.createElement('span', { title: 'Bot' }) : null,
       };
       if (name === 'react-loading-skeleton') return { __esModule: true, default: () => null, SkeletonTheme: ({ children }) => children };
       if (name.endsWith('.css')) return {};
@@ -64,7 +66,7 @@ test('join requests show current status and review only pending requests', async
   await act(async () => calls[0].resolve(page([row(), row({ id: 'old', request_status: 'accepted' })])));
   assert.equal(view.getAllByText('Review request').length, 1);
   assert.ok(view.getByText('Approved'));
-  assert.deepEqual(acknowledgments, [['community', 12]]);
+  assert.equal(JSON.stringify(acknowledgments), JSON.stringify([['community', 12, ['notice', 'old']]]));
   fireEvent.click(view.getByText('Review request'));
   assert.deepEqual(destinations, ['/realms/community/members']);
 });
@@ -79,19 +81,65 @@ test('media activity opens its permalink and anonymous rows discard every actor 
   assert.deepEqual(destinations, ['/post/photo?anchor=comment-1']);
 });
 
+test('notification subjects are bold and retain current user, page and bot markers', async () => {
+  const view = mount();
+  await act(async () => calls[0].resolve(page([
+    row({ description: 'Mika wants to join Garden Club.', actor: {
+      id: 'mika', type: 'user', details: { first_name: 'Mika', is_badged: true },
+    } }),
+    row({ id: 'page', description: 'Neon Systems commented on Garden Club’s post.',
+      type: 'post_comment', post_id: 'photo', actor: {
+        id: 'neon', type: 'realm', details: { name: 'Neon Systems', type: 'page', is_verified: true },
+      } }),
+    row({ id: 'bot', description: 'Helper reacted to Garden Club’s post.',
+      type: 'post_reaction', post_id: 'photo', actor: {
+        id: 'helper', type: 'bot', details: { name: 'Helper', is_verified: true },
+      } }),
+  ])));
+  const rows = view.container.querySelectorAll('article');
+  assert.equal(rows[0].querySelector('strong')?.textContent, 'Mika');
+  assert.ok(rows[0].querySelector('[data-icon="verified"]'));
+  assert.equal(rows[1].querySelector('strong')?.textContent, 'Neon Systems');
+  assert.ok(rows[1].querySelector('[title="Page"]'));
+  assert.ok(rows[2].querySelector('[title="Bot"]'));
+  assert.equal(view.container.textContent.match(/Neon Systems/g).length, 1);
+});
+
+test('anonymous subjects stay bold without exposing supplied identity markers', async () => {
+  const view = mount();
+  await act(async () => calls[0].resolve(page([row({
+    is_anonymous: true, type: 'post_reaction', post_id: 'photo',
+    description: 'An anonymous member reacted to Garden Club’s post.',
+    actor: { id: 'private', type: 'realm', details: { name: 'Secret Page', type: 'page', is_verified: true } },
+  })])));
+  assert.equal(view.container.querySelector('strong')?.textContent, 'An anonymous member');
+  assert.equal(view.container.querySelector('[data-icon="verified"]'), null);
+  assert.equal(view.container.querySelector('[title="Page"]'), null);
+  assert.doesNotMatch(view.container.innerHTML, /Secret Page|private/);
+});
+
+test('email verification alone does not display a user identity badge', async () => {
+  const view = mount();
+  await act(async () => calls[0].resolve(page([row({ actor: {
+    id: 'mika', type: 'user', details: { first_name: 'Mika', is_badged: false, is_verified: true },
+  } })])));
+  assert.equal(view.container.querySelector('[data-icon="verified"]'), null);
+});
+
 test('load more appends rows and failures preserve existing activity with a retry', async () => {
   const view = mount();
   await act(async () => calls[0].resolve(page([row()], 'https://api.fixture?page=2')));
   fireEvent.click(view.getByText('Load more'));
   assert.equal(calls[1].args[1].page, 2);
   await act(async () => calls[1].reject(new Error('offline')));
-  assert.ok(view.getByText('Mika wants to join Garden Club.'));
+  assert.match(view.container.textContent, /Mika wants to join Garden Club\./);
   assert.equal(errors.length, 1);
   fireEvent.click(view.getByText('Try again'));
   await act(async () => calls[2].resolve(page([row({ id: 'next', description: 'Lee reacted to your community’s post.', type: 'post_reaction', post_id: 'photo' })])));
-  assert.ok(view.getByText('Mika wants to join Garden Club.'));
+  assert.match(view.container.textContent, /Mika wants to join Garden Club\./);
   assert.ok(view.getByText('Lee reacted to your community’s post.'));
-  assert.equal(acknowledgments.length, 1);
+  assert.equal(acknowledgments.length, 2);
+  assert.equal(JSON.stringify(acknowledgments[1]), JSON.stringify(['community', 12, ['next']]));
 });
 
 test('actor switch and unmount ignore stale success and failure responses', async () => {
@@ -150,12 +198,13 @@ test('notification transport uses the configured API, encoded realm and authenti
     './env_configs': { __esModule: true, default: { USER_SERVICE_API: 'https://users.fixture' } },
   });
   await api.listCommunityNotifications('garden club', { page: 2 });
-  await api.acknowledgeCommunityNotifications('garden club', 12);
+  await api.acknowledgeCommunityNotifications('garden club', 12, ['notice-1']);
   assert.equal(requests[0][1], 'https://users.fixture/api/realm/communities/garden%20club/notifications');
   assert.equal(requests[0][2].headers['x-access-token'], 'fixture-token');
   assert.equal(requests[0][2].params.page, 2);
   assert.equal(requests[1][1], 'https://users.fixture/api/realm/communities/garden%20club/notifications/read');
   assert.equal(requests[1][2].activity_revision, 12);
+  assert.equal(JSON.stringify(requests[1][2].notification_ids), JSON.stringify(['notice-1']));
   assert.equal(requests[1][3].headers['x-access-token'], 'fixture-token');
 });
 

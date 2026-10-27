@@ -3,7 +3,7 @@ import { useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import Skeleton, { SkeletonTheme } from "react-loading-skeleton";
 import { AnonymousAvatar } from "@/app/reusables/ContributionAuthor";
-import { Avatar, Btn, Card, Icon } from "@/reusables/design";
+import { Avatar, BotFlag, Btn, Card, Icon, PageFlag } from "@/reusables/design";
 import {
   listCommunityNotifications,
   acknowledgeCommunityNotifications,
@@ -83,10 +83,11 @@ export default function Notifications({
           busy: false,
           error: false,
         }));
-        if (page === 1 && Number.isInteger(result.activity_revision)) {
-          // Acknowledge exactly the snapshot displayed. Newer activity must
-          // keep its personal bell summary unread on the server.
-          void acknowledgeCommunityNotifications(realmId, result.activity_revision)
+        if (Number.isInteger(result.activity_revision)) {
+          // Acknowledge only the rows displayed on this page. Later arrivals
+          // and rows not loaded yet remain unread for this administrator.
+          void acknowledgeCommunityNotifications(realmId, result.activity_revision,
+            result.results.filter(row => supportedTypes.has(row.type)).map(row => row.id))
             .catch(failure => {
               if (active && currentScope.current === scope)
                 notifyRequestError(failure, "We couldn't mark community activity as read.");
@@ -134,6 +135,13 @@ export default function Notifications({
             || details.name || details.username || "Someone"
           );
           const isRequest = row.type === "community_join_request";
+          const verified = entity?.type === "user"
+            ? details.is_badged === true
+            : details.is_verified === true || details.is_badged === true;
+          const subject = row.is_anonymous ? "An anonymous member" : name;
+          const description = row.description.startsWith(subject)
+            ? row.description.slice(subject.length)
+            : null;
           const date = new Date(row.created_at);
           const validDate = !Number.isNaN(date.getTime());
           return (
@@ -142,11 +150,28 @@ export default function Notifications({
                 id={entity ? details.username || details.slug : undefined}
                 entityId={entity?.id}
                 name={name}
+                kind={entity?.type}
                 src={details.profile && !["none", "N/A"].includes(details.profile) ? details.profile : undefined}
                 size={40}
               />}
               <div className="cl-community-notifications__content">
-                <p>{row.description}</p>
+                <p>
+                  {description === null ? row.description : <>
+                    <strong className="cl-community-notifications__subject">
+                      <span>{subject}</span>
+                      {entity && verified && (
+                        <Icon n="verified" s={14} c="var(--brand)" />
+                      )}
+                      {entity?.type === "realm" && (
+                        details.type === "community"
+                          ? <Icon n="groups" s={18} c="var(--text-3)" />
+                          : <PageFlag realmType={details.type} size={13} />
+                      )}
+                      <BotFlag type={entity?.type} size={13} />
+                    </strong>
+                    {description}
+                  </>}
+                </p>
                 <div className="cl-community-notifications__meta">
                   <Icon n={isRequest ? "person_add" : row.type === "post_comment" ? "chat_bubble_outline" : "favorite_border"} s={14} />
                   {validDate && <time dateTime={row.created_at} title={date.toLocaleString()}>{timeSince(date)}</time>}

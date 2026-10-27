@@ -75,6 +75,7 @@ const SSENotificationsTRequest = (
   });
 
   for (const event of [
+    "community_admin_preview_changed",
     "community_access_changed",
     "community_members_changed",
     "community_requests_changed",
@@ -89,8 +90,11 @@ const SSENotificationsTRequest = (
         if (!data?.auth || !data.status) return;
         const signal = data.realm_id ? data : data.result;
         if (!signal?.realm_id) return;
+        const relay = event === "community_admin_preview_changed"
+          ? "personal-notifications-changed"
+          : "community-changed";
         document.dispatchEvent(
-          new CustomEvent("community-changed", {
+          new CustomEvent(relay, {
             detail: { ...signal, realm_id: String(signal.realm_id), event },
           }),
         );

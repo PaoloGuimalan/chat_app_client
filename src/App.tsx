@@ -97,6 +97,13 @@ function App() {
   }, [alerts, scrollDivAlerts]);
 
   const [nextPathState, setnextPathState] = useState<string | null>(null);
+  const wasAuthenticated = useRef(authentication.auth === true);
+  const justLoggedOut = wasAuthenticated.current && authentication.auth === false;
+
+  useEffect(() => {
+    wasAuthenticated.current = authentication.auth === true;
+    if (justLoggedOut) setnextPathState(null);
+  }, [authentication.auth, justLoggedOut]);
 
   useEffect(() => {
     const nextPath = window.location.href.replace(window.location.origin, "");
@@ -110,6 +117,10 @@ function App() {
       setnextPathState(nextPath);
     }
   }, []);
+
+  // A signed-out profile visitor may use the public route; a logout must
+  // finish at login before that guest-route fallback can run.
+  if (justLoggedOut) return <Navigate to="/login" replace />;
 
   return (
     <div className="App">

@@ -246,13 +246,13 @@ function Notifications() {
 
   useEffect(() => {
     const refresh = (event: Event) => {
-      if ((event as CustomEvent).detail?.event === "community_notifications_changed") {
+      if ((event as CustomEvent).detail?.event === "community_admin_preview_changed") {
         fetchOverview();
       }
     };
-    document.addEventListener("community-changed", refresh);
+    document.addEventListener("personal-notifications-changed", refresh);
     return () => {
-      document.removeEventListener("community-changed", refresh);
+      document.removeEventListener("personal-notifications-changed", refresh);
       overviewRequest.current += 1;
     };
   }, []);
