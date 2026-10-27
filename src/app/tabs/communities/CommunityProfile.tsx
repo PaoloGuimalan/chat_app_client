@@ -4,7 +4,8 @@ import { useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import Skeleton from "react-loading-skeleton";
-import { Avatar, Btn, Icon } from "@/reusables/design";
+import { Avatar, BotFlag, Btn, Icon, PageFlag } from "@/reusables/design";
+import { RiVerifiedBadgeFill } from "react-icons/ri";
 import CommunityName from "@/app/reusables/CommunityName";
 import { CommunityPostScope } from "@/app/reusables/CommunityPostScope";
 import ConfirmModal from "@/app/widgets/modals/ConfirmModal";
@@ -185,7 +186,7 @@ export default function CommunityProfile({
     const version = epoch.current;
     try {
       if (community.is_member || community.request_pending) {
-        await leaveCommunity(community.realm_id);
+        await leaveCommunity(community.realm_id, !community.is_member);
       } else {
         await joinCommunity(community.realm_id);
       }
@@ -446,16 +447,46 @@ export default function CommunityProfile({
                     src={member.entity.details.profile}
                     size={36}
                   />
-                  <span className="cl-text-body">
-                    {member.entity.details.name ||
-                      [
-                        member.entity.details.first_name,
-                        member.entity.details.last_name,
-                      ]
-                        .filter(Boolean)
-                        .join(" ") ||
-                      member.entity.details.username}
-                  </span>
+                  <a
+                    className="cl-text-body tw-font-semibold tw-inline-flex tw-items-center tw-gap-[4px] tw-min-w-0 tw-text-[var(--text)]"
+                    href={`/${member.entity.type === "realm" ? member.entity.details.slug || member.entity.details.realm_id : member.entity.type === "bot" ? member.entity.details.handle || member.entity.details.username : member.entity.details.username}`}
+                    onClick={(event) => {
+                      if (
+                        event.button !== 0 ||
+                        event.metaKey ||
+                        event.ctrlKey ||
+                        event.shiftKey ||
+                        event.altKey
+                      )
+                        return;
+                      event.preventDefault();
+                      navigate(event.currentTarget.getAttribute("href")!);
+                    }}
+                  >
+                    <span className="tw-truncate">
+                      {member.entity.details.name ||
+                        [
+                          member.entity.details.first_name,
+                          member.entity.details.last_name,
+                        ]
+                          .filter(Boolean)
+                          .join(" ") ||
+                        member.entity.details.username}
+                    </span>
+                    {member.entity.type !== "bot" &&
+                      (member.entity.details.is_badged ||
+                        member.entity.details.is_verified) && (
+                        <RiVerifiedBadgeFill
+                          size={14}
+                          color="var(--brand)"
+                          style={{ flexShrink: 0 }}
+                        />
+                      )}
+                    {member.entity.type === "realm" && (
+                      <PageFlag realmType={member.entity.details.type} />
+                    )}
+                    {member.entity.type === "bot" && <BotFlag is />}
+                  </a>
                   <span className="cl-text-caption tw-ml-auto tw-text-[var(--text-3)]">
                     {member.role}
                   </span>

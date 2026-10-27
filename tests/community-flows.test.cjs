@@ -45,6 +45,7 @@ const requests = {
   CreatePostRequest: async payload => { saves.push(payload); return { data: { status: true } }; },
   UploadMediaRequest: async (...args) => { uploads.push(args); return { data: { result: [{ fileName: 'photo', fileType: 'image/jpeg', fileDetails: { data: '/uploaded.jpg' } }] } }; },
   GetRealmInviteRequest: async () => ({ result: requestRows }),
+  CreateRealmInviteRequest: async payload => { invitations.push(payload); return { status: true }; },
   UpdateRealmInviteRequest: async payload => { invitations.push(payload); requestRows = requestRows.filter(row => row.invite_token !== payload.invite_token); return { status: true }; },
   GetCommentsRequest: async () => ({ ...empty, results: commentRows, count: commentRows.length }),
   NetworkOverviewRequest: async () => ({ connections: { results: [] }, following: { results: [] } }),
@@ -60,7 +61,7 @@ const api = {
   getCommunity: async () => ({ result: detail }),
   createCommunity: async input => ({ status: true, result: { ...community, ...input } }),
   joinCommunity: async () => { detail = { ...detail, is_member: !detail.is_private, request_pending: detail.is_private }; return { status: true }; },
-  leaveCommunity: async () => { detail = { ...detail, is_member: false, request_pending: false }; return { status: true }; },
+  leaveCommunity: async (_id, cancelOnly = false) => { detail = { ...detail, is_member: cancelOnly ? detail.is_member : false, request_pending: false }; return { status: true, is_member: detail.is_member }; },
 };
 const plain = ({ children }) => React.createElement('div', null, children);
 const original = Module._load;
@@ -102,10 +103,63 @@ const CreateCommunity = require('../src/app/widgets/modals/CreateCommunityModal.
 const PostDestination = require('../src/app/reusables/PostDestination.tsx').default;
 const SearchRealmCard = require('../src/app/tabs/search/partials/RealmCard.tsx').default;
 const CommunityRequests = require('../src/app/widgets/invites/CommunityRequests.tsx').default;
+const PublicServerItem = require('../src/app/widgets/items/PublicServerItem.tsx').default;
 const ManageRealm = require('../src/app/tabs/realms/manage/ManageRealm.tsx').default;
 const PostOptions = require('../src/app/tabs/profile/user/PostOptions.tsx').default;
 const composerProps = { community, toShare: false, withImage: false, setcreateposttext() {}, getpostprocess() {}, onclose: value => closes.push(value) };
 test.afterEach(cleanup);
+
+test('community cards request and cancel membership directly without navigating', async () => {
+  reset();
+  directory = [{ ...community, is_member: false, request_pending: false, my_role: null }];
+  detail = directory[0];
+  const screen = render(React.createElement(Communities));
+  await waitFor(() => assert.ok(screen.queryByRole('button', { name: 'Request to join', exact: true })));
+  fireEvent.click(screen.getByRole('button', { name: 'Request to join', exact: true }));
+  await waitFor(() => assert.ok(screen.queryByRole('button', { name: 'Cancel request' })));
+  assert.deepEqual(navigations, []);
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel request' }));
+  await waitFor(() => assert.ok(screen.queryByRole('button', { name: 'Request to join', exact: true })));
+  assert.equal(detail.request_pending, false);
+  assert.deepEqual(navigations, []);
+});
+
+test('private server cards cancel and restore requests without reloading', async () => {
+  reset();
+  const screen = render(React.createElement(PublicServerItem, { flexed: false,
+    mp: { id: 'server', realm_id: 'server', entity: 'server-entity', name: 'Private server',
+      type: 'server', is_private: true, request_pending: true, is_member: false, members: 4 } }));
+  fireEvent.click(screen.getByRole('button', { name: 'Cancel request' }));
+  await waitFor(() => assert.ok(screen.queryByRole('button', { name: 'Request to join' })));
+  assert.deepEqual(invitations[0], { realm_id: 'server', status: 'revoked' });
+  fireEvent.click(screen.getByRole('button', { name: 'Request to join' }));
+  await waitFor(() => assert.ok(screen.queryByRole('button', { name: 'Cancel request' })));
+  assert.deepEqual(invitations[1], { realm_id: 'server', kind: 'request' });
+});
+
+test('community member names link to their entity profiles with bold identity markers', async () => {
+  reset();
+  memberQuery = async () => ({ ...empty, results: [
+    { member_id: 'person', role: 'member', entity: { id: 'person', type: 'user', details: {
+      first_name: 'Mika', last_name: 'Santos', username: 'mika', is_badged: true } } },
+    { member_id: 'page', role: 'member', entity: { id: 'page', type: 'realm', details: {
+      name: 'Garden Page', slug: 'garden-page', type: 'page', is_verified: true } } },
+    { member_id: 'bot', role: 'member', entity: { id: 'bot', type: 'bot', details: {
+      name: 'Garden Bot', handle: 'garden-bot' } } },
+  ] });
+  const screen = render(React.createElement(Profile));
+  await waitFor(() => assert.ok(screen.queryByRole('button', { name: 'Members', exact: true })));
+  fireEvent.click(screen.getByRole('button', { name: 'Members', exact: true }));
+  await waitFor(() => assert.ok(screen.queryByRole('link', { name: /Mika Santos/ })));
+  for (const [name, path] of [['Mika Santos', '/mika'], ['Garden Page', '/garden-page'], ['Garden Bot', '/garden-bot']]) {
+    const link = screen.getByRole('link', { name: new RegExp(name) });
+    assert.equal(link.getAttribute('href'), path);
+    assert.ok(link.className.includes('tw-font-semibold'));
+    fireEvent.click(link);
+    assert.equal(navigations.at(-1), path);
+  }
+  assert.ok(screen.getByRole('link', { name: /Mika Santos/ }).querySelector('svg'));
+});
 
 test('sharing supports community destination and anonymous identity', async () => {
   reset();

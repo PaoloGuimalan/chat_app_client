@@ -78,10 +78,17 @@ export async function joinCommunity(realmId: string) {
   return response.data;
 }
 
-export async function leaveCommunity(realmId: string) {
+export async function leaveCommunity(
+  realmId: string,
+  cancelRequestOnly = false,
+) {
   const response = await firstPartyClient.post<{
     status: boolean;
-    is_member: false;
-  }>(`${communityUrl(realmId)}/leave`, {}, { headers: headers() });
+    is_member: boolean;
+  }>(
+    `${communityUrl(realmId)}/leave`,
+    cancelRequestOnly ? { cancel_request: true } : {},
+    { headers: headers() },
+  );
   return response.data;
 }

@@ -10330,3 +10330,22 @@ body::-webkit-scrollbar-thumb:hover,
     animation-duration: 0.01s;
   }
 }
+
+
+.cl-server-card .cl-display-card__button--primary {
+  background: var(--gold) !important;
+  color: var(--on-brand) !important;
+}
+
+.cl-server-card .cl-display-card__button--primary:hover {
+  background: color-mix(in srgb, var(--gold) 88%, white 12%) !important;
+}
+
+.cl-server-card .cl-display-card__button--outline {
+  color: var(--gold) !important;
+  border-color: var(--gold) !important;
+}
+
+.cl-server-card .cl-display-card__button--outline:hover {
+  background: var(--gold-soft) !important;
+}

@@ -158,10 +158,10 @@ function RealmCard({
           <Btn
             block
             size="sm"
-            disabled={joinBusy || realm.request_pending}
+            disabled={joinBusy}
             onClick={() => onJoinGroup(realm)}
           >
-            {realm.request_pending ? "Request pending" : "Request to join"}
+            {realm.request_pending ? "Cancel request" : "Request to join"}
           </Btn>
         ) : realm.realm_type === "server" ||
           realm.realm_type === "community" ? (

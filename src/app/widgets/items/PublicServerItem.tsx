@@ -5,6 +5,7 @@ import { motion } from "framer-motion";
 import {
   AddNewMemberToServer,
   CreateRealmInviteRequest,
+  UpdateRealmInviteRequest,
   RemoveRealmMemberRequest,
 } from "@/reusables/hooks/requests";
 import { useDispatch, useSelector } from "react-redux";
@@ -67,21 +68,28 @@ function PublicServerItem({
   const [isLeaving, setisLeaving] = useState<boolean>(false);
 
   const joinServerProcess = () => {
-    if (requestPending) return;
+    if (isJoining) return;
     setisJoining(true);
     if (mp.is_private) {
-      CreateRealmInviteRequest({
-        realm_id: mp.realm_id || mp.id,
-        kind: "request",
-      })
+      const failure = requestPending
+        ? "We couldn't cancel this request. Please try again."
+        : JOIN_FAILED;
+      const action = requestPending
+        ? UpdateRealmInviteRequest({
+            realm_id: mp.realm_id || mp.id,
+            status: "revoked",
+          })
+        : CreateRealmInviteRequest({
+            realm_id: mp.realm_id || mp.id,
+            kind: "request",
+          });
+      action
         .then((response) => {
           if (response.status === false)
-            throw new Error(response.message || JOIN_FAILED);
-          setRequestPending(true);
+            throw new Error(response.message || failure);
+          setRequestPending(!requestPending);
         })
-        .catch((error) =>
-          notifyFailure(resolveErrorMessage(error, JOIN_FAILED)),
-        )
+        .catch((error) => notifyFailure(resolveErrorMessage(error, failure)))
         .finally(() => setisJoining(false));
       return;
     }
@@ -158,7 +166,7 @@ function PublicServerItem({
 
   return (
     <div
-      className={`cl-display-card tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col`}
+      className={`cl-display-card cl-server-card tw-w-full tw-h-[300px] tw-min-h-[300px] ${!flexed && "tw-max-w-[300px]"} tw-flex tw-flex-col`}
     >
       <div className="cl-display-card__surface tw-relative tw-w-full tw-h-full tw-min-h-[0px] tw-flex tw-flex-col tw-justify-start tw-items-center">
         <RealmCardReportButton
@@ -205,7 +213,7 @@ function PublicServerItem({
             <span className="cl-display-card__description cl-text-caption tw-font-Inter tw-text-left line_clamp">
               {mp.description}
             </span>
-            <div className="tw-w-full tw-flex tw-flex-row tw-flex-1 tw-justify-between tw-items-end tw-gap-[10px] tw-pb-[15px]">
+            <div className="tw-w-full tw-flex tw-flex-row tw-flex-1 tw-justify-between tw-items-end tw-flex-wrap tw-gap-[10px] tw-pb-[15px]">
               <span className="cl-display-card__meta cl-text-caption tw-mb-[5px]">
                 {mp.members} member/s
               </span>
@@ -213,7 +221,7 @@ function PublicServerItem({
                 isLeaving ? (
                   <button
                     disabled
-                    className="cl-display-card__button cl-display-card__button--muted cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-none"
+                    className="cl-display-card__button cl-display-card__button--muted cl-text-caption tw-min-h-[27px] tw-min-w-[100px] tw-max-w-full tw-px-[10px] tw-py-[4px] tw-whitespace-nowrap tw-leading-snug tw-shrink-0 tw-border-none"
                   >
                     <div className="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center">
                       <motion.div
@@ -239,7 +247,7 @@ function PublicServerItem({
                         ? setisOwnerBlockOpen(true)
                         : setisLeaveConfirmOpen(true)
                     }
-                    className="cl-display-card__button cl-display-card__button--outline cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-[1px] tw-border-solid tw-cursor-pointer"
+                    className="cl-display-card__button cl-display-card__button--outline cl-text-caption tw-min-h-[27px] tw-min-w-[100px] tw-max-w-full tw-px-[10px] tw-py-[4px] tw-whitespace-nowrap tw-leading-snug tw-shrink-0 tw-border-[1px] tw-border-solid tw-cursor-pointer"
                   >
                     Leave
                   </button>
@@ -247,14 +255,14 @@ function PublicServerItem({
               ) : isJoined ? (
                 <button
                   disabled
-                  className="cl-display-card__button cl-display-card__button--muted cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-none"
+                  className="cl-display-card__button cl-display-card__button--muted cl-text-caption tw-min-h-[27px] tw-min-w-[100px] tw-max-w-full tw-px-[10px] tw-py-[4px] tw-whitespace-nowrap tw-leading-snug tw-shrink-0 tw-border-none"
                 >
                   Joined
                 </button>
               ) : isJoining ? (
                 <button
                   disabled
-                  className="cl-display-card__button cl-display-card__button--muted cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-none"
+                  className="cl-display-card__button cl-display-card__button--muted cl-text-caption tw-min-h-[27px] tw-min-w-[100px] tw-max-w-full tw-px-[10px] tw-py-[4px] tw-whitespace-nowrap tw-leading-snug tw-shrink-0 tw-border-none"
                 >
                   <div className="tw-h-full tw-w-full tw-flex tw-items-center tw-justify-center">
                     <motion.div
@@ -274,10 +282,10 @@ function PublicServerItem({
               ) : !isSelf ? (
                 <button
                   onClick={joinServerProcess}
-                  className="cl-display-card__button cl-display-card__button--primary cl-text-caption tw-h-[27px] tw-w-[100px] tw-border-none tw-cursor-pointer"
+                  className="cl-display-card__button cl-display-card__button--primary cl-text-caption tw-min-h-[27px] tw-min-w-[100px] tw-max-w-full tw-px-[10px] tw-py-[4px] tw-whitespace-nowrap tw-leading-snug tw-shrink-0 tw-border-none tw-cursor-pointer"
                 >
                   {requestPending
-                    ? "Request pending"
+                    ? "Cancel request"
                     : mp.is_private
                       ? "Request to join"
                       : "Join"}

@@ -17,6 +17,7 @@ import {
   GetPostPreviewRequest,
   JoinRealmGroupRequest,
   CreateRealmInviteRequest,
+  UpdateRealmInviteRequest,
   SearchOverviewRequest,
   SearchPeopleRequest,
   SearchPostsRequest,
@@ -480,11 +481,14 @@ function SearchPage() {
     if (joinBusy[realm.entity_id]) return;
     setJoinBusy((prev) => ({ ...prev, [realm.entity_id]: true }));
     if (realm.realm_type === "server" && realm.is_private) {
-      CreateRealmInviteRequest({ realm_id: realm.id, kind: "request" })
+      const action = realm.request_pending
+        ? UpdateRealmInviteRequest({ realm_id: realm.id, status: "revoked" })
+        : CreateRealmInviteRequest({ realm_id: realm.id, kind: "request" });
+      action
         .then((result) => {
           if (result.status === false)
             throw new Error(result.message || "The request could not be sent.");
-          applyMemberState(realm.entity_id, false, true);
+          applyMemberState(realm.entity_id, false, !realm.request_pending);
         })
         .catch((error) =>
           notifyRequestError(error, "We couldn't request to join this server."),
