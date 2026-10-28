@@ -38,7 +38,13 @@ export type CommunityJoinResult =
 
 export interface CommunityNotification {
   id: string;
-  type: "community_join_request" | "post_comment" | "post_reaction" | "comment_reaction";
+  type:
+    | "community_join_request"
+    | "community_member_joined"
+    | "community_post_created"
+    | "post_comment"
+    | "post_reaction"
+    | "comment_reaction";
   description: string;
   actor: IEntityRef | null;
   is_anonymous: boolean;

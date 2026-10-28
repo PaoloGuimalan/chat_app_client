@@ -265,3 +265,17 @@ test('community moderators can use modal notifications and review in its existin
   fireEvent.click(view.getByText('Review request'));
   assert.ok(view.getByText('Members content'));
 });
+
+test('member joins and new posts render in the community inbox with their actions', async () => {
+  const view = mount();
+  await act(async () => calls[0].resolve(page([
+    row({ id: 'joined', type: 'community_member_joined', description: 'Mika joined Garden Club.', request_id: null, request_status: null }),
+    row({ id: 'posted', type: 'community_post_created', description: 'Mika posted in Garden Club.', post_id: 'new-post', request_id: null, request_status: null }),
+  ])));
+  assert.match(view.container.textContent, /Mika joined Garden Club/);
+  assert.match(view.container.textContent, /Mika posted in Garden Club/);
+  assert.equal(view.container.querySelectorAll('strong').length, 2);
+  fireEvent.click(view.getByText('View post'));
+  assert.deepEqual(destinations, ['/post/new-post']);
+  assert.equal(view.queryByText('Review request'), null);
+});

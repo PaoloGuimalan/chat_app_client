@@ -16,7 +16,8 @@ import "@/styles/community-notifications.css";
 
 const FAILED = "Community notifications could not be loaded. Please try again.";
 const supportedTypes = new Set([
-  "community_join_request", "post_comment", "post_reaction", "comment_reaction",
+  "community_join_request", "community_member_joined", "community_post_created",
+  "post_comment", "post_reaction", "comment_reaction",
 ]);
 const statuses = {
   pending: "Pending", accepted: "Approved", declined: "Declined", revoked: "Withdrawn",
@@ -122,7 +123,7 @@ export default function Notifications({
     <section className="cl-community-notifications" aria-label="Community notifications">
       <header className="cl-community-notifications__heading">
         <h1>Notifications</h1>
-        <p>Join requests and activity on your community’s own posts.</p>
+        <p>Join requests, members, posts and community activity.</p>
       </header>
       <Card pad={0} className="cl-community-notifications__list">
         {rows.map(row => {
@@ -173,7 +174,9 @@ export default function Notifications({
                   </>}
                 </p>
                 <div className="cl-community-notifications__meta">
-                  <Icon n={isRequest ? "person_add" : row.type === "post_comment" ? "chat_bubble_outline" : "favorite_border"} s={14} />
+                  <Icon n={isRequest || row.type === "community_member_joined"
+                    ? "person_add" : row.type === "community_post_created" ? "article"
+                      : row.type === "post_comment" ? "chat_bubble_outline" : "favorite_border"} s={14} />
                   {validDate && <time dateTime={row.created_at} title={date.toLocaleString()}>{timeSince(date)}</time>}
                   {isRequest && <span className="cl-community-notifications__status">{row.request_status ? statuses[row.request_status] : "Request unavailable"}</span>}
                 </div>
@@ -214,7 +217,7 @@ export default function Notifications({
           <div className="cl-community-notifications__notice">
             <Icon n="notifications_none" s={32} c="var(--text-3)" />
             <h2>No notifications yet</h2>
-            <p>New join requests, comments and reactions on your community’s own posts will appear here.</p>
+            <p>Join requests, new members, posts and activity on your community’s own posts will appear here.</p>
           </div>
         )}
       </Card>
