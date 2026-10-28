@@ -78,8 +78,12 @@ function PostsContainer({
     scope: "",
     message: "",
   });
-  const loadError =
-    communityError.scope === communityScope ? communityError.message : "";
+  const [profileError, setProfileError] = useState("");
+  const loadError = community
+    ? communityError.scope === communityScope
+      ? communityError.message
+      : ""
+    : profileError;
   const canReadCommunity = !community?.is_private || community.is_member;
   const communityAccessDenied = deniedCommunityScope === communityScope;
 
@@ -132,6 +136,7 @@ function PostsContainer({
       }));
       return;
     }
+    setProfileError("");
     setIsLoadingMore(true);
     GetPostRequest({
       current_user_id: authentication.user.entity_id,
@@ -164,10 +169,10 @@ function PostsContainer({
         }, 1500);
       })
       .catch((err) => {
-        setTimeout(() => {
-          setIsLoadingMore(false);
-        }, 1500);
-        console.log(err);
+        setProfileError("failed");
+        setispostsloaded(true);
+        setIsLoadingMore(false);
+        notifyRequestError(err, "Posts could not be loaded.");
       });
   };
 
@@ -342,22 +347,25 @@ function PostsContainer({
           />
         </Card>
       )}
-      {community && loadError && (
+      {loadError && (
         <Card
           pad={12}
           className="cl-bleed"
           style={{ width: "100%", marginBottom: 8 }}
         >
           <div className="tw-flex tw-flex-col tw-items-start tw-gap-[8px] tw-text-left">
+            <span role="alert">Posts could not be loaded.</span>
             <button
               className="cl-profile-action-button--secondary cl-text-caption tw-p-[8px] tw-rounded-[12px] tw-cursor-pointer"
-              onClick={() =>
-                setCommunityPaging({
-                  scope: communityScope,
-                  page: communityPage,
-                  revision: communityRevision + 1,
-                })
-              }
+              onClick={() => {
+                if (community) {
+                  setCommunityPaging({
+                    scope: communityScope,
+                    page: communityPage,
+                    revision: communityRevision + 1,
+                  });
+                } else GetPostProcess();
+              }}
             >
               Try again
             </button>
@@ -439,7 +447,7 @@ function PostsContainer({
           height: visiblePosts.next ? "auto" : "0px",
         }}
         animate={{
-          height: visiblePosts.next ? "auto" : "0px",
+          height: visiblePosts.next && !loadError ? "auto" : "0px",
         }}
         className="tw-bg-transparent tw-w-full tw-flex tw-items-center tw-justify-center tw-mt-[5px] tw-mb-[5px] tw-overflow-y-hidden"
       >

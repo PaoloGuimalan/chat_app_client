@@ -85,6 +85,7 @@ function RealmProfile({
     useState<PaginationProp<IPost>>(postsliststate);
   const posts: IPost[] = paginatedPosts.results;
   const [ispostsloaded, setispostsloaded] = useState<boolean>(false); // must be false when actual
+  const [loadError, setLoadError] = useState(false);
   const [createposttext, setcreateposttext] = useState<string>("");
   const [toggleNewPostModal, settoggleNewPostModal] = useState<any>({
     toggle: false,
@@ -234,6 +235,7 @@ function RealmProfile({
   }, [divcontentRef, divlazyloaderRef, realmInfo]);
 
   const GetPostProcess = () => {
+    setLoadError(false);
     GetPostRequest({
       current_user_id: authentication.user.entity_id,
       userID: params.userID,
@@ -262,7 +264,9 @@ function RealmProfile({
         setispostsloaded(true);
       })
       .catch((err: any) => {
-        console.log(err);
+        setLoadError(true);
+        setispostsloaded(true);
+        notifyRequestError(err, "Posts could not be loaded.");
       });
   };
 
@@ -1017,7 +1021,7 @@ function RealmProfile({
                         </Card>
                       );
                     })}
-                    {paginatedPosts.next && (
+                    {paginatedPosts.next && !loadError && (
                       <div
                         ref={divlazyloaderRef}
                         id="divlazyloader"
@@ -1040,7 +1044,7 @@ function RealmProfile({
                       </div>
                     )}
                   </div>
-                ) : ispostsloaded ? (
+                ) : loadError ? null : ispostsloaded ? (
                   <div className="tw-w-full tw-bg-transparent tw-flex tw-flex-col tw-items-center tw-justify-center tw-gap-[10px] tw-mt-[70px]">
                     <FaFileAlt style={{ fontSize: "60px", color: "#333333" }} />
                     <div className="tw-flex tw-flex-col tw-gap-[0px] tw-text-[#333333]">
@@ -1066,6 +1070,23 @@ function RealmProfile({
                       );
                     })}
                   </div>
+                )}
+                {loadError && (
+                  <Card
+                    pad={12}
+                    className="cl-bleed"
+                    style={{ width: "100%", marginBottom: 8 }}
+                  >
+                    <div className="tw-flex tw-flex-col tw-items-start tw-gap-[8px] tw-text-left">
+                      <span role="alert">Posts could not be loaded.</span>
+                      <button
+                        className="cl-profile-action-button--secondary cl-text-caption tw-p-[8px] tw-rounded-[12px] tw-cursor-pointer"
+                        onClick={GetPostProcess}
+                      >
+                        Try again
+                      </button>
+                    </div>
+                  </Card>
                 )}
               </Fragment>
             )}

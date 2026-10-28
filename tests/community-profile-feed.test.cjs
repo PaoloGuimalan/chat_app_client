@@ -35,13 +35,14 @@ Module._load = function (request, parent, isMain) {
   };
   if (request === '@/redux/actions/states') return { postsliststate: empty };
   if (request === '@/redux/types') return { SET_EMOJIS_LIST: 'emojis' };
-  if (request === '@/reusables/design') return { Card: plain };
+  if (request === '@/reusables/design') return { Card: plain, Avatar: () => null, Btn: plain, Icon: () => null, PageFlag: () => null };
   if (request === '@/reusables/design/primitives2') return { Avatar: () => null };
   if (request === './PostItem') return { __esModule: true, default: ({ mp }) => React.createElement('span', { 'data-member': String(mp.community?.is_member) }, mp.caption) };
   if (request === '@/app/reusables/loaders/PostItemLoader') return { __esModule: true, default: () => React.createElement('span', null, 'Loading post') };
   if (request === '@/app/reusables/ProfileComposerContent') return { __esModule: true, default: props => React.createElement('button', { onClick: () => props.onOpen(false) }, props.placeholder) };
   if (request === '@/app/widgets/modals/CreatePost/NewPostModal') return { NewPostModal: props => { composer = props; return React.createElement('button', { onClick: props.getpostprocess }, 'Publish'); } };
   if (/(?:UploadProfileMedia|FullscreenImageViewer)$/.test(request)) return { __esModule: true, default: () => null };
+  if (/(?:ProfileCoverContainer|SavesContainer|ArchivesContainer|ReportModal|ConfirmModal)$/.test(request)) return { __esModule: true, default: () => null };
   if (request === '@/app/tabs/moments/ephemeral') return { MOMENTS_CHANGED_EVENT: 'moments', THOUGHTS_CHANGED_EVENT: 'thoughts' };
   if (request === '@/app/tabs/moments/Thoughts') return {};
   if (request.startsWith('@/')) request = path.join(root, request.slice(2));
@@ -50,6 +51,7 @@ Module._load = function (request, parent, isMain) {
 const { render, fireEvent, act, cleanup } = require('@testing-library/react');
 const PostsContainer = require('../src/app/tabs/profile/user/PostsContainer.tsx').default;
 const ProfilePicContainer = require('../src/app/tabs/profile/user/ProfilePicContainer.tsx').default;
+const RealmProfile = require('../src/app/tabs/profile/user/RealmProfile.tsx').default;
 const props = extra => ({ community, ...extra });
 const postPage = (caption, next = null, isMember = true) => ({ ...empty, count: 1, next, results: [{ post_id: caption, caption, date_posted: '2026-10-26', community: { ...community, is_member: isMember } }] });
 afterEach(() => { cleanup(); requests = []; inView = false; composer = undefined; auth.active_entity_context.id = 'acting-page'; });
@@ -160,6 +162,52 @@ test('ordinary profiles retain their wall composer and account feed destination'
   assert.equal(composer.profileInfo.entityID, 'profile-entity');
   assert.equal(composer.community, undefined);
   await act(async () => requests[0].resolve(empty));
+});
+
+for (const kind of ['user', 'page']) {
+  test(`guest ${kind} feed failures stop loading and can retry`, async () => {
+    const previousAuth = auth.auth;
+    auth.auth = false;
+    try {
+      const screen = kind === 'user'
+        ? render(React.createElement(PostsContainer, { profileInfo: { id: 'profile', entityID: 'profile-entity', fullname: { firstName: 'Someone' } } }))
+        : render(React.createElement(RealmProfile, { realmInfo: { entity: 'page', name: 'Page', type: 'page', members: [] }, isSharePage: true, GetProfileInfoProcess() {} }));
+      assert.ok(screen.getAllByText('Loading post').length > 0);
+      await act(async () => requests[0].reject({ status: 500 }));
+      assert.equal(screen.queryAllByText('Loading post').length, 0);
+      assert.equal(screen.queryByText('No Posts yet'), null);
+      assert.ok(screen.getByText('Posts could not be loaded.'));
+      fireEvent.click(screen.getByText('Try again'));
+      assert.equal(requests.at(-1).query.page, 1);
+      await act(async () => requests.at(-1).resolve(postPage('Recovered post')));
+      assert.ok(screen.getByText('Recovered post'));
+      assert.equal(screen.queryByText('Posts could not be loaded.'), null);
+    } finally {
+      auth.auth = previousAuth;
+    }
+  });
+}
+
+test('page feed retries a failed page without scrolling ahead of its pending retry', async () => {
+  const screen = render(React.createElement(RealmProfile, {
+    realmInfo: { entity: 'page', name: 'Page', type: 'page' },
+    isSharePage: true,
+    GetProfileInfoProcess() {},
+  }));
+  const scroller = screen.container.querySelector('.cl-profile-page__shell');
+  await act(async () => requests[0].resolve(postPage('First page', '/page2')));
+  fireEvent.scroll(scroller);
+  assert.equal(requests.at(-1).query.page, 2);
+  await act(async () => requests.at(-1).reject({ status: 500 }));
+  fireEvent.scroll(scroller);
+  assert.equal(requests.length, 2);
+  fireEvent.click(screen.getByText('Try again'));
+  assert.equal(requests.at(-1).query.page, 2);
+  fireEvent.scroll(scroller);
+  assert.deepEqual(requests.map(request => request.query.page), [1, 2, 2]);
+  await act(async () => requests.at(-1).resolve(postPage('Second page')));
+  assert.ok(screen.getByText('First page'));
+  assert.ok(screen.getByText('Second page'));
 });
 
 test('community avatar skips Moments and Thoughts while ordinary avatars retain them', () => {
