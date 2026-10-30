@@ -39,31 +39,29 @@ function TaggingSummary({ tagging }: { tagging: ITagging[] }) {
     return (
       <span
         key={key}
-        className="cl-feed-card__title tw-font-semibold tw-select-none tw-cursor-pointer tw-inline-block tw-align-middle tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
+        className="cl-feed-card__title tw-font-semibold tw-select-none tw-cursor-pointer tw-inline-flex tw-items-center tw-gap-[2px] tw-align-baseline tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
         onClick={() =>
           navigate(`/${isRealm ? details.slug : details.username}`)
         }
       >
-        <span className="tw-align-middle">{name}</span>
+        <span>{name}</span>
         {badged && (
           <RiVerifiedBadgeFill
             size={16}
             color="var(--brand)"
-            style={{ verticalAlign: "middle", marginLeft: 2 }}
+            className="tw-shrink-0"
           />
         )}
         {isRealm && (
           <span
-            style={{ verticalAlign: "middle", marginLeft: 2 }}
-            className="tw-inline-flex"
+            className="tw-inline-flex tw-shrink-0"
           >
             <PageFlag realmType={details.type} size={14} />
           </span>
         )}
         {mptg.entity.type === "bot" && (
           <span
-            style={{ verticalAlign: "middle", marginLeft: 2 }}
-            className="tw-inline-flex"
+            className="tw-inline-flex tw-shrink-0"
           >
             <BotFlag is size={14} />
           </span>
@@ -73,7 +71,7 @@ function TaggingSummary({ tagging }: { tagging: ITagging[] }) {
   };
 
   return (
-    <span className="tw-text-[14px] tw-min-w-0">
+    <span className="cl-text-body tw-min-w-0">
       is with{" "}
       {visible.map((mptg: ITagging, i: number) => {
         let separator = "";

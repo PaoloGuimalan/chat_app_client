@@ -20,7 +20,7 @@ export default function PostDestination({ post }: { post: Pick<IPost, "tagging" 
       <TaggingSummary tagging={tagging} />
       {showDestination && (
         <span className="cl-text-body">
-          {tagging.length ? " · " : ""}posted in{" "}
+          {tagging.length ? "\u00a0" : ""}posted in{" "}
           <a
             className="cl-community-destination-link"
             href={communityProfilePath(community)}

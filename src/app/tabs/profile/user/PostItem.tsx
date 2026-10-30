@@ -276,8 +276,8 @@ function PostItem({
             <div className="tw-w-[35px] tw-h-[35px] tw-mr-[10px]">
               {postAuthorAvatar(35)}
             </div>
-            <div className="tw-flex tw-flex-1 tw-flex-col tw-items-start tw-gap-[2px]">
-              <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
+            <div className="tw-flex tw-flex-1 tw-min-w-0 tw-flex-col tw-items-start tw-gap-[2px]">
+              <div className="tw-text-left tw-flex tw-flex-wrap tw-items-baseline">
                 <span
                   style={{ cursor: author ? "pointer" : "default" }}
                   className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
@@ -481,8 +481,8 @@ function PostItem({
                       <div className="tw-w-full tw-p-[25px] tw-flex tw-justify-between tw-gap-[12px]">
                         <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
                           {postAuthorAvatar(35)}
-                          <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
-                            <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
+                          <div className="tw-flex tw-min-w-0 tw-flex-col tw-items-start tw-gap-[2px]">
+                            <div className="tw-text-left tw-flex tw-flex-wrap tw-items-baseline">
                               <span
                                 style={{ cursor: author ? "pointer" : "default" }}
                                 className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"

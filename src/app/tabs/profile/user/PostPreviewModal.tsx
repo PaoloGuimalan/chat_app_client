@@ -289,8 +289,8 @@ function PostPreviewModal({
         <div className="tw-w-[calc(100%-0px)] tw-p-[25px] tw-flex tw-justify-between">
           <div className="tw-w-full tw-flex tw-items-center tw-gap-[7px]">
             <ContributionAvatar entity={author} size={35} />
-            <div className="tw-flex tw-flex-col tw-items-start tw-gap-[2px]">
-              <div className="tw-text-left tw-flex tw-flex-wrap tw-items-center">
+            <div className="tw-flex tw-min-w-0 tw-flex-col tw-items-start tw-gap-[2px]">
+              <div className="tw-text-left tw-flex tw-flex-wrap tw-items-baseline">
                 <span
                   className="cl-feed-card__title tw-break-keep cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
                   onClick={() => {

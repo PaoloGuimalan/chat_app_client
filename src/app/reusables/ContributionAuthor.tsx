@@ -69,7 +69,7 @@ export function ContributionName({ entity }: { entity: IFlexibleEntity | null })
     );
   }
   return (
-    <div className="tw-flex tw-items-center tw-gap-[4px]">
+    <span className="tw-inline-flex tw-items-center tw-gap-[4px] tw-align-baseline">
       <span>
         {entity.type === "user" ? (
           <>
@@ -80,8 +80,8 @@ export function ContributionName({ entity }: { entity: IFlexibleEntity | null })
         ) : details.name}
       </span>
       {(entity.type === "user" ? details.is_badged : details.is_verified) && (
-        <RiVerifiedBadgeFill size={16} color="var(--brand)"/>
+        <RiVerifiedBadgeFill size={16} color="var(--brand)" className="tw-shrink-0"/>
       )}
-    </div>
+    </span>
   );
 }
