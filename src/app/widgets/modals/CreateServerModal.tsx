@@ -2,7 +2,7 @@
 import { useEffect, useState } from "react";
 import "../../../styles/styles.css";
 import { IoClose } from "react-icons/io5";
-import { BiGroup } from "react-icons/bi";
+import { TbServer2 } from "react-icons/tb";
 import { useDispatch, useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import {
@@ -232,7 +232,7 @@ function CreateServerModal({ setisCreateServerToggle }: any) {
           <div className="tw-flex tw-flex-1 tw-flex-col tw-max-h-[100%] tw-bg-transparent">
             <div id="div_modal_header">
               <div id="div_server_modal_header_label">
-                <BiGroup style={{ fontSize: "20px" }} />
+                <TbServer2 style={{ fontSize: "20px" }} />
                 <span id="span_modal_header_label">Create Server</span>
               </div>
             </div>

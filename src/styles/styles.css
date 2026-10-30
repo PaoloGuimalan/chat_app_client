@@ -1903,7 +1903,8 @@
   /* overflow-y: auto; */
 }
 
-#div_modal_input_columns {
+#div_modal_input_columns,
+.cl-create-modal-field {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -1927,12 +1928,14 @@
   overflow-x: hidden;
 }
 
-#span_input_label {
+#span_input_label,
+.cl-create-modal-label {
   font-size: 14px;
   color: var(--text-2);
 }
 
-#input_gc_name {
+#input_gc_name,
+.cl-create-modal-input {
   font-size: 13px;
   width: 100%;
   height: 35px;

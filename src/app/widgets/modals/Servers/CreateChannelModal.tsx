@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Modal from "@/app/reusables/Modal";
 import React, { useEffect, useState } from "react";
-import { BiGroup } from "react-icons/bi";
+import { FaHashtag } from "react-icons/fa6";
 import { useSelector } from "react-redux";
 import { motion } from "framer-motion";
 import { IoClose } from "react-icons/io5";
@@ -118,7 +118,7 @@ function CreateChannelModal({
           <div className="tw-flex tw-flex-1 tw-flex-col tw-max-h-[100%] tw-bg-transparent">
             <div id="div_modal_header">
               <div id="div_server_modal_header_label">
-                <BiGroup style={{ fontSize: "20px" }} />
+                <FaHashtag style={{ fontSize: "20px" }} />
                 <span id="span_modal_header_label">Create Channel</span>
               </div>
             </div>

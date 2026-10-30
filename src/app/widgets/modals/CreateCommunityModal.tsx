@@ -2,6 +2,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSelector } from "react-redux";
 import Modal from "@/app/reusables/Modal";
+import { Icon } from "@/reusables/design";
 import { createCommunity, type CommunityCard } from "@/reusables/hooks/communityRequests";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import { profilePathError } from "@/reusables/routing/profilePaths";
@@ -55,29 +56,48 @@ export default function CreateCommunityModal({ onClose, onCreated }: {
         setBusy(false);
     }
   };
-  return <Modal onclose={() => {
-    if (!busy)
-      onClose();
-  }} component={<form className="cl-community-create" onSubmit={submit}>
-    <h2>Create community</h2>
-    <p>Build a place for shared interests and conversations.</p>
-    <label>Name<input required maxLength={150} value={name} disabled={busy} onChange={event => setName(event.target.value)} placeholder="Community name" />
-    </label>
-    <label>Description<textarea maxLength={2000} value={description} disabled={busy} onChange={event => setDescription(event.target.value)} placeholder="What brings your community together?" />
-    </label>
-    <label>Profile link<input required value={slug} disabled={busy} onChange={event => setSlug(event.target.value)} placeholder="your-community" />
-    </label>
-    {slugError && <p role="alert">{slugError.message}</p>}
-    <label>Privacy<select value={isPrivate ? "private" : "public"} disabled={busy} onChange={event => setPrivate(event.target.value === "private")}>
-      <option value="public">Public — anyone can read; members can post</option>
-      <option value="private">Private — membership requires approval</option>
-    </select>
-    </label>
-    <footer>
-      <button type="button" disabled={busy} className="cl-community-secondary" onClick={onClose}>Cancel</button>
-      <button className="cl-community-primary" disabled={busy || !name.trim() || !slug.trim() || Boolean(slugError)}>
-        {busy ? "Creating…" : "Create community"}
-      </button>
-    </footer>
-  </form>} />;
+  return <Modal component={
+    <form id="div_modal_container" className="cl-create-modal cl-community-create" onSubmit={submit} aria-labelledby="span_modal_header_label" aria-busy={busy}>
+      <div id="div_modal_header">
+        <div id="div_modal_header_label">
+          <Icon n="groups" s={20} />
+          <h2 id="span_modal_header_label">Create Community</h2>
+        </div>
+      </div>
+      <div id="div_modal_input_fields" className="scroller">
+        <label className="cl-create-modal-field">
+          <span className="cl-create-modal-label">Name</span>
+          <input className="cl-create-modal-input" required maxLength={150} value={name} disabled={busy} onChange={event => setName(event.target.value)} placeholder="Community name" />
+        </label>
+        <label className="cl-create-modal-field">
+          <span className="cl-create-modal-label">Description</span>
+          <textarea className="cl-create-modal-input" maxLength={2000} value={description} disabled={busy} onChange={event => setDescription(event.target.value)} placeholder="What brings your community together?" />
+        </label>
+        <div className="cl-create-modal-field">
+          <label className="cl-create-modal-label" htmlFor="community-profile-link">Profile link</label>
+          <input id="community-profile-link" className="cl-create-modal-input" required value={slug} disabled={busy} onChange={event => setSlug(event.target.value)} placeholder="your-community" aria-invalid={Boolean(slugError)} aria-describedby={slugError ? "community-profile-link-error" : undefined} />
+          {slugError && <p id="community-profile-link-error" className="cl-community-create__error" role="alert">{slugError.message}</p>}
+        </div>
+        <div className="cl-create-modal-field">
+          <span className="cl-create-modal-label">Privacy</span>
+          <div id="div_toggle_switch_container">
+            <label className="switch">
+              <input type="checkbox" role="switch" aria-label="Private community" aria-describedby="community-privacy-description" checked={isPrivate} disabled={busy} onChange={event => setPrivate(event.target.checked)} />
+              <span className="slider round" />
+            </label>
+            <span id="span_toggle_switch_label">Community is {isPrivate ? "Private" : "Public"}</span>
+          </div>
+          <p id="community-privacy-description" className="cl-community-create__hint">
+            {isPrivate ? "Membership requires approval." : "Anyone can read; members can post."}
+          </p>
+        </div>
+      </div>
+      <footer id="div_create_cancel_btns">
+        <button type="submit" aria-label={busy ? "Creating community" : "Create community"} className="btns_create_cancel" disabled={busy || !name.trim() || !slug.trim() || Boolean(slugError)}>
+          {busy ? "Creating…" : "Create"}
+        </button>
+        <button type="button" disabled={busy} className="btns_create_cancel" onClick={onClose}>Cancel</button>
+      </footer>
+    </form>
+  } />;
 }

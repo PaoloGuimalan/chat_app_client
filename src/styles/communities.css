@@ -274,57 +274,62 @@
   margin-bottom: 12px;
 }
 
-.cl-community-create {
-  width: min(520px, calc(100vw - 28px));
-  max-height: 90vh;
-  overflow: auto;
-  background: var(--surface);
-  color: var(--text);
-  padding: 16px 24px 24px;
-  border-radius: var(--r-lg);
-  box-shadow: var(--shadow-lg);
+#div_modal_container.cl-community-create {
+  height: auto;
+  max-height: calc(98% - 30px);
 }
 
-.cl-community-create h2 {
-  font-size: 22px;
-  font-weight: 700;
+.cl-community-create #span_modal_header_label {
   margin: 0;
 }
 
-.cl-community-create p {
-  color: var(--text-2);
-  margin: 8px 0 18px;
+.cl-community-create #div_modal_input_fields {
+  height: auto;
+  min-height: 0;
+  overflow-y: auto;
 }
 
-.cl-community-create label {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin: 14px 0;
-  font-weight: 600;
+.cl-community-create .cl-create-modal-field {
+  flex-shrink: 0;
   text-align: left;
 }
 
-.cl-community-create input,
-.cl-community-create textarea,
-.cl-community-create select {
-  border: 1px solid var(--border);
-  border-radius: var(--r-sm);
-  background: var(--input);
-  color: var(--text);
-  padding: 10px;
-  font-weight: 400;
+.cl-community-create .cl-community-create__hint,
+.cl-community-create .cl-community-create__error {
+  margin: 0;
+  font-size: 12px;
+  color: var(--text-2);
+}
+
+.cl-community-create .cl-community-create__error {
+  color: var(--danger, #dc2626);
 }
 
 .cl-community-create textarea {
   min-height: 80px;
+  padding: 8px 10px;
+  resize: vertical;
 }
 
-.cl-community-create footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 8px;
-  margin-top: 20px;
+.cl-community-create #div_modal_header,
+.cl-community-create #div_create_cancel_btns {
+  flex-shrink: 0;
+}
+
+.cl-community-create #div_create_cancel_btns {
+  width: auto;
+  margin: 15px 10px 0;
+}
+
+.cl-community-create button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.cl-community-create .cl-create-modal-input:focus-visible,
+.cl-community-create button:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 2px;
 }
 
 .cl-community-composer-options {
