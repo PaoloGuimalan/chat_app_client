@@ -36,15 +36,16 @@ export default function AppShortcuts({
         },
       ]
       : []),
-    { name: "Servers", icon: appShortcutIcons.servers, route: "/servers" },
-    { name: "Pages", icon: appShortcutIcons.pages, route: "/pages" },
-    { name: "Community", icon: appShortcutIcons.community, route: "/communities" },
-    { name: "Studio", icon: appShortcutIcons.studio, route: "/studio/" },
+    ...(allowed.includes("module.notes.access") ? [{ name: "Notes", icon: appShortcutIcons.notes, route: "/notes" }] : []),
     ...(!active?.is_switched && allowed.includes("module.diary.access")
       ? [{ name: "Diary", icon: appShortcutIcons.diary, route: `/${encodeURIComponent(username)}/diary` }]
       : []),
-    ...(allowed.includes("module.notes.access") ? [{ name: "Notes", icon: appShortcutIcons.notes, route: "/notes" }] : []),
-    { name: "Chatterloop Extension", icon: appShortcutIcons.extension, route: null },
+    { name: "Conference", icon: appShortcutIcons.conference, route: "/conference" },
+    { name: "Studio", icon: appShortcutIcons.studio, route: "/studio/" },
+    { name: "Servers", icon: appShortcutIcons.servers, route: "/servers" },
+    { name: "Pages", icon: appShortcutIcons.pages, route: "/pages" },
+    { name: "Community", icon: appShortcutIcons.community, route: "/communities" },
+    { name: "Extension", icon: appShortcutIcons.extension, route: null },
   ];
   const tiles = items.map((item) => (
     <button
@@ -82,6 +83,7 @@ export default function AppShortcuts({
     <HScrollRail
       label="Apps"
       gap={2}
+      style={{ marginInline: 4 }}
       trackStyle={{ overflowX: "auto", justifyContent: "flex-start", paddingTop: 2, paddingBottom: 2 }}
     >
       {tiles}
