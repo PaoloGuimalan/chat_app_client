@@ -1,7 +1,6 @@
-/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { GetTopRealmsRequest } from "@/reusables/hooks/requests";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AiOutlineSearch } from "react-icons/ai";
 import { IoMdAdd } from "react-icons/io";
 import ServerItemLoader from "@/app/reusables/loaders/ServerItemLoader";
@@ -33,71 +32,48 @@ function Default() {
   const [isCreateServerToggle, setisCreateServerToggle] =
     useState<boolean>(false);
 
-  const GetTopRealmsProcess = (callback?: () => void) => {
-    GetTopRealmsRequest(
-      currentPage,
-      10,
-      "server",
-      searchbox.trim() === "" ? null : searchbox,
-    )
-      .then((response) => {
-        setpages((prev) => {
-          const prevIds = new Set(prev.results.map((item) => item.id));
-          const newItems = response.results.filter(
-            (item: IRealmProfileInfo) => !prevIds.has(item.id),
-          );
-
-          return {
-            ...response,
-            results: [...prev.results, ...newItems],
-          };
-        });
-        setisLoaded(true);
-        setisPaginating(false);
-        if (callback) {
-          callback();
-        }
-      })
-      .catch((err) => {
-        setisLoaded(true);
-        setisPaginating(false);
-        console.log(err);
-      });
-  };
-
   useEffect(() => {
-    GetTopRealmsProcess();
-  }, [currentPage]);
+    let active = true;
+    const search = searchbox.trim() === "" ? null : searchbox;
 
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+    const fetchServers = () => {
+      GetTopRealmsRequest(currentPage, 10, "server", search)
+        .then((response) => {
+          if (!active) return;
+          setpages((prev) => {
+            // A new query (including clearing it) replaces the directory.
+            if (currentPage === 1) return response;
+            const prevIds = new Set(prev.results.map((item) => item.id));
+            const newItems = response.results.filter(
+              (item: IRealmProfileInfo) => !prevIds.has(item.id),
+            );
+            return {
+              ...response,
+              results: [...prev.results, ...newItems],
+            };
+          });
+          setisLoaded(true);
+          setisPaginating(false);
+        })
+        .catch((err) => {
+          if (!active) return;
+          setisLoaded(true);
+          setisPaginating(false);
+          console.log(err);
+        });
+    };
 
-  const debouncedFetch = useCallback(
-    (currentPage: number, searchValue: string) => {
-      if (timeoutRef.current) {
-        clearTimeout(timeoutRef.current);
-      }
+    // Debounce typing, but restore the public directory immediately on clear.
+    const timeout = search && currentPage === 1
+      ? setTimeout(fetchServers, 500)
+      : null;
+    if (timeout === null) fetchServers();
 
-      timeoutRef.current = setTimeout(() => {
-        if (searchValue.trim() !== "") {
-          setisLoaded(false); // optional: show loading at start
-          GetTopRealmsRequest(currentPage, 10, "server", searchValue)
-            .then((response) => {
-              setpages(response);
-              setisLoaded(true);
-              setisPaginating(false);
-            })
-            .catch((err) => {
-              setisLoaded(true);
-              setisPaginating(false);
-              console.log(err);
-            });
-        } else {
-          GetTopRealmsProcess();
-        }
-      }, 500);
-    },
-    [],
-  );
+    return () => {
+      active = false;
+      if (timeout !== null) clearTimeout(timeout);
+    };
+  }, [currentPage, searchbox]);
 
   return (
     <div className="tw-w-full tw-h-full tw-flex tw-justify-center tw-items-stretch">
@@ -134,7 +110,10 @@ function Default() {
                   autoComplete="off"
                   onChange={(e) => {
                     setsearchbox(e.target.value);
-                    debouncedFetch(1, e.target.value);
+                    setcurrentPage(1);
+                    setpages(genericpaginationstate);
+                    setisLoaded(false);
+                    setisPaginating(false);
                   }}
                   type="text"
                   placeholder="Search something..."
@@ -209,6 +188,7 @@ function Default() {
             {pages.next && (
               <div className="tw-w-full tw-flex tw-justify-center tw-pb-[8px]">
                 <button
+                  disabled={!isLoaded || isPaginating}
                   onClick={() => {
                     setcurrentPage((prev) => prev + 1);
                     setisPaginating(true);
