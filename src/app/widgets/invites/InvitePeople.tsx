@@ -1,3 +1,6 @@
+import { useRoleDefinitions } from "@/reusables/hooks/useRoleDefinitions";
+import { defaultRole } from "@/reusables/vars/roles";
+import RoleSelect from "../members/RoleSelect";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
   FormEvent,
@@ -83,7 +86,7 @@ function InvitePeople({
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
   const [pagePurpose, setPagePurpose] = useState<PagePurpose>("follow");
-  const [role, setRole] = useState<"moderator" | "admin">("moderator");
+  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
   const [pending, setPending] = useState<IRealmInvite[]>([]);
   const [revoking, setRevoking] = useState<string | null>(null);
 
@@ -97,6 +100,11 @@ function InvitePeople({
   const listId = useId();
 
   const isPage = realmType === "page";
+  const roleDefinitions = useRoleDefinitions(isPage && pagePurpose === "manage");
+  const manageRoles = roleDefinitions.roles.filter((role) => role.name === "admin" || role.name === "moderator");
+  const roleId = selectedRoleId ?? defaultRole(manageRoles, "moderator")?.id;
+  const needsRole = isPage && pagePurpose === "manage";
+  const roleReady = !needsRole || (!roleDefinitions.loading && !roleDefinitions.error && manageRoles.some((role) => role.id === roleId));
 
   const loadPending = () => {
     if (!showPending) return;
@@ -193,7 +201,7 @@ function InvitePeople({
     isPage
       ? {
         purpose: pagePurpose,
-        ...(pagePurpose === "manage" ? { role } : {}),
+        ...(pagePurpose === "manage" ? { role_id: roleId } : {}),
       }
       : {};
 
@@ -208,7 +216,7 @@ function InvitePeople({
   const submit = async (e?: FormEvent) => {
     e?.preventDefault();
     const value = target.trim();
-    if ((!value && picked.length === 0) || sending) return;
+    if ((!value && picked.length === 0) || sending || !roleReady) return;
     setSending(true);
     setFeedback([]);
     setSuggestOpen(false);
@@ -314,7 +322,7 @@ function InvitePeople({
       : `Invite people to help run ${realmName}. They join its team once they accept.`
     : `They're added to ${realmName} once they accept.`;
 
-  const canSend = (target.trim() !== "" || picked.length > 0) && !sending;
+  const canSend = (target.trim() !== "" || picked.length > 0) && !sending && roleReady;
 
   return (
     <div className="cl-invite-people">
@@ -335,14 +343,8 @@ function InvitePeople({
             onChange={(k) => setPagePurpose(k as PagePurpose)}
           />
           {pagePurpose === "manage" && (
-            <SegTabs
-              tabs={[
-                { key: "moderator", label: "Moderator" },
-                { key: "admin", label: "Admin" },
-              ]}
-              value={role}
-              onChange={(k) => setRole(k as "moderator" | "admin")}
-            />
+            <RoleSelect {...roleDefinitions} roles={manageRoles} value={roleId}
+              onRetry={roleDefinitions.reload} onChange={(role) => setSelectedRoleId(role.id)} disabled={sending} />
           )}
         </div>
       )}

@@ -1,7 +1,8 @@
+import RoleSelect from "../widgets/members/RoleSelect";
+import type { RoleDefinition } from "@/reusables/vars/roles";
 import { useEffect, useRef, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import { BsThreeDots } from "react-icons/bs";
-import { FaCircleArrowDown, FaCircleArrowUp } from "react-icons/fa6";
 import { IoPersonRemove } from "react-icons/io5";
 
 /** Below this much room under the button the menu opens upwards instead. */
@@ -29,24 +30,26 @@ const scrollParentOf = (el: HTMLElement | null) => {
  * upwards, so the list's scroll box doesn't cut it off.
  */
 function MemberActionsMenu({
-  role,
-  viewerIsOwner,
+  roleId,
+  roles,
+  loadingRoles,
+  rolesError,
+  onRetryRoles,
   busy,
   locked,
-  onPromote,
-  onDemote,
+  onSetRole,
   onRemove,
 }: {
-  /** The member's current role. */
-  role: string;
-  /** Only the owner may demote an admin. */
-  viewerIsOwner: boolean;
+  roleId?: number;
+  roles: RoleDefinition[];
+  loadingRoles: boolean;
+  rolesError: boolean;
+  onRetryRoles: () => void;
   /** This member's change is in flight. */
   busy: boolean;
   /** Another member's change is in flight - one at a time. */
   locked: boolean;
-  onPromote: () => void;
-  onDemote: () => void;
+  onSetRole: (role: RoleDefinition) => void;
   onRemove: () => void;
 }) {
   const [open, setOpen] = useState(false);
@@ -84,7 +87,6 @@ function MemberActionsMenu({
     action();
   };
 
-  const isAdmin = role === "admin";
   const item =
     "tw-flex tw-items-center tw-gap-[6px] tw-text-[12px] tw-font-Inter tw-border-none tw-bg-transparent tw-rounded-sm tw-p-[7px] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)] tw-text-left disabled:tw-opacity-[0.5] disabled:tw-cursor-not-allowed";
 
@@ -113,33 +115,9 @@ function MemberActionsMenu({
           } tw-z-[5] tw-min-w-[190px] tw-bg-[var(--surface)] tw-rounded-md tw-border tw-border-[var(--border)] tw-p-[6px] tw-flex tw-flex-col tw-gap-[2px]`}
           style={{ boxShadow: "var(--shadow-md)" }}
         >
-          {isAdmin ? (
-            viewerIsOwner && (
-              <button
-                type="button"
-                role="menuitem"
-                disabled={locked}
-                onClick={pick(onDemote)}
-                className={`${item} tw-text-[var(--text)]`}
-              >
-                <FaCircleArrowDown size={14} />
-                <span>Demote to Member</span>
-              </button>
-            )
-          ) : (
-            <button
-              type="button"
-              role="menuitem"
-              disabled={locked}
-              onClick={pick(onPromote)}
-              className={`${item} tw-text-[var(--text)]`}
-            >
-              <FaCircleArrowUp size={14} />
-              <span>Promote to Admin</span>
-            </button>
-          )}
-          {/* It drops their membership, not just this call - they lose the
-              conference until invited again. */}
+          <RoleSelect roles={roles.filter((role) => role.name !== "owner")} value={roleId}
+            loading={loadingRoles} error={rolesError} onRetry={onRetryRoles} disabled={locked}
+            onChange={(role) => { setOpen(false); onSetRole(role); }} />
           <button
             type="button"
             role="menuitem"

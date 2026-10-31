@@ -1,3 +1,5 @@
+import { useRoleDefinitions } from "@/reusables/hooks/useRoleDefinitions";
+import type { RoleDefinition } from "@/reusables/vars/roles";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -80,6 +82,7 @@ type ConferenceMember = {
   profile: string | undefined;
   type: string;
   role: string;
+  role_id?: number;
 };
 
 // The owner's and admins' label in the People panel. The owner had none, so
@@ -201,6 +204,7 @@ function ConferenceVoiceWindow({
   // owner - an admin's attempt is refused. So an admin gets the menu on
   // members only, and nobody gets it on the owner.
   const viewerIsOwner = selfRoleFromList === "owner";
+  const roleDefinitions = useRoleDefinitions(effectiveCanManage);
   const canActOnRole = (role: string | undefined) =>
     role !== "owner" && (viewerIsOwner || role !== "admin");
   const hasLeftRef = useRef(false);
@@ -478,6 +482,7 @@ function ConferenceVoiceWindow({
                 profile: picture,
                 type: member.entity.type,
                 role: String(member.role || "member").toLowerCase(),
+                role_id: member.role_id,
               };
             }),
         );
@@ -526,7 +531,7 @@ function ConferenceVoiceWindow({
 
   // Keyed by entity, not username: a page member has a slug or nothing.
   const changeMemberRole = useCallback(
-    async (entityID: string, nextRole: "admin" | "member") => {
+    async (entityID: string, nextRole: RoleDefinition) => {
       const member = memberByEntity.get(entityID);
       if (!member || updatingRoleFor) {
         return;
@@ -535,11 +540,12 @@ function ConferenceVoiceWindow({
       // Optimistic update; SSE will reconcile across all clients.
       setConferenceMembers((prev) =>
         prev.map((entry) =>
-          entry.entityID === entityID ? { ...entry, role: nextRole } : entry,
+          entry.entityID === entityID ? { ...entry, role: nextRole.name, role_id: nextRole.id } : entry,
         ),
       );
       try {
-        await UpdateMemberRoleRequest(realmId, member.member_id, nextRole);
+        const response = await UpdateMemberRoleRequest(realmId, member.member_id, nextRole.id);
+        if (!response?.status) throw new Error(response?.message || "We couldn't change that member's role.");
       } catch (err) {
         console.log("Failed to update member role:", err);
         notifyRequestError(err, "We couldn't change that member's role.");
@@ -547,7 +553,7 @@ function ConferenceVoiceWindow({
         setConferenceMembers((prev) =>
           prev.map((entry) =>
             entry.entityID === entityID
-              ? { ...entry, role: member.role }
+              ? { ...entry, role: member.role, role_id: member.role_id }
               : entry,
           ),
         );
@@ -2102,16 +2108,14 @@ function ConferenceVoiceWindow({
                             </div>
                             {canManageThisMember && memberInfo && (
                               <MemberActionsMenu
-                                role={memberInfo.role}
-                                viewerIsOwner={viewerIsOwner}
+                                roleId={memberInfo.role_id}
+                                roles={roleDefinitions.roles}
+                                loadingRoles={roleDefinitions.loading}
+                                rolesError={roleDefinitions.error}
+                                onRetryRoles={roleDefinitions.reload}
                                 busy={updatingRoleFor === memberInfo.entityID}
                                 locked={updatingRoleFor !== null}
-                                onPromote={() =>
-                                  changeMemberRole(memberInfo.entityID, "admin")
-                                }
-                                onDemote={() =>
-                                  changeMemberRole(memberInfo.entityID, "member")
-                                }
+                                onSetRole={(role) => changeMemberRole(memberInfo.entityID, role)}
                                 onRemove={() =>
                                   setPendingRemoval(memberInfo.entityID)
                                 }
@@ -2153,16 +2157,14 @@ function ConferenceVoiceWindow({
                             member.member_id &&
                             canActOnRole(member.role) && (
                               <MemberActionsMenu
-                                role={member.role}
-                                viewerIsOwner={viewerIsOwner}
+                                roleId={member.role_id}
+                                roles={roleDefinitions.roles}
+                                loadingRoles={roleDefinitions.loading}
+                                rolesError={roleDefinitions.error}
+                                onRetryRoles={roleDefinitions.reload}
                                 busy={updatingRoleFor === member.entityID}
                                 locked={updatingRoleFor !== null}
-                                onPromote={() =>
-                                  changeMemberRole(member.entityID, "admin")
-                                }
-                                onDemote={() =>
-                                  changeMemberRole(member.entityID, "member")
-                                }
+                                onSetRole={(role) => changeMemberRole(member.entityID, role)}
                                 onRemove={() => setPendingRemoval(member.entityID)}
                               />
                             )}

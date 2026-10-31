@@ -1,3 +1,6 @@
+import RoleSelect from "@/app/widgets/members/RoleSelect";
+import { useRoleDefinitions } from "@/reusables/hooks/useRoleDefinitions";
+import { defaultRole } from "@/reusables/vars/roles";
 import CommunityRequests from "@/app/widgets/invites/CommunityRequests";
 import {
   canManageCommunitySettings,
@@ -61,6 +64,13 @@ function Members({
       ? realmTypeLabel
       : null;
 
+  const roleDefinitions = useRoleDefinitions(invitable === "page");
+  const manageRoles = roleDefinitions.roles.filter((role) => role.name === "admin" || role.name === "moderator");
+  const [bulkRoleId, setBulkRoleId] = useState<number | null>(null);
+  const bulkRole = manageRoles.find((role) => role.id === (bulkRoleId ?? defaultRole(manageRoles, "moderator")?.id));
+  const bulkRoleSelector = invitable === "page" && <RoleSelect {...roleDefinitions} roles={manageRoles}
+    value={bulkRole?.id} onRetry={roleDefinitions.reload} onChange={(role) => setBulkRoleId(role.id)} />;
+
   // People invited from the picker this visit: kept out of it, and the
   // panel's pending list re-read so they show up there instead.
   const [invitedIDs, setinvitedIDs] = useState<string[]>([]);
@@ -80,11 +90,13 @@ function Members({
     markedMembers: { entityID: string; fullName: string }[],
     callback: () => void,
   ) => {
-    // A page's picker is for its team ("Add Page Admin/Moderators"), invited
-    // as moderators - the owner can make one an admin once they are in, or
-    // invite an admin directly from the panel.
-    const extra: Record<string, string> =
-      invitable === "page" ? { purpose: "manage", role: "moderator" } : {};
+    // The picker sends the exact team role selected above it.
+    if (invitable === "page" && (!bulkRole || roleDefinitions.error || roleDefinitions.loading)) {
+      notify("warning", "Choose an available role before sending invites.");
+      return;
+    }
+    const extra: Record<string, string | number> =
+      invitable === "page" ? { purpose: "manage", role_id: bulkRole!.id } : {};
     inviteEntities(
       realm.realm_id,
       markedMembers.map((m) => m.entityID),
@@ -241,7 +253,8 @@ function Members({
                 />
               </div>
             )}
-            <div className={`tw-flex tw-flex-1 tw-min-h-[260px] ${card}`}>
+            <div className={`tw-flex tw-flex-col tw-flex-1 tw-min-h-[260px] ${card}`}>
+              {bulkRoleSelector && <div className="tw-p-[12px]">{bulkRoleSelector}</div>}
               <ContactMember
                 compact
                 parentRealmID={realm.parent?.id ?? null}
@@ -310,7 +323,8 @@ function Members({
                 />
               </div>
             )}
-            <div className="tw-flex tw-flex-1 tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-overflow-hidden">
+            <div className="tw-flex tw-flex-col tw-flex-1 tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-rounded-[var(--r-md)] tw-overflow-hidden">
+              {bulkRoleSelector && <div className="tw-p-[12px]">{bulkRoleSelector}</div>}
               <ContactMember
                 parentRealmID={realm.parent?.id ?? null}
                 isRealm={true}

@@ -166,6 +166,7 @@ export interface IRealmProfileInfo {
    * send it; anything else leaves it undefined rather than wrong.
    */
   my_role?: string | null;
+  my_role_id?: number | null;
   is_member: boolean;
   followers_count: number;
   members: number;
@@ -617,6 +618,7 @@ export interface IRealmMember {
   nickname: string | null;
   realm: string;
   role: string;
+  role_id?: number;
 }
 
 export interface IRealmFollower {

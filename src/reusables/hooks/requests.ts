@@ -1,3 +1,4 @@
+import type { RoleDefinition } from "@/reusables/vars/roles";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import axios from "axios";
@@ -4308,14 +4309,24 @@ const RemoveRealmFollowersRequest = async (
     });
 };
 
+const GetRoleDefinitionsRequest = async (): Promise<RoleDefinition[]> => {
+  try {
+    const { data } = await Axios.get(`${envs.USER_SERVICE_API}/api/entity/roles`, {
+      headers: { "x-access-token": localStorage.getItem("authtoken") },
+    });
+    if (!data?.status || !Array.isArray(data.result)) throw new Error("Couldn't load roles.");
+    return data.result;
+  } catch (error) { throw toRequestError(error); }
+};
+
 const UpdateMemberRoleRequest = async (
   realm_id: string,
   member_id: any,
-  new_role: any,
+  new_role_id: number,
 ) => {
   return await Axios.put(
     `${envs.CHATTERLOOP_API}/s/update-member-realm-role`,
-    { realm_id, member_id, new_role },
+    { realm_id, member_id, new_role_id },
     {
       headers: {
         "x-access-token": localStorage.getItem("authtoken"),
@@ -5223,6 +5234,7 @@ export {
   UpdateRealmRequest,
   GetRealmMembersRequest,
   GetRealmFollowersRequest,
+  GetRoleDefinitionsRequest,
   UpdateMemberRoleRequest,
   RemoveRealmMemberRequest,
   TransferRealmOwnershipRequest,

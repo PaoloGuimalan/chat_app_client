@@ -28,6 +28,7 @@ export interface IRealmInvite {
   status: "pending" | "accepted" | "declined" | "revoked";
   purpose: InvitePurpose;
   role: "admin" | "moderator" | null;
+  role_id?: number | null;
   inviter: IInviteEntity | null;
   target_email: string | null;
   target_entity: IInviteEntity | null;
@@ -127,7 +128,7 @@ export const invitePurposeLabel = (invite: IRealmInvite) =>
 export const inviteEntities = async (
   realmId: string,
   entityIds: string[],
-  extra: Record<string, string> = {},
+  extra: Record<string, string | number> = {},
 ) => {
   const results = await Promise.allSettled(
     entityIds.map((id) =>

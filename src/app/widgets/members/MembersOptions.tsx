@@ -1,3 +1,5 @@
+import { useRoleDefinitions } from "@/reusables/hooks/useRoleDefinitions";
+import RoleSelect from "./RoleSelect";
 import { leaveCommunity } from "@/reusables/hooks/communityRequests";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -24,7 +26,6 @@ import {
   resolveResponseMessage,
 } from "@/reusables/hooks/errormessages";
 import { BsThreeDots } from "react-icons/bs";
-import { FaCircleArrowDown, FaCircleArrowUp } from "react-icons/fa6";
 import { IoPersonRemove } from "react-icons/io5";
 import { GiQueenCrown } from "react-icons/gi";
 import { BiLogOut } from "react-icons/bi";
@@ -58,6 +59,7 @@ function MembersOptions({
   const alerts = useSelector((state: any) => state.alerts);
 
   const [isOptionsToggled, setisOptionsToggled] = useState<boolean>(false);
+  const roleDefinitions = useRoleDefinitions(isOptionsToggled && !isSelf);
   // Removing someone else is the same one-way call as leaving, and it is
   // silent from their side, so it confirms first - mirrors the app's
   // realm_sections dialog.
@@ -108,9 +110,9 @@ function MembersOptions({
     };
   }, []);
 
-  const UpdateMemberRoleProcess = (role: string) => {
+  const UpdateMemberRoleProcess = (roleId: number) => {
     setisOptionsToggled(false);
-    UpdateMemberRoleRequest(member.realm, member.member_id, role)
+    UpdateMemberRoleRequest(member.realm, member.member_id, roleId)
       .then((response) => {
         if (!response?.status) {
           notify(
@@ -316,32 +318,10 @@ function MembersOptions({
               />
               <span>Leave {realmNoun}</span>
             </button>
-          ) : member.role === "admin" ? (
-            <button
-              onClick={() => {
-                UpdateMemberRoleProcess("member");
-              }}
-              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent tw-text-[var(--text)] hover:tw-bg-[var(--surface-hover)]"
-            >
-              <FaCircleArrowDown
-                size={15}
-                style={{ marginLeft: "-1px", marginRight: "4px" }}
-              />
-              <span>Demote to Member</span>
-            </button>
           ) : (
-            <button
-              onClick={() => {
-                UpdateMemberRoleProcess("admin");
-              }}
-              className="tw-items-center cl-text-caption tw-flex tw-gap-[2px] tw-cursor-pointer tw-p-[7px] tw-font-Inter tw-border-none tw-rounded-sm tw-bg-transparent tw-text-[var(--text)] hover:tw-bg-[var(--surface-hover)]"
-            >
-              <FaCircleArrowUp
-                size={15}
-                style={{ marginLeft: "-1px", marginRight: "4px" }}
-              />
-              <span>Promote to Admin</span>
-            </button>
+            <RoleSelect {...roleDefinitions} onRetry={roleDefinitions.reload}
+              roles={roleDefinitions.roles.filter((role) => role.name !== "owner")}
+              value={member.role_id} onChange={(role) => UpdateMemberRoleProcess(role.id)} />
           )}
           {!isSelf && viewerIsOwner && (
             <button
