@@ -194,7 +194,7 @@ function PublicServerItem({
               shape="rounded"
             />
           </div>
-          <div className="tw-w-[calc(100%-10px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-flex-1 tw-min-w-0">
+          <div className="tw-w-[calc(100%-0px)] tw-pr-[5px] tw-pl-[5px] tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-flex-1 tw-min-w-0">
             <span
               className="cl-display-card__title tw-min-w-0 tw-w-full tw-flex tw-items-center tw-gap-[4px] tw-overflow-hidden cl-text-body tw-font-semibold tw-select-none tw-cursor-pointer tw-border-solid tw-border-transparent tw-border-[0px] tw-border-b-[1px]"
               onClick={() => {
@@ -320,3 +320,4 @@ function PublicServerItem({
 }
 
 export default PublicServerItem;
+
