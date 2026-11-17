@@ -223,7 +223,8 @@ function manageImports(info) {
     '../tabs/Media': stub('Media content'), '../tabs/Members': stub('Members content'), '../tabs/Followers': stub('Followers content'),
     '../tabs/Notifications': { __esModule: true, default: ({ onReviewRequests }) => React.createElement('div', null,
       'Notification content', onReviewRequests && React.createElement('button', { onClick: onReviewRequests }, 'Review request')) },
-    './manageTabs': { hasMediaTab: () => true },
+    './manageTabs': load('app/tabs/realms/manage/manageTabs.ts'),
+    '../tabs/Permissions': stub('Permissions content'), '../tabs/Approvals': stub('Approvals content'),
     './useManagedRealm': { useManagedRealm: () => ({ isloaded: true, realmInfo: info }) },
     '@/app/reusables/Modal': { __esModule: true, default: ({ component }) => component },
   };
@@ -278,4 +279,14 @@ test('member joins and new posts render in the community inbox with their action
   fireEvent.click(view.getByText('View post'));
   assert.deepEqual(destinations, ['/post/new-post']);
   assert.equal(view.queryByText('Review request'), null);
+});
+
+test('pending approval notices open their exact queue target without a public post link', async () => {
+  const view = mount({ realm: { ...realm, capabilities: { can_review_posts: true } } });
+  await act(async () => calls[0].resolve(page([row({ type: 'community_post_pending', request_id: null,
+    request_status: null, approval_kind: 'posts', approval_id: 'review-id', approval_target_id: 'post-id',
+    approval_pending: true, description: 'Mika submitted a post for approval.' })])));
+  fireEvent.click(view.getByText('Review post'));
+  assert.deepEqual(destinations, ['/realms/community/approvals?kind=posts&target=post-id']);
+  assert.equal(view.queryByText('View post'), null);
 });

@@ -2,7 +2,7 @@ import type { IPost } from "../vars/interfaces";
 
 export type PostPatch = Pick<IPost, "post_id"> & Partial<Pick<IPost,
   "caption" | "references" | "updated_at" | "is_edited" | "privacy_status" |
-  "is_archived" | "date_posted" | "content_type" | "file_type" | "link_preview"
+  "is_archived" | "date_posted" | "content_type" | "file_type" | "link_preview" | "approval" | "read_only"
 >>;
 
 export interface PostEditMedia {

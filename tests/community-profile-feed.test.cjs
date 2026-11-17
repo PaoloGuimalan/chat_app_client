@@ -37,6 +37,7 @@ Module._load = function (request, parent, isMain) {
   if (request === '@/redux/types') return { SET_EMOJIS_LIST: 'emojis' };
   if (request === '@/reusables/design') return { Card: plain, Avatar: () => null, Btn: plain, Icon: () => null, PageFlag: () => null };
   if (request === '@/reusables/design/primitives2') return { Avatar: () => null };
+  if (request === './SubmissionsContainer') return { __esModule: true, default: () => null };
   if (request === './PostItem') return { __esModule: true, default: ({ mp }) => React.createElement('span', { 'data-member': String(mp.community?.is_member) }, mp.caption) };
   if (request === '@/app/reusables/loaders/PostItemLoader') return { __esModule: true, default: () => React.createElement('span', null, 'Loading post') };
   if (request === '@/app/reusables/ProfileComposerContent') return { __esModule: true, default: props => React.createElement('button', { onClick: () => props.onOpen(false) }, props.placeholder) };

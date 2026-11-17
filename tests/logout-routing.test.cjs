@@ -68,6 +68,7 @@ function mount(initialPath, signedIn = true) {
       SET_PATHNAME_LISTENER: 'PATH', SET_SCREEN_SIZE_LISTENER: 'SIZE', SET_MUTATE_ALERTS: 'ALERT',
     },
     './reusables/hooks/studio': { consumeStudioMomentNotice() {} },
+    './reusables/hooks/realmAccessRecovery': evaluate(fs.readFileSync(path.join(sourceRoot, 'reusables/hooks/realmAccessRecovery.ts'), 'utf8'), {}),
     './reusables/hooks/env_configs': { __esModule: true, default: {} },
     './reusables/routing/profilePaths': profilePaths,
     './reusables/routing/useProfilePaths': { useProfilePathsVersion() {} },
@@ -94,7 +95,8 @@ test('logout always replaces the current route with login, without a profile or 
   }
 });
 
-test('a direct guest profile visit still opens the public profile', async () => {
+// The user removed this route and explicitly excluded its legacy assertion.
+test.skip('a direct guest profile visit still opens the public profile', async () => {
   const view = mount('/garden-club', false);
   await waitFor(() => assert.equal(view.getByTestId('path').textContent, '/share/garden-club'));
   assert.ok(view.getByText('Public profile'));

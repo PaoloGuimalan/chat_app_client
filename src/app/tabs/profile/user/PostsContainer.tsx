@@ -283,7 +283,7 @@ function PostsContainer({
   const showComposer =
     authentication.auth &&
     !hideComposer &&
-    (community ? community.is_member && !communityAccessDenied : !!profileInfo);
+    (community ? community.is_member && community.capabilities?.can_submit_posts !== false && !communityAccessDenied : !!profileInfo);
   const showEmptyState = community
     ? (loadedCommunityScope === communityScope && ispostsloaded) ||
       !canReadCommunity ||

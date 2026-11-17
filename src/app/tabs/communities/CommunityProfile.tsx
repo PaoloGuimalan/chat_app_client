@@ -221,7 +221,7 @@ export default function CommunityProfile({
 
   const canManage =
     authentication.auth === true &&
-    canManageCommunitySettings(community.my_role);
+    (community.capabilities != null ? community.capabilities.can_manage === true : canManageCommunitySettings(community.my_role));
   const canRead = canReadCommunity(community);
   const actionClass =
     "cl-profile-action-button--secondary tw-cursor-pointer tw-font-semibold tw-font-Inter tw-p-[8px] tw-pl-[10px] tw-pr-[10px] tw-rounded-[12px] cl-text-caption";
@@ -235,7 +235,7 @@ export default function CommunityProfile({
           realm_type="community"
           coverphoto={community.cover_photo}
           type="realm"
-          isAllowed={canManage}
+          isAllowed={community.capabilities ? community.capabilities.can_update_media === true : canManage}
           getpostprocess={refresh}
         />
         <div className="cl-profile-picrow tw-w-[calc(100%-24px)] sm:tw-w-[calc(100%-80px)] tw-h-auto sm:tw-h-[150px] tw-bg-transparent tw-max-w-[calc(1200px-80px)] tw-flex tw-flex-col sm:tw-flex-row tw-items-center tw-justify-center tw-flex-wrap tw-pl-[12px] tw-pr-[12px] sm:tw-pl-[40px] sm:tw-pr-[40px]">
@@ -247,7 +247,7 @@ export default function CommunityProfile({
             profile={community.profile}
             name={community.name}
             type="realm"
-            isAllowed={canManage}
+            isAllowed={community.capabilities ? community.capabilities.can_update_media === true : canManage}
             getpostprocess={refresh}
           />
           <div className="cl-profile-identity tw-bg-transparent tw-flex tw-flex-col sm:tw-flex-row tw-flex-1 tw-h-auto sm:tw-h-full tw-items-center">

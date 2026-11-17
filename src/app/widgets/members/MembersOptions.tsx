@@ -1,5 +1,6 @@
 import { useRoleDefinitions } from "@/reusables/hooks/useRoleDefinitions";
 import RoleSelect from "./RoleSelect";
+import Modal from "@/app/reusables/Modal";
 import { leaveCommunity } from "@/reusables/hooks/communityRequests";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -36,6 +37,7 @@ function MembersOptions({
   realmNoun,
   viewerIsOwner,
   isSelf,
+  canAssignRole = true,
 }: {
   member: IRealmMember;
   hide: string[];
@@ -53,13 +55,17 @@ function MembersOptions({
    * and Transfer all target someone else by definition.
    */
   isSelf: boolean;
+  canAssignRole?: boolean;
 }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const alerts = useSelector((state: any) => state.alerts);
 
   const [isOptionsToggled, setisOptionsToggled] = useState<boolean>(false);
-  const roleDefinitions = useRoleDefinitions(isOptionsToggled && !isSelf);
+  const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [selectedRoleId, setSelectedRoleId] = useState<number | null>(null);
+  const [savingRole, setSavingRole] = useState(false);
+  const roleDefinitions = useRoleDefinitions(roleDialogOpen && !isSelf, member.realm);
   // Removing someone else is the same one-way call as leaving, and it is
   // silent from their side, so it confirms first - mirrors the app's
   // realm_sections dialog.
@@ -112,6 +118,7 @@ function MembersOptions({
 
   const UpdateMemberRoleProcess = (roleId: number) => {
     setisOptionsToggled(false);
+    setSavingRole(true);
     UpdateMemberRoleRequest(member.realm, member.member_id, roleId)
       .then((response) => {
         if (!response?.status) {
@@ -124,6 +131,7 @@ function MembersOptions({
           );
           return;
         }
+        setRoleDialogOpen(false);
         setTimeout(() => {
           document.dispatchEvent(
             new CustomEvent("reload-realm-members", {
@@ -144,7 +152,7 @@ function MembersOptions({
             "We couldn't change that member's role.",
           ),
         );
-      });
+      }).finally(() => setSavingRole(false));
   };
 
   // Leaving IS removing yourself - the same /realms/remove-user call, which
@@ -262,6 +270,20 @@ function MembersOptions({
 
   return (
     <div ref={wrapperRef} className="tw-relative">
+      {roleDialogOpen && <Modal component={
+        <div role="dialog" aria-modal="true" aria-label="Assign different role"
+          className="tw-bg-[var(--surface)] tw-text-[var(--text)] tw-border tw-border-[var(--border)] tw-rounded-xl tw-p-[20px] tw-w-[420px] tw-max-w-[calc(100vw-32px)] tw-flex tw-flex-col tw-gap-[16px]">
+          <h3 className="tw-m-0 tw-text-left">Assign different role</h3>
+          <RoleSelect {...roleDefinitions} onRetry={roleDefinitions.reload} value={selectedRoleId}
+            disabled={savingRole} onChange={(role) => setSelectedRoleId(role.id)} />
+          <div className="tw-flex tw-justify-end tw-gap-[8px]">
+            <button type="button" disabled={savingRole} onClick={() => setRoleDialogOpen(false)}>Cancel</button>
+            <button type="button" disabled={savingRole || roleDefinitions.loading || roleDefinitions.error || selectedRoleId === member.role_id ||
+              !roleDefinitions.roles.some((role) => role.id === selectedRoleId && role.assignable !== false)}
+              onClick={() => selectedRoleId != null && UpdateMemberRoleProcess(selectedRoleId)}>{savingRole ? "Saving…" : "Save role"}</button>
+          </div>
+        </div>
+      } />}
       {isRemoveConfirmOpen && (
         <ConfirmModal
           {...removeMemberPrompt(memberName, realmNoun)}
@@ -318,11 +340,15 @@ function MembersOptions({
               />
               <span>Leave {realmNoun}</span>
             </button>
-          ) : (
-            <RoleSelect {...roleDefinitions} onRetry={roleDefinitions.reload}
-              roles={roleDefinitions.roles.filter((role) => role.name !== "owner")}
-              value={member.role_id} onChange={(role) => UpdateMemberRoleProcess(role.id)} />
-          )}
+          ) : canAssignRole ? (
+            <button type="button" onClick={() => {
+              setSelectedRoleId(member.role_id ?? null);
+              setRoleDialogOpen(true);
+              setisOptionsToggled(false);
+            }} className="tw-text-left tw-p-[7px] tw-border-none tw-bg-transparent tw-text-[var(--text)] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)]">
+              Assign different role
+            </button>
+          ) : null}
           {!isSelf && viewerIsOwner && (
             <button
               onClick={() => {

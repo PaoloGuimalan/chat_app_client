@@ -84,6 +84,7 @@ import RealmContainer from "../tabs/realms/RealmContainer";
 import SearchPage from "../tabs/search/Search";
 import TopicFeed from "../tabs/feed/TopicFeed";
 import ModerationDetail from "../tabs/moderation/ModerationDetail";
+import CommunityReviewDetail from "../tabs/moderation/CommunityReviewDetail";
 import { Avatar, Icon, useTheme } from "@/reusables/design";
 import envs from "@/reusables/hooks/env_configs";
 import ConversationV2 from "../tabs/messenger/ConversationV2";
@@ -640,7 +641,8 @@ function Home({ setNextPath }: { setNextPath: (path: string | null) => void }) {
                   so react-router ranks it above "/:userID/*" and a moderation
                   id is never mistaken for a username. */}
                 <Route
-                  path="/moderation/:moderationId"
+                  path="/realm-review/:decisionId" element={<CommunityReviewDetail />} />
+                <Route path="/moderation/:moderationId"
                   element={<ModerationDetail />}
                 />
               </Routes>

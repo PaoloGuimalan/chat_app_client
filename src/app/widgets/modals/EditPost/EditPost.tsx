@@ -1,3 +1,5 @@
+import { notify } from "@/reusables/hooks/errormessages";
+import { postPublicationMessage } from "@/reusables/hooks/communityState";
 import { ContributionAvatar } from "@/app/reusables/ContributionAuthor";
 import { contributionAuthor } from "@/reusables/hooks/contributionIdentity";
 import { useEffect, useRef, useState } from "react";
@@ -124,6 +126,7 @@ export default function EditPost({ post, onClose, asPage = false }: { post: IPos
       if (!alive.current || token !== localStorage.getItem("authtoken")) return;
       if (!result.status || result.post?.post_id !== post.post_id) throw new Error("Couldn't confirm the saved post. Please try again.");
       publishPostUpdate(result.post, token);
+      if (post.community && result.post.approval === 0) notify("success", postPublicationMessage(0));
       leaving.current = true;
       onClose();
     } catch (cause) {

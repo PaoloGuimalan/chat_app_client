@@ -1,0 +1,29 @@
+/* Only the realm review controls: ordinary feed/navigation tabs retain their layout. */
+.cl-realm-review {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.cl-review-filters > div {
+  max-width: 100%;
+  flex-wrap: wrap;
+}
+
+.cl-review-filters button {
+  white-space: nowrap;
+  min-height: 32px;
+  height: auto !important;
+}
+
+.cl-review-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+@media (max-width: 479px) {
+  .cl-review-actions > button {
+    flex: 1 1 auto;
+  }
+}

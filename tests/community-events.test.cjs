@@ -8,6 +8,7 @@ const ts = require('typescript');
 function connect() {
   const sources = [];
   const relayed = [];
+  let token = 'fixture';
   class PreviewEvent {
     constructor(type, options) {
       this.type = type;
@@ -40,29 +41,36 @@ function connect() {
       if (name.includes('env_configs')) return { __esModule: true, default: {} };
       return {};
     },
-    localStorage: { getItem: () => 'fixture' },
+    localStorage: { getItem: () => token },
     EventSource: Source,
     CustomEvent: PreviewEvent,
     document: { dispatchEvent: (event) => relayed.push(event) },
   });
   module.exports.SSENotificationsTRequest(() => {}, [], {});
-  return { source: sources[0], relayed };
+  return { source: sources[0], relayed, setToken: value => token = value };
 }
 
 test('community membership signals relay current realm data without messaging actions', () => {
   const { source, relayed } = connect();
-  for (const event of ['community_access_changed', 'community_members_changed', 'community_requests_changed', 'community_notifications_changed']) {
+  for (const event of ['community_access_changed', 'community_members_changed', 'community_requests_changed', 'community_notifications_changed', 'community_posts_changed']) {
     source.emit(event, { auth: true, status: true, realm_id: 'garden' });
     assert.equal(relayed.at(-1)?.type, 'community-changed');
     assert.equal(relayed.at(-1)?.detail.realm_id, 'garden');
     assert.equal(relayed.at(-1)?.detail.event, event);
   }
-  assert.equal(relayed.length, 4);
+  assert.equal(relayed.length, 5);
   source.emit('community_access_changed', { auth: false, status: true, realm_id: 'garden' });
   source.emit('community_access_changed', { auth: true, status: false, realm_id: 'garden' });
   source.emit('community_access_changed', { auth: true, status: true });
   assert.doesNotThrow(() => source.listeners.get('community_access_changed')({ data: 'invalid' }));
-  assert.equal(relayed.length, 4);
+  assert.equal(relayed.length, 5);
+});
+
+test('late community review signals cannot revive a previous acting identity', () => {
+  const { source, relayed, setToken } = connect();
+  setToken('different-entity');
+  source.emit('community_posts_changed', { auth: true, status: true, result: { realm_id: 'club', target_id: 'post', approval: 2 } });
+  assert.equal(relayed.length, 0);
 });
 
 test('community access revalidates on a reconnected notification stream', () => {

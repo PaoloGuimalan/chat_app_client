@@ -608,7 +608,8 @@ function PostPreviewModal({
     </div>
   );
 
-  const content = communityAccessible ? shell : <div className="cl-community-panel">This post is unavailable. <button onClick={onClose}>Close</button></div>;
+  const available = communityAccessible && !(post.community && post.approval != null && post.approval !== 1 && !post.read_only);
+  const content = available ? shell : <div className="cl-community-panel">This post is unavailable. <button onClick={onClose}>Close</button></div>;
   return asPage ? content : <Modal component={content} />;
 }
 

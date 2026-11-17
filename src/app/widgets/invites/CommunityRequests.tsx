@@ -13,10 +13,14 @@ export default function CommunityRequests({
   realmId,
   compact = false,
   className = "",
+  canApprove = true,
+  canDecline = true,
 }: {
   realmId: string;
   compact?: boolean;
   className?: string;
+  canApprove?: boolean;
+  canDecline?: boolean;
 }) {
   const actor = useSelector(
     (state: any) =>
@@ -158,7 +162,7 @@ export default function CommunityRequests({
               <div className="cl-community-request__actions">
                 <Btn
                   size="sm"
-                  disabled={Boolean(pending)}
+                  disabled={Boolean(pending) || !canApprove}
                   onClick={() => respond(invite, "accepted")}
                 >
                   Approve
@@ -166,7 +170,7 @@ export default function CommunityRequests({
                 <Btn
                   size="sm"
                   variant="outline"
-                  disabled={Boolean(pending)}
+                  disabled={Boolean(pending) || !canDecline}
                   onClick={() => respond(invite, "declined")}
                 >
                   Decline

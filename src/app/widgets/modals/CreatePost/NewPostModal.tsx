@@ -1,3 +1,4 @@
+import { postPublicationMessage } from "@/reusables/hooks/communityState";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -536,7 +537,7 @@ export function NewPostModal({
             payload: {
               alerts: {
                 type: "success",
-                content: "Your post has been saved",
+                content: postPublicationMessage(response.data.approval),
               },
             },
           });

@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { GetPostPreviewRequest } from "@/reusables/hooks/requests";
 import type { IPost } from "../vars/interfaces";
 /** Revalidate community content after access or acting identity changes. */
-export function useCommunityPostAccess(post: Pick<IPost, "post_id" | "community">, accept: (post: IPost) => void) {
+export function useCommunityPostAccess(post: Pick<IPost, "post_id" | "community" | "read_only">, accept: (post: IPost) => void) {
   const actor = useSelector((state: any) => state.authentication.active_entity_context?.id ?? state.authentication.user?.entity_id);
   const [access, setAccess] = useState({ actor, allowed: true });
   const previousActor = useRef(actor);
@@ -13,15 +13,16 @@ export function useCommunityPostAccess(post: Pick<IPost, "post_id" | "community"
   const isCommunity = Boolean(post.community);
   acceptRef.current = accept;
   useEffect(() => {
-    if (!isCommunity)
+    if (!isCommunity || post.read_only)
       return;
     let active = true;
     let request = 0;
     const refresh = () => {
       const version = ++request;
+      const token = localStorage.getItem('authtoken');
       setAccess({ actor, allowed: false });
       GetPostPreviewRequest({ postID: post.post_id }).then(result => {
-        if (!active || version !== request || !result || result.deleted_at)
+        if (!active || version !== request || token !== localStorage.getItem('authtoken') || !result || result.deleted_at)
           return;
         acceptRef.current(result);
         setAccess({ actor, allowed: true });
@@ -33,6 +34,8 @@ export function useCommunityPostAccess(post: Pick<IPost, "post_id" | "community"
     }
     const changed = (event: Event) => {
       const realmId = (event as CustomEvent).detail?.realm_id;
+      const targetId = (event as CustomEvent).detail?.target_id;
+      if (targetId && targetId !== post.post_id) return;
       if (!realmId || realmId === communityId)
         refresh();
     };
@@ -42,6 +45,6 @@ export function useCommunityPostAccess(post: Pick<IPost, "post_id" | "community"
       request++;
       document.removeEventListener("community-changed", changed);
     };
-  }, [actor, post.post_id, communityId, isCommunity]);
-  return !isCommunity || (access.actor === actor && access.allowed);
+  }, [actor, post.post_id, communityId, isCommunity, post.read_only]);
+  return Boolean(post.read_only) || !isCommunity || (access.actor === actor && access.allowed);
 }

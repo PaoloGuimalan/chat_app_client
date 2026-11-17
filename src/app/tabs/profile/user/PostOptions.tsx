@@ -23,7 +23,11 @@ import { useSelector } from "react-redux";
 import { RiInboxUnarchiveFill } from "react-icons/ri";
 import ReportModal from "@/app/widgets/modals/ReportModal";
 import EditTagsModal from "@/app/widgets/modals/EditTagsModal";
-import { notifyRequestError } from "@/reusables/hooks/errormessages";
+import { notify, notifyRequestError } from "@/reusables/hooks/errormessages";
+import { archiveCommunityPost, getCommunity, reviewCommunityPost } from '@/reusables/hooks/communityRequests';
+import { publishPostUpdate } from '@/reusables/hooks/postUpdates';
+import ReviewReasonModal from '@/app/widgets/modals/ReviewReasonModal';
+import type { RealmCapabilities } from '@/reusables/vars/realmApprovals';
 import { useLocation, useNavigate } from "react-router-dom";
 import EditPost from "@/app/widgets/modals/EditPost/EditPost";
 import ChangePostAudience from "@/app/widgets/modals/EditPost/ChangePostAudience";
@@ -58,19 +62,37 @@ function PostOptions({
   const navigate = useNavigate();
   const location = useLocation();
   const token = localStorage.getItem("authtoken") || "";
+  const [communityActions, setCommunityActions] = useState<RealmCapabilities | null>(null);
+  const [takedown, setTakedown] = useState<{ realmId: string; postId: string; version: string; token: string } | null>(null);
+  const [reason, setReason] = useState('');
+  const [reviewBusy, setReviewBusy] = useState(false);
+  const reviewMutation = useRef(false);
+  useEffect(() => {
+    if (!isOptionsToggled || !post.community || post.read_only) return;
+    let active = true;
+    getCommunity(post.community.realm_id).then(response => {
+      if (active && token === localStorage.getItem('authtoken')) setCommunityActions(response.result.capabilities ?? {});
+    }).catch(error => {
+      if (active && token === localStorage.getItem('authtoken')) notifyRequestError(error, 'We couldn’t load community actions.');
+    });
+    return () => { active = false; };
+  }, [isOptionsToggled, post.community?.realm_id, post.read_only, token]);
   useEffect(() => {
     setpostState(previous => ({
       ...post,
       is_saved: previous.post_id === post.post_id ? previous.is_saved : post.is_saved,
     }));
   }, [post]);
-  useEffect(() => { setEditing(false); setChangingAudience(false); }, [token]);
+  useEffect(() => { setEditing(false); setChangingAudience(false); setTakedown(null); setCommunityActions(null); }, [token]);
 
   // Reporting your own post is meaningless, and the server rejects it anyway
   // (the post resolves to your own entity) - so don't offer it. This is the
   // same ownership check the archive/delete items already use, which covers
   // posts published *as* a page you administer too.
   const isOwnPost = ownsContribution(post, authentication.user.entity_id);
+  const communityAuthored = post.community != null && post.entity?.id === post.community.entity_id;
+  const canArchiveCommunity = communityAuthored && communityActions?.can_archive_community_posts === true;
+  const canTakeDown = !isOwnPost && !communityAuthored && communityActions?.can_take_down_posts === true && (post.approval ?? 1) === 1;
 
   // Tags are entity-keyed, so acting as a page means the PAGE's tag.
   const tagging = (post.tagging ?? []).filter(tag =>
@@ -133,11 +155,16 @@ function PostOptions({
   const ArchivePostProcess = (archive_status: boolean) => {
     onProcess();
     setisOptionsToggled(false);
-    UpdatePostRequest(post.post_id, { is_archived: archive_status })
+    const request = canArchiveCommunity
+      ? archiveCommunityPost(post.community!.realm_id, post.post_id, archive_status)
+      : UpdatePostRequest(post.post_id, { is_archived: archive_status });
+    request
       .then(() => {
+        if (token !== localStorage.getItem('authtoken')) return;
         onFinish(archive_status ? "archived" : "unarchived");
       })
       .catch((err) => {
+        if (token !== localStorage.getItem('authtoken')) return;
         onError();
         console.log(err);
         notifyRequestError(
@@ -147,6 +174,28 @@ function PostOptions({
             : "We couldn't restore that post.",
         );
       });
+  };
+
+  const submitTakedown = async () => {
+    if (!takedown || !reason.trim() || reviewMutation.current) return;
+    const snapshot = takedown;
+    if (snapshot.token !== localStorage.getItem('authtoken')) return;
+    reviewMutation.current = true; setReviewBusy(true);
+    try {
+      await reviewCommunityPost(snapshot.realmId, snapshot.postId, { action: 'takedown', expected_approval: 1,
+        expected_version: snapshot.version, reason: reason.trim() });
+      if (snapshot.token !== localStorage.getItem('authtoken')) return;
+      publishPostUpdate({ post_id: snapshot.postId, approval: 2 }, snapshot.token);
+      setTakedown(null); onFinish('unapproved'); notify('success', 'Post taken down.');
+    } catch (error) {
+      if (snapshot.token !== localStorage.getItem('authtoken')) return;
+      notifyRequestError(error, 'We couldn’t take down this post.');
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if ([401, 403, 404, 409].includes(status ?? 0)) {
+        setTakedown(null);
+        document.dispatchEvent(new CustomEvent('community-changed', { detail: { realm_id: snapshot.realmId, target_id: snapshot.postId } }));
+      }
+    } finally { reviewMutation.current = false; if (snapshot.token === localStorage.getItem('authtoken')) setReviewBusy(false); }
   };
 
   const RemoveMyTagProcess = () => {
@@ -193,6 +242,7 @@ function PostOptions({
       });
   };
 
+  if (post.read_only) return null;
   return (
     <div ref={wrapperRef} className="tw-relative">
       {isOptionsToggled && portalRoot && createPortal(
@@ -269,7 +319,7 @@ function PostOptions({
               <span>Edit tags</span>
             </button>
           )}
-          {isOwnPost &&
+          {(isOwnPost || canArchiveCommunity) &&
             (post.is_archived ? (
               <button
                 onClick={() => {
@@ -303,6 +353,9 @@ function PostOptions({
               <span>Delete</span>
             </button>
           )}
+          {canTakeDown && <button type="button" className="cl-post-options-button cl-post-options-button--danger tw-items-center cl-text-caption tw-flex tw-gap-[6px] tw-cursor-pointer tw-p-[7px] tw-border-none tw-rounded-sm tw-bg-transparent"
+            onClick={() => { setisOptionsToggled(false); setReason(''); setTakedown({ realmId: post.community!.realm_id, postId: post.post_id,
+              version: post.updated_at || post.date_posted, token }); }}><MdReport size={15}/><span>Take down post</span></button>}
           {!isOwnPost && (
             <button
               onClick={() => {
@@ -325,6 +378,7 @@ function PostOptions({
         aria-label="Post options"
         aria-expanded={isOptionsToggled}
         onClick={() => {
+          setCommunityActions(null);
           const rect = wrapperRef.current?.getBoundingClientRect();
           if (rect) {
             setMenuPosition({
@@ -345,6 +399,8 @@ function PostOptions({
           onClose={() => setisReportOpen(false)}
         />
       )}
+      {takedown && <ReviewReasonModal title="Take down post" confirmLabel="Confirm takedown" reason={reason} busy={reviewBusy}
+        onReasonChange={setReason} onConfirm={() => void submitTakedown()} onClose={() => { if (!reviewBusy) setTakedown(null); }} />}
       {editing && isOwnPost && <EditPost key={`${post.post_id}:${token}`} post={post} onClose={() => setEditing(false)}/>}
       {changingAudience && isOwnPost && <ChangePostAudience key={`${post.post_id}:${token}`} post={post} onClose={() => setChangingAudience(false)}/>}
       {isEditTagsOpen && (

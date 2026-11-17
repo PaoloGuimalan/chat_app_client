@@ -56,10 +56,13 @@ function PostItem({
   isSharePreview,
   mp,
   show_archived,
+  embedded = false,
 }: {
   isSharePreview: boolean;
   mp: IPost;
   show_archived?: boolean;
+  /** Review/archive cards already provide their own outer surface. */
+  embedded?: boolean;
 }) {
   const authentication: AuthenticationInterface = useSelector(
     (state: any) => state.authentication,
@@ -81,7 +84,8 @@ function PostItem({
   const [toggleEmojis, settoggleEmojis] = useState<boolean>(false);
   const [emojiLoading, setemojiLoading] = useState<boolean>(false);
   const [postState, setpostState] = useState<IPost>(mp);
-  const canInteract = authentication.auth &&
+  const readOnly = postState.read_only === true;
+  const canInteract = !readOnly && authentication.auth &&
     (!postState.community?.is_private || postState.community.is_member);
   const communityAccessible = useCommunityPostAccess(postState, setpostState);
   usePostUpdate(mp, patch => setpostState(previous => ({ ...previous, ...patch })));
@@ -201,6 +205,7 @@ function PostItem({
   });
 
   useEffect(() => {
+    if (readOnly) { sessionStartTimeRef.current = null; return; }
     const isInNewsfeed = location.pathname === "/";
     if (!isOwnPost || isInNewsfeed) {
       if (isInView) {
@@ -227,7 +232,8 @@ function PostItem({
     }
   }, [authentication.user.entity_id, author, isInView, isOwnPost, postState, location]);
 
-  if (!communityAccessible || postState.deleted_at || (!show_archived && postState.is_archived)) {
+  if (!communityAccessible || postState.deleted_at || (!show_archived && postState.is_archived) ||
+      (!readOnly && postState.community && postState.approval != null && postState.approval !== 1)) {
     return (
       <div className="cl-post-item-unavailable tw-flex tw-flex-col tw-gap-[15px] tw-w-full tw-h-auto tw-min-h-[200px] tw-items-center tw-justify-center">
         <BsFileEarmarkExcel
@@ -254,10 +260,10 @@ function PostItem({
       {minimizedCaption !== null && (
         <div
           style={{
-            border: isSharePreview
+            border: embedded ? "none" : isSharePreview
               ? "1px solid var(--border)"
               : "0px solid transparent",
-            borderRadius: isSharePreview ? "var(--r-lg)" : "0px",
+            borderRadius: !embedded && isSharePreview ? "var(--r-lg)" : "0px",
             overflow: isSharePreview ? "hidden" : "visible",
           }}
           className="cl-post-item-card tw-w-full tw-p-[20px] tw-pb-[7px] tw-flex tw-flex-col tw-gap-[10px]"
@@ -310,7 +316,7 @@ function PostItem({
                 {(postState.is_edited || postState.updated_at) && <span className="cl-post-edited" title={postState.updated_at ? `Edited ${new Date(postState.updated_at).toLocaleString()}` : "Edited"}>· Edited</span>}
               </span>
             </div>
-            {authentication.auth && (
+            {authentication.auth && !readOnly && (
               <PostOptions
                 post={postState}
                 onTaggingChange={(tagging) =>
@@ -352,7 +358,7 @@ function PostItem({
           >
             <div
               ref={textContainerRef}
-              className={`tw-w-full tw-flex tw-justify-center ${minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
+              className={`tw-w-full tw-flex ${embedded ? "tw-justify-start" : "tw-justify-center"} ${minimizedCaption ? "tw-max-h-[120px]" : "tw-max-h-none"
                 } tw-overflow-y-hidden`}
             >
               <span
@@ -617,7 +623,7 @@ function PostItem({
                         {postState.is_shared &&
                           postState.references.map((mpu: any, i: number) => {
                             return (
-                              <LoadedPostItem key={i} postID={mpu.reference} />
+                              <LoadedPostItem key={i} postID={mpu.reference} readOnly={readOnly} />
                             );
                           })}
                       </div>
@@ -932,7 +938,7 @@ function PostItem({
             )}
             {postState.is_shared &&
               postState.references.map((mpu: any, i: number) => {
-                return <LoadedPostItem key={i} postID={mpu.reference} />;
+                return <LoadedPostItem key={i} postID={mpu.reference} readOnly={readOnly} />;
               })}
             {toggleAddToMoment && (
               <CreateMomentModal
@@ -963,7 +969,7 @@ function PostItem({
               />
             )}
           </div>
-          {!isSharePreview && !postState.is_archived && (
+          {!readOnly && !isSharePreview && !postState.is_archived && (
             <div className="tw-w-full tw-flex tw-flex-col tw-items-center tw-gap-[0px] tw-justify-center">
               <motion.div
                 initial={{

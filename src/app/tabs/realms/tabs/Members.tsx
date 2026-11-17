@@ -1,6 +1,6 @@
 import RoleSelect from "@/app/widgets/members/RoleSelect";
 import { useRoleDefinitions } from "@/reusables/hooks/useRoleDefinitions";
-import { defaultRole } from "@/reusables/vars/roles";
+import { canInviteWithRole, defaultRole } from "@/reusables/vars/roles";
 import CommunityRequests from "@/app/widgets/invites/CommunityRequests";
 import {
   canManageCommunitySettings,
@@ -43,8 +43,12 @@ function Members({
   const realmTypeLabel =
     realm.type === "group" && realm.parent ? "channel" : realm.type;
 
+  const caps = realm.type === "community" ? realm.capabilities : undefined;
+  const canViewMembers = !caps || caps.can_view_members === true;
+  const canRemove = caps ? caps.can_remove_members === true : canManageCommunitySettings(realm.my_role);
+  const canReview = caps ? caps.can_review_join_requests || caps.can_decline_join_requests : canReviewCommunityRequests(realm.my_role);
   const addableMember =
-    (realm.type !== "community" || canManageCommunitySettings(realm.my_role)) &&
+    (realm.type !== "community" || (caps ? caps.can_invite_members === true : canManageCommunitySettings(realm.my_role))) &&
     !(
       (realmTypeLabel === "channel" || realmTypeLabel === "voice") &&
       !realm.is_private
@@ -64,8 +68,8 @@ function Members({
       ? realmTypeLabel
       : null;
 
-  const roleDefinitions = useRoleDefinitions(invitable === "page");
-  const manageRoles = roleDefinitions.roles.filter((role) => role.name === "admin" || role.name === "moderator");
+  const roleDefinitions = useRoleDefinitions(invitable === "page", realm.id);
+  const manageRoles = roleDefinitions.roles.filter(canInviteWithRole);
   const [bulkRoleId, setBulkRoleId] = useState<number | null>(null);
   const bulkRole = manageRoles.find((role) => role.id === (bulkRoleId ?? defaultRole(manageRoles, "moderator")?.id));
   const bulkRoleSelector = invitable === "page" && <RoleSelect {...roleDefinitions} roles={manageRoles}
@@ -77,7 +81,7 @@ function Members({
   const [inviteReload, setinviteReload] = useState(0);
 
   // The modal's two panes: the members, or the people to add / invite.
-  const [pane, setpane] = useState<"members" | "add">("members");
+  const [pane, setpane] = useState<"members" | "add">(canViewMembers ? "members" : "add");
 
   const pickerLabel =
     realm.type === "page"
@@ -101,7 +105,7 @@ function Members({
       realm.realm_id,
       markedMembers.map((m) => m.entityID),
       extra,
-    ).then(({ sent, firstError }) => {
+    ).then(({ sent, firstError, awaitingApproval }) => {
       if (sent > 0) {
         setinvitedIDs((prev) => [
           ...prev,
@@ -111,7 +115,7 @@ function Members({
         callback();
         notify(
           "success",
-          sent === 1
+          awaitingApproval > 0 ? `${awaitingApproval} invitations submitted for approval.` : sent === 1
             ? `Invite sent to ${markedMembers[0].fullName.trim()}.`
             : `${sent} invites sent.`,
         );
@@ -201,8 +205,8 @@ function Members({
     return (
       <div className="tw-flex tw-flex-1 tw-flex-col tw-min-h-0 tw-w-full tw-p-[14px] sm:tw-p-[18px] tw-gap-[12px]">
         {["community", "server"].includes(realm.type) &&
-          canReviewCommunityRequests(realm.my_role) && (
-            <CommunityRequests realmId={realm.realm_id} compact />
+          canReview && (
+            <CommunityRequests canApprove={caps ? !!caps.can_review_join_requests : true} canDecline={caps ? !!caps.can_decline_join_requests : true} realmId={realm.realm_id} compact />
           )}
         {addableMember && (
           <SegTabs
@@ -227,16 +231,17 @@ function Members({
         <div
           className={`${showMembers ? "tw-flex" : "tw-hidden"} tw-flex-1 tw-min-h-[240px] ${card}`}
         >
-          <RealmMembers
+          {canViewMembers && <RealmMembers
+            capabilities={caps}
             compact
             realm_id={realm.id}
             realmNoun={realmTypeLabel}
             myRole={realm.my_role}
-            hide={!addableMember ? ["remove-user-btn"] : []}
+            hide={!(caps ? canRemove : addableMember) ? ["remove-user-btn"] : []}
             onList={(list: string[]) => {
               setmemberIDs(list);
             }}
-          />
+          />}
         </div>
         {addableMember && (
           <div
@@ -289,11 +294,12 @@ function Members({
           className={`tw-w-full ${addableMember && "xl:tw-max-w-[450px]"} tw-flex tw-flex-col tw-gap-[12px]`}
         >
           {["community", "server"].includes(realm.type) &&
-            canReviewCommunityRequests(realm.my_role) && (
-              <CommunityRequests realmId={realm.realm_id} />
+            canReview && (
+              <CommunityRequests canApprove={caps ? !!caps.can_review_join_requests : true} canDecline={caps ? !!caps.can_decline_join_requests : true} realmId={realm.realm_id} />
             )}
           <div className="tw-flex tw-flex-1 tw-min-h-[300px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)] tw-overflow-hidden">
-            <RealmMembers
+            {canViewMembers && <RealmMembers
+            capabilities={caps}
               realm_id={realm.id}
               // Same refinement ContactMember gets below: a group WITH a parent
               // is a channel, and calling it a group in the prompt would name
@@ -303,11 +309,11 @@ function Members({
               }
               // Who may act on whom - see RealmMembers.
               myRole={realm.my_role}
-              hide={!addableMember ? ["remove-user-btn"] : []}
+              hide={!(caps ? canRemove : addableMember) ? ["remove-user-btn"] : []}
               onList={(list: string[]) => {
                 setmemberIDs(list);
               }}
-            />
+            />}
           </div>
         </div>
         {addableMember && (

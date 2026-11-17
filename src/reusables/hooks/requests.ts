@@ -1,3 +1,4 @@
+import { createRealmAccessRecovery, saveRealmRevocationNotice } from "./realmAccessRecovery";
 import type { RoleDefinition } from "@/reusables/vars/roles";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -134,9 +135,18 @@ const FORCE_LOGOUT_ERROR_CODES = [
   "ACCOUNT_INACTIVE",
 ];
 
+export const RecoverRevokedRealm = createRealmAccessRecovery({
+  readToken: () => localStorage.getItem("authtoken"),
+  switchBack: (expectedToken, message) => SwitchBackToSelfRequest(store.dispatch, undefined, { expectedToken, message }),
+});
+
 Axios.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
+    if (!String(error?.config?.url ?? "").endsWith("/api/user/entity/switch-back") &&
+        await RecoverRevokedRealm(error?.response?.data, error?.config?.headers?.["x-access-token"])) {
+      return Promise.reject(new axios.CanceledError("Acting identity changed."));
+    }
     const detail = error?.response?.data?.detail;
     if (
       error?.response?.status === 403 &&
@@ -184,6 +194,7 @@ const AuthCheck = (dispatch: any) => {
     },
   })
     .then((response) => {
+      if (localStorage.getItem("authtoken") !== authtoken) return;
       if (response.data.status) {
         const userData: any = jwt_decode(response.data.result.usertoken);
         // jwtchecker resolves the CURRENT entity's ID and photo, including
@@ -197,6 +208,7 @@ const AuthCheck = (dispatch: any) => {
         );
         // console.log(userData)
         setTimeout(() => {
+          if (localStorage.getItem("authtoken") !== authtoken) return;
           const restoredAuthentication = {
             ...authenticationstate,
             auth: true,
@@ -229,6 +241,7 @@ const AuthCheck = (dispatch: any) => {
         }, 2000);
       } else {
         setTimeout(() => {
+          if (localStorage.getItem("authtoken") !== authtoken) return;
           dispatch({
             type: SET_AUTHENTICATION,
             payload: {
@@ -242,6 +255,7 @@ const AuthCheck = (dispatch: any) => {
       }
     })
     .catch((err) => {
+      if (localStorage.getItem("authtoken") !== authtoken) return;
       dispatch({
         type: SET_AUTHENTICATION,
         payload: {
@@ -423,24 +437,30 @@ const SwitchEntityRequest = (
 const SwitchBackToSelfRequest = (
   dispatch: Dispatch<any>,
   currentAlertState: any,
+  recovery?: { expectedToken: string; message: string },
 ) => {
   return Axios.post(
     `${envs.USER_SERVICE_API}/api/user/entity/switch-back`,
     {},
     {
       headers: {
-        "x-access-token": localStorage.getItem("authtoken"),
+        "x-access-token": recovery?.expectedToken ?? localStorage.getItem("authtoken"),
       },
     },
   )
     .then((response) => {
+      if (recovery && localStorage.getItem("authtoken") !== recovery.expectedToken) return false;
       if (response.data.status) {
         localStorage.setItem("authtoken", response.data.result.authtoken);
         // Same reasoning as SwitchEntityRequest above - reload rather than
         // patch redux in place, so nothing built for the page identity
         // (messages, notifications, call state, cached lists) lingers once
         // switched back to the personal user.
-        window.location.reload();
+        if (recovery) {
+          saveRealmRevocationNotice(window.sessionStorage, response.data.result.personal_entity_id, recovery.message);
+          const personal = jwt_decode<{ username?: string }>(response.data.result.authtoken);
+          window.location.replace(personal.username ? `/${encodeURIComponent(personal.username)}` : "/");
+        } else window.location.reload();
         return true;
       }
       pushResponseAlert(
@@ -4309,10 +4329,11 @@ const RemoveRealmFollowersRequest = async (
     });
 };
 
-const GetRoleDefinitionsRequest = async (): Promise<RoleDefinition[]> => {
+const GetRoleDefinitionsRequest = async (realmId?: string): Promise<RoleDefinition[]> => {
   try {
     const { data } = await Axios.get(`${envs.USER_SERVICE_API}/api/entity/roles`, {
       headers: { "x-access-token": localStorage.getItem("authtoken") },
+      ...(realmId ? { params: { realm_id: realmId } } : {}),
     });
     if (!data?.status || !Array.isArray(data.result)) throw new Error("Couldn't load roles.");
     return data.result;

@@ -1,7 +1,7 @@
 // Fallback until the existing boot request supplies the current Variable.
 export const DEFAULT_PROFILE_PATHS = [
   "api", "assets", "communities", "conference", "contacts", "delete-account", "design",
-  "edits", "explore", "invite", "login", "mapfeed", "messages", "moderation",
+  "edits", "explore", "invite", "login", "mapfeed", "messages", "moderation", "realm-review",
   "moments", "notes", "notifications", "pages", "post", "privacy", "realms",
   "register", "scenes", "servers", "settings", "setup", "share", "studio",
   "studios", "support", "terms", "topics", "user", "verification",

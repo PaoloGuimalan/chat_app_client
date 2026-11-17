@@ -16,10 +16,11 @@ export default function RoleSelect({ roles, value, onChange, disabled = false, l
       className="tw-bg-[var(--surface)] tw-text-[var(--text)] tw-border tw-border-[var(--border)] tw-rounded tw-p-[6px] tw-max-w-full"
       onChange={(event) => {
         const role = roles.find((row) => row.id === Number(event.target.value));
-        if (role) onChange(role);
+        if (role && role.assignable !== false) onChange(role);
       }}>
       <option value="" disabled>{loading ? "Loading roles…" : "Choose a role"}</option>
-      {roles.map((role) => <option key={role.id} value={role.id} title={roleSummary(role)}>{roleLabel(role)}</option>)}
+      {roles.map((role) => <option key={role.id} value={role.id} disabled={role.assignable === false}
+        title={role.disabled_reason || roleSummary(role)}>{roleLabel(role)}</option>)}
     </select>
     {error && <span role="alert">Couldn’t load roles. <button type="button" onClick={onRetry}>Retry</button></span>}
     {!loading && !error && !roles.length && <span>No assignable roles are available.</span>}

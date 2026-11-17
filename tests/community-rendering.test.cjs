@@ -68,6 +68,7 @@ Module._load = function (request, parent, isMain) {
       NetworkOverviewRequest: async () => ({ connections: { results: mentionPeople }, following: { results: [] } }),
       SaveCommentRequest: (...args) => new Promise((resolve, reject) => commentSaves.push({ args, resolve, reject })),
     };
+  if (request === '@/reusables/hooks/communityRequests') return { getCommunity: async () => ({ result: { capabilities: {} } }) };
   if (request === '@/reusables/hooks/mediaUpload')
     return { uploadFiles: async (options) => { editUploads.push(options); return [{ fileUrl: '/anonymous/photo.jpg' }]; } };
   if (request === './PostEditLayout')
@@ -120,6 +121,30 @@ const person = { id: 'author', type: 'user', details: { id: 'author-user', usern
 const post = overrides => ({ post_id: 'post', caption: 'A contribution', entity: person, tagging: [], references: [], preview: [], score: { comments_count: 0, shares_count: 0 }, is_archived: false, is_shared: false, privacy_status: 'public', date_posted: '2026-10-25T00:00:00Z', content_type: 'text', on_feed: 'feed', ...overrides });
 const anonymous = post({ entity: null, is_anonymous: true, is_owner: true, community, entity_reaction: 'emoji', entity_reaction_is_anonymous: true });
 const render = (component, props) => { resetHooks.forEach(reset => reset()); return renderToStaticMarkup(React.createElement(component, props)); };
+
+test('embedded readonly review content shares the review surface while ordinary cards keep their border', () => {
+  for (const embedded of [true, false]) {
+    const html = render(PostItem, { mp: post({ community, read_only: true }), isSharePreview: true, embedded });
+    const document = new JSDOM(html).window.document;
+    const card = document.querySelector('.cl-post-item-card');
+    assert.ok(card.getAttribute('style').includes(embedded ? 'border:none' : 'border:1px solid var(--border)'));
+    assert.equal(card.style.borderRadius, embedded ? '0px' : 'var(--r-lg)');
+    assert.equal(card.textContent.includes('Alice Member'), true);
+    assert.equal(card.textContent.includes('A contribution'), true);
+    assert.equal(document.querySelector('[aria-label="React"]'), null);
+  }
+});
+test('private review cards reuse the post body without public actions or options', () => {
+  const html = render(PostItem, { mp: post({ community, approval: 0, read_only: true }), isSharePreview: false });
+  assert.match(html, /A contribution/);
+  assert.doesNotMatch(html, /aria-label="Post options"|aria-label="React"|Share post/);
+});
+test('a live post preview stops displaying a taken-down community post', () => {
+  const html = render(PostPreviewModal, { post: post({ community, approval: 2 }), asPage: true,
+    setPost() {}, onClose() {}, onShare() {} });
+  assert.match(html, /This post is unavailable/);
+  assert.doesNotMatch(html, /A contribution/);
+});
 function assertAnonymous(html) { assert.match(html, /Anonymous member/); assert.doesNotMatch(html, /Alice|\/author|data-avatar-id="(?:author|undefined|null)"/); }
 
 test('destination hides inside its community and on community-authored media', () => {

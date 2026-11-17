@@ -18,6 +18,7 @@ import { postsliststate } from "@/redux/actions/states";
 import PostItem from "./PostItem";
 import SavesContainer from "./SavesContainer";
 import ArchivesContainer from "./ArchivesContainer";
+import SubmissionsContainer from "./SubmissionsContainer";
 import PostItemLoader from "@/app/reusables/loaders/PostItemLoader";
 import { FaFileAlt } from "react-icons/fa";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -50,11 +51,12 @@ import { PiShareFat } from "react-icons/pi";
 import { SET_MINIMIZED_CONVERSATION } from "@/redux/types";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
-type RealmFeedMode = "posts" | "saves" | "archives";
+type RealmFeedMode = "posts" | "saves" | "archives" | "submissions";
 const REALM_FEED_TABS: { key: RealmFeedMode; label: string }[] = [
   { key: "posts", label: "Posts" },
   { key: "saves", label: "Saves" },
   { key: "archives", label: "Archives" },
+  { key: "submissions", label: "Submissions" },
 ];
 
 function RealmProfile({
@@ -124,7 +126,7 @@ function RealmProfile({
   // the choice. "?feed=archives" (a Moment's Archive link) opens on Archives.
   const [feedmode, setfeedmode] = useState<RealmFeedMode>(() => {
     const feed = new URLSearchParams(window.location.search).get("feed");
-    return feed === "archives" || feed === "saves" ? feed : "posts";
+    return feed === "archives" || feed === "saves" || feed === "submissions" ? feed : "posts";
   });
   const isMobileView = screensizelistener.W < 800;
   // The containers only use it to know when to refetch; one per page.
@@ -847,6 +849,7 @@ function RealmProfile({
             {feedmode === "saves" && isSelf && (
               <SavesContainer profileInfo={feedProfileInfo} />
             )}
+            {feedmode === "submissions" && isSelf && <SubmissionsContainer ownerEntityId={realmInfo.entity} />}
             {feedmode === "archives" && isSelf && (
               <ArchivesContainer profileInfo={feedProfileInfo} />
             )}

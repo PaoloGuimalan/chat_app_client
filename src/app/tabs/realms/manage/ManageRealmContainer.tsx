@@ -3,6 +3,7 @@ import PageLoader from "@/app/reusables/loaders/PageLoader";
 import BrokenLink from "@/app/reusables/catchers/BrokenLink";
 import ManageRealm from "./ManageRealm";
 import { useManagedRealm } from "./useManagedRealm";
+import { canManageRealm } from './manageTabs';
 
 function ManageRealmContainer() {
   const params = useParams();
@@ -20,7 +21,7 @@ function ManageRealmContainer() {
                 secondaryLabel="Please check and try again."
               />
             ) : realmInfo ? (
-              (realmInfo.is_admin || (realmInfo.type === "community" && realmInfo.my_role === "moderator")) ? (
+              canManageRealm(realmInfo) ? (
                 <ManageRealm realm={realmInfo} />
               ) : (
                 <BrokenLink

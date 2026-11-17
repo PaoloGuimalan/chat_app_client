@@ -22,6 +22,7 @@ import seen_rightone from "../../assets/sounds/seen_alert.mp3";
 // import chatterloop_icon from "../../assets/imgs/chatterloop.png";
 import { Dispatch } from "react";
 import {
+  RecoverRevokedRealm,
   ContactsListInitRequest,
   InitConversationListRequest,
   NotificationOverrideRequest,
@@ -80,12 +81,14 @@ const SSENotificationsTRequest = (
     "community_members_changed",
     "community_requests_changed",
     "community_notifications_changed",
+      "community_posts_changed",
     "realm_requests_changed",
     "realm_members_changed",
     "realm_access_changed",
   ]) {
     sseNtfsSource.addEventListener(event, (frame: MessageEvent<string>) => {
       try {
+          if (payload.token !== localStorage.getItem('authtoken')) return;
         const data = JSON.parse(frame.data);
         if (!data?.auth || !data.status) return;
         const signal = data.realm_id ? data : data.result;
@@ -106,6 +109,7 @@ const SSENotificationsTRequest = (
 
   sseNtfsSource.addEventListener("notifications", (e: any) => {
     const parsedresponse = JSON.parse(e.data);
+    void RecoverRevokedRealm(parsedresponse, payload.token);
     // console.log(parsedresponse)
     if (parsedresponse.auth) {
       if (parsedresponse.status) {

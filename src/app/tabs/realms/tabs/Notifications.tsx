@@ -18,6 +18,7 @@ const FAILED = "Community notifications could not be loaded. Please try again.";
 const supportedTypes = new Set([
   "community_join_request", "community_member_joined", "community_post_created",
   "post_comment", "post_reaction", "comment_reaction",
+  "community_post_pending", "community_invite_pending",
 ]);
 const statuses = {
   pending: "Pending", accepted: "Approved", declined: "Declined", revoked: "Withdrawn",
@@ -27,10 +28,12 @@ export default function Notifications({
   realm,
   onReviewRequests,
   onOpenPost,
+  onReviewApprovals,
 }: {
   realm: IRealmProfileInfo;
-  onReviewRequests?: () => void;
+  onReviewRequests?: (requestId?: string) => void;
   onOpenPost?: () => void;
+  onReviewApprovals?: (kind: 'posts' | 'invites' | 'joins', targetId: string) => void;
 }) {
   const navigate = useNavigate();
   const actor = useSelector((state: {
@@ -182,11 +185,17 @@ export default function Notifications({
                 </div>
                 {isRequest && row.request_status === "pending" && row.request_id && (
                   <Btn size="sm" variant="soft" onClick={() => onReviewRequests
-                    ? onReviewRequests()
-                    : navigate(`/realms/${encodeURIComponent(realm.id)}/members`)}>
+                    ? onReviewRequests(row.request_id!)
+                    : navigate(realm.capabilities != null
+                      ? `/realms/${encodeURIComponent(realm.id)}/approvals?kind=joins&target=${encodeURIComponent(row.request_id!)}`
+                      : `/realms/${encodeURIComponent(realm.id)}/members`)}>
                     Review request
                   </Btn>
                 )}
+                {row.approval_pending && row.approval_kind && row.approval_target_id && <Btn size="sm" variant="soft" onClick={() => {
+                  if (onReviewApprovals) onReviewApprovals(row.approval_kind!, row.approval_target_id!);
+                  else navigate(`/realms/${encodeURIComponent(realm.id)}/approvals?kind=${row.approval_kind}&target=${encodeURIComponent(row.approval_target_id!)}`);
+                }}>{row.approval_kind === 'posts' ? 'Review post' : 'Review invitation'}</Btn>}
                 {!isRequest && row.post_id && (
                   <Btn size="sm" variant="ghost" onClick={() => {
                     navigate(`/post/${encodeURIComponent(row.post_id!)}${row.anchor ? `?anchor=${encodeURIComponent(row.anchor)}` : ""}`);
@@ -208,8 +217,7 @@ export default function Notifications({
           </div>
         )}
         {!busy && error && (
-          <div className="cl-community-notifications__notice" role="alert">
-            <p>{FAILED}</p>
+          <div className="cl-community-notifications__notice">
             <Btn variant="outline" onClick={() => setAttempt(value => value + 1)}>Try again</Btn>
           </div>
         )}

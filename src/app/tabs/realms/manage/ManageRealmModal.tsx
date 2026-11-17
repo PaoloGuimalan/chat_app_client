@@ -8,9 +8,12 @@ import Members from "../tabs/Members";
 import Followers from "../tabs/Followers";
 import Notifications from "../tabs/Notifications";
 import { useManagedRealm } from "./useManagedRealm";
-import { hasMediaTab } from "./manageTabs";
+import { hasMediaTab, manageRealmTabs, canManageRealm } from './manageTabs';
+import Permissions from '../tabs/Permissions';
+import Approvals from '../tabs/Approvals';
+import type { ApprovalKind } from '@/reusables/vars/realmApprovals';
 
-type ManageTab = "details" | "media" | "members" | "followers" | "notifications";
+type ManageTab = "details" | "media" | "members" | "followers" | "notifications" | "permissions" | "approvals";
 
 /**
  * Manage a realm without leaving the screen: the /realms/:realm_id page's
@@ -30,8 +33,8 @@ function ManageRealmModal({
 }) {
   const { isloaded, isError, realmInfo } = useManagedRealm(realmId);
   const [tab, setTab] = useState<ManageTab>("details");
-  const isModerator = realmInfo?.type === "community" && realmInfo.my_role === "moderator";
-  const canManage = realmInfo?.is_admin || isModerator;
+  const [approvalSelection, setApprovalSelection] = useState<{ kind: ApprovalKind; target: string } | null>(null);
+  const canManage = realmInfo != null && canManageRealm(realmInfo);
 
   // Removed from the realm while managing it: close, as ManageRealm leaves
   // the page.
@@ -52,19 +55,8 @@ function ManageRealmModal({
     };
   }, [realmInfo?.id, onClose]);
 
-  const tabs = [
-    ...(!isModerator ? [{ key: "details", label: "Details" }] : []),
-    ...(realmInfo && !isModerator && hasMediaTab(realmInfo)
-      ? [{ key: "media", label: "Media" }]
-      : []),
-    { key: "members", label: "Members" },
-    ...(realmInfo?.type === "community"
-      ? [{ key: "notifications", label: "Notifications" }]
-      : []),
-    ...(realmInfo?.type === "page"
-      ? [{ key: "followers", label: "Followers" }]
-      : []),
-  ];
+  const tabs = realmInfo ? manageRealmTabs(realmInfo).filter(item => item.key !== 'dashboard') : [];
+  const activeTab = tabs.some(item => item.key === tab) ? tab : tabs[0]?.key;
 
   const notice = (text: string) => (
     <div className="tw-flex tw-flex-1 tw-items-center tw-justify-center tw-p-[24px]">
@@ -85,17 +77,22 @@ function ManageRealmModal({
     body = notice("We couldn't load these settings. Please try again.");
   } else if (!canManage) {
     body = notice("Only admins can manage this.");
-  } else if (tab === "notifications" && realmInfo.type === "community") {
-    body = <Notifications realm={realmInfo} onReviewRequests={() => setTab("members")} onOpenPost={onClose} />;
-  } else if (isModerator) {
-    body = <Members compact realm={realmInfo} />;
-  } else if (tab === "details") {
+  } else if (activeTab === "notifications" && realmInfo.type === "community") {
+    body = <Notifications realm={realmInfo} onReviewRequests={requestId => {
+      if (tabs.some(item => item.key === 'approvals')) { setApprovalSelection({ kind: 'joins', target: typeof requestId === 'string' ? requestId : '' }); setTab('approvals'); }
+      else setTab('members');
+    }} onReviewApprovals={(kind, target) => { setApprovalSelection({ kind, target }); setTab('approvals'); }} onOpenPost={onClose} />;
+  } else if (activeTab === 'permissions') {
+    body = <Permissions realm={realmInfo} />;
+  } else if (activeTab === 'approvals') {
+    body = <Approvals key={`${approvalSelection?.kind}:${approvalSelection?.target}`} realm={realmInfo} initialKind={approvalSelection?.kind} targetId={approvalSelection?.target} />;
+  } else if (activeTab === "details") {
     body = <Details realm={realmInfo} />;
-  } else if (tab === "media" && hasMediaTab(realmInfo)) {
+  } else if (activeTab === "media" && hasMediaTab(realmInfo)) {
     body = <Media realm={realmInfo} />;
-  } else if (tab === "followers" && realmInfo.type === "page") {
+  } else if (activeTab === "followers" && realmInfo.type === "page") {
     body = <Followers realm={realmInfo} />;
-  } else if (tab === "members") {
+  } else if (activeTab === "members") {
     body = <Members compact realm={realmInfo} />;
   } else {
     body = <Details realm={realmInfo} />;
@@ -154,7 +151,7 @@ function ManageRealmModal({
             <div className="tw-px-[16px] tw-py-[10px] tw-bg-[var(--surface)] tw-border-b tw-border-[var(--border)] tw-flex-shrink-0">
               <SegTabs
                 tabs={tabs}
-                value={isModerator && tab !== "notifications" ? "members" : tab}
+                value={activeTab ?? ""}
                 onChange={(key) => setTab(key as ManageTab)}
                 style={{ width: "100%", maxWidth: 420 }}
               />

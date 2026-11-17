@@ -17,6 +17,7 @@ import {
   SET_SCREEN_SIZE_LISTENER,
   SET_MUTATE_ALERTS,
 } from "./redux/types";
+import { consumeRealmRevocationNotice } from "./reusables/hooks/realmAccessRecovery";
 import { consumeStudioMomentNotice } from "./reusables/hooks/studio";
 import ProfileContainer from "./app/tabs/profile/ProfileContainer";
 import { AuthenticationInterface } from "./reusables/vars/interfaces";
@@ -61,6 +62,14 @@ function App() {
     authentication.user.entity_id,
     location,
   ]);
+
+  useEffect(() => {
+    if (!authentication.auth || authentication.active_entity_context?.is_switched) return;
+    const entityId = authentication.active_entity_context?.id || authentication.user.entity_id;
+    if (!entityId) return;
+    const content = consumeRealmRevocationNotice(window.sessionStorage, entityId);
+    if (content) dispatch({ type: SET_MUTATE_ALERTS, payload: { alerts: { type: "warning", content } } });
+  }, [authentication.auth, authentication.active_entity_context?.id, authentication.user.entity_id]);
 
   const screensizelistenerTrigger = () => {
     dispatch({

@@ -25,10 +25,12 @@ export interface IRealmInvite {
   realm_slug: string | null;
   realm_profile: string | null;
   kind: "invite" | "request";
-  status: "pending" | "accepted" | "declined" | "revoked";
+  status: "pending" | "for_approval" | "rejected" | "accepted" | "declined" | "revoked";
   purpose: InvitePurpose;
   role: "admin" | "moderator" | null;
   role_id?: number | null;
+  role_name?: string | null;
+  role_code?: string | null;
   inviter: IInviteEntity | null;
   target_email: string | null;
   target_entity: IInviteEntity | null;
@@ -143,6 +145,7 @@ export const inviteEntities = async (
   const failed = results.filter((r) => r.status === "rejected") as any[];
   return {
     sent: results.length - failed.length,
+    awaitingApproval: results.filter(r => r.status === "fulfilled" && r.value?.result?.status === "for_approval").length,
     firstError: failed[0]?.reason,
   };
 };

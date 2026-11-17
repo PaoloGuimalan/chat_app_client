@@ -22,6 +22,7 @@ function RealmMembers({
   onList,
   realmNoun,
   myRole,
+  capabilities,
   compact = false,
 }: {
   realm_id: string;
@@ -35,6 +36,7 @@ function RealmMembers({
    * the write routes apply, so this agrees with what they will allow.
    */
   myRole?: string | null;
+  capabilities?: import("@/reusables/vars/realmApprovals").RealmCapabilities;
   /**
    * The manage modal's layout: no heading of its own (its tab names it) and
    * no fixed 350px box - the list fills the panel and scrolls inside it.
@@ -55,7 +57,7 @@ function RealmMembers({
   // Every item in the menu is governed by that one rule, so an outranked
   // target gets no menu at all rather than an empty one.
   const canActOn = (role: string) =>
-    (realmNoun !== "community" || ["owner", "admin"].includes(myRole || "")) &&
+    (realmNoun !== "community" || (capabilities ? capabilities.can_assign_roles || capabilities.can_remove_members : ["owner", "admin"].includes(myRole || ""))) &&
     (viewerIsOwner || !["admin", "owner"].includes(role));
 
   // Your own row shows one thing: Leave. The acting entity rather than the
@@ -318,7 +320,7 @@ function RealmMembers({
                             </span>
                           )}
                           <span className="cl-text-caption tw-font-Inter tw-text-left tw-text-[var(--text-2)]">
-                            {capitalizeFirstLetter(cnts.role)}
+                            {cnts.role_name || capitalizeFirstLetter(cnts.role)}
                           </span>
                         </div>
                         {(cnts.entity.id === actingEntityID
@@ -326,6 +328,7 @@ function RealmMembers({
                           : canActOn(cnts.role)) && (
                           <MembersOptions
                             member={cnts}
+                            canAssignRole={capabilities ? !!capabilities.can_assign_roles : true}
                             hide={hide}
                             realmNoun={realmNoun}
                             viewerIsOwner={viewerIsOwner}

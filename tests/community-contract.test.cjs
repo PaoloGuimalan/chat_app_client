@@ -7,7 +7,7 @@ const ts = require('typescript');
 function load(file, require_) {
   const api = {};
   const source = fs.existsSync(file) ? fs.readFileSync(file, 'utf8') : '';
-  vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText, { exports: api, require: require_, localStorage: { getItem: () => 'fixture-token' } });
+  vm.runInNewContext(ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS, esModuleInterop: true } }).outputText, { exports: api, require: name => name.endsWith('/realmAccessRecovery') ? load(path.join(__dirname, '../src/reusables/hooks/realmAccessRecovery.ts')) : require_(name), localStorage: { getItem: () => 'fixture-token' } });
   return api;
 }
 const identity = load(path.join(__dirname, '../src/reusables/hooks/contributionIdentity.ts'));

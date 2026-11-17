@@ -138,6 +138,10 @@ export interface IRealmBasicInfo {
 export type IBotProfileInfo = IRealmProfileInfo;
 
 export interface IRealmProfileInfo {
+  capabilities?: import('./realmApprovals').RealmCapabilities;
+  features?: import('./realmApprovals').RealmFeatures;
+  my_role_name?: string | null;
+  my_role_code?: string | null;
   request_pending?: boolean;
   cover_photo: string | null;
   created_by: string;
@@ -193,12 +197,21 @@ export interface IRealmProfileInfo {
 
 export type CommunityInviteKind = "invite" | "request";
 export type CommunityInviteStatus =
+  | "for_approval"
+  | "rejected"
   | "pending"
   | "accepted"
   | "declined"
   | "revoked";
 
 export interface CommunityInvite {
+  realm?: string;
+  realm_name?: string;
+  inviter?: IEntityRef | null;
+  target_entity?: IEntityRef | null;
+  role_id?: number | null;
+  role_name?: string | null;
+  role_code?: string | null;
   id: string;
   realm_id: string;
   realm_type: string;
@@ -447,6 +460,7 @@ export interface IAuthorRealm {
 }
 
 export interface ICommunityMetadata {
+  capabilities?: import("./realmApprovals").RealmCapabilities;
   realm_id: string;
   entity_id: string;
   name: string;
@@ -458,6 +472,9 @@ export interface ICommunityMetadata {
 }
 
 export interface IPost {
+  approval?: import('./realmApprovals').ApprovalState;
+  read_only?: boolean;
+  can_archive?: boolean;
   post_id: string;
   updated_at?: string | null;
   is_edited?: boolean;
@@ -607,6 +624,8 @@ export interface IUserContactPreview {
 }
 
 export interface IRealmMember {
+  role_name?: string;
+  role_code?: string;
   entity: IFlexibleEntity;
   added_by: {
     id: string;

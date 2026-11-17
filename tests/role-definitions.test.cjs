@@ -9,7 +9,7 @@ const { JSDOM } = require('jsdom');
 const dom = new JSDOM('<html><body></body></html>', { url: 'https://fixture.test' });
 Object.assign(global, { window: dom.window, document: dom.window.document });
 Object.defineProperty(global, 'navigator', { value: dom.window.navigator, configurable: true });
-const { render, cleanup, fireEvent, waitFor } = require('@testing-library/react');
+const { render, renderHook, act, cleanup, fireEvent, waitFor } = require('@testing-library/react');
 afterEach(cleanup);
 
 function load(relative, overrides = {}) {
@@ -21,6 +21,7 @@ function load(relative, overrides = {}) {
     module: fixture, exports: fixture.exports, document, window: dom.window, CustomEvent: dom.window.CustomEvent, getComputedStyle: dom.window.getComputedStyle, console, setTimeout, clearTimeout,
     localStorage: { getItem: () => 'fixture-token' },
     require(name) {
+      if (name.endsWith('/realmAccessRecovery')) return load('reusables/hooks/realmAccessRecovery.ts');
       if (overrides[name]) return overrides[name];
       if (name === 'react' || name === 'react/jsx-runtime' || name.startsWith('react-icons/')) return require(name);
       if (name.endsWith('.css')) return {};
@@ -30,12 +31,33 @@ function load(relative, overrides = {}) {
   return fixture.exports;
 }
 const roles = [
-  { id: 10, name: 'moderator', is_default: true, permissions: ['posts.review'] },
-  { id: 11, name: 'moderator', is_default: false, permissions: ['posts.review', 'posts.delete'] },
-  { id: 20, name: 'admin', is_default: true, permissions: ['realm.update'] },
+  { id: 10, name: 'moderator', code: 'moderator', realm_id: 'A', is_default: true, permissions: ['posts.review'] },
+  { id: 11, name: 'moderator', code: 'moderator', realm_id: 'A', is_default: false, permissions: ['posts.review', 'posts.delete'] },
+  { id: 20, name: 'admin', code: 'admin', realm_id: 'A', is_default: true, permissions: ['realm.update'] },
 ];
 const roleHelpers = load('reusables/vars/roles.ts');
 const RoleSelect = load('app/widgets/members/RoleSelect.tsx', { '@/reusables/vars/roles': roleHelpers }).default;
+
+test('role options clear on realm and actor changes and ignore late requests', async () => {
+  let actor = 'person-A';
+  const pending = [];
+  const { useRoleDefinitions } = load('reusables/hooks/useRoleDefinitions.ts', {
+    'react-redux': { useSelector: fn => fn({ authentication: { active_entity_context: { id: actor } } }) },
+    '@/reusables/hooks/requests': { GetRoleDefinitionsRequest: realmId => new Promise(resolve => pending.push({ realmId, resolve })) },
+  });
+  const view = renderHook(({ realm }) => useRoleDefinitions(true, realm), { initialProps: { realm: 'A' } });
+  await act(async () => pending[0].resolve(roles));
+  assert.equal(view.result.current.roles.length, 3);
+  view.rerender({ realm: 'B' });
+  assert.equal(view.result.current.roles.length, 0);
+  assert.equal(pending[1].realmId, 'B');
+  actor = 'person-B';
+  view.rerender({ realm: 'B' });
+  await act(async () => pending[1].resolve(roles));
+  assert.equal(view.result.current.roles.length, 0);
+  await act(async () => pending[2].resolve([roles[1]]));
+  assert.equal(view.result.current.roles[0].id, 11);
+});
 
 test('same-name roles remain separate options and defaults require the explicit marker', () => {
   assert.equal(roleHelpers.defaultRole(roles, 'moderator').id, 10);
@@ -47,6 +69,18 @@ test('same-name roles remain separate options and defaults require the explicit 
   assert.match(view.getByRole('option', { name: /#11/ }).title, /posts.delete/);
   fireEvent.change(view.getByRole('combobox'), { target: { value: '11' } });
   assert.equal(selected[0], roles[1]);
+});
+
+test('stable codes select renamed realm defaults and protected options cannot be assigned', () => {
+  const renamed = { ...roles[0], name: 'Review team', code: 'moderator', realm_id: 'A' };
+  const protectedRole = { ...roles[1], assignable: false, disabled_reason: 'Only the owner can assign this role.' };
+  assert.equal(roleHelpers.defaultRole([renamed], 'moderator'), renamed);
+  assert.equal(roleHelpers.defaultRole([{ ...renamed, realm_id: 'other' }], 'moderator', 'A'), undefined);
+  const selected = [];
+  const view = render(React.createElement(RoleSelect, { roles: [renamed, protectedRole], value: 10, onChange: role => selected.push(role) }));
+  assert.equal(view.getByRole('option', { name: /#11/ }).disabled, true);
+  fireEvent.change(view.getByRole('combobox'), { target: { value: '11' } });
+  assert.equal(selected.length, 0);
 });
 
 test('role API keeps duplicate definitions and member updates send only the exact ID', async () => {
@@ -61,16 +95,19 @@ test('role API keeps duplicate definitions and member updates send only the exac
     './env_configs': { __esModule: true, default: { USER_SERVICE_API: 'https://us', CHATTERLOOP_API: 'https://rt' } },
   });
   assert.equal(await api.GetRoleDefinitionsRequest(), roles);
+  await api.GetRoleDefinitionsRequest('realm-A');
   await api.UpdateMemberRoleRequest('realm', 'member', 11);
   assert.equal(calls[0][1], 'https://us/api/entity/roles');
   assert.equal(calls[0][2].headers['x-access-token'], 'fixture-token');
-  assert.equal(JSON.stringify(calls[1][2]), JSON.stringify({ realm_id: 'realm', member_id: 'member', new_role_id: 11 }));
+  assert.equal(calls[1][2].params.realm_id, 'realm-A');
+  assert.equal(JSON.stringify(calls[2][2]), JSON.stringify({ realm_id: 'realm', member_id: 'member', new_role_id: 11 }));
 });
 
 test('page manage invites send a selected duplicate role ID and retain follow invites without a role', async () => {
   const sent = [];
   const InvitePeople = load('app/widgets/invites/InvitePeople.tsx', {
     '@/reusables/hooks/useRoleDefinitions': { useRoleDefinitions: () => ({ roles, loading: false, error: false, reload() {} }) },
+    'react-redux': { useSelector: fn => fn({authentication: {user: {entity_id: 'person'}, active_entity_context: {id:'person'}}}) },
     '@/reusables/vars/roles': roleHelpers,
     '../members/RoleSelect': { __esModule: true, default: RoleSelect },
     '@/reusables/hooks/requests': {
@@ -103,6 +140,7 @@ test('page manage invites send a selected duplicate role ID and retain follow in
 test('member management and conference menus select exact definitions rather than toggling names', async () => {
   const changes = [];
   const MembersOptions = load('app/widgets/members/MembersOptions.tsx', {
+    '@/app/reusables/Modal': { __esModule: true, default: ({ component }) => component },
     '@/reusables/hooks/useRoleDefinitions': { useRoleDefinitions: () => ({ roles, loading: false, error: false, reload() {} }) },
     './RoleSelect': { __esModule: true, default: RoleSelect },
     'react-redux': { useSelector: fn => fn({ alerts: [] }), useDispatch: () => () => {} },
@@ -114,7 +152,10 @@ test('member management and conference menus select exact definitions rather tha
     hide: [], realmNoun: 'server', viewerIsOwner: false, isSelf: false,
   }));
   fireEvent.click(view.getByRole('button'));
+  fireEvent.click(view.getByRole('button', { name: 'Assign different role' }));
   fireEvent.change(view.getByRole('combobox'), { target: { value: '11' } });
+  assert.equal(changes.length, 0);
+  fireEvent.click(view.getByRole('button', { name: 'Save role' }));
   await waitFor(() => assert.equal(changes.length, 1));
   assert.equal(JSON.stringify(changes[0]), JSON.stringify(['realm', 'member', 11]));
   view.unmount();

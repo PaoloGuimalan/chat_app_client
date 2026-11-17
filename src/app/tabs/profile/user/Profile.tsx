@@ -52,6 +52,7 @@ import { RiLock2Fill, RiVerifiedBadgeFill } from "react-icons/ri";
 import PostsContainer from "./PostsContainer";
 import SavesContainer from "./SavesContainer";
 import ArchivesContainer from "./ArchivesContainer";
+import SubmissionsContainer from "./SubmissionsContainer";
 import { PiShareFat } from "react-icons/pi";
 import { notifyRequestError } from "@/reusables/hooks/errormessages";
 
@@ -1094,6 +1095,7 @@ function Profile({
                     Archives
                   </span>
                 </motion.button>
+                {authentication.active_entity_context.id === profileInfo.entityID && <button onClick={() => setfeedmode("submissions")} className="cl-profile-tab-button tw-border-none tw-rounded-md tw-p-[6px] tw-px-[10px] tw-cursor-pointer tw-text-[var(--text-2)]" style={{ background: feedmode === "submissions" ? "var(--brand-soft)" : "transparent" }}>Submissions</button>}
               </motion.div>
             </div>
           )}
@@ -1104,6 +1106,7 @@ function Profile({
             />
           )}
           {feedmode === "saves" && <SavesContainer profileInfo={profileInfo} />}
+          {feedmode === "submissions" && <SubmissionsContainer ownerEntityId={profileInfo.entityID} />}
           {feedmode === "archives" && (
             <ArchivesContainer profileInfo={profileInfo} />
           )}

@@ -21,7 +21,9 @@ import Members from "../tabs/Members";
 import Followers from "../tabs/Followers";
 import Notifications from "../tabs/Notifications";
 import { Avatar } from "@/reusables/design";
-import { hasMediaTab } from "./manageTabs";
+import { manageRealmTabs, type ManageRealmTab } from './manageTabs';
+import Permissions from '../tabs/Permissions';
+import Approvals from '../tabs/Approvals';
 
 function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
   const screensizelistener = useSelector(
@@ -37,14 +39,22 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
 
   const [isMenuToggled, setisMenuToggled] = useState<boolean>(true);
   const activePath = location.pathname;
-  const isModerator = realm.type === "community" && realm.my_role === "moderator";
-  const showMedia = hasMediaTab(realm) && !isModerator;
+  const tabs = manageRealmTabs(realm);
+  const allowed = (key: ManageRealmTab) => tabs.some(tab => tab.key === key);
+  const tabPath = (key: ManageRealmTab) => `/realms/${realm.id}/${key === 'dashboard' ? '' : key}`;
+  const defaultPath = tabs[0] ? tabPath(tabs[0].key) : '/';
 
   const navButtonClass = (target: string) =>
     `tw-w-full tw-flex tw-items-center tw-justify-between tw-gap-[12px] tw-px-[14px] tw-py-[11px] tw-border-none tw-rounded-[var(--r-md)] tw-cursor-pointer tw-transition-colors ${activePath === target
       ? "tw-bg-[var(--brand-soft)] tw-text-[var(--brand)]"
       : "tw-bg-transparent tw-text-[var(--text)] hover:tw-bg-[var(--surface-hover)]"
     }`;
+
+  const navigation = () => tabs.map(tab => <button key={tab.key}
+    onClick={() => { navigate(tabPath(tab.key)); if (isMobileView) setisMenuToggled(false); }}
+    className={navButtonClass(tabPath(tab.key))}>
+    <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">{tab.label}</span>
+  </button>);
 
   useEffect(() => {
     if (!realm.id) return;
@@ -111,72 +121,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
                   </div>
                 </div>
               </div>
-              <div className="tw-flex tw-flex-col tw-flex-1 tw-min-h-0 tw-pt-[14px] tw-gap-[8px] tw-overflow-y-auto">
-                {!isModerator && <>
-                  <button
-                    onClick={() => {
-                      navigate(`/realms/${realm.id}/`);
-                    }}
-                    className={navButtonClass(`/realms/${realm.id}/`)}
-                  >
-                    <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                      Dashboard
-                    </span>
-                  </button>
-                  <button
-                    onClick={() => {
-                      navigate(`/realms/${realm.id}/details`);
-                    }}
-                    className={navButtonClass(`/realms/${realm.id}/details`)}
-                  >
-                    <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                      Profile Details
-                    </span>
-                  </button>
-                </>}
-                {showMedia && (
-                  <button
-                    onClick={() => {
-                      navigate(`/realms/${realm.id}/media`);
-                    }}
-                    className={navButtonClass(`/realms/${realm.id}/media`)}
-                  >
-                    <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                      Media
-                    </span>
-                  </button>
-                )}
-                <button
-                  onClick={() => {
-                    navigate(`/realms/${realm.id}/members`);
-                  }}
-                  className={navButtonClass(`/realms/${realm.id}/members`)}
-                >
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                    Members
-                  </span>
-                </button>
-                {realm.type === "community" && (
-                  <button
-                    onClick={() => navigate(`/realms/${realm.id}/notifications`)}
-                    className={navButtonClass(`/realms/${realm.id}/notifications`)}
-                  >
-                    <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">Notifications</span>
-                  </button>
-                )}
-                {realm.type === "page" && (
-                  <button
-                    onClick={() => {
-                      navigate(`/realms/${realm.id}/followers`);
-                    }}
-                    className={navButtonClass(`/realms/${realm.id}/followers`)}
-                  >
-                    <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                      Followers
-                    </span>
-                  </button>
-                )}
-              </div>
+              <div className="tw-flex tw-flex-col tw-flex-1 tw-min-h-0 tw-pt-[14px] tw-gap-[8px] tw-overflow-y-auto">{navigation()}</div>
             </div>
             <button
               onClick={() => {
@@ -223,103 +168,19 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
                 </div>
               </div>
             </div>
-            <div className="tw-flex tw-flex-col tw-items-start tw-pt-[14px] tw-gap-[8px] tw-overflow-y-auto">
-              {!isModerator && <>
-                <button
-                  onClick={() => {
-                    navigate(`/realms/${realm.id}/`);
-                  }}
-                  className={navButtonClass(`/realms/${realm.id}/`)}
-                >
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                    Dashboard
-                  </span>
-                </button>
-                <button
-                  onClick={() => {
-                    navigate(`/realms/${realm.id}/details`);
-                  }}
-                  className={navButtonClass(`/realms/${realm.id}/details`)}
-                >
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                    Profile Details
-                  </span>
-                </button>
-              </>}
-              {showMedia && (
-                <button
-                  onClick={() => {
-                    navigate(`/realms/${realm.id}/media`);
-                  }}
-                  className={navButtonClass(`/realms/${realm.id}/media`)}
-                >
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                    Media
-                  </span>
-                </button>
-              )}
-              <button
-                onClick={() => {
-                  navigate(`/realms/${realm.id}/members`);
-                }}
-                className={navButtonClass(`/realms/${realm.id}/members`)}
-              >
-                <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                  Members
-                </span>
-              </button>
-              {realm.type === "community" && (
-                <button
-                  onClick={() => navigate(`/realms/${realm.id}/notifications`)}
-                  className={navButtonClass(`/realms/${realm.id}/notifications`)}
-                >
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">Notifications</span>
-                </button>
-              )}
-              {realm.type === "page" && (
-                <button
-                  onClick={() => {
-                    navigate(`/realms/${realm.id}/followers`);
-                  }}
-                  className={navButtonClass(`/realms/${realm.id}/followers`)}
-                >
-                  <span className="tw-text-[14px] tw-font-Inter tw-font-semibold">
-                    Followers
-                  </span>
-                </button>
-              )}
-            </div>
+            <div className="tw-flex tw-flex-col tw-items-start tw-pt-[14px] tw-gap-[8px] tw-overflow-y-auto">{navigation()}</div>
           </div>
         )}
         <div className="tw-flex tw-flex-1 tw-overflow-y-scroll x-scroll tw-min-w-0 tw-bg-[var(--background)]">
           <Routes>
-            <Route path="/" element={isModerator ? <Navigate to={`/realms/${realm.id}/members`} replace /> : <Dashboard />} />
-            <Route path="/details" element={isModerator ? <Navigate to={`/realms/${realm.id}/members`} replace /> : <Details realm={realm} />} />
-            <Route
-              path="/media"
-              element={
-                showMedia ? (
-                  <Media realm={realm} />
-                ) : (
-                  <Navigate to={`/realms/${realm.id}/`} />
-                )
-              }
-            />
-            <Route path="/members" element={<Members realm={realm} />} />
-            <Route
-              path="/notifications"
-              element={realm.type === "community" ? <Notifications realm={realm} /> : <Navigate to={`/realms/${realm.id}/`} replace />}
-            />
-            <Route
-              path="/followers"
-              element={
-                realm.type === "page" ? (
-                  <Followers realm={realm} />
-                ) : (
-                  <Navigate to={`/realms/${realm.id}/`} />
-                )
-              }
-            />
+            <Route path="/" element={allowed('dashboard') ? <Dashboard /> : <Navigate to={defaultPath} replace />} />
+            <Route path="/details" element={allowed('details') ? <Details realm={realm} /> : <Navigate to={defaultPath} replace />} />
+            <Route path="/media" element={allowed('media') ? <Media realm={realm} /> : <Navigate to={defaultPath} replace />} />
+            <Route path="/members" element={allowed('members') ? <Members realm={realm} /> : <Navigate to={defaultPath} replace />} />
+            <Route path="/notifications" element={allowed('notifications') ? <Notifications realm={realm} /> : <Navigate to={defaultPath} replace />} />
+            <Route path="/approvals" element={allowed('approvals') ? <Approvals realm={realm} /> : <Navigate to={defaultPath} replace />} />
+            <Route path="/permissions" element={allowed('permissions') ? <Permissions realm={realm} /> : <Navigate to={defaultPath} replace />} />
+            <Route path="/followers" element={allowed('followers') ? <Followers realm={realm} /> : <Navigate to={defaultPath} replace />} />
           </Routes>
         </div>
       </div>

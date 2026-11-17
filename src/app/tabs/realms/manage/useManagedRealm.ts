@@ -1,70 +1,45 @@
-/* eslint-disable react-hooks/exhaustive-deps */
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { useSelector } from "react-redux";
 import { GetProfileInfo } from "@/reusables/hooks/requests";
-import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
+import { notifyRequestError } from "@/reusables/hooks/errormessages";
+import type { IRealmProfileInfo } from "@/reusables/vars/interfaces";
 
-/**
- * The realm a manage screen edits, read as "manage" - shared by the page at
- * /realms/:realm_id (ManageRealmContainer) and ManageRealmModal, which a
- * voice channel opens so managing doesn't take the user off the call.
- */
+/** One current, acting-entity-scoped management snapshot for page and modal. */
 export function useManagedRealm(realmId: string | undefined) {
-  const [isloaded, setisloaded] = useState<boolean>(false);
-  const [isError, setisError] = useState<boolean>(false);
-  const [realmInfo, setrealmInfo] = useState<IRealmProfileInfo | null>(null);
-
-  const GetProfileInfoProcess = () => {
-    GetProfileInfo(
-      {
-        userID: realmId,
-      },
-      {
-        type: "manage",
-      },
-    )
-      .then((response) => {
-        if (response.data) {
-          setisError(false);
-          setisloaded(true);
-
-          if (response.data.data.type !== "user") {
-            setrealmInfo(response.data.data);
-          }
-        } else {
-          setisError(true);
-          setisloaded(true);
-        }
-      })
-      .catch((err) => {
-        setisError(true);
-        setisloaded(true);
-        console.log(err);
-      });
-  };
-
+  const actor = useSelector((s: { authentication: { active_entity_context?: { id?: string }; user: { entity_id: string } } }) =>
+    s.authentication.active_entity_context?.id ?? s.authentication.user.entity_id);
+  const token = localStorage.getItem('authtoken');
+  const scope = `${realmId}:${actor}:${token}`;
+  const currentScope = useRef(scope); currentScope.current = scope;
+  const [revision, setRevision] = useState(0);
+  const [snapshot, setSnapshot] = useState<{ scope: string; isloaded: boolean; isError: boolean; realmInfo: IRealmProfileInfo | null }>(
+    { scope, isloaded: false, isError: false, realmInfo: null });
   useEffect(() => {
-    GetProfileInfoProcess();
-  }, [realmId]);
-
-  // Role writes (transfer ownership, promote/demote, remove) announce
-  // themselves with this event so the members list refetches. The REALM
-  // payload has to come along, because my_role lives on it and every
-  // "may I act on this person" decision below reads it - without this, a
-  // former owner keeps seeing owner-only affordances (the ⋯ menu on the
-  // person they just handed the realm to) until a full reload, since their
-  // own my_role stays "owner" from the first fetch.
-  //
-  // Re-registered on realm_id so the handler never refetches the realm the
-  // route has already navigated away from.
+    let active = true;
+    setSnapshot({ scope, isloaded: false, isError: false, realmInfo: null });
+    if (!realmId) return;
+    GetProfileInfo({ userID: realmId }, { type: 'manage' }).then(response => {
+      if (!active || currentScope.current !== scope || token !== localStorage.getItem('authtoken')) return;
+      const realm = response?.data?.data;
+      const valid = realm && realm.type !== 'user';
+      setSnapshot({ scope, isloaded: true, isError: !valid, realmInfo: valid ? realm : null });
+    }).catch(error => {
+      if (!active || currentScope.current !== scope) return;
+      setSnapshot({ scope, isloaded: true, isError: true, realmInfo: null });
+      notifyRequestError(error, 'We couldn’t load these realm settings.');
+    });
+    return () => { active = false; };
+  }, [scope, revision, realmId]);
   useEffect(() => {
-    const reloadListener = () => GetProfileInfoProcess();
-
-    document.addEventListener("reload-realm-members", reloadListener);
-
-    return () => {
-      document.removeEventListener("reload-realm-members", reloadListener);
+    const changed = (event: Event) => {
+      const detail = (event as CustomEvent).detail;
+      if (detail?.realm_id && String(detail.realm_id) !== realmId) return;
+      if (detail?.event && !['reconnected', 'community_access_changed', 'community_members_changed', 'realm_access_changed', 'realm_members_changed'].includes(detail.event)) return;
+      setRevision(value => value + 1);
     };
+    document.addEventListener('reload-realm-members', changed);
+    document.addEventListener('community-changed', changed);
+    return () => { document.removeEventListener('reload-realm-members', changed); document.removeEventListener('community-changed', changed); };
   }, [realmId]);
-
-  return { isloaded, isError, realmInfo };
+  return snapshot.scope === scope ? snapshot : { isloaded: false, isError: false, realmInfo: null };
 }

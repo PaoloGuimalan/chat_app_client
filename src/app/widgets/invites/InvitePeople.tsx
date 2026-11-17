@@ -1,5 +1,6 @@
+import { useSelector } from "react-redux";
 import { useRoleDefinitions } from "@/reusables/hooks/useRoleDefinitions";
-import { defaultRole } from "@/reusables/vars/roles";
+import { canInviteWithRole, defaultRole } from "@/reusables/vars/roles";
 import RoleSelect from "../members/RoleSelect";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import {
@@ -18,7 +19,7 @@ import {
   GetRealmInviteRequest,
   UpdateRealmInviteRequest,
 } from "@/reusables/hooks/requests";
-import { resolveErrorMessage } from "@/reusables/hooks/errormessages";
+import { notifyRequestError, resolveErrorMessage } from "@/reusables/hooks/errormessages";
 import { EntitySearchResult } from "@/reusables/vars/interfaces";
 import {
   entityDisplay,
@@ -82,6 +83,11 @@ function InvitePeople({
   reloadKey = 0,
   excludeIDs = [],
 }: InvitePeopleProps) {
+  const actor = useSelector((state: { authentication: { active_entity_context?: { id?: string }; user: { entity_id: string } } }) => state.authentication.active_entity_context?.id ?? state.authentication.user.entity_id);
+  const identity = `${actor}:${localStorage.getItem("authtoken")}:${realmId}`;
+  const currentIdentity = useRef(identity); currentIdentity.current = identity;
+  const pendingEpoch = useRef(0);
+  const [pendingIdentity, setPendingIdentity] = useState("");
   const [target, setTarget] = useState("");
   const [sending, setSending] = useState(false);
   const [feedback, setFeedback] = useState<Feedback[]>([]);
@@ -100,22 +106,28 @@ function InvitePeople({
   const listId = useId();
 
   const isPage = realmType === "page";
-  const roleDefinitions = useRoleDefinitions(isPage && pagePurpose === "manage");
-  const manageRoles = roleDefinitions.roles.filter((role) => role.name === "admin" || role.name === "moderator");
+  const roleDefinitions = useRoleDefinitions(isPage && pagePurpose === "manage", realmId);
+  const manageRoles = roleDefinitions.roles.filter(canInviteWithRole);
   const roleId = selectedRoleId ?? defaultRole(manageRoles, "moderator")?.id;
   const needsRole = isPage && pagePurpose === "manage";
   const roleReady = !needsRole || (!roleDefinitions.loading && !roleDefinitions.error && manageRoles.some((role) => role.id === roleId));
 
   const loadPending = () => {
-    if (!showPending) return;
-    GetRealmInviteRequest({ realm_id: realmId, kind: "invite", status: "pending" })
-      .then((response) => setPending(response?.result ?? []))
-      // No permission to see them (a plain member of a page, say) is not an
-      // error worth showing - the list simply stays empty.
-      .catch(() => setPending([]));
+    const epoch = ++pendingEpoch.current;
+    if (!showPending || currentIdentity.current !== identity) return;
+    GetRealmInviteRequest(realmType === "community" ? {} : { realm_id: realmId, kind: "invite", status: "pending" })
+      .then((response) => {
+        if (epoch !== pendingEpoch.current || currentIdentity.current !== identity) return;
+        setPending((response?.result ?? []).filter((invite: IRealmInvite) => invite.realm_id === realmId && invite.kind === "invite" && ["pending", "for_approval"].includes(invite.status)));
+        setPendingIdentity(identity);
+      }).catch(() => { if (epoch === pendingEpoch.current && currentIdentity.current === identity) setPending([]); });
   };
-
-  useEffect(loadPending, [realmId, showPending, reloadKey]);
+  useEffect(() => {
+    setPending([]); setTarget(""); setPicked([]); setFeedback([]); setSending(false);
+    loadPending();
+    return () => { pendingEpoch.current++; };
+  }, [identity, showPending, reloadKey]);
+  const pendingRows = pendingIdentity === identity ? pending : [];
 
   // A page's team is people; anything else can also take a page as a member,
   // as the contacts picker allows. Never bots - the server refuses them.
@@ -149,7 +161,7 @@ function InvitePeople({
       window.clearTimeout(timer);
       controller.abort();
     };
-  }, [query, wantsSuggestions, suggestTypes]);
+  }, [query, wantsSuggestions, suggestTypes, identity]);
 
   const isPicked = (entity: EntitySearchResult) =>
     picked.some((p) => p.entity_id === entity.entity_id);
@@ -224,6 +236,7 @@ function InvitePeople({
     const lines: Feedback[] = [];
     const sent: string[] = [];
     const waiting: string[] = [];
+    const awaitingApproval: string[] = [];
     const keep: EntitySearchResult[] = [];
 
     // The people picked from the suggestions, by entity - a page has no
@@ -231,10 +244,11 @@ function InvitePeople({
     const results = await Promise.allSettled(
       picked.map((entity) => sendTo({ target_entity_id: entity.entity_id })),
     );
+    if (currentIdentity.current !== identity) return;
     results.forEach((result, i) => {
       const entity = picked[i];
       if (result.status === "fulfilled") {
-        (result.value?.already_invited ? waiting : sent).push(entity.display_name);
+        (result.value?.result?.status === "for_approval" ? awaitingApproval : result.value?.already_invited ? waiting : sent).push(entity.display_name);
         if (result.value?.result) onInvited?.(result.value.result);
       } else {
         keep.push(entity);
@@ -253,11 +267,13 @@ function InvitePeople({
     if (value) {
       try {
         const response = await sendTo({ target: value });
+        if (currentIdentity.current !== identity) return;
         const invite: IRealmInvite | undefined = response?.result;
         const who = invite?.target_entity
           ? `@${entityDisplay(invite.target_entity).handle ?? value}`
           : value;
-        if (response?.already_invited) waiting.push(who);
+        if (invite?.status === "for_approval") awaitingApproval.push(who);
+        else if (response?.already_invited) waiting.push(who);
         else if (invite?.target_entity) sent.push(who);
         else
           lines.push({
@@ -274,6 +290,10 @@ function InvitePeople({
       }
     }
 
+    if (awaitingApproval.length) lines.unshift({ tone: "muted", text: `Invitations for ${listNames(awaitingApproval)} submitted for approval.` });
+    if (realmType === "community") {
+      lines.filter(line => line.tone === "error").forEach(line => notifyRequestError(new Error(line.text), line.text));
+    }
     if (sent.length > 0) {
       lines.unshift({
         tone: "ok",
@@ -502,7 +522,7 @@ function InvitePeople({
         </div>
       )}
 
-      {feedback.map((line, i) => (
+      {feedback.filter(line => realmType !== "community" || line.tone !== "error").map((line, i) => (
         <div
           key={i}
           className={`cl-invite-people__feedback cl-invite-people__feedback--${line.tone}`}
@@ -512,12 +532,12 @@ function InvitePeople({
         </div>
       ))}
 
-      {showPending && pending.length > 0 && (
+      {showPending && pendingRows.length > 0 && (
         <div className="cl-invite-people__pending">
           <span className="cl-invite-people__pending-title">
             Waiting for an answer
           </span>
-          {pending.map((invite) => {
+          {pendingRows.map((invite) => {
             const who = invite.target_entity
               ? entityDisplay(invite.target_entity)
               : null;
@@ -533,7 +553,7 @@ function InvitePeople({
                 <div className="cl-invite-people__pending-text">
                   <span className="cl-invite-people__pending-name">{label}</span>
                   <span className="cl-invite-people__pending-meta">
-                    Invited {invitePurposeLabel(invite)}
+                    Invited {invite.status === "for_approval" ? "Awaiting approval" : invitePurposeLabel(invite)}
                     {!invite.target_entity && " · by email"}
                   </span>
                 </div>

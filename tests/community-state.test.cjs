@@ -30,3 +30,7 @@ test('community request review is available to moderators but settings require a
  assert.equal(api.canManageCommunitySettings('admin'),true);
  assert.equal(api.canManageCommunitySettings('owner'),true);
 });
+test('a known submission denial disables a member destination while legacy member metadata remains usable', () => {
+  assert.equal(api.canContributeCommunity({ is_member: true, capabilities: { can_submit_posts: false } }), false);
+  assert.equal(api.canContributeCommunity({ is_member: true }), true);
+});

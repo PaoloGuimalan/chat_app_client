@@ -7,7 +7,7 @@ import { motion } from "framer-motion";
 import PostItem from "./PostItem";
 import { BsFileEarmarkExcel } from "react-icons/bs";
 
-function LoadedPostItem({ postID }: { postID: string }) {
+function LoadedPostItem({ postID, readOnly = false }: { postID: string; readOnly?: boolean }) {
   const [postData, setpostData] = useState<IPost | null>(null);
   const [isPostDataError, setisPostDataError] = useState(false);
 
@@ -40,7 +40,7 @@ function LoadedPostItem({ postID }: { postID: string }) {
       </div>
     </div>
   ) : postData ? (
-    <PostItem isSharePreview={true} mp={postData} />
+    <PostItem isSharePreview={true} mp={{ ...postData, read_only: readOnly || postData.read_only }} />
   ) : (
     <div className="cl-feed-card cl-feed-card--loading tw-flex tw-w-full tw-h-auto tw-min-h-[350px] tw-items-center tw-justify-center tw-border tw-border-[var(--border)] tw-rounded-[var(--r-md)]">
       <div id="div_conversation_content_loader">

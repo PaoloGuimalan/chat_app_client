@@ -204,7 +204,7 @@ function ConferenceVoiceWindow({
   // owner - an admin's attempt is refused. So an admin gets the menu on
   // members only, and nobody gets it on the owner.
   const viewerIsOwner = selfRoleFromList === "owner";
-  const roleDefinitions = useRoleDefinitions(effectiveCanManage);
+  const roleDefinitions = useRoleDefinitions(effectiveCanManage, realmId);
   const canActOnRole = (role: string | undefined) =>
     role !== "owner" && (viewerIsOwner || role !== "admin");
   const hasLeftRef = useRef(false);

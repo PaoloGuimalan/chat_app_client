@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { RecoverRevokedRealm } from "./requests";
 import sign from "jwt-encode";
 import { useEffect, useRef } from "react";
 import envs from "./env_configs";
@@ -108,6 +109,7 @@ export const usePostActivityStream = (
     const relay = (e: any) => {
       try {
         const parsed = JSON.parse(e.data);
+        void RecoverRevokedRealm(parsed, authtoken);
         if (!parsed.auth || !parsed.status) return;
         if (!parsed.result?.event_type) return;
 

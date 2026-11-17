@@ -7,10 +7,11 @@ import {
 } from "@/reusables/hooks/errormessages";
 import { IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { useRef, useState } from "react";
+import CommunityArchive from './CommunityArchive';
 
 const MEDIA_NOT_SAVED = "We couldn't update that photo. Please try again.";
 
-function Media({ realm }: { realm: IRealmProfileInfo }) {
+function RealmMediaForm({ realm }: { realm: IRealmProfileInfo }) {
   const [selectedProfile, setselectedProfile] = useState<File | null>(null);
   const [selectedCoverPhoto, setselectedCoverPhoto] = useState<File | null>(
     null,
@@ -227,5 +228,11 @@ function Media({ realm }: { realm: IRealmProfileInfo }) {
   );
 }
 
-export default Media;
+export default function Media({ realm }: { realm: IRealmProfileInfo }) {
+  if (realm.type !== 'community') return <RealmMediaForm realm={realm} />;
+  return <div className="tw-w-full tw-min-w-0">
+    {(realm.capabilities == null || realm.capabilities.can_update_media) && <RealmMediaForm realm={realm} />}
+    {realm.capabilities?.can_archive_community_posts && <CommunityArchive realm={realm} />}
+  </div>;
+}
 
