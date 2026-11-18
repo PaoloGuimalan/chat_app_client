@@ -220,7 +220,7 @@ function manageImports(info) {
     'react-icons/ai': { AiOutlineLoading3Quarters: () => null },
     'framer-motion': { motion: { div: ({ children }) => React.createElement('div', null, children) } },
     '../tabs/Dashboard': stub('Dashboard content'), '../tabs/Details': stub('Details content'),
-    '../tabs/Media': stub('Media content'), '../tabs/Members': stub('Members content'), '../tabs/Followers': stub('Followers content'),
+    '../tabs/Media': stub('Media content'), '../tabs/CommunityArchive': stub('Archive content'), '../tabs/Members': stub('Members content'), '../tabs/Followers': stub('Followers content'),
     '../tabs/Notifications': { __esModule: true, default: ({ onReviewRequests }) => React.createElement('div', null,
       'Notification content', onReviewRequests && React.createElement('button', { onClick: onReviewRequests }, 'Review request')) },
     './manageTabs': load('app/tabs/realms/manage/manageTabs.ts'),

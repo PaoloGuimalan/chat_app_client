@@ -1,5 +1,6 @@
 import { useRoleDefinitions } from "@/reusables/hooks/useRoleDefinitions";
 import RoleSelect from "./RoleSelect";
+import { Btn } from "@/reusables/design";
 import Modal from "@/app/reusables/Modal";
 import { leaveCommunity } from "@/reusables/hooks/communityRequests";
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -276,11 +277,11 @@ function MembersOptions({
           <h3 className="tw-m-0 tw-text-left">Assign different role</h3>
           <RoleSelect {...roleDefinitions} onRetry={roleDefinitions.reload} value={selectedRoleId}
             disabled={savingRole} onChange={(role) => setSelectedRoleId(role.id)} />
-          <div className="tw-flex tw-justify-end tw-gap-[8px]">
-            <button type="button" disabled={savingRole} onClick={() => setRoleDialogOpen(false)}>Cancel</button>
-            <button type="button" disabled={savingRole || roleDefinitions.loading || roleDefinitions.error || selectedRoleId === member.role_id ||
+          <div className="tw-flex tw-flex-wrap tw-items-center tw-justify-end tw-gap-[8px]">
+            <Btn variant="outline" type="button" disabled={savingRole} onClick={() => setRoleDialogOpen(false)}>Cancel</Btn>
+            <Btn type="button" disabled={savingRole || roleDefinitions.loading || roleDefinitions.error || selectedRoleId === member.role_id ||
               !roleDefinitions.roles.some((role) => role.id === selectedRoleId && role.assignable !== false)}
-              onClick={() => selectedRoleId != null && UpdateMemberRoleProcess(selectedRoleId)}>{savingRole ? "Saving…" : "Save role"}</button>
+              onClick={() => selectedRoleId != null && UpdateMemberRoleProcess(selectedRoleId)}>{savingRole ? "Saving…" : "Save role"}</Btn>
           </div>
         </div>
       } />}

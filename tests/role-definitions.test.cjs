@@ -143,6 +143,7 @@ test('member management and conference menus select exact definitions rather tha
     '@/app/reusables/Modal': { __esModule: true, default: ({ component }) => component },
     '@/reusables/hooks/useRoleDefinitions': { useRoleDefinitions: () => ({ roles, loading: false, error: false, reload() {} }) },
     './RoleSelect': { __esModule: true, default: RoleSelect },
+    '@/reusables/design': load('reusables/design/primitives.tsx'),
     'react-redux': { useSelector: fn => fn({ alerts: [] }), useDispatch: () => () => {} },
     'react-router-dom': { useNavigate: () => () => {} },
     '@/reusables/hooks/requests': { UpdateMemberRoleRequest: async (...args) => { changes.push(args); return { status: true }; } },

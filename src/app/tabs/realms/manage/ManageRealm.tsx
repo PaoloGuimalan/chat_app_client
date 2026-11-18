@@ -17,6 +17,7 @@ import { IoMdClose, IoMdMenu } from "react-icons/io";
 import Dashboard from "../tabs/Dashboard";
 import Details from "../tabs/Details";
 import Media from "../tabs/Media";
+import CommunityArchive from "../tabs/CommunityArchive";
 import Members from "../tabs/Members";
 import Followers from "../tabs/Followers";
 import Notifications from "../tabs/Notifications";
@@ -94,9 +95,8 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
             <div className="tw-bg-[var(--surface)] tw-border-r tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-flex tw-flex-col tw-flex-1 tw-max-w-[calc(100%-80px)] sm:tw-max-w-[calc(320px-20px)] tw-p-[14px] tw-h-full tw-min-h-0">
               <div className="tw-flex tw-items-center tw-gap-[10px] tw-pb-[14px] tw-border-b tw-border-[var(--border)]">
                 <button
-                  onClick={() => {
-                    navigate("/");
-                  }}
+                  aria-label="Back"
+                  onClick={() => navigate(-1)}
                   className="tw-w-[42px] tw-h-[42px] tw-border-none tw-bg-[var(--surface-2)] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-transition-colors"
                 >
                   <IoArrowBack style={{ fontSize: "20px", color: "var(--text)" }} />
@@ -141,9 +141,8 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
           <div className="tw-bg-[var(--surface)] tw-border-r tw-border-[var(--border)] tw-sticky tw-top-0 tw-flex tw-flex-col tw-flex-1 sm:tw-max-w-[320px] tw-p-[14px] tw-h-full tw-min-h-0">
             <div className="tw-flex tw-items-center tw-gap-[10px] tw-pb-[14px] tw-border-b tw-border-[var(--border)]">
               <button
-                onClick={() => {
-                  navigate("/");
-                }}
+                aria-label="Back"
+                onClick={() => navigate(-1)}
                 className="tw-w-[42px] tw-h-[42px] tw-border-none tw-bg-[var(--surface-2)] tw-cursor-pointer hover:tw-bg-[var(--surface-hover)] tw-rounded-full tw-flex tw-items-center tw-justify-center tw-transition-colors"
               >
                 <IoArrowBack style={{ fontSize: "20px", color: "var(--text)" }} />
@@ -176,6 +175,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
             <Route path="/" element={allowed('dashboard') ? <Dashboard /> : <Navigate to={defaultPath} replace />} />
             <Route path="/details" element={allowed('details') ? <Details realm={realm} /> : <Navigate to={defaultPath} replace />} />
             <Route path="/media" element={allowed('media') ? <Media realm={realm} /> : <Navigate to={defaultPath} replace />} />
+            <Route path="/archived" element={allowed('archived') ? <CommunityArchive realm={realm} /> : <Navigate to={defaultPath} replace />} />
             <Route path="/members" element={allowed('members') ? <Members realm={realm} /> : <Navigate to={defaultPath} replace />} />
             <Route path="/notifications" element={allowed('notifications') ? <Notifications realm={realm} /> : <Navigate to={defaultPath} replace />} />
             <Route path="/approvals" element={allowed('approvals') ? <Approvals realm={realm} /> : <Navigate to={defaultPath} replace />} />

@@ -4,6 +4,7 @@ import Modal from "@/app/reusables/Modal";
 import { Avatar, Icon, SegTabs } from "@/reusables/design";
 import Details from "../tabs/Details";
 import Media from "../tabs/Media";
+import CommunityArchive from "../tabs/CommunityArchive";
 import Members from "../tabs/Members";
 import Followers from "../tabs/Followers";
 import Notifications from "../tabs/Notifications";
@@ -13,7 +14,7 @@ import Permissions from '../tabs/Permissions';
 import Approvals from '../tabs/Approvals';
 import type { ApprovalKind } from '@/reusables/vars/realmApprovals';
 
-type ManageTab = "details" | "media" | "members" | "followers" | "notifications" | "permissions" | "approvals";
+type ManageTab = "details" | "media" | "members" | "followers" | "notifications" | "permissions" | "approvals" | "archived";
 
 /**
  * Manage a realm without leaving the screen: the /realms/:realm_id page's
@@ -86,6 +87,8 @@ function ManageRealmModal({
     body = <Permissions realm={realmInfo} />;
   } else if (activeTab === 'approvals') {
     body = <Approvals key={`${approvalSelection?.kind}:${approvalSelection?.target}`} realm={realmInfo} initialKind={approvalSelection?.kind} targetId={approvalSelection?.target} />;
+  } else if (activeTab === "archived") {
+    body = <CommunityArchive realm={realmInfo} />;
   } else if (activeTab === "details") {
     body = <Details realm={realmInfo} />;
   } else if (activeTab === "media" && hasMediaTab(realmInfo)) {
@@ -153,7 +156,7 @@ function ManageRealmModal({
                 tabs={tabs}
                 value={activeTab ?? ""}
                 onChange={(key) => setTab(key as ManageTab)}
-                style={{ width: "100%", maxWidth: 420 }}
+                style={{ width: "100%", maxWidth: 420, flexWrap: realmInfo?.type === "community" ? "wrap" : undefined }}
               />
             </div>
           )}

@@ -16,3 +16,11 @@ test('server/page management retains its existing destinations and community Own
   const realm = { type: 'community', capabilities: { can_manage: true, can_manage_permissions: true } };
   assert.deepEqual(Array.from(tabs.manageRealmTabs(realm), row => row.key), ['permissions']);
 });
+
+
+test('community archive has its own management entry for archive delegates only', () => {
+  const realm = { type: 'community', capabilities: { can_manage: true, can_archive_community_posts: true } };
+  assert.deepEqual(Array.from(tabs.manageRealmTabs(realm), row => row.key), ['archived']);
+  assert.deepEqual(Array.from(tabs.manageRealmTabs({ ...realm, capabilities: { can_update_media: true } }), row => row.key), ['media']);
+  assert.deepEqual(Array.from(tabs.manageRealmTabs({ ...realm, capabilities: {} }), row => row.key), []);
+});
