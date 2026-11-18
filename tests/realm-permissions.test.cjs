@@ -58,3 +58,17 @@ test('role creation accepts a display name and uses server-generated identity', 
   assert.equal(view.queryByRole('dialog'), null);
   assert.equal(state.calls.at(-1).method, 'getRealmPermissions');
 });
+
+
+test('permission names and supporting descriptions render while saves retain canonical codes', async () => {
+  reset(); const view = render(React.createElement(Permissions, { realm }));
+  const data = config();
+  data.catalog[0] = { code: 'realm.post.submit', permission: 'realm.post.submit', name: 'Submit community posts', description: 'Submit posts for review when required.', grantable: true };
+  await act(async () => state.calls[0].resolve(data));
+  fireEvent.click(view.getByRole('button', { name: 'Member' }));
+  assert.ok(view.getByRole('checkbox', { name: 'Submit community posts' }));
+  assert.ok(view.getByText('Submit posts for review when required.'));
+  fireEvent.click(view.getByRole('checkbox', { name: 'Submit community posts' }));
+  fireEvent.click(view.getByRole('button', { name: 'Save permissions' }));
+  assert.deepEqual(Array.from(state.calls[1].args[1][0].permissions), ['realm.post.publish']);
+});

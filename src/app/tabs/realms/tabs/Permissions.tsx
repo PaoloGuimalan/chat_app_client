@@ -287,38 +287,45 @@ export default function Permissions({ realm }: { realm: IRealmProfileInfo }) {
                   </p>
                 )}
                 <div className="tw-flex tw-flex-col">
-                  {data.catalog.map((entry) => (
-                    <label
-                      key={entry.permission}
-                      className="tw-flex tw-items-start tw-gap-[10px] tw-py-[12px] tw-border-0 tw-border-b tw-border-solid tw-border-[var(--border)] tw-text-left tw-text-[13px]"
-                    >
-                      <input
-                        type="checkbox"
-                        className="tw-mt-[2px] tw-accent-[var(--brand)]"
-                        checked={grants.includes(entry.permission)}
-                        disabled={
-                          saving ||
-                          !canEditGrants ||
-                          (entry.grantable !== true &&
-                            !grants.includes(entry.permission))
-                        }
-                        onChange={(event) =>
-                          setDrafts((previous) => ({
-                            ...previous,
-                            [role.id]: event.target.checked
-                              ? [...new Set([...grants, entry.permission])]
-                              : grants.filter(
-                                  (code) => code !== entry.permission,
-                                ),
-                          }))
-                        }
-                      />
-                      <span className="tw-min-w-0 tw-break-words">
-                        {entry.description ||
-                          entry.permission.split(".").slice(1).join(" ")}
-                      </span>
-                    </label>
-                  ))}
+                  {data.catalog.map((entry) => {
+                    const code = entry.code || entry.permission;
+                    const name = entry.name || entry.description || code;
+                    return (
+                      <label
+                        key={code}
+                        className="tw-flex tw-items-start tw-gap-[10px] tw-py-[12px] tw-border-0 tw-border-b tw-border-solid tw-border-[var(--border)] tw-text-left tw-text-[13px]"
+                      >
+                        <input
+                          type="checkbox"
+                          aria-label={name}
+                          className="tw-mt-[2px] tw-accent-[var(--brand)]"
+                          checked={grants.includes(code)}
+                          disabled={
+                            saving ||
+                            !canEditGrants ||
+                            (entry.grantable !== true &&
+                              !grants.includes(code))
+                          }
+                          onChange={(event) =>
+                            setDrafts((previous) => ({
+                              ...previous,
+                              [role.id]: event.target.checked
+                                ? [...new Set([...grants, code])]
+                                : grants.filter(
+                                    (permission) => permission !== code,
+                                  ),
+                            }))
+                          }
+                        />
+                        <span className="tw-min-w-0 tw-break-words">
+                          <span className="tw-block tw-font-semibold">{name}</span>
+                          {entry.name && entry.description && (
+                            <span className="tw-block tw-mt-[4px] tw-text-[var(--text-2)]">{entry.description}</span>
+                          )}
+                        </span>
+                      </label>
+                    );
+                  })}
                 </div>
                 {data.catalog.length > 0 && (
                   <div className="tw-flex tw-justify-end tw-pt-[16px]">

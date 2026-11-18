@@ -1,5 +1,11 @@
 export type RoleName = "owner" | "admin" | "moderator" | "member";
 
+export interface PermissionDetail {
+  code: string;
+  name: string;
+  description: string;
+}
+
 export interface RoleDefinition {
   id: number;
   name: string;
@@ -11,6 +17,7 @@ export interface RoleDefinition {
   disabled_reason?: string | null;
   is_default: boolean;
   permissions: string[];
+  permission_details?: PermissionDetail[];
 }
 
 /** Defaults are explicit: duplicate names never imply interchangeable roles. */
@@ -26,4 +33,4 @@ export const canInviteWithRole = (role: RoleDefinition) => role.assignable !== f
   role.realm_id != null && role.code !== "owner";
 
 export const roleSummary = (role: RoleDefinition) =>
-  role.permissions.length ? role.permissions.join(", ") : "No permissions";
+  role.permissions.length ? role.permissions.map(code => role.permission_details?.find(entry => entry.code === code)?.name || code).join(", ") : "No permissions";

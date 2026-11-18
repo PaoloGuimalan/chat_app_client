@@ -172,3 +172,10 @@ test('member management and conference menus select exact definitions rather tha
   fireEvent.change(conference.getByRole('combobox'), { target: { value: '11' } });
   assert.equal(changes[1], 11);
 });
+
+
+test('role summaries use permission display metadata without replacing authorization codes', () => {
+  const role = { ...roles[0], permission_details: [{ code: 'posts.review', name: 'Review posts', description: 'Review submissions.' }] };
+  assert.equal(roleHelpers.roleSummary(role), 'Review posts');
+  assert.equal(role.permissions[0], 'posts.review');
+});

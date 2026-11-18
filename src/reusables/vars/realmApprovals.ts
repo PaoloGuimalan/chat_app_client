@@ -77,7 +77,7 @@ export interface RealmPermissionSettings {
   features: RealmFeatures;
   capabilities: RealmCapabilities;
   roles: RoleDefinition[];
-  catalog: { permission: string; description: string; grantable?: boolean }[];
+  catalog: { code?: string; name?: string; permission: string; description: string; grantable?: boolean }[];
 }
 export interface RealmReviewDetail {
   source: "community";
