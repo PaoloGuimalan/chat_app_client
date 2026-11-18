@@ -121,13 +121,14 @@ function PostItem({
   const isOwnPost = ownsContribution(postState, authentication.user.entity_id);
   const postAuthorAvatar = (size = 35) => <ContributionAvatar entity={author} size={size} />;
 
+  // Pending community posts have no engagement score until publication.
   const toggleActivityCounts = useMemo(() => {
     const reactionsCount = postState.preview.reduce(
       (sum, item) => sum + item.count,
       0,
     );
     const activityCount =
-      postState.score.comments_count + postState.score.shares_count;
+      (postState.score?.comments_count ?? 0) + (postState.score?.shares_count ?? 0);
 
     return reactionsCount + activityCount;
   }, [postState]);
@@ -138,10 +139,10 @@ function PostItem({
   );
 
   const commentsCount = useMemo(
-    () => postState.score.comments_count,
+    () => postState.score?.comments_count ?? 0,
     [postState],
   );
-  const shareCount = useMemo(() => postState.score.shares_count, [postState]);
+  const shareCount = useMemo(() => postState.score?.shares_count ?? 0, [postState]);
 
   useEffect(() => {
     if (postState) {
@@ -230,7 +231,7 @@ function PostItem({
         });
       }
     }
-  }, [authentication.user.entity_id, author, isInView, isOwnPost, postState, location]);
+  }, [authentication.user.entity_id, author, isInView, isOwnPost, postState, location, readOnly]);
 
   if (!communityAccessible || postState.deleted_at || (!show_archived && postState.is_archived) ||
       (!readOnly && postState.community && postState.approval != null && postState.approval !== 1)) {
@@ -814,7 +815,7 @@ function PostItem({
                                 ...prev.score,
                                 comments_count: Math.max(
                                   0,
-                                  prev.score.comments_count + delta,
+                                  (prev.score?.comments_count ?? 0) + delta,
                                 ),
                               },
                             }))

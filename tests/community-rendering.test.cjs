@@ -21,6 +21,7 @@ let editFooter, editUploads = [];
 let previewPath = '/fixture', inView = false, viewEvents = [];
 let commentSaves = [];
 let mentionPeople = [];
+let reviewLoads = [];
 const auth = { auth: true, user: { entity_id: 'viewer', userID: 'viewer-user', username: 'viewer', fullName: { firstName: 'Viewer', lastName: 'Person' }, profile: 'none' } };
 const plain = ({ children }) => React.createElement('div', null, children);
 const avatar = props => React.createElement('span', { 'data-avatar-id': props.entityId || props.id }, props.name);
@@ -55,11 +56,13 @@ Module._load = function (request, parent, isMain) {
   if (request === 'react-redux')
     return { useSelector: fn => fn({ authentication: auth, emojilist: [], screensizelistener: { W: 1200, H: 900 } }) };
   if (request === 'react-router-dom')
-    return { useNavigate: () => () => { }, useLocation: () => ({ pathname: previewPath, search: '' }) };
+    return { useNavigate: () => () => { }, useLocation: () => ({ pathname: previewPath, search: '' }), useSearchParams: () => [new URLSearchParams(), () => {}] };
   if (request === 'framer-motion')
     return { useInView: () => inView, motion: new Proxy({}, { get: (_, tag) => ({ children, ...props }) => React.createElement(tag, { className: props.className }, children) }) };
   if (request === '@/reusables/design')
-    return { Card: plain, Icon: () => null, Avatar: avatar, PageFlag: () => null, BotFlag: () => null };
+    return { Card: plain, Icon: () => null, Avatar: avatar, PageFlag: () => null, BotFlag: () => null,
+      Btn: ({ children, onClick, disabled }) => React.createElement('button', { onClick, disabled }, children),
+      SegTabs: ({ tabs, onChange }) => React.createElement('nav', null, tabs.map(tab => React.createElement('button', { key: tab.key, onClick: () => onChange(tab.key) }, tab.label))) };
   if (request === '@/reusables/hooks/requests')
     return {
       UpdatePostRequest: async (id) => ({ status: true, post: { post_id: id } }),
@@ -68,7 +71,11 @@ Module._load = function (request, parent, isMain) {
       NetworkOverviewRequest: async () => ({ connections: { results: mentionPeople }, following: { results: [] } }),
       SaveCommentRequest: (...args) => new Promise((resolve, reject) => commentSaves.push({ args, resolve, reject })),
     };
-  if (request === '@/reusables/hooks/communityRequests') return { getCommunity: async () => ({ result: { capabilities: {} } }) };
+  if (request === '@/reusables/hooks/communityRequests') return {
+    getCommunity: async () => ({ result: { capabilities: {} } }),
+    listAuthorSubmissions: (...args) => new Promise(resolve => reviewLoads.push({ method: 'submissions', args, resolve })),
+    listCommunityApprovals: (...args) => new Promise(resolve => reviewLoads.push({ method: 'approvals', args, resolve })),
+  };
   if (request === '@/reusables/hooks/mediaUpload')
     return { uploadFiles: async (options) => { editUploads.push(options); return [{ fileUrl: '/anonymous/photo.jpg' }]; } };
   if (request === './PostEditLayout')
@@ -134,6 +141,86 @@ test('embedded readonly review content shares the review surface while ordinary 
     assert.equal(document.querySelector('[aria-label="React"]'), null);
   }
 });
+test('pending user, page and anonymous review cards render before engagement scores exist', () => {
+  const pageAuthor = { id: 'page-author', type: 'realm', details: { name: 'Garden Page', slug: 'garden-page' } };
+  for (const entity of [person, pageAuthor, null]) {
+    for (const is_shared of [false, true]) {
+      const html = render(PostItem, { mp: post({
+        entity, score: null, community, approval: 0, read_only: true,
+        is_anonymous: entity === null, is_shared,
+        references: is_shared ? [{ reference: 'source-post' }] : [],
+      }), isSharePreview: true, embedded: true });
+      assert.match(html, /A contribution/);
+      assert.doesNotMatch(html, /aria-label="Post options"|aria-label="React"|Share post/);
+      assert.doesNotMatch(html, /NaN|undefined comments|null comments/);
+    }
+  }
+});
+
+for (const profileType of ['user', 'page']) {
+  test(`${profileType} profile Submissions mounts real cards with null scores and keeps pending/rejected controls`, async () => {
+    const { render: mount, act, cleanup } = require('@testing-library/react');
+    const Submissions = require('../src/app/tabs/profile/user/SubmissionsContainer.tsx').default;
+    const previousContext = auth.active_entity_context;
+    const owner = profileType === 'page' ? 'page-author' : auth.user.entity_id;
+    if (profileType === 'page') auth.active_entity_context = { id: owner, type: 'realm' };
+    reviewLoads = [];
+    resetHooks.forEach(reset => reset());
+    const view = mount(React.createElement(Submissions, { ownerEntityId: owner }));
+    try {
+      assert.ok(view.getByRole('status', { name: 'Loading submissions' }));
+      const entity = profileType === 'page'
+        ? { id: owner, type: 'realm', details: { name: 'Garden Page', slug: 'garden-page' } }
+        : { ...person, id: owner };
+      await act(async () => reviewLoads[0].resolve({ results: [
+        { post: post({ entity, score: null, community, approval: 0, post_id: 'pending', caption: 'Pending profile submission' }), approval: 0, content_version: 'v1', decision: null },
+        { post: post({ entity, score: null, community, approval: 2, post_id: 'rejected', caption: 'Rejected profile submission' }), approval: 2, content_version: 'v2', decision: { id: 'decision', reason: 'Please stay on topic.' } },
+      ], count: 2, next: null }));
+      assert.ok(view.getByText('Pending profile submission'));
+      assert.ok(view.getByText('Rejected profile submission'));
+      assert.ok(view.getByText('Pending approval'));
+      assert.ok(view.getByText('Unapproved'));
+      assert.ok(view.getByText('Please stay on topic.'));
+      assert.equal(view.getAllByRole('button', { name: 'Withdraw' }).length, 2);
+      assert.ok(view.getByRole('button', { name: 'View decision' }));
+      assert.equal(view.queryByRole('button', { name: 'React' }), null);
+    } finally {
+      view.unmount();
+      cleanup();
+      if (previousContext === undefined) delete auth.active_entity_context;
+      else auth.active_entity_context = previousContext;
+    }
+  });
+}
+
+test('Manage Realm Approvals mounts real pending and rejected cards without engagement scores', async () => {
+  const { render: mount, act, cleanup, fireEvent } = require('@testing-library/react');
+  const Approvals = require('../src/app/tabs/realms/tabs/Approvals.tsx').default;
+  reviewLoads = [];
+  resetHooks.forEach(reset => reset());
+  const view = mount(React.createElement(Approvals, { realm: {
+    id: 'club', type: 'community', capabilities: { can_review_posts: true, can_publish_posts: true },
+  } }));
+  const result = (approval) => ({ results: [{ post: post({ score: null, community, approval,
+      caption: 'Community submission under review' }), approval, content_version: 'v1', decision: null }],
+    count: 1, next: null, counts: { posts: 1 } });
+  try {
+    await act(async () => reviewLoads[0].resolve(result(0)));
+    assert.ok(view.getByText('Community submission under review'));
+    assert.ok(view.getByRole('button', { name: 'Approve post' }));
+    assert.ok(view.getByRole('button', { name: 'Reject post' }));
+    fireEvent.click(view.getByRole('button', { name: 'Not approved' }));
+    await act(async () => reviewLoads[1].resolve(result(2)));
+    assert.ok(view.getByText('Community submission under review'));
+    assert.ok(view.getByRole('button', { name: 'Approve post' }));
+    assert.equal(view.queryByRole('button', { name: 'Reject post' }), null);
+    assert.equal(view.queryByRole('button', { name: 'React' }), null);
+  } finally {
+    view.unmount();
+    cleanup();
+  }
+});
+
 test('private review cards reuse the post body without public actions or options', () => {
   const html = render(PostItem, { mp: post({ community, approval: 0, read_only: true }), isSharePreview: false });
   assert.match(html, /A contribution/);
