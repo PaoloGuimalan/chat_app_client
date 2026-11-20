@@ -9,6 +9,8 @@ export type RealmCapability =
   | "can_update_realm"
   | "can_update_media"
   | "can_assign_roles"
+  | "can_transfer_ownership"
+  | "can_remove_followers"
   | "can_view_members"
   | "can_invite_members"
   | "can_publish_invites"

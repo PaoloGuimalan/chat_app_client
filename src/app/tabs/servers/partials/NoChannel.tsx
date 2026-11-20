@@ -1,3 +1,4 @@
+import { hasRoleManagementCapabilities } from "@/app/tabs/realms/manage/manageTabs";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { motion } from "framer-motion";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -62,7 +63,7 @@ function NoChannel({ server }: any) {
                 </span>
               </div>
               <div className="tw-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[4px] tw-justify-center">
-                {server.is_admin && (
+                {(server.is_admin || hasRoleManagementCapabilities(server.capabilities)) && (
                   <button
                     onClick={() => {
                       navigate(`/realms/${server.serverID}`);

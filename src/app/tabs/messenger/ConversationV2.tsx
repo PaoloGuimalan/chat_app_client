@@ -1,3 +1,4 @@
+import { hasRoleManagementCapabilities } from "@/app/tabs/realms/manage/manageTabs";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable react-hooks/exhaustive-deps */
 import { replyCardOf, replyTargetSummary } from "@/reusables/hooks/replyTargets";
@@ -2271,7 +2272,7 @@ function ConversationV2({
                         </span>
                       </motion.button>
                       {conversationinfo?.type !== "single" &&
-                        conversationinfo?.is_admin && (
+                        (conversationinfo?.is_admin || hasRoleManagementCapabilities(conversationinfo?.capabilities)) && (
                           <motion.button
                             className={`cl-conversation-menu-action cl-conversation-menu-action--accent tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer ${
                               isServerConversation

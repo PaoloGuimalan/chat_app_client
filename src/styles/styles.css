@@ -3389,13 +3389,45 @@ input:checked + .slider:before {
 .cl-invite-people__choices {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  align-items: flex-start;
+  gap: 12px;
 }
 
-/* Each tab group keeps its width - when both no longer fit on a line, the
-   role tabs move to the next one, rather than squeezing "Help run" onto two. */
-.cl-invite-people__choices > * {
+/* Both fields have their own label row and equal-height controls. Error/help
+   text under the role must not move the invitation control out of alignment. */
+.cl-invite-people__purpose {
+  display: grid;
+  gap: 6px;
   flex: none;
+}
+
+.cl-invite-people__role {
+  flex: 1 1 180px;
+  min-width: 0;
+  max-width: 320px;
+}
+
+.cl-invite-people__choice-label,
+.cl-invite-people__role > label {
+  text-align: left;
+  font-size: var(--fs-caption);
+  line-height: 18px;
+  color: var(--text-2);
+}
+
+.cl-invite-people__role > label {
+  min-width: 0;
+  /* The shared selector uses globally important Tailwind sizing utilities. */
+  gap: 6px !important;
+}
+
+.cl-invite-people__role select {
+  height: 40px;
+  min-height: 40px !important;
+  padding: 8px 12px !important;
+  font-size: var(--fs-body-sm);
+  line-height: 20px !important;
+  text-align: left;
 }
 
 .cl-invite-people__choices button {

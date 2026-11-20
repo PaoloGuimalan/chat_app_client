@@ -43,9 +43,10 @@ function Members({
   const realmTypeLabel =
     realm.type === "group" && realm.parent ? "channel" : realm.type;
 
-  const caps = realm.type === "community" ? realm.capabilities : undefined;
+  const caps = realm.capabilities;
   const canViewMembers = !caps || caps.can_view_members === true;
-  const canRemove = caps ? caps.can_remove_members === true : canManageCommunitySettings(realm.my_role);
+  const inheritedMembership = ['channel', 'voice'].includes(realmTypeLabel) && !realm.is_private;
+  const canRemove = !inheritedMembership && (caps ? caps.can_remove_members === true : canManageCommunitySettings(realm.my_role));
   const canReview = caps ? caps.can_review_join_requests || caps.can_decline_join_requests : canReviewCommunityRequests(realm.my_role);
   const addableMember =
     (realm.type !== "community" || (caps ? caps.can_invite_members === true : canManageCommunitySettings(realm.my_role))) &&
@@ -204,7 +205,7 @@ function Members({
 
     return (
       <div className="tw-flex tw-flex-1 tw-flex-col tw-min-h-0 tw-w-full tw-p-[14px] sm:tw-p-[18px] tw-gap-[12px]">
-        {["community", "server"].includes(realm.type) &&
+        {["community", "server", "conference"].includes(realm.type) &&
           canReview && (
             <CommunityRequests canApprove={caps ? !!caps.can_review_join_requests : true} canDecline={caps ? !!caps.can_decline_join_requests : true} realmId={realm.realm_id} compact />
           )}
@@ -293,7 +294,7 @@ function Members({
         <div
           className={`tw-w-full ${addableMember && "xl:tw-max-w-[450px]"} tw-flex tw-flex-col tw-gap-[12px]`}
         >
-          {["community", "server"].includes(realm.type) &&
+          {["community", "server", "conference"].includes(realm.type) &&
             canReview && (
               <CommunityRequests canApprove={caps ? !!caps.can_review_join_requests : true} canDecline={caps ? !!caps.can_decline_join_requests : true} realmId={realm.realm_id} />
             )}

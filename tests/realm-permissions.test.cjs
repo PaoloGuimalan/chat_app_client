@@ -72,3 +72,14 @@ test('permission names and supporting descriptions render while saves retain can
   fireEvent.click(view.getByRole('button', { name: 'Save permissions' }));
   assert.deepEqual(Array.from(state.calls[1].args[1][0].permissions), ['realm.post.publish']);
 });
+
+test('matrix403 falls back to current scoped roles without offering permission edits', async () => {
+  reset(); const view = render(React.createElement(Permissions, { realm }));
+  await act(async () => state.calls[0].reject({ response: { status: 403 } }));
+  assert.equal(state.calls[1]?.method, 'GetRoleDefinitionsRequest');
+  assert.equal(state.calls[1]?.args[0], 'club');
+  await act(async () => state.calls[1].resolve(config().roles.map(role => ({ ...role, permissions_editable: false }))));
+  assert.ok(view.getByRole('button', { name: 'Member' }));
+  assert.equal(view.queryByRole('button', { name: 'Save permissions' }), null);
+  assert.equal(state.errors.length, 0);
+});

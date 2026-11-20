@@ -1,3 +1,4 @@
+import { hasRoleManagementCapabilities } from "@/app/tabs/realms/manage/manageTabs";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { AuthenticationInterface, IRealmProfileInfo } from "@/reusables/vars/interfaces";
 import { RiUserFollowLine, RiVerifiedBadgeFill } from "react-icons/ri";
@@ -253,7 +254,7 @@ function GenericRealmItem({
             </span>
             <div className="tw-w-full tw-flex tw-flex-row tw-flex-1 tw-justify-between tw-items-end tw-gap-[10px] tw-pb-[15px]">
               <div className="tw-flex tw-gap-[4px]">
-                {mp.type === "page" && mp.is_admin && (
+                {mp.type === "page" && (mp.is_admin || hasRoleManagementCapabilities(mp.capabilities)) && (
                   <button
                     onClick={() => {
                       navigate(`/realms/${mp.realm_id}`);

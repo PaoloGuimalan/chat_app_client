@@ -354,17 +354,23 @@ function InvitePeople({
 
       {isPage && (
         <div className="cl-invite-people__choices">
-          <SegTabs
-            tabs={[
-              { key: "follow", label: "Follow" },
-              { key: "manage", label: "Help run" },
-            ]}
-            value={pagePurpose}
-            onChange={(k) => setPagePurpose(k as PagePurpose)}
-          />
+          <div className="cl-invite-people__purpose">
+            <span className="cl-invite-people__choice-label">Invitation</span>
+            <SegTabs
+              tabs={[
+                { key: "follow", label: "Follow" },
+                { key: "manage", label: "Help run" },
+              ]}
+              style={{ minHeight: 40 }}
+              value={pagePurpose}
+              onChange={(k) => setPagePurpose(k as PagePurpose)}
+            />
+          </div>
           {pagePurpose === "manage" && (
-            <RoleSelect {...roleDefinitions} roles={manageRoles} value={roleId}
-              onRetry={roleDefinitions.reload} onChange={(role) => setSelectedRoleId(role.id)} disabled={sending} />
+            <div className="cl-invite-people__role">
+              <RoleSelect {...roleDefinitions} roles={manageRoles} value={roleId}
+                onRetry={roleDefinitions.reload} onChange={(role) => setSelectedRoleId(role.id)} disabled={sending} />
+            </div>
           )}
         </div>
       )}

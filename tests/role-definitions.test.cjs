@@ -21,6 +21,7 @@ function load(relative, overrides = {}) {
     module: fixture, exports: fixture.exports, document, window: dom.window, CustomEvent: dom.window.CustomEvent, getComputedStyle: dom.window.getComputedStyle, console, setTimeout, clearTimeout,
     localStorage: { getItem: () => 'fixture-token' },
     require(name) {
+      if (name.endsWith('/manageTabs')) return load('app/tabs/realms/manage/manageTabs.ts');
       if (name.endsWith('/realmAccessRecovery')) return load('reusables/hooks/realmAccessRecovery.ts');
       if (overrides[name]) return overrides[name];
       if (name === 'react' || name === 'react/jsx-runtime' || name.startsWith('react-icons/')) return require(name);

@@ -302,6 +302,7 @@ export interface ConversationFilesPage {
 }
 
 export interface ConversationInfoInterface {
+  capabilities?: import('./realmApprovals').RealmCapabilities;
   _id: any;
   contactID: string;
   actionBy: string;
@@ -380,6 +381,7 @@ export interface ServerUsersWithInfo {
 }
 
 export interface ServerChannelsListInterface {
+  capabilities?: import('./realmApprovals').RealmCapabilities;
   _id: string;
   serverID: string;
   serverName: string;

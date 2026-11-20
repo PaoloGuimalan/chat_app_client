@@ -39,6 +39,7 @@ function MembersOptions({
   viewerIsOwner,
   isSelf,
   canAssignRole = true,
+  canTransferOwnership = viewerIsOwner,
 }: {
   member: IRealmMember;
   hide: string[];
@@ -57,6 +58,7 @@ function MembersOptions({
    */
   isSelf: boolean;
   canAssignRole?: boolean;
+  canTransferOwnership?: boolean;
 }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -350,7 +352,7 @@ function MembersOptions({
               Assign different role
             </button>
           ) : null}
-          {!isSelf && viewerIsOwner && (
+          {!isSelf && canTransferOwnership && (
             <button
               onClick={() => {
                 setisOptionsToggled(false);

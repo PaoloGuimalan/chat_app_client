@@ -1,3 +1,4 @@
+import { canManageRealm } from "@/app/tabs/realms/manage/manageTabs";
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // import CachedImage from "@/app/reusables/cachers/CachedImage";
@@ -468,7 +469,7 @@ function RealmProfile({
                 )}
                 {authentication.auth && (
                   <div className="tw-flex sm:tw-w-auto tw-w-full sm:tw-pb-[0px] tw-pb-[20px] tw-gap-[4px] tw-justify-center">
-                    {realmInfo.is_admin && (
+                    {canManageRealm(realmInfo) && (
                       <button
                         onClick={() => {
                           navigate(`/realms/${realmInfo.realm_id}`);
@@ -871,7 +872,7 @@ function RealmProfile({
                     onclose={settoggleNewPostModal}
                   />
                 )}
-                {realmInfo.is_admin && (
+                {canManageRealm(realmInfo) && (
                   <Fragment>
                     <Card
                       pad={14}

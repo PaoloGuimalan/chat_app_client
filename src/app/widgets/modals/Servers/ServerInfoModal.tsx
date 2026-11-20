@@ -1,3 +1,4 @@
+import { hasRoleManagementCapabilities } from "@/app/tabs/realms/manage/manageTabs";
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Modal from "@/app/reusables/Modal";
@@ -144,7 +145,7 @@ function ServerInfoModal({ serverdetails, onclose }: ServerInfoModalProp) {
                   {serverdetails.serverName}
                 </span>
                 <div className="tw-flex tw-gap-[6px]">
-                  {serverdetails.is_admin && (
+                  {(serverdetails.is_admin || hasRoleManagementCapabilities(serverdetails.capabilities)) && (
                     <button
                       onClick={() => {
                         navigate(`/realms/${serverdetails.serverID}`);

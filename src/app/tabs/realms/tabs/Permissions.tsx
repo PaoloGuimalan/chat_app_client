@@ -60,14 +60,20 @@ export default function Permissions({ realm }: { realm: IRealmProfileInfo }) {
     setEditing(null);
     setRemoving(null);
     setSaving(false);
-    const request = realm.capabilities?.can_manage_permissions
-      ? getRealmPermissions(realm.id)
-      : GetRoleDefinitionsRequest(realm.id).then((roles) => ({
-          roles,
+    const loadRoles = () => GetRoleDefinitionsRequest(realm.id).then((roles) => ({
+          roles: roles.map(item => ({ ...item, permissions_editable: false })),
           catalog: [],
           features: realm.features ?? {},
-          capabilities: realm.capabilities ?? {},
+          capabilities: { ...realm.capabilities, can_manage_permissions: false },
         }));
+    const request = realm.capabilities?.can_manage_permissions
+      ? getRealmPermissions(realm.id).catch((error) => {
+          const status = error?.response?.status ?? error?.status;
+          if (status === 403 && realm.capabilities?.can_manage_roles && active && live.current === scope &&
+              token === localStorage.getItem('authtoken')) return loadRoles();
+          throw error;
+        })
+      : loadRoles();
     request
       .then((result) => {
         if (
@@ -84,11 +90,11 @@ export default function Permissions({ realm }: { realm: IRealmProfileInfo }) {
         );
       })
       .catch((error) => {
-        if (!active || live.current !== scope) return;
+        if (!active || live.current !== scope || token !== localStorage.getItem('authtoken')) return;
         setLoaded({ scope, data: null, busy: false });
         notifyRequestError(
           error,
-          "We couldn’t load the community permissions.",
+          "We couldn’t load the realm permissions.",
         );
       });
     return () => {
@@ -197,7 +203,7 @@ export default function Permissions({ realm }: { realm: IRealmProfileInfo }) {
             Permissions
           </h2>
           <p className="tw-mb-0 tw-text-[13px] tw-text-[var(--text-2)]">
-            Choose what each role can do in the community.
+            Choose what each role can do in this realm.
           </p>
         </div>
         {realm.capabilities?.can_manage_roles && (

@@ -1,3 +1,4 @@
+import { hasRoleManagementCapabilities } from "@/app/tabs/realms/manage/manageTabs";
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import VoiceWindow from "@/app/absolutes/calls_v2/VoiceWindow";
 import {
@@ -339,7 +340,7 @@ function VoiceChannel({ conversationsetup, users, isMinimized }: any) {
                 }}
                 className="cl-conversation-menu cl-conversation-menu--server tw-flex-col tw-absolute tw-top-[30px] tw-min-w-[80px] tw-right-0 tw-rounded-md tw-p-[5px] tw-shadow-md tw-z-50"
               >
-                {conversationsetup.groupdetails.is_admin && (
+                {(conversationsetup.groupdetails.is_admin || hasRoleManagementCapabilities(conversationsetup.groupdetails.capabilities)) && (
                   <motion.button
                     className="cl-conversation-menu-action cl-conversation-menu-action--accent cl-conversation-menu-action--server tw-flex tw-border-none tw-gap-[5px] tw-p-[5px] tw-items-center tw-w-auto tw-min-w-full tw-rounded-[4px] tw-cursor-pointer"
                     // A modal, not the /realms page: leaving this route

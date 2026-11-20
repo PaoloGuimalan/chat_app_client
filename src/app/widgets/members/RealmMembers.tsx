@@ -57,7 +57,7 @@ function RealmMembers({
   // Every item in the menu is governed by that one rule, so an outranked
   // target gets no menu at all rather than an empty one.
   const canActOn = (role: string) =>
-    (realmNoun !== "community" || (capabilities ? capabilities.can_assign_roles || capabilities.can_remove_members : ["owner", "admin"].includes(myRole || ""))) &&
+    (capabilities ? capabilities.can_assign_roles || capabilities.can_remove_members : realmNoun !== "community" || ["owner", "admin"].includes(myRole || "")) &&
     (viewerIsOwner || !["admin", "owner"].includes(role));
 
   // Your own row shows one thing: Leave. The acting entity rather than the
@@ -332,6 +332,7 @@ function RealmMembers({
                             hide={hide}
                             realmNoun={realmNoun}
                             viewerIsOwner={viewerIsOwner}
+                            canTransferOwnership={capabilities?.can_transfer_ownership ?? viewerIsOwner}
                             isSelf={cnts.entity.id === actingEntityID}
                           />
                         )}

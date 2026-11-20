@@ -211,6 +211,15 @@ test('page feed retries a failed page without scrolling ahead of its pending ret
   assert.ok(screen.getByText('Second page'));
 });
 
+test('personal page managers have a Manage action without the legacy admin tier', () => {
+  const screen = render(React.createElement(RealmProfile, {
+    realmInfo: { id:'page',realm_id:'page',entity:'page-entity',name:'Page',type:'page',is_admin:false,
+      capabilities:{can_manage:true,can_manage_roles:true} },
+    isSharePage:false, GetProfileInfoProcess() {},
+  }));
+  assert.ok(screen.getByRole('button', { name:'Manage' }));
+});
+
 test('community avatar skips Moments and Thoughts while ordinary avatars retain them', () => {
   momentCalls = thoughtCalls = 0;
   const base = { userID: 'garden', entityId: 'garden-entity', realm_id: 'garden', type: 'realm', profile: 'photo.jpg', isAllowed: true, getpostprocess() {} };
