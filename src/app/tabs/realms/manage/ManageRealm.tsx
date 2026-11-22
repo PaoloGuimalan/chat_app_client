@@ -25,6 +25,7 @@ import { Avatar } from "@/reusables/design";
 import { manageRealmTabs, type ManageRealmTab } from './manageTabs';
 import Permissions from '../tabs/Permissions';
 import Approvals from '../tabs/Approvals';
+import RealmLifecycle from './section/RealmLifecycle';
 
 function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
   const screensizelistener = useSelector(
@@ -172,6 +173,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
         )}
         <div className="tw-flex tw-flex-1 tw-overflow-y-scroll x-scroll tw-min-w-0 tw-bg-[var(--background)]">
           <Routes>
+            <Route path="/lifecycle" element={allowed('lifecycle') ? <RealmLifecycle realm={realm} /> : <Navigate to={defaultPath} replace />} />
             <Route path="/" element={allowed('dashboard') ? <Dashboard /> : <Navigate to={defaultPath} replace />} />
             <Route path="/details" element={allowed('details') ? <Details realm={realm} /> : <Navigate to={defaultPath} replace />} />
             <Route path="/media" element={allowed('media') ? <Media realm={realm} /> : <Navigate to={defaultPath} replace />} />

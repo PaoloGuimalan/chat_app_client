@@ -77,6 +77,7 @@ Module._load = function(request, parent, isMain) {
   if (request === '@/reusables/design') return { Icon: () => null, Avatar: ({ name }) => { assert.equal(typeof name, 'string'); return React.createElement('span', null, name.split(' ')[0]); }, Card: plain, Btn: ({ children, onClick, disabled }) => React.createElement('button', { onClick, disabled }, children), PageFlag: () => null, BotFlag: () => null };
   if (request === '@/reusables/hooks/requests') return requests;
   if (request === '@/reusables/hooks/communityRequests') return api;
+  if (request === '@/reusables/hooks/realmLifecycleRequests') return {};
   if (request === '@/reusables/hooks/errormessages') return { resolveErrorMessage: (error, fallback) => error.message || fallback, notifyRequestError(error, fallback) { alerts.push(error.message || fallback); } };
   if (request === '@/reusables/hooks/pickFiles') return { pickFiles: async () => files };
   if (request === '@/reusables/hooks/useDragAndDrop') return { useDragAndDrop: () => ({ dragHandlers: {}, isDragging: false }) };

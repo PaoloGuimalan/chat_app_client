@@ -1,5 +1,6 @@
 import Modal from "@/app/reusables/Modal";
 import { ConfirmPrompt } from "./confirmPrompts";
+import { useState } from 'react';
 
 interface ConfirmModalProps extends ConfirmPrompt {
   /**
@@ -15,6 +16,7 @@ interface ConfirmModalProps extends ConfirmPrompt {
   // most call sites close the prompt the moment it is confirmed and let
   // their own button render the spinner.
   isBusy?: boolean;
+  confirmationName?: string;
 }
 
 /**
@@ -35,7 +37,9 @@ function ConfirmModal({
   onConfirm,
   onClose,
   isBusy,
+  confirmationName,
 }: ConfirmModalProps) {
+  const [entered, setEntered] = useState('');
   return (
     <Modal
       component={
@@ -44,6 +48,11 @@ function ConfirmModal({
           <span className="cl-text-body-sm tw-text-[var(--text-2)]">
             {message}
           </span>
+          {confirmationName !== undefined && <label className="cl-text-body-sm tw-w-full tw-text-left">
+            Enter {confirmationName} to confirm
+            <input value={entered} onChange={event => setEntered(event.target.value)} disabled={isBusy}
+              autoComplete="off" className="tw-w-full tw-mt-[8px] tw-p-[10px] tw-rounded-[8px] tw-border tw-border-[var(--border)] tw-bg-[var(--surface-2)] tw-text-[var(--text)]" />
+          </label>}
           <div className="tw-w-full tw-flex tw-gap-[6px] tw-justify-end tw-pt-[6px]">
             {onConfirm && (
               <button
@@ -56,7 +65,7 @@ function ConfirmModal({
             )}
             <button
               onClick={onConfirm ?? onClose}
-              disabled={isBusy}
+              disabled={isBusy || (confirmationName !== undefined && entered.trim() !== confirmationName.trim())}
               className={`${
                 onConfirm
                   ? "cl-profile-action-button--danger"

@@ -5,6 +5,9 @@ import type { PaginationProp } from "./props";
 export type ApprovalState = 0 | 1 | 2;
 export type ApprovalKind = "posts" | "invites" | "joins";
 export type RealmCapability =
+  | "can_deactivate_realm"
+  | "can_reactivate_realm"
+  | "can_delete_realm"
   | "can_manage"
   | "can_update_realm"
   | "can_update_media"

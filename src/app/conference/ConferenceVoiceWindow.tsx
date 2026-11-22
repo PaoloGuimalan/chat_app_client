@@ -58,6 +58,7 @@ import { notifyRequestError } from "@/reusables/hooks/errormessages";
 import InvitePeople from "@/app/widgets/invites/InvitePeople";
 import MemberActionsMenu from "./MemberActionsMenu";
 import { useConferenceIdentity } from "./identity";
+import ConferenceManagement from './ConferenceManagement';
 
 // The chat panel's accent - the one it always had.
 const CONFERENCE_CHAT_THEME = { primary: "#4994ec", lighten: "#82b6ec" };
@@ -1866,6 +1867,7 @@ function ConferenceVoiceWindow({
               </span>
             )}
           </button>
+          <ConferenceManagement realmId={realmId} onUnavailable={() => leaveCallProcessRef.current?.()} />
           <button
             onClick={() => {
               leaveCallProcess();

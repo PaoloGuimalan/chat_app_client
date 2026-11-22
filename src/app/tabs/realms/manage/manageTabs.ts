@@ -14,11 +14,11 @@ const isChannel = (realm: IRealmProfileInfo) =>
 export const hasMediaTab = (realm: IRealmProfileInfo) =>
   !isChannel(realm) && realm.type !== "conference";
 
-export type ManageRealmTab = 'dashboard' | 'details' | 'media' | 'members' | 'followers' | 'notifications' | 'permissions' | 'approvals' | 'archived';
+export type ManageRealmTab = 'dashboard' | 'details' | 'media' | 'members' | 'followers' | 'notifications' | 'permissions' | 'approvals' | 'archived' | 'lifecycle';
 export const hasRoleManagementCapabilities = (caps?: IRealmProfileInfo['capabilities']) =>
   caps?.can_manage_roles === true || caps?.can_manage_permissions === true;
 export const canManageRealm = (realm: IRealmProfileInfo) => realm.capabilities != null
-  ? realm.capabilities.can_manage === true || hasRoleManagementCapabilities(realm.capabilities)
+  ? realm.capabilities.can_manage === true || hasRoleManagementCapabilities(realm.capabilities) || realm.capabilities.can_deactivate_realm === true || realm.capabilities.can_delete_realm === true
   : realm.is_admin || (realm.type === 'community' && realm.my_role === 'moderator');
 
 /** Every realm uses current capabilities; unrelated legacy sections retain their fallback. */
@@ -34,5 +34,6 @@ export function manageRealmTabs(realm: IRealmProfileInfo): { key: ManageRealmTab
   if (realm.type === 'community' && caps?.can_archive_community_posts) items.push({ key: 'archived', label: 'Archived' });
   if (caps && (caps.can_manage_roles || caps.can_manage_permissions)) items.push({ key: 'permissions', label: 'Permissions' });
   if (realm.type === 'page') items.push({ key: 'followers', label: 'Followers' });
+  if (caps?.can_deactivate_realm || caps?.can_delete_realm) items.push({key: 'lifecycle', label: 'Deactivation & deletion'});
   return items;
 }

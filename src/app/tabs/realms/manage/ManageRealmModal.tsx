@@ -12,9 +12,10 @@ import { useManagedRealm } from "./useManagedRealm";
 import { hasMediaTab, manageRealmTabs, canManageRealm } from './manageTabs';
 import Permissions from '../tabs/Permissions';
 import Approvals from '../tabs/Approvals';
+import RealmLifecycle from './section/RealmLifecycle';
 import type { ApprovalKind } from '@/reusables/vars/realmApprovals';
 
-type ManageTab = "details" | "media" | "members" | "followers" | "notifications" | "permissions" | "approvals" | "archived";
+type ManageTab = "details" | "media" | "members" | "followers" | "notifications" | "permissions" | "approvals" | "archived" | "lifecycle";
 
 /**
  * Manage a realm without leaving the screen: the /realms/:realm_id page's
@@ -83,6 +84,8 @@ function ManageRealmModal({
       if (tabs.some(item => item.key === 'approvals')) { setApprovalSelection({ kind: 'joins', target: typeof requestId === 'string' ? requestId : '' }); setTab('approvals'); }
       else setTab('members');
     }} onReviewApprovals={(kind, target) => { setApprovalSelection({ kind, target }); setTab('approvals'); }} onOpenPost={onClose} />;
+  } else if (activeTab === 'lifecycle') {
+    body = <RealmLifecycle realm={realmInfo} onCompleted={onClose} />;
   } else if (activeTab === 'permissions') {
     body = <Permissions realm={realmInfo} />;
   } else if (activeTab === 'approvals') {
@@ -156,7 +159,7 @@ function ManageRealmModal({
                 tabs={tabs}
                 value={activeTab ?? ""}
                 onChange={(key) => setTab(key as ManageTab)}
-                style={{ width: "100%", maxWidth: 420, flexWrap: realmInfo?.type === "community" ? "wrap" : undefined }}
+                style={{ width: "100%", flexWrap: "wrap" }}
               />
             </div>
           )}

@@ -17,7 +17,7 @@ function load(relative, overrides = {}) {
   vm.runInNewContext(ts.transpileModule(fs.readFileSync(file, 'utf8'), { compilerOptions: {
     module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2020, jsx: ts.JsxEmit.ReactJSX, esModuleInterop: true,
   } }).outputText, {
-    module, exports: module.exports, document, window, CustomEvent: dom.window.CustomEvent,
+    module, exports: module.exports, document, window, CustomEvent: dom.window.CustomEvent, AbortController,
     localStorage: { getItem: () => state.token }, URL, console,
     require(name) {
       if (name in overrides) return overrides[name];
@@ -40,6 +40,7 @@ function load(relative, overrides = {}) {
       if (name.endsWith('/ConfirmModal')) return { __esModule: true, default: ({ title, onConfirm, onClose, confirmLabel }) => React.createElement('div', { role: 'dialog' }, title,
         React.createElement('button', { onClick: onConfirm }, confirmLabel), React.createElement('button', { onClick: onClose }, 'Cancel')) };
       if (name === '@/reusables/design') return {
+        Avatar: ({name}) => React.createElement('span',{'aria-label':`${name} icon`,role:'img'}),
         Card: ({ children, ...props }) => React.createElement('div', { className: props.className }, children),
         Btn: ({ children, onClick, disabled, type, ...props }) => React.createElement('button', { onClick, disabled, type, 'aria-label': props['aria-label'] }, children),
         SegTabs: ({ tabs, value, onChange }) => React.createElement('div', null, tabs.map(tab => React.createElement('button', { key: tab.key, onClick: () => onChange(tab.key) }, tab.label))),

@@ -24,6 +24,7 @@ function load(relative, overrides = {}) {
     localStorage: { getItem: () => 'fixture-token' },
     require(name) {
       if (overrides[name]) return overrides[name];
+      if (name === './section/RealmLifecycle') return {__esModule:true,default:()=>null};
       if (name === 'react' || name === 'react/jsx-runtime') return require(name);
       if (name === 'react-redux') return { useSelector: selector => selector({ authentication: { user: { entity_id: actor } } }) };
       if (name === 'react-router-dom') return { useNavigate: () => route => destinations.push(route) };

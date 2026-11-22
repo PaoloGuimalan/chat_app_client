@@ -13,6 +13,7 @@ for (const width of [390, 1280]) {
       '@/app/reusables/CommunityName': { __esModule: true, default: () => 'Club' },
       '@/reusables/design': { Avatar: () => null },
       './manageTabs': load('app/tabs/realms/manage/manageTabs.ts'),
+      './section/RealmLifecycle': { __esModule: true, default: () => null },
     };
     for (const tab of ['Dashboard', 'Details', 'Media', 'CommunityArchive', 'Members', 'Followers', 'Notifications', 'Permissions', 'Approvals']) {
       overrides[`../tabs/${tab}`] = { __esModule: true, default: () => React.createElement('div', null, tab) };

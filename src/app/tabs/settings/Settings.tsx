@@ -12,6 +12,7 @@ import DataPrivacy from "./section/DataPrivacy";
 import BlockedAccounts from "./section/BlockedAccounts";
 import DeviceSessions from "./section/DeviceSessions";
 import envs from "@/reusables/hooks/env_configs";
+import DeactivatedRealms from './section/DeactivatedRealms';
 
 interface SettingsItem {
   key: string;
@@ -50,6 +51,7 @@ function Settings({ isModal }: { isModal: boolean }) {
 
   const mappedSettingsList: SettingsCategory[] = useMemo(
     () => [
+      {category: 'Realms', description: 'Manage realms you can restore.', items: [{key:'deactivated-realms',icon:'restore',name:'Deactivated Realms',description:'Restore deactivated realms using an authorized profile.',isDisabled:false,component:<DeactivatedRealms/>}]},
       {
         category: "Account",
         description:

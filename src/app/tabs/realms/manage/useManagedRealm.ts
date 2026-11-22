@@ -34,7 +34,7 @@ export function useManagedRealm(realmId: string | undefined) {
     const changed = (event: Event) => {
       const detail = (event as CustomEvent).detail;
       if (detail?.realm_id && String(detail.realm_id) !== realmId) return;
-      if (detail?.event && !['reconnected', 'community_access_changed', 'community_members_changed', 'realm_access_changed', 'realm_members_changed'].includes(detail.event)) return;
+      if (detail?.event && !['reconnected', 'community_access_changed', 'community_members_changed', 'realm_access_changed', 'realm_members_changed', 'realm_lifecycle_changed'].includes(detail.event)) return;
       setRevision(value => value + 1);
     };
     document.addEventListener('reload-realm-members', changed);

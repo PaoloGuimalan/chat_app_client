@@ -85,6 +85,7 @@ const SSENotificationsTRequest = (
     "realm_requests_changed",
     "realm_members_changed",
     "realm_access_changed",
+    "realm_lifecycle_changed",
   ]) {
     sseNtfsSource.addEventListener(event, (frame: MessageEvent<string>) => {
       try {
