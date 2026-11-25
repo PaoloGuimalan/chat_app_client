@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import {
   CredentialResponse,
@@ -26,9 +26,11 @@ import { useTheme } from "@/reusables/design/ThemeProvider";
 import { SET_ALERTS, SET_REMOVE_IS_TYPING_LIST } from "@/redux/types";
 import { AuthenticationInterface } from "@/reusables/vars/interfaces";
 import ConferenceRoom from "./ConferenceRoom";
+import MyConferences from "./MyConferences";
 import { useConferenceIdentity } from "./identity";
 import IdentitySwitcher from "./IdentitySwitcher";
 import { notify, resolveErrorMessage } from "@/reusables/hooks/errormessages";
+import "./conferenceList.css";
 
 function ConferencePage() {
   // Who meetings are made and joined as - yourself, or the page you are
@@ -59,6 +61,9 @@ function ConferencePage() {
   const [inviteEmails, setInviteEmails] = useState("");
   const [scheduledFor, setScheduledFor] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const landingRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const accountCardRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const timers = istypinglist.map((mp: any) =>
@@ -157,6 +162,12 @@ function ConferencePage() {
       return;
     }
 
+    const start = meetingMode === "scheduled" ? new Date(scheduledFor) : null;
+    if (start && !Number.isFinite(start.getTime())) {
+      notify("warning", "Choose a start date and time for the scheduled meeting.");
+      return;
+    }
+
     setIsCreating(true);
     try {
       const inviteEmailsList = normalizeInviteEmails(inviteEmails);
@@ -173,7 +184,7 @@ function ConferencePage() {
         privacy: meetingPrivacy,
         otherUsers: [],
         meetingMode,
-        starts_at: meetingMode === "scheduled" ? scheduledFor || null : null,
+        starts_at: start?.toISOString() ?? null,
         expires_at: null,
         invitees: invitePayload,
       });
@@ -288,6 +299,35 @@ function ConferencePage() {
     [isLoggedIn, roomSlug],
   );
 
+  useLayoutEffect(() => {
+    if (!isLoggedIn || showConferenceRoom) return;
+    const landing = landingRef.current;
+    const header = headerRef.current;
+    const accountCard = accountCardRef.current;
+    const sidebar = accountCard?.parentElement;
+    if (!landing || !header || !accountCard || !sidebar) return;
+
+    const sizePanel = () => {
+      const bottomPadding = parseFloat(getComputedStyle(landing).paddingBottom);
+      const gap = parseFloat(getComputedStyle(sidebar).rowGap);
+      const accountBottom = accountCard.getBoundingClientRect().bottom -
+        landing.getBoundingClientRect().top + landing.scrollTop;
+      const viewportSpace = Math.max(0, landing.clientHeight - gap - bottomPadding);
+      const remaining = viewportSpace - accountBottom;
+      // On very short screens and when the profile picker is open, the page
+      // can scroll to the panel so it still has room for at least one row.
+      const available = remaining >= 100 ? remaining : Math.min(168, viewportSpace);
+      landing.style.setProperty("--conference-panel-height", `${available}px`);
+    };
+
+    sizePanel();
+    const observer = new ResizeObserver(sizePanel);
+    observer.observe(landing);
+    observer.observe(header);
+    observer.observe(accountCard);
+    return () => observer.disconnect();
+  }, [isLoggedIn, showConferenceRoom]);
+
   return (
     <GoogleOAuthProvider clientId={envs.GOOGLE_CLIENT_ID}>
       <div
@@ -297,8 +337,8 @@ function ConferencePage() {
         {showConferenceRoom ? (
           <ConferenceRoom />
         ) : (
-          <div className="tw-min-h-screen tw-w-full tw-flex tw-flex-col tw-items-center tw-px-[16px] tw-py-[18px] sm:tw-px-[24px] sm:tw-py-[22px]">
-            <div className="tw-w-full tw-max-w-[1240px] tw-flex tw-items-center tw-justify-between tw-gap-[12px] tw-mb-[18px]">
+          <div ref={landingRef} className={`${isLoggedIn ? "conference-landing-signed-in" : "tw-min-h-screen"} tw-w-full tw-flex tw-flex-col tw-items-center tw-px-[16px] tw-py-[18px] sm:tw-px-[24px] sm:tw-py-[22px]`}>
+            <div ref={headerRef} className="tw-w-full tw-max-w-[1240px] tw-flex tw-shrink-0 tw-items-center tw-justify-between tw-gap-[12px] tw-mb-[18px]">
               <div className="tw-flex tw-items-center tw-gap-[12px] tw-min-w-0">
                 <button
                   type="button"
@@ -316,7 +356,7 @@ function ConferencePage() {
                   <span className="tw-text-[18px] sm:tw-text-[20px] tw-font-semibold tw-tracking-[-0.02em]">
                     Conference
                   </span>
-                  <span className="tw-text-[12px] sm:tw-text-[13px] tw-text-[var(--text-2)] tw-truncate tw-max-w-full">
+                  <span className="tw-max-w-full tw-text-left tw-text-[12px] tw-text-[var(--text-2)] sm:tw-truncate sm:tw-text-[13px]">
                     Create or join meetings from one place.
                   </span>
                 </div>
@@ -347,9 +387,9 @@ function ConferencePage() {
               </div>
             </div>
 
-            <div className="tw-w-full tw-max-w-[1240px] tw-grid tw-grid-cols-1 xl:tw-grid-cols-[1fr_1fr] tw-gap-[16px]">
-              <div className="tw-flex tw-flex-col tw-gap-[16px]">
-                <div className="tw-rounded-[24px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-p-[18px] sm:tw-p-[22px]">
+            <div className="conference-layout tw-w-full tw-max-w-[1240px] tw-grid tw-grid-cols-1 xl:tw-grid-cols-2 tw-gap-[16px]">
+              <div className="tw-flex tw-min-w-0 tw-min-h-0 tw-flex-col tw-gap-[16px]">
+                <div ref={accountCardRef} className="tw-shrink-0 tw-rounded-[24px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-p-[18px] sm:tw-p-[22px]">
                   <div className="tw-flex tw-items-center tw-justify-between tw-gap-[12px] tw-mb-[18px]">
                     <div className="tw-flex tw-flex-col tw-items-start tw-gap-[4px]">
                       {isAuthResolving ? (
@@ -482,9 +522,10 @@ function ConferencePage() {
                     />
                   )}
                 </div>
+                {isLoggedIn && <MyConferences key={me.entityID} />}
               </div>
 
-              <div className="tw-flex tw-flex-col tw-gap-[16px]">
+              <div className="tw-flex tw-min-w-0 tw-flex-col tw-gap-[16px]">
                 <div className="tw-rounded-[24px] tw-bg-[var(--surface)] tw-border tw-border-[var(--border)] tw-shadow-[var(--shadow-sm)] tw-p-[18px] sm:tw-p-[22px]">
                   <div className="tw-flex tw-flex-col tw-items-start tw-gap-[6px] tw-mb-[16px]">
                     <span className="tw-text-[18px] tw-font-semibold">

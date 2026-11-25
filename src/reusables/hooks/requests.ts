@@ -3763,6 +3763,7 @@ const GetMyRealmsRequest = async (
   range: number,
   type: string,
   search?: string,
+  signal?: AbortSignal,
 ) => {
   return await Axios.get(`${envs.USER_SERVICE_API}/api/realm/my-list`, {
     headers: {
@@ -3774,6 +3775,7 @@ const GetMyRealmsRequest = async (
       type,
       search,
     },
+    signal,
   })
     .then((response) => {
       if (response.data) {
@@ -3783,7 +3785,7 @@ const GetMyRealmsRequest = async (
       }
     })
     .catch((err) => {
-      console.log(err);
+      if (!signal?.aborted) console.log(err);
       throw toRequestError(err);
     });
 };

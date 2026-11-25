@@ -1,0 +1,213 @@
+.conference-landing-signed-in {
+  box-sizing: border-box;
+  height: 100dvh;
+  overflow-y: auto;
+}
+
+.conference-layout {
+  flex-shrink: 0;
+}
+
+.conference-list-panel {
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  max-height: var(--conference-panel-height, 55dvh);
+  min-height: 0;
+  min-width: 0;
+  padding: 18px;
+}
+
+.conference-list-scroll {
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+/* Keep this selector feature query verbatim for the legacy Autoprefixer. */
+/* autoprefixer: ignore next */
+@supports selector(::-webkit-scrollbar) {
+  /* Standard scrollbar properties take precedence over the pseudo-elements. */
+  .cl-redesign .conference-list-scroll.cl-scroll {
+    scrollbar-width: auto;
+    scrollbar-color: auto;
+  }
+
+  .cl-redesign .conference-list-scroll.cl-scroll::-webkit-scrollbar {
+    width: 6px;
+  }
+
+  /* The app-wide scrollbar rules set these two declarations as important. */
+  .cl-redesign .conference-list-scroll::-webkit-scrollbar-track {
+    background: transparent !important;
+  }
+
+  .cl-redesign .conference-list-scroll::-webkit-scrollbar-thumb {
+    border: 0 !important;
+  }
+
+  .conference-list-scroll::-webkit-scrollbar-button {
+    display: none;
+  }
+}
+
+.conference-list {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.conference-list-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px;
+  border-radius: var(--r-md);
+  background: var(--surface-2);
+}
+
+.conference-list-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: var(--r-sm);
+  background: var(--brand-soft);
+  color: var(--brand-700);
+}
+
+.conference-list-details {
+  display: grid;
+  gap: 4px;
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.conference-list-details strong {
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+
+.conference-list-details time,
+.conference-list-status {
+  color: var(--text-2);
+  font-size: var(--fs-caption);
+}
+
+.conference-list-labels,
+.conference-list-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 5px;
+}
+
+.conference-list-labels span {
+  padding: 1px 7px;
+  border-radius: var(--r-pill);
+  background: var(--surface);
+  color: var(--text-2);
+  font-size: var(--fs-meta);
+}
+
+.conference-list-labels .conference-list-mode {
+  background: var(--brand-soft);
+  color: var(--brand-700);
+}
+
+[data-theme="dark"] .conference-list-icon,
+[data-theme="dark"] .conference-list-labels .conference-list-mode {
+  color: var(--brand-300);
+}
+
+.conference-list-join,
+.conference-list-delete,
+.conference-list-more {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 10px;
+  border: 1px solid var(--border-2);
+  border-radius: var(--r-sm);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  font: inherit;
+  font-size: var(--fs-caption);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.cl-redesign .conference-list-join,
+.cl-redesign .conference-list-join:visited {
+  border-color: transparent;
+  background: var(--brand-600);
+  color: white;
+}
+
+.cl-redesign .conference-list-join:hover {
+  background: var(--brand-700);
+  color: white;
+}
+
+.conference-list-delete {
+  width: 36px;
+  padding: 0;
+  color: color-mix(in srgb, var(--pink) 65%, var(--text));
+}
+
+.conference-list-delete:hover:enabled {
+  background: var(--pink-soft);
+}
+
+.conference-list-delete:disabled {
+  cursor: wait;
+  opacity: 0.55;
+}
+
+.conference-list-more,
+.conference-list-status {
+  margin: 10px 0 0;
+}
+
+@media (min-width: 640px) {
+  .conference-list-panel {
+    padding: 22px;
+  }
+}
+
+@media (max-height: 480px) {
+  .conference-list-panel {
+    gap: 8px;
+    padding: 12px;
+  }
+}
+
+@media (max-width: 420px) {
+  .conference-list-row {
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 6px;
+  }
+
+  .conference-list-icon,
+  .conference-list-arrow {
+    display: none;
+  }
+}
+@media (pointer: coarse) {
+  .conference-list-join,
+  .conference-list-delete,
+  .conference-list-more {
+    min-height: 44px;
+  }
+
+  .conference-list-delete {
+    width: 44px;
+  }
+}
