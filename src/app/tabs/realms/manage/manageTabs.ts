@@ -34,6 +34,6 @@ export function manageRealmTabs(realm: IRealmProfileInfo): { key: ManageRealmTab
   if (realm.type === 'community' && caps?.can_archive_community_posts) items.push({ key: 'archived', label: 'Archived' });
   if (caps && (caps.can_manage_roles || caps.can_manage_permissions)) items.push({ key: 'permissions', label: 'Permissions' });
   if (realm.type === 'page') items.push({ key: 'followers', label: 'Followers' });
-  if (caps?.can_deactivate_realm || caps?.can_delete_realm) items.push({key: 'lifecycle', label: 'Deactivation & deletion'});
+  if (caps?.can_deactivate_realm || caps?.can_delete_realm) items.push({key: 'lifecycle', label: 'Deactivation & Deletion'});
   return items;
 }

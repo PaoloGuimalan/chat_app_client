@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
-import Skeleton from 'react-loading-skeleton';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Btn, Card, Avatar } from '@/reusables/design';
 import { listDeactivatedRealms, reactivateRealm } from '@/reusables/hooks/realmLifecycleRequests';
 import { notify, notifyRequestError } from '@/reusables/hooks/errormessages';
@@ -68,7 +68,7 @@ export default function DeactivatedRealms() {
     <p className="tw-m-0 tw-text-[13px] tw-text-[var(--text-2)]">Realms you can reactivate through your profile or an authorized page. Reactivating does not switch your active profile.</p>
     {visible.map(row => <Card key={row.realm_id} pad={16}><div style={{display:'flex',flexWrap:'wrap',alignItems:'center',gap:12}}>
       <Avatar id={row.realm_id} name={row.name} src={row.profile ?? undefined} size={42}/>
-      <div style={{flex:'1 1 200px',minWidth:0}}><strong className="cl-text-body">{row.name}</strong><p className="cl-text-caption tw-text-[var(--text-2)]">{row.kind} · Deactivated</p>
+      <div style={{flex:'1 1 200px',minWidth:0}}><strong className="cl-text-body">{row.name}</strong><p className="cl-text-caption tw-text-[var(--text-2)]">{row.kind.charAt(0).toUpperCase() + row.kind.slice(1)} · Deactivated</p>
       {row.deactivated_at && <p className="tw-m-0 tw-text-[12px] tw-text-[var(--text-2)]">{new Date(row.deactivated_at).toLocaleDateString()}</p>}
       {row.blocked_by_parent && <p className="cl-text-body-sm">Reactivate the parent server first{row.parent_recovery_realm_id ? ' from this list.' : '. Its owner or an authorized member must restore it.'}</p>}</div>
       {row.actors.length > 1 ? <label className="cl-text-caption">Reactivate as<select aria-label={`Reactivate ${row.name} as`} value={actors[row.realm_id] ?? row.actors[0].entity_id}
@@ -78,7 +78,7 @@ export default function DeactivatedRealms() {
       </select></label> : <span className="cl-text-caption tw-text-[var(--text-2)]">As {row.actors[0]?.name}</span>}
       <Btn disabled={loading || busy !== null || row.blocked_by_parent || !row.actors.length} onClick={() => void restore(row)}>{busy === row.realm_id ? 'Reactivating…' : 'Reactivate'}</Btn>
     </div></Card>)}
-    {(loading || loadedScope !== scope) && <div aria-label="Loading deactivated realms"><Skeleton height={94} count={3}/></div>}
+    {(loading || loadedScope !== scope) && <SkeletonTheme baseColor="var(--surface-2)" highlightColor="var(--surface-hover)"><div aria-label="Loading deactivated realms"><Skeleton height={94} count={3}/></div></SkeletonTheme>}
     {!loading && !failed && !visible.length && <p>No deactivated realms available.</p>}
     {failed && <Btn onClick={() => void load(visible.length ? next ?? undefined : undefined)}>Retry</Btn>}
     {!loading && next && !failed && <Btn onClick={() => void load(next)}>Load more</Btn>}

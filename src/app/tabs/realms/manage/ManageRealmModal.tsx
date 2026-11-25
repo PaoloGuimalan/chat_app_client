@@ -1,3 +1,4 @@
+import { SkeletonTheme } from "react-loading-skeleton";
 import { ReactNode, useEffect, useState } from "react";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
 import Modal from "@/app/reusables/Modal";
@@ -105,6 +106,7 @@ function ManageRealmModal({
   }
 
   return (
+    <SkeletonTheme baseColor="var(--surface-2)" highlightColor="var(--surface-hover)">
     <Modal
       component={
         <div
@@ -170,6 +172,7 @@ function ManageRealmModal({
         </div>
       }
     />
+    </SkeletonTheme>
   );
 }
 

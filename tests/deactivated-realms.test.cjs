@@ -9,6 +9,7 @@ test('recovery uses an authorized actor and removes restored row without switchi
  const Component=f.load('app/tabs/settings/section/DeactivatedRealms.tsx',{'@/reusables/hooks/realmLifecycleRequests':api}).default;
  assert.equal(typeof Component,'function'); f.render(f.React.createElement(Component));
  await f.screen.findByText('Hidden group');
+ assert.ok(f.screen.getByText('Group · Deactivated'));
  await f.act(async()=>f.fireEvent.click(f.screen.getByRole('button',{name:'Reactivate'})));
  await f.waitFor(()=>assert.equal(calls.length,1));
  assert.deepEqual(calls[0],['r','page']);

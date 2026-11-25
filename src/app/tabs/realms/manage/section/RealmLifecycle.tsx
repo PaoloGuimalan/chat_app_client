@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigate } from 'react-router-dom';
-import Skeleton from 'react-loading-skeleton';
+import Skeleton, { SkeletonTheme } from 'react-loading-skeleton';
 import { Btn, Card } from '@/reusables/design';
 import ConfirmModal from '@/app/widgets/modals/ConfirmModal';
 import { getRealmLifecycle, deactivateRealm, deleteRealm } from '@/reusables/hooks/realmLifecycleRequests';
@@ -51,11 +51,11 @@ export default function RealmLifecycle({realm, onCompleted}: {realm: IRealmProfi
     } finally {submitting.current = false; if (current()) setBusy(false);}
   }
   const layout = {padding: 20, width: '100%', minWidth: 0, display: 'flex', flexDirection: 'column' as const, alignItems: 'stretch', gap: 16, textAlign: 'left' as const};
-  if (loading) return <div style={layout} aria-label="Loading realm settings"><Skeleton height={26} width="55%"/><Skeleton height={160}/><Skeleton height={160}/></div>;
+  if (loading) return <SkeletonTheme baseColor="var(--surface-2)" highlightColor="var(--surface-hover)"><div style={layout} aria-label="Loading realm settings"><Skeleton height={26} width="55%"/><Skeleton height={160}/><Skeleton height={160}/></div></SkeletonTheme>;
   if (!data) return <div style={layout}><p>Realm settings are unavailable.</p><Btn onClick={() => refresh(n => n + 1)}>Retry</Btn></div>;
   const children = data.kind === 'server' ? ` This includes ${data.child_count} channels and voice channels.` : '';
   return <section style={layout}>
-    <h2 className="tw-m-0 tw-text-[20px] tw-font-semibold tw-text-left">Deactivation & deletion</h2>
+    <h2 className="tw-m-0 tw-text-[20px] tw-font-semibold tw-text-left">Deactivation & Deletion</h2>
     {data.capabilities.can_deactivate_realm && <Card pad={20}><div style={{display:'flex',flexDirection:'column',alignItems:'flex-start',gap:12}}>
       <h3 className="tw-m-0 tw-text-[16px] tw-font-semibold">Deactivate realm</h3>
       <p className="tw-m-0 tw-text-[13px] tw-text-[var(--text-2)]">Hide the realm and its content from everyone, including its owner. Data is preserved.{children} Restore it from Settings → Realms → Deactivated Realms.</p>

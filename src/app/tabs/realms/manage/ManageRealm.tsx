@@ -1,3 +1,4 @@
+import { SkeletonTheme } from "react-loading-skeleton";
 import CommunityName from "@/app/reusables/CommunityName";
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -81,6 +82,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
   }, [realm]);
 
   return (
+    <SkeletonTheme baseColor="var(--surface-2)" highlightColor="var(--surface-hover)">
     <div className="tw-bg-[var(--background)] tw-text-[var(--text)] tw-w-full tw-h-full tw-absolute tw-inset-0 tw-flex tw-flex-col tw-items-center tw-z-[2]">
       <div className="tw-w-full tw-h-full tw-flex tw-overflow-hidden">
         {isMobileView && (
@@ -187,6 +189,7 @@ function ManageRealm({ realm }: { realm: IRealmProfileInfo; }) {
         </div>
       </div>
     </div>
+    </SkeletonTheme>
   );
 }
 

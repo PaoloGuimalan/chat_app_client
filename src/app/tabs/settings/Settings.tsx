@@ -51,7 +51,6 @@ function Settings({ isModal }: { isModal: boolean }) {
 
   const mappedSettingsList: SettingsCategory[] = useMemo(
     () => [
-      {category: 'Realms', description: 'Manage realms you can restore.', items: [{key:'deactivated-realms',icon:'restore',name:'Deactivated Realms',description:'Restore deactivated realms using an authorized profile.',isDisabled:false,component:<DeactivatedRealms/>}]},
       {
         category: "Account",
         description:
@@ -142,6 +141,7 @@ function Settings({ isModal }: { isModal: boolean }) {
           },
         ],
       },
+      {category: 'Realms', description: 'Manage realms you can restore.', items: [{key:'deactivated-realms',icon:'restore',name:'Deactivated Realms',description:'Restore deactivated realms using an authorized profile.',isDisabled:false,component:<DeactivatedRealms/>}]},
     ],
     [],
   );
